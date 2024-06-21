@@ -6,7 +6,7 @@ import {
   fetchAgora,
   fetchDrsHub,
   fetchGoogleForms,
-  fetchMartha,
+  fetchOk,
   fetchOrchestration,
   fetchRawls,
   jsonBody,
@@ -16,13 +16,13 @@ import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
+import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Support } from 'src/libs/ajax/Support';
@@ -132,6 +132,11 @@ const Workspaces = (signal) => ({
     const root = `workspaces/v2/${namespace}/${name}`;
 
     return {
+      clone: async (body) => {
+        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
+        return res.json();
+      },
+
       delete: () => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
@@ -340,11 +345,6 @@ const Workspaces = (signal) => ({
 
       delete: () => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
-      },
-
-      clone: async (body) => {
-        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
-        return res.json();
       },
 
       shallowMergeNewAttributes: (attributesObject) => {
@@ -692,34 +692,21 @@ const Submissions = (signal) => ({
   },
 });
 
-const shouldUseDrsHub = !!getConfig().shouldUseDrsHub;
-
 const DrsUriResolver = (signal) => ({
-  // Currently both Martha and DRSHub can get a signed URL
+  // DRSHub now gets a signed URL instead of Martha
   getSignedUrl: async ({ bucket, object, dataObjectUri, googleProject }) => {
-    if (shouldUseDrsHub) {
-      const res = await fetchDrsHub(
-        '/api/v4/gcs/getSignedUrl',
-        _.mergeAll([jsonBody({ bucket, object, dataObjectUri, googleProject }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-      );
-      return res.json();
-    }
-    const res = await fetchMartha(
-      'getSignedUrlV1',
-      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+    const res = await fetchDrsHub(
+      '/api/v4/gcs/getSignedUrl',
+      _.mergeAll([jsonBody({ bucket, object, dataObjectUri, googleProject }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     );
     return res.json();
   },
 
   getDataObjectMetadata: async (url, fields) => {
-    if (shouldUseDrsHub) {
-      const res = await fetchDrsHub(
-        '/api/v4/drs/resolve',
-        _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-      );
-      return res.json();
-    }
-    const res = await fetchMartha('martha_v3', _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }]));
+    const res = await fetchDrsHub(
+      '/api/v4/drs/resolve',
+      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+    );
     return res.json();
   },
 });
@@ -742,6 +729,7 @@ export const Ajax = (signal) => {
     Disks: Disks(signal),
     Dockstore: Dockstore(signal),
     DrsUriResolver: DrsUriResolver(signal),
+    ExternalCredentials: ExternalCredentials(signal),
     FirecloudBucket: FirecloudBucket(signal),
     Groups: Groups(signal),
     Methods: Methods(signal),

@@ -1,16 +1,18 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
+import { getTaskCost, makeCromwellStatusLine, makeStatusLine, renderTaskCostElement, statusType } from 'src/components/job-common';
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
+import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
 /* FILTER UTILITY FUNCTIONS */
 export const taskNameFilter = (searchText) => {
@@ -91,6 +93,16 @@ const SearchBar = ({ searchText, setSearchText }) => {
       }),
     ]
   );
+};
+
+const doesTaskHaveCostData = (task) => {
+  return !!(task?.taskStartTime && task?.vmCostUsd);
+};
+
+const noCostData = (task, subWorkflowId) => {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task.startTime) {
+    return true;
+  }
 };
 
 /* WORKFLOW BREADCRUMB SUB-COMPONENT */
@@ -347,6 +359,37 @@ const CallTable = ({
               ? [
                   {
                     size: { basis: 200, grow: 1 },
+                    field: 'cost',
+                    headerRenderer: () =>
+                      h(Sortable, { sort, field: 'cost', onSort: setSort }, [
+                        'Approximate Cost',
+                        h(
+                          TooltipTrigger,
+                          {
+                            content:
+                              'Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts.',
+                          },
+                          [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
+                        ),
+                      ]),
+                    cellRenderer: ({ rowIndex }) => {
+                      const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId } = filteredCallObjects[rowIndex];
+                      if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
+                        if (taskEndTime) {
+                          const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
+                          return div({}, [renderTaskCostElement(cost)]);
+                        }
+                        const cost = getTaskCost({ vmCostUsd, taskStartTime });
+                        return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
+                      }
+                      if (noCostData(filteredCallObjects[rowIndex], subWorkflowId)) {
+                        return div({}, ['-']);
+                      }
+                      return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
+                    },
+                  },
+                  {
+                    size: { basis: 200, grow: 1 },
                     field: 'logs',
                     headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
                     cellRenderer: ({ rowIndex }) => {
@@ -357,7 +400,7 @@ const CallTable = ({
                         outputs,
                         subWorkflowId,
                         // disable linting to match the backend keys
-                        // eslint-disable-next-line camelcase
+                        // eslint-disable-next-line camelcase, @typescript-eslint/no-unused-vars
                         tes_stderr,
                         // eslint-disable-next-line camelcase
                         tes_stdout,
@@ -408,14 +451,26 @@ const CallTable = ({
                                 Link,
                                 {
                                   onClick: () =>
-                                    showLogModal('Task Logs', [
-                                      { logUri: stdout, logTitle: 'Task Standard Out', logKey: 'stdout', logFilename: 'stdout.txt' },
-                                      { logUri: stderr, logTitle: 'Task Standard Err', logKey: 'stderr', logFilename: 'stderr.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stdout, logTitle: 'Backend Standard Out', logKey: 'tes_stdout', logFilename: 'stdout.txt' },
-                                      // eslint-disable-next-line camelcase
-                                      { logUri: tes_stderr, logTitle: 'Backend Standard Err', logKey: 'tes_stderr', logFilename: 'stderr.txt' },
-                                    ]),
+                                    showLogModal(
+                                      'Task Logs',
+                                      [
+                                        {
+                                          logUri: stdout,
+                                          logTitle: 'Task Standard Out',
+                                          logKey: 'stdout',
+                                          logFilename: 'stdout.txt',
+                                          logTooltip: LogTooltips.task,
+                                        },
+                                        {
+                                          logUri: stderr,
+                                          logTitle: 'Task Standard Err',
+                                          logKey: 'stderr',
+                                          logFilename: 'stderr.txt',
+                                          logTooltip: LogTooltips.task,
+                                        },
+                                      ],
+                                      tes_stdout
+                                    ),
                                 },
                                 ['Logs']
                               ),

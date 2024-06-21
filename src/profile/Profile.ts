@@ -1,3 +1,5 @@
+import _ from 'lodash/fp';
+import qs from 'qs';
 import { CSSProperties, Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
@@ -32,8 +34,20 @@ export const Profile = (): ReactNode => {
     }
   }, [profileStatus]);
 
+  // This coalescing is needed due to a peculiarity in the way Nav works.
+  // When the user is redirected back to the app from an external oauth provider,
+  // we need to grab the `state` and `code` query params from the URL.
+  // Not all providers order the query params and href the same way, and this seems to break Nav.useRoute query parsing.
   const { query, name } = Nav.useRoute();
-  const tab: string = query.tab || (name === 'fence-callback' ? 'externalIdentities' : 'personalInfo');
+  const { state, code } = qs.parse(window.location.search, { ignoreQueryPrefix: true });
+  let coalescedQuery = {};
+  if (_.isEmpty(query)) {
+    coalescedQuery = { state, code };
+  } else {
+    coalescedQuery = query;
+  }
+  const callbacks = ['fence-callback', 'ecm-callback', 'oauth-callback'];
+  const tab: string = query.tab || (callbacks.includes(name) ? 'externalIdentities' : 'personalInfo');
 
   const tabs = [
     { key: 'personalInfo', title: 'Personal Information' },
@@ -73,7 +87,7 @@ export const Profile = (): ReactNode => {
             Utils.switchCase(
               tab,
               ['personalInfo', () => h(PersonalInfo, { initialProfile: profile.state, onSave: updateProfile })],
-              ['externalIdentities', () => h(ExternalIdentities, { queryParams: query })],
+              ['externalIdentities', () => h(ExternalIdentities, { queryParams: coalescedQuery })],
               ['notificationSettings', () => h(NotificationSettings)],
               [Utils.DEFAULT, () => null]
             ),

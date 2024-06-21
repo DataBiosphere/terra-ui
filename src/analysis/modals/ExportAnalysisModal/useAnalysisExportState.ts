@@ -1,15 +1,15 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { AnalysisFile } from 'src/analysis/useAnalysisFiles';
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
-import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export type LoadedAnalysisFiles = LoadedState<AnalysisFile[], unknown>;
 

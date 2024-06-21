@@ -1,10 +1,10 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h, label, li, p, ul } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';

@@ -1,7 +1,8 @@
 import { icon, IconId } from '@terra-ui-packages/components';
+import { cond, switchCase } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { AriaAttributes, CSSProperties, Fragment, ReactNode, useState } from 'react';
-import { div, h, h2, img, li, p, span, ul } from 'react-hyperscript-helpers';
+import { div, h, h2, img, p, span } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import {
   ButtonPrimary,
@@ -11,19 +12,24 @@ import {
   RadioButton,
   spinnerOverlay,
 } from 'src/components/common';
-import { WorkspaceSelector } from 'src/components/workspace-utils';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { isAzureWorkspace, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { canWrite, WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
+import {
+  getRequiredCloudPlatform,
+  importWillUpdateAccessControl,
+  requiresSecurityMonitoring,
+  sourceHasAccessControl,
+} from './import-requirements';
 import { ImportRequest, TemplateWorkspaceInfo } from './import-types';
-import { canImportIntoWorkspace, getCloudPlatformRequiredForImport } from './import-utils';
-import { isProtectedSource } from './protected-data-utils';
+import { buildDestinationWorkspaceFilter } from './import-utils';
 
 const styles = {
   card: {
@@ -107,8 +113,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     onImport,
   } = props;
 
-  const isProtectedData = isProtectedSource(importRequest);
-  const requiredCloudPlatform = getCloudPlatformRequiredForImport(importRequest);
+  const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
+  const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
@@ -135,6 +141,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       'workspace.authorizationDomain',
       'workspace.cloudPlatform',
       'workspace.createdBy',
+      'workspace.googleProject',
       'workspace.lastModified',
       'workspace.name',
       'workspace.namespace',
@@ -173,9 +180,8 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     : [];
   const canUseTemplateWorkspace = filteredTemplates.length > 0;
 
-  const importMayTakeTimeMessage = p([
-    'Note that the import process may take some time after you are redirected into your destination workspace.',
-  ]);
+  const importMayTakeTimeMessage =
+    'Note that the import process may take some time after you are redirected into your destination workspace.';
 
   const linkAccountPrompt = () => {
     return div({}, [
@@ -186,26 +192,25 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     ]);
   };
 
-  const workspacesToImportTo = workspaces.filter((workspace) => {
-    return canImportIntoWorkspace(
-      {
-        cloudPlatform: requiredCloudPlatform,
-        isProtectedData,
-        requiredAuthorizationDomain,
-      },
-      workspace
-    );
-  });
+  const numWritableWorkspaces = workspaces.filter((workspace) => canWrite(workspace.accessLevel)).length;
 
-  // disable import into existing workspaces if data is marked as protected but no protected workspaces are available
-  const disableExportIntoExisting = isProtectedData && workspacesToImportTo.length === 0;
+  const availableDestinationWorkspaces = workspaces.filter(
+    buildDestinationWorkspaceFilter(importRequest, { requiredAuthorizationDomain })
+  );
+
+  // If some writable workspaces have been filtered by the destination filter,
+  // it is because they did not meet the data selection requirements.
+  const destinationWorkspaceLimitedByDataRequirements = availableDestinationWorkspaces.length < numWritableWorkspaces;
+
+  // Disable the "Select an existing workspace" option if no suitable workspaces are available.
+  const canImportIntoExistingWorkspace = availableDestinationWorkspaces.length > 0;
 
   const renderSelectExistingWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, [selectExistingWorkspacePrompt]),
-      isProtectedData &&
+      destinationWorkspaceLimitedByDataRequirements &&
         div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem', lineHeight: '1.5' } }, [
-          ' You may only import into workspaces that have additional security monitoring enabled.',
+          'Only workspaces that meet the data selection requirements are shown.',
         ]),
       h(IdContainer, [
         (id) =>
@@ -213,20 +218,26 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             // @ts-expect-error
             h(WorkspaceSelector, {
               id,
-              workspaces: workspacesToImportTo,
+              workspaces: availableDestinationWorkspaces,
               value: selectedWorkspaceId,
               onChange: setSelectedWorkspaceId,
             }),
           ]),
       ]),
-      importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
-      !!selectedWorkspace &&
-        h(Fragment, [
-          h(WorkspacePolicies, { workspace: selectedWorkspace }),
-          !!isProtectedData &&
-            isAzureWorkspace(selectedWorkspace) &&
-            div([p(['Importing this data may add:']), ul([li(['Additional access controls'])])]),
+      importMayTakeTime &&
+        div({ style: { paddingLeft: '0.5rem', paddingRight: '0.5rem', paddingTop: '0.5rem', lineHeight: '1.5' } }, [
+          importMayTakeTimeMessage,
         ]),
+      !!selectedWorkspace &&
+        h(WorkspacePolicies, {
+          workspace: selectedWorkspace,
+          noCheckboxes: true,
+          endingNotice: switchCase(
+            importWillUpdateAccessControl(importRequest, selectedWorkspace),
+            [true, () => div(['Importing this data will add additional access controls'])],
+            [undefined, () => div(['Importing this data may add additional access controls'])]
+          ),
+        }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         h(ButtonSecondary, { onClick: () => setMode(undefined), style: { marginLeft: 'auto' } }, ['Back']),
         h(
@@ -246,7 +257,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
   const renderSelectTemplateWorkspace = () =>
     h(Fragment, [
       h2({ style: styles.title }, ['Select a template']),
-      importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
+      importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [p([importMayTakeTimeMessage])]),
       div(
         {
           role: 'radiogroup',
@@ -339,11 +350,12 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               iconName: 'fileSearchSolid',
               title: selectExistingWorkspacePrompt,
               detail: 'Select one of your workspaces',
-              disabled: !userHasBillingProjects || disableExportIntoExisting,
-              tooltip:
-                !userHasBillingProjects || disableExportIntoExisting
-                  ? 'No existing protected workspace is present.'
-                  : undefined,
+              disabled: !canImportIntoExistingWorkspace,
+              tooltip: cond(
+                [canImportIntoExistingWorkspace, () => undefined],
+                [numWritableWorkspaces === 0, () => 'You do not have any writable workspaces.'],
+                () => 'No existing workspace meets the data selection requirements.'
+              ),
             }),
             h(ChoiceButton, {
               onClick: () => setIsCreateOpen(true),
@@ -356,17 +368,25 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
             isCreateOpen &&
               h(NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
-                cloudPlatform: getCloudPlatformRequiredForImport(importRequest),
-                renderNotice: ({ selectedBillingProject }) =>
-                  h(Fragment, [
-                    isProtectedData &&
-                      selectedBillingProject?.cloudPlatform === 'AZURE' &&
-                      p([
-                        'Importing controlled access data will apply any additional access controls associated with the data to this workspace.',
-                      ]),
-                    importMayTakeTime && importMayTakeTimeMessage,
-                  ]),
-                requireEnhancedBucketLogging: isProtectedData,
+                cloudPlatform: requiredCloudPlatform,
+                renderNotice: () => {
+                  const children: ReactNode[] = [];
+                  const hasAccessControl = sourceHasAccessControl(importRequest);
+                  if (hasAccessControl !== false) {
+                    children.push(
+                      div({ style: { paddingBottom: importMayTakeTime ? '1.0rem' : 0 } }, [
+                        `Importing controlled access data ${
+                          hasAccessControl ? 'will' : 'may'
+                        } apply any additional access controls associated with the data to this workspace.`,
+                      ])
+                    );
+                  }
+                  if (importMayTakeTime) {
+                    children.push(div([importMayTakeTimeMessage]));
+                  }
+                  return children.length > 0 ? h(Fragment, children) : undefined;
+                },
+                requireEnhancedBucketLogging: importRequiresSecurityMonitoring,
                 waitForServices: {
                   wds: true,
                 },

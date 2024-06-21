@@ -1,0 +1,49 @@
+{
+  "name": "@terra-ui-packages/analysis",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "vite build --emptyOutDir",
+    "dev": "vite build --mode=development --watch",
+    "test": "jest"
+  },
+  "type": "module",
+  "module": "./lib/es/index.js",
+  "main": "./lib/cjs/index.cjs",
+  "types": "./lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/es/index.js",
+      "require": "./lib/cjs/index.cjs",
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "files": [
+    "lib/cjs/**",
+    "lib/es/**",
+    "lib/types/**/*.d.ts"
+  ],
+  "dependencies": {
+    "@terra-ui-packages/components": "^1.1.0",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@terra-ui-packages/build-utils": "^2.0.1",
+    "@terra-ui-packages/test-utils": "^1.0.0",
+    "@testing-library/dom": "^9.3.1",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^28.1.8",
+    "@types/lodash": "^4.14.184",
+    "@types/react": "^18.2.15",
+    "@types/testing-library__jest-dom": "^5.14.9",
+    "jest": "^27.4.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "~5.1.6",
+    "vite": "^5.2.11"
+  },
+  "peerDependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}

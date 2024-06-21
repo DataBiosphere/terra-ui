@@ -1,43 +1,35 @@
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
-import { div, h, label, p, span } from 'react-hyperscript-helpers';
+import { Fragment, useEffect, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
+import { AutopauseConfiguration } from 'src/analysis/modals/ComputeModal/AutopauseConfiguration';
+import { AzureApplicationConfigurationSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureApplicationConfigurationSection';
+import { AzureComputeProfileSelect } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeProfileSelect';
 import { AzurePersistentDiskSection } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSection';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analysis/utils/cost-utils';
 import { generatePersistentDiskName } from 'src/analysis/utils/disk-utils';
-import {
-  autopauseDisabledValue,
-  defaultAutopauseThreshold,
-  generateRuntimeName,
-  getAutopauseThreshold,
-  getIsRuntimeBusy,
-  isAutopauseEnabled,
-} from 'src/analysis/utils/runtime-utils';
+import { autopauseDisabledValue, defaultAutopauseThreshold, generateRuntimeName, getIsRuntimeBusy } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common';
-import { icon } from 'src/components/icons';
-import { InfoBox } from 'src/components/InfoBox';
-import { NumberInput } from 'src/components/input';
+import { ButtonOutline, ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
+import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import {
-  azureMachineTypes,
   defaultAzureComputeConfig,
   defaultAzureDiskSize,
   defaultAzureMachineType,
   defaultAzurePersistentDiskType,
   defaultAzureRegion,
-  getMachineTypeLabel,
+  machineTypeHasGpu,
 } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 const titleId = 'azure-compute-modal-title';
 
@@ -48,11 +40,13 @@ export const AzureComputeModalBase = ({
   workspace,
   currentRuntime,
   currentDisk,
+  isLoadingCloudEnvironments,
   location,
   tool,
   hideCloseButton = false,
 }) => {
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
+  const loading = _loading || isLoadingCloudEnvironments;
   const [viewMode, setViewMode] = useState(undefined);
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime);
   const [currentPersistentDiskDetails] = useState(currentDisk);
@@ -61,18 +55,21 @@ export const AzureComputeModalBase = ({
   const { namespace, name: workspaceName, workspaceId } = workspace.workspace;
   const persistentDiskExists = !!currentPersistentDiskDetails;
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false);
-  const hasGpu = () => !!azureMachineTypes[computeConfig.machineType]?.hasGpu;
+
   // Lifecycle
-  useOnMount(() => {
-    const loadCloudEnvironment = _.flow(
+  useEffect(() => {
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentRuntime,
+      ...extractWorkspaceDetails(workspace.workspace),
+    });
+  });
+
+  useEffect(() => {
+    const refreshRuntime = _.flow(
       withErrorReportingInModal('Error loading cloud environment', onError),
       Utils.withBusyState(setLoading)
     )(async () => {
       const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null;
-      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-        existingConfig: !!currentRuntime,
-        ...extractWorkspaceDetails(workspace.workspace),
-      });
       setCurrentRuntimeDetails(runtimeDetails);
       setComputeConfig({
         machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
@@ -83,8 +80,8 @@ export const AzureComputeModalBase = ({
         autopauseThreshold: runtimeDetails ? runtimeDetails.autopauseThreshold || autopauseDisabledValue : defaultAutopauseThreshold,
       });
     });
-    loadCloudEnvironment();
-  });
+    refreshRuntime();
+  }, [currentRuntime, location, onError, workspaceId]);
 
   const renderTitleAndTagline = () => {
     return h(Fragment, [
@@ -106,6 +103,7 @@ export const AzureComputeModalBase = ({
           ButtonOutline,
           {
             onClick: () => setViewMode('deleteEnvironment'),
+            disabled: loading,
           },
           [
             Utils.cond(
@@ -118,145 +116,6 @@ export const AzureComputeModalBase = ({
       div({ style: { flex: 1 } }),
 
       renderActionButton(),
-    ]);
-  };
-
-  const renderApplicationConfigurationSection = () => {
-    return div({ style: computeStyles.whiteBoxContainer }, [
-      h(IdContainer, [
-        (id) =>
-          h(Fragment, [
-            div({ style: { marginBottom: '1rem' } }, [
-              label({ htmlFor: id, style: computeStyles.label }, ['Application configuration']),
-              h(InfoBox, { style: { marginLeft: '0.5rem' } }, ['Currently, the Azure VM is pre-configured. ']),
-            ]),
-            p({}, ['Azure Data Science Virtual Machine']),
-            div([
-              h(
-                Link,
-                {
-                  href: 'https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/#product-overview',
-                  ...Utils.newTabLinkProps,
-                },
-                ['Learn more about Azure Data Science VMs.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-              ),
-            ]),
-          ]),
-      ]),
-    ]);
-  };
-
-  const renderComputeProfileSection = () => {
-    const autoPauseCheckboxEnabled = !doesRuntimeExist();
-    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
-
-    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1.5rem' } }, [
-      div({ style: { marginBottom: '1.5rem' } }, [
-        h(IdContainer, [
-          (id) =>
-            h(Fragment, [
-              div({ style: { marginBottom: '1rem', display: 'flex' } }, [
-                label(
-                  {
-                    htmlFor: id,
-                    style: {
-                      ...computeStyles.label,
-                      marginRight: '1rem',
-                    },
-                  },
-                  ['Cloud compute profile']
-                ),
-                h(Link, { href: 'https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/', ...Utils.newTabLinkProps }, [
-                  'Learn more about cloud compute profiles.',
-                  icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-                ]),
-              ]),
-              div({ style: { width: 400 } }, [
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  isClearable: false,
-                  value: computeConfig.machineType,
-                  onChange: ({ value }) => {
-                    updateComputeConfig('machineType', value);
-                  },
-                  options: _.keys(azureMachineTypes),
-                  getOptionLabel: ({ value }) => getMachineTypeLabel(value),
-                  styles: { width: '400' },
-                }),
-              ]),
-            ]),
-        ]),
-        hasGpu() &&
-          div({ style: { display: 'flex', marginTop: '.5rem' } }, [
-            icon('warning-standard', { size: 16, style: { marginRight: '0.5rem', color: colors.warning() } }),
-            div([
-              span({ style: { marginRight: '0.5rem' } }, 'This VM is powered by an NVIDIA GPU; availability may vary.'),
-              h(
-                Link,
-                {
-                  style: { marginRight: '0.25rem' },
-                  href: 'https://support.terra.bio/hc/en-us/articles/16921184286491-How-to-use-GPUs-in-a-notebook-Azure-',
-                  ...Utils.newTabLinkProps,
-                },
-                ['Learn more about enabling GPUs.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-              ),
-            ]),
-          ]),
-      ]),
-      div({ style: { gridColumnEnd: 'span 6' } }, [
-        h(IdContainer, [
-          (id1) =>
-            h(Fragment, [
-              h(
-                LabeledCheckbox,
-                {
-                  id1,
-                  checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
-                  disabled: !autoPauseCheckboxEnabled,
-                  onChange: (v) => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v)),
-                },
-                [span({ style: { ...computeStyles.label } }, ['Enable autopause'])]
-              ),
-            ]),
-        ]),
-        h(
-          Link,
-          {
-            style: { marginLeft: '1rem', verticalAlign: 'bottom' },
-            href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5',
-            ...Utils.newTabLinkProps,
-          },
-          ['Learn more about autopause.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-        ),
-        div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
-          h(IdContainer, [
-            (id) =>
-              h(Fragment, [
-                h(NumberInput, {
-                  id,
-                  min: 10,
-                  max: 999,
-                  isClearable: false,
-                  onlyInteger: true,
-                  disabled: !autoPauseCheckboxEnabled,
-                  value: computeConfig.autopauseThreshold,
-                  hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
-                  tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
-                  onChange: (v) => updateComputeConfig('autopauseThreshold', Number(v)),
-                  'aria-label': 'Minutes of inactivity before autopausing',
-                }),
-                label(
-                  {
-                    htmlFor: id,
-                    hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
-                  },
-                  ['minutes of inactivity']
-                ),
-              ]),
-          ]),
-        ]),
-      ]),
     ]);
   };
 
@@ -280,8 +139,11 @@ export const AzureComputeModalBase = ({
   const renderActionButton = () => {
     const commonButtonProps = {
       tooltipSide: 'left',
-      disabled: Utils.cond([viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)], () => doesRuntimeExist()),
+      disabled: Utils.cond([loading, true], [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)], () =>
+        doesRuntimeExist()
+      ),
       tooltip: Utils.cond(
+        [loading, 'Loading cloud environments'],
         [viewMode === 'deleteEnvironment', () => (getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined)],
         [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
         () => undefined
@@ -316,6 +178,7 @@ export const AzureComputeModalBase = ({
       desiredPersistentDisk_size: computeConfig.persistentDiskSize,
       desiredPersistentDisk_type: 'Standard', // IA-4164 - Azure disks are currently only Standard (HDD), when we add types update this.
       desiredPersistentDisk_costPerMonth: getAzureDiskCostEstimate(computeConfig),
+      desiredRuntime_gpuEnabled: machineTypeHasGpu(computeConfig.machineType),
       tool: runtimeToolLabels.JupyterLab,
       application: runtimeToolLabels.JupyterLab,
     });
@@ -324,6 +187,7 @@ export const AzureComputeModalBase = ({
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
+    // If you update this text, update `run-analysis-azure`
     withErrorReportingInModal('Error modifying cloud environment', onError)
   )(async () => {
     sendCloudEnvironmentMetrics();
@@ -335,7 +199,7 @@ export const AzureComputeModalBase = ({
         () =>
           Utils.cond(
             [doesRuntimeExist(), () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)], // delete runtime
-            [!!persistentDiskExists, () => Ajax().Disks.disksV2().delete(currentPersistentDiskDetails.id)] // delete disk
+            [!!persistentDiskExists, () => leoDiskProvider.delete(currentPersistentDiskDetails)] // delete disk
           ),
       ],
       [
@@ -372,8 +236,21 @@ export const AzureComputeModalBase = ({
     return h(Fragment, [
       div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [renderTitleAndTagline(), renderCostBreakdown()]),
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
-        renderApplicationConfigurationSection(),
-        renderComputeProfileSection(),
+        h(AzureApplicationConfigurationSection),
+        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1.5rem' } }, [
+          h(AzureComputeProfileSelect, {
+            disabled: doesRuntimeExist(),
+            machineType: computeConfig.machineType,
+            style: { marginBottom: '1.5rem' },
+            onChangeMachineType: (v) => updateComputeConfig('machineType', v),
+          }),
+          h(AutopauseConfiguration, {
+            autopauseThreshold: computeConfig.autopauseThreshold,
+            disabled: doesRuntimeExist(),
+            style: { gridColumnEnd: 'span 6' },
+            onChangeAutopauseThreshold: (v) => updateComputeConfig('autopauseThreshold', v),
+          }),
+        ]),
         h(AzurePersistentDiskSection, {
           persistentDiskExists,
           onClickAbout: () => {
@@ -430,21 +307,21 @@ export const AzureComputeModalBase = ({
   return h(Fragment, [
     Utils.switchCase(
       viewMode,
-      ['aboutPersistentDisk', () => AboutPersistentDiskView({ titleId, setViewMode, onDismiss, tool })],
+      ['aboutPersistentDisk', () => h(AboutPersistentDiskView, { titleId, tool, onDismiss, onPrevious: () => setViewMode(undefined) })],
       [
         'deleteEnvironment',
         () =>
-          DeleteEnvironment({
+          h(DeleteEnvironment, {
             id: titleId,
             runtimeConfig: currentRuntimeDetails && currentRuntimeDetails.runtimeConfig,
             persistentDiskId: currentPersistentDiskDetails?.id,
             persistentDiskCostDisplay: Utils.formatUSD(getAzureDiskCostEstimate(computeConfig)),
             deleteDiskSelected,
             setDeleteDiskSelected,
-            setViewMode,
             renderActionButton,
             hideCloseButton: false,
             onDismiss,
+            onPrevious: () => setViewMode(undefined),
             toolLabel: currentRuntimeDetails && currentRuntimeDetails.labels.tool,
           }),
       ],

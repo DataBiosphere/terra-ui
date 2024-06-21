@@ -2,7 +2,6 @@
   "agoraUrlRoot": "https://agora.dsde-prod.broadinstitute.org",
   "bardRoot": "https://terra-bard-prod.appspot.com",
   "billingProfileManagerUrlRoot": "https://bpm.dsde-prod.broadinstitute.org",
-  "bondUrlRoot": "https://bond.dsde-prod.broadinstitute.org",
   "calhounUrlRoot": "https://calhoun.dsde-prod.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-prod.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.terra.bio",
@@ -10,21 +9,18 @@
   "drsHubUrlRoot": "https://drshub.dsde-prod.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "firecloudUrlRoot": "https://portal.firecloud.org",
+  "externalCreds": {
+    "providers": ["fence", "dcf-fence", "anvil", "kids-first", "github"],
+    "urlRoot": "https://externalcreds.dsde-prod.broadinstitute.org"
+  },
   "isProd": true,
   "jobManagerUrlRoot": "https://job-manager.dsde-prod.broadinstitute.org/jobs",
   "leoUrlRoot": "https://notebooks.firecloud.org",
-  "marthaUrlRoot": "https://us-central1-broad-dsde-prod.cloudfunctions.net",
   "orchestrationUrlRoot": "https://api.firecloud.org",
   "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",
-  "rexUrlRoot": "https://terra-rex-prod.appspot.com",
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com",
-  "shouldUseDrsHub": false,
   "workspaceManagerUrlRoot": "https://workspace.dsde-prod.broadinstitute.org",
-  "tCell": {
-    "appId": "saturnprod-VuHKy",
-    "apiKey": "AQEBBAEGP2gTM2pIdJAQOIeNrm8dcTM7E4FMSmaibbMUQxNU6qy6nLPOBK8QfSvPFSsX8PQ"
-  },
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-prod.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",

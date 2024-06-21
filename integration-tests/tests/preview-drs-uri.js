@@ -13,6 +13,7 @@ const {
   waitForNoSpinners,
   input,
   signIntoTerra,
+  noSpinnersAfter,
 } = require('../utils/integration-utils');
 
 const testPreviewDrsUriFn = _.flow(
@@ -36,7 +37,9 @@ const testPreviewDrsUriFn = _.flow(
   await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
   await click(page, clickable({ textContains: workspaceName }), { timeout: Millis.ofMinute });
 
-  await click(page, navChild('data'));
+  await noSpinnersAfter(page, {
+    action: () => click(page, navChild('data')),
+  });
 
   // Loading the workspace page now means we need to make a Google API call to
   // fetch the GCS bucket location. Wait a bit for it.

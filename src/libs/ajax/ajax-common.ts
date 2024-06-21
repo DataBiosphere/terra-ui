@@ -5,12 +5,10 @@ import {
   getAuthToken,
   getAuthTokenFromLocalStorage,
   loadAuthToken,
-  sendAuthTokenDesyncMetric,
   sendRetryMetric,
-  signOut,
-  SignOutCause,
 } from 'src/auth/auth';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
+import { signOut, SignOutCause } from 'src/auth/signout/sign-out';
 import { FetchFn, fetchOk, withCancellation, withInstrumentation } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
 
@@ -80,11 +78,6 @@ const createRequestWithStoredAuthToken = async (
   options?: RequestInit
 ): Promise<Response> => {
   const localToken = (await getAuthTokenFromLocalStorage())!;
-  const localHeaderJson = JSON.stringify(authOpts(localToken));
-  const memoryHeaderJson = JSON.stringify(authOpts());
-  if (localHeaderJson !== memoryHeaderJson) {
-    sendAuthTokenDesyncMetric();
-  }
   return createRequestWithNewAuthToken(localToken, wrappedFetch, resource, options);
 };
 
@@ -121,11 +114,10 @@ export const withRetryAfterReloadingExpiredAuthToken =
         // that means that the user has already been signed out and signed in again to receive a new token
         // in this case, we should not sign the user out again
         if (preRequestAuthToken === postRequestAuthToken) {
-          const signOutCause: SignOutCause =
-            reloadedAuthTokenState.status === 'expired' ? 'expiredRefreshToken' : 'errorRefreshingAuthToken';
+          const signOutCause: SignOutCause = 'errorRefreshingAuthToken';
           signOut(signOutCause);
         }
-        throw new Error(sessionTimedOutErrorMessage);
+        throw new Error(sessionExpirationErrorMessage);
       } else {
         throw error;
       }
@@ -215,21 +207,6 @@ export const fetchOrchestration = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchRex = _.flow(
-  withUrlPrefix(`${getConfig().rexUrlRoot}/api/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
-export const fetchBond = _.flow(
-  withUrlPrefix(`${getConfig().bondUrlRoot}/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
-export const fetchMartha = _.flow(
-  withUrlPrefix(`${getConfig().marthaUrlRoot}/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
 export const fetchDrsHub = _.flow(
   withUrlPrefix(`${getConfig().drsHubUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
@@ -240,7 +217,7 @@ export const fetchDrsHub = _.flow(
 export const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk);
 
 export const fetchEcm = _.flow(
-  withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`),
+  withUrlPrefix(`${getConfig().externalCreds?.urlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 

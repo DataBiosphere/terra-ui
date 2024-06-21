@@ -4,6 +4,7 @@ export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_WORKFLOW_RESOURCE_MONITORING = 'enableWorkflowResourceMonitoring';
 export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
+export const FIRECLOUD_UI_MIGRATION = 'firecloudUiMigration';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -104,9 +105,17 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     id: ENABLE_AZURE_TDR_IMPORT,
     title: 'Azure TDR Import',
     description: 'Enabling this feature will allow importing TDR snapshots into Azure workspaces.',
-    groups: ['dsp-analysis-journeys'],
+    groups: ['preview-azure-tdr-import'],
     feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure TDR snapshot Import'
+    )}`,
+  },
+  {
+    id: FIRECLOUD_UI_MIGRATION,
+    title: 'Firecloud UI Feature Migration',
+    description: 'Enabling this feature will update replaceable links to Firecloud UI with new links to Terra UI',
+    feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on deprecating Firecloud UI'
     )}`,
   },
 ];

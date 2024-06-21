@@ -1,12 +1,13 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ButtonPrimary, Link } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { HeaderCell, SimpleFlexTable, TextCell } from 'src/components/table';
 import { AttributeSchema } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import * as Utils from 'src/libs/utils';
+import { WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import {
   InputsButtonRow,
   InputSourceSelect,
@@ -21,6 +22,7 @@ import {
   StructInputType,
 } from 'src/workflows-app/models/submission-models';
 import {
+  asStructType,
   inputTypeStyle,
   isInputOptional,
   renderTypeText,
@@ -85,7 +87,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
   const structSourcePath = buildStructSourcePath(structIndexPath);
   const structTypeNamePath = buildStructTypeNamePath(structIndexPath);
 
-  const currentStructType = structTypePath ? (_.get(structTypePath, structType) as StructInputType) : structType;
+  const currentStructType = structTypePath ? asStructType(_.get(structTypePath, structType)) : structType;
   const currentStructSource = structSourcePath
     ? (_.get(structSourcePath, structSource) as ObjectBuilderInputSource)
     : structSource;
@@ -167,7 +169,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
               noContentMessage: '',
               columns: [
                 {
-                  size: { basis: 250, grow: 0 },
+                  size: { basis: 200, grow: 0 },
                   field: 'struct',
                   headerRenderer: () => h(HeaderCell, ['Struct']),
                   cellRenderer: () => {
@@ -175,13 +177,21 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 160, grow: 0 },
+                  size: { basis: 250, grow: 1 },
                   field: 'field',
                   headerRenderer: () => h(HeaderCell, ['Variable']),
                   cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, { style: inputTypeStyle(inputTableData[rowIndex].field_type) }, [
-                      inputTableData[rowIndex].field_name,
-                    ]);
+                    return h(
+                      TextCell,
+                      {
+                        style: {
+                          whiteSpace: 'normal',
+                          overflowWrap: 'break-word',
+                          ...inputTypeStyle(inputTableData[rowIndex].field_type),
+                        },
+                      },
+                      [inputTableData[rowIndex].field_name]
+                    );
                   },
                 },
                 {
@@ -195,7 +205,7 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 350, grow: 0 },
+                  size: { basis: 300, grow: 0 },
                   headerRenderer: () => h(HeaderCell, ['Input sources']),
                   cellRenderer: ({ rowIndex }) => {
                     const configurationIndex = inputTableData[rowIndex].configurationIndex;
@@ -220,8 +230,8 @@ export const StructBuilder = (props: StructBuilderProps) => {
                   },
                 },
                 {
-                  size: { basis: 300, grow: 1 },
-                  headerRenderer: () => h(HeaderCell, ['Attribute']),
+                  size: { basis: 300, grow: 2 },
+                  headerRenderer: () => h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
                   cellRenderer: ({ rowIndex }) => {
                     // rowIndex is the index of this input in the currently displayed table
                     // configurationIndex is the index of this input the struct input definition

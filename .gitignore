@@ -5,15 +5,16 @@ node_modules
 
 # testing
 /coverage
-packages/*/coverage
+packages/**/coverage
 /pacts
 
 # production
 /build
-packages/*/lib
-packages/*/.rollup.cache
+packages/**/lib
+packages/**/.rollup.cache
 tsconfig.tsbuildinfo
 public/build-info.json
+packages/**/vite.config.*.timestamp*
 
 # misc
 .DS_Store
@@ -25,6 +26,8 @@ public/build-info.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+build-storybook.log
 
 #
 # Additions beyond the default react-create-app .gitignore file.

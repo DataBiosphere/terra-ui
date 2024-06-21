@@ -1,5 +1,5 @@
 import { ReadyState } from '@terra-ui-packages/core-utils';
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
@@ -18,7 +18,7 @@ import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from '
 import { Ajax } from 'src/libs/ajax';
 import { ComputeImageRaw } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { asMockedFn } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type UseComputeImagesExport = typeof import('src/analysis/useComputeImages');
@@ -158,7 +158,7 @@ describe('GcpComputeImageSection', () => {
     // Assert
     // Change event fired
     expect(mockOnSelect).lastCalledWith(undefined, true);
-  });
+  }, 10000);
 
   it('loads RStudio tool images', async () => {
     // Arrange

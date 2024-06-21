@@ -1,9 +1,8 @@
 import { DEFAULT, switchCase } from '@terra-ui-packages/core-utils';
-import { parseJSON } from 'date-fns/fp';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { leoCookieProvider } from 'src/analysis/CookieProvider';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import {
   B2cIdTokenClaims,
   getCurrentOidcUser,
@@ -11,19 +10,20 @@ import {
   oidcSignIn,
   OidcSignInArgs,
   OidcUser,
-  revokeTokens,
 } from 'src/auth/oidc-broker';
 import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { Ajax } from 'src/libs/ajax';
-import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
-import { SamUserAttributes } from 'src/libs/ajax/User';
+import { fetchOk } from 'src/libs/ajax/ajax-common';
+import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
+import { Groups } from 'src/libs/ajax/Groups';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { SamUserAttributes, User } from 'src/libs/ajax/User';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications';
+import { clearNotification, notify, sessionExpirationProps } from 'src/libs/notifications';
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
-import allProviders from 'src/libs/providers';
 import {
   asyncImportJobStore,
   AuthState,
@@ -43,6 +43,8 @@ import {
   workspaceStore,
 } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { getTimestampMetricLabel } from 'src/libs/utils';
+import { allOAuth2Providers } from 'src/profile/external-identities/OAuth2Providers';
 import { v4 as uuid } from 'uuid';
 
 export const getAuthToken = (): string | undefined => {
@@ -72,7 +74,6 @@ export const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => 
     ['requested', () => Events.user.signOut.requested],
     ['disabled', () => Events.user.signOut.disabled],
     ['declinedTos', () => Events.user.signOut.declinedTos],
-    ['expiredRefreshToken', () => Events.user.signOut.expiredRefreshToken],
     ['errorRefreshingAuthToken', () => Events.user.signOut.errorRefreshingAuthToken],
     ['idleStatusMonitor', () => Events.user.signOut.idleStatusMonitor],
     ['unspecified', () => Events.user.signOut.unspecified],
@@ -97,9 +98,9 @@ export const sendRetryMetric = () => {
   Ajax().Metrics.captureEvent(Events.user.authToken.load.retry, {});
 };
 
-export const sendAuthTokenDesyncMetric = () => {
-  Ajax().Metrics.captureEvent(Events.user.authToken.desync, {});
-};
+// export const sendAuthTokenDesyncMetric = () => {
+//   Ajax().Metrics.captureEvent(Events.user.authToken.desync, {});
+// };
 
 // This can be called with an expired token, be careful of making any API calls here
 // Any API calls that rely on tokens should fail silently
@@ -110,7 +111,7 @@ export const signOut = async (cause: SignOutCause = 'unspecified') => {
   await sendSignOutMetrics(cause).catch(_.noop);
 
   if (cause === 'expiredRefreshToken' || cause === 'errorRefreshingAuthToken') {
-    notify('info', sessionTimedOutErrorMessage, sessionTimeoutProps);
+    notify('info', sessionExpirationErrorMessage);
   }
 
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
@@ -164,15 +165,13 @@ export const signIn = async (includeBillingScope = false): Promise<OidcUser> => 
       sessionId,
       sessionStartTime,
     }));
-    Ajax().Metrics.captureEvent(Events.user.login.success, {
+    Metrics().captureEvent(Events.user.login.success, {
       sessionStartTime: Utils.makeCompleteDate(sessionStartTime),
     });
     return authTokenState.oidcUser;
   }
-  if (authTokenState.status === 'expired') {
-    Ajax().Metrics.captureEvent(Events.user.login.expired, {});
-  } else if (authTokenState.status === 'error') {
-    Ajax().Metrics.captureEvent(Events.user.login.error, {});
+  if (authTokenState.status === 'error') {
+    Metrics().captureEvent(Events.user.login.error, {});
   }
   throw new Error('Auth token failed to load when signing in');
 };
@@ -265,7 +264,7 @@ export const loadAuthToken = async (
     }));
     const { refreshTokenMetadata: currentRefreshTokenMetadata } = metricStore.get();
 
-    Ajax().Metrics.captureEvent(Events.user.authToken.load.success, {
+    Metrics().captureEvent(Events.user.authToken.load.success, {
       authProvider: oidcUser.profile.idp,
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       authTokenCreatedAt: getTimestampMetricLabel(authTokenCreatedAt),
@@ -276,15 +275,8 @@ export const loadAuthToken = async (
       refreshTokenExpiresAt: getTimestampMetricLabel(currentRefreshTokenMetadata.expiresAt),
       jwtExpiresAt: getTimestampMetricLabel(jwtExpiresAt),
     });
-  } else if (loadedAuthTokenState.status === 'expired') {
-    Ajax().Metrics.captureEvent(Events.user.authToken.load.expired, {
-      ...getOldAuthTokenLabels(oldAuthTokenMetadata),
-      refreshTokenId: oldRefreshTokenMetadata.id,
-      refreshTokenCreatedAt: getTimestampMetricLabel(oldRefreshTokenMetadata.createdAt),
-      refreshTokenExpiresAt: getTimestampMetricLabel(oldRefreshTokenMetadata.expiresAt),
-    });
-  } else {
-    Ajax().Metrics.captureEvent(Events.user.authToken.load.error, {
+  } else if (loadedAuthTokenState.status === 'error') {
+    Metrics().captureEvent(Events.user.authToken.load.error, {
       // we could potentially log the reason, but I don't know if that data is safe to log
       ...getOldAuthTokenLabels(oldAuthTokenMetadata),
       refreshTokenId: oldRefreshTokenMetadata.id,
@@ -335,9 +327,6 @@ const getOldAuthTokenLabels = (oldAuthTokenMetadata: TokenMetadata) => {
       oldAuthTokenMetadata.createdAt < 0 ? undefined : Date.now() - oldAuthTokenMetadata.createdAt / 1000.0,
   };
 };
-const getTimestampMetricLabel = (timestamp: number): string | undefined => {
-  return timestamp < 0 ? undefined : Utils.formatTimestampInSeconds(timestamp);
-};
 
 export const hasBillingScope = (): boolean => authStore.get().hasGcpBillingScopeThroughB2C === true;
 
@@ -385,21 +374,17 @@ const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
   return oldState.signInStatus !== 'authenticated' && state.signInStatus === 'authenticated';
 };
 
-export const isUserLoaded = (state: AuthState) => {
-  return state.signInStatus === 'userLoaded';
-};
-
-export const hasAcceptedTermsOfService = (state: AuthState): boolean => {
-  return state.termsOfService.permitsSystemUsage ?? false;
+export const isUserInitialized = (state: AuthState): boolean => {
+  return state.signInStatus !== 'uninitialized';
 };
 
 export const ensureAuthSettled = () => {
-  if (isUserLoaded(authStore.get())) {
+  if (isUserInitialized(authStore.get())) {
     return;
   }
   return new Promise((resolve) => {
     const subscription = authStore.subscribe((state) => {
-      if (isUserLoaded(state)) {
+      if (isUserInitialized(state)) {
         resolve(undefined);
         subscription.unsubscribe();
       }
@@ -482,7 +467,7 @@ interface GoogleUserInfo {
 }
 
 // This is intended for integration tests to short circuit the login flow
-window.forceSignIn = withErrorReporting('Error forcing sign in', async (token) => {
+window.forceSignIn = withErrorReporting('Error forcing sign in')(async (token) => {
   await initializeAuth(); // don't want this clobbered when real auth initializes
   const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${token}` },
@@ -541,8 +526,14 @@ authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
       if (window.Appcues) {
-        window.Appcues.identify(userStore.get().terraUser.id!, {
-          dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime(),
+        const { terraUser, samUser } = userStore.get();
+        // for Sam users who have been invited but not yet registered
+        // and for a set of users who didn't have registration dates to migrate into Sam
+        // registeredAt may be null in the Sam db. In that case, default to epoch (1970) instead
+        // so the survey won't be immediately displayed
+        const dateJoined = samUser.registeredAt ? samUser.registeredAt.getTime() : new Date('1970-01-01').getTime();
+        window.Appcues.identify(terraUser.id!, {
+          dateJoined,
         });
         window.Appcues.on('all', captureAppcuesEvent);
       }
@@ -561,42 +552,39 @@ authStore.subscribe((state: AuthState) => {
 });
 
 authStore.subscribe(
-  withErrorReporting('Error checking groups for timeout status', async (state: AuthState, oldState: AuthState) => {
+  withErrorReporting('Error checking groups for timeout status')(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list());
+      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Groups().list());
       authStore.update((state) => ({ ...state, isTimeoutEnabled }));
     }
   })
 );
 
 export const refreshTerraProfile = async () => {
-  const profile: TerraUserProfile = await Ajax().User.profile.get();
+  const profile: TerraUserProfile = await User().profile.get();
   userStore.update((state: TerraUserState) => ({ ...state, profile }));
 };
 
 export const refreshSamUserAttributes = async (): Promise<void> => {
-  const terraUserAttributes: SamUserAttributes = await Ajax().User.getUserAttributes();
+  const terraUserAttributes: SamUserAttributes = await User().getUserAttributes();
   userStore.update((state: TerraUserState) => ({ ...state, terraUserAttributes }));
 };
 
 export const loadTerraUser = async (): Promise<void> => {
   try {
     const signInStatus = 'userLoaded';
-    const getProfile = Ajax().User.profile.get();
-    const getAllowances = Ajax().User.getUserAllowances();
-    const getAttributes = Ajax().User.getUserAttributes();
-    const getTermsOfService = Ajax().TermsOfService.getUserTermsOfServiceDetails();
-    const [profile, terraUserAllowances, terraUserAttributes, termsOfService] = await Promise.all([
-      getProfile,
-      getAllowances,
-      getAttributes,
-      getTermsOfService,
-    ]);
-    clearNotification(sessionTimeoutProps.id);
+    const getProfile = User().profile.get();
+    const getCombinedState = User().getSamUserCombinedState();
+    const [profile, terraUserCombinedState] = await Promise.all([getProfile, getCombinedState]);
+    const { terraUserAttributes, enterpriseFeatures, samUser, terraUserAllowances, termsOfService } =
+      terraUserCombinedState;
+    clearNotification(sessionExpirationProps.id);
     userStore.update((state: TerraUserState) => ({
       ...state,
       profile,
       terraUserAttributes,
+      enterpriseFeatures,
+      samUser,
     }));
     authStore.update((state: AuthState) => ({
       ...state,
@@ -625,7 +613,7 @@ const doSignInEvents = (state: AuthState) => {
 };
 
 authStore.subscribe(
-  withErrorReporting('Error loading user', async (state: AuthState, oldState: AuthState) => {
+  withErrorReporting('Error loading user')(async (state: AuthState, oldState: AuthState) => {
     if (isNowSignedIn(oldState, state)) {
       await loadTerraUser();
       if (state.userJustSignedIn) {
@@ -638,9 +626,9 @@ authStore.subscribe(
 );
 
 authStore.subscribe(
-  withErrorReporting('Error loading NIH account link status', async (state: AuthState, oldState: AuthState) => {
+  withErrorReporting('Error loading NIH account link status')(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      const nihStatus = await Ajax().User.getNihStatus();
+      const nihStatus = await User().getNihStatus();
       authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
     }
   })
@@ -649,7 +637,7 @@ authStore.subscribe(
 authStore.subscribe(
   withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
     if (userCanNowUseTerra(oldState, state)) {
-      await Ajax().Metrics.syncProfile();
+      await Metrics().syncProfile();
     }
   })
 );
@@ -659,26 +647,23 @@ authStore.subscribe(
     if (userCanNowUseTerra(oldState, state)) {
       const { anonymousId } = metricStore.get();
       if (anonymousId) {
-        return await Ajax().Metrics.identify(anonymousId);
+        return await Metrics().identify(anonymousId);
       }
     }
   })
 );
 
 authStore.subscribe(
-  withErrorReporting(
-    'Error loading Framework Services account status',
-    async (state: AuthState, oldState: AuthState) => {
-      if (userCanNowUseTerra(oldState, state)) {
-        await Promise.all(
-          _.map(async ({ key }) => {
-            const status = await Ajax().User.getFenceStatus(key);
-            authStore.update(_.set(['fenceStatus', key], status));
-          }, allProviders)
-        );
-      }
+  withErrorReporting('Error loading OAuth2 account status')(async (state: AuthState, oldState: AuthState) => {
+    if (userCanNowUseTerra(oldState, state)) {
+      await Promise.all(
+        _.map(async (provider) => {
+          const status = await ExternalCredentials()(provider).getAccountLinkStatus();
+          authStore.update(_.set(['oAuth2AccountStatus', provider.key], status));
+        }, allOAuth2Providers)
+      );
     }
-  )
+  })
 );
 
 authStore.subscribe((state: AuthState, oldState: AuthState) => {

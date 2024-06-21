@@ -16,9 +16,9 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation, useStore, withDisplayName } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { BaseWorkspace, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils';
+import { BaseWorkspace, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
-import { SaveFilesHelpAzure } from '../runtime-common-components';
+import { SaveFilesHelpAzure } from '../runtime-common-text';
 import { computeStyles } from './modalStyles';
 
 const titleId = 'hail-batch-modal-title';

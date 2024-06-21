@@ -1,9 +1,10 @@
-import { Fragment, ReactNode } from 'react';
+import { Fragment, ReactNode, useEffect } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
-import { RadioBlock, SaveFilesHelpAzure, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-components';
+import { RadioBlock } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelpAzure, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { runtimeToolLabels, ToolLabel } from 'src/analysis/utils/tool-utils';
 import TitleBar from 'src/components/TitleBar';
 import {
@@ -21,26 +22,38 @@ type DeleteEnvironmentProps = {
   persistentDiskCostDisplay: string;
   deleteDiskSelected: boolean;
   setDeleteDiskSelected: (p1: boolean) => void;
-  setViewMode: (value: React.SetStateAction<string | undefined>) => void;
   renderActionButton: () => React.ReactElement<any, any>;
   hideCloseButton: boolean;
   onDismiss: () => void;
+  onPrevious: () => void;
   toolLabel?: ToolLabel;
 };
 
-export const DeleteEnvironment = ({
-  id,
-  runtimeConfig,
-  persistentDiskId,
-  persistentDiskCostDisplay,
-  deleteDiskSelected,
-  setDeleteDiskSelected,
-  setViewMode,
-  renderActionButton,
-  hideCloseButton,
-  onDismiss,
-  toolLabel,
-}: DeleteEnvironmentProps) => {
+export const DeleteEnvironment = (props: DeleteEnvironmentProps): ReactNode => {
+  const {
+    id,
+    runtimeConfig,
+    persistentDiskId,
+    persistentDiskCostDisplay,
+    deleteDiskSelected,
+    setDeleteDiskSelected,
+    renderActionButton,
+    hideCloseButton,
+    onDismiss,
+    onPrevious,
+    toolLabel,
+  } = props;
+
+  /*
+   * If the application configuration/compute profile has been deleted, and the only
+   * piece remaining is the persistent disk, default to deleting the disk.
+   */
+  useEffect(() => {
+    if (!runtimeConfig && !!persistentDiskId && !deleteDiskSelected) {
+      setDeleteDiskSelected(true);
+    }
+  }, [runtimeConfig, persistentDiskId, deleteDiskSelected, setDeleteDiskSelected]);
+
   return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
     h(TitleBar, {
       id,
@@ -50,7 +63,7 @@ export const DeleteEnvironment = ({
       onDismiss,
       titleChildren: [],
       onPrevious: () => {
-        setViewMode(undefined);
+        onPrevious();
         setDeleteDiskSelected(false);
       },
     }),
@@ -115,9 +128,6 @@ export const DeleteEnvironment = ({
         [
           !runtimeConfig && !!persistentDiskId,
           () => {
-            if (!deleteDiskSelected) {
-              setDeleteDiskSelected(true);
-            }
             return h(Fragment, [
               h(
                 RadioBlock,

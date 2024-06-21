@@ -4,12 +4,13 @@ import { aside, div, h } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
 import { leoCookieProvider } from 'src/analysis/CookieProvider';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
-import { authStore } from 'src/libs/state';
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 
 export const cookiesAcceptedKey = 'cookiesAccepted';
 
@@ -46,6 +47,22 @@ const CookieWarning = () => {
 
   const rejectCookies = async () => {
     await leoCookieProvider.invalidateCookies({ signal });
+    const cookies = document.cookie.split(';');
+    acceptCookies(false);
+    // TODO: call azure invalidate cookie once endpoint exists, https://broadworkbench.atlassian.net/browse/IA-3498
+    await Runtimes(signal)
+      .invalidateCookie()
+      .catch(() => {});
+    // Expire all cookies
+    _.forEach((cookie) => {
+      // Find an equals sign and uses it to grab the substring of the cookie that is its name
+      const eqPos = cookie.indexOf('=');
+      const cookieName = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    }, cookies);
+
+    cookieReadyStore.reset();
+    azureCookieReadyStore.reset();
     getSessionStorage().clear();
     acceptCookies(false);
   };

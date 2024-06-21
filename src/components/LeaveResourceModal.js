@@ -1,8 +1,8 @@
+import { Modal } from '@terra-ui-packages/components';
 import { useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { loadTerraUser, signOut } from 'src/auth/auth';
+import { loadTerraUser } from 'src/auth/auth';
+import { signOut } from 'src/auth/signout/sign-out';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import scienceBackground from 'src/images/science-background.jpg';
 import { Ajax } from 'src/libs/ajax';
@@ -65,6 +66,8 @@ export const TermsOfServicePage = () => {
     </div>
   );
 
+  // TODO: Remove nested ternary to align with style guide
+  // eslint-disable-next-line no-nested-ternary
   const buttons = showButtons
     ? requiredToAcceptTermsOfService
       ? acceptTosButtons
@@ -72,8 +75,8 @@ export const TermsOfServicePage = () => {
     : spinnerOverlay;
 
   return (
-    <div role="main" style={mainStyles}>
-      <img src={scienceBackground} alt="" style={{ position: 'fixed', top: 0, left: 0, zIndex: -1 }} />
+    <div role='main' style={mainStyles}>
+      <img src={scienceBackground} alt='' style={{ position: 'fixed', top: 0, left: 0, zIndex: -1 }} />
       <div style={docContainerStyles}>
         <h1 style={headerStyles}>Terra Terms of Service</h1>
         {requiredToAcceptTermsOfService && (
@@ -82,7 +85,7 @@ export const TermsOfServicePage = () => {
         <RemoteMarkdown
           style={{ height: '60vh', overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' }}
           getRemoteText={() => Ajax().TermsOfService.getTermsOfServiceText()}
-          failureMessage="Could not get Terms of Service"
+          failureMessage='Could not get Terms of Service'
         />
         {buttons}
       </div>

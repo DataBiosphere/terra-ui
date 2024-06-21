@@ -4,8 +4,22 @@ import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
+import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
-export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, workflowId, showLogModal }) => {
+export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, workflowId, showLogModal, appId, workflowName }) => {
+  const makePath = () => {
+    if (!appId || appId == null) {
+      return 'workspace-services/cbas/';
+    }
+    if (!workflowName || workflowName == null) {
+      return `workspace-services/cbas/${appId}/`;
+    }
+    if (!workflowId || workflowId == null) {
+      return `workspace-services/cbas/${appId}/${workflowName}/$`;
+    }
+    return `workspace-services/cbas/${appId}/${workflowName}/${workflowId}/`;
+  };
+
   return div(
     {
       style: {
@@ -37,16 +51,32 @@ export const TroubleshootingBox = ({ name, namespace, logUri, submissionId, work
           {
             onClick: () => {
               showLogModal('Workflow Execution Log', [
-                { logUri, logTitle: 'Workflow Execution Log', logKey: 'execution_log', logFilename: 'workflow.log' },
+                {
+                  logUri,
+                  logTitle: 'Execution Log',
+                  logKey: 'execution_log',
+                  logFilename: 'workflow.log',
+                  logTooltip: LogTooltips.workflowExecution,
+                },
               ]);
             },
           },
           [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Workflow Execution Log'], {})]
         ),
-        h(Link, { href: Nav.getLink('workspace-files', { name, namespace }), target: '_blank' }, [
-          icon('folder-open', { size: 18 }),
-          ' Execution Directory',
-        ]),
+        h(
+          Link,
+          {
+            href: Nav.getLink(
+              'workspace-files',
+              { name, namespace },
+              {
+                path: makePath(),
+              }
+            ),
+            target: '_blank',
+          },
+          [icon('folder-open', { size: 18 }), ' Execution Directory']
+        ),
       ]),
     ]
   );

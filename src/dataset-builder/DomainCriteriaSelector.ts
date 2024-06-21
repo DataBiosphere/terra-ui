@@ -1,62 +1,102 @@
+import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import { DomainCriteria, GetConceptsResponse } from 'src/dataset-builder/DatasetBuilderUtils';
+import { Parent } from 'src/components/TreeGrid';
+import { ProgramDomainCriteria } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
-  SnapshotBuilderDomainOption as DomainOption,
+  SnapshotBuilderConcept,
+  SnapshotBuilderDomainOption,
 } from 'src/libs/ajax/DataRepo';
-import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData';
+import { withErrorReporting } from 'src/libs/error';
 import { useOnMount } from 'src/libs/react-utils';
 
 import { ConceptSelector } from './ConceptSelector';
-import { cohortEditorState, DomainCriteriaSelectorState } from './dataset-builder-types';
+import {
+  AnyDatasetBuilderState,
+  cohortEditorState,
+  DomainCriteriaSearchState,
+  DomainCriteriaSelectorState,
+} from './dataset-builder-types';
 import { OnStateChangeHandler } from './DatasetBuilder';
 
 interface DomainCriteriaSelectorProps {
   readonly state: DomainCriteriaSelectorState;
   readonly onStateChange: OnStateChangeHandler;
-  readonly datasetId: string;
+  readonly snapshotId: string;
   readonly getNextCriteriaIndex: () => number;
 }
 
 export const toCriteria =
-  (domainOption: DomainOption, getNextCriteriaIndex: () => number) =>
-  (concept: Concept): DomainCriteria => {
+  (domainOption: SnapshotBuilderDomainOption, getNextCriteriaIndex: () => number) =>
+  (concept: Concept): ProgramDomainCriteria => {
     return {
       kind: 'domain',
-      name: concept.name,
-      id: concept.id,
+      conceptId: concept.id,
+      conceptName: concept.name,
       index: getNextCriteriaIndex(),
       count: concept.count,
-      domainOption,
+      option: domainOption,
     };
   };
 
+export const saveSelected =
+  (
+    state: DomainCriteriaSelectorState | DomainCriteriaSearchState,
+    getNextCriteriaIndex: () => number,
+    onStateChange: (state: AnyDatasetBuilderState) => void
+  ) =>
+  (selected: SnapshotBuilderConcept[]) => {
+    const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
+    const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
+    // add/remove all cart elements to the domain group's criteria list in the cohort
+    _.flow(
+      _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
+      cohortEditorState.new,
+      onStateChange
+    )(state.cohort);
+  };
+
 export const DomainCriteriaSelector = (props: DomainCriteriaSelectorProps) => {
-  const [rootConcepts, loadRootConcepts] = useLoadedData<GetConceptsResponse>();
-  const { state, onStateChange, datasetId, getNextCriteriaIndex } = props;
+  const { state, onStateChange, snapshotId, getNextCriteriaIndex } = props;
+  const [hierarchy, setHierarchy] = useLoadedData<Parent<Concept>[]>();
   useOnMount(() => {
-    void loadRootConcepts(() => DataRepo().dataset(datasetId).getConcepts(state.domainOption.root));
+    const openedConcept = state.openedConcept;
+    if (openedConcept) {
+      void setHierarchy(
+        withErrorReporting(`Error loading hierarchy information for ${openedConcept.name}`)(async () => {
+          return (await DataRepo().snapshot(snapshotId).getConceptHierarchy(openedConcept)).result;
+        })
+      );
+    } else {
+      // get the children of this concept
+      void setHierarchy(async () => {
+        const results = (
+          await withErrorReporting(`Error getting concept children for ${state.domainOption.root.name}`)(
+            async () => await DataRepo().snapshot(snapshotId).getConceptChildren(state.domainOption.root)
+          )()
+        ).result;
+        return [{ parentId: state.domainOption.root.id, children: results }];
+      });
+    }
   });
-  return rootConcepts.status === 'Ready'
+
+  return hierarchy.status === 'Ready'
     ? h(ConceptSelector, {
-        initialRows: rootConcepts.state.result,
-        title: state.domainOption.category,
-        onCancel: () => onStateChange(cohortEditorState.new(state.cohort)),
-        onCommit: (selected: Concept[]) => {
-          const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
-          const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
-          // add/remove all cart elements to the domain group's criteria list in the cohort
-          _.flow(
-            _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),
-            cohortEditorState.new,
-            onStateChange
-          )(state.cohort);
-        },
+        parents: hierarchy.state,
+        domainOptionRoot: state.domainOption.root,
+        title: state.domainOption.name,
+        initialCart: state.cart,
+        onCancel: (cart: Concept[]) =>
+          onStateChange(
+            state.cancelState.mode === 'domain-criteria-search' ? { ...state.cancelState, cart } : state.cancelState
+          ),
+        onCommit: saveSelected(state, getNextCriteriaIndex, onStateChange),
         actionText: 'Add to group',
-        datasetId,
+        snapshotId,
+        openedConcept: state.openedConcept,
       })
     : spinnerOverlay;
 };

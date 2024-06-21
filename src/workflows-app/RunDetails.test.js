@@ -1,4 +1,4 @@
-import { act, screen, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
@@ -6,6 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import Events from 'src/libs/events';
+import { getLink } from 'src/libs/nav';
 import { makeCompleteDate } from 'src/libs/utils';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
@@ -20,6 +21,8 @@ import { BaseRunDetails } from 'src/workflows-app/RunDetails';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
+import { parseFullFilepathToContainerDirectory } from './utils/task-log-utils';
+
 jest.mock('src/libs/ajax');
 
 const wdsUrlRoot = 'https://lz-abc/wds-abc-c07807929cd1/';
@@ -29,6 +32,40 @@ const cromwellUrlRoot = 'https://lz-abc/terra-app-abc/cromwell';
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({ cromwellUrlRoot, cbasUrlRoot, wdsUrlRoot }),
+}));
+
+jest.mock('./utils/task-log-utils', () => ({
+  ...jest.requireActual('src/workflows-app/utils/task-log-utils'),
+  discoverTesLogs: jest.fn().mockReturnValue([
+    {
+      logUri: 'someBlobUri.com',
+      logTitle: 'Backend Standard Out',
+      logKey: 'tes_stdout',
+      logFilename: 'tes_stdout',
+      logTooltip: 'LogTooltips.backend',
+    },
+    {
+      logUri: 'someBlobUri.com',
+      logTitle: 'Backend Standard Err',
+      logKey: 'tes_stderr',
+      logFilename: 'tes_stderr',
+      logTooltip: 'LogTooltips.backend',
+    },
+    {
+      logUri: 'someBlobUri.com',
+      logTitle: 'Download Standard Out',
+      logKey: 'tes_download_stdout',
+      logFilename: 'download_stdout',
+      logTooltip: 'LogTooltips.download',
+    },
+    {
+      logUri: 'someBlobUri.com',
+      logTitle: 'Download Standard Err',
+      logKey: 'tes_download_stderr',
+      logFilename: 'download_stderr',
+      logTooltip: 'LogTooltips.download',
+    },
+  ]),
 }));
 
 jest.mock('src/libs/nav', () => ({
@@ -206,6 +243,29 @@ describe('BaseRunDetails - render smoke test', () => {
     });
   });
 
+  it('shows expected cost details', async () => {
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+
+    const table = screen.getByRole('table');
+    const tableRows = within(table).getAllByRole('row').slice(1); // omit header row
+
+    const task1Row = tableRows[0];
+    const cellsFromDataRow1 = within(task1Row).getAllByRole('cell');
+    within(cellsFromDataRow1[7]).getByText('$12.72');
+
+    const task2Row = tableRows[1];
+    const cellsFromDataRow2 = within(task2Row).getAllByRole('cell');
+    within(cellsFromDataRow2[7]).getByText(/In Progress -/); // Can't accurately calculate cost for an 'In Progress' task in a test
+
+    const task3Row = tableRows[2];
+    const cellsFromDataRow3 = within(task3Row).getAllByRole('cell');
+    within(cellsFromDataRow3[7]).getByText('-');
+
+    const task4Row = tableRows[3];
+    const cellsFromDataRow4 = within(task4Row).getAllByRole('cell');
+    within(cellsFromDataRow4[7]).getByText('-');
+  });
+
   it('only shows failed tasks if a workflow has failed', async () => {
     const failedTaskCalls = Object.values(failedTasksMetadata)[0].calls;
     const targetCall = Object.values(failedTaskCalls)[0][0];
@@ -290,51 +350,59 @@ describe('BaseRunDetails - render smoke test', () => {
   });
 
   it('opens the log viewer modal when Workflow Execution Logs is clicked', async () => {
+    // Arrange
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const executionLogButton = screen.getByText('Workflow Execution Log');
     await user.click(executionLogButton);
-    screen.getByText('workflow.log');
-    screen.getByText('this is the text of a mock file');
 
-    // Make sure the info box only include execution log info
-    const logInfoBox = screen.getByLabelText('More info');
+    // Assert
+    expect(screen.getByText('workflow.log')); // log content displayed
+    expect(screen.getByText('this is the text of a mock file'));
+    expect(screen.getByLabelText('Download log')).toHaveTextContent('Download');
+
+    const logInfoBox = screen.getByLabelText('More info'); // tiny tooltip button works
+    expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull();
     await user.click(logInfoBox);
-    screen.getByText('Each workflow has a single execution log', { exact: false });
-    expect(screen.queryByText('Task logs are from user-defined commands', { exact: false })).toBeNull;
-    expect(screen.queryByText('Backend logs are from the Azure Cloud compute job', { exact: false })).toBeNull;
+    expect(screen.queryByText('Each workflow has a single execution log', { exact: false }));
 
-    const closeButton = screen.getByLabelText('Close modal');
+    const closeButton = screen.getByLabelText('Close modal'); // close button works
     expect(captureEvent).not.toHaveBeenCalled();
     await user.click(closeButton);
     expect(captureEvent).toHaveBeenCalledWith(Events.workflowsAppCloseLogViewer, undefined, undefined);
   });
 
-  it('opens the log viewer modal when Logs is clicked', async () => {
+  it('opens the log viewer modal when Logs is clicked from the call table', async () => {
+    // Arrange
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
-    screen.getByText('Task Standard Out');
 
-    // Make sure the info box only includes task and and backend log info
-    const logInfoBox = screen.getByLabelText('More info');
-    await user.click(logInfoBox);
-    expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull;
-    screen.getByText('Task logs are from user-defined commands', { exact: false });
-    screen.getByText('Backend logs are from the Azure Cloud compute job', { exact: false });
+    // Assert
+    expect(screen.getByText('Task Standard Out'));
+    expect(screen.getByText('Task Standard Err'));
   });
 
   it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
+    // Arrange
     const altMockObj = _.cloneDeep(mockObj);
     altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.reject('Mock error') }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
+
+    // Assert
     expect(screen.queryByLabelText('Download log')).not.toBeDefined;
     screen.getByText('Task Standard Out');
     screen.getByText(
@@ -343,17 +411,34 @@ describe('BaseRunDetails - render smoke test', () => {
   });
 
   it('opens a log modal with functional tabs', async () => {
+    // Arrange
+    const mockFetchedLogData = {
+      uri: 'https://someBlobFilePath.blob.core.windows.net/asdf',
+      sasToken: 'asdf1234',
+      lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
+      size: '324',
+      azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
+      workspaceId: 'someWorkspaceId',
+      fileName: 'inputFile.txt',
+      name: 'inputFile.txt',
+      textContent: 'this is the text of a mock file',
+    };
+
     const altMockObj = _.cloneDeep(mockObj);
-    altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.reject('Mock error') }));
+    altMockObj.AzureStorage.blobByUri = jest.fn(() => ({ getMetadataAndTextContent: () => Promise.resolve(mockFetchedLogData) }));
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
+
+    // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     const table = screen.getByRole('table');
     const logsLink = within(table).getAllByText('Logs');
     await user.click(logsLink[0]);
 
-    // We know we've successfully switchted tabs if:
-    // We click on a tab title, see a corresponding filename, and don't see other filenames.
+    // Assert
+    // Presence of 'Task' logs shows we can fetch Cromwell task logs
+    // Presence of 'Backend' logs shows we can fetch pre-TES 4.7 logs
+    // Presence of 'Download' logs shows we can fetch post TES 4.7 logs
     const stdoutButton = screen.getByText('Task Standard Out');
     await user.click(stdoutButton);
     expect(screen.getByText('stdout.txt')).toBeVisible();
@@ -361,18 +446,37 @@ describe('BaseRunDetails - render smoke test', () => {
 
     const stderrButton = screen.getByText('Task Standard Err');
     await user.click(stderrButton);
-    expect(screen.getByText('stderr.txt')).toBeVisible();
+    expect(screen.getByText('stderr.txt')).toBeVisible(); // prove that switching tabs works
     expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
 
-    const backendStdoutButton = screen.getByText('Backend Standard Out');
-    await user.click(backendStdoutButton);
-    expect(screen.getByText('stdout.txt')).toBeVisible();
-    expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
+    // the presence of the download log tab is proof that the log viewer was able to fetch the (mocked) TES logs,
+    // which uses a different code path than the task logs do.
+    const downloadStdOutButton = screen.getByText('Backend Standard Out');
+    await user.click(downloadStdOutButton);
+    expect(screen.getByText('tes_stdout')).toBeVisible();
+    expect(screen.getByText('Backend Standard Out'));
+    expect(screen.getByText('Backend Standard Err'));
+    expect(screen.getByText('Download Standard Out'));
+    expect(screen.getByText('Download Standard Err'));
+  });
 
-    const backendStderrButton = screen.getByText('Backend Standard Err');
-    await user.click(backendStderrButton);
-    expect(screen.getByText('stderr.txt')).toBeVisible();
-    expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
+  it('parses blob URIs correctly', () => {
+    const tesLogFile =
+      'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task/stderr.txt';
+
+    const tesLogFolder =
+      'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task/';
+
+    const tesLogFolderWithoutSlash =
+      'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task';
+
+    const workspaceId = 'bed4cf6c-8153-4f3d-852f-532cc17e6582';
+
+    const expected =
+      'workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/6d935b1a-e899-45da-9627-a94c23a2ca53/call-Fetch_SRA_to_BAM/tes_task';
+    expect(parseFullFilepathToContainerDirectory(workspaceId, tesLogFile)).toEqual(expected);
+    expect(parseFullFilepathToContainerDirectory(workspaceId, tesLogFolder)).toEqual(expected);
+    expect(parseFullFilepathToContainerDirectory(workspaceId, tesLogFolderWithoutSlash)).toEqual(expected);
   });
 
   it('correctly identifies azure URIs', () => {
@@ -383,14 +487,12 @@ describe('BaseRunDetails - render smoke test', () => {
   it('shows a functional log modal when clicked', async () => {
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getByText('Logs');
+    const showLogsLink = screen.getAllByText('Logs')[0];
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
     screen.getByText('Task Standard Out');
     screen.getByText('Task Standard Err');
-    screen.getByText('Backend Standard Out');
-    screen.getByText('Backend Standard Err');
     screen.getByLabelText('Download log');
     // Verify the data loaded properly
     screen.getByText('this is the text of a mock file');
@@ -408,14 +510,12 @@ describe('BaseRunDetails - render smoke test', () => {
     Ajax.mockImplementation(() => altMockObj);
     const user = userEvent.setup();
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getByText('Logs');
+    const showLogsLink = screen.getAllByText('Logs')[0];
     await user.click(showLogsLink); // Open the modal
 
     // Verify all the element titles are present
     screen.getByText('Task Standard Out');
     screen.getByText('Task Standard Err');
-    screen.getByText('Backend Standard Out');
-    screen.getByText('Backend Standard Err');
 
     // Verify the error is displayed.
     screen.getByText(
@@ -442,7 +542,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await userEvent.type(searchInput, 'Fetch');
     const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
-    expect(updatedRows.length).toEqual(2);
+    expect(updatedRows.length).toEqual(5);
     const updatedElement = within(updatedTable).getAllByText(taskName);
     expect(updatedElement.length).toEqual(1);
     expect(updatedElement[0].textContent).toEqual(taskName);
@@ -490,8 +590,8 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(getFilenameFromAzureBlobPath(undefined)).toEqual('');
 
     // Should only append SAS if it is a private URI
-    const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS);
-    const appendedPrivate = appendSASTokenIfNecessary(privateURI, mockSAS);
+    const appendedPublic = appendSASTokenIfNecessary(publicURI, mockSAS, mockWorkspaceId);
+    const appendedPrivate = appendSASTokenIfNecessary(privateURI, mockSAS, mockWorkspaceId);
     expect(appendedPublic).toEqual(publicURI);
     expect(appendedPrivate).toEqual(`${privateURI}?${mockSAS}`);
   });
@@ -655,5 +755,20 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // Ensure the diff is rendered
     screen.getByText('Result: View cache diff');
+  });
+
+  it('should create the correct link when the execution directory button is clicked', async () => {
+    const user = userEvent.setup();
+    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+
+    const executionDirectoryButton = await screen.getByText('Execution Directory');
+    await user.click(executionDirectoryButton);
+    await waitFor(() =>
+      expect(getLink).toBeCalledWith(
+        'workspace-files',
+        { name: 'workspace', namespace: 'example-billing-project' },
+        { path: 'workspace-services/cbas/terra-app-/ther-random-value/00001111-2222-3333-aaaa-bbbbccccdddd/' }
+      )
+    );
   });
 });

@@ -1,10 +1,10 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { useEffect, useState } from 'react';
 import { div, h, iframe } from 'react-hyperscript-helpers';
-import { signOut } from 'src/auth/auth';
+import { signOut } from 'src/auth/signout/sign-out';
 import ButtonBar from 'src/components/ButtonBar';
-import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCurrentTime, useOnMount, useStore } from 'src/libs/react-utils';

@@ -1,12 +1,12 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, getByRole, screen } from '@testing-library/react';
 import { Dispatch, SetStateAction } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { getTerraUser } from 'src/libs/state';
-import { BaseWorkspace } from 'src/libs/workspace-utils';
-import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
+import { BaseWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
@@ -205,5 +205,79 @@ describe('a Collaborator component', () => {
     expect(writterPermission).not.toBeNull();
     fireEvent.click(writterPermission);
     expect(setAcl).toHaveBeenCalledTimes(1);
+  });
+
+  describe('only allows owners and project owners to share with additional permissions', () => {
+    const setAcl = jest.fn();
+    const item: AccessEntry = {
+      email: 'user1@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'WRITER',
+    };
+    const acl = [item];
+
+    it('displays a tooltip when the user cannot share with additional permissions', () => {
+      // Arrange
+      render(
+        h(Collaborator, {
+          aclItem: item,
+          acl,
+          setAcl,
+          originalAcl: acl,
+          workspace: { ...workspace, accessLevel: 'WRITER' },
+        })
+      );
+
+      // Act
+      const canShareCheckbox = getByRole(screen.getByText('Can share').parentElement!, 'checkbox');
+      fireEvent.mouseOver(canShareCheckbox);
+
+      // Assert
+      const tooltip = screen.getByRole('tooltip');
+      expect(tooltip).toHaveTextContent('Only Owners and Project Owners can share additional permissions');
+    });
+
+    test.each([
+      {
+        accessLevel: 'OWNER' as WorkspaceAccessLevel,
+        descriptor: 'allows',
+        shouldDisableCheckbox: false,
+      },
+      {
+        accessLevel: 'PROJECT_OWNER' as WorkspaceAccessLevel,
+        descriptor: 'allows',
+        shouldDisableCheckbox: false,
+      },
+      {
+        accessLevel: 'WRITER' as WorkspaceAccessLevel,
+        descriptor: 'does not allow',
+        shouldDisableCheckbox: true,
+      },
+    ])('$descriptor an $accessLevel to share with additional permissions', ({ accessLevel, shouldDisableCheckbox }) => {
+      // Act
+      render(
+        h(Collaborator, {
+          aclItem: item,
+          acl,
+          setAcl,
+          originalAcl: acl,
+          workspace: { ...workspace, accessLevel },
+        })
+      );
+
+      // Assert
+      const canCompute = screen.getByText('Can compute');
+      const canShare = screen.getByText('Can share');
+
+      if (shouldDisableCheckbox) {
+        expect(canCompute).toHaveAttribute('disabled');
+        expect(canShare).toHaveAttribute('disabled');
+      } else {
+        expect(canCompute).not.toHaveAttribute('disabled');
+        expect(canShare).not.toHaveAttribute('disabled');
+      }
+    });
   });
 });

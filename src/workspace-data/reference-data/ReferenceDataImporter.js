@@ -1,8 +1,8 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Select, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 
@@ -29,7 +29,7 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
               await Ajax()
                 .Workspaces.workspace(namespace, name)
                 .shallowMergeNewAttributes(_.mapKeys((k) => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference]));
-              onSuccess();
+              onSuccess(selectedReference);
             } catch (error) {
               await reportError('Error importing reference data', error);
               onDismiss();

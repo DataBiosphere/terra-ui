@@ -4,9 +4,9 @@ import { AbsolutePath, DisplayName, FileExtension, FileName } from 'src/analysis
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { errors, useAnalysisExportState } from './useAnalysisExportState';
 
@@ -39,14 +39,13 @@ jest.mock(
   })
 );
 
-type WorkspaceUtilsExports = typeof import('src/workspaces/useWorkspaces');
-jest.mock(
-  'src/workspaces/useWorkspaces',
-  (): WorkspaceUtilsExports => ({
-    ...jest.requireActual('src/workspaces/useWorkspaces'),
+type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
+jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports => {
+  return {
+    ...jest.requireActual<UseWorkspacesExports>('src/workspaces/common/state/useWorkspaces'),
     useWorkspaces: jest.fn(),
-  })
-);
+  };
+});
 
 type AnalysisProviderExports = typeof import('src/libs/ajax/analysis-providers/AnalysisProvider');
 jest.mock(
@@ -75,6 +74,7 @@ describe('useAnalysisExportState', () => {
       workspaces: [],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
 
     const sourceWorkspaceInfo: Partial<WorkspaceInfo> = {
@@ -118,6 +118,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([analysis1, analysis2]);
 
@@ -177,6 +178,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
@@ -234,6 +236,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,
@@ -300,6 +303,7 @@ describe('useAnalysisExportState', () => {
       ],
       loading: false,
       refresh: jest.fn(),
+      status: 'Ready',
     });
     asMockedFn(AnalysisProvider.listAnalyses).mockResolvedValue([
       { name: 'files/Analysis1.ipynb' as AbsolutePath } as AnalysisFile,

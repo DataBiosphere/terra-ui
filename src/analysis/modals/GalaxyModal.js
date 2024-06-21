@@ -1,11 +1,14 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, label, p, span } from 'react-hyperscript-helpers';
+import { GcpPersistentDiskOptions } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
-import { GalaxyLaunchButton, GalaxyWarning, RadioBlock, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-components';
+import { GalaxyLaunchButton, RadioBlock } from 'src/analysis/runtime-common-components';
+import { GalaxyWarning, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-text';
 import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/analysis/utils/cost-utils';
-import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk, pdTypeFromDiskType } from 'src/analysis/utils/disk-utils';
+import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
 import { machineTypes } from 'src/analysis/utils/gce-machines';
 import { findMachineType } from 'src/analysis/utils/runtime-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
@@ -14,9 +17,8 @@ import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { GcpPersistentDiskOptions, googlePdTypes } from 'src/libs/ajax/leonardo/models/disk-models';
+import { googlePdTypes, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -476,7 +478,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div([
             div({ style: computeStyles.headerText }, ['Application configuration']),
-            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 23.1']),
+            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 24.0']),
             h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
               'Learn more about Galaxy interactive environments',
               icon('pop-out', { size: 12, style: { marginTop: '1rem', marginLeft: '0.25rem' } }),

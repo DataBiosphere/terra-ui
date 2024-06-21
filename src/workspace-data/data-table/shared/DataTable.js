@@ -1,3 +1,4 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { b, div, h, span } from 'react-hyperscript-helpers';
@@ -16,10 +17,10 @@ import {
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -28,13 +29,12 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 // TODO: Shared components should not depend on EntityService/WDS specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
 import { entityAttributeText } from '../entity-service/entityAttributeText';
 import { EntityRenamer } from '../entity-service/EntityRenamer';
-import { RenameColumnModal } from '../entity-service/RenameColumnModal';
 import { renderDataCell } from '../entity-service/renderDataCell';
 import {
   allSavedColumnSettingsEntityTypeKey,
@@ -43,8 +43,11 @@ import {
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
+import { getAttributeType } from '../wds/attribute-utils';
+import { SingleEntityEditorWds } from '../wds/SingleEntityEditorWds';
 import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
+import { RenameColumnModal } from './RenameColumnModal';
 
 const entityMap = (entities) => {
   return _.fromPairs(_.map((e) => [e.name, e], entities));
@@ -83,13 +86,12 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = (props) => {
   const {
+    defaultItemsPerPage = 100,
     entityType,
     entityMetadata,
     setEntityMetadata,
-    workspaceId,
     workspace,
     googleProject,
-    workspaceId: { namespace, name },
     onScroll,
     initialX,
     initialY,
@@ -101,12 +103,15 @@ const DataTable = (props) => {
     persist,
     refreshKey,
     snapshotName,
-    deleteColumnUpdateMetadata,
     controlPanelStyle,
     border = true,
     extraColumnActions,
     dataProvider,
   } = props;
+
+  const namespace = workspace.workspace.namespace;
+  const name = workspace.workspace.name;
+  const workspaceId = { namespace, name };
 
   const persistenceId = `${namespace}/${name}/${entityType}`;
 
@@ -118,7 +123,7 @@ const DataTable = (props) => {
   const [filteredCount, setFilteredCount] = useState(0);
   const [totalRowCount, setTotalRowCount] = useState(0);
 
-  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const [itemsPerPage, setItemsPerPage] = useState(defaultItemsPerPage);
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
   const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '');
@@ -237,9 +242,15 @@ const DataTable = (props) => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Unable to delete column')
   )(async (attributeName) => {
-    await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName);
-    deleteColumnUpdateMetadata({ entityType, attributeName });
+    await dataProvider.deleteColumn(signal, entityType, attributeName);
 
+    // Remove the deleted column from the metadata
+    const newArray = _.get(entityType, entityMetadata).attributeNames;
+    const attributeNamesArrayUpdated = _.without([attributeName], newArray);
+    const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata);
+    setEntityMetadata(updatedMetadata);
+
+    // Remove the deleted column from the entities
     const updatedEntities = _.map((entity) => {
       return { ...entity, attributes: _.omit([attributeName], entity.attributes) };
     }, entities);
@@ -333,7 +344,6 @@ const DataTable = (props) => {
   const nameWidth = columnWidths.name || 150;
 
   const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings);
-
   return h(Fragment, [
     !!entities &&
       h(Fragment, [
@@ -607,18 +617,38 @@ const DataTable = (props) => {
                         style: { marginLeft: '1rem' },
                         text: entityAttributeText(dataInfo),
                       });
-                      const editLink =
-                        editable &&
-                        dataProvider.features.supportsEntityUpdating &&
-                        h(EditDataLink, {
-                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                          'aria-haspopup': 'dialog',
-                          'aria-expanded': !!updatingEntity,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
-                        });
 
+                      let extraEditableCondition = false;
+                      if (dataProvider.providerName === wdsProviderName) {
+                        const attributes = entityMetadata[entityType].attributes;
+                        const attributeType = getAttributeType(attributeName, attributes, dataProvider);
+                        // this will make fields that are not supported to have the edit icon be disabled
+                        if (attributeType.type === undefined) {
+                          extraEditableCondition = true;
+                        }
+                      }
+                      const editLink = !extraEditableCondition
+                        ? editable &&
+                          dataProvider.features.supportsEntityUpdating &&
+                          h(EditDataLink, {
+                            'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                            'aria-haspopup': 'dialog',
+                            'aria-expanded': !!updatingEntity,
+                            onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
+                          })
+                        : editable &&
+                          dataProvider.features.supportsEntityUpdating &&
+                          h(EditDataLink, {
+                            'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                            'aria-haspopup': 'dialog',
+                            'aria-expanded': !!updatingEntity,
+                            disabled: true,
+                            tooltip: 'Editing this data type is not currently supported',
+                            onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
+                          });
                       if (!!dataInfo && _.isArray(dataInfo.items)) {
                         const isPlural = dataInfo.items.length !== 1;
+                        // eslint-disable-next-line no-nested-ternary
                         const label = dataInfo?.itemsType === 'EntityReference' ? (isPlural ? 'entities' : 'entity') : isPlural ? 'items' : 'item';
                         const itemsLink = h(
                           Link,
@@ -649,6 +679,8 @@ const DataTable = (props) => {
                 initialX,
                 initialY,
                 sort,
+                // TODO: Remove nested ternary to align with style guide
+                // eslint-disable-next-line no-nested-ternary
                 numFixedColumns: visibleColumns.length > 0 ? (dataProvider.features.supportsRowSelection ? 2 : 1) : 0,
                 columns: defaultColumns,
                 styleCell: ({ rowIndex }) => {
@@ -728,6 +760,7 @@ const DataTable = (props) => {
         onDismiss: () => setRenamingEntity(undefined),
       }),
     !!updatingEntity &&
+      dataProvider.providerName !== wdsProviderName &&
       h(SingleEntityEditor, {
         entityType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
         ...updatingEntity,
@@ -740,12 +773,28 @@ const DataTable = (props) => {
         },
         onDismiss: () => setUpdatingEntity(undefined),
       }),
+    !!updatingEntity &&
+      dataProvider.providerName === wdsProviderName &&
+      h(SingleEntityEditorWds, {
+        recordType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
+        recordName: updatingEntity.entityName,
+        ...updatingEntity,
+        workspaceId: workspace.workspace.workspaceId,
+        dataProvider,
+        recordTypeAttributes: entityMetadata[entityType].attributes,
+        onSuccess: () => {
+          setUpdatingEntity(undefined);
+          Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));
+          loadData();
+        },
+        onDismiss: () => setUpdatingEntity(undefined),
+      }),
     !!renamingColumn &&
       h(RenameColumnModal, {
-        namespace,
-        name,
         entityType,
         oldAttributeName: renamingColumn,
+        attributeNames: entityMetadata[entityType].attributeNames,
+        dataProvider,
         onSuccess: () => {
           setRenamingColumn(undefined);
           Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace));

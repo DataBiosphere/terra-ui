@@ -50,6 +50,12 @@ export const elements = {
     backgroundColor: colors.light(),
     borderLeft: `1px solid ${colors.accent()}`,
   } as const satisfies CSSProperties,
+  noticeContainer: {
+    backgroundColor: colors.light(0.4), // lightened for color contrast with possible link text
+    borderRadius: 5,
+    marginTop: '1.0rem',
+    padding: '1.0rem',
+  } as const satisfies CSSProperties,
 };
 
 export const tabBar = {

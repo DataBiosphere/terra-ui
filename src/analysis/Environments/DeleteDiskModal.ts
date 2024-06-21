@@ -1,12 +1,12 @@
+import { Modal } from '@terra-ui-packages/components';
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { ReactNode, useState } from 'react';
 import { h, p, span } from 'react-hyperscript-helpers';
-import { SaveFilesHelp } from 'src/analysis/runtime-common-components';
+import { SaveFilesHelp } from 'src/analysis/runtime-common-text';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
-import { withErrorReporting } from 'src/libs/error';
 import { withBusyState } from 'src/libs/utils';
 
 import { DeleteDiskProvider, DiskWithWorkspace } from './Environments.models';
@@ -20,6 +20,7 @@ export interface DeleteDiskModalProps {
 
 export const DeleteDiskModal = (props: DeleteDiskModalProps): ReactNode => {
   const { disk, deleteProvider, onDismiss, onSuccess } = props;
+  const { withErrorReporting } = useNotificationsFromContext();
   const [busy, setBusy] = useState(false);
 
   const deleteDisk = _.flow(

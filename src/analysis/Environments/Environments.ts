@@ -1,9 +1,24 @@
-import { Mutate, NavLinkProvider } from '@terra-ui-packages/core-utils';
+import {
+  PopupTrigger,
+  SpinnerOverlay,
+  TooltipTrigger,
+  useBusyState,
+  useModalHandler,
+  useThemeFromContext,
+} from '@terra-ui-packages/components';
+import {
+  formatDatetime,
+  KeyedEventHandler,
+  Mutate,
+  NavLinkProvider,
+  withErrorIgnoring,
+} from '@terra-ui-packages/core-utils';
+import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { div, h, h2, strong } from 'react-hyperscript-helpers';
-import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
+import { div, h, h2, span, strong } from 'react-hyperscript-helpers';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
+import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { getAppStatusForDisplay, getDiskAppType } from 'src/analysis/utils/app-utils';
 import {
   getAppCost,
@@ -15,30 +30,21 @@ import { workspaceHasMultipleDisks } from 'src/analysis/utils/disk-utils';
 import { getCreatorForCompute } from 'src/analysis/utils/resource-utils';
 import { getDisplayRuntimeStatus, isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { Clickable, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger';
-import SupportRequestWrapper from 'src/components/SupportRequest';
+import { makeMenuIcon } from 'src/components/PopupTrigger';
 import { SimpleFlexTable, Sortable } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
-import { useModalHandler } from 'src/components/useModalHandler';
 import { App, isApp } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { AzureConfig, GceWithPdConfig, getRegionFromZone } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { isRuntime, ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
-import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { LeoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { MetricsProvider } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import Events from 'src/libs/events';
 import { useCancellation, useGetter } from 'src/libs/react-utils';
-import { contactUsActive } from 'src/libs/state';
 import { elements as styleElements } from 'src/libs/style';
-import { cond, DEFAULT as COND_DEFAULT, formatUSD, makeCompleteDate, withBusyState } from 'src/libs/utils';
-import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
-import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/useWorkspaces.models';
+import { cond, DEFAULT as COND_DEFAULT, formatUSD } from 'src/libs/utils';
+import { UseWorkspaces, UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
+import { GoogleWorkspaceInfo, isGoogleWorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { DeleteAppModal } from './DeleteAppModal';
 import { DeleteButton } from './DeleteButton';
@@ -52,7 +58,7 @@ import {
   LeoResourcePermissionsProvider,
   RuntimeWithWorkspace,
 } from './Environments.models';
-import { PauseButton } from './PauseButton';
+import { PauseButton, PauseButtonProps } from './PauseButton';
 import {
   unsupportedCloudEnvironmentMessage,
   unsupportedDiskMessage,
@@ -64,8 +70,20 @@ export type EnvironmentNavActions = {
 };
 
 type LeoAppProviderNeeds = Pick<LeoAppProvider, 'listWithoutProject' | 'get' | 'pause' | 'delete'>;
-type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'stop' | 'delete'>;
+type LeoRuntimeProviderNeeds = Pick<LeoRuntimeProvider, 'list' | 'errorInfo' | 'stop' | 'delete'>;
 type LeoDiskProviderNeeds = Pick<LeoDiskProvider, 'list' | 'delete'>;
+
+export interface DataRefreshInfo {
+  leoCallTimeMs: number;
+  totalCallTimeMs: number;
+  runtimes: number;
+  disks: number;
+  apps: number;
+}
+
+export interface EnvironmentsEvents {
+  dataRefresh: DataRefreshInfo;
+}
 
 export interface EnvironmentsProps {
   nav: NavLinkProvider<EnvironmentNavActions>;
@@ -73,12 +91,14 @@ export interface EnvironmentsProps {
   leoAppData: LeoAppProviderNeeds;
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
-  metrics: MetricsProvider;
   permissions: LeoResourcePermissionsProvider;
+  onEvent?: KeyedEventHandler<EnvironmentsEvents>;
 }
 
 export const Environments = (props: EnvironmentsProps): ReactNode => {
-  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, metrics } = props;
+  const { nav, useWorkspaces, leoAppData, leoDiskData, leoRuntimeData, permissions, onEvent } = props;
+  const { colors } = useThemeFromContext();
+  const { withErrorReporting } = useNotificationsFromContext();
   const signal = useCancellation();
 
   type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
@@ -91,7 +111,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [runtimes, setRuntimes] = useState<RuntimeWithWorkspace[]>();
   const [apps, setApps] = useState<AppWithWorkspace[]>();
   const [disks, setDisks] = useState<DiskWithWorkspace[]>();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, withLoading] = useBusyState();
   const [errorRuntimeId, setErrorRuntimeId] = useState<number>();
   const getErrorRuntimeId = useGetter(errorRuntimeId);
   const [deleteRuntimeId, setDeleteRuntimeId] = useState<number>();
@@ -113,11 +133,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' });
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' });
 
-  // TODO [IA-4432] restore the stateful var when checkbox reintroduced
-  // const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
-  const shouldFilterByCreator = true;
+  const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
 
-  const refreshData = withBusyState(setLoading, async () => {
+  const refreshData = withLoading(async () => {
     await refreshWorkspaces();
 
     const workspaces = getWorkspaces();
@@ -140,13 +158,15 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
-    metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, {
-      leoCallTimeMs: leoCallTimeTotalMs,
-      totalCallTimeMs: leoCallTimeTotalMs,
-      runtimes: newRuntimes.length,
-      disks: newDisks.length,
-      apps: newApps.length,
-    });
+    if (onEvent) {
+      onEvent('dataRefresh', {
+        leoCallTimeMs: leoCallTimeTotalMs,
+        totalCallTimeMs: leoCallTimeTotalMs,
+        runtimes: newRuntimes.length,
+        disks: newDisks.length,
+        apps: newApps.length,
+      });
+    }
 
     const decorateLabeledResourceWithWorkspace = <T extends ListRuntimeItem | PersistentDisk | App>(
       cloudObject: T
@@ -189,8 +209,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   });
   const loadData = withErrorIgnoring(refreshData);
 
-  const pauseComputeAndRefresh = withBusyState(setLoading, async (compute: DecoratedComputeResource) => {
-    const wrappedPauseCompute = withErrorReporting('Error pausing compute', async () => {
+  const doPauseComputeAndRefresh = withLoading(async (compute: DecoratedComputeResource) => {
+    const wrappedPauseCompute = withErrorReporting('Error pausing compute')(async () => {
       if (isRuntime(compute)) {
         return leoRuntimeData.stop(compute);
       }
@@ -207,12 +227,12 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     await loadData();
   });
 
+  const pauseComputeAndRefresh: PauseButtonProps['pauseComputeAndRefresh'] = (compute: App | ListRuntimeItem) => {
+    void doPauseComputeAndRefresh(compute as DecoratedComputeResource);
+  };
+
   useEffect(() => {
     loadData();
-    const interval = setInterval(refreshData, 30000);
-    return () => {
-      clearInterval(interval);
-    };
   }, [shouldFilterByCreator]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = (cloudEnvironment) =>
@@ -479,12 +499,11 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       h2({ style: { ...styleElements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, [
         'Your cloud environments',
       ]),
-      // TODO [IA-4432] reenable this checkbox when query performance is fixed
-      // div({ style: { marginBottom: '.5rem' } }, [
-      //   h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
-      //     span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
-      //   ]),
-      // ]),
+      div({ style: { marginBottom: '.5rem' } }, [
+        h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
+          span({ style: { fontWeight: 600 } }, [' Hide resources you did not create']),
+        ]),
+      ]),
       runtimes &&
         disks &&
         div({ style: { overflow: 'scroll', overflowWrap: 'break-word', wordBreak: 'break-all' } }, [
@@ -568,7 +587,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 field: 'created',
                 headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.createdDate);
+                  return formatDatetime(filteredCloudEnvironments[rowIndex].auditInfo.createdDate);
                 },
               },
               {
@@ -576,7 +595,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 field: 'accessed',
                 headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed);
+                  return formatDatetime(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed);
                 },
               },
               {
@@ -600,6 +619,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                     h(PauseButton, { cloudEnvironment, permissions, pauseComputeAndRefresh }),
                     h(DeleteButton, {
                       resource: cloudEnvironment,
+                      permissions,
                       onClick: (resource) => {
                         isApp(resource) ? deleteAppModal.open(resource) : setDeleteRuntimeId(resource.id);
                       },
@@ -657,7 +677,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                           },
                           [name]
                         ),
-                        permissions.canDeleteDisk(rowDisk) &&
+                        permissions.hasDeleteDiskPermission(rowDisk) &&
                           diskStatus !== 'Deleting' &&
                           multipleDisks &&
                           h(
@@ -737,7 +757,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate);
+                  return formatDatetime(filteredDisks[rowIndex].auditInfo.createdDate);
                 },
               },
               {
@@ -746,7 +766,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed);
+                  return formatDatetime(filteredDisks[rowIndex].auditInfo.dateAccessed);
                 },
               },
               {
@@ -793,8 +813,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
         ]),
       errorRuntimeId &&
         h(RuntimeErrorModal, {
-          runtime: _.find({ id: errorRuntimeId }, runtimes),
+          runtime: _.find({ id: errorRuntimeId }, runtimes)!,
           onDismiss: () => setErrorRuntimeId(undefined),
+          errorProvider: leoRuntimeData,
         }),
       deleteRuntimeId &&
         runtimeToDelete &&
@@ -816,7 +837,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           appProvider: leoAppData,
         }),
     ]),
-    contactUsActive.get() && h(SupportRequestWrapper),
-    loading && spinnerOverlay,
+    loading && h(SpinnerOverlay),
   ]);
 };

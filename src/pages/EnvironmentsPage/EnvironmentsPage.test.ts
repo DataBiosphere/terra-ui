@@ -1,14 +1,16 @@
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
+import { DataRefreshInfo, Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import Events from 'src/libs/events';
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
 import { asMockedFn } from 'src/testing/test-utils';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
-import { UseWorkspaces } from 'src/workspaces/useWorkspaces.models';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
+import { UseWorkspaces } from 'src/workspaces/common/state/useWorkspaces.models';
 
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
 import { leoResourcePermissions } from './environmentsPermissions';
@@ -42,12 +44,6 @@ jest.mock(
 
 describe('Environments Page', () => {
   it('renders Environments component with correct args', () => {
-    // Arrange
-    const mockMetricsProvider: MetricsProvider = {
-      captureEvent: jest.fn(),
-    };
-    asMockedFn(useMetricsEvent).mockReturnValue(mockMetricsProvider);
-
     // Act
     /* Note: Because we are mocking the inner Environments component and just testing that we
        are composing the expected arguments to it, we can get away with not needing to mock most
@@ -66,10 +62,34 @@ describe('Environments Page', () => {
         leoRuntimeData: leoRuntimeProvider,
         leoDiskData: leoDiskProvider,
         permissions: leoResourcePermissions,
-        metrics: mockMetricsProvider,
       } satisfies EnvironmentsProps),
       expect.anything()
     );
+  });
+
+  it('forwards dataRefresh to metrics event', () => {
+    // Arrange
+    const mockMetricsProvider: MetricsProvider = {
+      captureEvent: jest.fn(),
+    };
+    asMockedFn(useMetricsEvent).mockReturnValue(mockMetricsProvider);
+    const refreshInfo: DataRefreshInfo = {
+      leoCallTimeMs: 100,
+      totalCallTimeMs: 100,
+      apps: 1,
+      disks: 2,
+      runtimes: 3,
+    };
+    asMockedFn(Environments).mockImplementation((props: EnvironmentsProps): React.ReactNode => {
+      props.onEvent && props.onEvent('dataRefresh', refreshInfo);
+      return 'Mock Environments';
+    });
+    // Act
+    render(h(EnvironmentsPage));
+
+    // Assert
+    expect(mockMetricsProvider.captureEvent).toBeCalledTimes(1);
+    expect(mockMetricsProvider.captureEvent).toBeCalledWith(Events.cloudEnvironmentDetailsLoad, refreshInfo);
   });
 });
 

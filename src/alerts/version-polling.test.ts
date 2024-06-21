@@ -1,7 +1,7 @@
 import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
 
 import { getBadVersions, getLatestVersion, versionStore } from './version-alerts';
-import { checkVersion, startPollingVersion, VERSION_POLLING_INTERVAL } from './version-polling';
+import { checkVersion, FORCED_UPDATE_DELAY, startPollingVersion, VERSION_POLLING_INTERVAL } from './version-polling';
 
 type VersionAlertsExports = typeof import('./version-alerts');
 jest.mock(
@@ -16,7 +16,7 @@ jest.mock(
 describe('checkVersion', () => {
   it('fetches latest version and updates store', async () => {
     // Arrange
-    versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
+    versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', updateRequiredBy: undefined });
     asMockedFn(getLatestVersion).mockResolvedValue('abcd123');
 
     // Act
@@ -29,7 +29,7 @@ describe('checkVersion', () => {
 
   describe('if a new version is available', () => {
     beforeEach(() => {
-      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
+      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', updateRequiredBy: undefined });
       asMockedFn(getLatestVersion).mockResolvedValue('1234567');
     });
 
@@ -44,16 +44,45 @@ describe('checkVersion', () => {
       expect(getBadVersions).toHaveBeenCalled();
     });
 
-    it('sets updated required flag if current version is bad', async () => {
-      // Arrange
-      asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
+    it(
+      'sets update required time if current version is bad',
+      withFakeTimers(async () => {
+        // Arrange
+        const initialTime = 1706504400000;
+        jest.setSystemTime(initialTime);
+        asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
 
-      // Act
-      await checkVersion();
+        // Act
+        await checkVersion();
 
-      // Assert
-      expect(versionStore.get()).toMatchObject({ isUpdateRequired: true });
-    });
+        // Assert
+        const { updateRequiredBy } = versionStore.get();
+        expect(updateRequiredBy).toBe(initialTime + FORCED_UPDATE_DELAY);
+      })
+    );
+
+    it(
+      'does not overwrite update required time on subsequent checks',
+      withFakeTimers(async () => {
+        // Arrange
+        const initialTime = 1706504400000;
+        jest.setSystemTime(initialTime);
+        asMockedFn(getBadVersions).mockResolvedValue(['abcd123']);
+
+        await checkVersion();
+
+        const { updateRequiredBy: updateRequiredByAfterFirstPoll } = versionStore.get();
+        expect(updateRequiredByAfterFirstPoll).toBe(initialTime + FORCED_UPDATE_DELAY);
+
+        // Act
+        jest.advanceTimersByTime(VERSION_POLLING_INTERVAL);
+        await checkVersion();
+
+        // Assert
+        const { updateRequiredBy: updateRequiredByAfterSecondPoll } = versionStore.get();
+        expect(updateRequiredByAfterSecondPoll).toBe(updateRequiredByAfterFirstPoll);
+      })
+    );
   });
 });
 
@@ -64,7 +93,7 @@ describe('startPollingVersion', () => {
     'periodically fetches latest version and updates store',
     withFakeTimers(async () => {
       // Arrange
-      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', isUpdateRequired: false });
+      versionStore.set({ currentVersion: 'abcd123', latestVersion: 'abcd123', updateRequiredBy: undefined });
       asMockedFn(getLatestVersion).mockResolvedValue('1234567');
 
       // Act

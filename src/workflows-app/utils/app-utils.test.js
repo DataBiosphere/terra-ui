@@ -1,7 +1,7 @@
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { AppProxyUrlStatus, workflowsAppStore } from 'src/libs/state';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { cromwellLinkProps, doesAppProxyUrlExist, resolveRunningCromwellAppUrl } from 'src/workflows-app/utils/app-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 describe('resolveRunningCromwellAppUrl', () => {
   const mockCbasUrl = 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas';

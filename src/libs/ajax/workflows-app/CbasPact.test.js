@@ -29,6 +29,10 @@ jest.mock('src/auth/auth', () => {
     signOutAfterSessionTimeout: jest.fn(),
   };
 });
+jest.mock('src/auth/signout/sign-out', () => ({
+  signOut: jest.fn(),
+  userSignedOut: jest.fn(),
+}));
 
 jest.mock('src/libs/state', () => {
   return {
@@ -45,7 +49,7 @@ const RUNSET_STATE_REGEX = 'UNKNOWN|QUEUED|RUNNING|COMPLETE|ERROR|CANCELED|CANCE
 const TIMESTAMP_REGEX = '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}\\+[0-9]{2}\\:[0-9]{2}';
 
 const cbasPact = new PactV3({
-  consumer: 'terra-ui',
+  consumer: 'terraui',
   provider: 'cbas',
   logLevel: 'error',
   dir: path.resolve(process.cwd(), 'pacts'),
@@ -349,6 +353,50 @@ describe('Cbas tests', () => {
       expect(fetchOk).toBeCalledTimes(1);
       expect(fetchFromProxy).toBeCalledTimes(1);
       expect(fetchOk).toBeCalledWith('api/batch/v1/methods', { method: 'POST', signal, ...jsonBody(payload) });
+    });
+  });
+
+  it('should successfully archive a method', async () => {
+    const expectedResponse = {
+      method_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000'),
+    };
+    const payload = { method_status: 'ARCHIVED' };
+
+    await cbasPact.addInteraction({
+      states: [
+        { description: 'user has write permission' },
+        { description: 'ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009' },
+        { description: 'cromwell initialized' },
+      ],
+      uponReceiving: 'a PATCH request to archive a method',
+      withRequest: {
+        method: 'PATCH',
+        path: '/api/batch/v1/methods',
+        query: { method_id: '00000000-0000-0000-0000-000000000009' },
+        ...jsonBody(payload),
+      },
+      willRespondWith: { status: 200, body: expectedResponse },
+    });
+
+    await cbasPact.executeTest(async (mockService) => {
+      // ARRANGE
+      const signal = 'fakeSignal';
+
+      fetchOk.mockImplementation(async (path) => await fetch(`${mockService.url}/${path}`, { method: 'PATCH', ...jsonBody(payload) }));
+      fetchFromProxy.mockImplementation(() => fetchOk);
+
+      // ACT
+      const response = await Cbas(signal).methods.archive(mockService.url, '00000000-0000-0000-0000-000000000009');
+
+      // ASSERT
+      expect(response).toBeDefined();
+      expect(fetchOk).toBeCalledTimes(1);
+      expect(fetchFromProxy).toBeCalledTimes(1);
+      expect(fetchOk).toBeCalledWith('api/batch/v1/methods?method_id=00000000-0000-0000-0000-000000000009', {
+        method: 'PATCH',
+        ...jsonBody(payload),
+        signal,
+      });
     });
   });
 

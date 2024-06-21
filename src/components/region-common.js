@@ -14,6 +14,8 @@ import * as Utils from 'src/libs/utils';
 const unknownRegionFlag = '❓';
 export const getRegionInfo = (location, locationType) => {
   const regionDescription =
+    // TODO: Remove nested ternary to align with style guide
+    // eslint-disable-next-line no-nested-ternary
     locationType === locationTypes.multiRegion ? `${location} (${locationTypes.multiRegion})` : location ? location.toLowerCase() : 'UNKNOWN';
   return Utils.switchCase(
     locationType,

@@ -18,7 +18,7 @@ export const ImageDepViewer = ({ packageLink }) => {
 
   const signal = useCancellation();
   useEffect(() => {
-    const loadPackages = withErrorReporting('Error loading packages', async () => {
+    const loadPackages = withErrorReporting('Error loading packages')(async () => {
       const res = await fetchOk(packageLink, { signal });
       const data = await res.json();
       const newPackages = _.flatMap(([tool, packages]) => {

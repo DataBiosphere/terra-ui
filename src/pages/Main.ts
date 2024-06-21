@@ -1,6 +1,7 @@
 import 'src/libs/routes';
 
 import { ErrorBoundary, ThemeProvider } from '@terra-ui-packages/components';
+import { NotificationsContextProvider } from '@terra-ui-packages/notifications';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { ReactNotifications } from 'react-notifications-component';
@@ -18,39 +19,41 @@ import IdleStatusMonitor from 'src/components/IdleStatusMonitor';
 import SupportRequest from 'src/components/SupportRequest';
 import { TitleManager } from 'src/components/TitleManager';
 import { getEnabledBrand } from 'src/libs/brand-utils';
-import { reportError } from 'src/libs/error';
+import { reportError, terraUINotifications } from 'src/libs/error';
 import { PageViewReporter } from 'src/libs/events';
 import { LocationProvider, PathHashInserter, Router } from 'src/libs/nav';
 import ImportStatus from 'src/workspace-data/ImportStatus';
 
 const Main = (): ReactNode => {
   return h(ThemeProvider, { theme: getEnabledBrand().theme }, [
-    h(LocationProvider, [
-      h(PathHashInserter),
-      h(CookieRejectModal),
-      h(CookieWarning),
-      h(ReactNotifications),
-      h(ImportStatus),
-      h(Favicon),
-      h(IdleStatusMonitor),
-      h(
-        ErrorBoundary,
-        {
-          onError: (error: unknown) => {
-            reportError('An error occurred', error);
+    h(NotificationsContextProvider, { notifications: terraUINotifications }, [
+      h(LocationProvider, [
+        h(PathHashInserter),
+        h(CookieRejectModal),
+        h(CookieWarning),
+        h(ReactNotifications),
+        h(ImportStatus),
+        h(Favicon),
+        h(IdleStatusMonitor),
+        h(
+          ErrorBoundary,
+          {
+            onError: (error: unknown) => {
+              reportError('An error occurred', error);
+            },
           },
-        },
-        [
-          h(TitleManager),
-          h(FirecloudNotification),
-          h(AuthenticatedCookieSetter),
-          h(AuthProvider, getOidcConfig(), [h(AuthStoreSetter)]),
-          h(AuthContainer, [h(Router)]),
-        ]
-      ),
-      h(PageViewReporter),
-      h(SupportRequest),
-      h(ConfigOverridesWarning),
+          [
+            h(TitleManager),
+            h(FirecloudNotification),
+            h(AuthenticatedCookieSetter),
+            h(AuthProvider, getOidcConfig(), [h(AuthStoreSetter)]),
+            h(AuthContainer, [h(Router)]),
+          ]
+        ),
+        h(PageViewReporter),
+        h(SupportRequest),
+        h(ConfigOverridesWarning),
+      ]),
     ]),
   ]);
 };

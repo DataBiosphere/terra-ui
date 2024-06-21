@@ -1,0 +1,132 @@
+name: Run E2E integration Tests
+
+# This workflow is meant to be called from other repositories' workflows to run integration checks autonomously.
+# While this workflow makes use of Workload Identity Federation and service accounts, this workflow DOES NOT have permissions
+# itself and expects upstream callers to provide the permissions.
+#
+# There are the required service accounts:
+# lyle-user@terra-lyle.iam.gserviceaccount.com
+# firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com
+#
+# Instructions setting up Workload Identity Federation can be found here:
+# https://docs.google.com/document/d/1bnhDmWQHAMat_Saoa_z28FHwXmGWw6kywjdbKf208h4/edit?usp=sharing
+#
+# With that configured, here's how you can call this workflow from whatever workflow currently publishes the app:
+# ```yaml
+# jobs:
+#
+#
+#   This example runs just the register-user.js tests against terra-dev
+#   run-terra-ui-integration-tests:
+#     uses: databiosphere/terra-ui/.github/workflows/run-integration-tests.yaml@main
+#     permissions:
+#       contents: 'read'
+#      with:
+#        test_url: 'https://bvdp-saturn-dev.appspot.com/'
+#        environment: 'dev'
+#        tests_to_run: 'tests/register-user.js'
+# ```
+
+on:
+  workflow_call:
+    inputs:
+
+      ##
+      ## Configurations:
+      ##
+
+      test_url:
+        required: true
+        type: string
+        description: "URL of terraui instance to test against, required"
+      environment:
+        required: false
+        type: string
+        default: dev
+        description: "environment config to use, default: dev"
+      tests_to_run:
+        required: false
+        type: string
+        description: "space delimited list of js test files to run, default: run all"
+      target_branch:
+        required: false
+        type: string
+        description: "The branch of terra-ui to run integration tests against"
+
+env:
+  ENVIRONMENT: ${{ inputs.environment }}
+  TEST_URL: ${{ inputs.test_url }}
+
+jobs:
+  run-integration-tests:
+    name: ${{ inputs.tests_to_run }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+
+      ##
+      ## Handle checkout and setup:
+      ##
+
+      - name: "Checkout terra-ui code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_branch }}
+          repository: databiosphere/terra-ui
+          path: terraui
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '~20.11'
+
+      - name: Auth Lyle to GCP
+        id: 'lyle-auth'
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'id_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'lyle-user@terra-lyle.iam.gserviceaccount.com'
+          id_token_audience: 'https://terra-lyle.appspot.com'
+          id_token_include_email: true
+          export_environment_variables: false
+
+      - name: Auth firecloud to GCP
+        id: 'terra-auth'
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'firecloud-dev@broad-dsde-dev.iam.gserviceaccount.com'
+          access_token_scopes: 'profile, email, openid'
+          access_token_subject: 'Scarlett.Flowerpicker@test.firecloud.org'
+          export_environment_variables: false
+
+      - name: "set env vars"
+        run: |
+          echo "LYLE_ID_TOKEN=${{ steps.lyle-auth.outputs.id_token }}" >> $GITHUB_ENV
+          echo "USER_ACCESS_TOKEN=${{ steps.terra-auth.outputs.access_token }}" >> $GITHUB_ENV
+
+      - name: "Run Yarn Install"
+        shell: bash
+        run: cd terraui && yarn install
+
+      #
+      # Test Run Starts Here
+      #
+
+      - name: "Run Integration Tests"
+        shell: bash
+        run: |
+          cd terraui/integration-tests &&
+          yarn test ${{ inputs.tests_to_run }}
+
+      - name: 'Upload Test Artifacts'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terra-ui-logs-${{ github.run_id }}-${{ inputs.tests_to_run }}
+          path: |
+            /tmp/test-results
+            ./terraui/integration-tests/test-results/screenshots

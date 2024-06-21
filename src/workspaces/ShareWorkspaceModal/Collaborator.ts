@@ -7,8 +7,8 @@ import { getPopupRoot } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/libs/workspace-utils';
-import { AccessEntry, WorkspaceAcl } from 'src/pages/workspaces/workspace/WorkspaceAcl';
+import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
+import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 /**
  * @param aclItem {AccessEntry} the item to render
@@ -94,6 +94,10 @@ interface AclInputProps extends AclSelectProps {
 export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
   const { value, onChange, disabled, maxAccessLevel, isAzureWorkspace, autoFocus, ...rest } = props;
   const { accessLevel, canShare, canCompute } = value;
+  const userCanShareAdditionalPerms = ['OWNER', 'PROJECT_OWNER'].includes(maxAccessLevel);
+  const tooltipProps = userCanShareAdditionalPerms
+    ? {}
+    : { tooltip: 'Only Owners and Project Owners can share additional permissions' };
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: isAzureWorkspace ? 425 : 200 } }, [
       h(AclSelect, {
@@ -125,9 +129,10 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
           h(
             LabeledCheckbox,
             {
-              disabled: disabled || accessLevel === 'OWNER',
+              disabled: disabled || !userCanShareAdditionalPerms,
               checked: canShare,
               onChange: () => onChange(_.update('canShare', (b) => !b, value)),
+              ...tooltipProps,
             },
             [' Can share']
           ),
@@ -136,9 +141,10 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
           h(
             LabeledCheckbox,
             {
-              disabled: disabled || accessLevel !== 'WRITER',
+              disabled: disabled || !userCanShareAdditionalPerms,
               checked: canCompute,
               onChange: () => onChange(_.update('canCompute', (b) => !b, value)),
+              ...tooltipProps,
             },
             [' Can compute']
           ),

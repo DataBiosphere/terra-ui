@@ -1,5 +1,11 @@
 import { Theme, ThemeProvider } from '@terra-ui-packages/components';
 import {
+  makeNotificationsProvider,
+  NotificationsContextProvider,
+  NotificationsProvider,
+  Notifier,
+} from '@terra-ui-packages/notifications';
+import {
   act,
   render,
   renderHook,
@@ -12,7 +18,7 @@ import userEvent from '@testing-library/user-event';
 import { PropsWithChildren, ReactElement } from 'react';
 import { h } from 'react-hyperscript-helpers';
 
-export { asMockedFn } from '@terra-ui-packages/test-utils';
+export { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 
 const testTheme: Theme = {
   colorPalette: {
@@ -29,8 +35,19 @@ const testTheme: Theme = {
   },
 };
 
+const mockNotifier: Notifier = {
+  notify: jest.fn(),
+};
+
+export const mockNotifications: NotificationsProvider = makeNotificationsProvider({
+  notifier: mockNotifier,
+  shouldIgnoreError: () => false,
+});
+
 const AppProviders = ({ children }: PropsWithChildren<{}>): ReactElement => {
-  return h(ThemeProvider, { theme: testTheme }, [children]);
+  return h(ThemeProvider, { theme: testTheme }, [
+    h(NotificationsContextProvider, { notifications: mockNotifications }, [children]),
+  ]);
 };
 
 export const renderWithAppContexts = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
@@ -39,26 +56,15 @@ export const renderWithAppContexts = (ui: ReactElement, options?: Omit<RenderOpt
 
 type UserEvent = ReturnType<typeof userEvent.setup>;
 
-export type PromiseController<T> = {
-  resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
-};
-
-/**
- * Returns a promise and a controller that allows manually resolving/rejecting the promise.
- */
-export const controlledPromise = <T>(): [Promise<T>, PromiseController<T>] => {
-  const controller: PromiseController<T> = {
-    resolve: () => {},
-    reject: () => {},
+export const renderHookWithAppContexts = <T, U>(
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
+): RenderHookResult<U, T> => {
+  const baseOptions: RenderHookOptions<T> = {
+    wrapper: AppProviders,
   };
-
-  const promise = new Promise<T>((resolve, reject) => {
-    controller.resolve = resolve;
-    controller.reject = reject;
-  });
-
-  return [promise, controller];
+  const mergedOptions: RenderHookOptions<T> = { ...baseOptions, ...options };
+  return renderHook(hook, mergedOptions);
 };
 
 // This is for the AutoSizer component. It requires screen dimensions in order to be tested properly.
@@ -87,15 +93,30 @@ export const setUpAutoSizerTesting = () => {
   });
 };
 
-export const renderHookInAct = async <T, U>(
-  callback: (args: T) => U,
+const renderHookInActInternal = async <T, U>(
+  renderer: typeof renderHook<U, T>,
+  hook: (args: T) => U,
   options?: RenderHookOptions<T>
 ): Promise<RenderHookResult<U, T>> => {
   let result: RenderHookResult<U, T>;
   await act(async () => {
-    result = renderHook(callback, options);
+    result = renderer(hook, options);
   });
   return result!;
+};
+
+export const renderHookInAct = async <T, U>(
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
+): Promise<RenderHookResult<U, T>> => {
+  return renderHookInActInternal(renderHook, hook, options);
+};
+
+export const renderHookInActWithAppContexts = async <T, U>(
+  hook: (args: T) => U,
+  options?: RenderHookOptions<T>
+): Promise<RenderHookResult<U, T>> => {
+  return renderHookInActInternal(renderHookWithAppContexts, hook, options);
 };
 
 export class SelectHelper {

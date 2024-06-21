@@ -1,21 +1,21 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { analysisLauncherTabName } from 'src/analysis/runtime-common-components';
+import { analysisLauncherTabName } from 'src/analysis/runtime-common-text';
 import { useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
 import { DisplayName, FileName, getDisplayName, getExtension, getFileName } from 'src/analysis/utils/file-utils';
 import { analysisNameInput, analysisNameValidator } from 'src/analysis/utils/notebook-utils';
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/libs/workspace-utils';
+import { isGoogleWorkspaceInfo, WorkspaceInfo } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 export interface AnalysisDuplicatorProps {
@@ -64,55 +64,54 @@ export const AnalysisDuplicator = ({
           tooltip: Utils.summarizeErrors(errors),
           onClick: withErrorReportingInModal(
             `Error ${destroyOld ? 'renaming' : 'copying'} analysis`,
-            onDismiss,
-            async () => {
-              setProcessing(true);
-              const rename = isGoogleWorkspaceInfo(workspaceInfo)
-                ? () =>
-                    Ajax()
-                      .Buckets.analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, printName, toolLabel)
-                      .rename(newName)
-                : () => Ajax().AzureStorage.blob(workspaceInfo.workspaceId, printName).rename(newName);
+            onDismiss
+          )(async () => {
+            setProcessing(true);
+            const rename = isGoogleWorkspaceInfo(workspaceInfo)
+              ? () =>
+                  Ajax()
+                    .Buckets.analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, printName, toolLabel)
+                    .rename(newName)
+              : () => Ajax().AzureStorage.blob(workspaceInfo.workspaceId, printName).rename(newName);
 
-              const duplicate = isGoogleWorkspaceInfo(workspaceInfo)
-                ? () =>
-                    Ajax()
-                      .Buckets.analysis(
-                        workspaceInfo.googleProject,
-                        workspaceInfo.bucketName,
-                        getFileName(printName),
-                        toolLabel
-                      )
-                      .copy(`${newName}.${getExtension(printName)}`, workspaceInfo.bucketName, true)
-                : () => Ajax().AzureStorage.blob(workspaceInfo.workspaceId, printName).copy(newName);
+            const duplicate = isGoogleWorkspaceInfo(workspaceInfo)
+              ? () =>
+                  Ajax()
+                    .Buckets.analysis(
+                      workspaceInfo.googleProject,
+                      workspaceInfo.bucketName,
+                      getFileName(printName),
+                      toolLabel
+                    )
+                    .copy(`${newName}.${getExtension(printName)}`, workspaceInfo.bucketName, true)
+              : () => Ajax().AzureStorage.blob(workspaceInfo.workspaceId, printName).copy(newName);
 
-              if (destroyOld) {
-                await rename();
-                Ajax().Metrics.captureEvent(Events.notebookRename, {
-                  oldName: printName,
-                  newName,
-                  ...extractWorkspaceDetails(workspaceInfo),
-                });
-              } else {
-                await duplicate();
-                Ajax().Metrics.captureEvent(Events.notebookCopy, {
-                  oldName: printName,
-                  newName,
-                  ...extractCrossWorkspaceDetails({ workspace: workspaceInfo }, { workspace: workspaceInfo }),
-                });
-              }
-
-              onSuccess();
-              if (fromLauncher) {
-                Nav.goToPath(analysisLauncherTabName, {
-                  namespace: workspaceInfo.namespace,
-                  name: workspaceInfo.name,
-                  analysisName: `${newName}.${getExtension(printName)}`,
-                  toolLabel,
-                });
-              }
+            if (destroyOld) {
+              await rename();
+              Ajax().Metrics.captureEvent(Events.notebookRename, {
+                oldName: printName,
+                newName,
+                ...extractWorkspaceDetails(workspaceInfo),
+              });
+            } else {
+              await duplicate();
+              Ajax().Metrics.captureEvent(Events.notebookCopy, {
+                oldName: printName,
+                newName,
+                ...extractCrossWorkspaceDetails({ workspace: workspaceInfo }, { workspace: workspaceInfo }),
+              });
             }
-          ),
+
+            onSuccess();
+            if (fromLauncher) {
+              Nav.goToPath(analysisLauncherTabName, {
+                namespace: workspaceInfo.namespace,
+                name: workspaceInfo.name,
+                analysisName: `${newName}.${getExtension(printName)}`,
+                toolLabel,
+              });
+            }
+          }),
         },
         [`${destroyOld ? 'Rename' : 'Copy'} Analysis`]
       ),

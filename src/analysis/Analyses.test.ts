@@ -3,7 +3,7 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { AnalysesData, AnalysesProps, BaseAnalyses, getUniqueFileName } from 'src/analysis/Analyses';
-import { analysisLauncherTabName } from 'src/analysis/runtime-common-components';
+import { analysisLauncherTabName } from 'src/analysis/runtime-common-text';
 import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, FileName, findPotentialNotebookLockers, notebookLockHash } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
@@ -80,6 +80,7 @@ const defaultAnalysesData: AnalysesData = {
   lastRefresh: null,
   runtimes: [],
   refreshRuntimes: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   appDataDisks: [],
   persistentDisks: [],
 };

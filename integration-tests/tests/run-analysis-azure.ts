@@ -1,7 +1,12 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp');
 const uuid = require('uuid');
-const { deleteRuntimesV2, gotoAnalysisTab, withAzureWorkspace } = require('../utils/integration-helpers');
+const {
+  deleteRuntimesV2,
+  getWorkspaceId,
+  gotoAnalysisTab,
+  withAzureWorkspace,
+} = require('../utils/integration-helpers');
 const {
   Millis,
   click,
@@ -17,6 +22,7 @@ const {
   input,
   noSpinnersAfter,
   waitForNoModal,
+  waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
@@ -44,13 +50,14 @@ const testRunAnalysisAzure = _.flowRight(
     action: () => findText(page, 'Azure Cloud Environment'),
     timeout: Millis.ofMinute,
   });
-  await click(page, clickable({ textContains: 'Close', isEnabled: true }), { timeout: Millis.ofMinute });
+  await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
   await click(page, `//*[@title="${notebookName}.ipynb"]`);
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
+  await waitForNoSpinners(page);
 
   // Attempt to open analysis; create a cloud env
   await click(page, clickable({ textContains: 'Open' }));
@@ -62,8 +69,28 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'JupyterLab Environment' }));
   await findElement(page, clickable({ textContains: 'Creating' }));
 
-  // Wait for env to finish creating, or break early on error
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(18) });
+  // Wait for env to finish creating, or break early on only errors related to runtime creation
+  const getErrorXPath = (text) => `//*[@role='alert' and contains(normalize-space(.),'${text}')]`;
+
+  await Promise.race([
+    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(25) }),
+    findElement(page, getErrorXPath('Error Creating Cloud Environment'), { timeout: Millis.ofMinutes(25) }),
+    findElement(page, getErrorXPath('Error modifying cloud environment'), { timeout: Millis.ofMinutes(25) }),
+  ]);
+
+  let hasRelevantError = false;
+  try {
+    await findElement(page, getErrorXPath('Error Creating Cloud Environment'), { timeout: Millis.ofSecond });
+    hasRelevantError = true;
+  } catch {}
+  try {
+    await findElement(page, getErrorXPath('Error modifying cloud environment'), { timeout: Millis.ofSecond });
+    hasRelevantError = true;
+  } catch {}
+
+  if (hasRelevantError) {
+    throw new Error('Failed to create cloud environment');
+  }
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
   // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant
@@ -79,31 +106,26 @@ const testRunAnalysisAzure = _.flowRight(
     throw new Error('iframe not found');
   }
 
-  await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(4) });
+  await findText(frame, 'Kernel status: Idle', { timeout: Millis.ofMinutes(5) });
 
   // Wait for stable UI (sometimes kernel status flickers and fillIn won't work)
   await delay(Millis.ofSeconds(10));
   // Run a command
-  await fillIn(
-    frame,
-    '//*[contains(@class,"jp-Notebook-cell")][last()]//textArea',
-    'print(123456789099876543210990+9876543219)'
-  );
-  await click(frame, '//button[starts-with(@title, "Run the selected cells and advance")]');
+  await fillIn(frame, '//*[contains(@class,"jp-Cell-inputArea")]', 'print(123456789099876543210990+9876543219)');
+  await click(frame, '//button[starts-with(@title, "Run")]');
   await findText(frame, '123456789099886419754209');
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
-  await click(frame, '//button[starts-with(@title, "Save and create checkpoint")]');
+  await click(frame, '//button[starts-with(@title, "Save")]');
 
   // Cleanup
-  await deleteRuntimesV2({ page, billingProject, workspaceName });
+  const workspaceId = await getWorkspaceId({ page, billingProject, workspaceName });
+  await deleteRuntimesV2({ page, billingProject, workspaceId });
 });
 
-// Run this test manually against staging when needed. Note the very long timeout; Azure VMs can take 20 minutes to create
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  targetEnvironments: ['dev'],
-  // targetEnvironments: ['dev', 'staging'], // uncomment for manually triggered runs against staging - DO NOT COMMIT
-  timeout: Millis.ofMinutes(25), // exceeds circleCI max timeout; needs to be this high to pass reliably
+  targetEnvironments: ['dev', 'staging'],
+  timeout: Millis.ofMinutes(30),
 });

@@ -1,24 +1,27 @@
-import { div } from 'react-hyperscript-helpers';
+import { ReactNode } from 'react';
+import { div, h } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskSection } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskSection';
 import { GcpPersistentDiskSizeNumberInput } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSizeNumberInput';
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
-import { GcpPersistentDiskOptions, SharedPdType } from 'src/libs/ajax/leonardo/models/disk-models';
-import { CloudProvider } from 'src/libs/workspace-utils';
+import { defaultPersistentDiskType } from 'src/analysis/utils/disk-utils';
+import { GoogleDiskType } from 'src/libs/ajax/leonardo/Disks';
+import { GooglePdType, googlePdTypes } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { CloudProvider } from 'src/workspaces/utils';
+
+export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
 
 export interface GcpPersistentDiskSectionProps {
   persistentDiskExists: boolean;
   persistentDiskSize: number;
-  persistentDiskType: SharedPdType;
-  onChangePersistentDiskType: (type: SharedPdType) => void;
+  persistentDiskType: GooglePdType;
+  onChangePersistentDiskType: (type: GooglePdType) => void;
   onChangePersistentDiskSize: (size: number) => void;
   onClickAbout: () => void;
   cloudPlatform: CloudProvider;
 }
 
-export const GcpPersistentDiskSection: React.FC<GcpPersistentDiskSectionProps> = (
-  props: GcpPersistentDiskSectionProps
-) => {
+export const GcpPersistentDiskSection = (props: GcpPersistentDiskSectionProps): ReactNode => {
   const {
     onClickAbout,
     persistentDiskType,
@@ -30,15 +33,15 @@ export const GcpPersistentDiskSection: React.FC<GcpPersistentDiskSectionProps> =
 
   const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' };
   return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-    AboutPersistentDiskSection({ onClick: onClickAbout }),
+    h(AboutPersistentDiskSection, { onClick: onClickAbout }),
     div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
-      PersistentDiskTypeInputContainer({
+      h(PersistentDiskTypeInputContainer<GoogleDiskType, GooglePdType>, {
         persistentDiskExists,
         value: persistentDiskType.value,
-        onChange: (e) => onChangePersistentDiskType(e),
+        onChange: (e) => onChangePersistentDiskType(e || defaultPersistentDiskType),
         options: GcpPersistentDiskOptions,
       }),
-      GcpPersistentDiskSizeNumberInput({
+      h(GcpPersistentDiskSizeNumberInput, {
         persistentDiskSize,
         // GCP disk size may be updated after creation
         isDisabled: false,

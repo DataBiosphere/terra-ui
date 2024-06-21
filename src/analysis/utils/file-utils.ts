@@ -1,9 +1,8 @@
 import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { runtimeTools, ToolLabel, toolToExtensionMap } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import * as Utils from 'src/libs/utils';
-import { GoogleWorkspace, hasAccessLevel } from 'src/libs/workspace-utils';
+import { GoogleWorkspace, hasAccessLevel } from 'src/workspaces/utils';
 
 export type FileName = NominalType<string, 'FileName'>; // represents a file with an extension and no path, eg `dir/file.ipynb` =>  `file.ipynb`
 export type AbsolutePath = NominalType<string, 'AbsolutePath'>; // represents an absolute path in the context of a cloud storage directory structure, i.e. `dir/file.ipynb`
@@ -47,7 +46,3 @@ export const findPotentialNotebookLockers = async (workspace: GoogleWorkspace): 
 
   return lockHolders;
 };
-
-export const addExtensionToNotebook = (name: string): string => `${name}.${runtimeTools.Jupyter.defaultExt}`;
-
-export const getAnalysisFileExtension = (toolLabel: ToolLabel): FileExtension => toolToExtensionMap[toolLabel];

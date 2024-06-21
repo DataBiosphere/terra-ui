@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "test-local": "TERRA_SA_KEY=$(vault read --format=json secret/dsde/firecloud/alpha/common/firecloud-account.json | jq .data) LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) TEST_URL=http://localhost:3000 yarn test",
+    "test-local": "TERRA_SA_KEY=$(vault read --format=json secret/dsde/firecloud/dev/common/firecloud-account.json | jq .data) LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) TEST_URL=http://localhost:3000 yarn test",
     "test-flakes": "FLAKES=true yarn test-local --runInBand"
   },
   "devDependencies": {
@@ -18,7 +18,6 @@
   },
   "dependencies": {
     "@axe-core/puppeteer": "^4.6.0",
-    "@google-cloud/secret-manager": "^4.0.0",
     "date-fns": "^2.24.0",
     "google-auth-library": "^7.9.2",
     "lodash": "^4.17.21",

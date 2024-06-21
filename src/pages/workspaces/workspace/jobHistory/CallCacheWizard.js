@@ -1,4 +1,5 @@
 import ReactJson from '@microlink/react-json-view';
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, hr, label } from 'react-hyperscript-helpers';
@@ -7,7 +8,6 @@ import ErrorView from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import { breadcrumbHistoryCaret } from 'src/components/job-common';
-import Modal from 'src/components/Modal';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -263,6 +263,8 @@ const CallCacheWizard = ({ onDismiss, workflowId, callFqn, index, loadCallCacheD
       ]),
       divider,
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, ['Result: View cache diff']),
+      // TODO: Remove nested ternary to align with style guide
+      // eslint-disable-next-line no-nested-ternary
       diffError
         ? h(ErrorView, { error: diffError })
         : diff

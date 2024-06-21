@@ -25,7 +25,7 @@ jest.mock('src/libs/nav', () => ({
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/notifications.js');
+jest.mock('src/libs/notifications');
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
@@ -337,7 +337,7 @@ describe('Input table rendering', () => {
     within(headers[1]).getByText('Variable');
     within(headers[2]).getByText('Type');
     within(headers[3]).getByText('Input sources');
-    within(headers[4]).getByText('Attribute');
+    within(headers[4]).getByText('Input value');
 
     const structCells = within(structRows[2]).getAllByRole('cell');
     within(structCells[1]).getByText('myInnerStruct');
@@ -380,7 +380,7 @@ describe('Input table rendering', () => {
     within(cells1[4]).getByText(/Autofill /);
     within(cells1[4]).getByText('bar_string');
     within(cells1[4]).getByText(/ from data table/);
-    within(cells1[4]).getByText('This attribute is required');
+    within(cells1[4]).getByText('This input value is required');
 
     within(cells2[0]).getByText('foo');
     within(cells2[1]).getByText('foo_rating');
@@ -483,7 +483,7 @@ describe('Input table rendering', () => {
     const innerStructRow1 = within(innerStructRows[1]).getAllByRole('cell');
     within(innerStructRow1[1]).getByText('myInnermostPrimitive');
     within(innerStructRow1[4]).getByDisplayValue('2');
-    const innerPrimitiveWarningMessageActive = within(innerStructRow1[4]).queryByText('This attribute is required');
+    const innerPrimitiveWarningMessageActive = within(innerStructRow1[4]).queryByText('This input value is required');
     expect(innerPrimitiveWarningMessageActive).toBeNull();
 
     const innerStructRow2 = within(innerStructRows[2]).getAllByRole('cell');
@@ -533,7 +533,7 @@ describe('Input table rendering', () => {
     const innerStructRow1 = within(innerStructRows[1]).getAllByRole('cell');
     within(innerStructRow1[1]).getByText('myInnermostPrimitive');
     within(innerStructRow1[3]).getByText('Select Source');
-    within(innerStructRow1[4]).getByText('This attribute is required');
+    within(innerStructRow1[4]).getByText('This input value is required');
 
     const innerStructRow2 = within(innerStructRows[2]).getAllByRole('cell');
     within(innerStructRow2[1]).getByText('myInnermostRecordLookup');
@@ -571,7 +571,7 @@ describe('Input table rendering', () => {
 
     // inputs sorted according to task name -> variable name
     const firstInputRowCells = within(rows[1]).getAllByRole('cell');
-    within(firstInputRowCells[4]).getByText('This attribute is required');
+    within(firstInputRowCells[4]).getByText('This input value is required');
 
     const thirdInputRowCells = within(rows[3]).getAllByRole('cell');
     within(thirdInputRowCells[4]).getByText('Optional');

@@ -17,7 +17,7 @@ import {
   Runtime,
 } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
-import { CloudProvider } from 'src/libs/workspace-utils';
+import { CloudProvider } from 'src/workspaces/utils';
 import { v4 as uuid } from 'uuid';
 
 export const runtimeTypes = {
@@ -44,9 +44,10 @@ export const defaultAutopauseThreshold = 30;
 // Leonardo considers autopause disabled when the threshold is set to 0
 export const autopauseDisabledValue = 0;
 
-export const isAutopauseEnabled = (threshold) => threshold > autopauseDisabledValue;
+export const isAutopauseEnabled = (threshold: number): boolean => threshold > autopauseDisabledValue;
 
-export const getAutopauseThreshold = (isEnabled) => (isEnabled ? defaultAutopauseThreshold : autopauseDisabledValue);
+export const getAutopauseThreshold = (isEnabled: boolean): number =>
+  isEnabled ? defaultAutopauseThreshold : autopauseDisabledValue;
 
 export const usableStatuses: LeoRuntimeStatus[] = ['Updating', 'Running'];
 

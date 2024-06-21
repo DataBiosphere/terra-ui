@@ -7,7 +7,7 @@ import { getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
 import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 export const getCromwellUnsupportedMessage = () =>
   'Cromwell app is either not supported in this workspace or you need to be a workspace creator to access the app. Please create a new workspace to use Cromwell app.';

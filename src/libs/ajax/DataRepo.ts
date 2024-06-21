@@ -1,87 +1,116 @@
 import * as _ from 'lodash/fp';
-import {
-  convertDatasetAccessRequest,
-  convertDatasetParticipantCountRequest,
-  convertProgramDataOptionToListOption,
-  convertProgramDataOptionToRangeOption,
-  DatasetAccessRequest,
-  DatasetAccessRequestApi,
-  DatasetParticipantCountRequest,
-  DatasetParticipantCountResponse,
-  GetConceptsResponse,
-  ProgramDataListOption,
-  ProgramDataRangeOption,
-} from 'src/dataset-builder/DatasetBuilderUtils';
 import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
+
+/** API types represent the data of UI types in the format expected by the backend.
+ * They are generally subsets or mappings of the UI types. */
 
 export type SnapshotBuilderConcept = {
   id: number;
   name: string;
-  count?: number;
+  code: string;
+  count: number;
   hasChildren: boolean;
 };
 
-export type SnapshotBuilderDomainOption = {
-  id: number;
-  category: string;
-  conceptCount?: number;
-  participantCount?: number;
-  root: SnapshotBuilderConcept;
-};
-
-export interface SnapshotBuilderProgramDataOption {
-  kind: 'range' | 'list';
+/** Program Data Option Types */
+export type SnapshotBuilderOptionTypeNames = 'list' | 'range' | 'domain';
+export interface SnapshotBuilderOption {
+  kind: SnapshotBuilderOptionTypeNames;
   name: string;
+  id: number;
   tableName: string;
   columnName: string;
 }
 
-export type SnapshotBuilderFeatureValueGroup = {
+export interface SnapshotBuilderProgramDataOption extends SnapshotBuilderOption {
+  kind: 'range' | 'list';
+}
+
+export interface SnapshotBuilderProgramDataListItem {
+  name: string;
   id: number;
+}
+
+export interface SnapshotBuilderProgramDataListOption extends SnapshotBuilderProgramDataOption {
+  kind: 'list';
+  values: SnapshotBuilderProgramDataListItem[];
+}
+
+export interface SnapshotBuilderProgramDataRangeOption extends SnapshotBuilderProgramDataOption {
+  kind: 'range';
+  min: number;
+  max: number;
+}
+export interface SnapshotBuilderDomainOption extends SnapshotBuilderOption {
+  kind: 'domain';
+  root: SnapshotBuilderConcept;
+  conceptCount: number;
+  participantCount: number;
+}
+
+export interface DatasetBuilderType {
+  name: string;
+}
+
+export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
+  featureValueGroupName: string;
+}
+
+export type SnapshotBuilderSettings = {
+  domainOptions: SnapshotBuilderDomainOption[];
+  programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
+  featureValueGroups: SnapshotBuilderFeatureValueGroup[];
+  datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
+};
+
+/** Criteria */
+export interface SnapshotBuilderCriteria {
+  // This is the ID for either the domain or the program data option
+  id: number;
+  kind: SnapshotBuilderOptionTypeNames;
+}
+
+export interface SnapshotBuilderDomainCriteria extends SnapshotBuilderCriteria {
+  kind: 'domain';
+  // This is the id for the selected concept
+  conceptId: number;
+}
+
+export interface SnapshotBuilderProgramDataRangeCriteria extends SnapshotBuilderCriteria {
+  kind: 'range';
+  low: number;
+  high: number;
+}
+
+export interface SnapshotBuilderProgramDataListCriteria extends SnapshotBuilderCriteria {
+  kind: 'list';
+  values: number[];
+}
+
+export type AnySnapshotBuilderCriteria =
+  | SnapshotBuilderDomainCriteria
+  | SnapshotBuilderProgramDataRangeCriteria
+  | SnapshotBuilderProgramDataListCriteria;
+export interface SnapshotBuilderCriteriaGroup {
+  name: string;
+  criteria: AnySnapshotBuilderCriteria[];
+  mustMeet: boolean;
+  meetAll: boolean;
+}
+
+export interface SnapshotBuilderCohort extends DatasetBuilderType {
+  criteriaGroups: SnapshotBuilderCriteriaGroup[];
+}
+
+export type SnapshotBuilderFeatureValueGroup = {
   name: string;
   values: string[];
 };
 
-export type SnapshotBuilderDatasetConceptSets = {
-  name: string;
-  featureValueGroupName: string;
-};
-
-export type SnapshotBuilderSettings = {
-  domainOptions: SnapshotBuilderDomainOption[];
-  programDataOptions: SnapshotBuilderProgramDataOption[];
-  featureValueGroups: SnapshotBuilderFeatureValueGroup[];
-  datasetConceptSets?: SnapshotBuilderDatasetConceptSets[];
-};
-
-export type DatasetModel = {
-  id: string;
-  name: string;
-  description: string;
-  createdDate: string;
-  properties: any;
-  snapshotBuilderSettings?: SnapshotBuilderSettings;
-};
-
-type DatasetInclude =
-  | 'NONE'
-  | 'SCHEMA'
-  | 'ACCESS_INFORMATION'
-  | 'PROFILE'
-  | 'PROPERTIES'
-  | 'DATA_PROJECT'
-  | 'STORAGE'
-  | 'SNAPSHOT_BUILDER_SETTINGS';
-
-export const datasetIncludeTypes: Record<DatasetInclude, DatasetInclude> = {
-  NONE: 'NONE',
-  SCHEMA: 'SCHEMA',
-  ACCESS_INFORMATION: 'ACCESS_INFORMATION',
-  PROFILE: 'PROFILE',
-  PROPERTIES: 'PROPERTIES',
-  DATA_PROJECT: 'DATA_PROJECT',
-  STORAGE: 'STORAGE',
-  SNAPSHOT_BUILDER_SETTINGS: 'SNAPSHOT_BUILDER_SETTINGS',
+export type SnapshotBuilderRequest = {
+  cohorts: SnapshotBuilderCohort[];
+  conceptSets: SnapshotBuilderDatasetConceptSet[];
+  valueSets: SnapshotBuilderFeatureValueGroup[];
 };
 
 interface SnapshotDataset {
@@ -93,63 +122,88 @@ interface SnapshotDataset {
 export interface Snapshot {
   id: string;
   name: string;
+  description?: string;
+  createdDate?: string;
   source: { dataset: SnapshotDataset }[];
+  properties?: any;
   cloudPlatform: 'azure' | 'gcp';
 }
 
-export interface ColumnStatisticsModel {
-  dataType:
-    | 'string'
-    | 'boolean'
-    | 'bytes'
-    | 'date'
-    | 'datetime'
-    | 'dirref'
-    | 'fileref'
-    | 'float'
-    | 'float64'
-    | 'integer'
-    | 'int64'
-    | 'numeric'
-    | 'record'
-    | 'text'
-    | 'time'
-    | 'timestamp';
+/** Jobs */
+export type JobStatus = 'running' | 'succeeded' | 'failed';
+
+export const jobStatusTypes: Record<JobStatus, JobStatus> = {
+  running: 'running',
+  succeeded: 'succeeded',
+  failed: 'failed',
+};
+
+export interface JobModel {
+  id: string;
+  description?: string;
+  job_status: JobStatus;
+  status_code: number;
+  submitted?: string;
+  completed?: string;
+  class_name?: string;
 }
 
-export interface ColumnStatisticsIntOrDoubleModel extends ColumnStatisticsModel {
-  dataType: 'float' | 'float64' | 'integer' | 'int64' | 'numeric';
-  minValue: number;
-  maxValue: number;
+/** Response */
+export interface SnapshotBuilderConceptsResponse {
+  result: SnapshotBuilderConcept[];
+}
+export interface SnapshotBuilderGetConceptHierarchyResponse {
+  result: SnapshotBuilderParentConcept[];
+}
+export interface SnapshotBuilderParentConcept {
+  parentId: number;
+  children: SnapshotBuilderConcept[];
+}
+export interface SnapshotAccessRequestResponse {
+  id: string; // uuid
+  snapshotId: string; // uuid
+  snapshotName: string;
+  snapshotResearchPurpose: string;
+  snapshotSpecification: SnapshotAccessRequest;
+  createdBy: string;
+  status: JobStatus;
 }
 
-export interface ColumnStatisticsTextModel extends ColumnStatisticsModel {
-  dataType: 'string' | 'text';
-  values: ColumnStatisticsTextValue[];
-}
+export type SnapshotBuilderCountResponse = {
+  result: {
+    total: number;
+  };
+  sql: string;
+};
 
-interface ColumnStatisticsTextValue {
-  value: string;
-  count: number;
-}
+/** Requests */
+export type SnapshotBuilderCountRequest = {
+  cohorts: SnapshotBuilderCohort[];
+};
+
+export type SnapshotAccessRequest = {
+  name: string;
+  sourceSnapshotId: string;
+  researchPurposeStatement: string;
+  snapshotBuilderRequest: SnapshotBuilderRequest;
+};
 
 export interface DataRepoContract {
-  dataset: (datasetId: string) => {
-    details: (include?: DatasetInclude[]) => Promise<DatasetModel>;
-    roles: () => Promise<string[]>;
-    queryDatasetColumnStatisticsById: (
-      dataOption: SnapshotBuilderProgramDataOption
-    ) => Promise<ProgramDataRangeOption | ProgramDataListOption>;
-    createSnapshotRequest(request: DatasetAccessRequest): Promise<DatasetAccessRequestApi>;
-    getCounts(request: DatasetParticipantCountRequest): Promise<DatasetParticipantCountResponse>;
-    getConcepts(parent: SnapshotBuilderConcept): Promise<GetConceptsResponse>;
+  snapshotAccessRequest: () => {
+    createSnapshotAccessRequest: (request: SnapshotAccessRequest) => Promise<SnapshotAccessRequestResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
-    exportSnapshot: () => Promise<{}>;
+    roles: () => Promise<string[]>;
+    exportSnapshot: () => Promise<JobModel>;
+    getSnapshotBuilderSettings: () => Promise<SnapshotBuilderSettings>;
+    getSnapshotBuilderCount(request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse>;
+    getConceptChildren(parent: SnapshotBuilderConcept): Promise<SnapshotBuilderConceptsResponse>;
+    getConceptHierarchy(concept: SnapshotBuilderConcept): Promise<SnapshotBuilderGetConceptHierarchyResponse>;
+    enumerateConcepts(domain: SnapshotBuilderConcept, text: string): Promise<SnapshotBuilderConceptsResponse>;
   };
   job: (jobId: string) => {
-    details: () => Promise<{}>;
+    details: () => Promise<JobModel>;
     result: () => Promise<{}>;
   };
 }
@@ -167,55 +221,36 @@ const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, js
   return await res.json();
 };
 
-const handleProgramDataOptions = async (
-  datasetId: string,
-  programDataOption: SnapshotBuilderProgramDataOption,
-  signal: AbortSignal | undefined
-): Promise<ProgramDataRangeOption | ProgramDataListOption> => {
-  switch (programDataOption.kind) {
-    case 'list':
-      return convertProgramDataOptionToListOption(programDataOption);
-    case 'range': {
-      const statistics: ColumnStatisticsTextModel | ColumnStatisticsIntOrDoubleModel = await callDataRepoPost(
-        `repository/v1/datasets/${datasetId}/data/${programDataOption.tableName}/statistics/${programDataOption.columnName}`,
-        signal,
-        {}
-      );
-      return convertProgramDataOptionToRangeOption(programDataOption, statistics);
-    }
-    default:
-      throw new Error('Unexpected option');
-  }
-};
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
-  dataset: (datasetId) => {
+  snapshotAccessRequest: () => {
     return {
-      details: async (include): Promise<DatasetModel> =>
-        callDataRepo(`repository/v1/datasets/${datasetId}?include=${_.join(',', include)}`, signal),
-      roles: async (): Promise<string[]> => callDataRepo(`repository/v1/datasets/${datasetId}/roles`, signal),
-      createSnapshotRequest: async (request): Promise<DatasetAccessRequestApi> =>
-        callDataRepoPost(
-          `repository/v1/datasets/${datasetId}/snapshotRequests`,
-          signal,
-          convertDatasetAccessRequest(request)
-        ),
-      getCounts: async (request): Promise<DatasetParticipantCountResponse> =>
-        callDataRepoPost(
-          `repository/v1/datasets/${datasetId}/snapshotBuilder/count`,
-          signal,
-          convertDatasetParticipantCountRequest(request)
-        ),
-      getConcepts: async (parent: SnapshotBuilderConcept): Promise<GetConceptsResponse> =>
-        callDataRepo(`repository/v1/datasets/${datasetId}/snapshotBuilder/concepts/${parent.id}`),
-      queryDatasetColumnStatisticsById: (programDataOption) =>
-        handleProgramDataOptions(datasetId, programDataOption, signal),
+      createSnapshotAccessRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>
+        callDataRepoPost('repository/v1/snapshotAccessRequests', signal, request),
     };
   },
   snapshot: (snapshotId) => {
     return {
       details: async () => callDataRepo(`repository/v1/snapshots/${snapshotId}`, signal),
+      roles: async (): Promise<string[]> => callDataRepo(`repository/v1/snapshots/${snapshotId}/roles`, signal),
       exportSnapshot: async () =>
         callDataRepo(`repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`, signal),
+      getSnapshotBuilderSettings: async (): Promise<SnapshotBuilderSettings> =>
+        callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/settings`, signal),
+      getSnapshotBuilderCount: async (request: SnapshotBuilderCountRequest): Promise<SnapshotBuilderCountResponse> =>
+        callDataRepoPost(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/count`, signal, request),
+      getConceptChildren: async (parent: SnapshotBuilderConcept): Promise<SnapshotBuilderConceptsResponse> =>
+        callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts/${parent.id}/children`),
+      enumerateConcepts: async (
+        domain: SnapshotBuilderConcept,
+        filterText: string
+      ): Promise<SnapshotBuilderConceptsResponse> =>
+        callDataRepo(
+          `repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts?domainId=${
+            domain.id
+          }&filterText=${encodeURIComponent(filterText)}`
+        ),
+      getConceptHierarchy: async (concept: SnapshotBuilderConcept) =>
+        callDataRepo(`repository/v1/snapshots/${snapshotId}/snapshotBuilder/concepts/${concept.id}/hierarchy`),
     };
   },
   job: (jobId) => ({

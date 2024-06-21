@@ -93,15 +93,16 @@ const waitForAccessToWorkspaceBucket = async ({ page, billingProject, workspaceN
   );
 };
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject, hasBucket = false }) => {
+const makeWorkspace = withSignedInPage(async ({ page, billingProject, hasBucket = false, isProtected = false }) => {
   const workspaceName = getTestWorkspaceName();
   try {
     await page.evaluate(
-      async (name, billingProject) => {
-        await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} });
+      async (name, billingProject, isProtected) => {
+        await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {}, enhancedBucketLogging: isProtected });
       },
       workspaceName,
-      billingProject
+      billingProject,
+      isProtected
     );
     console.info(`Created workspace: ${workspaceName}`);
     if (hasBucket) {
@@ -120,7 +121,7 @@ const makeGcpWorkspace = async (options) => {
 };
 
 const deleteWorkspaceInUi = async ({ page, billingProject, testUrl, workspaceName, retries = 5 }) => {
-  gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
+  await gotoPage(page, `${testUrl}#workspaces/${billingProject}/${workspaceName}`);
   const isDeleted = await retryUntil({
     getResult: async () => {
       await dismissAllNotifications(page);
@@ -215,6 +216,10 @@ const withWorkspace = (test) => async (options) => {
       console.error(`Unable to delete workspace ${workspaceName} via the UI. The resource will be leaked!`);
     }
   }
+};
+
+const withProtectedWorkspace = (test) => async (options) => {
+  return withWorkspace(test)({ ...options, isProtected: true });
 };
 
 /** Create an Azure workspace, run the given test, then delete the workspace. */
@@ -542,6 +547,7 @@ module.exports = {
   deleteRuntimesV2,
   deleteWorkspaceV2,
   enableDataCatalog,
+  getWorkspaceId,
   gotoAnalysisTab,
   navigateToDataCatalog,
   testWorkspaceName: getTestWorkspaceName,
@@ -550,4 +556,5 @@ module.exports = {
   withAzureWorkspace,
   withUser,
   withWorkspace,
+  withProtectedWorkspace,
 };

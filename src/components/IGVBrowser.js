@@ -24,7 +24,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const igvBrowser = useRef();
   const signal = useCancellation();
 
-  const addTracks = withErrorReporting('Unable to add tracks', async (tracks) => {
+  const addTracks = withErrorReporting('Unable to add tracks')(async (tracks) => {
     // Select one file per each bucket represented in the tracks list.
     const bucketExemplars = _.flow(
       _.map(_.get('url')),

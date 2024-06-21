@@ -249,9 +249,11 @@ export const BaseSubmissionConfig = (
   useEffect(() => {
     async function getWorkflowScript() {
       try {
-        const workflowUrlRaw = await convertToRawUrl(selectedMethodVersion.url, selectedMethodVersion.name, method.source);
-        const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw);
-        setWorkflowScript(script);
+        if (!method.isPrivate) {
+          const workflowUrlRaw = await convertToRawUrl(selectedMethodVersion.url, selectedMethodVersion.name, method.source);
+          const script = await Ajax(signal).WorkflowScript.get(workflowUrlRaw);
+          setWorkflowScript(script);
+        }
       } catch (error) {
         notify('error', 'Error loading workflow script', { detail: error instanceof Response ? await error.text() : error });
       }
@@ -329,7 +331,8 @@ export const BaseSubmissionConfig = (
             h(
               Link,
               {
-                disabled: workflowScript == null,
+                tooltip: method?.isPrivate === true ? 'View Workflow Script not yet available for private workflows' : undefined,
+                disabled: workflowScript == null || method?.isPrivate === true,
                 onClick: () => setViewWorkflowScriptModal(true),
               },
               'View Workflow Script'

@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner } from '@terra-ui-packages/components';
 import filesize from 'filesize';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
@@ -9,7 +9,6 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
 import { parseGsUri } from 'src/components/data/data-utils';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';

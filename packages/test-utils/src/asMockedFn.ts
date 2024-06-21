@@ -19,3 +19,14 @@ export type AnyFn = (...args: any[]) => any;
 export const asMockedFn = <T extends AnyFn>(fn: T): jest.MockedFunction<T> => {
   return fn as jest.MockedFunction<T>;
 };
+
+/**
+ * partial - will cast a partial type to the full type.
+ * Useful in test mock return values, etc. where specifying all properties is not necessary for the
+ * code under test to work, and/or do assertions on the results.
+ * @param x
+ * @example const mockAbc = partial<Abc>({a: 'apple'});
+ */
+export const partial = <T>(x: Partial<T>): T => {
+  return x satisfies Partial<T> as T;
+};

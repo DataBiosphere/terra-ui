@@ -1,3 +1,4 @@
+import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, div, h, label } from 'react-hyperscript-helpers';
@@ -6,10 +7,8 @@ import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { AutocompleteTextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -136,7 +135,7 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
   const signal = useCancellation();
 
   useOnMount(() => {
-    const loadData = withErrorReporting('Error looking up collaborators', async () => {
+    const loadData = withErrorReporting('Error looking up collaborators')(async () => {
       const [shareSuggestions, groups] = await Promise.all([Ajax(signal).Workspaces.getShareLog(), Ajax(signal).Groups.list()]);
 
       const suggestions = _.flow(_.map('groupEmail'), _.concat(shareSuggestions), _.uniq)(groups);

@@ -1,5 +1,5 @@
+import { controlledPromise } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
-import { controlledPromise } from 'src/testing/test-utils';
 
 import { UploadState, useOnUploadFinished, useUploader } from './uploads';
 

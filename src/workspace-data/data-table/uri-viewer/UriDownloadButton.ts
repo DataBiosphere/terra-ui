@@ -92,7 +92,7 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
         disabled: !url,
         onClick: () => {
           Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-            ...extractWorkspaceDetails(workspaceStore.get().workspace),
+            ...extractWorkspaceDetails(workspaceStore.get()!.workspace),
             fileType: _.head(/\.\w+$/.exec(uri)),
             downloadFrom: 'file direct',
           });

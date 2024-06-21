@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
+  RecordResponseBody,
   RecordTypeSchema,
   SearchRequest,
   TsvUploadResponse,
@@ -53,13 +54,15 @@ export interface WDSJob {
   updated: string;
 }
 
+export type AttributeSchemaUpdate = { name: string } | { datatype: string };
+
 // The source of truth of available capabilities can be found in:
 // https://github.com/DataBiosphere/terra-workspace-data-service/blob/main/service/src/main/resources/capabilities.json
 // This list should only contain capabilities actively required or supported by the UI.
 // If a capability is no longer necessary (because all live WDS instances now support it),
 // care should be taken to prune the conditional logic that relies on the capability, and
 // then the capability should be removed.
-type SupportedCapability = 'capabilities';
+type SupportedCapability = 'capabilities' | 'edit.deleteAttribute';
 type UnusedCapability = string;
 export type Capability = SupportedCapability | UnusedCapability;
 
@@ -106,6 +109,18 @@ export const WorkspaceData = (signal) => ({
     );
     return res;
   },
+  deleteColumn: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    attributeName: string
+  ): Promise<Response> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/${attributeName}`,
+      _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
+    );
+    return res;
+  },
   downloadTsv: async (root: string, instanceId: string, recordType: string): Promise<Blob> => {
     const res = await fetchWDS(root)(`${instanceId}/tsv/v0.2/${recordType}`, _.merge(authOpts(), { signal }));
     const blob = await res.blob();
@@ -117,6 +132,19 @@ export const WorkspaceData = (signal) => ({
     const res = await fetchWDS(root)(
       `${instanceId}/tsv/v0.2/${recordType}`,
       _.mergeAll([authOpts(), { body: formData, signal, method: 'POST' }])
+    );
+    return res.json();
+  },
+  updateRecord: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    recordId: string,
+    record: { [attribute: string]: any }
+  ): Promise<RecordResponseBody> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/records/v0.2/${recordType}/${recordId}`,
+      _.mergeAll([authOpts(), jsonBody(record), { signal, method: 'PATCH' }])
     );
     return res.json();
   },
@@ -171,6 +199,19 @@ export const WorkspaceData = (signal) => ({
   },
   getJobStatus: async (root: string, jobId: string): Promise<WDSJob> => {
     const res = await fetchWDS(root)(`job/v1/${jobId}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+  updateAttribute: async (
+    root: string,
+    instanceId: string,
+    recordType: string,
+    oldAttribute: string,
+    newAttribute: AttributeSchemaUpdate
+  ): Promise<any> => {
+    const res = await fetchWDS(root)(
+      `${instanceId}/types/v0.2/${recordType}/${oldAttribute}`,
+      _.mergeAll([authOpts(), jsonBody(newAttribute), { signal, method: 'PATCH' }])
+    );
     return res.json();
   },
 });

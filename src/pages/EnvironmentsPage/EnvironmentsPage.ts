@@ -3,15 +3,17 @@ import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { EnvironmentNavActions, Environments } from 'src/analysis/Environments/Environments';
 import FooterWrapper from 'src/components/FooterWrapper';
+import SupportRequestWrapper from 'src/components/SupportRequest';
 import TopBar from 'src/components/TopBar';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
+import Events from 'src/libs/events';
 import { terraNavKey, TerraNavLinkProvider, terraNavLinkProvider } from 'src/libs/nav';
-import { useWorkspaces } from 'src/workspaces/useWorkspaces';
-
-import { leoResourcePermissions } from './environmentsPermissions';
+import { contactUsActive } from 'src/libs/state';
+import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 type NavMap<NavTypes, FnReturn> = {
   [Property in keyof NavTypes]: (args: NavTypes[Property]) => FnReturn;
@@ -39,7 +41,7 @@ export const makeNavProvider = (terraNav: TerraNavLinkProvider): NavLinkProvider
 export const navProvider = makeNavProvider(terraNavLinkProvider);
 
 export const EnvironmentsPage = (): ReactNode => {
-  const metricsProvider = useMetricsEvent();
+  const metrics = useMetricsEvent();
   return h(FooterWrapper, [
     h(TopBar, { title: 'Cloud Environments', href: '' }, []),
     h(Environments, {
@@ -48,9 +50,18 @@ export const EnvironmentsPage = (): ReactNode => {
       leoAppData: leoAppProvider,
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
-      metrics: metricsProvider,
       permissions: leoResourcePermissions,
+      onEvent: (eventName, eventArgs) => {
+        switch (eventName) {
+          case 'dataRefresh':
+            metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, eventArgs);
+            break;
+          default:
+            break;
+        }
+      },
     }),
+    contactUsActive.get() && h(SupportRequestWrapper),
   ]);
 };
 

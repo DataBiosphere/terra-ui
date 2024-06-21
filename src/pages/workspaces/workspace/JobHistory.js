@@ -1,3 +1,4 @@
+import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers';
@@ -9,10 +10,8 @@ import { icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { collapseStatus, statusType } from 'src/components/job-common';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderRenderer, TextCell, TooltipCell } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
@@ -22,7 +21,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal';
 import { rerunFailures } from 'src/pages/workspaces/workspace/workflows/FailureRerunner';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const styles = {
   submissionsTable: {

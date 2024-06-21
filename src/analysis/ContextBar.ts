@@ -8,12 +8,12 @@
  * $ yarn test-local analysis-context-bar
  */
 
-import { Interactive } from '@terra-ui-packages/components';
+import { Interactive, Spinner, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { br, div, h, img, span } from 'react-hyperscript-helpers';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
-import { appLauncherTabName } from 'src/analysis/runtime-common-components';
+import { appLauncherTabName } from 'src/analysis/runtime-common-text';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp } from 'src/analysis/utils/app-utils';
 import {
   getCostDisplayForDisk,
@@ -35,7 +35,6 @@ import {
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import cromwellImg from 'src/images/cromwell-logo.png'; // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png';
 import hailLogo from 'src/images/hail-logo.svg';
@@ -43,8 +42,8 @@ import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
 import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -52,13 +51,13 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import {
   BaseWorkspace,
   getCloudProviderFromWorkspace,
   isAzureWorkspace,
   isGoogleWorkspace,
-} from 'src/libs/workspace-utils';
-import { StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
+} from 'src/workspaces/utils';
 
 const contextBarStyles: { [label: string]: CSSProperties } = {
   contextBarContainer: {
@@ -85,6 +84,7 @@ export interface ContextBarProps {
   refreshRuntimes: (maybeStale?: boolean) => Promise<void>;
   storageDetails: StorageDetails;
   refreshApps: (maybeStale?: boolean) => Promise<void>;
+  isLoadingCloudEnvironments: boolean;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
 }
@@ -96,6 +96,7 @@ export const ContextBar = ({
   refreshRuntimes,
   storageDetails,
   refreshApps,
+  isLoadingCloudEnvironments,
   workspace,
   persistentDisks,
 }: ContextBarProps) => {
@@ -248,6 +249,7 @@ export const ContextBar = ({
       appDataDisks,
       refreshRuntimes,
       refreshApps,
+      isLoadingCloudEnvironments,
       workspace,
       canCompute,
       persistentDisks,
@@ -292,19 +294,23 @@ export const ContextBar = ({
                   hover: { ...contextBarStyles.hover },
                 },
                 [
-                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['Rate:']),
-                  div(
-                    {
-                      style: {
-                        textAlign: 'center',
-                        color: colors.dark(),
-                        fontWeight: 'bold',
-                        fontSize: 16,
-                      },
-                    },
-                    [getTotalToolAndDiskCostDisplay(), span({ style: { fontWeight: 'normal' } })]
-                  ),
-                  div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['per hour']),
+                  isLoadingCloudEnvironments
+                    ? h(Spinner, { size: 32, style: { alignSelf: 'center', color: 'inherit' } })
+                    : h(Fragment, [
+                        div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['Rate:']),
+                        div(
+                          {
+                            style: {
+                              textAlign: 'center',
+                              color: colors.dark(),
+                              fontWeight: 'bold',
+                              fontSize: 16,
+                            },
+                          },
+                          [getTotalToolAndDiskCostDisplay(), span({ style: { fontWeight: 'normal' } })]
+                        ),
+                        div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, ['per hour']),
+                      ]),
                 ]
               ),
             ]
@@ -319,6 +325,7 @@ export const ContextBar = ({
                 ...contextBarStyles.contextBarButton,
                 borderBottom: '0px',
               },
+              disabled: isLoadingCloudEnvironments,
               hover: contextBarStyles.hover,
               tooltipSide: 'left',
               onClick: () => setCloudEnvOpen(true),
@@ -345,7 +352,7 @@ export const ContextBar = ({
               'data-testid': 'terminal-button-id',
               tooltipSide: 'left',
               href: terminalLaunchLink,
-              onClick: withErrorReporting('Error starting runtime', async () => {
+              onClick: withErrorReporting('Error starting runtime')(async () => {
                 await Ajax().Metrics.captureEvent(Events.analysisLaunch, {
                   origin: 'contextBar',
                   application: 'terminal',

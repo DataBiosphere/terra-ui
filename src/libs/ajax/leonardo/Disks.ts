@@ -1,15 +1,10 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { mapToPdTypes, updatePdType } from 'src/analysis/utils/disk-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
-import {
-  PersistentDisk,
-  PersistentDiskDetail,
-  RawGetDiskItem,
-  RawListDiskItem,
-} from 'src/libs/ajax/leonardo/models/disk-models';
 
-export const Disks = (signal: AbortSignal) => {
+import { AuditInfo, CloudContext, LeoResourceLabels } from './models/core-models';
+
+export const Disks = (signal?: AbortSignal) => {
   const diskV2Root = 'api/v2/disks';
   const v2Func = () => ({
     delete: (diskId: number): Promise<void> => {
@@ -18,20 +13,15 @@ export const Disks = (signal: AbortSignal) => {
   });
 
   const v1Func = () => ({
-    list: async (labels = {}): Promise<PersistentDisk[]> => {
+    list: async (labels = {}): Promise<RawListDiskItem[]> => {
       const res = await fetchLeo(
         `api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }])
       );
       const disks: RawListDiskItem[] = await res.json();
-      return mapToPdTypes(disks);
+      return disks;
     },
     disk: (project: string, name: string) => ({
-      create: (props): Promise<void> =>
-        fetchLeo(
-          `api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }, jsonBody(props)])
-        ),
       delete: (): Promise<void> => {
         return fetchLeo(
           `api/google/v1/disks/${project}/${name}`,
@@ -44,13 +34,13 @@ export const Disks = (signal: AbortSignal) => {
           _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }])
         );
       },
-      details: async (): Promise<PersistentDiskDetail> => {
+      details: async (): Promise<RawGetDiskItem> => {
         const res = await fetchLeo(
           `api/google/v1/disks/${project}/${name}`,
           _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])
         );
         const disk: RawGetDiskItem = await res.json();
-        return updatePdType(disk);
+        return disk;
       },
     }),
   });
@@ -60,8 +50,48 @@ export const Disks = (signal: AbortSignal) => {
     disksV2: v2Func,
   };
 };
+export type AzureDiskType = 'Standard_LRS'; // TODO: Uncomment when enabling SSDs | 'StandardSSD_LRS';
 
-export type DisksAjaxContract = ReturnType<typeof Disks>;
-export type DisksAjaxContractV1 = ReturnType<DisksAjaxContract['disksV1']>;
-export type DisksAjaxContractV2 = ReturnType<DisksAjaxContract['disksV2']>;
-export type DiskAjaxContract = ReturnType<DisksAjaxContractV1['disk']>;
+export type GoogleDiskType = 'pd-standard' | 'pd-ssd' | 'pd-balanced';
+
+export type DiskType = GoogleDiskType | AzureDiskType;
+
+export type LeoDiskStatus = 'Creating' | 'Restoring' | 'Ready' | 'Failed' | 'Deleting' | 'Deleted' | 'Error';
+
+export interface DiskStatus {
+  leoLabel: LeoDiskStatus;
+}
+
+export const diskStatuses: { [label: string]: DiskStatus } = {
+  ready: { leoLabel: 'Ready' },
+  creating: { leoLabel: 'Creating' },
+  restoring: { leoLabel: 'Restoring' },
+  failed: { leoLabel: 'Failed' },
+  deleting: { leoLabel: 'Deleting' },
+  deleted: { leoLabel: 'Deleted' },
+  error: { leoLabel: 'Error' },
+};
+
+export interface RawListDiskItem {
+  id: number;
+  cloudContext: CloudContext;
+  zone: string;
+  name: string;
+  status: LeoDiskStatus;
+  auditInfo: AuditInfo;
+  size: number; // In GB
+  diskType: GoogleDiskType;
+  blockSize: number;
+  labels: LeoResourceLabels;
+}
+
+export interface RawGetDiskItem extends RawListDiskItem {
+  serviceAccount: string;
+  samResource: number;
+  formattedBy: string | null;
+}
+
+export type DisksDataClientContract = ReturnType<typeof Disks>;
+export type DisksContractV1 = ReturnType<DisksDataClientContract['disksV1']>;
+export type DisksContractV2 = ReturnType<DisksDataClientContract['disksV2']>;
+export type DiskWrapperContract = ReturnType<DisksContractV1['disk']>;

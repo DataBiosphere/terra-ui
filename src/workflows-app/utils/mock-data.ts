@@ -1,6 +1,6 @@
 import { WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 
-export const workflowParams = [
+export const workflowParamsRecordLookup = [
   {
     input_name: 'wf_hello.hello.addressee',
     input_type: {
@@ -14,7 +14,21 @@ export const workflowParams = [
   },
 ];
 
-export const runsData = {
+export const workflowParamsLiteral = [
+  {
+    input_name: 'wf_hello.hello.addressee',
+    input_type: {
+      type: 'primitive',
+      primitive_type: 'String',
+    },
+    source: {
+      type: 'literal',
+      parameter_value: 'foo bar',
+    },
+  },
+];
+
+export const mockRunsData = {
   runs: [
     {
       run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
@@ -23,7 +37,7 @@ export const runsData = {
       record_id: 'FOO2',
       workflow_url: 'https://xyz.wdl',
       state: 'SYSTEM_ERROR',
-      workflow_params: JSON.stringify(workflowParams),
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
       workflow_outputs: '[]',
       submission_date: '2022-07-14T22:22:15.591Z',
       last_modified_timestamp: '2022-07-14T23:14:25.791Z',
@@ -37,10 +51,40 @@ export const runsData = {
       workflow_url:
         'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
       state: 'COMPLETE',
-      workflow_params: JSON.stringify(workflowParams),
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
       workflow_outputs: '[]',
       submission_date: '2022-12-08T23:29:18.675+00:00',
       last_modified_timestamp: '2022-12-08T23:29:55.695+00:00',
+    },
+  ],
+};
+
+export const mockQueuedRunsData = {
+  runs: [
+    {
+      run_id: '55b36a53-2ff3-41d0-adc4-abc08aea88ad',
+      run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
+      record_id: 'FOO1',
+      workflow_url:
+        'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+      state: 'QUEUED',
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
+      workflow_outputs: '[]',
+      submission_date: '2024-05-14T22:22:15.591Z',
+      last_modified_timestamp: '2024-05-14T23:14:25.791Z',
+      last_polled_timestamp: '2024-05-14T23:14:25.791Z',
+    },
+    {
+      run_id: 'b7234aae-6f43-405e-bb3a-71f924e09825',
+      run_set_id: '0cd15673-7342-4cfa-883d-819660184a16',
+      record_id: 'FOO2',
+      workflow_url: 'https://xyz.wdl',
+      state: 'QUEUED',
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
+      workflow_outputs: '[]',
+      submission_date: '2024-05-14T22:22:15.591Z',
+      last_modified_timestamp: '2024-05-14T23:14:25.791Z',
+      last_polled_timestamp: '2024-05-14T23:14:25.791Z',
     },
   ],
 };
@@ -60,7 +104,49 @@ export const runSetData = {
       last_modified_timestamp: '2022-12-09T16:30:50.280+00:00',
       run_count: 1,
       error_count: 0,
-      input_definition: JSON.stringify(workflowParams),
+      input_definition: JSON.stringify(workflowParamsRecordLookup),
+      output_definition: '[]',
+    },
+  ],
+};
+
+export const queuedRunSetData = {
+  run_sets: [
+    {
+      run_set_id: 'e8347247-4738-4ad1-a591-56c119f93f58',
+      method_id: '00000000-0000-0000-0000-000000000004',
+      method_version_id: '20000000-0000-0000-0000-000000000004',
+      is_template: false,
+      run_set_name: 'hello world',
+      run_set_description: 'test',
+      state: 'QUEUED',
+      record_type: 'FOO',
+      submission_timestamp: '2024-05-14T22:22:15.591Z',
+      last_modified_timestamp: '2024-05-14T22:22:15.591Z',
+      run_count: 2,
+      error_count: 0,
+      input_definition: JSON.stringify(workflowParamsRecordLookup),
+      output_definition: '[]',
+    },
+  ],
+};
+
+export const runSetDataWithLiteral = {
+  run_sets: [
+    {
+      run_set_id: 'e8347247-4738-4ad1-a591-56c119f93f58',
+      method_id: '00000000-0000-0000-0000-000000000004',
+      method_version_id: '20000000-0000-0000-0000-000000000004',
+      is_template: false,
+      run_set_name: 'hello world',
+      run_set_description: 'test',
+      state: 'COMPLETE',
+      record_type: 'FOO',
+      submission_timestamp: '2022-12-08T23:28:50.280+00:00',
+      last_modified_timestamp: '2022-12-09T16:30:50.280+00:00',
+      run_count: 1,
+      error_count: 0,
+      input_definition: JSON.stringify(workflowParamsLiteral),
       output_definition: '[]',
     },
   ],
@@ -98,6 +184,54 @@ export const methodDataWithVersions = {
           url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
         },
       ],
+      isPrivate: false,
+    } satisfies WorkflowMethod,
+  ],
+};
+
+export const methodDataNoPrivate = {
+  methods: [
+    {
+      ...methodData.methods[0],
+      method_versions: [
+        {
+          method_version_id: '20000000-0000-0000-0000-000000000004',
+          name: '1.0',
+          url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        },
+      ],
+    } satisfies WorkflowMethod,
+  ],
+};
+
+export const methodDataWithNullPrivate = {
+  methods: [
+    {
+      ...methodData.methods[0],
+      method_versions: [
+        {
+          method_version_id: '20000000-0000-0000-0000-000000000004',
+          name: '1.0',
+          url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        },
+      ],
+      isPrivate: null,
+    } satisfies WorkflowMethod,
+  ],
+};
+
+export const methodDataWithVersionsAndDetails = {
+  methods: [
+    {
+      ...methodData.methods[0],
+      method_versions: [
+        {
+          method_version_id: '20000000-0000-0000-0000-000000000004',
+          name: '1.0',
+          url: 'https://raw.githubusercontent.com/broadinstitute/cromwell/a40de672c565c4bbd40f57ff96d4ee520dc2b4fc/centaur/src/main/resources/standardTestCases/hello/hello.wdl',
+        },
+      ],
+      isPrivate: true,
     } satisfies WorkflowMethod,
   ],
 };
@@ -111,7 +245,7 @@ export const simpleRunsData = {
       record_id: 'FOO2',
       workflow_url: 'https://xyz.wdl',
       state: 'RUNNING',
-      workflow_params: JSON.stringify(workflowParams),
+      workflow_params: JSON.stringify(workflowParamsRecordLookup),
       workflow_outputs: '[]',
       submission_date: new Date().toISOString(),
       last_modified_timestamp: new Date().toISOString(),

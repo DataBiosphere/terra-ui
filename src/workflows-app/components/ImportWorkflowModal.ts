@@ -1,13 +1,13 @@
+import { useThemeFromContext } from '@terra-ui-packages/components';
+import { Modal } from '@terra-ui-packages/components';
 import { CSSProperties } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
-import { styles as errorStyles } from 'src/components/ErrorView';
+import { getStyles as getErrorStyles } from 'src/components/ErrorView';
 import { centeredSpinner, icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
-import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type ImportWorkflowModalProps = {
   importLoading: boolean;
@@ -32,6 +32,8 @@ export const ImportWorkflowModal = ({
   successfulImport,
   errorMessage,
 }: ImportWorkflowModalProps) => {
+  const { colors } = useThemeFromContext();
+  const errorStyles = getErrorStyles(colors);
   const successBody = () => {
     return div({}, [
       div({ style: { paddingBottom: '1.5rem', display: 'flex', flex: 'none' } }, [
@@ -101,9 +103,12 @@ export const ImportWorkflowModal = ({
             ),
         ]),
       ]),
-      div({ style: { ...(errorStyles.jsonFrame as CSSProperties), overflowY: 'scroll', maxHeight: 150 } }, [
-        errorMessage,
-      ]),
+      div(
+        {
+          style: { ...(errorStyles.jsonFrame as CSSProperties), overflowY: 'scroll', maxHeight: 150 },
+        },
+        [errorMessage]
+      ),
     ]);
   };
 

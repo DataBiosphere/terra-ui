@@ -10,11 +10,12 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useOnMount } from 'src/libs/react-utils';
-import { asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
+import { AsyncImportJob, asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { WorkspaceInfo } from 'src/libs/workspace-utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
+import { WorkspaceInfo } from 'src/workspaces/utils';
 
+import { getImportSource } from './import-sources';
 import {
   BagItImportRequest,
   CatalogDatasetImportRequest,
@@ -27,7 +28,6 @@ import {
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
 import { ImportDataOverview } from './ImportDataOverview';
-import { getImportSource } from './protected-data-utils';
 import { useImportRequest } from './useImportRequest';
 
 export interface ImportDataProps {
@@ -75,7 +75,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update(Utils.append(newJob));
+      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
@@ -119,7 +119,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         jobId,
         wdsProxyUrl: wdsUrl,
       };
-      asyncImportJobStore.update(Utils.append(newJob));
+      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
       notifyDataImportProgress(jobId);
     } else {
       const { namespace, name } = workspace;
@@ -180,7 +180,7 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
       format,
       ...extractWorkspaceDetails(workspace),
-      importSource: 'url' in importRequest ? getImportSource(importRequest.url) : undefined,
+      importSource: getImportSource(importRequest),
     });
     Nav.goToPath('workspace-data', { namespace, name });
   });

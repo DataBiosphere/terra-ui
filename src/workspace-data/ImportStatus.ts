@@ -46,7 +46,7 @@ const ImportStatusItem = (props: ImportStatusItemProps): ReactNode => {
   }
 
   usePollingEffect(
-    withErrorReporting('Problem checking status of data import', async () => {
+    withErrorReporting('Problem checking status of data import')(async () => {
       await checkForCompletion(targetWorkspace, jobId, wdsProxyUrl);
     }),
     { ms: 5000, leading: false }

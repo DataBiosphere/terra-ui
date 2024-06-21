@@ -27,7 +27,7 @@ import {
 
 jest.mock('src/libs/ajax');
 
-jest.mock('src/libs/notifications.js');
+jest.mock('src/libs/notifications');
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -545,7 +545,7 @@ describe('Initial state', () => {
   });
 
   beforeEach(() => {
-    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
+    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot });
   });
 
   afterAll(() => {
@@ -854,6 +854,66 @@ describe('Initial state', () => {
     within(row2cells[1]).getByText('unused_output');
     within(row2cells[2]).getByText('String');
     within(row2cells[3]).getByDisplayValue('unused_output'); // autofill by name, no previous run
+  });
+
+  it('should render disabled script button for private workflow', async () => {
+    // ** ARRANGE **
+    const methodResponseWithPrivate = {
+      methods: [
+        {
+          ...methodsResponse.methods[0],
+          isPrivate: true,
+        },
+      ],
+    };
+    const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponseForNewMethod));
+    const mockMethodsResponse = jest.fn(() => Promise.resolve(methodResponseWithPrivate));
+    const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
+    const mockTypesResponse = jest.fn(() => Promise.resolve(typesResponse));
+    const mockWdlResponse = jest.fn(() => Promise.resolve('mock wdl response'));
+
+    Ajax.mockImplementation(() => {
+      return {
+        Cbas: {
+          runSets: {
+            getForMethod: mockRunSetResponse,
+          },
+          methods: {
+            getById: mockMethodsResponse,
+          },
+        },
+        WorkspaceData: {
+          queryRecords: mockSearchResponse,
+          describeAllRecordTypes: mockTypesResponse,
+        },
+        WorkflowScript: {
+          get: mockWdlResponse,
+        },
+      };
+    });
+
+    // ** ACT **
+    await act(async () =>
+      render(
+        h(BaseSubmissionConfig, {
+          methodId: '123',
+          name: 'test-azure-ws-name',
+          namespace: 'test-azure-ws-namespace',
+          workspace: mockAzureWorkspace,
+        })
+      )
+    );
+
+    // ** ASSERT **
+    expect(mockRunSetResponse).toHaveBeenCalledTimes(1);
+    expect(mockTypesResponse).toHaveBeenCalledTimes(1);
+    expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
+    expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+    expect(mockWdlResponse).toHaveBeenCalledTimes(0);
+
+    const button = screen.getByRole('button', { name: 'View Workflow Script' });
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByText('View Workflow Script not yet available for private workflows')).toBeInTheDocument();
   });
 });
 
@@ -1666,7 +1726,7 @@ describe('Submitting a run set', () => {
     await user.click(selectOption);
 
     // ** ASSERT **
-    // check that the Attribute column has expected behavior
+    // check that the Input value column has expected behavior
     within(thirdInputRow[4]).getByText('Optional');
 
     // ** ACT **
@@ -1805,8 +1865,7 @@ describe('Submitting a run set', () => {
     const myPrimitiveRowCells = within(structRows[5]).getAllByRole('cell');
     within(myPrimitiveRowCells[1]).getByText('myPrimitive');
     const myPrimitiveInput = within(myPrimitiveRowCells[4]).getByDisplayValue('Fiesty');
-    await user.clear(myPrimitiveInput);
-    await user.type(myPrimitiveInput, 'Docile');
+    fireEvent.change(myPrimitiveInput, { target: { value: 'Docile' } });
     within(myPrimitiveRowCells[4]).getByDisplayValue('Docile');
 
     // ** ACT **
@@ -1828,8 +1887,7 @@ describe('Submitting a run set', () => {
     const selectOption = within(screen.getByLabelText('Options')).getByText('Type a Value');
     await user.click(selectOption);
     const myInnermostPrimitiveInput = within(myInnermostPrimitiveRowCells[4]).getByLabelText('Enter a value');
-    await user.clear(myInnermostPrimitiveInput);
-    await user.type(myInnermostPrimitiveInput, 'bar');
+    fireEvent.change(myInnermostPrimitiveInput, { target: { value: 'bar' } });
     within(myInnermostPrimitiveRowCells[4]).getByDisplayValue('bar');
 
     // ** ACT **
@@ -1930,7 +1988,7 @@ describe('Submitting a run set', () => {
         },
       })
     );
-  }, 10000);
+  });
 
   it('should call POST /run_sets endpoint with expected parameters after outputs are set to default', async () => {
     // ** ARRANGE **

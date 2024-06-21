@@ -1,15 +1,16 @@
-import { FocusTrap } from '@terra-ui-packages/components';
+import { FocusTrap, Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
 import { AlertsIndicator } from 'src/alerts/Alerts';
-import { signIn, signOut } from 'src/auth/auth';
+import { RequiredUpdateAlert } from 'src/alerts/RequiredUpdateAlert';
+import { signIn } from 'src/auth/auth';
+import { signOut } from 'src/auth/signout/sign-out';
 import { Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextArea } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import ProfilePicture from 'src/components/ProfilePicture';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';
@@ -299,7 +300,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              textTransform: 'uppercase',
+                              textTransform: 'capitalize',
                             },
                           },
                           ['Sign In']
@@ -389,24 +390,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                         },
                         ['Baseline Documentation']
                       ),
-                    h(
-                      DropDownSubItem,
-                      {
-                        href: 'https://support.terra.bio/hc/en-us/sections/4408259082139-Tutorials',
-                        onClick: hideNav,
-                        ...Utils.newTabLinkProps,
-                      },
-                      ['Tutorials']
-                    ),
-                    h(
-                      DropDownSubItem,
-                      {
-                        href: 'https://support.terra.bio/hc/en-us/sections/4408259363739',
-                        onClick: hideNav,
-                        ...Utils.newTabLinkProps,
-                      },
-                      ['Videos']
-                    ),
                     h(
                       DropDownSubItem,
                       {
@@ -625,6 +608,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           ),
         ]
       ),
+      h(RequiredUpdateAlert),
       h(SkipNavTarget, { ref: mainRef }),
     ]
   );

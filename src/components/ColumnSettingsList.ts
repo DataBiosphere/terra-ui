@@ -7,6 +7,7 @@ import type {
 import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import type { CSSProperties, PropsWithChildren } from 'react';
 import { createContext, Fragment, useContext, useMemo } from 'react';
@@ -14,7 +15,6 @@ import { div, h, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer, List } from 'react-virtualized';
 import { Checkbox } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import * as Style from 'src/libs/style';
 
 export interface ColumnData {
@@ -223,7 +223,7 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
     const item = _.filter({ id })(items) as unknown;
     return item ? item[0].name : 'unknown';
   };
-  const announcements = <Announcements>{
+  const announcements: Announcements = {
     onDragStart({ active }) {
       return `Picked up "${getName(active.id)}". Column "${getName(active.id)}" is in position ${getPosition(
         active.id
@@ -243,7 +243,7 @@ export const ColumnSettingsList = ({ items, onChange, toggleVisibility }: Column
       return `Dragging was cancelled. "${getName(active.id)}" was dropped.`;
     },
   };
-  const screenReaderInstructions = <ScreenReaderInstructions>{
+  const screenReaderInstructions: ScreenReaderInstructions = {
     draggable: `
     To begin a drag, press the space bar or Enter.
     While dragging, use the up and down arrow keys to move the item.

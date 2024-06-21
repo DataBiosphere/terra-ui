@@ -2,14 +2,15 @@ import { IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactElement, useState } from 'react';
 import { Component, div, h, hr, img, span } from 'react-hyperscript-helpers';
-import { RuntimeErrorModal } from 'src/analysis/AnalysisNotificationManager';
 import { AppErrorModal } from 'src/analysis/modals/AppErrorModal';
 import { AzureComputeModalBase } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { CromwellModalBase } from 'src/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/analysis/modals/GalaxyModal';
 import { HailBatchModal } from 'src/analysis/modals/HailBatchModal';
-import { appLauncherTabName, PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
+import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
+import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
+import { appLauncherTabName } from 'src/analysis/runtime-common-text';
 import { doesWorkspaceSupportCromwellAppForUser, getCurrentApp, getIsAppBusy } from 'src/analysis/utils/app-utils';
 import { getCostDisplayForDisk, getCostDisplayForTool } from 'src/analysis/utils/cost-utils';
 import {
@@ -45,9 +46,10 @@ import jupyterLogo from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { appStatuses, LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { LeoRuntimeStatus, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
@@ -57,13 +59,8 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import {
-  BaseWorkspace,
-  CloudProvider,
-  cloudProviderTypes,
-  getCloudProviderFromWorkspace,
-} from 'src/libs/workspace-utils';
 import { cromwellLinkProps, getCromwellUnsupportedMessage } from 'src/workflows-app/utils/app-utils';
+import { BaseWorkspace, CloudProvider, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
 const titleId = 'cloud-env-modal';
 
@@ -77,6 +74,7 @@ export const CloudEnvironmentModal = ({
   appDataDisks,
   refreshRuntimes,
   refreshApps,
+  isLoadingCloudEnvironments,
   workspace,
   persistentDisks,
   // Note: for Azure environments `location` and `computeRegion` are identical
@@ -93,6 +91,7 @@ export const CloudEnvironmentModal = ({
   appDataDisks: PersistentDisk[];
   refreshRuntimes: () => Promise<void>;
   refreshApps: () => Promise<void>;
+  isLoadingCloudEnvironments: boolean;
   workspace: BaseWorkspace;
   persistentDisks: PersistentDisk[];
   location: string;
@@ -120,6 +119,7 @@ export const CloudEnvironmentModal = ({
       tool,
       currentRuntime,
       currentDisk,
+      isLoadingCloudEnvironments,
       location,
       onDismiss,
       onSuccess,
@@ -133,6 +133,7 @@ export const CloudEnvironmentModal = ({
       workspace,
       currentRuntime,
       currentDisk: getReadyPersistentDisk(persistentDisks),
+      isLoadingCloudEnvironments,
       location,
       tool,
       onDismiss,
@@ -656,8 +657,9 @@ export const CloudEnvironmentModal = ({
       }),
     errorRuntimeId &&
       h(RuntimeErrorModal, {
-        runtime: _.find({ id: errorRuntimeId }, runtimes),
+        runtime: _.find({ id: errorRuntimeId }, runtimes)!,
         onDismiss: () => setErrorRuntimeId(undefined),
+        errorProvider: leoRuntimeProvider,
       }),
     busy && spinnerOverlay,
   ]);

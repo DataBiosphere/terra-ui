@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
@@ -6,6 +6,7 @@ import {
   AzurePersistentDiskSizeSelectInputProps,
 } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';
+import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 const defaultAzurePersistentDiskSizeSelectInputProps: AzurePersistentDiskSizeSelectInputProps = {
   persistentDiskSize: defaultAzureDiskSize,
@@ -59,5 +60,40 @@ describe('AzurePersistentDiskSizeSelectInput', () => {
 
     // Assert
     expect(screen.findByText('30')).toBeTruthy();
+  });
+
+  it('shows default disk size options', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    // Act
+    render(h(AzurePersistentDiskSizeSelectInput, defaultAzurePersistentDiskSizeSelectInputProps));
+
+    // Assert
+    const input = screen.getByLabelText('Disk Size (GB)');
+    const select = new SelectHelper(input, user);
+
+    const options = await select.getOptions();
+    expect(options).toEqual(['32', '64', '128', '256', '512', '1024', '2048', '4095']);
+  });
+
+  it('allows limiting max disk size', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    // Act
+    render(
+      h(AzurePersistentDiskSizeSelectInput, {
+        ...defaultAzurePersistentDiskSizeSelectInputProps,
+        maxPersistentDiskSize: 128,
+      })
+    );
+
+    // Assert
+    const input = screen.getByLabelText('Disk Size (GB)');
+    const select = new SelectHelper(input, user);
+
+    const options = await select.getOptions();
+    expect(options).toEqual(['32', '64', '128']);
   });
 });

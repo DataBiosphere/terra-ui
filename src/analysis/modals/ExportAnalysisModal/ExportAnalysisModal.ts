@@ -1,21 +1,22 @@
-import { useUniqueId } from '@terra-ui-packages/components';
+import { Modal, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { b, h } from 'react-hyperscript-helpers';
 import { useAnalysisExportState } from 'src/analysis/modals/ExportAnalysisModal/useAnalysisExportState';
-import { analysisLauncherTabName, analysisTabName } from 'src/analysis/runtime-common-components';
-import { getAnalysisFileExtension, stripExtension } from 'src/analysis/utils/file-utils';
+import { analysisLauncherTabName, analysisTabName } from 'src/analysis/runtime-common-text';
+import { FileExtension, stripExtension } from 'src/analysis/utils/file-utils';
 import { analysisNameInput, analysisNameValidator } from 'src/analysis/utils/notebook-utils';
-import { ToolLabel } from 'src/analysis/utils/tool-utils';
+import { ToolLabel, toolToExtensionMap } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
-import Modal from 'src/components/Modal';
-import { WorkspaceSelector } from 'src/components/workspace-utils';
 import { FormLabel } from 'src/libs/forms';
 import { goToPath as navToPath } from 'src/libs/nav';
 import { summarizeErrors } from 'src/libs/utils';
-import { isValidWsExportTarget, WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
+import { isValidWsExportTarget, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import validate from 'validate.js';
+
+const getAnalysisFileExtension = (toolLabel: ToolLabel): FileExtension => toolToExtensionMap[toolLabel];
 
 export interface ExportAnalysisModalProps {
   fromLauncher?: boolean;

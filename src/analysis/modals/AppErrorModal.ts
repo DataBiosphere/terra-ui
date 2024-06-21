@@ -1,8 +1,8 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import colors from 'src/libs/colors';

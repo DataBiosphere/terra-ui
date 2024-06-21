@@ -11,7 +11,6 @@ import { initializeAuth } from 'src/auth/auth';
 import { initializeClientId } from 'src/auth/oidc-broker';
 import { initializeSystemProperties } from 'src/auth/system-loader';
 import { isAxeEnabled } from 'src/libs/config';
-import { initializeTCell } from 'src/libs/tcell';
 import Main from 'src/pages/Main';
 
 const rootElement = document.getElementById('root');
@@ -30,7 +29,6 @@ initializeClientId().then(() => {
   setTimeout(() => {
     initializeSystemProperties();
     initializeAuth();
-    initializeTCell();
     startPollingServiceAlerts();
     startPollingVersion();
   }, 0);

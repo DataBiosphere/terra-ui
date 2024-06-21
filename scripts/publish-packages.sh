@@ -3,9 +3,14 @@
 set -euo pipefail
 
 SCRIPTS_DIR="$(dirname "$0")"
-cd "${SCRIPTS_DIR}/../packages"
-for d in */ ; do
-    cd "$d"
+cd "${SCRIPTS_DIR}/.."
+
+# Build all packages.
+echo "Building packages..."
+yarn build-packages >/dev/null
+
+for d in $(yarn workspaces list --no-private --json | jq -r '.location'); do
+    pushd "$d" >/dev/null
 
     # Get the current package name and version from package.json.
     PACKAGE_NAME=$(node -p "require('./package.json').name")
@@ -28,9 +33,6 @@ for d in */ ; do
 
     # If the current and published versions differ, then publish the package.
     if [ "${PUBLISHED_VERSION}" != "${PACKAGE_VERSION}" ]; then
-      echo "Building ${PACKAGE_NAME}."
-      yarn build
-
       echo "Publishing ${PACKAGE_NAME}."
       npm publish
       echo "Successfully published version ${PACKAGE_VERSION} of ${PACKAGE_NAME}."
@@ -38,5 +40,5 @@ for d in */ ; do
        echo "Version ${PACKAGE_VERSION} of ${PACKAGE_NAME} has already been published, so no new version has been published."
    fi
    echo " "
-   cd ..
+   popd >/dev/null
 done

@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import JSZip from 'jszip';
@@ -14,7 +14,6 @@ import { icon } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector from 'src/components/IGVFileSelector';
 import { MenuButton } from 'src/components/MenuButton';
-import Modal from 'src/components/Modal';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import { ModalToolButton } from 'src/components/ModalToolButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
@@ -36,7 +35,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import { DataTableColumnProvenance } from '../../provenance/DataTableColumnProvenance';
 import { useColumnProvenance } from '../../provenance/workspace-data-provenance-utils';
@@ -262,7 +261,7 @@ const EntitiesContent = ({
   setEntityMetadata,
   loadMetadata,
   snapshotName,
-  deleteColumnUpdateMetadata,
+  editable,
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -486,7 +485,7 @@ const EntitiesContent = ({
           dataProvider,
           persist: true,
           refreshKey,
-          editable: !snapshotName && WorkspaceUtils.canEditWorkspace(workspace).value,
+          editable,
           entityType: entityKey,
           activeCrossTableTextFilter,
           entityMetadata,
@@ -524,7 +523,6 @@ const EntitiesContent = ({
                 [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]
               ),
             ]),
-          deleteColumnUpdateMetadata,
           controlPanelStyle: {
             background: colors.light(0.5),
             borderBottom: `1px solid ${colors.grey(0.4)}`,
@@ -617,7 +615,6 @@ const EntitiesContent = ({
             workspace,
             selectedEntities: selectedKeys,
             selectedDataType: entityKey,
-            runningSubmissionsCount,
           }),
         showColumnProvenance &&
           h(

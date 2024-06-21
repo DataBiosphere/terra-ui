@@ -2,8 +2,8 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, renderHook } from '@testing-library/react';
 import { Ajax } from 'src/libs/ajax';
 import { asyncImportJobStore } from 'src/libs/state';
-import { AzureWorkspace, GoogleWorkspace } from 'src/libs/workspace-utils';
 import { asMockedFn } from 'src/testing/test-utils';
+import { AzureWorkspace, GoogleWorkspace } from 'src/workspaces/utils';
 
 import { useImportJobs } from './import-jobs';
 
@@ -18,6 +18,7 @@ describe('useImportJobs', () => {
       workspace: {
         authorizationDomain: [],
         cloudPlatform: 'Gcp',
+        billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
         bucketName: 'test-bucket',
         googleProject: 'test-project',
         name: 'google-workspace',

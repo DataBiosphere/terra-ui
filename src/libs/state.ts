@@ -4,16 +4,12 @@ import { AuthContextProps } from 'react-oidc-context';
 import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
+import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
-import {
-  BondFenceStatusResponse,
-  NihDatasetPermission,
-  SamUserAllowances,
-  SamUserAttributes,
-} from 'src/libs/ajax/User';
+import { NihDatasetPermission, SamUserAllowances, SamUserAttributes, SamUserResponse } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
-import type { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import type { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
 
@@ -58,13 +54,13 @@ export type SignInStatusState =
 
 export type SignInStatus = Initializable<SignInStatusState>;
 
-export interface FenceStatus {
-  [key: string]: BondFenceStatusResponse;
+export interface OAuth2AccountStatus {
+  [key: string]: EcmLinkAccountResponse;
 }
 
 export interface AuthState {
   cookiesAccepted: boolean | undefined;
-  fenceStatus: FenceStatus;
+  oAuth2AccountStatus: OAuth2AccountStatus;
   hasGcpBillingScopeThroughB2C: boolean | undefined;
   signInStatus: SignInStatus;
   userJustSignedIn: boolean;
@@ -80,7 +76,7 @@ export interface AuthState {
  */
 export const authStore: Atom<AuthState> = atom<AuthState>({
   cookiesAccepted: undefined,
-  fenceStatus: {},
+  oAuth2AccountStatus: {},
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   userJustSignedIn: false,
@@ -132,6 +128,8 @@ export interface TerraUserState {
   profile: TerraUserProfile;
   terraUser: TerraUser;
   terraUserAttributes: SamUserAttributes;
+  enterpriseFeatures: string[];
+  samUser: SamUserResponse;
 }
 
 /**
@@ -165,9 +163,22 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
   terraUserAttributes: {
     marketingConsent: true,
   },
+  enterpriseFeatures: [],
+  samUser: {
+    id: undefined,
+    googleSubjectId: undefined,
+    email: undefined,
+    azureB2CId: undefined,
+    allowed: undefined,
+    createdAt: undefined,
+    registeredAt: undefined,
+    updatedAt: undefined,
+  },
 });
 
 export const getTerraUser = (): TerraUser => userStore.get().terraUser;
+
+export const getTerraUserProfile = (): TerraUserProfile => userStore.get().profile;
 
 export interface TokenMetadata {
   token: string | undefined; // do not log or send this to mixpanel
@@ -253,15 +264,19 @@ export const notificationStore = atom<any[]>([]);
 
 export const contactUsActive = atom(false);
 
-export const workspaceStore = atom<any>(undefined);
+export type InitializedWorkspaceWrapper = WorkspaceWrapper & { workspaceInitialized: boolean };
+
+export const workspaceStore = atom<InitializedWorkspaceWrapper | undefined>(undefined);
 
 export const workspacesStore = atom<WorkspaceWrapper[]>([]);
 
+export const cloningWorkspacesStore = atom<WorkspaceInfo[]>([]);
+
 export const rerunFailuresStatus = atom<unknown>(undefined);
 
-export const errorNotifiedRuntimes = atom<unknown[]>([]);
+export const errorNotifiedRuntimes = atom<number[]>([]);
 
-export const errorNotifiedApps = atom<unknown[]>([]);
+export const errorNotifiedApps = atom<string[]>([]);
 
 export const knownBucketRequesterPaysStatuses = atom({});
 

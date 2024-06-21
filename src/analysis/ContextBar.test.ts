@@ -16,20 +16,20 @@ import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/uti
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import { App, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/models/disk-models';
 import { NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureWorkspace,
   defaultGoogleBucketOptions,
   defaultGoogleWorkspace,
 } from 'src/testing/workspace-fixtures';
+import { cloudProviderTypes } from 'src/workspaces/utils';
 
 const GALAXY_COMPUTE_COST = 10;
 const GALAXY_DISK_COST = 1;
@@ -412,6 +412,7 @@ const contextBarProps: ContextBarProps = {
   refreshRuntimes: () => Promise.resolve(),
   storageDetails: defaultGoogleBucketOptions,
   refreshApps: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   workspace: defaultGoogleWorkspace,
 };
 
@@ -423,6 +424,7 @@ const contextBarPropsForAzure: ContextBarProps = {
   refreshRuntimes: () => Promise.resolve(),
   storageDetails: { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
   refreshApps: () => Promise.resolve(),
+  isLoadingCloudEnvironments: false,
   workspace: defaultAzureWorkspace,
 };
 
@@ -470,6 +472,14 @@ describe('ContextBar - buttons', () => {
     expect(getByText('Rate:'));
     expect(getByLabelText('Environment Configuration'));
     expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument();
+  });
+
+  it('disables environment configuration button while loading environments', () => {
+    // Act
+    const { getByLabelText } = render(h(ContextBar, { ...contextBarProps, isLoadingCloudEnvironments: true }));
+
+    // Assert
+    expect(getByLabelText('Environment Configuration')).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('will render Jupyter button with an enabled Terminal Button', () => {

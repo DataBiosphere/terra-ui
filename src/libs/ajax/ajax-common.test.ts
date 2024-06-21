@@ -1,6 +1,7 @@
-import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, signOut } from 'src/auth/auth';
-import { sessionTimedOutErrorMessage } from 'src/auth/auth-errors';
+import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken } from 'src/auth/auth';
+import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { OidcUser } from 'src/auth/oidc-broker';
+import { signOut } from 'src/auth/signout/sign-out';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { authOpts, makeRequestRetry, withRetryAfterReloadingExpiredAuthToken } from './ajax-common';
@@ -46,11 +47,18 @@ jest.mock('src/auth/auth', (): Partial<AuthExports> => {
     getAuthToken: jest.fn(() => mockOidcUser.access_token),
     getAuthTokenFromLocalStorage: jest.fn(() => Promise.resolve(mockOidcUser.access_token)),
     loadAuthToken: jest.fn(),
-    sendAuthTokenDesyncMetric: jest.fn(),
     sendRetryMetric: jest.fn(),
-    signOut: jest.fn(),
   };
 });
+
+type SignOutExports = typeof import('src/auth/signout/sign-out');
+
+jest.mock(
+  'src/auth/signout/sign-out',
+  (): Partial<SignOutExports> => ({
+    signOut: jest.fn(),
+  })
+);
 
 describe('withRetryAfterReloadingExpiredAuthToken', () => {
   it('passes args through to wrapped fetch', async () => {
@@ -166,7 +174,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
           const result = makeAuthenticatedRequest();
 
           // Assert
-          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+          await expect(result).rejects.toEqual(new Error(sessionExpirationErrorMessage));
         });
       });
 
@@ -186,7 +194,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
             await Promise.allSettled([makeAuthenticatedRequest()]);
 
             // Assert
-            expect(signOut).toHaveBeenCalledWith('expiredRefreshToken');
+            expect(signOut).toHaveBeenCalledWith('errorRefreshingAuthToken');
           });
         });
 
@@ -210,7 +218,7 @@ describe('withRetryAfterReloadingExpiredAuthToken', () => {
           const result = makeAuthenticatedRequest();
 
           // Assert
-          await expect(result).rejects.toEqual(new Error(sessionTimedOutErrorMessage));
+          await expect(result).rejects.toEqual(new Error(sessionExpirationErrorMessage));
         });
       });
     });

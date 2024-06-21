@@ -29,7 +29,7 @@ import {
 } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { fetchOk } from 'src/libs/ajax/network-core/fetch-core';
 import { getConfig } from 'src/libs/config';
-import { CloudPlatform } from 'src/pages/billing/models/BillingProject';
+import { CloudProvider } from 'src/workspaces/utils';
 
 export interface GoogleRuntimeWrapper {
   googleProject: string;
@@ -123,7 +123,7 @@ export const Runtimes = (signal: AbortSignal) => {
     };
   };
 
-  const v2Func = (workspaceId: string, name: string, cloudPlatform: CloudPlatform = 'AZURE') => {
+  const v2Func = (workspaceId: string, name: string, cloudPlatform: CloudProvider = 'AZURE') => {
     const root = `api/v2/runtimes/${workspaceId}/${_.toLower(cloudPlatform)}/${name}`;
     const noCloudProviderRoot = `api/v2/runtimes/${workspaceId}/${name}`;
 

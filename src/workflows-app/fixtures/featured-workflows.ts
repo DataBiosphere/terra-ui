@@ -26,6 +26,7 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    isPrivate: false,
   },
   {
     name: 'MultiSampleSmartSeq2SingleNucleus',
@@ -41,6 +42,7 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    isPrivate: false,
   },
   {
     name: 'scATAC',
@@ -55,6 +57,7 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    isPrivate: false,
   },
   {
     name: 'WholeGenomeGermlineSingleSample',
@@ -69,6 +72,7 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    isPrivate: false,
   },
   {
     name: 'ExomeGermlineSingleSample',
@@ -83,6 +87,7 @@ export const featuredWorkflowsData = [
     last_run: {
       previously_run: false,
     },
+    isPrivate: false,
   },
   {
     name: 'Covid-19 tutorial workflows',
@@ -103,6 +108,7 @@ export const featuredWorkflowsData = [
         last_run: {
           previously_run: false,
         },
+        isPrivate: false,
         template: {
           method_input_mappings: [
             {
@@ -293,6 +299,7 @@ export const featuredWorkflowsData = [
         last_run: {
           previously_run: false,
         },
+        isPrivate: false,
         template: {
           method_input_mappings: [
             {
@@ -1717,6 +1724,7 @@ export const featuredWorkflowsData = [
         last_run: {
           previously_run: false,
         },
+        isPrivate: false,
         template: {
           method_input_mappings: [
             {

@@ -1,17 +1,32 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useState } from 'react';
-import { div, h, h2, h3, span } from 'react-hyperscript-helpers';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary, Link, Select } from 'src/components/common';
+import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import Modal from 'src/components/Modal';
 import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
+import { useCancellation } from 'src/libs/react-utils';
+import { AppProxyUrlStatus } from 'src/libs/state';
 import { customFormatDuration, differenceFromNowInSeconds } from 'src/libs/utils';
 import { statusType } from 'src/workflows-app/components/job-common';
-import { makeStatusLine } from 'src/workflows-app/utils/submission-utils';
+import {
+  fetchMetadata,
+  makeStatusLine,
+  parseMethodString,
+  WorkflowMetadata,
+} from 'src/workflows-app/utils/submission-utils';
+import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
+
+import { loadAppUrls } from '../utils/app-utils';
+import { getFilteredRuns } from '../utils/method-common';
+import { LogTooltips } from '../utils/task-log-utils';
+import FilterSubmissionsDropdown, { FilterOptions } from './FilterSubmissionsDropdown';
+import { FetchedLogData, LogInfo } from './LogViewer';
 
 type Run = {
   duration: number;
@@ -29,12 +44,43 @@ type Run = {
   error_messages: string | undefined;
 };
 
+type LogsModalProps = {
+  modalTitle: string;
+  logsArray: LogInfo[];
+};
+
+type TaskDataModalProps = {
+  taskDataTitle: string;
+  taskJson: {} | null | undefined;
+};
+
 type FilterableWorkflowTableProps = {
   runsData: Run[];
   runsFullyUpdated: boolean;
   namespace: string;
   submissionId: string;
   workspaceName: string;
+  workspaceId: string;
+  setLogsModal: ({ modalTitle, logsArray }: LogsModalProps) => void;
+  setTaskDataModal: ({ taskDataTitle, taskJson }: TaskDataModalProps) => void;
+};
+
+/**
+ * Workflow Inputs and Outputs are "fully qualified" and come in the form:
+ *    WorkflowName.CallName.VariableName (for task input/outputs) or
+ *    WorkflowName.VariableName (for workflow inputs/outputs)
+ * Keep in mind that CallName may be multiple segments in the case of nested workflows.
+ * When displaying these, there is no need to include the workflow name as it is already present elsewhere on the page.
+ * Here, we strip away the first part of the key (expected to be the workflow name) to make it shorter and more readable.
+ * @param keyValuePairs A map from fully qualified variable name to value.
+ * @returns A map where the fully qualified variable name has been stripped of the workflow name prefix.
+ */
+const stripWorkflowPrefixFromKeys = <T extends Record<string, any>>(keyValuePairs: T): { [k: string]: any } => {
+  const shortenKey = (key: string): string => {
+    const { call, variable } = parseMethodString(key);
+    return call ? `${call}.${variable}` : variable;
+  };
+  return Object.fromEntries(Object.entries(keyValuePairs).map(([key, value]) => [shortenKey(key), value]));
 };
 
 const FilterableWorkflowTable = ({
@@ -43,37 +89,21 @@ const FilterableWorkflowTable = ({
   namespace,
   submissionId,
   workspaceName,
+  workspaceId,
+  setLogsModal,
+  setTaskDataModal,
 }: FilterableWorkflowTableProps) => {
   const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [filterOption, setFilterOption] = useState<string>();
+  const [filterOption, setFilterOption] = useState<FilterOptions>();
   const [pageNumber, setPageNumber] = useState(1);
   const [sort, setSort] = useState({ field: 'duration', direction: 'desc' });
   const [viewErrorsId, setViewErrorsId] = useState<number>();
+  const [currentWorkflow, setCurrentWorkflow] = useState<WorkflowMetadata>();
+  const [appId, setAppId] = useState<RegExpMatchArray | null>();
+  const [taskName, setTaskName] = useState<string>();
 
   const errorStates = ['SYSTEM_ERROR', 'EXECUTOR_ERROR'];
-
-  const getFilteredRuns = (filterOption: string, runsData: Run[]): Run[] => {
-    const filteredRuns: Run[] = [];
-
-    for (const run of runsData) {
-      switch (filterOption) {
-        case 'Error':
-          if (errorStates.includes(run.state)) {
-            filteredRuns.push(run);
-          }
-          break;
-        case 'Succeeded':
-          if (run.state === 'COMPLETE') {
-            filteredRuns.push(run);
-          }
-          break;
-        default:
-          filteredRuns.push(run);
-      }
-    }
-
-    return filteredRuns;
-  };
+  const signal = useCancellation();
 
   const sortRuns = (field: string, direction: string, runs: Run[]): Run[] => {
     const runsSorted: Run[] = [];
@@ -107,18 +137,22 @@ const FilterableWorkflowTable = ({
     return runsSorted;
   };
 
-  enum FilterOptions {
-    Error = 'Error',
-    NoFilter = 'No filter',
-    Succeeded = 'Succeeded',
-  }
-
-  const filteredPreviousRuns: Run[] = filterOption ? getFilteredRuns(filterOption, runsData) : runsData;
-  const filterOptions: FilterOptions[] = [FilterOptions.Error, FilterOptions.NoFilter, FilterOptions.Succeeded];
+  const filteredPreviousRuns: Run[] = useMemo(
+    () => (filterOption ? getFilteredRuns(filterOption, runsData, errorStates) : runsData),
+    // Don't re-run if errorStates changes (since it never should change).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filterOption, runsData]
+  );
   const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
   const lastPageIndex: number = firstPageIndex + itemsPerPage;
-  const sortedPreviousRuns: Run[] = sortRuns(sort.field, sort.direction, filteredPreviousRuns);
-  const paginatedPreviousRuns: Run[] = sortedPreviousRuns.slice(firstPageIndex, lastPageIndex);
+  const sortedPreviousRuns: Run[] = useMemo(
+    () => sortRuns(sort.field, sort.direction, filteredPreviousRuns),
+    [filteredPreviousRuns, sort.direction, sort.field]
+  );
+  const paginatedPreviousRuns: Run[] = useMemo(
+    () => sortedPreviousRuns.slice(firstPageIndex, lastPageIndex),
+    [firstPageIndex, lastPageIndex, sortedPreviousRuns]
+  );
   const rowWidth = 100;
   const rowHeight = 50;
 
@@ -151,6 +185,82 @@ const FilterableWorkflowTable = ({
     }
   };
 
+  const includeKeys = useMemo(() => [], []);
+  const excludeKeys = useMemo(() => ['calls'], []);
+
+  const loadWorkflow = useCallback(
+    async (workflowId: string | undefined): Promise<WorkflowMetadata | undefined> => {
+      if (workflowId === undefined) {
+        return undefined;
+      }
+
+      try {
+        const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
+        if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
+          return await fetchMetadata({
+            cromwellProxyUrl: cromwellProxyUrlState.state,
+            workflowId,
+            signal,
+            includeKeys,
+            excludeKeys,
+          });
+        }
+        return undefined;
+      } catch (error) {
+        reportError(error);
+        return undefined;
+      }
+    },
+    [workspaceId, signal, includeKeys, excludeKeys]
+  );
+
+  const getWorkflow = useCallback(
+    async (rowIndex: number): Promise<WorkflowMetadata | undefined> => {
+      if (currentWorkflow && currentWorkflow.id === paginatedPreviousRuns[rowIndex].engine_id) {
+        return currentWorkflow;
+      }
+      if (!paginatedPreviousRuns[rowIndex]) {
+        return undefined;
+      }
+      const workflow: WorkflowMetadata | undefined = await loadWorkflow(paginatedPreviousRuns[rowIndex].engine_id);
+      if (workflow !== undefined) {
+        setCurrentWorkflow(workflow);
+      }
+      return workflow;
+    },
+    [currentWorkflow, loadWorkflow, paginatedPreviousRuns]
+  );
+
+  const fetchLogContent = useCallback(
+    async (azureBlobUri: string): Promise<FetchedLogData | null> => {
+      if (!isAzureUri(azureBlobUri)) {
+        return null;
+      }
+      try {
+        const response = await Ajax(signal).AzureStorage.blobByUri(azureBlobUri).getMetadataAndTextContent();
+        const uri = _.isEmpty(response.azureSasStorageUrl) ? response.azureStorageUrl : response.azureSasStorageUrl;
+        return { textContent: response.textContent, downloadUri: uri };
+      } catch (e) {
+        return null;
+      }
+    },
+    [signal]
+  );
+
+  const getAppIdAndTaskName = useCallback(async () => {
+    const workflow: WorkflowMetadata | undefined = await getWorkflow(0);
+    if (workflow !== undefined) {
+      setTaskName(workflow.workflowName);
+      const logs = await fetchLogContent(workflow.workflowLog);
+      const textContent = logs !== null ? logs.textContent : null;
+      setAppId(textContent !== null && textContent ? textContent.match('terra-app-[0-9a-fA-f-]*') : null);
+    }
+  }, [getWorkflow, fetchLogContent]);
+
+  useEffect(() => {
+    getAppIdAndTaskName();
+  }, [getAppIdAndTaskName]);
+
   return div(
     {
       style: {
@@ -171,9 +281,8 @@ const FilterableWorkflowTable = ({
           },
         },
         [
-          div([h2(['Workflows'])]),
           runsFullyUpdated
-            ? div([
+            ? div({ style: { marginBottom: '1.5em' } }, [
                 icon('check', { size: 15, style: { color: colors.success() } }),
                 ' Workflow statuses are all up to date.',
               ])
@@ -181,23 +290,27 @@ const FilterableWorkflowTable = ({
                 icon('warning-standard', { size: 15, style: { color: colors.warning() } }),
                 ' Some workflow statuses are not up to date. Refreshing the page may update more statuses.',
               ]),
-          div([h3(['Filter by: '])]),
-          h(Select, {
-            isDisabled: false,
-            'aria-label': 'Filter selection',
-            isClearable: false,
-            value: filterOption,
-            placeholder: 'None selected',
-            // @ts-expect-error
-            onChange: ({ value }) => {
-              setFilterOption(value);
-            },
-            styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginBottom: '1.5rem' }) },
-            options: filterOptions,
-          }),
+          div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+            h(FilterSubmissionsDropdown, { filterOption, setFilterOption }),
+            h(
+              Link,
+              {
+                href: Nav.getLink(
+                  'workspace-files',
+                  { name: workspaceName, namespace },
+                  {
+                    path: `workspace-services/cbas/${appId}/${taskName}/`,
+                  }
+                ),
+                target: '_blank',
+              },
+              [icon('folder-open', { size: 18 }), '\tSubmission Execution Directory']
+            ),
+          ]),
           div(
             {
               style: {
+                marginTop: '0.5rem',
                 height: tableHeight({
                   actualRows: paginatedPreviousRuns.length,
                   maxRows: 12.5,
@@ -248,7 +361,7 @@ const FilterableWorkflowTable = ({
                         },
                       },
                       {
-                        size: { basis: 600, grow: 0 },
+                        size: { basis: 400, grow: 0 },
                         field: 'state',
                         headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                         cellRenderer: ({ rowIndex }) => {
@@ -299,16 +412,121 @@ const FilterableWorkflowTable = ({
                       {
                         size: { basis: 400, grow: 0 },
                         field: 'workflowId',
-                        headerRenderer: () =>
-                          h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+                        headerRenderer: () => [
+                          h(Sortable, { key: 'workflow ID header', sort, field: 'workflowId', onSort: setSort }, [
+                            'Workflow ID',
+                          ]),
+                          h(
+                            Clickable,
+                            {
+                              key: 'tooltip icon',
+                              tooltip: 'Click the workflow ID to go to the execution directory',
+                              useTooltipAsLabel: true,
+                            },
+                            [icon('cardMenuIcon')]
+                          ),
+                        ],
                         cellRenderer: ({ rowIndex }) => {
-                          const engineId = paginatedPreviousRuns[rowIndex].engine_id;
-                          if (engineId !== undefined) {
-                            return h(TextCell, [
-                              span({ style: { marginRight: '0.5rem' } }, [engineId]),
-                              span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                          if (paginatedPreviousRuns[rowIndex].engine_id) {
+                            const engineId = paginatedPreviousRuns[rowIndex].engine_id;
+                            if (engineId !== undefined) {
+                              return h(TextCell, [
+                                h(
+                                  Link,
+                                  {
+                                    style: { marginRight: '0.5rem' },
+                                    href: Nav.getLink(
+                                      'workspace-files',
+                                      { name: workspaceName, namespace },
+                                      {
+                                        path: `workspace-services/cbas/${appId}/${taskName}/${engineId}/`,
+                                      }
+                                    ),
+                                    target: '_blank',
+                                  },
+                                  [engineId]
+                                ),
+                                span({}, [h(ClipboardButton, { text: engineId, 'aria-label': 'Copy workflow id' })]),
+                              ]);
+                            }
+                          }
+                          if (paginatedPreviousRuns[rowIndex].state === 'QUEUED') {
+                            return div(['Waiting for workflow to be submitted']);
+                          }
+                          return div(['Error: Workflow ID not found']);
+                        },
+                      },
+                      {
+                        size: { basis: 325, grow: 0 },
+                        field: 'taskData',
+                        headerRenderer: () => 'Workflow Data',
+                        cellRenderer: ({ rowIndex }) => {
+                          const style = {
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr 1fr',
+                            gridColumnGap: '1em',
+                            gridRowGap: '0.3em',
+                          };
+                          if (paginatedPreviousRuns[rowIndex].engine_id) {
+                            return div({ style }, [
+                              h(
+                                Link,
+                                {
+                                  onClick: async () => {
+                                    setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: null });
+                                    const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
+                                    if (workflow !== undefined) {
+                                      const shortenedInputs = stripWorkflowPrefixFromKeys(workflow.inputs);
+                                      setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: shortenedInputs });
+                                    }
+                                  },
+                                },
+                                ['Inputs']
+                              ),
+                              h(
+                                Link,
+                                {
+                                  onClick: async () => {
+                                    setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: null });
+                                    const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
+                                    if (workflow !== undefined) {
+                                      const shortenedOutputs = stripWorkflowPrefixFromKeys(workflow.outputs);
+                                      setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: shortenedOutputs });
+                                    }
+                                  },
+                                },
+                                ['Outputs']
+                              ),
+                              h(
+                                Link,
+                                {
+                                  onClick: async () => {
+                                    const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
+                                    if (workflow !== undefined) {
+                                      const logUri = workflow.workflowLog;
+                                      setLogsModal({
+                                        modalTitle: 'Workflow Execution Log',
+                                        logsArray: [
+                                          {
+                                            logUri,
+                                            logTitle: 'Workflow Execution Log',
+                                            logKey: 'execution_log',
+                                            logFilename: 'workflow.log',
+                                            logTooltip: LogTooltips.workflowExecution,
+                                          },
+                                        ],
+                                      });
+                                    }
+                                  },
+                                },
+                                ['Log']
+                              ),
                             ]);
                           }
+                          if (paginatedPreviousRuns[rowIndex].state === 'QUEUED') {
+                            return div(['Waiting for workflow to be submitted']);
+                          }
+                          return div(['Error: Workflow ID not found']);
                         },
                       },
                     ],

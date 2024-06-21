@@ -1,28 +1,28 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner, useThemeFromContext } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
+import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { generateAppName, getCurrentApp } from 'src/analysis/utils/app-utils';
 import { appAccessScopes, appToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
-import { styles as errorStyles } from 'src/components/ErrorView';
+import { getStyles as getErrorStyles } from 'src/components/ErrorView';
 import { icon } from 'src/components/icons';
 import { TextArea, TextInput } from 'src/components/input';
-import Modal from 'src/components/Modal';
 import { TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { RecordResponse } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { poll } from 'src/libs/utils';
-import { WorkspaceWrapper } from 'src/libs/workspace-utils';
+import { poll, toIndexPairs } from 'src/libs/utils';
 import { MethodVersion, WorkflowMethod } from 'src/workflows-app/components/WorkflowCard';
 import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
 import { loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertInputTypes } from 'src/workflows-app/utils/submission-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 type SubmitWorkflowModalProps = {
   method: WorkflowMethod;
@@ -62,10 +62,13 @@ export const SubmitWorkflowModal = ({
   const [isCromwellRunnerLaunching, setIsCromwellRunnerLaunching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [workflowSubmissionError, setWorkflowSubmissionError] = useState<string>();
+  const [problemRunnerApp, setProblemRunnerApp] = useState<App | undefined>();
 
   const { captureEvent } = useMetricsEvent();
   const canSubmit = canCompute;
 
+  const { colors } = useThemeFromContext();
+  const errorStyles = getErrorStyles(colors);
   const submitRun = async () => {
     const runSetsPayload = {
       run_set_name: runSetName,
@@ -92,6 +95,7 @@ export const SubmitWorkflowModal = ({
       methodUrl: methodVersion.url,
       methodVersion: methodVersion.name,
       methodSource: method.source,
+      methodIsPrivate: method.isPrivate,
       previouslyRun: method.last_run.previously_run,
     });
     Nav.goToPath('workspace-workflows-app-submission-details', {
@@ -119,6 +123,10 @@ export const SubmitWorkflowModal = ({
           return { result: undefined, shouldContinue: true };
         }
         if (appToUse.status !== 'RUNNING') {
+          if (appToUse.status === 'ERROR') {
+            setIsCromwellRunnerLaunching(false);
+            return { result: appToUse, shouldContinue: false };
+          }
           setIsCromwellRunnerLaunching(true);
           return { result: undefined, shouldContinue: true };
         }
@@ -145,12 +153,16 @@ export const SubmitWorkflowModal = ({
       okButton: h(
         ButtonPrimary,
         {
-          disabled: isSubmitting || !canSubmit,
+          disabled: isSubmitting || !canSubmit || problemRunnerApp !== undefined,
           tooltip: !canSubmit && 'You do not have permission to submit workflows in this workspace',
           'aria-label': 'Launch Submission',
           onClick: async () => {
             setIsSubmitting(true);
-            await submitToWorkflowsApp();
+            const submitResult = await submitToWorkflowsApp();
+            // If submit returns a value, it represents an app in an invalid state:
+            if (submitResult !== undefined) {
+              setProblemRunnerApp(submitResult);
+            }
             setIsSubmitting(false);
           },
         },
@@ -212,7 +224,24 @@ export const SubmitWorkflowModal = ({
             ]),
             'Your workflow will submit automatically when Cromwell is running',
           ]),
-
+        problemRunnerApp &&
+          h(Fragment, [
+            div({ style: { display: 'flex', marginTop: '1rem', justifyContent: 'flex-center' } }, [
+              icon('warning-standard', {
+                size: 19,
+                style: { color: colors.warning(), flex: 'none', marginRight: '1rem' },
+              }),
+              'A problem has occurred launching your personal Cromwell runner ("CROMWELL_RUNNER_APP") in this workspace. If the problem persists, please contact support.',
+            ]),
+            _.map(([index, error]) => {
+              return div({ key: index }, [
+                h(ErrorAlert, {
+                  errorValue: error,
+                  mainMessageField: 'errorMessage',
+                }),
+              ]);
+            }, toIndexPairs(problemRunnerApp.errors)),
+          ]),
         !canSubmit &&
           div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
             icon('warning-standard', { size: 16, style: { color: colors.danger() } }),

@@ -28,6 +28,10 @@ export const metadata = {
   calls: {
     'fetch_sra_to_bam.Fetch_SRA_to_BAM': [
       {
+        tes_stderr:
+          'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/e74c9597-a676-4ef8-8f8e-cd3eed941eab/call-Fetch_SRA_to_BAM/tes_task/stderr.txt',
+        tes_stdout:
+          'https://lz813a3d637adefec2c6e88f.blob.core.windows.net/sc-bed4cf6c-8153-4f3d-852f-532cc17e6582/workspace-services/cbas/terra-app-c26307e1-4666-4a9a-aa27-dfb259be46a6/fetch_sra_to_bam/e74c9597-a676-4ef8-8f8e-cd3eed941eab/call-Fetch_SRA_to_BAM/tes_task/stdout.txt',
         executionStatus: 'Done',
         stdout:
           'https://kj4l5k3hjklk3jlk43jl3kj43lkj3l4kj3.blob.core.windows.net/sc-random-value/workspace-services/cbas/terra-app-other-random-value/fetch_sra_to_bam/more-random-value/call-Fetch_SRA_to_BAM/execution/stdout',
@@ -93,6 +97,9 @@ export const metadata = {
         jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
         backend: 'TES',
         start: '2023-05-23T10:10:43.783Z',
+        taskStartTime: '2023-05-23T10:10:43.783Z',
+        taskEndTime: '2023-05-24T11:22:31.784Z',
+        vmCostUsd: '0.505',
         backendStatus: 'Complete',
         compressedDockerSize: 1339143280,
         end: '2023-05-24T11:22:31.784Z',
@@ -134,6 +141,56 @@ export const metadata = {
             endTime: '2023-05-22T11:10:47.864Z',
           },
         ],
+      },
+    ],
+    'fetch_sra_to_bam.Fetch_SRA_to_BAM_2': [
+      {
+        executionStatus: 'Running',
+        returnCode: 0,
+        jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
+        backend: 'TES',
+        start: '2023-05-23T10:10:43.783Z',
+        taskStartTime: '2023-05-23T10:10:43.783Z',
+        vmCostUsd: '0.203',
+        backendStatus: 'Running',
+        compressedDockerSize: 1339143280,
+        end: '2023-05-24T11:22:31.784Z',
+        dockerImageUsed: 'docker_img_uri',
+        attempt: 1,
+      },
+    ],
+    'fetch_sra_to_bam.Fetch_SRA_to_BAM_3': [
+      {
+        executionStatus: 'Done',
+        returnCode: 0,
+        jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
+        backend: 'TES',
+        start: '2023-05-23T10:10:43.783Z',
+        backendStatus: 'Completed',
+        compressedDockerSize: 1339143280,
+        end: '2023-05-24T11:22:31.784Z',
+        dockerImageUsed: 'docker_img_uri',
+        attempt: 1,
+      },
+    ],
+    'fetch_sra_to_bam.Fetch_SRA_to_BAM_4': [
+      {
+        executionStatus: 'Done',
+        callCaching: {
+          allowResultReuse: true,
+          effectiveCallCachingMode: 'ReadAndWriteCache',
+          hit: true,
+          result: 'Cache Hit',
+        },
+        returnCode: 0,
+        jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
+        backend: 'TES',
+        start: '2023-05-23T10:10:43.783Z',
+        backendStatus: 'Completed',
+        compressedDockerSize: 1339143280,
+        end: '2023-05-24T11:22:31.784Z',
+        dockerImageUsed: 'docker_img_uri',
+        attempt: 1,
       },
     ],
   },

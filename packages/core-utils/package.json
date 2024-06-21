@@ -1,10 +1,10 @@
 {
   "name": "@terra-ui-packages/core-utils",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "scripts": {
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
-    "check-dts": "check-dts",
+    "check-dts": "check-dts src/**/*",
     "test": "jest"
   },
   "type": "module",
@@ -21,19 +21,19 @@
   "files": [
     "lib/cjs/**",
     "lib/es/**",
-    "lib/types/**"
+    "lib/types/**/*.d.ts"
   ],
   "dependencies": {
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@terra-ui-packages/build-utils": "^1.0.0",
+    "@terra-ui-packages/build-utils": "^2.0.1",
     "@terra-ui-packages/test-utils": "*",
     "@types/jest": "^28.1.8",
     "@types/lodash": "^4.14.184",
     "check-dts": "^0.7.2",
     "jest": "^27.4.3",
     "typescript": "~5.1.6",
-    "vite": "^4.3.9"
+    "vite": "^5.2.11"
   }
 }

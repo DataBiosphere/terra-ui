@@ -1,80 +1,69 @@
-import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import {
   canWrite,
-  CloudProvider,
   getCloudProviderFromWorkspace,
+  isOwner,
   isProtectedWorkspace,
   WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
 
+import {
+  getRequiredCloudPlatform,
+  importWillUpdateAccessControl,
+  requiresSecurityMonitoring,
+} from './import-requirements';
 import { ImportRequest } from './import-types';
 
-export const getCloudPlatformRequiredForImport = (importRequest: ImportRequest): CloudProvider | undefined => {
-  switch (importRequest.type) {
-    case 'tdr-snapshot-export':
-    case 'tdr-snapshot-reference':
-      const tdrCloudPlatformToCloudProvider: Record<Snapshot['cloudPlatform'], CloudProvider> = {
-        azure: 'AZURE',
-        gcp: 'GCP',
-      };
-      return tdrCloudPlatformToCloudProvider[importRequest.snapshot.cloudPlatform];
-    case 'pfb':
-      // restrict PFB imports to GCP unless the user has the right feature flag enabled
-      return isFeaturePreviewEnabled(ENABLE_AZURE_PFB_IMPORT) ? undefined : 'GCP';
-    default:
-      return undefined;
-  }
-};
-
 export type ImportOptions = {
-  /** Cloud platform required for the import. */
-  cloudPlatform?: CloudProvider;
-
-  /** Is the source data protected. */
-  isProtectedData: boolean;
-
-  /** Authorization domain required for the source data. */
+  /** Authorization domain requested for destination workspace. */
   requiredAuthorizationDomain?: string;
 };
 
 /**
- * Can the user can import data into a workspace?
+ * Returns a function to filter workspaces to available destinations for an import.
  *
+ * @param importRequest - Import request.
  * @param importOptions
- * @param importOptions.cloudPlatform - Cloud platform required for the import.
- * @param importOptions.isProtectedData - Is the source data protected.
- * @param importOptions.requiredAuthorizationDomain - Authorization domain required for the source data.
- * @param workspace - Candidate workspace.
+ * @param importOptions.requiredAuthorizationDomain - Require destination workspace has this authorization domain.
  */
-export const canImportIntoWorkspace = (importOptions: ImportOptions, workspace: WorkspaceWrapper): boolean => {
-  const { cloudPlatform, isProtectedData, requiredAuthorizationDomain } = importOptions;
+export const buildDestinationWorkspaceFilter = (
+  importRequest: ImportRequest,
+  importOptions: ImportOptions = {}
+): ((workspace: WorkspaceWrapper) => boolean) => {
+  const { requiredAuthorizationDomain } = importOptions;
 
-  // The user must be able to write to the workspace to import data.
-  if (!canWrite(workspace.accessLevel)) {
-    return false;
-  }
+  const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
+  const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
 
-  // If a cloud platform is required, the destination workspace must be on that cloud platform.
-  if (cloudPlatform && getCloudProviderFromWorkspace(workspace) !== cloudPlatform) {
-    return false;
-  }
+  return (workspace: WorkspaceWrapper): boolean => {
+    // For all imports, the user must be able to write to the workspace to import data.
+    // Importing controlled access data applies the data's access controls to the destination workspace.
+    // In order to update the workspace's access controls, the user must be an owner of the workspace.
+    const importMayUpdateAccessControl = importWillUpdateAccessControl(importRequest, workspace) !== false;
+    if (!canWrite(workspace.accessLevel) || (importMayUpdateAccessControl && !isOwner(workspace.accessLevel))) {
+      return false;
+    }
 
-  // If the source data is protected, the destination workspace must also be protected.
-  if (isProtectedData && !isProtectedWorkspace(workspace)) {
-    return false;
-  }
+    // If a cloud platform is required, the destination workspace must be on that cloud platform.
+    if (requiredCloudPlatform && getCloudProviderFromWorkspace(workspace) !== requiredCloudPlatform) {
+      return false;
+    }
 
-  // If the import requires an authorization domain, the destination workspace must include that authorization domain.
-  if (
-    requiredAuthorizationDomain &&
-    !workspace.workspace.authorizationDomain.some(
-      ({ membersGroupName }) => membersGroupName === requiredAuthorizationDomain
-    )
-  ) {
-    return false;
-  }
+    // If the source data requires security monitoring, the destination workspace must have security monitoring enabled.
+    // Additionally, require that the destination workspace is not public.
+    if (importRequiresSecurityMonitoring && !(isProtectedWorkspace(workspace) && !workspace.public)) {
+      return false;
+    }
 
-  return true;
+    // If an authorization domain was requested, the destination workspace must include that authorization domain.
+    if (
+      requiredAuthorizationDomain &&
+      !workspace.workspace.authorizationDomain.some(
+        ({ membersGroupName }) => membersGroupName === requiredAuthorizationDomain
+      )
+    ) {
+      return false;
+    }
+
+    return true;
+  };
 };

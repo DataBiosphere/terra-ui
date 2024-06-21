@@ -4,18 +4,16 @@ import { h } from 'react-hyperscript-helpers';
 import { azureRuntime, getAzureDisk, getDisk, getRuntimeConfig } from 'src/analysis/_testData/testData';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
-import { cloudServices } from 'src/analysis/utils/gce-machines';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { formatUSD } from 'src/libs/utils';
-import { cloudProviderTypes } from 'src/libs/workspace-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 const renderActionButton = () => h(ButtonPrimary, {}, ['Delete']);
 
 describe('DeleteDiskChoices', () => {
-  it.each([{ cloudService: cloudProviderTypes.GCP }, { cloudService: cloudServices.AZURE }])(
+  it.each([{ cloudService: cloudServiceTypes.GCE }, { cloudService: cloudServiceTypes.AZURE_VM }])(
     'Should pass through all correct values',
     ({ cloudService }) => {
       // Arrange
@@ -148,7 +146,6 @@ describe('DeleteEnvironment', () => {
     (toolLabel) => {
       // Arrange
       const setDeleteDiskSelected = jest.fn();
-      const setViewMode = jest.fn();
 
       // Act
       render(
@@ -156,11 +153,11 @@ describe('DeleteEnvironment', () => {
           id: 'not-relevant',
           deleteDiskSelected: false,
           setDeleteDiskSelected,
-          setViewMode,
           persistentDiskCostDisplay: formatUSD(1.01),
           renderActionButton,
           hideCloseButton: false,
           onDismiss: () => {},
+          onPrevious: () => {},
           toolLabel,
         })
       );
@@ -176,7 +173,6 @@ describe('DeleteEnvironment', () => {
   ])('Should properly render when provided no runtime but a disk', ({ disk, toolLabel }) => {
     // Arrange
     const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
 
     // Act
     render(
@@ -186,10 +182,10 @@ describe('DeleteEnvironment', () => {
         persistentDiskId: disk.id,
         persistentDiskCostDisplay: formatUSD(1.01),
         setDeleteDiskSelected,
-        setViewMode,
         renderActionButton,
         hideCloseButton: false,
         onDismiss: () => {},
+        onPrevious: () => {},
         toolLabel,
       })
     );
@@ -202,7 +198,6 @@ describe('DeleteEnvironment', () => {
   it('Should properly render when provided Azure config', () => {
     // Arrange
     const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
     const disk = getAzureDisk();
     const runtimeConfig = azureRuntime.runtimeConfig;
 
@@ -215,10 +210,10 @@ describe('DeleteEnvironment', () => {
         persistentDiskCostDisplay: formatUSD(1.01),
         deleteDiskSelected: false,
         setDeleteDiskSelected,
-        setViewMode,
         renderActionButton,
         hideCloseButton: false,
         onDismiss: () => {},
+        onPrevious: () => {},
         toolLabel: 'JupyterLab',
       })
     );
@@ -232,7 +227,6 @@ describe('DeleteEnvironment', () => {
     (toolLabel) => {
       // Arrange
       const setDeleteDiskSelected = jest.fn();
-      const setViewMode = jest.fn();
       const disk = getDisk();
       const runtimeConfig = getRuntimeConfig({ persistentDiskId: disk.id });
 
@@ -245,10 +239,10 @@ describe('DeleteEnvironment', () => {
           persistentDiskCostDisplay: formatUSD(1.01),
           deleteDiskSelected: false,
           setDeleteDiskSelected,
-          setViewMode,
           renderActionButton,
           hideCloseButton: false,
           onDismiss: () => {},
+          onPrevious: () => {},
           toolLabel,
         })
       );
@@ -262,7 +256,6 @@ describe('DeleteEnvironment', () => {
   it('Should properly render when provided a GCE config', () => {
     // Arrange
     const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
     const disk = getDisk();
     const runtimeConfig = getRuntimeConfig();
 
@@ -275,10 +268,10 @@ describe('DeleteEnvironment', () => {
         persistentDiskCostDisplay: formatUSD(1.01),
         deleteDiskSelected: false,
         setDeleteDiskSelected,
-        setViewMode,
         renderActionButton,
         hideCloseButton: false,
         onDismiss: () => {},
+        onPrevious: () => {},
         toolLabel: 'RStudio',
       })
     );
@@ -292,7 +285,6 @@ describe('DeleteEnvironment', () => {
     (toolLabel) => {
       // Arrange
       const setDeleteDiskSelected = jest.fn();
-      const setViewMode = jest.fn();
       const disk = getDisk();
       const runtimeConfig = getRuntimeConfig({ persistentDiskId: disk.id });
       if ('persistentDiskId' in runtimeConfig) runtimeConfig.persistentDiskId = disk.id;
@@ -306,10 +298,10 @@ describe('DeleteEnvironment', () => {
           persistentDiskCostDisplay: formatUSD(2.0),
           deleteDiskSelected: false,
           setDeleteDiskSelected,
-          setViewMode,
           renderActionButton,
           hideCloseButton: false,
           onDismiss: () => {},
+          onPrevious: () => {},
           toolLabel,
         })
       );
@@ -325,7 +317,6 @@ describe('DeleteEnvironment', () => {
   it('Should properly render when provided Azure config that had matching PDID', () => {
     // Arrange
     const setDeleteDiskSelected = jest.fn();
-    const setViewMode = jest.fn();
     const disk = getAzureDisk();
     const runtimeConfig = azureRuntime.runtimeConfig;
     // this if statement is to satisfy typescript
@@ -340,10 +331,10 @@ describe('DeleteEnvironment', () => {
         persistentDiskCostDisplay: formatUSD(3.01),
         deleteDiskSelected: false,
         setDeleteDiskSelected,
-        setViewMode,
         renderActionButton,
         hideCloseButton: false,
         onDismiss: () => {},
+        onPrevious: () => {},
         toolLabel: 'JupyterLab',
       })
     );

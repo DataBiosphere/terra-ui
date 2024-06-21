@@ -1,7 +1,7 @@
+import { Modal } from '@terra-ui-packages/components';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
-import Modal from 'src/components/Modal';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReportingInModal } from 'src/libs/error';
 
@@ -20,7 +20,10 @@ const LockWorkspaceModal = ({
     onDismiss();
   };
 
-  const toggleWorkspaceLock = withErrorReportingInModal('Error toggling workspace lock', onFailureDismiss, async () => {
+  const toggleWorkspaceLock = withErrorReportingInModal(
+    'Error toggling workspace lock',
+    onFailureDismiss
+  )(async () => {
     setTogglingLock(true);
     isLocked ? await Ajax().Workspaces.workspace(namespace, name).unlock() : await Ajax().Workspaces.workspace(namespace, name).lock();
     onDismiss();

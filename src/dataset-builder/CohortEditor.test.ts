@@ -7,16 +7,22 @@ import {
   AnyCriteria,
   Cohort,
   CriteriaGroup,
-  DomainCriteria,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
+  ProgramDomainCriteria,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { DataRepo, DataRepoContract, SnapshotBuilderProgramDataOption } from 'src/libs/ajax/DataRepo';
+import {
+  DataRepo,
+  DataRepoContract,
+  SnapshotBuilderDomainOption,
+  SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeOption,
+} from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { CohortEditor, criteriaFromOption, CriteriaGroupView, CriteriaView } from './CohortEditor';
-import { domainCriteriaSelectorState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
-import { dummyDatasetModel } from './TestConstants';
+import { domainCriteriaSearchState, homepageState, newCohort, newCriteriaGroup } from './dataset-builder-types';
+import { testSnapshotBuilderSettings, testSnapshotId } from './TestConstants';
 
 jest.mock('src/libs/ajax/GoogleStorage');
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -27,72 +33,59 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
+type LodashFpExports = typeof import('lodash/fp');
+jest.mock('lodash/fp', (): LodashFpExports => {
+  const actual = jest.requireActual<LodashFpExports>('lodash/fp');
+  return <_.LoDashFp & _.LodashDebounce>{
+    ...actual,
+    debounce: (_wait, func) => func,
+  };
+});
+
 describe('CohortEditor', () => {
   type CriteriaViewPropsOverrides = {
     criteria: AnyCriteria;
     deleteCriteria?: (criteria: AnyCriteria) => void;
     updateCriteria?: (criteria: AnyCriteria) => void;
   };
+  const programDataRangeOption = (min = 55, max = 99): SnapshotBuilderProgramDataRangeOption => {
+    return {
+      id: 0,
+      kind: 'range',
+      name: 'range',
+      tableName: 'person',
+      columnName: 'range_column',
+      min,
+      max,
+    };
+  };
 
-  const mockListStatistics = () => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
+  const mockDataRepo = (datasetMocks: Partial<DataRepoContract['snapshot']>[]) => {
+    asMockedFn(DataRepo).mockImplementation(
+      () =>
         ({
-          queryDatasetColumnStatisticsById: () =>
-            Promise.resolve({
-              kind: 'list',
-              name: 'list',
-              values: [
-                {
-                  id: 0,
-                  name: 'value 0',
-                },
-                {
-                  id: 1,
-                  name: 'value 1',
-                },
-              ],
-            }),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+          snapshot: (_snapshotId) => Object.assign({}, ...datasetMocks),
+        } as Partial<DataRepoContract> as DataRepoContract)
+    );
   };
 
-  const mockRangeStatistics = (min = 55, max = 99) => {
-    const mockDataRepoContract: Partial<DataRepoContract> = {
-      dataset: (_datasetId) =>
-        ({
-          queryDatasetColumnStatisticsById: () =>
-            Promise.resolve({
-              kind: 'range',
-              name: 'range',
-              min,
-              max,
-            }),
-        } as Partial<DataRepoContract['dataset']>),
-    } as Partial<DataRepoContract> as DataRepoContract;
-    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
-  };
-
-  const mockOption = (option: SnapshotBuilderProgramDataOption) => {
-    switch (option.kind) {
-      case 'range':
-        mockRangeStatistics();
-        break;
-      case 'list':
-        mockListStatistics();
-        break;
-      default:
-        break;
-    }
-  };
+  const getSnapshotBuilderCountMock = (count = 0) => ({
+    getSnapshotBuilderCount: () =>
+      Promise.resolve({
+        result: {
+          total: count,
+        },
+        sql: 'sql',
+      }),
+  });
 
   const getNextCriteriaIndex = () => 1234;
 
-  const datasetDetails = dummyDatasetModel();
+  const snapshotBuilderSettings = testSnapshotBuilderSettings();
   const renderCriteriaView = (propsOverrides: CriteriaViewPropsOverrides) =>
     render(
       h(CriteriaView, {
+        snapshotId: testSnapshotId,
         deleteCriteria: _.noop,
         updateCriteria: _.noop,
         key: '1',
@@ -100,51 +93,60 @@ describe('CohortEditor', () => {
       })
     );
 
-  it('renders unknown criteria', () => {
+  it('renders unknown criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock(0)]);
     const criteria = { name: 'bogus', invalid: 'property' };
+    // This should error fetching the count because the conversion to API counts to generate counts should fail
+    jest.spyOn(console, 'error').mockImplementation((error) => expect(error).toBe('Error fetching count for criteria'));
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
     renderCriteriaView({ criteria: criteria as any });
     // Assert
+    expect(await screen.findByText('Unknown criteria')).toBeTruthy();
     expect(screen.queryByText(criteria.name)).toBeFalsy();
-    expect(screen.queryByText('Unknown criteria')).toBeTruthy();
   });
 
-  it('renders domain criteria', () => {
+  it('renders domain criteria', async () => {
     // Arrange
-    const criteria: DomainCriteria = {
+    mockDataRepo([getSnapshotBuilderCountMock(0)]);
+    const criteria: ProgramDomainCriteria = {
       kind: 'domain',
-      id: 0,
+      conceptId: 0,
       index: 0,
-      name: 'test criteria',
+      conceptName: 'test concept',
       count: 0,
-      domainOption: {
+      option: {
+        kind: 'domain',
         id: 0,
-        category: 'test category',
+        name: 'test name',
         participantCount: 0,
         conceptCount: 0,
-        root: { id: 0, name: 'test concept', count: 0, hasChildren: false },
+        tableName: 'domain_occurrence',
+        columnName: 'domain_concept_id',
+        root: { id: 0, name: 'test concept', code: '0', count: 0, hasChildren: false },
       },
     };
     renderCriteriaView({ criteria });
     // Assert
-    expect(screen.getByText(criteria.domainOption.category, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteria.name)).toBeTruthy();
+    expect(await screen.findByText(criteria.option.name, { exact: false })).toBeTruthy();
+    expect(screen.getByText(criteria.conceptName)).toBeTruthy();
   });
 
   it('renders list criteria', async () => {
     // Arrange
-    mockListStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+    mockDataRepo([getSnapshotBuilderCountMock()]);
+    const criteria = criteriaFromOption(0, {
+      id: 0,
       name: 'list',
       kind: 'list',
-      tableName: 'table',
-      columnName: 'column',
-    })) as ProgramDataListCriteria;
+      tableName: 'person',
+      columnName: 'list_column',
+      values: [],
+    }) as ProgramDataListCriteria;
     renderCriteriaView({ criteria });
 
-    expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
+    expect(await screen.findByText(criteria.option.name, { exact: false })).toBeTruthy();
     expect(criteria.values.length).toBe(0);
   });
 
@@ -152,18 +154,26 @@ describe('CohortEditor', () => {
     // Arrange
     const user = userEvent.setup();
     const updateCriteria = jest.fn();
-    mockListStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+    mockDataRepo([getSnapshotBuilderCountMock()]);
+    const criteria = criteriaFromOption(0, {
+      id: 0,
       name: 'list',
       kind: 'list',
-      tableName: 'table',
-      columnName: 'column',
-    })) as ProgramDataListCriteria;
+      tableName: 'person',
+      columnName: 'list_column_id',
+      values: [
+        {
+          id: 0,
+          name: 'value 0',
+        },
+        {
+          id: 1,
+          name: 'value 1',
+        },
+      ],
+    }) as ProgramDataListCriteria;
     criteria.values = [{ id: 0, name: 'value 0' }];
-    renderCriteriaView({
-      updateCriteria,
-      criteria,
-    });
+    renderCriteriaView({ updateCriteria, criteria });
     // Act
     await user.click(await screen.findByLabelText('Remove value 0'));
     // Assert
@@ -185,44 +195,45 @@ describe('CohortEditor', () => {
 
   it('renders range criteria', async () => {
     // Arrange
-    mockRangeStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+    mockDataRepo([getSnapshotBuilderCountMock(12345)]);
+    const criteria = criteriaFromOption(0, {
+      id: 0,
       name: 'range',
       kind: 'range',
-      tableName: 'table',
-      columnName: 'column',
-    })) as ProgramDataRangeCriteria;
-    renderCriteriaView({
-      criteria,
-    });
+      tableName: 'person',
+      columnName: 'range_column',
+      min: 55,
+      max: 99,
+    }) as ProgramDataRangeCriteria;
+    renderCriteriaView({ criteria });
     // Assert
-    expect(screen.getByText(criteria.name, { exact: false })).toBeTruthy();
+    expect(await screen.findByText(criteria.option.name, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.low, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteria.high, { exact: false })).toBeTruthy();
   });
 
   it('allows number inputs for range criteria', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
-    mockRangeStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+    const criteria = criteriaFromOption(0, {
+      id: 0,
       name: 'range',
       kind: 'range',
-      tableName: 'table',
-      columnName: 'column',
-    })) as ProgramDataRangeCriteria;
+      tableName: 'person',
+      columnName: 'range_column',
+      min: 55,
+      max: 99,
+    }) as ProgramDataRangeCriteria;
     const updateCriteria = jest.fn();
-    renderCriteriaView({
-      criteria,
-      updateCriteria,
-    });
+    renderCriteriaView({ criteria, updateCriteria });
     const lowInput = 65;
     const highInput = 75;
     // Act
-    await user.clear(screen.getByLabelText(`${criteria.name} low`));
-    await user.type(screen.getByLabelText(`${criteria.name} low`), lowInput.toString());
-    await user.clear(screen.getByLabelText(`${criteria.name} high`));
-    await user.type(screen.getByLabelText(`${criteria.name} high`), highInput.toString());
+    await user.clear(screen.getByLabelText(`${criteria.option.name} low`));
+    await user.type(screen.getByLabelText(`${criteria.option.name} low`), lowInput.toString());
+    await user.clear(screen.getByLabelText(`${criteria.option.name} high`));
+    await user.type(screen.getByLabelText(`${criteria.option.name} high`), highInput.toString());
 
     // Assert
     expect(updateCriteria).toBeCalledWith({ ...criteria, low: lowInput });
@@ -231,25 +242,29 @@ describe('CohortEditor', () => {
 
   it('renders accessible slider handles', async () => {
     // Arrange
+    mockDataRepo([getSnapshotBuilderCountMock()]);
     const min = 55;
     const max = 99;
-    mockRangeStatistics(min, max);
 
-    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+    const criteria = criteriaFromOption(0, {
+      id: 0,
+      tableName: 'person',
+      columnName: 'range_column',
       name: 'range',
       kind: 'range',
-      tableName: 'table',
-      columnName: 'column',
-    })) as ProgramDataRangeCriteria;
+      min,
+      max,
+    }) as ProgramDataRangeCriteria;
     const updateCriteria = jest.fn();
-    renderCriteriaView({
-      criteria,
-      updateCriteria,
-    });
+    renderCriteriaView({ criteria, updateCriteria });
     // Act
     // We need to use fireEvent for this because rc-slider uses deprecated KeyboardEvent properties which and keyCode
-    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} low slider`), { keyCode: KEY_RIGHT /* Right Arrow */ });
-    fireEvent.keyDown(screen.getByLabelText(`${criteria.name} high slider`), { keyCode: KEY_LEFT /* Left Arrow */ });
+    fireEvent.keyDown(await screen.findByLabelText(`${criteria.option.name} low slider`), {
+      keyCode: KEY_RIGHT /* Right Arrow */,
+    });
+    fireEvent.keyDown(screen.getByLabelText(`${criteria.option.name} high slider`), {
+      keyCode: KEY_LEFT /* Left Arrow */,
+    });
 
     // Arrange
     expect(updateCriteria).toBeCalledWith({ ...criteria, low: min + 1 });
@@ -258,13 +273,16 @@ describe('CohortEditor', () => {
 
   it('can delete criteria', async () => {
     // Arrange
-    mockRangeStatistics();
-    const criteria = (await criteriaFromOption(datasetDetails.id, 0, {
+    mockDataRepo([getSnapshotBuilderCountMock()]);
+    const criteria = criteriaFromOption(0, {
+      id: 0,
+      tableName: 'person',
+      columnName: 'range_column',
       name: 'range',
       kind: 'range',
-      tableName: 'table',
-      columnName: 'column',
-    })) as ProgramDataRangeCriteria;
+      min: 55,
+      max: 99,
+    }) as ProgramDataRangeCriteria;
     const deleteCriteria = jest.fn();
 
     renderCriteriaView({ deleteCriteria, criteria });
@@ -276,7 +294,18 @@ describe('CohortEditor', () => {
     expect(deleteCriteria).toBeCalledWith(criteria);
   });
 
-  function showCriteriaGroup(initializeGroup: ((criteriaGroup: CriteriaGroup) => void) | undefined = undefined) {
+  interface ShowCriteriaGroupArgs {
+    initializeGroup?: ((criteriaGroup: CriteriaGroup) => void) | undefined;
+    domainOptions?: SnapshotBuilderDomainOption[];
+    programDataOptions?: (SnapshotBuilderProgramDataRangeOption | SnapshotBuilderProgramDataListOption)[];
+  }
+
+  function showCriteriaGroup(args?: ShowCriteriaGroupArgs) {
+    const { initializeGroup, domainOptions, programDataOptions }: ShowCriteriaGroupArgs = {
+      domainOptions: [],
+      programDataOptions: [],
+      ...args,
+    };
     const cohort = newCohort('cohort');
     const criteriaGroup = newCriteriaGroup();
     if (initializeGroup) {
@@ -284,13 +313,19 @@ describe('CohortEditor', () => {
     }
     cohort.criteriaGroups.push(criteriaGroup);
     const updateCohort = jest.fn();
+    const snapshotBuilderSettingsUpdated = _.flow(
+      _.set('domainOptions', domainOptions),
+      _.set('programDataOptions', programDataOptions)
+    )(snapshotBuilderSettings);
+
     render(
       h(CriteriaGroupView, {
         index: 0,
         criteriaGroup,
         updateCohort,
         cohort,
-        dataset: datasetDetails,
+        snapshotId: testSnapshotId,
+        snapshotBuilderSettings: snapshotBuilderSettingsUpdated,
         onStateChange: _.noop,
         getNextCriteriaIndex,
       })
@@ -298,18 +333,21 @@ describe('CohortEditor', () => {
     return { cohort, updateCohort };
   }
 
-  it('renders criteria group', () => {
+  it('renders criteria group', async () => {
     // Arrange
-    const { cohort } = showCriteriaGroup((criteriaGroup) => {
-      criteriaGroup.meetAll = false;
-      criteriaGroup.mustMeet = false;
-      criteriaGroup.count = 1234;
+    const count = 12345;
+    mockDataRepo([getSnapshotBuilderCountMock(count)]);
+    const { cohort } = showCriteriaGroup({
+      initializeGroup: (criteriaGroup) => {
+        criteriaGroup.meetAll = false;
+        criteriaGroup.mustMeet = false;
+      },
     });
     // Assert
     expect(screen.getByText('Must not')).toBeTruthy();
     expect(screen.getByText('any')).toBeTruthy();
     const criteriaGroup = cohort.criteriaGroups[0];
-    expect(screen.getByText(`${criteriaGroup.count}`, { exact: false })).toBeTruthy();
+    expect(await screen.findByText(`${count}`, { exact: false })).toBeTruthy();
     expect(screen.getByText(criteriaGroup.name)).toBeTruthy();
   });
 
@@ -326,9 +364,11 @@ describe('CohortEditor', () => {
 
   it('can modify criteria group', async () => {
     // Arrange
-    const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) => {
-      criteriaGroup.meetAll = false;
-      criteriaGroup.mustMeet = false;
+    const { cohort, updateCohort } = showCriteriaGroup({
+      initializeGroup: (criteriaGroup) => {
+        criteriaGroup.meetAll = false;
+        criteriaGroup.mustMeet = false;
+      },
     });
     const user = userEvent.setup();
     // Act
@@ -351,35 +391,30 @@ describe('CohortEditor', () => {
 
   it('can add new criteria to criteria group', async () => {
     // Arrange
-    const { cohort, updateCohort } = showCriteriaGroup();
+    const rangeOption = programDataRangeOption();
+    const { cohort, updateCohort } = showCriteriaGroup({
+      programDataOptions: [rangeOption],
+    });
     const user = userEvent.setup();
 
     // Act
     await user.click(screen.getByLabelText('Add criteria'));
-    const option = datasetDetails!.snapshotBuilderSettings!.programDataOptions[0];
-    mockOption(option);
-    const dataOptionMenuItem = screen.getByText(option.name);
+    const dataOptionMenuItem = screen.getByText(rangeOption.name);
     await user.click(dataOptionMenuItem);
     // Assert
-    expect(updateCohort).toHaveBeenCalledTimes(2);
+    expect(updateCohort).toHaveBeenCalledTimes(1);
 
-    const updatedCohortWithLoading: Cohort = updateCohort.mock.calls[0][0](cohort);
-    expect(updatedCohortWithLoading.criteriaGroups[0].criteria).toMatchObject([
-      { loading: true, index: getNextCriteriaIndex() },
-    ]);
-
-    const updatedCohort: Cohort = updateCohort.mock.calls[1][0](updatedCohortWithLoading);
-    // Remove ID since it won't match up.
-    const { index: _, ...expectedCriteria } = await criteriaFromOption(datasetDetails.id, 2, option);
+    const updatedCohort: Cohort = updateCohort.mock.calls[0][0](cohort);
+    const { index: _, ...expectedCriteria } = criteriaFromOption(2, programDataRangeOption());
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([expectedCriteria]);
   });
 
   it('can delete criteria from the criteria group', async () => {
     // Arrange
-    const option = datasetDetails!.snapshotBuilderSettings!.programDataOptions[0];
-    mockOption(option);
-    const criteria = await criteriaFromOption(datasetDetails.id, 0, option);
-    const { cohort, updateCohort } = showCriteriaGroup((criteriaGroup) => criteriaGroup.criteria.push(criteria));
+    const criteria = criteriaFromOption(0, programDataRangeOption());
+    const { cohort, updateCohort } = showCriteriaGroup({
+      initializeGroup: (criteriaGroup) => criteriaGroup.criteria.push(criteria),
+    });
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByLabelText('delete criteria'));
@@ -396,7 +431,8 @@ describe('CohortEditor', () => {
     render(
       h(CohortEditor, {
         onStateChange,
-        dataset: datasetDetails,
+        snapshotId: testSnapshotId,
+        snapshotBuilderSettings,
         originalCohort,
         updateCohorts,
         getNextCriteriaIndex,
@@ -421,17 +457,6 @@ describe('CohortEditor', () => {
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
     expect(updateCohorts.mock.calls[0][0]([])).toStrictEqual([originalCohort]);
-  });
-
-  it('disables save while a criteria is loading', async () => {
-    // Arrange
-    const criteriaGroup = newCriteriaGroup();
-    criteriaGroup.criteria.push({ loading: true, index: 0 });
-    const cohort = newCohort('test');
-    cohort.criteriaGroups.push(criteriaGroup);
-    showCohortEditor(cohort);
-    // Assert
-    expect(screen.getByText('Save cohort')).toHaveAttribute('disabled');
   });
 
   it('cancels editing a cohort', async () => {
@@ -460,19 +485,24 @@ describe('CohortEditor', () => {
     ]);
   });
 
-  it('shows the domain criteria selector', async () => {
+  it('shows the domain criteria search', async () => {
     // Arrange
     const { onStateChange } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
-    const domainOption = datasetDetails!.snapshotBuilderSettings!.domainOptions[0];
-    const domainMenuItem = screen.getByText(domainOption.category);
+    const domainMenuItem = screen.getByText(snapshotBuilderSettings.domainOptions[0].name);
     await user.click(domainMenuItem);
     // Assert
     expect(onStateChange).toBeCalledWith(
-      domainCriteriaSelectorState.new(expect.anything(), expect.anything(), _.set('kind', 'domain', domainOption))
+      domainCriteriaSearchState.new(
+        expect.anything(),
+        expect.anything(),
+        _.set('kind', 'domain', snapshotBuilderSettings.domainOptions[0]),
+        [],
+        ''
+      )
     );
   });
 });

@@ -1,63 +1,77 @@
+import { div, span } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
-  AnyCriteriaApi,
   Cohort,
-  CohortApi,
-  ConceptSet,
   convertCohort,
   convertCriteria,
-  convertDatasetAccessRequest,
   convertValueSet,
+  createSnapshotAccessRequest,
   CriteriaGroup,
-  CriteriaGroupApi,
-  DatasetAccessRequest,
-  DatasetAccessRequestApi,
-  DomainCriteria,
-  DomainCriteriaApi,
+  DomainConceptSet,
+  formatCount,
+  HighlightConceptName,
   ProgramDataListCriteria,
-  ProgramDataListCriteriaApi,
-  ProgramDataListOption,
-  ProgramDataListValue,
   ProgramDataRangeCriteria,
-  ProgramDataRangeCriteriaApi,
-  ProgramDataRangeOption,
+  ProgramDomainCriteria,
+  SnapshotAccessRequest,
   ValueSet,
-  ValueSetApi,
 } from 'src/dataset-builder/DatasetBuilderUtils';
-import { SnapshotBuilderConcept, SnapshotBuilderDomainOption } from 'src/libs/ajax/DataRepo';
+import { testSnapshotId } from 'src/dataset-builder/TestConstants';
+import {
+  AnySnapshotBuilderCriteria,
+  SnapshotAccessRequest as SnapshotAccessRequestApi,
+  SnapshotBuilderCohort,
+  SnapshotBuilderConcept,
+  SnapshotBuilderCriteriaGroup,
+  SnapshotBuilderDomainCriteria,
+  SnapshotBuilderDomainOption,
+  SnapshotBuilderFeatureValueGroup,
+  SnapshotBuilderProgramDataListCriteria,
+  SnapshotBuilderProgramDataListItem,
+  SnapshotBuilderProgramDataListOption,
+  SnapshotBuilderProgramDataRangeCriteria,
+  SnapshotBuilderProgramDataRangeOption,
+} from 'src/libs/ajax/DataRepo';
 
 const concept: SnapshotBuilderConcept = {
   id: 0,
   name: 'concept',
   count: 10,
+  code: '0',
   hasChildren: false,
 };
 
 const domainOption: SnapshotBuilderDomainOption = {
   id: 1,
-  category: 'category',
+  name: 'category',
+  kind: 'domain',
+  tableName: 'category_occurrence',
+  columnName: 'category_concept_id',
   conceptCount: 10,
   participantCount: 20,
   root: concept,
 };
 
-const domainCriteria: DomainCriteria = {
+const domainCriteria: ProgramDomainCriteria = {
+  conceptId: 100,
+  conceptName: 'conceptName',
   kind: 'domain',
-  name: 'domainCriteria',
-  domainOption,
-  id: 2,
+  option: domainOption,
   index: 0,
   count: 100,
 };
 
-const domainCriteriaApi: DomainCriteriaApi = {
+const domainCriteriaApi: SnapshotBuilderDomainCriteria = {
   kind: 'domain',
-  name: 'domainCriteria',
-  id: 2,
+  id: 1,
+  conceptId: 100,
 };
 
-const rangeOption: ProgramDataRangeOption = {
+const rangeOption: SnapshotBuilderProgramDataRangeOption = {
+  id: 2,
   kind: 'range',
+  tableName: 'person',
+  columnName: 'range_column',
   min: 0,
   max: 101,
   name: 'rangeOption',
@@ -65,30 +79,32 @@ const rangeOption: ProgramDataRangeOption = {
 
 const rangeCriteria: ProgramDataRangeCriteria = {
   kind: 'range',
-  name: 'rangeCriteria',
-  rangeOption,
+  option: rangeOption,
   index: 4,
   count: 100,
   low: 1,
   high: 99,
 };
 
-const rangeCriteriaApi: ProgramDataRangeCriteriaApi = {
+const rangeCriteriaApi: SnapshotBuilderProgramDataRangeCriteria = {
+  id: 2,
   kind: 'range',
-  name: 'rangeCriteria',
   low: 1,
   high: 99,
 };
 
-const optionValues: ProgramDataListValue[] = [{ id: 5, name: 'listOptionListValue' }];
+const optionValues: SnapshotBuilderProgramDataListItem[] = [{ id: 5, name: 'listOptionListValue' }];
 
-const listOption: ProgramDataListOption = {
+const listOption: SnapshotBuilderProgramDataListOption = {
+  id: 2,
   kind: 'list',
   name: 'listOption',
+  tableName: 'person',
+  columnName: 'list_concept_id',
   values: optionValues,
 };
 
-const criteriaListValues: ProgramDataListValue[] = [
+const criteriaListValues: SnapshotBuilderProgramDataListItem[] = [
   { id: 7, name: 'criteriaListValue1' },
   { id: 8, name: 'criteriaListValue2' },
 ];
@@ -97,31 +113,29 @@ const criteriaListValuesApi: number[] = [7, 8];
 
 const listCriteria: ProgramDataListCriteria = {
   kind: 'list',
-  name: 'listCriteria',
   index: 9,
-  listOption,
+  option: listOption,
   values: criteriaListValues,
 };
 
-const listCriteriaApi: ProgramDataListCriteriaApi = {
+const listCriteriaApi: SnapshotBuilderProgramDataListCriteria = {
+  id: 2,
   kind: 'list',
-  name: 'listCriteria',
   values: criteriaListValuesApi,
 };
 
 const anyCriteriaArray: AnyCriteria[] = [domainCriteria, rangeCriteria, listCriteria];
 
-const anyCriteriaArrayApi: AnyCriteriaApi[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
+const anyCriteriaArrayApi: AnySnapshotBuilderCriteria[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
 
 const criteriaGroup: CriteriaGroup = {
   name: 'criteriaGroup',
   criteria: anyCriteriaArray,
   mustMeet: true,
   meetAll: false,
-  count: 50,
 };
 
-const criteriaGroupApi: CriteriaGroupApi = {
+const criteriaGroupApi: SnapshotBuilderCriteriaGroup = {
   name: 'criteriaGroup',
   criteria: anyCriteriaArrayApi,
   mustMeet: true,
@@ -130,24 +144,29 @@ const criteriaGroupApi: CriteriaGroupApi = {
 
 const cohort: Cohort = { name: 'cohort', criteriaGroups: [criteriaGroup] };
 
-const cohortApi: CohortApi = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
+const cohortApi: SnapshotBuilderCohort = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
 
 const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName' }] };
 
-const valueSetApi: ValueSetApi = { name: 'valueDomain', values: ['valueName'] };
+const valueSetApi: SnapshotBuilderFeatureValueGroup = { name: 'valueDomain', values: ['valueName'] };
 
-const conceptSet: ConceptSet = { name: 'conceptSetName', featureValueGroupName: 'featureValueGroupName' };
+const conceptSet: DomainConceptSet = {
+  name: 'conceptSetName',
+  concept,
+  featureValueGroupName: 'featureValueGroupName',
+};
 
-const datasetAccessRequest: DatasetAccessRequest = {
+const datasetAccessRequest: SnapshotAccessRequest = {
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
   datasetRequest: { cohorts: [cohort], conceptSets: [conceptSet], valueSets: [valueSet] },
 };
 
-const datasetAccessRequestApi: DatasetAccessRequestApi = {
+const datasetAccessRequestApi: SnapshotAccessRequestApi = {
+  sourceSnapshotId: testSnapshotId,
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
-  datasetRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
+  snapshotBuilderRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
 };
 
 describe('test conversion of criteria', () => {
@@ -176,6 +195,100 @@ describe('test conversion of valueSets', () => {
 
 describe('test conversion of DatasetAccessRequest', () => {
   test('datasetAccessRequest converted to datasetAccessRequestApi', () => {
-    expect(convertDatasetAccessRequest(datasetAccessRequest)).toStrictEqual(datasetAccessRequestApi);
+    expect(
+      createSnapshotAccessRequest(
+        datasetAccessRequest.name,
+        datasetAccessRequest.researchPurposeStatement,
+        testSnapshotId,
+        datasetAccessRequest.datasetRequest.cohorts,
+        datasetAccessRequest.datasetRequest.conceptSets,
+        datasetAccessRequest.datasetRequest.valueSets
+      )
+    ).toStrictEqual(datasetAccessRequestApi);
+  });
+});
+
+describe('test HighlightConceptName', () => {
+  const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
+    return div({ style: { display: 'pre-wrap' } }, [
+      span([beforeHighlight]),
+      span({ style: { fontWeight: 600 } }, [highlightWord]),
+      span([afterHighlight]),
+    ]);
+  };
+
+  test('searching beginning of conceptName', () => {
+    const searchFilter = 'Clinic';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clinic', 'al Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("Testing to make sure capitalization doesn't change", () => {
+    const searchFilter = 'clin';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('', 'Clin', 'ical Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the middle of conceptName', () => {
+    const searchFilter = 'cal';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clini', 'cal', ' Finding');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the end of conceptName', () => {
+    const searchFilter = 'Finding';
+    const conceptName = 'Clinical Finding';
+    const result = createHighlightConceptName('Clinical ', 'Finding', '');
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
+    const searchFilter = 'XXX';
+    const conceptName = 'Clinical Finding';
+    const result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
+    const searchFilter = 'Clinical';
+    const conceptName = 'Clin';
+    const result = div(['Clin']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test('searchedWord is empty: "" ', () => {
+    const searchFilter = '';
+    const conceptName = 'Condition';
+    const result = div(['Condition']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+
+  test("doesn't bold whitespace", () => {
+    let searchFilter = ' ';
+    let conceptName = 'Clinical Finding';
+    let result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+
+    searchFilter = '   ';
+    conceptName = 'Clinical Finding';
+    result = div(['Clinical Finding']);
+    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+  });
+});
+
+describe('test formatCount', () => {
+  test('count is 0', () => {
+    expect(formatCount(0)).toStrictEqual('0');
+  });
+
+  test('count is 19', () => {
+    expect(formatCount(19)).toStrictEqual('Less than 20');
+  });
+
+  test('count is 20', () => {
+    expect(formatCount(20)).toStrictEqual('20');
   });
 });

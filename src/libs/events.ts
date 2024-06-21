@@ -1,13 +1,15 @@
 import _ from 'lodash/fp';
 import { ReactNode, useEffect } from 'react';
-import { Ajax } from 'src/libs/ajax';
 import { useRoute } from 'src/libs/nav';
 import {
+  containsPhiTrackingPolicy,
   containsProtectedDataPolicy,
   WorkspaceAccessLevel,
   WorkspaceInfo,
   WorkspaceWrapper,
-} from 'src/libs/workspace-utils';
+} from 'src/workspaces/utils';
+
+import { Metrics } from './ajax/Metrics';
 
 /*
  * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
@@ -67,7 +69,7 @@ const eventsList = {
   catalogLandingPageBanner: 'catalog:landingPageBanner',
   catalogViewDetails: 'catalog:view:details',
   catalogViewPreviewData: 'catalog:view:previewData',
-  catalogWorkspaceLink: 'catalog:workspaceLink',
+  catalogWorkspaceLinkFromDetailsView: 'catalog:workspaceLink:detailsView',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
@@ -89,28 +91,28 @@ const eventsList = {
     authToken: {
       load: {
         success: 'user:authTokenLoad:success',
-        expired: 'user:authTokenLoad:expiredRefreshToken',
         error: 'user:authTokenLoad:error',
         retry: 'user:authTokenLoad:retry',
       },
-      desync: 'user:authToken:desync',
     },
     login: {
       success: 'user:login:success',
-      expired: 'user:login:expiredRefreshToken',
       error: 'user:login:error',
     },
     signOut: {
       requested: 'user:signOut:requested',
       disabled: 'user:signOut:disabled',
       declinedTos: 'user:signOut:declinedTos',
-      expiredRefreshToken: 'user:signOut:expiredRefreshToken',
       errorRefreshingAuthToken: 'user:signOut:errorRefreshingAuthToken',
       idleStatusMonitor: 'user:signOut:idleStatusMonitor',
       unspecified: 'user:signOut:unspecified',
     },
     register: 'user:register',
     sessionTimeout: 'user:sessionTimeout',
+    externalCredential: {
+      link: 'user:externalCredential:link',
+      unlink: 'user:externalCredential:unlink',
+    },
   },
   workflowClearIO: 'workflow:clearIO',
   workflowImport: 'workflow:import',
@@ -126,6 +128,11 @@ const eventsList = {
   workspaceCreate: 'workspace:create',
   workspaceDashboardToggleSection: 'workspace:dashboard:toggleSection',
   workspaceDashboardAddTag: 'workspace:dashboard:addTag',
+  workspaceDashboardCopyGoogleProjectId: 'workspace:dashboard:copyGoogleProjectId',
+  workspaceDashboardCopyBucketName: 'workspace:dashboard:copyBucketName',
+  workspaceDashboardCopyResourceGroup: 'workspace:dashboard:copyResourceGroup',
+  workspaceDashboardCopySASUrl: 'workspace:dashboard:copySASUrl',
+  workspaceDashboardCopyStorageContainerUrl: 'workspace:dashboard:copyStorageContainerUrl',
   workspaceDashboardDeleteTag: 'workspace:dashboard:deleteTag',
   workspaceDashboardEditDescription: 'workspace:dashboard:editDescription',
   workspaceDashboardSaveDescription: 'workspace:dashboard:saveDescription',
@@ -133,6 +140,7 @@ const eventsList = {
   workspaceOpenedBucketInBrowser: 'workspace:openedBucketInBrowser',
   workspaceOpenedProjectInConsole: 'workspace:openedProjectInCloudConsole',
   workspaceDataAddColumn: 'workspace:data:addColumn',
+  workspaceDataAddReferenceData: 'workspace:data:addReferenceData',
   workspaceDataAddRow: 'workspace:data:addRow',
   workspaceDataClearColumn: 'workspace:data:clearColumn',
   workspaceDataCopy: 'workspace:data:copy',
@@ -152,6 +160,7 @@ const eventsList = {
   workspaceDataOpenWithNotebook: 'workspace:data:notebook',
   workspaceDataImport: 'workspace:data:import',
   workspaceDataUpload: 'workspace:data:upload',
+  workspaceDataRemoveReference: 'workspace:data:removeReference',
   workspaceDataRenameColumn: 'workspace:data:renameColumn',
   workspaceDataRenameEntity: 'workspace:data:renameEntity',
   workspaceDataRenameTable: 'workspace:data:rename-table',
@@ -164,6 +173,8 @@ const eventsList = {
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view',
   workspaceStar: 'workspace:star',
+  workspaceListFilter: 'workspace:list:filter',
+  workspacesListSelectTab: 'workspace:list:tab',
 } as const;
 
 // Helper type to create BaseMetricsEventName.
@@ -197,6 +208,7 @@ export interface EventWorkspaceDetails {
   workspaceName: string;
   cloudPlatform?: string;
   hasProtectedData?: boolean;
+  hasPhiTracking?: boolean;
   workspaceAccessLevel?: WorkspaceAccessLevel;
 }
 
@@ -215,6 +227,8 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
   // For other types of input, whether the workspace has protected data is unknown.
   const hasProtectedData =
     'policies' in workspaceObject ? containsProtectedDataPolicy(workspaceObject.policies) : undefined;
+  const hasPhiTracking =
+    'policies' in workspaceObject ? containsPhiTrackingPolicy(workspaceObject.policies) : undefined;
 
   return {
     workspaceNamespace: namespace,
@@ -222,6 +236,7 @@ export const extractWorkspaceDetails = (workspaceObject: EventWorkspaceAttribute
     workspaceAccessLevel: accessLevel,
     cloudPlatform: cloudPlatform ? cloudPlatform.toUpperCase() : undefined,
     hasProtectedData,
+    hasPhiTracking,
   };
 };
 
@@ -275,17 +290,15 @@ export const PageViewReporter = (): ReactNode => {
   useEffect(() => {
     const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash);
 
-    Ajax().Metrics.captureEvent(
-      `${eventsList.pageView}:${name}`,
-      isWorkspace ? extractWorkspaceDetails(params) : undefined
-    );
+    Metrics().captureEvent(`${eventsList.pageView}:${name}`, isWorkspace ? extractWorkspaceDetails(params) : undefined);
   }, [name, params]);
 
   return null;
 };
 
 export const captureAppcuesEvent = (eventName: string, event: any) => {
-  // Only record "public-facing events" (and related properties) as documented by Appcues: https://docs.appcues.com/article/301-client-side-events-reference
+  // record different event properties for "public-facing events" and NPS events
+  // Appcues event properties are listed here: https://docs.appcues.com/article/301-client-side-events-reference
   const publicEvents = [
     'flow_started',
     'flow_completed',
@@ -298,6 +311,13 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
     'step_interacted',
     'form_submitted',
     'form_field_submitted',
+  ];
+  const npsEvents = [
+    'nps_survey_started',
+    'nps_score',
+    'nps_feedback',
+    'nps_ask_me_later_selected_at',
+    'nps_clicked_update_nps_score',
   ];
   if (_.includes(eventName, publicEvents)) {
     const eventProps = {
@@ -328,7 +348,25 @@ export const captureAppcuesEvent = (eventName: string, event: any) => {
       'appcues.stepType': event.stepType,
       'appcues.timestamp': event.timestamp,
     };
-    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps);
+    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
+  }
+  if (_.includes(eventName, npsEvents)) {
+    const eventProps = {
+      // the NPS survey related events have additional special properties
+      'appcues.flowId': event.flowId,
+      'appcues.flowName': event.flowName,
+      'appcues.flowType': event.flowType,
+      'appcues.flowVersion': event.flowVersion,
+      'appcues.id': event.id,
+      'appcues.name': event.name,
+      'appcues.sessionId': event.sessionId,
+      'appcues.timestamp': event.timestamp,
+      'appcues.npsScore': event.score,
+      'appcues.npsFeedback': event.feedback,
+      'appcues.npsAskMeLaterSelectedAt': event.askMeLaterSelectedAt,
+      'appcues.npsClickedUpdateNpsScore': event.score,
+    };
+    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
   }
 };
 

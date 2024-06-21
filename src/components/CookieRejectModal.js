@@ -1,6 +1,6 @@
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import Modal from 'src/components/Modal';
 import { useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 

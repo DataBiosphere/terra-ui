@@ -5,7 +5,8 @@ import { authOpts, fetchFromProxy } from 'src/libs/ajax/ajax-common';
 export const CromwellApp = (signal) => ({
   workflows: (workflowId) => {
     return {
-      metadata: async (cromwellUrlRoot, includeKey, excludeKey) => {
+      metadata: async (cromwellUrlRoot, options) => {
+        const { includeKey, excludeKey } = options;
         const keyParams = qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' });
         const res = await fetchFromProxy(cromwellUrlRoot)(
           `api/workflows/v1/${workflowId}/metadata?${keyParams}`,
@@ -35,6 +36,11 @@ export const CromwellApp = (signal) => ({
       indexB: thatIndex !== -1 ? thatIndex : undefined,
     };
     const res = await fetchFromProxy(cromwellUrlRoot)(`api/workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+  engineStatus: async (cromwellUrlRoot) => {
+    const res = await fetchFromProxy(cromwellUrlRoot)('engine/v1/status', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+
     return res.json();
   },
 });

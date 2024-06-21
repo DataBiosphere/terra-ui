@@ -3,11 +3,12 @@ import { compile, pathToRegexp } from 'path-to-regexp';
 import * as Analysis from 'src/analysis/Analyses';
 import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
 import * as AppLauncher from 'src/analysis/AppLauncher';
+import * as SignOutPage from 'src/auth/signout/SignOutPage';
 import * as DataBrowserDetails from 'src/data-catalog/DataBrowserDetails';
 import * as DataBrowserPreview from 'src/data-catalog/DataBrowserPreview';
 import * as ImportDataPage from 'src/import-data/ImportDataPage';
 import { routeHandlersStore } from 'src/libs/state';
-import * as Projects from 'src/pages/billing/List/List';
+import * as Projects from 'src/pages/billing/BillingListPage';
 import * as Environments from 'src/pages/EnvironmentsPage/EnvironmentsPage';
 import * as FeaturePreviews from 'src/pages/FeaturePreviews';
 import * as Group from 'src/pages/groups/Group';
@@ -23,18 +24,18 @@ import * as DataExplorer from 'src/pages/library/datasets/DataExplorer';
 import * as Showcase from 'src/pages/library/Showcase';
 import * as NotFound from 'src/pages/NotFound';
 import * as Profile from 'src/pages/ProfilePage';
+import * as Support from 'src/pages/SupportPage';
 import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
 import * as WorkspaceList from 'src/pages/workspaces/List';
-import * as WorkspaceMigration from 'src/pages/workspaces/migration/WorkspaceMigration';
-import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard/Dashboard';
 import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files';
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory';
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails';
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard';
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows';
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView';
+import * as Dashboard from 'src/pages/workspaces/WorkspaceDashboard';
 import * as PrivacyPolicy from 'src/registration/privacy-policy/PrivacyPolicy';
 import * as TermsOfService from 'src/registration/terms-of-service/TermsOfServicePage';
 import * as WorkflowsApp from 'src/workflows-app/routes';
@@ -84,7 +85,8 @@ const routes = _.flatten([
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
   WorkflowsApp.navPaths,
-  WorkspaceMigration.navPaths,
+  SignOutPage.navPaths,
+  Support.navPaths,
   NotFound.navPaths, // must be last
 ]);
 

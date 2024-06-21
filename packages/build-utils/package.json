@@ -1,25 +1,35 @@
 {
   "name": "@terra-ui-packages/build-utils",
-  "version": "1.1.0",
+  "version": "2.0.1",
   "type": "module",
-  "module": "./src/index.mjs",
+  "module": "./lib/es/index.js",
+  "main": "./lib/cjs/index.cjs",
+  "types": "./lib/types/index.d.ts",
   "exports": {
     ".": {
-      "import": "./src/index.mjs"
+      "import": "./lib/es/index.js",
+      "require": "./lib/cjs/index.cjs",
+      "types": "./lib/types/index.d.ts"
     }
   },
+  "files": [
+    "lib/cjs/**",
+    "lib/es/**",
+    "lib/types/**/*.d.ts"
+  ],
   "scripts": {
-    "build": "true"
+    "build": "vite build --emptyOutDir"
   },
   "dependencies": {
-    "@rollup/plugin-typescript": "^11.1.2",
+    "@rollup/plugin-typescript": "^11.1.6",
     "tslib": "^2.6.1"
   },
   "devDependencies": {
-    "vite": "^4.3.9"
+    "typescript": "~5.1.6",
+    "vite": "^5.2.11"
   },
   "peerDependencies": {
     "typescript": "~5.1.6",
-    "vite": "^4.3.9"
+    "vite": "^5.2.11"
   }
 }

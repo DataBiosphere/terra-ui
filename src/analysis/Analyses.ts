@@ -1,5 +1,5 @@
-import { Switch } from '@terra-ui-packages/components';
-import { withHandlers } from '@terra-ui-packages/core-utils';
+import { Switch, TooltipTrigger } from '@terra-ui-packages/components';
+import { formatDatetime, withHandlers } from '@terra-ui-packages/core-utils';
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -8,7 +8,7 @@ import { div, h, img, label, span } from 'react-hyperscript-helpers';
 import { AnalysisDuplicator } from 'src/analysis/modals/AnalysisDuplicator';
 import { AnalysisModal } from 'src/analysis/modals/AnalysisModal';
 import ExportAnalysisModal from 'src/analysis/modals/ExportAnalysisModal/ExportAnalysisModal';
-import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/analysis/runtime-common-components';
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/analysis/runtime-common-text';
 import { AnalysisFile, AnalysisFileMetadata, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
 import {
   AbsolutePath,
@@ -47,7 +47,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import TooltipTrigger from 'src/components/TooltipTrigger';
 import galaxyLogo from 'src/images/galaxy-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
@@ -67,11 +66,11 @@ import { userStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/libs/workspace-utils';
-import { AppDetails } from 'src/pages/workspaces/hooks/useAppPolling';
-import { CloudEnvironmentDetails } from 'src/pages/workspaces/hooks/useCloudEnvironmentPolling';
-import { InitializedWorkspaceWrapper, StorageDetails } from 'src/pages/workspaces/hooks/useWorkspace';
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer';
+import { AppDetails } from 'src/workspaces/common/state/useAppPolling';
+import { CloudEnvironmentDetails } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
+import { InitializedWorkspaceWrapper, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
+import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
+import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/workspaces/utils';
 
 const tableFields = {
   application: 'application',
@@ -171,6 +170,8 @@ const AnalysisCard = ({
   // if there is a currentUserHash & lastLockedBy, they are not equal, and the lock isn't expired
   const isLocked: boolean =
     currentUserHash && lastLockedBy ? lastLockedBy !== currentUserHash && !isLockExpired : false;
+  // TODO: Remove nested ternary to align with style guide
+  // eslint-disable-next-line no-nested-ternary
   const lockedBy = lastLockedBy ? (potentialLockers ? potentialLockers[lastLockedBy] : null) : null;
 
   const analysisName: FileName = getFileName(name);
@@ -373,7 +374,7 @@ const AnalysisCard = ({
               },
               [icon('lock')]
             ),
-          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+          h(TooltipTrigger, { content: formatDatetime(lastModified) }, [
             div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [
               Utils.makePrettyDate(lastModified),
             ]),
@@ -428,7 +429,15 @@ export interface SortOrderInfo {
 export const BaseAnalyses = (
   {
     workspace,
-    analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+    analysesData: {
+      apps,
+      refreshApps,
+      runtimes,
+      refreshRuntimes,
+      appDataDisks,
+      persistentDisks,
+      isLoadingCloudEnvironments,
+    },
     storageDetails: { googleBucketLocation, azureContainerRegion },
     onRequesterPaysError,
   }: AnalysesProps,
@@ -752,6 +761,7 @@ export const BaseAnalyses = (
                   runtimes,
                   persistentDisks,
                   refreshRuntimes,
+                  isLoadingCloudEnvironments,
                   appDataDisks,
                   refreshAnalyses,
                   analyses,
@@ -826,6 +836,20 @@ export const BaseAnalyses = (
                     onDismiss: () => setDeletingAnalysisName(undefined),
                   }),
               ]),
+              isAzureWorkspace(workspace) &&
+                div({ style: { marginBottom: '1rem' } }, [
+                  h(
+                    Link,
+                    {
+                      ...Utils.newTabLinkProps,
+                      href: 'https://support.terra.bio/hc/en-us/articles/22950635210395-Add-Python-3-10-to-access-DRS-URIs-in-JupyterLab',
+                    },
+                    [
+                      'See instructions for accessing DRS URIs in JupyterLab',
+                      icon('pop-out', { style: { marginLeft: '1ch' } }),
+                    ]
+                  ),
+                ]),
               renderAnalyses(),
             ]),
           (loadedState.status === 'Loading' || busy) && spinnerOverlay,

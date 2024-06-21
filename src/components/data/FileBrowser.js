@@ -19,8 +19,8 @@ import { useCancelable } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import { useUploader } from 'src/libs/uploads';
 import * as Utils from 'src/libs/utils';
-import * as WorkspaceUtils from 'src/libs/workspace-utils';
 import { UriViewer } from 'src/workspace-data/data-table/uri-viewer/UriViewer';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 }) => {
   const [allObjects, setAllObjects] = useState([]);
@@ -252,7 +252,7 @@ const BucketBrowserTable = ({
                           h(ClipboardButton, {
                             tooltip: 'Copy file URL to clipboard',
                             className: 'cell-hover-only',
-                            style: { marginLeft: '1ch' },
+                            style: { marginLeft: '1rem', display: 'inline' },
                             text: `gs://${bucketName}/${object.name}`,
                             iconSize: 14, // See this PR for reason: https://github.com/DataBiosphere/terra-ui/pull/4288
                           }),
