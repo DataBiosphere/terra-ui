@@ -8,10 +8,10 @@ import { makeCompleteDate } from 'src/libs/utils';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 
 import { loadAppUrls } from '../utils/app-utils';
-import { fetchMetadata } from '../utils/submission-utils';
+import { fetchMetadata } from '../utils/cromwell-metadata-utils';
 import { TroubleshootingBox } from './TroubleshootingBox';
 
-interface WorkflowInfoBoxProps {
+export interface WorkflowInfoBoxProps {
   name: string;
   namespace: string;
   submissionId: string;

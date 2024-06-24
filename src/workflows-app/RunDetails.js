@@ -22,7 +22,7 @@ import { WorkflowInfoBox } from 'src/workflows-app/components/WorkflowInfoBox';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
-import { fetchMetadata } from './utils/submission-utils';
+import { fetchMetadata } from './utils/cromwell-metadata-utils';
 
 export const CromwellPollInterval = 1000 * 30; // 30 seconds
 
