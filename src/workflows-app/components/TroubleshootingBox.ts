@@ -77,7 +77,7 @@ export const TroubleshootingBox: React.FC<TroubleshootingBoxProps> = (props) => 
               );
             },
           },
-          [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Workflow Execution Log'], {})]
+          [div({ style: { marginRight: '1.5rem' } }, [icon('fileAlt', { size: 18 }), ' Workflow Execution Log'])]
         ),
         h(
           Link,

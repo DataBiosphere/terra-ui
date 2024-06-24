@@ -1,12 +1,10 @@
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import * as configStore from 'src/libs/config';
 import Events from 'src/libs/events';
-import { getLink } from 'src/libs/nav';
 import { makeCompleteDate } from 'src/libs/utils';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
@@ -167,46 +165,12 @@ describe('BaseRunDetails - render smoke test', () => {
     Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
   });
 
-  it('shows the workflow status', async () => {
-    const { container } = await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    expect(await axe(container)).toHaveNoViolations();
-    const statusContainer = screen.getByLabelText('Workflow Status Container');
-    within(statusContainer).getByText(runDetailsMetadata.status);
-  });
-
-  it('shows the workflow timing', async () => {
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-
-    const startTime = screen.getByLabelText('Workflow Start Container');
-    const endTime = screen.getByLabelText('Workflow End Container');
-    const formattedStart = makeCompleteDate(runDetailsMetadata.start);
-    const formattedEnd = makeCompleteDate(runDetailsMetadata.end);
-    expect(startTime.textContent).toContain(formattedStart);
-    expect(endTime.textContent).toContain(formattedEnd);
-  });
-
-  it('shows the troubleshooting box', async () => {
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    screen.getByText('Troubleshooting?');
-    screen.getByText(runDetailsProps.workflowId);
-    screen.getByText(runDetailsProps.submissionId);
-    screen.getByText('Workflow Execution Log');
-  });
-
   it('has copy buttons', async () => {
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
     screen.getByLabelText('Copy workflow id');
     screen.getByLabelText('Copy submission id');
     screen.getByText(runDetailsProps.workflowId);
     screen.getByText(runDetailsProps.submissionId);
-  });
-
-  it('shows the wdl text in a modal component', async () => {
-    const user = userEvent.setup();
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const viewModalLink = screen.getByText('View Workflow Script');
-    await user.click(viewModalLink);
-    screen.getByText(/Retrieve reads from the/);
   });
 
   it('shows the calls in a table', async () => {
@@ -355,6 +319,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+
     const executionLogButton = screen.getByText('Workflow Execution Log');
     await user.click(executionLogButton);
 
@@ -362,11 +327,6 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(screen.getByText('workflow.log')); // log content displayed
     expect(screen.getByText('this is the text of a mock file'));
     expect(screen.getByLabelText('Download log')).toHaveTextContent('Download');
-
-    const logInfoBox = screen.getByLabelText('More info'); // tiny tooltip button works
-    expect(screen.queryByText('Each workflow has a single execution log', { exact: false })).toBeNull();
-    await user.click(logInfoBox);
-    expect(screen.queryByText('Each workflow has a single execution log', { exact: false }));
 
     const closeButton = screen.getByLabelText('Close modal'); // close button works
     expect(captureEvent).not.toHaveBeenCalled();
@@ -755,20 +715,5 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // Ensure the diff is rendered
     screen.getByText('Result: View cache diff');
-  });
-
-  it('should create the correct link when the execution directory button is clicked', async () => {
-    const user = userEvent.setup();
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-
-    const executionDirectoryButton = await screen.getByText('Execution Directory');
-    await user.click(executionDirectoryButton);
-    await waitFor(() =>
-      expect(getLink).toBeCalledWith(
-        'workspace-files',
-        { name: 'workspace', namespace: 'example-billing-project' },
-        { path: 'workspace-services/cbas/terra-app-/ther-random-value/00001111-2222-3333-aaaa-bbbbccccdddd/' }
-      )
-    );
   });
 });

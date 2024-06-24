@@ -6,9 +6,9 @@ import { collapseStatus, makeStatusLine } from 'src/components/job-common';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { makeCompleteDate } from 'src/libs/utils';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
+import { fetchMetadata } from 'src/workflows-app/utils/cromwell-metadata-utils';
 
 import { loadAppUrls } from '../utils/app-utils';
-import { fetchMetadata } from '../utils/cromwell-metadata-utils';
 import { TroubleshootingBox } from './TroubleshootingBox';
 
 export interface WorkflowInfoBoxProps {
