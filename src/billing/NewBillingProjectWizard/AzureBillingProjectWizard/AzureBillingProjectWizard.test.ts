@@ -17,12 +17,21 @@ import {
   verifyCreateBillingProjectDisabled,
 } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep.test';
 import { Ajax } from 'src/libs/ajax';
+import { isAnvil } from 'src/libs/brand-utils';
 import Events from 'src/libs/events';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 // Note that mocking is done by selectManagedApp (as well as default mocking in setUp).
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
+
+type BrandUtilsExports = typeof import('src/libs/brand-utils');
+jest.mock('src/libs/brand-utils', (): BrandUtilsExports => {
+  return {
+    ...jest.requireActual<BrandUtilsExports>('src/libs/brand-utils'),
+    isAnvil: jest.fn().mockReturnValue(false),
+  };
+});
 
 type ReactUtilsExports = typeof import('src/libs/react-utils');
 jest.mock('src/libs/react-utils', (): ReactUtilsExports => {
@@ -218,5 +227,17 @@ describe('AzureBillingProjectWizard', () => {
     await nameBillingProject('');
     await screen.findByText(nameRequiredText);
     expect(screen.queryByText(tooShortText)).toBeNull();
+  });
+
+  it.each([true, false])('shows a notice about region on AnVIL branded site', (isAnvilBrandedSite) => {
+    // Arrange/Act
+    asMockedFn(isAnvil).mockReturnValue(isAnvilBrandedSite);
+    setup();
+
+    // Assert
+    const isNoticeShown = !!screen.queryByText(
+      'Working with NHGRI data on Azure? Set up your Terra Managed Application in the South Central US region to reduce egress costs.'
+    );
+    expect(isNoticeShown).toBe(isAnvilBrandedSite);
   });
 });
