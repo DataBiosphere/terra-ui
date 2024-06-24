@@ -34,10 +34,6 @@ jest.mock('src/libs/react-utils', (): ReactUtilsExports => {
 });
 
 describe('transforming user info to the request object', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('splits lists of emails and maps them to roles', () => {
     const emailList = 'a@b.com, b@c.com';
     const result = userInfoListToProjectAccessObjects(emailList, 'User');
@@ -72,8 +68,7 @@ describe('AzureBillingProjectWizard', () => {
     screen.getByLabelText('Yes, set up my environment with additional security monitoring');
   const getNoProtectedDataRadio = () => screen.getByLabelText('No');
 
-  beforeEach(() => {
-    jest.resetAllMocks();
+  const setup = () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -86,14 +81,18 @@ describe('AzureBillingProjectWizard', () => {
         onSuccess,
       })
     );
-  });
+  };
 
   it('should not fail any accessibility tests in initial state', async () => {
+    setup();
+
     expect(await axe(renderResult.container)).toHaveNoViolations();
   });
 
   it('should support happy path of submitting with no users/owners and without protected data', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
+    setup();
+
     const createAzureProject = jest.fn().mockResolvedValue({});
     const billingProjectName = 'LotsOfCash';
 
@@ -131,6 +130,8 @@ describe('AzureBillingProjectWizard', () => {
 
   it('should support happy path of submitting with owners and users and protected data', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
+    setup();
+
     const createAzureProject = jest.fn().mockResolvedValue({ ok: true });
     const billingProjectName = 'LotsOfCashForAll';
 
@@ -174,6 +175,8 @@ describe('AzureBillingProjectWizard', () => {
 
   it('shows error if billing project already exists with the name', async () => {
     // Integration test of steps (act/arrange/assert not really possible)
+    setup();
+
     const createAzureProject = jest.fn().mockRejectedValue({ status: 409 });
     const billingProjectName = 'ProjectNameInUse';
 
@@ -199,6 +202,8 @@ describe('AzureBillingProjectWizard', () => {
   });
 
   it('shows error if there is no billing project name or name is badly formatted', async () => {
+    setup();
+
     const nameRequiredText = 'A name is required to create a billing project.';
     const tooShortText = 'Billing project name is too short (minimum is 6 characters)';
 
