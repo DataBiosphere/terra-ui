@@ -1,6 +1,6 @@
 import { AppWithWorkspace } from 'src/analysis/Environments/Environments.models';
 import { Ajax } from 'src/libs/ajax';
-import { AbortOption } from 'src/libs/ajax/data-provider-common';
+import { AbortOption } from 'src/libs/ajax/data-client-common';
 import { GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 
 export type AppBasics = Pick<ListAppItem, 'appName' | 'workspaceId'> & {

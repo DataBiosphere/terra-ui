@@ -1,0 +1,1 @@
+export const cookiesAcceptedKey = 'cookiesAccepted';
