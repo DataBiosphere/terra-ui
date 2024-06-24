@@ -166,10 +166,7 @@ export const NewWorkspaceModal = withDisplayName(
                   { namespace: cloneWorkspace!.workspace.namespace, name: cloneWorkspace!.workspace.name },
                   featuredList
                 ),
-                ...extractCrossWorkspaceDetails(cloneWorkspace!, {
-                  // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
-                  workspace: _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }),
-                }),
+                ...extractCrossWorkspaceDetails(cloneWorkspace!, { workspace }),
                 fromWorkspaceRegion: isAzureWorkspace(cloneWorkspace!)
                   ? sourceAzureWorkspaceRegion
                   : sourceGCPWorkspaceRegion,
@@ -184,32 +181,13 @@ export const NewWorkspaceModal = withDisplayName(
           async () => {
             const workspace = await Ajax().Workspaces.create(body);
             const metricsData = {
-              ...extractWorkspaceDetails(
-                // Create response does not include cloudPlatform.
-                _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() })
-              ),
+              ...extractWorkspaceDetails(workspace),
               region: isAzureBillingProject(selectedBillingProject) ? selectedBillingProject.region : bucketLocation,
             };
             Ajax().Metrics.captureEvent(Events.workspaceCreate, metricsData);
             return workspace;
           }
         );
-
-        // The create/clone workspace responses do not include the cloudPlatform field.
-        // Add it based on the billing project used to create the workspace.
-
-        // Translate between billing project cloud platform and workspace cloud platform constants.
-        const workspaceCloudPlatform: WorkspaceInfo['cloudPlatform'] | undefined = (() => {
-          const billingProjectCloudPlatform = getProjectCloudPlatform();
-          switch (billingProjectCloudPlatform) {
-            case 'AZURE':
-              return 'Azure';
-            case 'GCP':
-              return 'Gcp';
-            default:
-              return undefined;
-          }
-        })();
 
         if (getProjectCloudPlatform() === 'AZURE' && waitForServices?.wds) {
           // WDS takes some time to start up, so there's no need to immediately start checking if it's running.
@@ -246,8 +224,7 @@ export const NewWorkspaceModal = withDisplayName(
             true
           );
         }
-
-        onSuccess({ ...createdWorkspace, cloudPlatform: workspaceCloudPlatform });
+        onSuccess(createdWorkspace);
       } catch (error: unknown) {
         const errorMessage = await (async () => {
           if (error instanceof Response) {
