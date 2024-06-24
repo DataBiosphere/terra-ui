@@ -2,6 +2,7 @@ import _ from 'lodash/fp';
 import { useEffect, useRef, useState } from 'react';
 import { aside, div, h } from 'react-hyperscript-helpers';
 import { Transition } from 'react-transition-group';
+import { cookiesAcceptedKey } from 'src/auth/accept-cookies';
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { getEnabledBrand } from 'src/libs/brand-utils';
@@ -10,8 +11,6 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state';
-
-export const cookiesAcceptedKey = 'cookiesAccepted';
 
 const transitionStyle = {
   entering: { opacity: 0 },
@@ -29,7 +28,7 @@ const CookieWarning = () => {
   const brand = getEnabledBrand();
 
   const acceptCookies = (acceptedCookies) => {
-    authStore.update(_.set('cookiesAccepted', acceptedCookies));
+    authStore.update(_.set(cookiesAcceptedKey, acceptedCookies));
   };
 
   useEffect(() => {

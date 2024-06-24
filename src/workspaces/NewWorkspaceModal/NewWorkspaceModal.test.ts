@@ -26,13 +26,7 @@ import {
   protectedAzureWorkspace,
   protectedPhiTrackingAzureWorkspace,
 } from 'src/testing/workspace-fixtures';
-import {
-  AzureWorkspaceInfo,
-  GoogleWorkspaceInfo,
-  phiTrackingLabel,
-  phiTrackingPolicy,
-  WorkspaceInfo,
-} from 'src/workspaces/utils';
+import { AzureWorkspaceInfo, phiTrackingLabel, phiTrackingPolicy, WorkspaceInfo } from 'src/workspaces/utils';
 
 import NewWorkspaceModal from './NewWorkspaceModal';
 
@@ -146,33 +140,9 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
 const egressWarning = /may incur network egress charges/;
 const nonRegionSpecificEgressWarning = /Copying data may incur network egress charges/;
 
-// Create and cloned workspace response does not include cloudPlatform.
-// The modal should add it to the workspace passed to onSuccess.
-const mockWorkspaces: {
-  Azure: Omit<AzureWorkspaceInfo, 'cloudPlatform'>;
-  Gcp: Omit<GoogleWorkspaceInfo, 'cloudPlatform'>;
-} = {
-  Azure: {
-    namespace: azureBillingProject.projectName,
-    name: 'test-workspace',
-    workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    createdBy: 'user@example.com',
-    createdDate: '2023-11-13T18:39:32.267Z',
-    lastModified: '2023-11-13T18:39:32.267Z',
-    authorizationDomain: [],
-  },
-  Gcp: {
-    namespace: gcpBillingProject.projectName,
-    name: 'test-workspace',
-    workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    billingAccount: 'billingAccounts/123456-ABCDEF-ABCDEF',
-    googleProject: 'test-project',
-    bucketName: 'fc-aaaabbbb-cccc-dddd-0000-111122223333',
-    createdBy: 'user@example.com',
-    createdDate: '2023-11-13T18:39:32.267Z',
-    lastModified: '2023-11-13T18:39:32.267Z',
-    authorizationDomain: [],
-  },
+const mockWorkspaceDetails: { Azure: WorkspaceInfo; Gcp: WorkspaceInfo } = {
+  Azure: defaultAzureWorkspace.workspace,
+  Gcp: defaultGoogleWorkspace.workspace,
 };
 
 describe('NewWorkspaceModal', () => {
@@ -1023,12 +993,12 @@ describe('NewWorkspaceModal', () => {
     { billingProjectName: azureBillingProject.projectName, cloudPlatform: 'Azure' },
     { billingProjectName: gcpBillingProject.projectName, cloudPlatform: 'Gcp' },
   ] as { billingProjectName: string; cloudPlatform: WorkspaceInfo['cloudPlatform'] }[])(
-    'adds $cloudPlatform cloud platform to workspace',
+    'includes $cloudPlatform cloud platform from workspace response',
     async ({ billingProjectName, cloudPlatform }) => {
       // Arrange
       const user = userEvent.setup();
 
-      const createdWorkspace = mockWorkspaces[cloudPlatform];
+      const createdWorkspace = mockWorkspaceDetails[cloudPlatform];
       const { createWorkspace } = setup();
       createWorkspace.mockResolvedValue(createdWorkspace);
 
@@ -1550,7 +1520,7 @@ describe('NewWorkspaceModal', () => {
 
     const sourceWorkspace = defaultAzureWorkspace;
     const sourceWorkspaceRegion = 'westus2';
-    const workspaceFromCloneResponse = mockWorkspaces.Azure;
+    const workspaceFromCloneResponse = mockWorkspaceDetails.Azure;
     const selectedBillingProjectRegion = 'eastus';
 
     const billingProjectWithRegion = _.cloneDeep(azureBillingProject);

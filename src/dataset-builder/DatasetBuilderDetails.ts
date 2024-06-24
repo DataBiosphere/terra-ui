@@ -22,8 +22,6 @@ interface DomainDisplayProps {
   }[];
 }
 
-const DATASET_NAME = 'AnalytiXIN';
-
 const TileDisplay = (props: DomainDisplayProps) => {
   const { title, displayInformation } = props;
   return div([
@@ -95,12 +93,12 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
           h(DatasetBuilderBreadcrumbs, {
             breadcrumbs: [{ link: Nav.getLink('library-datasets'), title: 'Data Browser' }],
           }),
-          h1({ style: { marginTop: '0.75rem' } }, [DATASET_NAME]),
+          h1({ style: { marginTop: '0.75rem' } }, ['Overview']),
           div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            h(MarkdownViewer, [`${DATASET_NAME} dataset`]),
+            h(MarkdownViewer, ['Description']),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
-                'Use the Dataset Builder to create specific tailored data for further analyses in a Terra Workspace',
+                'Use the Data Explorer to create specific tailored data snapshots for analysis in a Terra Workspace',
               ]),
               h(
                 ButtonOutline,
@@ -111,10 +109,10 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
                     ? encodeURIComponent(Nav.getLink('root'))
                     : Nav.getLink('dataset-builder', { snapshotId }),
                 },
-                [hasAggregateDataViewerAccess ? 'Start creating datasets' : 'Learn how to gain access']
+                [hasAggregateDataViewerAccess ? 'Create data snapshots' : 'Learn how to gain access']
               ),
               div({ style: { marginTop: '1rem', color: colors.dark(), fontStyle: 'italic' } }, [
-                '* All datasets will need to be reviewed and approved before any analyses can be done',
+                '* All data snapshots will need to be reviewed and approved before any analyses can be done',
               ]),
             ]),
           ]),

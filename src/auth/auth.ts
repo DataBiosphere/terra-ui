@@ -1,5 +1,6 @@
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
+import { cookiesAcceptedKey } from 'src/auth/accept-cookies';
 import {
   B2cIdTokenClaims,
   getCurrentOidcUser,
@@ -8,7 +9,6 @@ import {
   OidcSignInArgs,
   OidcUser,
 } from 'src/auth/oidc-broker';
-import { cookiesAcceptedKey } from 'src/components/CookieWarning';
 import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
 import { Groups } from 'src/libs/ajax/Groups';
