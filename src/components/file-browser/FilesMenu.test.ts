@@ -54,6 +54,7 @@ describe('FilesMenu', () => {
           onClickUpload: () => {},
           onCreateDirectory: () => {},
           onDeleteFiles,
+          onRefresh: () => Promise.resolve(),
         })
       );
 
@@ -106,6 +107,7 @@ describe('FilesMenu', () => {
         onClickUpload: () => {},
         onCreateDirectory,
         onDeleteFiles: () => {},
+        onRefresh: () => Promise.resolve(),
       })
     );
 
