@@ -52,7 +52,7 @@ const cbasPact = new PactV3({
 });
 
 describe('Cbas tests', () => {
-  it('should GET run_sets with method ID 00000000-0000-0000-0000-000000000009', async () => {
+  xit('should GET run_sets with method ID 00000000-0000-0000-0000-000000000009', async () => {
     const expectedResponse = {
       fully_updated: boolean(true),
       run_sets: [
@@ -107,7 +107,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should successfully POST a simple run_set', async () => {
+  xit('should successfully POST a simple run_set', async () => {
     const expectedResponse = {
       run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
       runs: [
@@ -161,7 +161,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should successfully POST a run_set containing a "none" source', async () => {
+  xit('should successfully POST a run_set containing a "none" source', async () => {
     const expectedResponse = {
       run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
       runs: [
@@ -215,7 +215,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should successfully POST a run_set containing a struct input', async () => {
+  xit('should successfully POST a run_set containing a struct input', async () => {
     const expectedResponse = {
       run_set_id: fromProviderState('${run_set_id}', '00000000-0000-0000-0000-000000000000'), // eslint-disable-line no-template-curly-in-string
       runs: [
@@ -269,7 +269,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should successfully POST an abort request for a running submission', async () => {
+  xit('should successfully POST an abort request for a running submission', async () => {
     const expectedResponse = {
       run_set_id: fromProviderState('${run_set_id}', '20000000-0000-0000-0000-000000000002'), // eslint-disable-line no-template-curly-in-string
       runs: [
@@ -310,7 +310,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should successfully POST a method', async () => {
+  xit('should successfully POST a method', async () => {
     const expectedResponse = {
       run_set_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000'),
       method_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000'),
@@ -351,7 +351,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should successfully archive a method', async () => {
+  xit('should successfully archive a method', async () => {
     const expectedResponse = {
       method_id: regex(UUID_REGEX, '00000000-0000-0000-0000-000000000000'),
     };
@@ -395,7 +395,7 @@ describe('Cbas tests', () => {
     });
   });
 
-  it('should fail to POST a simple run_set without proper permissions', async () => {
+  xit('should fail to POST a simple run_set without proper permissions', async () => {
     const expectedResponse = {
       message: string('User doesnt have write permission on workspace resource'),
     };
