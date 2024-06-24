@@ -80,66 +80,68 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
 
   const [showWDLModal, setShowWDLModal] = useState(false);
 
-  return div(
-    {
-      style: {
-        paddingTop: '0.25em',
-        paddingBottom: '0.25em',
-        lineHeight: '24px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        width: '100%',
-        margin: '0 10px',
-      },
-    },
-    [
-      div([
-        div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
-        div({}, [
-          div({ 'aria-label': 'Workflow Start Container' }, [
-            span({ style: { fontWeight: 'bold' } }, ['Start: ']),
-            span({}, [workflowStart]),
+  return workflowInfo
+    ? div(
+        {
+          style: {
+            paddingTop: '0.25em',
+            paddingBottom: '0.25em',
+            lineHeight: '24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            width: '100%',
+            margin: '0 10px',
+          },
+        },
+        [
+          div([
+            div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
+            div({}, [
+              div({ 'aria-label': 'Workflow Start Container' }, [
+                span({ style: { fontWeight: 'bold' } }, ['Start: ']),
+                span({}, [workflowStart]),
+              ]),
+              div({ 'aria-label': 'Workflow End Container' }, [
+                span({ style: { fontWeight: 'bold' } }, ['End: ']),
+                span({}, [workflowEnd]),
+              ]),
+            ]),
           ]),
-          div({ 'aria-label': 'Workflow End Container' }, [
-            span({ style: { fontWeight: 'bold' } }, ['End: ']),
-            span({}, [workflowEnd]),
+          div({ 'aria-label': 'Workflow Status Container' }, [
+            div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
+            div({}, [
+              div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+                makeStatusLine((style) => collapseStatus(status).icon(style), status),
+              ]),
+            ]),
           ]),
-        ]),
-      ]),
-      div({ 'aria-label': 'Workflow Status Container' }, [
-        div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
-        div({}, [
-          div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-            makeStatusLine((style) => collapseStatus(status).icon(style), status),
+          div([
+            div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
+            div({}, [
+              h(
+                Link,
+                {
+                  onClick: () => {
+                    setShowWDLModal(true);
+                  },
+                },
+                [icon('fileAlt', { size: 18 }), ' View Workflow Script']
+              ),
+            ]),
           ]),
-        ]),
-      ]),
-      div([
-        div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
-        div({}, [
-          h(
-            Link,
-            {
-              onClick: () => {
-                setShowWDLModal(true);
-              },
-            },
-            [icon('fileAlt', { size: 18 }), ' View Workflow Script']
-          ),
-        ]),
-      ]),
-      div({ 'aria-label': 'Troubleshooting Box' }, [
-        h(TroubleshootingBox, {
-          name,
-          namespace,
-          logUri,
-          submissionId,
-          workflowId,
-          showLogModal: props.showLogModal,
-          executionDirectory: workflowInfo?.executionDirectory,
-        }),
-      ]),
-      showWDLModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setShowWDLModal(false) }),
-    ]
-  );
+          div({ 'aria-label': 'Troubleshooting Box' }, [
+            h(TroubleshootingBox, {
+              name,
+              namespace,
+              logUri,
+              submissionId,
+              workflowId,
+              showLogModal: props.showLogModal,
+              executionDirectory: workflowInfo?.executionDirectory,
+            }),
+          ]),
+          showWDLModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setShowWDLModal(false) }),
+        ]
+      )
+    : null;
 };
