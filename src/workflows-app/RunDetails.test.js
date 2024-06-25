@@ -319,7 +319,6 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // Act
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-
     const executionLogButton = screen.getByText('Workflow Execution Log');
     await user.click(executionLogButton);
 

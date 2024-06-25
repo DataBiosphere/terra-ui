@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import { ReactNode, useCallback, useState } from 'react';
+import { dd, div, dl, dt, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { collapseStatus, makeStatusLine } from 'src/components/job-common';
+import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { makeCompleteDate } from 'src/libs/utils';
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
@@ -11,27 +12,28 @@ import { fetchMetadata } from 'src/workflows-app/utils/cromwell-metadata-utils';
 import { loadAppUrls } from '../utils/app-utils';
 import { TroubleshootingBox } from './TroubleshootingBox';
 
-export type WorkflowInfoBoxProps = {
+export interface WorkflowInfoBoxProps {
   name: string;
   namespace: string;
   submissionId: string;
   workflowId: string;
   workspaceId: string;
-  showLogModal: (modalTitle: string, logsArray: string, tesLog: string) => void;
-};
+  showLogModal: (modalTitle: string, logsArray: any[], tesLog: string) => void;
+}
 
-type FetchedWorkflowInfoData = {
+interface FetchedWorkflowInfoData {
   start: string;
   end?: string;
   wdlScript?: string;
   status: string;
   workflowLog: string;
   executionDirectory: string;
-};
+}
 
-export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
+export const WorkflowInfoBox = (props: WorkflowInfoBoxProps): ReactNode => {
+  const { name, namespace, submissionId, workflowId, showLogModal } = props;
   const signal = useCancellation();
-  const [workflowInfo, setWorkflowInfo] = useState<FetchedWorkflowInfoData | undefined>(undefined);
+  const [workflowInfo, setWorkflowInfo] = useState<FetchedWorkflowInfoData>();
 
   const loadWorkflowMetadata = useCallback(
     async (workflowId: string) => {
@@ -59,9 +61,12 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
   useOnMount(() => {
     const load = async () => {
       try {
-        await Promise.resolve(loadWorkflowMetadata(workflowId));
-      } catch (e) {
-        console.error('Failed to fetch Workflow Metadata', e);
+        await loadWorkflowMetadata(workflowId);
+      } catch (error) {
+        notify('error', 'Failed to fetch workflow metadata', {
+          detail: error instanceof Response ? await error.text() : error,
+        });
+        console.error('Failed to fetch workflow metadata', error);
       }
     };
     load();
@@ -71,77 +76,77 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
   const workflowEnd: string = workflowInfo?.end ? makeCompleteDate(workflowInfo.end) : 'N/A';
   const workflowScript: string = workflowInfo?.wdlScript ? workflowInfo.wdlScript : 'N/A';
   const status: string = workflowInfo?.status ? workflowInfo.status : 'Unknown';
-
-  const name: string = props.name;
-  const namespace: string = props.namespace;
   const logUri: string = workflowInfo?.workflowLog ? workflowInfo.workflowLog : 'N/A';
-  const submissionId: string = props.submissionId;
-  const workflowId: string = props.workflowId;
 
   const [showWDLModal, setShowWDLModal] = useState(false);
 
-  return workflowInfo
-    ? div(
-        {
-          style: {
-            paddingTop: '0.25em',
-            paddingBottom: '0.25em',
-            lineHeight: '24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            width: '100%',
-            margin: '0 10px',
+  if (!workflowInfo) {
+    return null; // Could consider rendering a loading spinner here, but I think that looks worse b/c the page already has other spinners and this component loads pretty quickly.
+  }
+
+  const ddStyle = { marginLeft: '1em' }; // reduce the default margin-left on the dd elements since it looks better
+
+  return div(
+    {
+      style: {
+        paddingTop: '0.0em',
+        paddingBottom: '0.25em',
+        lineHeight: '24px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        width: '100%',
+        margin: '0 10px',
+      },
+    },
+    [
+      dl([
+        dt([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
+        dd(
+          {
+            'aria-label': 'Workflow Start Container',
+            style: ddStyle,
           },
-        },
-        [
-          div([
-            div([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
-            div([
-              div({ 'aria-label': 'Workflow Start Container' }, [
-                span({ style: { fontWeight: 'bold' } }, ['Start: ']),
-                span([workflowStart]),
-              ]),
-              div({ 'aria-label': 'Workflow End Container' }, [
-                span({ style: { fontWeight: 'bold' } }, ['End: ']),
-                span([workflowEnd]),
-              ]),
-            ]),
+          [span({ style: { fontWeight: 'bold' } }, ['Start: ']), span([workflowStart])]
+        ),
+        dd({ 'aria-label': 'Workflow End Container', style: ddStyle }, [
+          span({ style: { fontWeight: 'bold' } }, ['End: ']),
+          span([workflowEnd]),
+        ]),
+      ]),
+      dl({ 'aria-label': 'Workflow Status Container' }, [
+        dt([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
+        dd({ style: ddStyle }, [
+          div({ style: { lineHeight: '24px', marginTop: '0.25rem' } }, [
+            makeStatusLine((style) => collapseStatus(status).icon(style), status),
           ]),
-          div({ 'aria-label': 'Workflow Status Container' }, [
-            div([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
-            div([
-              div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-                makeStatusLine((style) => collapseStatus(status).icon(style), status),
-              ]),
-            ]),
-          ]),
-          div([
-            div([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
-            div([
-              h(
-                Link,
-                {
-                  onClick: () => {
-                    setShowWDLModal(true);
-                  },
-                },
-                [icon('fileAlt', { size: 18 }), ' View Workflow Script']
-              ),
-            ]),
-          ]),
-          div({ 'aria-label': 'Troubleshooting Box' }, [
-            h(TroubleshootingBox, {
-              name,
-              namespace,
-              logUri,
-              submissionId,
-              workflowId,
-              showLogModal: props.showLogModal,
-              executionDirectory: workflowInfo?.executionDirectory,
-            }),
-          ]),
-          showWDLModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setShowWDLModal(false) }),
-        ]
-      )
-    : null;
+        ]),
+      ]),
+      dl([
+        dt([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
+        dd({ style: ddStyle }, [
+          h(
+            Link,
+            {
+              onClick: () => {
+                setShowWDLModal(true);
+              },
+            },
+            [icon('fileAlt', { size: 18 }), ' View Workflow Script']
+          ),
+        ]),
+      ]),
+      div({ 'aria-label': 'Troubleshooting Box' }, [
+        h(TroubleshootingBox, {
+          name,
+          namespace,
+          logUri,
+          submissionId,
+          workflowId,
+          showLogModal,
+          executionDirectory: workflowInfo?.executionDirectory,
+        }),
+      ]),
+      showWDLModal && h(ViewWorkflowScriptModal, { workflowScript, onDismiss: () => setShowWDLModal(false) }),
+    ]
+  );
 };
