@@ -20,7 +20,14 @@ export type WorkflowMetadata = {
   start: string;
   status: string;
   submission: string;
-  submittedFiles: {};
+  submittedFiles: {
+    workflow: string;
+    root?: string;
+    options?: string;
+    inputs: string;
+    workflowUrl?: string;
+    labels?: string;
+  };
   workflowCallback: {};
   workflowLog: string;
   workflowName: string;
