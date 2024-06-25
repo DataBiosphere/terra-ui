@@ -1,6 +1,6 @@
 import { Icon, Link, useThemeFromContext } from '@terra-ui-packages/components';
 import { ReactNode } from 'react';
-import { div, dl, dt, h, span } from 'react-hyperscript-helpers';
+import { dd, div, dl, dt, h, span } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import * as Nav from 'src/libs/nav';
 import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
@@ -44,21 +44,21 @@ export const TroubleshootingBox = (props: TroubleshootingBoxProps): ReactNode =>
     [
       dl({ style: { margin: 0 } }, [
         dt([span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Troubleshooting?'])]),
-        dl({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+        dd({ style: { display: 'flex', justifyContent: 'space-between', marginLeft: 0 } }, [
           span([
             span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Workflow ID: ']),
             span([props.workflowId]),
           ]),
           span([h(ClipboardButton, { text: props.workflowId, 'aria-label': 'Copy workflow id' })]),
         ]),
-        dl({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+        dd({ style: { display: 'flex', justifyContent: 'space-between', marginLeft: 0 } }, [
           span([
             span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']),
             span([props.submissionId]),
           ]),
           span([h(ClipboardButton, { text: props.submissionId, 'aria-label': 'Copy submission id' })]),
         ]),
-        dl({ style: { display: 'flex', justifyContent: 'center', paddingTop: '3px' } }, [
+        dd({ style: { display: 'flex', justifyContent: 'center', paddingTop: '3px', marginLeft: 0 } }, [
           h(
             Link,
             {
