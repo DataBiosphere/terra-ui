@@ -5,7 +5,7 @@
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
     "test": "jest",
-    "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/internal/icons -r -p 1 --multipass"
+    "optimize-image-svgs": "svgo -f src/internal/icons -r"
   },
   "type": "module",
   "module": "./lib/es/index.js",
