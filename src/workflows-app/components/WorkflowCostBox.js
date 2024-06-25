@@ -1,5 +1,6 @@
 import { icon, TooltipTrigger } from '@terra-ui-packages/components';
 import { div, h, span } from 'react-hyperscript-helpers';
+import { centeredSpinner } from 'src/components/icons';
 import { renderInProgressElement, renderTaskCostElement } from 'src/components/job-common';
 import colors from 'src/libs/colors';
 
@@ -8,7 +9,7 @@ export const WorkflowCostBox = ({ workflow, cost }) => {
   return div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
     span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
     renderInProgressElement(workflow),
-    renderTaskCostElement(cost),
+    span({}, [cost ? renderTaskCostElement(cost) : centeredSpinner()]),
     h(
       TooltipTrigger,
       {

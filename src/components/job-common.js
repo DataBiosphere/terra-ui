@@ -179,53 +179,66 @@ export const renderTaskCostElement = (cost) => {
   return `$${cost.toFixed(5)}`;
 };
 
-export const calculateTotalSubworkflowCost = async (calls, loadForSubworkflows) => {
-  let total = 0;
-
-  // console.log(calls);
-  const subWorkflows = await loadForSubworkflows(calls.subWorkflowId);
-  const subWorkflowCalls = subWorkflows?.calls;
-  // console.log(calls);
-  for (const call of Object.values(subWorkflowCalls)) {
-    for (const c of call) {
-      const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId } = c;
-      if (subWorkflowId) {
-        // const subWorkflows = await loadForSubworkflows(subWorkflowId);
-        // console.log(`calling calculateTotalSubworkflowCost for subWorkflowId ${subWorkflowId}`);
-        total += await calculateTotalSubworkflowCost(c, loadForSubworkflows);
-      }
-      total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
-    }
-  }
-  return total;
-};
+// export const calculateTotalSubworkflowCost = async (calls, loadForSubworkflows) => {
+//   let total = 0;
+//
+//   // console.log(calls);
+//   const subWorkflows = await loadForSubworkflows(calls.subWorkflowId);
+//   const subWorkflowCalls = subWorkflows?.calls;
+//   // console.log(calls);
+//   for (const call of Object.values(subWorkflowCalls)) {
+//     for (const c of call) {
+//       const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId } = c;
+//       if (subWorkflowId) {
+//         // const subWorkflows = await loadForSubworkflows(subWorkflowId);
+//         // console.log(`calling calculateTotalSubworkflowCost for subWorkflowId ${subWorkflowId}`);
+//         total += await calculateTotalSubworkflowCost(c, loadForSubworkflows);
+//       }
+//       total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
+//     }
+//   }
+//   return total;
+// };
 
 export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
+  const timeout = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   let total = 0;
   let callObs = callObjects;
-  // console.log(callObjects);
+
+  // For scatters
+  if (!callObjects) {
+    return total;
+  }
   if (!_.isNil || callObjects?.subWorkflowId) {
     const subWorkflows = await loadForSubworkflows(callObjects.subWorkflowId);
     // const subCalls = subWorkflows.calls;
-    // console.log('hi');
-    callObs = subWorkflows.calls;
+    // console.log(subWorkflows);
+    callObs = subWorkflows?.calls;
   }
-  // console.log(callObs);
+
+  // console.log(callObjects);
   for (const call of Object.values(callObs)) {
     for (const s of call) {
       // console.log(call);
       // console.log(s);
-      const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId } = s;
+      const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId, subWorkflowMetadata } = s;
       if (subWorkflowId) {
         const subWorkflows = await loadForSubworkflows(subWorkflowId);
         // console.log(subWorkflows);
         const subworkflowCalls = subWorkflows?.calls;
         // console.log(subworkflowCalls);
+        await timeout(1000);
         total += await calculateTotalCost(subworkflowCalls, loadForSubworkflows);
+      } else if (subWorkflowMetadata) {
+        const subWorkflowMetadataCalls = subWorkflowMetadata.calls;
+        // console.log(subWorkflowMetadataCalls);
+        total += await calculateTotalCost(subWorkflowMetadataCalls, loadForSubworkflows);
       }
       total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
     }
   }
+  await timeout(1000);
   return total;
 };
 

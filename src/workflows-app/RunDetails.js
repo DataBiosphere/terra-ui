@@ -112,6 +112,7 @@ export const BaseRunDetails = (
   const loadForSubworkflows = useCallback(
     async (workflowId) => {
       try {
+        // console.log(workflowId);
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         const meta = await fetchMetadata({
           cromwellProxyUrl: cromwellProxyUrlState.state,
@@ -132,6 +133,7 @@ export const BaseRunDetails = (
   const loadWorkflow = useCallback(
     async (workflowId, updateWorkflowPath = undefined) => {
       try {
+        // console.log(workflowId);
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
           let failedTasks = {};
@@ -191,10 +193,6 @@ export const BaseRunDetails = (
     },
     [signal, workspaceId]
   );
-
-  // const taskCostTotal = useMemo(() => {
-  //   return callObjects ? calculateTotalCost(callObjects) : undefined;
-  // }, [callObjects]);
 
   const loadCallCacheMetadata = useCallback(
     async (wfId, includeKey, excludeKey) => {
@@ -319,21 +317,7 @@ export const BaseRunDetails = (
               []
             ),
           ]),
-          // console.log(cost),
           h(WorkflowCostBox, { workflow, cost }, []),
-          // div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
-          //   span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
-          //   renderInProgressElement(workflow),
-          //   renderTaskCostElement(4),
-          //   h(
-          //     TooltipTrigger,
-          //     {
-          //       content:
-          //         'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
-          //     },
-          //     [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
-          //   ),
-          // ]),
           div(
             {
               style: {

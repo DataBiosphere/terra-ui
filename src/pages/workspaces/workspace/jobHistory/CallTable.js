@@ -386,7 +386,6 @@ const CallTable = ({
                     cellRenderer: ({ rowIndex }) => {
                       const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId } = filteredCallObjects[rowIndex];
                       if (subWorkflowId) {
-                        // console.log(filteredCallObjects[rowIndex]);
                         calculateTotalCost(filteredCallObjects[rowIndex], loadForSubworkflows).then((s) => {
                           setCost(s.toFixed(5));
                         });
