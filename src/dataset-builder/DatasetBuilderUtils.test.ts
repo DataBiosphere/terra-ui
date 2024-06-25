@@ -24,6 +24,7 @@ import {
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
   SnapshotBuilderCriteriaGroup,
+  SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
   SnapshotBuilderFeatureValueGroup,
@@ -55,9 +56,8 @@ const domainOption: SnapshotBuilderDomainOption = {
   root: concept,
 };
 
-const domainConceptSet: DomainConceptSet = {
+const domainConceptSet: SnapshotBuilderDatasetConceptSet = {
   name: domainOptionName,
-  concept,
   featureValueGroupName: domainOptionName,
 };
 
