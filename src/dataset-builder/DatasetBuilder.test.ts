@@ -2,11 +2,12 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
+import { Cohort, convertDomainOptionToConceptSet, DomainConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   DataRepoContract,
   SnapshotBuilderDatasetConceptSet,
+  SnapshotBuilderDomainOption,
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
@@ -37,8 +38,6 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
     DataRepo: jest.fn(),
   };
 });
-
-const concept = { id: 100, name: 'concept', code: '0', count: 10, hasChildren: false, children: [] };
 
 describe('DatasetBuilder', () => {
   const testSettings = testSnapshotBuilderSettings();
@@ -96,10 +95,9 @@ describe('DatasetBuilder', () => {
   const initializeValidDatasetRequest = async (user) => {
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1')],
-      conceptSets: [{ name: 'concept set 1', concept, featureValueGroupName: 'Condition' }],
     });
     await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
+    await user.click(screen.getByLabelText('Condition'));
   };
 
   beforeEach(() => {
@@ -122,10 +120,9 @@ describe('DatasetBuilder', () => {
     render(
       h(ConceptSetSelector, {
         conceptSets: [
-          { name: 'concept set 1', concept, featureValueGroupName: 'a' },
-          { name: 'concept set 2', concept, featureValueGroupName: 'b' },
+          ..._.map(convertDomainOptionToConceptSet, testSettings.domainOptions),
+          ...testSettings.datasetConceptSets,
         ],
-        prepackagedConceptSets: testSettings.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -182,17 +179,16 @@ describe('DatasetBuilder', () => {
     expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(newCohort(cohortName)));
   });
 
-  it('renders concept sets and prepackaged concept sets', () => {
+  it('renders concept sets', () => {
     renderConceptSetSelector();
-
-    expect(screen.getByText('concept set 1')).toBeTruthy();
-    expect(screen.getByText('concept set 2')).toBeTruthy();
     _.flow(
-      _.map((prepackagedConceptSet: SnapshotBuilderDatasetConceptSet) => prepackagedConceptSet.name),
-      _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
+      _.map((domainOption: SnapshotBuilderDomainOption) => domainOption.name),
+      _.forEach((domainConceptSetName: string) => expect(screen.getByText(domainConceptSetName)).toBeTruthy())
+    )(testSettings.domainOptions);
+    _.flow(
+      _.map((conceptSet: SnapshotBuilderDatasetConceptSet) => conceptSet.name),
+      _.forEach((conceptSetName: string) => expect(screen.getByText(conceptSetName)).toBeTruthy())
     )(testSettings.datasetConceptSets);
-    expect(screen.getByText('Concept sets')).toBeTruthy();
-    expect(screen.getByText('Prepackaged concept sets')).toBeTruthy();
   });
 
   it('renders dataset builder contents with cohorts and concept sets', () => {
@@ -209,20 +205,17 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     showDatasetBuilderContents({
       cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
-      conceptSets: [
-        { name: 'concept set 1', concept, featureValueGroupName: 'Condition' },
-        { name: 'concept set 2', concept, featureValueGroupName: 'Procedure' },
-      ],
     });
     // Act
     await user.click(screen.getByLabelText('cohort 1'));
-    await user.click(screen.getByLabelText('concept set 1'));
+    await user.click(screen.getByLabelText('Condition'));
 
     // Assert
     expect(screen.getByLabelText('cohort 1')).toBeChecked();
     expect(screen.getByLabelText('cohort 2')).not.toBeChecked();
-    expect(screen.getByLabelText('concept set 1')).toBeChecked();
-    expect(screen.getByLabelText('concept set 2')).not.toBeChecked();
+    expect(screen.getByLabelText('Condition')).toBeChecked();
+    expect(screen.getByLabelText('Procedure')).not.toBeChecked();
+    expect(screen.getByLabelText('Observation')).not.toBeChecked();
   });
 
   it('shows the home page by default', async () => {
@@ -303,19 +296,6 @@ describe('DatasetBuilder', () => {
     expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
   });
 
-  it('shows the concept set creator', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onStateChange = jest.fn();
-    showDatasetBuilderContents({
-      onStateChange,
-    });
-    // Act
-    await user.click(await screen.findByLabelText('Create new concept set'));
-    // Assert
-    expect(onStateChange).toHaveBeenCalledWith({ mode: 'concept-set-creator', cart: [] });
-  });
-
   it('enables editing cohorts', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -343,20 +323,5 @@ describe('DatasetBuilder', () => {
     await user.click(await screen.findByLabelText('Delete cohort'));
     // Assert
     expect(updateCohorts.mock.calls[0][0](cohorts)).toStrictEqual(_.tail(cohorts));
-  });
-
-  it('enables deleting concept sets', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const updateConceptSets = jest.fn();
-    const conceptSets = [
-      { name: 'concept set 1', concept, featureValueGroupName: 'Condition' },
-      { name: 'concept set 2', concept, featureValueGroupName: 'Procedure' },
-    ];
-    showDatasetBuilderContents({ updateConceptSets, conceptSets });
-    // Act
-    await user.click(await screen.findByLabelText(`Delete Concept sets/${conceptSets[0].name}`));
-    // Assert
-    expect(updateConceptSets.mock.calls[0][0](conceptSets)).toStrictEqual(_.tail(conceptSets));
   });
 });
