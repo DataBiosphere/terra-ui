@@ -119,8 +119,10 @@ describe('DatasetBuilder', () => {
   const renderConceptSetSelector = () =>
     render(
       h(ConceptSetSelector, {
-        conceptSets: _.map(convertDomainOptionToConceptSet, testSettings.domainOptions),
-        prepackagedConceptSets: testSettings.datasetConceptSets,
+        conceptSets: [
+          ..._.map(convertDomainOptionToConceptSet, testSettings.domainOptions),
+          ...testSettings.datasetConceptSets,
+        ],
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -184,8 +186,8 @@ describe('DatasetBuilder', () => {
       _.forEach((domainConceptSetName: string) => expect(screen.getByText(domainConceptSetName)).toBeTruthy())
     )(testSettings.domainOptions);
     _.flow(
-      _.map((prepackagedConceptSet: SnapshotBuilderDatasetConceptSet) => prepackagedConceptSet.name),
-      _.forEach((prepackagedConceptSetName: string) => expect(screen.getByText(prepackagedConceptSetName)).toBeTruthy())
+      _.map((conceptSet: SnapshotBuilderDatasetConceptSet) => conceptSet.name),
+      _.forEach((conceptSetName: string) => expect(screen.getByText(conceptSetName)).toBeTruthy())
     )(testSettings.datasetConceptSets);
   });
 

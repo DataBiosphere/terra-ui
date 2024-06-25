@@ -16,9 +16,7 @@ import {
   createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
-  DomainConceptSet,
   formatCount,
-  PrepackagedConceptSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
 import {
@@ -364,12 +362,10 @@ export const CohortSelector = ({
 
 export const ConceptSetSelector = ({
   conceptSets,
-  prepackagedConceptSets,
   selectedConceptSets,
   onChange,
 }: {
-  conceptSets: DomainConceptSet[];
-  prepackagedConceptSets?: PrepackagedConceptSet[];
+  conceptSets: ConceptSet[];
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeHandler;
@@ -377,7 +373,7 @@ export const ConceptSetSelector = ({
   return h(Selector<ConceptSet>, {
     number: 2,
     onChange,
-    objectSets: [{ values: [...conceptSets, ...(prepackagedConceptSets ?? [])] }],
+    objectSets: [{ values: conceptSets }],
     selectedObjectSets: selectedConceptSets,
     header: 'Select data about participants',
     subheader: 'Which information to include about participants',
@@ -471,7 +467,6 @@ export type DatasetBuilderContentsProps = {
   snapshotId: string;
   snapshotBuilderSettings: SnapshotBuilderSettings;
   cohorts: Cohort[];
-  conceptSets: DomainConceptSet[];
 };
 
 export const DatasetBuilderContents = ({
@@ -480,7 +475,6 @@ export const DatasetBuilderContents = ({
   snapshotId,
   snapshotBuilderSettings,
   cohorts,
-  conceptSets,
 }: DatasetBuilderContentsProps) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
@@ -530,6 +524,11 @@ export const DatasetBuilderContents = ({
       }))
     )(snapshotBuilderSettings.featureValueGroups);
 
+  const generateConceptSets = (): ConceptSet[] => [
+    ..._.map(convertDomainOptionToConceptSet, snapshotBuilderSettings.domainOptions),
+    ...(snapshotBuilderSettings.datasetConceptSets ?? []),
+  ];
+
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
@@ -547,10 +546,8 @@ export const DatasetBuilderContents = ({
             onStateChange,
           }),
           h(ConceptSetSelector, {
-            // all domain concept sets
-            conceptSets: _.map(convertDomainOptionToConceptSet, snapshotBuilderSettings.domainOptions),
-            // all prepackaged concept sets
-            prepackagedConceptSets: snapshotBuilderSettings.datasetConceptSets,
+            // all concept sets
+            conceptSets: generateConceptSets(),
             selectedConceptSets,
             onChange: async (conceptSets) => {
               const includedFeatureValueGroups = _.flow(
@@ -588,8 +585,8 @@ export const DatasetBuilderContents = ({
                         '',
                         '',
                         snapshotId,
-                        cohorts,
-                        conceptSets,
+                        _.flatMap((cohortSet) => cohortSet.values, selectedCohorts),
+                        _.flatMap((conceptSetSet) => conceptSetSet.values, selectedConceptSets),
                         _.map(
                           (valuesSet: RequiredHeaderAndValues<DatasetBuilderValue>) => ({
                             domain: valuesSet.header,
@@ -636,7 +633,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [conceptSets] = useState<DomainConceptSet[]>([]);
   const onStateChange = setDatasetBuilderState;
 
   const getNextCriteriaIndex = () => {
@@ -677,7 +673,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   snapshotId,
                   snapshotBuilderSettings: snapshotBuilderSettings.state,
                   cohorts,
-                  conceptSets,
                 });
               case 'cohort-editor':
                 return h(CohortEditor, {
