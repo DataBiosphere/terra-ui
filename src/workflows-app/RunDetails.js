@@ -1,4 +1,3 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -7,7 +6,6 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { calculateTotalCost, collapseStatus } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -195,16 +193,6 @@ export const BaseRunDetails = (
     },
     [signal, workspaceId]
   );
-
-  const renderInProgressElement = (workflow) => {
-    if (workflow.status === 'Running') {
-      return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
-    }
-  };
-
-  const taskCostTotal = useMemo(() => {
-    return callObjects ? calculateTotalCost(callObjects) : undefined;
-  }, [callObjects]);
 
   const loadCallCacheMetadata = useCallback(
     async (wfId, includeKey, excludeKey) => {
