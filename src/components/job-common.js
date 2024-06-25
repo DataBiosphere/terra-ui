@@ -211,7 +211,7 @@ export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
     return total;
   }
   if (!_.isNil || callObjects?.subWorkflowId) {
-    const subWorkflows = await loadForSubworkflows(callObjects.subWorkflowId);
+    const subWorkflows = await loadForSubworkflows(callObjects.subWorkflowId); // NETWORK CALL
     // const subCalls = subWorkflows.calls;
     // console.log(subWorkflows);
     callObs = subWorkflows?.calls;
@@ -224,7 +224,7 @@ export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
       // console.log(s);
       const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId, subWorkflowMetadata } = s;
       if (subWorkflowId) {
-        const subWorkflows = await loadForSubworkflows(subWorkflowId);
+        const subWorkflows = await loadForSubworkflows(subWorkflowId); // NETWORK CALL
         // console.log(subWorkflows);
         const subworkflowCalls = subWorkflows?.calls;
         // console.log(subworkflowCalls);
