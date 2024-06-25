@@ -38,7 +38,7 @@ const getNumberValue = (value: unknown): number | undefined => {
  * @returns The billing profile's resource limits, or undefined if the profile does not have any resource limits.
  */
 export const getResourceLimits = (billingProfile: BillingProfile): BillingProfileResourceLimits | undefined => {
-  if (billingProfile.cloudPlatform !== 'AZURE' || !billingProfile.organization?.limits) {
+  if (!billingProfile.organization?.limits) {
     return undefined;
   }
 
