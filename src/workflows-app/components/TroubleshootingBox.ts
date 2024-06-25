@@ -42,18 +42,18 @@ export const TroubleshootingBox: React.FC<TroubleshootingBoxProps> = (props) => 
       },
     },
     [
-      div({}, [span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Troubleshooting?'])]),
+      div([span({ style: { fontSize: 16, fontWeight: 'bold' } }, ['Troubleshooting?'])]),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        span({}, [
+        span([
           span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Workflow ID: ']),
-          span({}, [props.workflowId]),
+          span([props.workflowId]),
         ]),
         span([h(ClipboardButton, { text: props.workflowId, 'aria-label': 'Copy workflow id' })]),
       ]),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        span({}, [
+        span([
           span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Submission ID: ']),
-          span({}, [props.submissionId]),
+          span([props.submissionId]),
         ]),
         span([h(ClipboardButton, { text: props.submissionId, 'aria-label': 'Copy submission id' })]),
       ]),

@@ -11,14 +11,14 @@ import { fetchMetadata } from 'src/workflows-app/utils/cromwell-metadata-utils';
 import { loadAppUrls } from '../utils/app-utils';
 import { TroubleshootingBox } from './TroubleshootingBox';
 
-export interface WorkflowInfoBoxProps {
+export type WorkflowInfoBoxProps = {
   name: string;
   namespace: string;
   submissionId: string;
   workflowId: string;
   workspaceId: string;
   showLogModal: (modalTitle: string, logsArray: string, tesLog: string) => void;
-}
+};
 
 type FetchedWorkflowInfoData = {
   start: string;
@@ -95,29 +95,29 @@ export const WorkflowInfoBox: React.FC<WorkflowInfoBoxProps> = (props) => {
         },
         [
           div([
-            div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
-            div({}, [
+            div([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Timing:'])]),
+            div([
               div({ 'aria-label': 'Workflow Start Container' }, [
                 span({ style: { fontWeight: 'bold' } }, ['Start: ']),
-                span({}, [workflowStart]),
+                span([workflowStart]),
               ]),
               div({ 'aria-label': 'Workflow End Container' }, [
                 span({ style: { fontWeight: 'bold' } }, ['End: ']),
-                span({}, [workflowEnd]),
+                span([workflowEnd]),
               ]),
             ]),
           ]),
           div({ 'aria-label': 'Workflow Status Container' }, [
-            div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
-            div({}, [
+            div([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Status:'])]),
+            div([
               div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
                 makeStatusLine((style) => collapseStatus(status).icon(style), status),
               ]),
             ]),
           ]),
           div([
-            div({}, [span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
-            div({}, [
+            div([span({ style: { fontWeight: 'bold', fontSize: 16 } }, ['Workflow Script:'])]),
+            div([
               h(
                 Link,
                 {
