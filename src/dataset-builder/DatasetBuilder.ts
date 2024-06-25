@@ -371,7 +371,6 @@ export const ConceptSetSelector = ({
   conceptSets: DomainConceptSet[];
   prepackagedConceptSets?: PrepackagedConceptSet[];
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
-  updateConceptSets: Updater<DomainConceptSet[]>;
   onChange: (conceptSets: HeaderAndValues<ConceptSet>[]) => void;
   onStateChange: OnStateChangeHandler;
 }) => {
@@ -469,7 +468,6 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
 export type DatasetBuilderContentsProps = {
   onStateChange: OnStateChangeHandler;
   updateCohorts: Updater<Cohort[]>;
-  updateConceptSets: Updater<DomainConceptSet[]>;
   snapshotId: string;
   snapshotBuilderSettings: SnapshotBuilderSettings;
   cohorts: Cohort[];
@@ -479,7 +477,6 @@ export type DatasetBuilderContentsProps = {
 export const DatasetBuilderContents = ({
   onStateChange,
   updateCohorts,
-  updateConceptSets,
   snapshotId,
   snapshotBuilderSettings,
   cohorts,
@@ -555,7 +552,6 @@ export const DatasetBuilderContents = ({
             // all prepackaged concept sets
             prepackagedConceptSets: snapshotBuilderSettings.datasetConceptSets,
             selectedConceptSets,
-            updateConceptSets,
             onChange: async (conceptSets) => {
               const includedFeatureValueGroups = _.flow(
                 _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
@@ -640,7 +636,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [conceptSets, setConceptSets] = useState<DomainConceptSet[]>([]);
+  const [conceptSets] = useState<DomainConceptSet[]>([]);
   const onStateChange = setDatasetBuilderState;
 
   const getNextCriteriaIndex = () => {
@@ -678,7 +674,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                 return h(DatasetBuilderContents, {
                   onStateChange,
                   updateCohorts: setCohorts,
-                  updateConceptSets: setConceptSets,
                   snapshotId,
                   snapshotBuilderSettings: snapshotBuilderSettings.state,
                   cohorts,
