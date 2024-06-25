@@ -169,81 +169,44 @@ export const getTaskCost = ({ vmCostUsd, taskStartTime, taskEndTime }) => {
   const startDateTime = Date.parse(taskStartTime);
 
   const elapsedTime = currentEndTime - startDateTime;
-  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(5));
+  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
 };
 
 export const renderTaskCostElement = (cost) => {
-  // if (cost === 0.0) {
-  //   return '< $0.01';
-  // }
-  return `$${cost.toFixed(5)}`;
+  if (cost.toFixed(2) === '0.00') {
+    return '< $0.01';
+  }
+  return `$${cost.toFixed(2)}`;
 };
 
-// export const calculateTotalSubworkflowCost = async (calls, loadForSubworkflows) => {
-//   let total = 0;
-//
-//   // console.log(calls);
-//   const subWorkflows = await loadForSubworkflows(calls.subWorkflowId);
-//   const subWorkflowCalls = subWorkflows?.calls;
-//   // console.log(calls);
-//   for (const call of Object.values(subWorkflowCalls)) {
-//     for (const c of call) {
-//       const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId } = c;
-//       if (subWorkflowId) {
-//         // const subWorkflows = await loadForSubworkflows(subWorkflowId);
-//         // console.log(`calling calculateTotalSubworkflowCost for subWorkflowId ${subWorkflowId}`);
-//         total += await calculateTotalSubworkflowCost(c, loadForSubworkflows);
-//       }
-//       total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
-//     }
-//   }
-//   return total;
-// };
-
 export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
-  const timeout = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
   let total = 0;
   let callObs = callObjects;
 
-  // For scatters
-  if (!callObjects) {
-    return total;
-  }
   if (!_.isNil || callObjects?.subWorkflowId) {
-    const subWorkflows = await loadForSubworkflows(callObjects.subWorkflowId); // NETWORK CALL
-    // const subCalls = subWorkflows.calls;
-    // console.log(subWorkflows);
+    const subWorkflows = await loadForSubworkflows(callObjects.subWorkflowId);
     callObs = subWorkflows?.calls;
   }
 
-  // console.log(callObjects);
   for (const call of Object.values(callObs)) {
     for (const s of call) {
-      // console.log(call);
-      // console.log(s);
       const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId, subWorkflowMetadata } = s;
       if (subWorkflowId) {
-        const subWorkflows = await loadForSubworkflows(subWorkflowId); // NETWORK CALL
-        // console.log(subWorkflows);
+        const subWorkflows = await loadForSubworkflows(subWorkflowId);
         const subworkflowCalls = subWorkflows?.calls;
-        // console.log(subworkflowCalls);
-        await timeout(1000);
         total += await calculateTotalCost(subworkflowCalls, loadForSubworkflows);
       } else if (subWorkflowMetadata) {
         const subWorkflowMetadataCalls = subWorkflowMetadata.calls;
-        // console.log(subWorkflowMetadataCalls);
         total += await calculateTotalCost(subWorkflowMetadataCalls, loadForSubworkflows);
       }
       total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
     }
   }
-  await timeout(1000);
   return total;
 };
 
-export const renderInProgressElement = ({ workflow }) => {
-  if (workflow?.status === 'Running') {
+export const renderInProgressElement = ({ status }) => {
+  if (status === 'Running') {
     return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
   }
 };

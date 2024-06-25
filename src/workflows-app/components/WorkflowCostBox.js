@@ -5,11 +5,10 @@ import { renderInProgressElement, renderTaskCostElement } from 'src/components/j
 import colors from 'src/libs/colors';
 
 export const WorkflowCostBox = ({ workflow, cost }) => {
-  // console.log(cost);
   return div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
     span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
-    renderInProgressElement(workflow),
-    span({}, [cost ? renderTaskCostElement(cost) : centeredSpinner()]),
+    renderInProgressElement({ status: workflow?.status }),
+    span({}, [cost || cost === 0 ? renderTaskCostElement(cost) : centeredSpinner()]),
     h(
       TooltipTrigger,
       {
