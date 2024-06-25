@@ -42,8 +42,8 @@ describe('DatasetBuilderDetails', () => {
     mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
     render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
-    expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
-    expect(await screen.findByText('Start creating datasets')).toBeTruthy();
+    expect(await screen.findByText('Overview')).toBeTruthy();
+    expect(await screen.findByText('Create data snapshots')).toBeTruthy();
   });
 
   it("renders the 'how to get access' button if discoverer", async () => {
@@ -51,7 +51,7 @@ describe('DatasetBuilderDetails', () => {
     mockWithValues(testSnapshotBuilderSettings(), ['snapshot_creator']);
     render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
-    expect(await screen.findByText('AnalytiXIN')).toBeTruthy();
+    expect(await screen.findByText('Overview')).toBeTruthy();
     expect(await screen.findByText('Learn how to gain access')).toBeTruthy();
   });
 });

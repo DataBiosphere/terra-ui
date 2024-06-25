@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { controlledPromise } from '@terra-ui-packages/core-utils';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks';
@@ -463,5 +464,58 @@ describe('FilesInDirectory', () => {
 
     // Assert
     expect(moveFile).toHaveBeenCalledWith('path/to/directory/file.txt', 'path/to/directory/newname.txt');
+  });
+
+  it('allows reloading files', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const [reloadPromise, reloadPromiseController] = controlledPromise();
+    const reload = jest.fn().mockReturnValue(reloadPromise);
+
+    const mockProvider = {} as Partial<FileBrowserProvider> as FileBrowserProvider;
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Ready', files: [] },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload,
+    };
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult);
+
+    render(
+      h(FilesInDirectory, {
+        provider: mockProvider,
+        path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
+        onClickFile: () => {},
+        onCreateDirectory: () => {},
+        onDeleteDirectory: () => {},
+        onError: () => {},
+      })
+    );
+
+    const refreshButton = screen.getByText('Refresh');
+
+    // Assert
+    expect(refreshButton.querySelector('[data-icon="sync"]')).not.toBeNull();
+
+    // Act
+    await user.click(refreshButton);
+
+    // Assert
+    expect(reload).toHaveBeenCalled();
+    expect(refreshButton).toHaveAttribute('disabled');
+    expect(refreshButton.querySelector('[data-icon="loadingSpinner"]')).not.toBeNull();
+
+    // Act
+    await act(async () => {
+      reloadPromiseController.resolve(undefined);
+    });
+
+    // Assert
+    expect(refreshButton).not.toHaveAttribute('disabled');
+    expect(refreshButton.querySelector('[data-icon="sync"]')).not.toBeNull();
   });
 });

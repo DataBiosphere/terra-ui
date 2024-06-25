@@ -127,6 +127,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
                   setSelectedFiles({});
                   reload();
                 },
+                onRefresh: reload,
               }),
 
               h(NoticeForPath, {

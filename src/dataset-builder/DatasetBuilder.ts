@@ -4,7 +4,7 @@ import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'rea
 import { div, h, h2, h3, label, li, span, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
@@ -151,7 +151,7 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
     datasetBuilderObjectSets &&
     _.flatMap((datasetBuilderObjectSet) => datasetBuilderObjectSet.values, datasetBuilderObjectSets).length > 0;
 
-  return li({ style: { width: '30%', ...style } }, [
+  return li({ style: { width: '45%', ...style } }, [
     div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
       div({ style: { display: 'flex' } }, [
         div(
@@ -314,13 +314,13 @@ export const CohortSelector = ({
   return h(Fragment, [
     h(Selector<Cohort>, {
       headerAction: h(
-        Link,
+        ButtonOutline,
         {
+          style: { borderRadius: 0, fill: 'white', textTransform: 'none' },
           onClick: () => setCreatingCohort(true),
-          'aria-label': 'Create new cohort',
           'aria-haspopup': 'dialog',
         },
-        [icon('plus-circle-filled', { size: 24 })]
+        ['Find participants']
       ),
       number: 1,
       onChange,
@@ -355,7 +355,7 @@ export const CohortSelector = ({
         },
       ],
       selectedObjectSets: selectedCohorts,
-      header: 'Select cohorts',
+      header: 'Select participants',
       subheader: 'Which participants to include',
       placeholder: div([
         h(SelectorSubHeader, ['No cohorts yet']),
@@ -409,43 +409,9 @@ export const ConceptSetSelector = ({
       { header: 'Prepackaged concept sets', values: prepackagedConceptSets ?? [] },
     ],
     selectedObjectSets: selectedConceptSets,
-    header: 'Select concept sets',
+    header: 'Select data about participants',
     subheader: 'Which information to include about participants',
     style: { marginLeft: '1rem' },
-  });
-};
-
-export const ValuesSelector = ({
-  selectedValues,
-  values,
-  onChange,
-}: {
-  selectedValues: HeaderAndValues<DatasetBuilderValue>[];
-  values: HeaderAndValues<DatasetBuilderValue>[];
-  onChange: (values: HeaderAndValues<DatasetBuilderValue>[]) => void;
-}) => {
-  return h(Selector, {
-    headerAction: div([
-      h(
-        LabeledCheckbox,
-        {
-          checked: values.length !== 0 && _.isEqual(values, selectedValues),
-          onChange: (checked) => (checked ? onChange(values) : onChange([])),
-          disabled: values.length === 0,
-        },
-        [label({ style: { paddingLeft: '0.5rem' } }, ['Select All'])]
-      ),
-    ]),
-    number: 3,
-    onChange,
-    objectSets: values,
-    selectedObjectSets: selectedValues,
-    header: 'Select values (columns)',
-    placeholder: div([
-      div(['No inputs selected']),
-      div(['You can view the available values by selecting at least one cohort and concept set']),
-    ]),
-    style: { width: '40%', marginLeft: '1rem' },
   });
 };
 
@@ -551,7 +517,6 @@ export const DatasetBuilderContents = ({
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
-  const [values, setValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
@@ -560,8 +525,7 @@ export const DatasetBuilderContents = ({
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
 
-  const requestValid =
-    allCohorts.length > 0 && allConceptSets.length > 0 && _.flatMap('values', selectedValues).length > 0;
+  const requestValid = allCohorts.length > 0 && allConceptSets.length > 0;
 
   useEffect(() => {
     requestValid &&
@@ -587,16 +551,6 @@ export const DatasetBuilderContents = ({
       includedFeatureValueGroups
     );
 
-  const getAvailableValuesFromFeatureGroups = (featureValueGroups: string[]): HeaderAndValues<DatasetBuilderValue>[] =>
-    _.flow(
-      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
-      _.sortBy('name'),
-      _.map((featureValueGroup: FeatureValueGroup) => ({
-        header: featureValueGroup.name,
-        values: _.map((value) => ({ name: value }), featureValueGroup.values),
-      }))
-    )(snapshotBuilderSettings.featureValueGroups);
-
   const createHeaderAndValuesFromFeatureValueGroups = (
     featureValueGroups: string[]
   ): HeaderAndValues<DatasetBuilderValue>[] =>
@@ -611,9 +565,10 @@ export const DatasetBuilderContents = ({
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
-        h2(['Datasets']),
-        div([
-          'Build a dataset by selecting the concept sets and values for one or more of your cohorts. Then export the completed dataset to Notebooks where you can perform your analysis',
+        h2(['Data Snapshots']),
+        div(['Build a snapshot by selecting the participants and data for one or more of your cohorts.']),
+        div({ style: { marginTop: '5px', whiteSpace: 'pre-line' } }, [
+          'Then, request access in order to export the data snapshot to a Terra Workspace, where you can perform your analysis.',
         ]),
         ul({ style: { display: 'flex', width: '100%', marginTop: '2rem', listStyleType: 'none', padding: 0 } }, [
           h(CohortSelector, {
@@ -641,14 +596,8 @@ export const DatasetBuilderContents = ({
                 ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups),
               ]);
               setSelectedConceptSets(conceptSets);
-              setValues(getAvailableValuesFromFeatureGroups(includedFeatureValueGroups));
             },
             onStateChange,
-          }),
-          h(ValuesSelector, {
-            selectedValues,
-            values,
-            onChange: setSelectedValues,
           }),
         ]),
       ]),

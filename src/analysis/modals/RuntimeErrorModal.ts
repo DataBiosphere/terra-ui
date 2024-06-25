@@ -1,9 +1,8 @@
-import { Modal, ModalProps, useBusyState, useThemeFromContext } from '@terra-ui-packages/components';
+import { Modal, ModalProps, SpinnerOverlay, useBusyState, useThemeFromContext } from '@terra-ui-packages/components';
 import { withHandlers } from '@terra-ui-packages/core-utils';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import { ReactNode, useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { spinnerOverlay } from 'src/components/common';
 import { LeoRuntimeProvider, RuntimeBasics } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
 
 export type RuntimeErrorProvider = Pick<LeoRuntimeProvider, 'errorInfo'>;
@@ -11,6 +10,7 @@ export type RuntimeErrorProvider = Pick<LeoRuntimeProvider, 'errorInfo'>;
 export const text = {
   error: {
     title: {
+      // If you update this text, update `run-analysis-azure`
       standard: 'Cloud Environment is in error state',
       userScript: 'Cloud Environment is in error state due to Userscript Error',
     },
@@ -70,7 +70,7 @@ export const RuntimeErrorModal = (props: RuntimeErrorModalProps): ReactNode => {
         },
         [errorMessage]
       ),
-      loadingRuntimeDetails && spinnerOverlay,
+      loadingRuntimeDetails && h(SpinnerOverlay),
     ]
   );
 };

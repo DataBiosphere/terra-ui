@@ -14,7 +14,6 @@ interface BuilderPageHeaderProps {
 
 const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
-const DATASET_NAME = 'AnalytixIN ';
 
 // The dataset builder has "pages" each of which has a similarly styled header.
 export const BuilderPageHeader = (props: BuilderPageHeaderProps) => {
@@ -35,16 +34,15 @@ export const DatasetBuilderHeader = ({ snapshotId }: DatasetBuilderHeaderProps) 
         breadcrumbs: [
           { title: 'Data Browser', link: Nav.getLink('library-datasets') },
           {
-            title: DATASET_NAME,
+            title: 'Overview',
             link: Nav.getLink('dataset-builder-details', { snapshotId }),
           },
         ],
       }),
-      h1([DATASET_NAME, ' Dataset Builder']),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        'Create groups of participants based on a specific criteria. You can also save any criteria grouping as a concept set using the menu icon next to the Participant Group title.',
+        h1(['Data Explorer']),
         div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', width: '20rem' } }, [
-          div({ style: { fontWeight: 600 } }, ['Have questions']),
+          div({ style: { fontWeight: 600 } }, ['Have questions?']),
           // TODO (DC-705): Link to proper place
           h(Link, { href: Nav.getLink('root'), style: { textDecoration: 'underline' } }, [
             'See supporting documentation',

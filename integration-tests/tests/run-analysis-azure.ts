@@ -69,8 +69,28 @@ const testRunAnalysisAzure = _.flowRight(
   await findElement(page, clickable({ textContains: 'JupyterLab Environment' }));
   await findElement(page, clickable({ textContains: 'Creating' }));
 
-  // Wait for env to finish creating, or break early on error
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(25) });
+  // Wait for env to finish creating, or break early on only errors related to runtime creation
+  const getErrorXPath = (text) => `//*[@role='alert' and contains(normalize-space(.),'${text}')]`;
+
+  await Promise.race([
+    findElement(page, clickable({ textContains: 'Running' }), { timeout: Millis.ofMinutes(25) }),
+    findElement(page, getErrorXPath('Error Creating Cloud Environment'), { timeout: Millis.ofMinutes(25) }),
+    findElement(page, getErrorXPath('Error modifying cloud environment'), { timeout: Millis.ofMinutes(25) }),
+  ]);
+
+  let hasRelevantError = false;
+  try {
+    await findElement(page, getErrorXPath('Error Creating Cloud Environment'), { timeout: Millis.ofSecond });
+    hasRelevantError = true;
+  } catch {}
+  try {
+    await findElement(page, getErrorXPath('Error modifying cloud environment'), { timeout: Millis.ofSecond });
+    hasRelevantError = true;
+  } catch {}
+
+  if (hasRelevantError) {
+    throw new Error('Failed to create cloud environment');
+  }
 
   // Here, we dismiss any errors or popups. Its common another areas of the application might throw an error or have pop-ups.
   // However, as long as we have a running runtime (which the previous section asserts), the pop-up is not relevant

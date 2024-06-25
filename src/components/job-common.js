@@ -220,5 +220,4 @@ const costComprehension = ({ taskStartTime, taskEndTime, vmCostUsd }) => {
   } else {
     total += getTaskCost({ vmCostUsd, taskStartTime });
   }
-  return total;
 };

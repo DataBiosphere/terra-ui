@@ -12,7 +12,6 @@ const styles = {
   clickableLink: {
     display: 'inline',
     color: colors.accent(),
-    cursor: 'pointer',
     fontWeight: 500,
   },
 };
@@ -23,14 +22,13 @@ interface ClipboardButtonProps extends PropsWithChildren<ClickableProps> {
 }
 
 export const ClipboardButton = (props: ClipboardButtonProps): ReactNode => {
-  const { text, children, iconSize, onClick, ...rest } = props;
+  const { text, children, iconSize, style, onClick, ...rest } = props;
   const [copied, setCopied] = useState(false);
 
   return (
     <Clickable
       tooltip={copied ? 'Copied to clipboard' : 'Copy to clipboard'}
-      style={styles.clickableLink}
-      /* eslint-disable-next-line react/jsx-props-no-spreading */
+      style={{ ...styles.clickableLink, ...style }}
       {...rest}
       onClick={_.flow(
         withErrorReporting('Error copying to clipboard'),

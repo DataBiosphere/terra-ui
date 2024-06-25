@@ -1,6 +1,7 @@
+import { Icon, SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { h } from 'react-hyperscript-helpers';
+import { h, p } from 'react-hyperscript-helpers';
 import { AddUsersStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep';
 import { AzureSubscriptionStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep';
 import { CreateNamedProjectStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
@@ -8,8 +9,8 @@ import { ProtectedDataStep } from 'src/billing/NewBillingProjectWizard/AzureBill
 import { StepWizard } from 'src/billing/NewBillingProjectWizard/StepWizard/StepWizard';
 import { billingProjectNameValidator } from 'src/billing/utils';
 import { AzureManagedAppCoordinates, BillingRole } from 'src/billing-core/models';
-import { customSpinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
+import { isAnvil } from 'src/libs/brand-utils';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { useOnMount } from 'src/libs/react-utils';
@@ -139,8 +140,17 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       StepWizard,
       {
         title: 'Link an Azure Subscription to Terra',
-        intro: `The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in a Terra workspace.
-        Cloud costs are billed directly from Azure and passed through Terra billing projects with no markup.`,
+        intro: h(Fragment, [
+          p([
+            'The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in a Terra workspace. ',
+            'Cloud costs are billed directly from Azure and passed through Terra billing projects with no markup.',
+          ]),
+          isAnvil() &&
+            p({ style: { fontWeight: 'bold' } }, [
+              h(Icon, { icon: 'info-circle', size: 14, style: { marginRight: '0.5rem' } }),
+              'Working with NHGRI data on Azure? Set up your Terra Managed Application in the South Central US region to reduce egress costs.',
+            ]),
+        ]),
       },
       [
         h(AzureSubscriptionStep, {
@@ -215,6 +225,6 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
         }),
       ]
     ),
-    isBusy && customSpinnerOverlay({ height: '100vh', width: '100vw', position: 'fixed' }),
+    isBusy && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
 };
