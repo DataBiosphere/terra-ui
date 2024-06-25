@@ -5,7 +5,7 @@
     "build": "vite build --emptyOutDir",
     "dev": "vite build --mode=development --watch",
     "test": "jest",
-    "optimize-image-svgs": "svgo -f src/internal/icons -r"
+    "optimize-image-svgs": "svgo --config=svgo.config.mjs src/internal/icons -r"
   },
   "type": "module",
   "module": "./lib/es/index.js",

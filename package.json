@@ -68,7 +68,7 @@
     "build-packages": "yarn workspaces foreach --include '@terra-ui-packages/*' --parallel --topological-dev run build",
     "lint": "eslint --fix --max-warnings=0 .",
     "optimize-src-image-svgs": "svgo -f src/images -r",
-    "optimize-image-svgs": "yarn workspace '@terra-ui-packages/components' run optimize-image-svgs",
+    "optimize-image-svgs": "yarn optimize-src-image-svgs && yarn workspace '@terra-ui-packages/components' run optimize-image-svgs",
     "preinstall": "node .hooks/check-engine-light.js",
     "test": "yarn run build-packages >/dev/null && jest",
     "check-dts": "check-dts types/**/*.ts",
