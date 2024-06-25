@@ -10,7 +10,10 @@ import {
   fetchOk,
   jsonBody,
   makeRequestRetry,
+  withAppIdentifier,
+  withAuthSession,
 } from 'src/libs/ajax/ajax-common';
+import { LeoRuntimesV1DataClient, makeLeoRuntimesV1DataClient } from 'src/libs/ajax/leonardo/LeoRuntimesV1DataClient';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
 import {
   getRegionFromZone,
@@ -65,14 +68,17 @@ const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedCompute
   return regionNotFoundPlaceholder as NormalizedComputeRegion;
 };
 
-export const Runtimes = (signal: AbortSignal) => {
+export type RuntimesHelperDeps = {
+  v1Api: LeoRuntimesV1DataClient;
+};
+export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal: AbortSignal) => {
+  const { v1Api } = deps;
   const v1Func = (project: string, name: string) => {
     const root = `api/google/v1/runtimes/${project}/${name}`;
 
     return {
       details: async (): Promise<GetRuntimeItem> => {
-        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]));
-        const getItem: RawGetRuntimeItem = await res.json();
+        const getItem = await v1Api.details(project, name, { signal });
         return { ...getItem, runtimeConfig: getNormalizedComputeConfig(getItem.runtimeConfig) };
       },
 
@@ -105,12 +111,12 @@ export const Runtimes = (signal: AbortSignal) => {
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]));
       },
 
-      start: (): Promise<void> => {
-        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]));
+      start: async (): Promise<void> => {
+        await v1Api.start(project, name, { signal });
       },
 
-      stop: (): Promise<void> => {
-        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]));
+      stop: async (): Promise<void> => {
+        await v1Api.stop(project, name, { signal });
       },
 
       delete: (deleteDisk: boolean): Promise<void> => {
@@ -325,6 +331,12 @@ export const Runtimes = (signal: AbortSignal) => {
 const getNormalizedListRuntime = (runtime: RawListRuntimeItem): ListRuntimeItem => ({
   ...runtime,
   runtimeConfig: getNormalizedComputeConfig(runtime.runtimeConfig),
+});
+
+export const Runtimes = makeRuntimesHelper({
+  v1Api: makeLeoRuntimesV1DataClient({
+    fetchAuthedLeo: withAuthSession(withAppIdentifier(fetchLeo)),
+  }),
 });
 
 export type RuntimesAjaxContract = ReturnType<typeof Runtimes>;

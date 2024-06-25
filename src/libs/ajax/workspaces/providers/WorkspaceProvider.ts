@@ -1,5 +1,5 @@
 import { Ajax } from 'src/libs/ajax';
-import { AbortOption } from 'src/libs/ajax/data-provider-common';
+import { AbortOption } from 'src/libs/ajax/data-client-common';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 export type FieldsArg = string[];
