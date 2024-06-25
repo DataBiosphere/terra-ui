@@ -109,9 +109,13 @@ const ObjectSetListSection = <T extends DatasetBuilderType>(props: ObjectSetList
 };
 
 export interface HeaderAndValues<T extends DatasetBuilderType> {
-  header: string;
+  header?: string;
   values: T[];
   makeIcon?: (value, header) => ReactElement;
+}
+
+export interface RequiredHeaderAndValues<T extends DatasetBuilderType> extends HeaderAndValues<T> {
+  header: string;
 }
 
 interface SelectorProps<T extends DatasetBuilderType> {
@@ -374,10 +378,7 @@ export const ConceptSetSelector = ({
   return h(Selector<ConceptSet>, {
     number: 2,
     onChange,
-    objectSets: [
-      { header: '', values: conceptSets },
-      { header: '', values: prepackagedConceptSets ?? [] },
-    ],
+    objectSets: [{ values: [...conceptSets, ...(prepackagedConceptSets ?? [])] }],
     selectedObjectSets: selectedConceptSets,
     header: 'Select data about participants',
     subheader: 'Which information to include about participants',
@@ -486,7 +487,7 @@ export const DatasetBuilderContents = ({
 }: DatasetBuilderContentsProps) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as HeaderAndValues<DatasetBuilderValue>[]);
+  const [selectedValues, setSelectedValues] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
@@ -510,7 +511,7 @@ export const DatasetBuilderContents = ({
     _.without(
       [
         ..._.flatMap(
-          (selectedValueGroups: HeaderAndValues<DatasetBuilderValue>) => selectedValueGroups.header,
+          (selectedValueGroups: RequiredHeaderAndValues<DatasetBuilderValue>) => selectedValueGroups.header,
           selectedValues
         ),
         ..._.flow(
@@ -523,7 +524,7 @@ export const DatasetBuilderContents = ({
 
   const createHeaderAndValuesFromFeatureValueGroups = (
     featureValueGroups: string[]
-  ): HeaderAndValues<DatasetBuilderValue>[] =>
+  ): RequiredHeaderAndValues<DatasetBuilderValue>[] =>
     _.flow(
       _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
       _.map((featureValueGroup: FeatureValueGroup) => ({
@@ -594,7 +595,7 @@ export const DatasetBuilderContents = ({
                         cohorts,
                         conceptSets,
                         _.map(
-                          (valuesSet: HeaderAndValues<DatasetBuilderValue>) => ({
+                          (valuesSet: RequiredHeaderAndValues<DatasetBuilderValue>) => ({
                             domain: valuesSet.header,
                             values: valuesSet.values,
                           }),
