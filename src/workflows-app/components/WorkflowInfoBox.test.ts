@@ -39,7 +39,7 @@ describe('Workflow Info Box Rendering', () => {
     await act(() => render(h(WorkflowInfoBox, mockWorkflowInfoBoxProps)));
 
     // Assert
-    expect(screen.getByText('Workflow Timing:')).toBeInTheDocument();
+    screen.getByText('Workflow Timing:');
     const expectedStartTime = makeCompleteDate(mockRunDetailsMetadata.start);
     const expectedEndTime = makeCompleteDate(mockRunDetailsMetadata.end!);
     const startTimeContainer = screen.getByLabelText('Workflow Start Container');
