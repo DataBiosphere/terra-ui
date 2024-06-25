@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 14">
-    <g fill="none" fill-rule="evenodd">
-        <mask id="rename-icon_svg__a" fill="#fff">
-            <path d="M0 11.5h15V14H0v-2.5zM6.9.9H8l3.5 8.7h-1.4l-.8-1.8H5.5l-.7 1.8H3.4L7 1zM6 6.5h3l-1.5-4-1.5 4z"/>
-        </mask>
-        <g mask="url(#rename-icon_svg__a)">
-            <path fill="currentColor" d="M-8.1-9.1h31v31h-31z"/>
-        </g>
+  <g fill="none" fill-rule="evenodd">
+    <mask id="rename-icon" fill="#fff">
+      <path d="M0 11.5h15V14H0v-2.5zM6.9.9H8l3.5 8.7h-1.4l-.8-1.8H5.5l-.7 1.8H3.4L7 1zM6 6.5h3l-1.5-4-1.5 4z"/>
+    </mask>
+    <g mask="url(#rename-icon)">
+      <path fill="currentColor" d="M-8.1-9.1h31v31h-31z"/>
     </g>
+  </g>
 </svg>
