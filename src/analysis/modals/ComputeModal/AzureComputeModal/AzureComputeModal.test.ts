@@ -22,6 +22,7 @@ import { RuntimeAjaxContractV2 } from 'src/libs/ajax/leonardo/Runtimes';
 import { WorkspaceManagerResources, WorkspaceManagerResourcesContract } from 'src/libs/ajax/WorkspaceManagerResources';
 import { azureMachineTypes, defaultAzureMachineType, getMachineTypeLabel } from 'src/libs/azure-utils';
 import { formatUSD } from 'src/libs/utils';
+import { azureBillingProfile } from 'src/testing/billing-profile-fixtures';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -81,38 +82,12 @@ describe('AzureComputeModal', () => {
     // Arrange
     asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl);
 
-    const billingProfile = {
-      id: '04cb122b-89a7-4b92-ad69-35f9877406ef',
-      biller: 'direct',
-      displayName: 'TestBillingProfile',
-      description: 'This is only a test.',
-      cloudPlatform: 'AZURE',
-      tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-      subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-      managedResourceGroupId: 'TestMRG',
-      createdDate: '2024-05-28T18:29:26.333295Z',
-      lastModified: '2024-05-28T18:29:26.333295Z',
-      createdBy: 'user@example.com',
-      policies: {
-        inputs: [
-          {
-            namespace: 'terra',
-            name: 'protected-data',
-            additionalData: [],
-          },
-        ],
-      },
-      organization: {
-        enterprise: false,
-      },
-    };
-
-    const getWorkspace = jest.fn(() => Promise.resolve({ spendProfile: billingProfile.id }));
+    const getWorkspace = jest.fn(() => Promise.resolve({ spendProfile: azureBillingProfile.id }));
     asMockedFn(WorkspaceManagerResources).mockImplementation(
       () => ({ getWorkspace } as Partial<WorkspaceManagerResourcesContract> as WorkspaceManagerResourcesContract)
     );
 
-    const getBillingProfile = jest.fn(() => Promise.resolve(billingProfile));
+    const getBillingProfile = jest.fn(() => Promise.resolve(azureBillingProfile));
     asMockedFn(Billing).mockImplementation(
       () => ({ getBillingProfile } as Partial<BillingContract> as BillingContract)
     );
@@ -502,28 +477,9 @@ describe('AzureComputeModal', () => {
       asMockedFn(Billing).mockReturnValue(
         partial<BillingContract>({
           getBillingProfile: jest.fn().mockResolvedValue({
-            id: '04cb122b-89a7-4b92-ad69-35f9877406ef',
-            biller: 'direct',
-            displayName: 'TestBillingProfile',
-            description: 'This is only a test.',
-            cloudPlatform: 'AZURE',
-            tenantId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-            subscriptionId: 'aaaabbbb-cccc-dddd-0000-111122223333',
-            managedResourceGroupId: 'TestMRG',
-            createdDate: '2024-05-28T18:29:26.333295Z',
-            lastModified: '2024-05-28T18:29:26.333295Z',
-            createdBy: 'user@example.com',
-            policies: {
-              inputs: [
-                {
-                  namespace: 'terra',
-                  name: 'protected-data',
-                  additionalData: [],
-                },
-              ],
-            },
+            ...azureBillingProfile,
             organization: {
-              enterprise: false,
+              ...azureBillingProfile.organization,
               limits: {
                 machinetypes: 'Standard_DS2_v2,Standard_DS3_v2',
                 autopause: '30',
