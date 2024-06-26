@@ -9,16 +9,25 @@ const meta: Meta<typeof Link> = {
   },
   tags: ['autodocs'],
   argTypes: {
-    baseColor: {
-      control: 'color',
-      description: 'Base color of the link.',
-      table: {
-        defaultValue: { summary: 'transparent' },
-      },
-    },
     children: {
       control: 'text',
       description: 'Link text',
+    },
+    href: {
+      control: 'text',
+      description: 'URL destination of the link',
+    },
+    tooltip: {
+      control: 'text',
+      description: 'Tooltip text',
+    },
+    tooltipSide: {
+      control: 'select',
+      options: ['top', 'right', 'bottom', 'left'],
+      description: 'Tooltip position',
+      table: {
+        defaultValue: { summary: 'bottom' },
+      },
     },
     disabled: {
       control: 'boolean',
@@ -35,10 +44,6 @@ const meta: Meta<typeof Link> = {
         defaultValue: { summary: 'undefined' },
       },
     },
-    hover: {
-      control: 'text',
-      description: 'tooltip text',
-    },
   },
 };
 
@@ -51,5 +56,7 @@ export const Primary: Story = {
     href: 'https://support.terra.bio',
     disabled: false,
     variant: undefined,
+    tooltip: undefined,
+    tooltipSide: 'bottom',
   },
 };
