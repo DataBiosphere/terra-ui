@@ -44,6 +44,7 @@ export const WorkflowInfoBox = (props: WorkflowInfoBoxProps): ReactNode => {
         signal,
         includeKeys: ['start', 'end', 'submittedFiles', 'status', 'workflowLog', 'workflowRoot'],
         excludeKeys: ['calls'], // NB: Calls can be very large, so it's important for performance to exclude them from the web request (in this component)
+        expandSubWorkflows: false,
       });
       const data: FetchedWorkflowInfoData = {
         start: metadata.start,
