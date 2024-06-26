@@ -4,6 +4,7 @@ import {
   Cohort,
   convertCohort,
   convertCriteria,
+  convertDomainOptionToConceptSet,
   convertValueSet,
   createSnapshotAccessRequest,
   CriteriaGroup,
@@ -23,6 +24,7 @@ import {
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
   SnapshotBuilderCriteriaGroup,
+  SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
   SnapshotBuilderFeatureValueGroup,
@@ -41,15 +43,22 @@ const concept: SnapshotBuilderConcept = {
   hasChildren: false,
 };
 
+const domainOptionName = 'category';
+
 const domainOption: SnapshotBuilderDomainOption = {
   id: 1,
-  name: 'category',
+  name: domainOptionName,
   kind: 'domain',
   tableName: 'category_occurrence',
   columnName: 'category_concept_id',
   conceptCount: 10,
   participantCount: 20,
   root: concept,
+};
+
+const domainConceptSet: SnapshotBuilderDatasetConceptSet = {
+  name: domainOptionName,
+  featureValueGroupName: domainOptionName,
 };
 
 const domainCriteria: ProgramDomainCriteria = {
@@ -168,6 +177,12 @@ const datasetAccessRequestApi: SnapshotAccessRequestApi = {
   researchPurposeStatement: 'purpose',
   snapshotBuilderRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
 };
+
+describe('test conversion of a domainOption to a domainConceptSet', () => {
+  test('domainOption converted to domainConceptSet', () => {
+    expect(convertDomainOptionToConceptSet(domainOption)).toStrictEqual(domainConceptSet);
+  });
+});
 
 describe('test conversion of criteria', () => {
   test('domainCriteria converted to domainCriteriaApi', () => {

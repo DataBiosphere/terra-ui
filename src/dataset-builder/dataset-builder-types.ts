@@ -11,13 +11,6 @@ export const newCriteriaGroup = (): CriteriaGroup => {
   };
 };
 
-export type SnapshotBuilderConceptNode = {
-  id: number;
-  concept: Concept;
-  children: number[];
-  parent?: number;
-};
-
 export const newCohort = (name: string): Cohort => {
   return {
     name,
@@ -111,22 +104,9 @@ export const domainCriteriaSearchState = {
   }),
 };
 
-export interface ConceptSetCreatorState extends DatasetBuilderState {
-  mode: 'concept-set-creator';
-  cart: Concept[];
-}
-
-export const conceptSetCreatorState = {
-  new: (cart: Concept[]): ConceptSetCreatorState => ({
-    mode: 'concept-set-creator',
-    cart,
-  }),
-};
-
 export type AnyDatasetBuilderState =
   | HomepageState
   | CohortEditorState
-  | ConceptSetCreatorState
   | DomainCriteriaSelectorState
   | DomainCriteriaSearchState;
 
