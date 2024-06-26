@@ -1,9 +1,9 @@
-import { Spinner, TooltipTrigger } from '@terra-ui-packages/components';
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, h1, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
+import { icon } from 'src/components/icons';
 import { calculateTotalCost, collapseStatus } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
@@ -105,33 +105,29 @@ export const BaseRunDetails = (
     []
   );
   const excludeKey = useMemo(() => [], []);
-  const oneKey = useMemo(() => ['calls', 'subWorkflowId', 'taskStartTime', 'taskEndTime', 'vmCostUsd'], []);
+  const keysForCost = useMemo(() => ['calls', 'subWorkflowId', 'taskStartTime', 'taskEndTime', 'vmCostUsd'], []);
 
   const loadForSubworkflows = useCallback(
     async (workflowId) => {
       try {
-        // console.log(workflowId);
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
-        const meta = await fetchMetadata({
+        return await fetchMetadata({
           cromwellProxyUrl: cromwellProxyUrlState.state,
           workflowId,
           signal,
-          includeKeys: oneKey,
+          includeKeys: keysForCost,
           expandSubWorkflows: true,
         });
-        // console.log(meta);
-        return meta;
       } catch (error) {
         notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [oneKey, signal, workspaceId]
+    [keysForCost, signal, workspaceId]
   );
 
   const loadWorkflow = useCallback(
     async (workflowId, updateWorkflowPath = undefined) => {
       try {
-        // console.log(workflowId);
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
           let failedTasks = {};
@@ -152,7 +148,7 @@ export const BaseRunDetails = (
           }
           const { workflowName } = metadata;
           if (_.isNil(updateWorkflowPath)) {
-            const getCost = await calculateTotalCost(metadataCalls, loadForSubworkflows);
+            const getCost = await calculateTotalCost(metadata?.calls, loadForSubworkflows);
             setWorkflow(metadata);
             setCost(getCost);
           }
