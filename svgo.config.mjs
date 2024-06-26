@@ -4,7 +4,7 @@ export default {
     indent: 2, // number
     pretty: true, // boolean
   },
-  floatPrecision: 1,
+  floatPrecision: 2,
   plugins: [
     'preset-default', // built-in plugins enabled by default
     'prefixIds', // enable built-in plugins by name
