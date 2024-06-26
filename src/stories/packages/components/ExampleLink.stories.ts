@@ -29,6 +29,13 @@ const meta: Meta<typeof Link> = {
         defaultValue: { summary: 'bottom' },
       },
     },
+    tooltipDelay: {
+      control: 'number',
+      description: 'Tooltip delay in milliseconds',
+      table: {
+        defaultValue: { summary: 'undefined' },
+      },
+    },
     disabled: {
       control: 'boolean',
       description: 'Should the link be disabled?',
@@ -38,7 +45,7 @@ const meta: Meta<typeof Link> = {
     },
     variant: {
       control: 'select',
-      options: ['light'],
+      options: [undefined, 'light'],
       description: 'Default color, or lighter variant?',
       table: {
         defaultValue: { summary: 'undefined' },
@@ -58,5 +65,6 @@ export const Primary: Story = {
     variant: undefined,
     tooltip: undefined,
     tooltipSide: 'bottom',
+    tooltipDelay: undefined,
   },
 };
