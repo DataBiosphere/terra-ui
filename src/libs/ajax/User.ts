@@ -197,43 +197,61 @@ export const User = (signal?: AbortSignal) => {
     },
 
     getSamUserCombinedState: async (): Promise<SamUserCombinedStateResponse> => {
-      const res = await fetchSam('api/users/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
-      const responseJson = await res.json();
-      const samUser: SamUserResponse = {
-        id: responseJson.samUser.id,
-        googleSubjectId: responseJson.samUser.googleSubjectId,
-        email: responseJson.samUser.email,
-        azureB2CId: responseJson.samUser.azureB2CId,
-        allowed: responseJson.samUser.allowed,
-        createdAt: responseJson.samUser.createdAt ? new Date(responseJson.samUser.createdAt) : undefined,
-        registeredAt: responseJson.samUser.registeredAt ? new Date(responseJson.samUser.registeredAt) : undefined,
-        updatedAt: responseJson.samUser.updatedAt ? new Date(responseJson.samUser.updatedAt) : undefined,
-      };
+      try {
+        const res = await fetchSam('api/users/v2/self/combinedState', _.mergeAll([authOpts(), { signal }]));
+        const responseJson = await res.json();
+        const samUser: SamUserResponse = {
+          id: responseJson.samUser.id,
+          googleSubjectId: responseJson.samUser.googleSubjectId,
+          email: responseJson.samUser.email,
+          azureB2CId: responseJson.samUser.azureB2CId,
+          allowed: responseJson.samUser.allowed,
+          createdAt: responseJson.samUser.createdAt ? new Date(responseJson.samUser.createdAt) : undefined,
+          registeredAt: responseJson.samUser.registeredAt ? new Date(responseJson.samUser.registeredAt) : undefined,
+          updatedAt: responseJson.samUser.updatedAt ? new Date(responseJson.samUser.updatedAt) : undefined,
+        };
 
-      const terraUserAllowances: SamUserAllowances = responseJson.allowances;
+        const terraUserAllowances: SamUserAllowances = responseJson.allowances;
 
-      const terraUserAttributes: SamUserAttributes = { marketingConsent: responseJson.attributes.marketingConsent };
+        const terraUserAttributes: SamUserAttributes = { marketingConsent: responseJson.attributes.marketingConsent };
 
-      const termsOfService: SamUserTermsOfServiceDetails = {
-        latestAcceptedVersion: responseJson.termsOfServiceDetails.latestAcceptedVersion,
-        acceptedOn: responseJson.termsOfServiceDetails.acceptedOn
-          ? new Date(responseJson.termsOfServiceDetails.acceptedOn)
-          : undefined,
-        permitsSystemUsage: responseJson.termsOfServiceDetails.permitsSystemUsage,
-        isCurrentVersion: responseJson.termsOfServiceDetails.isCurrentVersion,
-      };
+        const termsOfService: SamUserTermsOfServiceDetails = {
+          latestAcceptedVersion: responseJson.termsOfServiceDetails.latestAcceptedVersion,
+          acceptedOn: responseJson.termsOfServiceDetails.acceptedOn
+            ? new Date(responseJson.termsOfServiceDetails.acceptedOn)
+            : undefined,
+          permitsSystemUsage: responseJson.termsOfServiceDetails.permitsSystemUsage,
+          isCurrentVersion: responseJson.termsOfServiceDetails.isCurrentVersion,
+        };
 
-      const enterpriseFeatures = responseJson.additionalDetails.enterpriseFeatures
-        ? responseJson.additionalDetails.enterpriseFeatures.resources.map((resource) => resource.resourceId)
-        : [];
+        const enterpriseFeatures = responseJson.additionalDetails.enterpriseFeatures
+          ? responseJson.additionalDetails.enterpriseFeatures.resources.map((resource) => resource.resourceId)
+          : [];
 
-      return {
-        samUser,
-        terraUserAllowances,
-        terraUserAttributes,
-        termsOfService,
-        enterpriseFeatures,
-      };
+        return {
+          samUser,
+          terraUserAllowances,
+          terraUserAttributes,
+          termsOfService,
+          enterpriseFeatures,
+        };
+      } catch (error: unknown) {
+        if (error instanceof Response && error.status === 404) {
+          return {
+            samUser: undefined,
+            terraUserAllowances: undefined,
+            terraUserAttributes: undefined,
+            termsOfService: {
+              latestAcceptedVersion: undefined,
+              acceptedOn: undefined,
+              permitsSystemUsage: false,
+              isCurrentVersion: false,
+            },
+            enterpriseFeatures: [],
+          };
+        }
+        throw error;
+      }
     },
 
     registerWithProfile: async (
