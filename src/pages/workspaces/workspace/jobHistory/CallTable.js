@@ -99,8 +99,8 @@ const doesTaskHaveCostData = (task) => {
   return !!(task?.taskStartTime && task?.vmCostUsd);
 };
 
-const noCostData = (task, subWorkflowId) => {
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task?.startTime) {
+export const noCostData = (task, subWorkflowId) => {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task?.taskStartTime) {
     return true;
   }
 };
