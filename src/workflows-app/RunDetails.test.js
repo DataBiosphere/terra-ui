@@ -549,7 +549,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await userEvent.type(searchInput, 'Fetch');
     const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
-    expect(updatedRows.length).toEqual(5);
+    expect(updatedRows.length).toEqual(6);
     const updatedElement = within(updatedTable).getAllByText(taskName);
     expect(updatedElement.length).toEqual(1);
     expect(updatedElement[0].textContent).toEqual(taskName);
