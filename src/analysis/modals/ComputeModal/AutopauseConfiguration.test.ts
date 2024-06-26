@@ -127,4 +127,20 @@ describe('AutopauseConfiguration', () => {
     // Assert
     expect(onChangeAutopauseThreshold).toHaveBeenCalledWith(defaultAutopauseThreshold);
   });
+
+  it('shows a message describing minimum threshold', () => {
+    // Arrange/Act
+    setup();
+
+    // Assert
+    screen.getByText('Choose a duration of 10 minutes or more.');
+  });
+
+  it('shows a message describing minimum/maximum threshold', () => {
+    // Arrange/Act
+    setup({ minThreshold: 10, maxThreshold: 30 });
+
+    // Assert
+    screen.getByText('Choose a duration between 10 and 30 minutes.');
+  });
 });

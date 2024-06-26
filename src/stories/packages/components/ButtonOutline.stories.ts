@@ -35,7 +35,6 @@ const meta: Meta<typeof ButtonOutline> = {
       options: ['top', 'bottom', 'left', 'right'],
       control: 'select',
       description: 'where to display the tooltip',
-      defaultValue: 'bottom',
       table: {
         defaultValue: { summary: 'bottom' },
       },
@@ -46,7 +45,7 @@ const meta: Meta<typeof ButtonOutline> = {
 export default meta;
 type Story = StoryObj<typeof ButtonOutline>;
 
-export const Outline: Story = {
+export const Example: Story = {
   args: {
     tooltip: 'This can provide additional context',
     children: 'Cancel',
