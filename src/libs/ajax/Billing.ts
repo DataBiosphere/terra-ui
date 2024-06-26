@@ -7,6 +7,7 @@ import {
   fetchRawls,
   jsonBody,
 } from 'src/libs/ajax/ajax-common';
+import { WorkspacePolicy } from 'src/workspaces/utils';
 
 export interface GoogleBillingAccount {
   accountName: string;
@@ -24,6 +25,9 @@ export interface AzureManagedAppCoordinates {
 
 export interface Organization {
   enterprise?: boolean;
+
+  /** Resource limits for the billing profile. */
+  limits?: { [resource: string]: unknown };
 }
 
 export type CloudPlatform = 'GCP' | 'AZURE' | 'UNKNOWN';
@@ -64,6 +68,24 @@ export interface UnknownBillingProject extends BaseBillingProject {
 }
 
 export type BillingProject = AzureBillingProject | GCPBillingProject | UnknownBillingProject;
+
+export interface BillingProfile {
+  id: string;
+  biller: 'direct';
+  displayName: string;
+  description: string;
+  cloudPlatform: CloudPlatform;
+  tenantId?: string;
+  subscriptionId?: string;
+  managedResourceGroupId?: string;
+  createdDate: string;
+  lastModified: string;
+  createdBy: string;
+  policies: {
+    inputs: WorkspacePolicy[];
+  };
+  organization: Organization;
+}
 
 export const Billing = (signal?: AbortSignal) => ({
   listProjects: async (): Promise<BillingProject[]> => {
@@ -220,7 +242,15 @@ export const Billing = (signal?: AbortSignal) => ({
     );
     return response.json();
   },
+
+  getBillingProfile: (billingProfileId: string): Promise<BillingProfile> => {
+    return fetchBillingProfileManager(`profiles/v1/${billingProfileId}`, _.merge(authOpts(), { signal })).then((r) =>
+      r.json()
+    );
+  },
 });
+
+export type BillingContract = ReturnType<typeof Billing>;
 
 export const canUseWorkspaceProject = async ({
   canCompute,

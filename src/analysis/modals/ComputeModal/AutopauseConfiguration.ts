@@ -1,11 +1,11 @@
-import { icon, Link, useUniqueId } from '@terra-ui-packages/components';
+import { ExternalLink, useUniqueId } from '@terra-ui-packages/components';
+import { cond } from '@terra-ui-packages/core-utils';
 import { CSSProperties, ReactNode } from 'react';
-import { div, h, label, span } from 'react-hyperscript-helpers';
+import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { getAutopauseThreshold, isAutopauseEnabled } from 'src/analysis/utils/runtime-utils';
 import { LabeledCheckbox } from 'src/components/common';
 import { NumberInput } from 'src/components/input';
-import * as Utils from 'src/libs/utils';
 
 export interface AutopauseConfigurationProps {
   autopauseRequired?: boolean;
@@ -22,7 +22,7 @@ export const AutopauseConfiguration = (props: AutopauseConfigurationProps): Reac
     autopauseRequired = false,
     autopauseThreshold,
     disabled = false,
-    maxThreshold = 999,
+    maxThreshold = undefined,
     minThreshold = 10,
     style,
     onChangeAutopauseThreshold,
@@ -42,13 +42,12 @@ export const AutopauseConfiguration = (props: AutopauseConfigurationProps): Reac
       [span({ style: { ...computeStyles.label } }, ['Enable autopause'])]
     ),
     h(
-      Link,
+      ExternalLink,
       {
         style: { marginLeft: '1rem', verticalAlign: 'bottom' },
         href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5',
-        ...Utils.newTabLinkProps,
       },
-      ['Learn more about autopause.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+      ['Learn more about autopause.']
     ),
     div(
       {
@@ -64,7 +63,7 @@ export const AutopauseConfiguration = (props: AutopauseConfigurationProps): Reac
         h(NumberInput, {
           id: `${id}-threshold`,
           min: minThreshold,
-          max: maxThreshold,
+          max: maxThreshold || 999,
           isClearable: false,
           onlyInteger: true,
           disabled,
@@ -74,6 +73,7 @@ export const AutopauseConfiguration = (props: AutopauseConfigurationProps): Reac
             ? 'Autopause must be enabled to configure pause time.'
             : undefined,
           onChange: (v) => onChangeAutopauseThreshold(Number(v)),
+          'aria-describedby': `${id}-threshold-description`,
           'aria-label': 'Minutes of inactivity before autopausing',
         }),
         label(
@@ -85,5 +85,20 @@ export const AutopauseConfiguration = (props: AutopauseConfigurationProps): Reac
         ),
       ]
     ),
+    isAutopauseEnabled(autopauseThreshold) &&
+      (minThreshold !== undefined || maxThreshold !== undefined) &&
+      p(
+        {
+          id: `${id}-threshold-description`,
+        },
+        [
+          'Choose a duration ',
+          cond(
+            [minThreshold !== undefined && maxThreshold === undefined, () => `of ${minThreshold} minutes or more.`],
+            [minThreshold === undefined && maxThreshold !== undefined, () => `of ${maxThreshold} minutes or less.`],
+            () => `between ${minThreshold} and ${maxThreshold} minutes.`
+          ),
+        ]
+      ),
   ]);
 };
