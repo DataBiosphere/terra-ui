@@ -30,7 +30,7 @@ const meta: Meta<typeof ExternalLink> = {
 export default meta;
 type Story = StoryObj<typeof ExternalLink>;
 
-export const Primary: Story = {
+export const Example: Story = {
   args: {
     children: 'Terra Support',
     href: 'https://support.terra.bio',

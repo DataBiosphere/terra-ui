@@ -42,7 +42,6 @@ const meta: Meta<typeof ButtonPrimary> = {
       options: ['top', 'bottom', 'left', 'right'],
       control: 'select',
       description: 'where to display the tooltip',
-      defaultValue: 'bottom',
       table: {
         defaultValue: { summary: 'bottom' },
       },
@@ -53,7 +52,7 @@ const meta: Meta<typeof ButtonPrimary> = {
 export default meta;
 type Story = StoryObj<typeof ButtonPrimary>;
 
-export const Primary: Story = {
+export const Example: Story = {
   args: {
     danger: false,
     tooltip: 'This can provide additional context',
