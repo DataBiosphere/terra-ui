@@ -27,7 +27,7 @@ const meta: Meta<typeof Icon> = {
 export default meta;
 type Story = StoryObj<typeof Icon>;
 
-export const IconUsage: Story = {
+export const Example: Story = {
   args: {
     icon: 'arrowLeft',
     size: 30,
