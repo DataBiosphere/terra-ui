@@ -161,7 +161,7 @@ export const metadata = {
     ],
     'fetch_sra_to_bam.Fetch_SRA_to_BAM_3': [
       {
-        executionStatus: 'Done',
+        executionStatus: 'Running',
         returnCode: 0,
         jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
         backend: 'TES',
@@ -185,6 +185,21 @@ export const metadata = {
         returnCode: 0,
         jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
         backend: 'TES',
+        start: '2023-05-23T10:10:43.783Z',
+        backendStatus: 'Completed',
+        compressedDockerSize: 1339143280,
+        end: '2023-05-24T11:22:31.784Z',
+        dockerImageUsed: 'docker_img_uri',
+        attempt: 1,
+      },
+    ],
+    'fetch_sra_to_bam.Fetch_SRA_to_BAM_5': [
+      {
+        executionStatus: 'Done',
+        returnCode: 0,
+        jobId: '117f49d5_59bbeae7208642e686a1ca0f57c8c25a',
+        backend: 'TES',
+        taskEndTime: '2023-05-24T11:22:31.784Z',
         start: '2023-05-23T10:10:43.783Z',
         backendStatus: 'Completed',
         compressedDockerSize: 1339143280,

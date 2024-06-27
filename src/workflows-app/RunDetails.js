@@ -1,7 +1,7 @@
 import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
-import { div, h, h1, span } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { collapseStatus } from 'src/components/job-common';
@@ -251,7 +251,7 @@ export const BaseRunDetails = (
       [
         workflow === undefined,
         div({ style: { width: '100%' } }, [
-          h1({ style: { padding: '1rem 2rem 2rem' } }, [header]),
+          div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
           div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
             h(WorkflowInfoBox, { workflow, name, namespace, submissionId, workflowId, workspaceId, showLogModal }),
           ]),

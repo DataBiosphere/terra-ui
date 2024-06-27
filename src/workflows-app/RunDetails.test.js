@@ -221,13 +221,20 @@ describe('BaseRunDetails - render smoke test', () => {
     const cellsFromDataRow2 = within(task2Row).getAllByRole('cell');
     within(cellsFromDataRow2[7]).getByText(/In Progress -/); // Can't accurately calculate cost for an 'In Progress' task in a test
 
+    // Running task with no start time should be fetching cost data
     const task3Row = tableRows[2];
     const cellsFromDataRow3 = within(task3Row).getAllByRole('cell');
-    within(cellsFromDataRow3[7]).getByText('-');
+    within(cellsFromDataRow3[7]).getByText('Fetching cost information');
 
+    // Cache hit should display a dash
     const task4Row = tableRows[3];
     const cellsFromDataRow4 = within(task4Row).getAllByRole('cell');
     within(cellsFromDataRow4[7]).getByText('-');
+
+    // Task with no start/cost and 'Done' should display a dash
+    const task5Row = tableRows[4];
+    const cellsFromDataRow5 = within(task5Row).getAllByRole('cell');
+    within(cellsFromDataRow5[7]).getByText('-');
   });
 
   it('only shows failed tasks if a workflow has failed', async () => {
@@ -501,7 +508,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await userEvent.type(searchInput, 'Fetch');
     const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
-    expect(updatedRows.length).toEqual(5);
+    expect(updatedRows.length).toEqual(6);
     const updatedElement = within(updatedTable).getAllByText(taskName);
     expect(updatedElement.length).toEqual(1);
     expect(updatedElement[0].textContent).toEqual(taskName);

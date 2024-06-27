@@ -40,7 +40,7 @@ const meta: Meta<typeof SpinnerOverlay> = {
 export default meta;
 type Story = StoryObj<typeof SpinnerOverlay>;
 
-export const Overlay: Story = {
+export const Example: Story = {
   args: {},
   parameters: {
     // design: {

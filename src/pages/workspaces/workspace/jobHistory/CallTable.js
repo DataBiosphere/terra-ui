@@ -101,7 +101,7 @@ const doesTaskHaveCostData = (task) => {
 };
 
 const noCostData = (task) => {
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !task.startTime) {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !task?.taskStartTime) {
     return true;
   }
 };
