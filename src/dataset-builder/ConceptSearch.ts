@@ -2,7 +2,7 @@ import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
-import { ActionBar } from 'src/components/ActionBar';
+import { ACTION_BAR_HEIGHT, ActionBar } from 'src/components/ActionBar';
 import { LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
@@ -153,10 +153,13 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         : spinnerOverlay,
     ]),
     cart.length !== 0 &&
-      h(ActionBar, {
-        prompt: cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
-        actionText,
-        onClick: () => _.flow(onCommit)(cart),
-      }),
+      h(Fragment, [
+        div({ style: { width: '100%', height: ACTION_BAR_HEIGHT } }, []),
+        h(ActionBar, {
+          prompt: cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
+          actionText,
+          onClick: () => _.flow(onCommit)(cart),
+        }),
+      ]),
   ]);
 };
