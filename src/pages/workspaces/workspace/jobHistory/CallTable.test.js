@@ -12,8 +12,7 @@ describe('CallTable functions', () => {
         },
         taskStartTime: '2024-06-17T21:19:14.6913148',
       },
-      subWorkflowId: 'acec1c90-0871-48fe-899f-6d2b38a07196',
-      expected: true,
+      expected: undefined,
     },
     {
       task: {
@@ -25,7 +24,6 @@ describe('CallTable functions', () => {
         },
         taskStartTime: '2024-06-17T21:19:14.6913148',
       },
-      subWorkflowId: '',
       expected: true,
     },
     {
@@ -37,7 +35,6 @@ describe('CallTable functions', () => {
           result: 'Cache Miss',
         },
       },
-      subWorkflowId: '',
       expected: true,
     },
     {
@@ -50,12 +47,11 @@ describe('CallTable functions', () => {
         },
         taskStartTime: '2024-06-17T21:19:14.6913148Z',
       },
-      subWorkflowId: undefined,
       expected: undefined,
     },
-  ])('returns expected boolean given task data', ({ task, subWorkflowId, expected }) => {
+  ])('returns expected boolean given task data', ({ task, expected }) => {
     // Arrange
-    const cost = noCostData(task, subWorkflowId);
+    const cost = noCostData(task);
 
     // Assert
     expect(cost).toBe(expected);

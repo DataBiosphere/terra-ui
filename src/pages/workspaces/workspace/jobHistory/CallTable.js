@@ -100,7 +100,7 @@ const doesTaskHaveCostData = (task) => {
   return !!(task?.taskStartTime && task?.vmCostUsd);
 };
 
-const noCostData = (task) => {
+export const noCostData = (task) => {
   if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !task?.taskStartTime) {
     return true;
   }
