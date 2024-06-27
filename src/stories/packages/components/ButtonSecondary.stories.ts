@@ -35,7 +35,6 @@ const meta: Meta<typeof ButtonSecondary> = {
       options: ['top', 'bottom', 'left', 'right'],
       control: 'select',
       description: 'where to display the tooltip',
-      defaultValue: 'bottom',
       table: {
         defaultValue: { summary: 'bottom' },
       },
@@ -46,7 +45,7 @@ const meta: Meta<typeof ButtonSecondary> = {
 export default meta;
 type Story = StoryObj<typeof ButtonSecondary>;
 
-export const Secondary: Story = {
+export const Example: Story = {
   args: {
     tooltip: 'This can provide additional context',
     children: 'Cancel',
