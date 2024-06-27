@@ -429,4 +429,53 @@ describe('WdsTroubleshooter', () => {
       ].join('\n')
     );
   });
+
+  it('shows app error message', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    const mockStatus: WdsStatus = {
+      numApps: '1',
+      wdsResponsive: 'unknown',
+      version: 'unknown',
+      chartVersion: 'unknown',
+      image: 'unknown',
+      wdsStatus: 'unresponsinve',
+      wdsDbStatus: 'unknown',
+      wdsPingStatus: 'unknown',
+      wdsIamStatus: 'unknown',
+      appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
+      appStatus: 'ERROR',
+      appErrorMessage: 'Something went wrong',
+      proxyUrl: null,
+      defaultInstanceExists: null,
+      cloneSourceWorkspaceId: null,
+      cloneStatus: null,
+      cloneErrorMessage: null,
+    };
+
+    asMockedFn(useWdsStatus).mockReturnValue({
+      status: mockStatus,
+      refreshStatus: jest.fn(),
+    });
+
+    // Act
+    render(
+      h(WdsTroubleshooter, {
+        workspaceId: 'test-workspace',
+        mrgId: 'test-mrg',
+        onDismiss: jest.fn(),
+      })
+    );
+
+    // Assert
+    expect(screen.queryByText('Something went wrong')).toBeNull();
+
+    // Act
+    const showAppErrorMessageButton = screen.getByRole('button', { name: 'Show details' });
+    await user.click(showAppErrorMessageButton);
+
+    // Assert
+    screen.getByText('Something went wrong');
+  });
 });

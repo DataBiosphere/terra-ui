@@ -1,6 +1,6 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ReactNode } from 'react';
+import { Fragment, ReactNode, useState } from 'react';
 import { div, h, table, tbody, td, tr } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Link } from 'src/components/common';
@@ -12,13 +12,23 @@ import { WorkspaceLinkById } from 'src/workspace-data/data-table/wds/WorkspaceLi
 
 import { useWdsStatus } from './wds-status';
 
-export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
+export interface WdsTroubleshooterProps {
+  mrgId: string;
+  workspaceId: string;
+  onDismiss: () => void;
+}
+
+export const WdsTroubleshooter = (props: WdsTroubleshooterProps): ReactNode => {
+  const { mrgId, workspaceId, onDismiss } = props;
+
   const { status } = useWdsStatus({ workspaceId });
+  const [showAppErrorMessage, setShowAppErrorMessage] = useState(false);
 
   const {
     numApps,
     appName,
     appStatus,
+    appErrorMessage,
     proxyUrl,
     wdsResponsive,
     version,
@@ -61,13 +71,13 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ReactNode?
   ]) => {
     return tr({ key: label }, [
-      td({ style: { fontWeight: 'bold' } }, [
+      td({ style: { fontWeight: 'bold', verticalAlign: 'top' } }, [
         // TODO: Remove nested ternary to align with style guide
         // eslint-disable-next-line no-nested-ternary
         iconRunning ? checkIcon('running') : iconSuccess ? checkIcon('success') : checkIcon('failure'),
       ]),
-      td({ style: { fontWeight: 'bold', whiteSpace: 'nowrap' } }, [label]),
-      td([element || content]),
+      td({ style: { fontWeight: 'bold', verticalAlign: 'top', whiteSpace: 'nowrap' } }, [label]),
+      td({ style: { verticalAlign: 'top' } }, [element || content]),
     ]);
   };
 
@@ -94,9 +104,25 @@ export const WdsTroubleshooter = ({ onDismiss, workspaceId, mrgId }) => {
     ['Data app name', appName, appName === null, !!appName && appName !== 'unknown'],
     [
       'Data app running?',
-      appStatus,
+      appStatus === 'ERROR' && appErrorMessage ? `${appStatus} (${appErrorMessage})` : appStatus,
       appStatus == null,
       !!appStatus && appStatus !== 'unknown' && appStatus !== 'ERROR',
+      appStatus === 'ERROR' && appErrorMessage
+        ? h(Fragment, [
+            div([
+              appStatus,
+              h(
+                Link,
+                {
+                  style: { marginLeft: '1ch' },
+                  onClick: () => setShowAppErrorMessage((v) => !v),
+                },
+                [`${showAppErrorMessage ? 'Hide' : 'Show'} details`]
+              ),
+            ]),
+            showAppErrorMessage && div([appErrorMessage]),
+          ])
+        : appStatus,
     ],
     ['Data app proxy url', proxyUrl, proxyUrl == null, !!proxyUrl && proxyUrl !== 'unknown', proxyElement],
     ['Data app responding', wdsResponsive, wdsResponsive == null, wdsResponsive === 'true'],
