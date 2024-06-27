@@ -1,6 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react';
-import { Icon } from '@terra-ui-packages/components';
-import iconLibrary from '@terra-ui-packages/components/src/internal/icon-library';
+import { allIconIds, Icon } from '@terra-ui-packages/components';
 
 const meta: Meta<typeof Icon> = {
   title: 'Packages/Components/Icon',
@@ -12,7 +11,7 @@ const meta: Meta<typeof Icon> = {
   argTypes: {
     icon: {
       control: 'select',
-      options: Object.keys(iconLibrary), // ['arrowLeft', 'arrowRight'],
+      options: allIconIds,
       description: 'ID of icon to be used from IconLibrary',
     },
     size: {
@@ -31,6 +30,6 @@ type Story = StoryObj<typeof Icon>;
 export const IconUsage: Story = {
   args: {
     icon: 'arrowLeft',
-    size: 20,
+    size: 30,
   },
 };

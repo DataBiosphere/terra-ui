@@ -35,3 +35,5 @@ export const Icon = (props: IconProps): ReactNode => {
 export const icon = (icon: IconId, props?: Omit<IconProps, 'icon'>): ReactNode => {
   return <Icon icon={icon} {...props} />;
 };
+
+export const allIconIds = Object.keys(iconLibrary) as IconId[];
