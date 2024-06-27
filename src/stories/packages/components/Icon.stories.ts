@@ -1,5 +1,5 @@
 import { Meta, StoryObj } from '@storybook/react';
-import { allIconIds as iconIdArray, Icon } from '@terra-ui-packages/components';
+import { allIconIds, Icon } from '@terra-ui-packages/components';
 
 const meta: Meta<typeof Icon> = {
   title: 'Packages/Components/Icon',
@@ -11,7 +11,7 @@ const meta: Meta<typeof Icon> = {
   argTypes: {
     icon: {
       control: 'select',
-      options: iconIdArray,
+      options: allIconIds,
       description: 'ID of icon to be used from IconLibrary',
     },
     size: {
