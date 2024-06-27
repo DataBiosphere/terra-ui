@@ -4,7 +4,7 @@ import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, h1, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { calculateTotalCost, collapseStatus } from 'src/components/job-common';
+import { collapseStatus } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events from 'src/libs/events';
@@ -56,8 +56,6 @@ export const BaseRunDetails = (
 
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
 
-  const [cost, setCost] = useState();
-
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
   const { captureEvent } = useMetricsEvent();
@@ -105,10 +103,10 @@ export const BaseRunDetails = (
     []
   );
   const excludeKey = useMemo(() => [], []);
-  const keysForCost = useMemo(() => ['calls', 'subWorkflowId', 'taskStartTime', 'taskEndTime', 'vmCostUsd'], []);
 
   const loadForSubworkflows = useCallback(
     async (workflowId) => {
+      const keysForCost = ['calls', 'subWorkflowId', 'taskStartTime', 'taskEndTime', 'vmCostUsd'];
       try {
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         return await fetchMetadata({
@@ -122,7 +120,7 @@ export const BaseRunDetails = (
         notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [keysForCost, signal, workspaceId]
+    [signal, workspaceId]
   );
 
   const loadWorkflow = useCallback(
@@ -147,11 +145,7 @@ export const BaseRunDetails = (
             }
           }
           const { workflowName } = metadata;
-          if (_.isNil(updateWorkflowPath)) {
-            const getCost = await calculateTotalCost(metadata?.calls, loadForSubworkflows);
-            setWorkflow(metadata);
-            setCost(getCost);
-          }
+          _.isNil(updateWorkflowPath) && setWorkflow(metadata);
           if (!_.isEmpty(metadata?.calls)) {
             setFailedTasks(Object.values(failedTasks)[0]?.calls || {});
             setCallObjects(metadata?.calls || {});
@@ -167,7 +161,7 @@ export const BaseRunDetails = (
         notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [workspaceId, signal, includeKey, excludeKey, loadForSubworkflows]
+    [workspaceId, signal, includeKey, excludeKey]
   );
 
   //  Below two methods are data fetchers used in the call cache wizard. Defined
@@ -289,7 +283,7 @@ export const BaseRunDetails = (
           div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
             h(WorkflowInfoBox, { workflow, name, namespace, submissionId, workflowId, workspaceId, showLogModal }),
           ]),
-          h(WorkflowCostBox, { workflow, cost }, []),
+          h(WorkflowCostBox, { workflowId, signal, workspaceId, loadForSubworkflows }, []),
           div(
             {
               style: {
