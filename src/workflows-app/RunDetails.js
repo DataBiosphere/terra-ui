@@ -117,7 +117,7 @@ export const BaseRunDetails = (
           expandSubWorkflows: true,
         });
       } catch (error) {
-        notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
+        notify('error', 'Error fetching cost data.', { detail: error instanceof Response ? await error.text() : error });
       }
     },
     [signal, workspaceId]
