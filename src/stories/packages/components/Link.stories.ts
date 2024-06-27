@@ -17,6 +17,10 @@ const meta: Meta<typeof Link> = {
       control: 'text',
       description: 'URL destination of the link',
     },
+    baseColor: {
+      description: 'Function to return the color of the link, takes an numeric intensity value as an argument.',
+      type: 'function',
+    },
     tooltip: {
       control: 'text',
       description: 'Tooltip text',
@@ -57,14 +61,9 @@ const meta: Meta<typeof Link> = {
 export default meta;
 type Story = StoryObj<typeof Link>;
 
-export const Primary: Story = {
+export const Example: Story = {
   args: {
     children: 'Terra Support',
     href: 'https://support.terra.bio',
-    disabled: false,
-    variant: undefined,
-    tooltip: undefined,
-    tooltipSide: 'bottom',
-    tooltipDelay: undefined,
   },
 };
