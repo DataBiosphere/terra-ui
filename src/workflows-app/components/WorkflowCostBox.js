@@ -1,5 +1,4 @@
-import { icon, TooltipTrigger } from '@terra-ui-packages/components';
-import { useThemeFromContext } from '@terra-ui-packages/components';
+import { icon, TooltipTrigger, useThemeFromContext } from '@terra-ui-packages/components';
 import { useCallback, useEffect, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { centeredSpinner } from 'src/components/icons';
