@@ -51,6 +51,7 @@ describe('useWdsStatus', () => {
         numApps: 'unknown',
         appName: 'unknown',
         appStatus: 'unknown',
+        appErrorMessage: null,
         proxyUrl: 'unknown',
         wdsResponsive: 'unknown',
         version: 'unknown',
@@ -87,6 +88,7 @@ describe('useWdsStatus', () => {
           numApps: '0',
           appName: 'unknown',
           appStatus: 'unknown',
+          appErrorMessage: null,
           proxyUrl: 'unknown',
           wdsResponsive: 'unknown',
           version: 'unknown',
@@ -160,6 +162,7 @@ describe('useWdsStatus', () => {
         numApps: '1',
         appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
         appStatus: 'RUNNING',
+        appErrorMessage: null,
         proxyUrl:
           'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
         wdsResponsive: null,
@@ -239,6 +242,73 @@ describe('useWdsStatus', () => {
       expect(hookReturnRef.current.status).toEqual({
         appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
         appStatus: 'ERROR',
+        appErrorMessage: null,
+        chartVersion: 'unknown',
+        defaultInstanceExists: 'unknown',
+        image: 'unknown',
+        numApps: '1',
+        proxyUrl:
+          'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
+        version: 'unknown',
+        wdsDbStatus: 'unknown',
+        wdsIamStatus: 'unknown',
+        wdsPingStatus: 'unknown',
+        wdsResponsive: 'unknown',
+        wdsStatus: 'unresponsive',
+        cloneSourceWorkspaceId: null,
+        cloneStatus: null,
+        cloneErrorMessage: null,
+      });
+    });
+
+    it('returns error message if app is in error state', async () => {
+      // Arrange
+      const getVersion = jest.fn().mockReturnValue(abandonedPromise());
+      const getStatus = jest.fn().mockReturnValue(abandonedPromise());
+      const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+      const getCloneStatus = jest.fn().mockReturnValue(abandonedPromise());
+
+      const mockAjax: DeepPartial<AjaxContract> = {
+        Apps: {
+          listAppsV2: jest.fn().mockResolvedValue([
+            {
+              ...wdsApp,
+              status: 'ERROR',
+              errors: [
+                {
+                  errorMessage: 'Something went wrong!',
+                  timestamp: '2023-07-20T18:49:17.264656',
+                  action: 'action',
+                  source: 'source',
+                  googleErrorCode: null,
+                  traceId: null,
+                },
+              ],
+            } satisfies ListAppItem,
+          ]),
+        },
+        WorkspaceData: {
+          getVersion,
+          getStatus,
+          listInstances,
+          getCloneStatus,
+        },
+      };
+      asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
+
+      // Act
+      const { result: hookReturnRef } = await renderHookInAct(() => useWdsStatus({ workspaceId }));
+
+      // Assert
+      expect(getVersion).not.toHaveBeenCalled();
+      expect(getStatus).not.toHaveBeenCalled();
+      expect(listInstances).not.toHaveBeenCalled();
+      expect(getCloneStatus).not.toHaveBeenCalled();
+
+      expect(hookReturnRef.current.status).toEqual({
+        appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
+        appStatus: 'ERROR',
+        appErrorMessage: 'Something went wrong!',
         chartVersion: 'unknown',
         defaultInstanceExists: 'unknown',
         image: 'unknown',
@@ -666,6 +736,7 @@ describe('useWdsStatus', () => {
     expect(renderHookRef.current.status).toEqual({
       numApps: '0',
       appName: 'unknown',
+      appErrorMessage: null,
       appStatus: 'unknown',
       proxyUrl: 'unknown',
       wdsResponsive: 'unknown',
@@ -693,6 +764,7 @@ describe('useWdsStatus', () => {
       numApps: null,
       appName: null,
       appStatus: null,
+      appErrorMessage: null,
       proxyUrl: null,
       wdsResponsive: null,
       version: null,

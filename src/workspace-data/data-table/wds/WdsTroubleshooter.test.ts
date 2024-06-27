@@ -57,6 +57,7 @@ describe('WdsTroubleshooter', () => {
       wdsIamStatus: 'UP',
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
       appStatus: 'RUNNING',
+      appErrorMessage: null,
       proxyUrl:
         'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
       defaultInstanceExists: 'true',
@@ -122,6 +123,7 @@ describe('WdsTroubleshooter', () => {
       wdsIamStatus: 'UP',
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
       appStatus: 'RUNNING',
+      appErrorMessage: null,
       proxyUrl:
         'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
       defaultInstanceExists: 'true',
@@ -188,6 +190,7 @@ describe('WdsTroubleshooter', () => {
       wdsIamStatus: 'UP',
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
       appStatus: 'RUNNING',
+      appErrorMessage: null,
       proxyUrl:
         'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
       defaultInstanceExists: 'true',
@@ -282,6 +285,7 @@ describe('WdsTroubleshooter', () => {
       wdsIamStatus: 'UP',
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
       appStatus: 'RUNNING',
+      appErrorMessage: null,
       proxyUrl:
         'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
       defaultInstanceExists: 'true',
@@ -378,6 +382,7 @@ describe('WdsTroubleshooter', () => {
       wdsIamStatus: 'UP',
       appName: 'wds-6601fdbb-4b53-41da-87b2-81385f4a760e',
       appStatus: 'RUNNING',
+      appErrorMessage: null,
       proxyUrl:
         'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-6601fdbb-4b53-41da-87b2-81385f4a760e-6601fdbb-4b53-41da-87b2-81385f4a760e/',
       defaultInstanceExists: 'true',

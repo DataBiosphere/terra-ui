@@ -13,6 +13,7 @@ export type WdsStatus = {
 
   appName: string | null;
   appStatus: string | null;
+  appErrorMessage: string | null;
   proxyUrl: string | null;
 
   wdsResponsive: string | null;
@@ -49,6 +50,7 @@ const initialStatus: WdsStatus = {
   wdsIamStatus: null,
   appName: null,
   appStatus: null,
+  appErrorMessage: null,
   proxyUrl: null,
   defaultInstanceExists: null,
   cloneSourceWorkspaceId: null,
@@ -75,6 +77,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         numApps: 'unknown',
         appName: 'unknown',
         appStatus: 'unknown',
+        appErrorMessage: null,
         proxyUrl: 'unknown',
         wdsResponsive: 'unknown',
         version: 'unknown',
@@ -121,6 +124,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
       ...previousStatus,
       appName: wdsApp.appName,
       appStatus: wdsApp.status,
+      appErrorMessage: wdsApp.errors[0]?.errorMessage || null,
       proxyUrl,
     }));
 
