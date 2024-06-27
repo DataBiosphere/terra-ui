@@ -99,8 +99,8 @@ const doesTaskHaveCostData = (task) => {
   return !!(task?.taskStartTime && task?.vmCostUsd);
 };
 
-const noCostData = (task, subWorkflowId) => {
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task.startTime) {
+export const noCostData = (task, subWorkflowId) => {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task?.taskStartTime) {
     return true;
   }
 };
@@ -373,7 +373,7 @@ const CallTable = ({
                         ),
                       ]),
                     cellRenderer: ({ rowIndex }) => {
-                      const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId } = filteredCallObjects[rowIndex];
+                      const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId, executionStatus } = filteredCallObjects[rowIndex];
                       if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
                         if (taskEndTime) {
                           const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
@@ -382,7 +382,7 @@ const CallTable = ({
                         const cost = getTaskCost({ vmCostUsd, taskStartTime });
                         return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                       }
-                      if (noCostData(filteredCallObjects[rowIndex], subWorkflowId)) {
+                      if (noCostData(filteredCallObjects[rowIndex], subWorkflowId) && executionStatus !== 'Running') {
                         return div({}, ['-']);
                       }
                       return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
