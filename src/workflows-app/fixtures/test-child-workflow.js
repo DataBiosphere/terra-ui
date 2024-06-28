@@ -17,6 +17,9 @@ export const metadata = {
         callRoot:
           '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-0',
         attempt: 1,
+        vmCostUsd: 0.55,
+        taskStartTime: '2024-05-30T18:29:42.6042077Z',
+        taskEndTime: '2024-05-30T18:36:35.8020768Z',
         executionEvents: [
           {
             startTime: '2023-06-18T15:50:27.032Z',
@@ -67,6 +70,9 @@ export const metadata = {
         callRoot:
           '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-1',
         attempt: 1,
+        vmCostUsd: 0.005,
+        taskStartTime: '2024-05-30T18:29:42.6042077Z',
+        taskEndTime: '2024-05-30T18:36:35.8020768Z',
         executionEvents: [
           {
             startTime: '2023-06-18T15:49:43.180Z',
@@ -117,6 +123,9 @@ export const metadata = {
         callRoot:
           '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringHello/shard-2',
         attempt: 1,
+        vmCostUsd: 0.1,
+        taskStartTime: '2024-05-30T18:29:42.6042077Z',
+        taskEndTime: '2024-05-30T18:36:35.8020768Z',
         executionEvents: [
           {
             startTime: '2023-06-18T15:49:43.455Z',
@@ -169,6 +178,9 @@ export const metadata = {
         callRoot:
           '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-0',
         attempt: 1,
+        vmCostUsd: 0.14,
+        taskStartTime: '2024-05-30T18:29:42.6042077Z',
+        taskEndTime: '2024-05-30T18:36:35.8020768Z',
         executionEvents: [
           {
             startTime: '2023-06-18T15:49:43.180Z',
@@ -219,6 +231,9 @@ export const metadata = {
         callRoot:
           '/Users/username/cromwell/cromwell-executions/main_workflow/be48c79d-f8e8-4a0a-bed4-787a30a60305/call-wf_scattering/wf_scattering/97967c22-bcc1-4946-b9c7-d4375f8b3070/call-scatteringGoodbye/shard-1',
         attempt: 1,
+        vmCostUsd: 0.85,
+        taskStartTime: '2024-05-30T18:29:42.6042077Z',
+        taskEndTime: '2024-05-30T18:36:35.8020768Z',
         executionEvents: [
           {
             startTime: '2023-06-18T15:49:43.180Z',

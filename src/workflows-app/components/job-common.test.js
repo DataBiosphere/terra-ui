@@ -174,8 +174,8 @@ describe('Job Common Components - Cost Elements', () => {
       ],
     };
 
-    const cost = calculateTotalCost(shortenedCalls);
-
-    expect(cost).toBe(12.84);
+    return calculateTotalCost(shortenedCalls).then((cost) => {
+      expect(cost).toBe(12.84);
+    });
   });
 });

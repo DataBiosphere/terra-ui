@@ -11,6 +11,7 @@ import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer';
+import { CallCostCell } from 'src/workflows-app/components/CallCostCell';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
 import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
@@ -99,8 +100,8 @@ const doesTaskHaveCostData = (task) => {
   return !!(task?.taskStartTime && task?.vmCostUsd);
 };
 
-export const noCostData = (task, subWorkflowId) => {
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !_.isEmpty(subWorkflowId) || !task?.taskStartTime) {
+export const noCostData = (task) => {
+  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !task?.taskStartTime) {
     return true;
   }
 };
@@ -140,6 +141,7 @@ const CallTable = ({
   workflowId,
   failedTasks,
   isAzure,
+  loadForSubworkflows,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -374,6 +376,9 @@ const CallTable = ({
                       ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId, executionStatus } = filteredCallObjects[rowIndex];
+                      if (subWorkflowId) {
+                        return h(CallCostCell, { call: filteredCallObjects[rowIndex], loadForSubworkflows });
+                      }
                       if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
                         if (taskEndTime) {
                           const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
@@ -382,7 +387,7 @@ const CallTable = ({
                         const cost = getTaskCost({ vmCostUsd, taskStartTime });
                         return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
                       }
-                      if (noCostData(filteredCallObjects[rowIndex], subWorkflowId) && executionStatus !== 'Running') {
+                      if (noCostData(filteredCallObjects[rowIndex]) && executionStatus !== 'Running') {
                         return div({}, ['-']);
                       }
                       return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);

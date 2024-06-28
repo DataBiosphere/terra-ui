@@ -6,8 +6,8 @@ export const CromwellApp = (signal) => ({
   workflows: (workflowId) => {
     return {
       metadata: async (cromwellUrlRoot, options) => {
-        const { includeKey, excludeKey } = options;
-        const keyParams = qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' });
+        const { includeKey, excludeKey, expandSubWorkflows } = options;
+        const keyParams = qs.stringify({ includeKey, excludeKey, expandSubWorkflows }, { arrayFormat: 'repeat' });
         const res = await fetchFromProxy(cromwellUrlRoot)(
           `api/workflows/v1/${workflowId}/metadata?${keyParams}`,
           _.mergeAll([authOpts(), { signal, method: 'GET' }])

@@ -199,6 +199,7 @@ const FilterableWorkflowTable = ({
             signal,
             includeKeys,
             excludeKeys,
+            expandSubWorkflows: false,
           });
         }
         return undefined;
