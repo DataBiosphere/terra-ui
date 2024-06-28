@@ -20,7 +20,7 @@ const meta: Meta<typeof Modal> = {
     },
     danger: {
       control: 'boolean',
-      description: 'is the action dangerous?',
+      description: 'is the action destructive?',
     },
     okButton: {
       control: 'text',
