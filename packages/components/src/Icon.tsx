@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import iconLibrary, { IconId } from './internal/icon-library';
 
 export type { IconId } from './internal/icon-library';
+export { allIconIds } from './internal/icon-library';
 
 type SvgProps = JSX.IntrinsicElements['svg'];
 
