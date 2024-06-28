@@ -1,11 +1,6 @@
-import { action } from '@storybook/addon-actions';
 import type { Meta, StoryObj } from '@storybook/react';
-import { ButtonPrimary, Modal } from '@terra-ui-packages/components';
-import React, { useState } from 'react';
-
-const titleChildren = <span color='cyan'>:D</span>;
-let setSubmitted = () => false;
-let setDismissed = () => false;
+import { ButtonPrimary, Modal, ModalProps } from '@terra-ui-packages/components';
+import React, { CSSProperties, useState } from 'react';
 
 const meta: Meta<typeof Modal> = {
   title: 'Packages/Components/Modal',
@@ -45,24 +40,45 @@ const meta: Meta<typeof Modal> = {
       description: 'show an X button to dismiss the modal?',
     },
     styles: {
-      control: 'text',
+      control: 'select',
       description: 'custom CSS styles for `buttonRow` and `modal`',
+      options: ['undefined', 'custom buttonRow', 'custom modal'],
+      table: {
+        defaultValue: { summary: 'undefined' },
+      },
+      mapping: {
+        undefined,
+        'custom buttonRow': {
+          buttonRow: { background: 'lightblue' } satisfies CSSProperties,
+        },
+        'custom modal': {
+          modal: { background: 'lightpink' } satisfies CSSProperties,
+        },
+      },
     },
     title: {
       control: 'text',
       description: 'modal title',
     },
     titleChildren: {
-      control: 'text',
       description: 'additional components for title bar',
+      control: 'select',
+      options: ['undefined', 'ReactNode'],
+      table: {
+        defaultValue: { summary: 'undefined' },
+      },
+      mapping: {
+        undefined,
+        ReactNode: <i>Some ReactNode</i>,
+      },
     },
     width: {
       control: 'number',
       description: 'modal width in pixels',
     },
     onDismiss: {
-      control: 'text',
-      description: 'modal dismiss callback (function)',
+      type: 'function',
+      description: 'modal dismiss callback',
     },
   },
 };
@@ -73,55 +89,32 @@ type Story = StoryObj<typeof Modal>;
 export const Example: Story = {
   args: {
     cancelText: 'Cancel',
-    children: 'Here is a message!',
+    children: 'Do you wish to close this model?',
     danger: false,
-    okButton: () => setSubmitted(true),
+    okButton: 'Close It',
     showButtons: true,
     showCancel: true,
     showX: true,
-    styles: { buttonRow: {}, modal: {} },
-    title: 'A wild Modal appeared!',
-    titleChildren,
+    styles: undefined,
+    title: 'Confirm',
+    titleChildren: undefined,
     width: 450,
-    onDismiss: () => setDismissed(true),
-  },
-  parameters: {
-    // design: {
-    //   type: 'figma',
-    //   /* Figma URL doesn't land on a section for loading spinners since that section isn't authored in Figma by UX yet.
-    //      Disabling design link for now.
-    //    */
-    //   url: 'https://www.figma.com/file/fGlf8DGgTz5ec7phmzNUEN/Terra-Styles-%26-Components?node-id=2-262&t=AexvAMYj4iUGF3lt-4',
-    //   allowFullscreen: true,
-    // },
-  },
+    onDismiss: () => {},
+  } satisfies ModalProps,
+
   render: (args) => {
     const StoryWrapper = (): React.ReactNode => {
-      const [isOpen, setIsOpen] = useState<boolean>(true);
-      const [submitted, _setSubmitted] = useState<boolean>(false);
-      const [dismissed, _setDismissed] = useState<boolean>(false);
-      const openModal = () => {
-        _setSubmitted(false);
-        _setDismissed(false);
-        setIsOpen(true);
+      const [isModalOpen, modalOpen] = useState(false);
+      const showModal = () => {
+        modalOpen(true);
       };
-      setSubmitted = (value) => {
-        setIsOpen(false);
-        _setSubmitted(value);
+      const hideModal = () => {
+        modalOpen(false);
       };
-      setDismissed = (value) => {
-        setIsOpen(false);
-        _setDismissed(value);
-      };
-      action('Modal render')();
       return (
-        <div style={{ margin: 16 }}>
-          <div style={{ margin: '0, 40px', position: 'relative' }}>
-            <div>{submitted && 'Modal submitted!'}</div>
-            <div>{dismissed && 'Modal dismissed!'}</div>
-            <ButtonPrimary onClick={openModal}>Open Modal</ButtonPrimary>
-            {isOpen && <Modal {...args} />}
-          </div>
+        <div>
+          <ButtonPrimary onClick={showModal}>Click to show modal</ButtonPrimary>
+          {isModalOpen && <Modal {...args} onDismiss={hideModal} />}
         </div>
       );
     };
