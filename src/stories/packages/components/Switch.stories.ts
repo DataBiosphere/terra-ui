@@ -31,6 +31,10 @@ const meta: Meta<typeof Switch> = {
       control: 'text',
       description: 'text for the "off" state',
     },
+    onChange: {
+      type: 'function',
+      description: 'switch state change callback',
+    },
   },
 };
 
@@ -43,6 +47,7 @@ export const Example: Story = {
     disabled: false,
     onLabel: 'On',
     offLabel: 'Off',
+    onChange: () => {},
   },
   parameters: {},
 };
