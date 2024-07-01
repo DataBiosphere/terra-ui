@@ -1,6 +1,6 @@
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common';
@@ -12,30 +12,14 @@ import { FlexTable, HeaderCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { renderDataCell } from 'src/workspace-data/data-table/entity-service/renderDataCell';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
-export const getDisplayedAttribute = (arr) => {
-  const { key, value, description = '' } = _.mergeAll(arr);
-  return [key, value, description];
-};
+import { useWorkspaceDataAttributes } from './useWorkspaceDataAttributes';
 
 const DESCRIPTION_PREFIX = '__DESCRIPTION__';
 const isDescriptionKey = _.startsWith(DESCRIPTION_PREFIX);
-
-export const renameAttribute = ([k, v]) => (isDescriptionKey(k) ? { key: k.slice(DESCRIPTION_PREFIX.length), description: v } : { key: k, value: v });
-
-export const convertInitialAttributes = _.flow(
-  _.toPairs,
-  _.remove(([key]) => /^description$|:|^referenceData_/.test(key)),
-  _.map(renameAttribute),
-  _.groupBy('key'),
-  _.values,
-  _.map(getDisplayedAttribute),
-  _.sortBy(_.first)
-);
 
 export const WorkspaceAttributes = ({
   workspace,
@@ -44,8 +28,6 @@ export const WorkspaceAttributes = ({
   },
   refreshKey,
 }) => {
-  const signal = useCancellation();
-
   const [editIndex, setEditIndex] = useState();
   const [deleteIndex, setDeleteIndex] = useState();
   const [editKey, setEditKey] = useState();
@@ -55,21 +37,15 @@ export const WorkspaceAttributes = ({
   const [textFilter, setTextFilter] = useState('');
 
   const [busy, setBusy] = useState();
-  const [attributes, setAttributes] = useState();
+  const [attributes, refreshAttributes] = useWorkspaceDataAttributes(namespace, name);
 
-  const loadAttributes = _.flow(
-    withErrorReporting('Error loading workspace data'),
-    Utils.withBusyState(setBusy)
-  )(async () => {
-    const {
-      workspace: { attributes },
-    } = await Ajax(signal).Workspaces.workspace(namespace, name).details(['workspace.attributes']);
-    setAttributes(attributes);
-  });
-
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    loadAttributes();
-  }, [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!isFirstRender.current) {
+      refreshAttributes();
+    }
+    isFirstRender.current = false;
+  }, [refreshAttributes, refreshKey]);
 
   const stopEditing = () => {
     setEditIndex();
@@ -81,8 +57,7 @@ export const WorkspaceAttributes = ({
 
   const toDescriptionKey = (k) => DESCRIPTION_PREFIX + k;
 
-  const initialAttributes = convertInitialAttributes(attributes);
-
+  const initialAttributes = attributes.state || [];
   const creatingNewVariable = editIndex === initialAttributes.length;
   const amendedAttributes = _.flow(
     _.filter(([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`)),
@@ -128,7 +103,7 @@ export const WorkspaceAttributes = ({
     await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(attributesToMerge);
     await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete);
 
-    await loadAttributes();
+    await refreshAttributes();
 
     stopEditing();
     setTextFilter('');
@@ -139,7 +114,7 @@ export const WorkspaceAttributes = ({
     Utils.withBusyState(setBusy)
   )(async ([file]) => {
     await Ajax().Workspaces.workspace(namespace, name).importAttributes(file);
-    await loadAttributes();
+    await refreshAttributes();
   });
 
   const download = _.flow(
@@ -344,11 +319,11 @@ export const WorkspaceAttributes = ({
                 await Ajax()
                   .Workspaces.workspace(namespace, name)
                   .deleteAttributes([amendedAttributes[deleteIndex][0], toDescriptionKey(amendedAttributes[deleteIndex][0])]);
-                loadAttributes();
+                refreshAttributes();
               }),
               onDismiss: () => setDeleteIndex(undefined),
             }),
-          busy && spinnerOverlay,
+          (attributes.status === 'Loading' || busy) && spinnerOverlay,
         ]),
     ]
   );
