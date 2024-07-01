@@ -386,7 +386,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                               },
                             },
                             {
-                              size: { basis: 175, grow: 0 },
+                              size: { basis: 210, grow: 0 },
                               field: 'submitter_priority',
 
                               headerRenderer: () =>
@@ -406,7 +406,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                   { style: { whiteSpace: 'normal' } },
                                   paginatedRunSets[rowIndex].user_id === userId
                                     ? [
-                                        'You ',
+                                        span({ style: { fontWeight: 'bold' } }, 'You '),
                                         span({ style: { fontStyle: 'italic' } }, [
                                           '(',
                                           samIdToAnonymousName(paginatedRunSets[rowIndex].user_id),
