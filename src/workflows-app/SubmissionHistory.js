@@ -25,7 +25,7 @@ import {
 } from 'src/workflows-app/utils/submission-utils';
 
 import FilterSubmissionsDropdown from './components/FilterSubmissionsDropdown';
-import { getFilteredRuns, samIdToAnonymousName } from './utils/method-common';
+import { getFilteredRunSets, getSortableRunSets, samIdToAnonymousName } from './utils/method-common';
 
 export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   // State
@@ -172,10 +172,11 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     return div([makeStatusLine(statusType[stateIconKey[state]].icon, stateContent[state])]);
   };
 
-  const filteredRunSets = useMemo(
+  const filteredSortableRunSets = useMemo(
     () => {
       if (runSetsData) {
-        return filterOption ? getFilteredRuns(filterOption, runSetsData, userId, errorStates) : runSetsData;
+        const filteredRunSets = filterOption ? getFilteredRunSets(filterOption, runSetsData, userId, errorStates) : runSetsData;
+        return getSortableRunSets(filteredRunSets, userId);
       }
       return [];
     },
@@ -183,7 +184,10 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [filterOption, runSetsData]
   );
-  const sortedRunSets = useMemo(() => _.orderBy(sort.field, sort.direction, filteredRunSets), [sort, filteredRunSets]);
+
+  const sortedRunSets = useMemo(() => {
+    return _.orderBy(sort.field, sort.direction, filteredSortableRunSets);
+  }, [sort, filteredSortableRunSets]);
   const firstPageIndex = (pageNumber - 1) * itemsPerPage;
   const lastPageIndex = firstPageIndex + itemsPerPage;
   const paginatedRunSets = sortedRunSets.slice(firstPageIndex, lastPageIndex);
@@ -233,11 +237,11 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                       )
                     : div({}, [
                         div(['See workflows that were submitted by all collaborators in this workspace.']),
-                        div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToAnonymousName(userId)])]),
+                        div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToAnonymousName(userId)]), '.']),
                         div([
-                          'Other users in this workspace will see your submissions as "Submitted by ',
+                          'Other users in this workspace will see ',
                           span({ style: { fontWeight: 'bold' } }, [samIdToAnonymousName(userId)]),
-                          '".',
+                          ' in the Submitter column of  your submissions.',
                         ]),
                       ]),
                 ]),
@@ -344,12 +348,6 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                   h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
                                     `Data used: ${paginatedRunSets[rowIndex].record_type}`,
                                   ]),
-                                  h(div, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
-                                    'Submitted by ',
-                                    paginatedRunSets[rowIndex].user_id === userId
-                                      ? 'you'
-                                      : span({ style: { fontWeight: 'bold' } }, samIdToAnonymousName(paginatedRunSets[rowIndex].user_id)),
-                                  ]),
                                   h(TextCell, { style: { display: 'block', marginTop: '1em', whiteSpace: 'normal' } }, [
                                     `${paginatedRunSets[rowIndex].run_count} workflows`,
                                   ]),
@@ -385,6 +383,38 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                     getDuration(row.state, row.submission_timestamp, row.last_modified_timestamp, isRunSetInTerminalState)
                                   ),
                                 ]);
+                              },
+                            },
+                            {
+                              size: { basis: 175, grow: 0 },
+                              field: 'submitter_priority',
+
+                              headerRenderer: () =>
+                                h(
+                                  Sortable,
+                                  {
+                                    sort,
+                                    field: 'submitter_priority',
+                                    onSort: (nextSort) => setSort(nextSort),
+                                  },
+                                  ['Submitter']
+                                ),
+
+                              cellRenderer: ({ rowIndex }) => {
+                                return h(
+                                  TextCell,
+                                  { style: { whiteSpace: 'normal' } },
+                                  paginatedRunSets[rowIndex].user_id === userId
+                                    ? [
+                                        'You ',
+                                        span({ style: { fontStyle: 'italic' } }, [
+                                          '(',
+                                          samIdToAnonymousName(paginatedRunSets[rowIndex].user_id),
+                                          ')',
+                                        ]),
+                                      ]
+                                    : [span({ style: { fontWeight: 'bold' } }, samIdToAnonymousName(paginatedRunSets[rowIndex].user_id))]
+                                );
                               },
                             },
                             {

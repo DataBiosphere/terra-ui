@@ -1,3 +1,4 @@
+import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import { notify } from 'src/libs/notifications';
 import { workflowsAppStore } from 'src/libs/state';
@@ -80,7 +81,7 @@ export const getMethodVersionName = (url) => {
   return segmentedUrlPath;
 };
 
-export const getFilteredRuns = (filterOption, runsToFilter, userId, errorStates) => {
+export const getFilteredRuns = (filterOption, runsToFilter, errorStates) => {
   return runsToFilter.filter((run) => {
     switch (filterOption) {
       case FilterOptions.Failed:
@@ -93,8 +94,28 @@ export const getFilteredRuns = (filterOption, runsToFilter, userId, errorStates)
           return true;
         }
         break;
+      default:
+        return true;
+    }
+    return false;
+  });
+};
+
+export const getFilteredRunSets = (filterOption, runSetsToFilter, userId, errorStates) => {
+  return runSetsToFilter.filter((runSet) => {
+    switch (filterOption) {
+      case FilterOptions.Failed:
+        if (errorStates.includes(runSet.state)) {
+          return true;
+        }
+        break;
+      case FilterOptions.Succeeded:
+        if (runSet.state === 'COMPLETE') {
+          return true;
+        }
+        break;
       case FilterOptions.OwnSubmissions:
-        if (run.user_id === userId) {
+        if (runSet.user_id === userId) {
           return true;
         }
         break;
@@ -105,8 +126,12 @@ export const getFilteredRuns = (filterOption, runsToFilter, userId, errorStates)
   });
 };
 
+export const getSortableRunSets = (runSets, userId) => {
+  return _.map((rs) => _.merge({ submitter_priority: userId === rs.user_id ? -1 : parseInt(userId, 16) }, _.cloneDeep(rs)), runSets);
+};
+
 export const samIdToAnonymousName = (samId) => {
   const leftIdx = parseInt(samId, 16) % leftNames.length;
   const rightIdx = parseInt(samId, 16) % rightNames.length;
-  return `${leftNames[leftIdx]}_${rightNames[rightIdx]}`;
+  return `${leftNames[leftIdx]} ${rightNames[rightIdx]}`;
 };
