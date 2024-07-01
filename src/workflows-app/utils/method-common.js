@@ -126,8 +126,9 @@ export const getFilteredRunSets = (filterOption, runSetsToFilter, userId, errorS
   });
 };
 
-export const getSortableRunSets = (runSets, userId) => {
-  return _.map((rs) => _.merge({ submitter_priority: userId === rs.user_id ? -1 : parseInt(userId, 16) }, _.cloneDeep(rs)), runSets);
+export const getSortableRunSets = (runSets, samId) => {
+  // samId must be a string representing a base16 integer
+  return _.map((rs) => _.merge({ submitter_priority: samId === rs.user_id ? -1 : parseInt(samId, 16) }, _.cloneDeep(rs)), runSets);
 };
 
 export const samIdToAnonymousName = (samId) => {

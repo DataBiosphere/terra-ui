@@ -1,5 +1,5 @@
 import { Ajax } from 'src/libs/ajax';
-import { convertToRawUrl, getMethodVersionName, isCovid19Method } from 'src/workflows-app/utils/method-common';
+import { convertToRawUrl, getMethodVersionName, getSortableRunSets, isCovid19Method } from 'src/workflows-app/utils/method-common';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -126,5 +126,29 @@ describe('getMethodVersionName in ImportGithub component', () => {
 
   test.each(testUrls)('returns expected version for url', ({ url, expectedVersion }) => {
     expect(getMethodVersionName(url)).toBe(expectedVersion);
+  });
+});
+
+describe('add submitter_priority field to enable sorting by submitter', () => {
+  const ownId = '2654885223328825f67e1';
+  const testRunSets = [
+    { user_id: '2649769319098f1d7cae2', a_run_set_field: 123, a_nested_field: { message: 'hello world' } },
+    { user_id: '26497726685082cc6be53', a_run_set_field: 345, a_nested_field: { message: 'hello new york' } },
+    { user_id: ownId, a_run_set_field: 456, a_nested_field: { message: 'foo bar baz' } },
+  ];
+  it('should add the submitter_priority field to each run set entry', () => {
+    const sortableRunSets = getSortableRunSets(testRunSets, ownId);
+    expect(sortableRunSets[0]).toHaveProperty('submitter_priority');
+    expect(sortableRunSets[1]).toHaveProperty('submitter_priority');
+    expect(sortableRunSets[2]).toHaveProperty('submitter_priority', -1);
+
+    const expectedProperties = ['user_id', 'a_run_set_field', 'a_nested_field'];
+    expectedProperties.forEach((prop) => expect(sortableRunSets[0]).toHaveProperty(prop));
+    expectedProperties.forEach((prop) => expect(sortableRunSets[1]).toHaveProperty(prop));
+    expectedProperties.forEach((prop) => expect(sortableRunSets[2]).toHaveProperty(prop));
+
+    expect(sortableRunSets[0].a_nested_field).toHaveProperty('message', 'hello world');
+    expect(sortableRunSets[1].a_nested_field).toHaveProperty('message', 'hello new york');
+    expect(sortableRunSets[2].a_nested_field).toHaveProperty('message', 'foo bar baz');
   });
 });
