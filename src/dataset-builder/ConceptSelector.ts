@@ -41,7 +41,7 @@ export const findRoot = <T extends RowContents>(parents: Parent<T>[]) => {
 };
 
 export const ConceptSelector = (props: ConceptSelectorProps) => {
-  const { title, onCancel, onCommit, snapshotId, initialCart, parents, openedConcept } = props;
+  const { title, onCancel, onCommit, actionText, snapshotId, initialCart, parents, openedConcept } = props;
 
   const [cart, setCart] = useState<Concept[]>(initialCart);
   const getChildren = async (concept: Concept): Promise<Concept[]> =>
@@ -102,6 +102,6 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         headerStyle: tableHeaderStyle,
       }),
     ]),
-    h(ConceptCart, { onClick: () => _.flow(onCommit)(cart), cart, actionText }),
+    h(ConceptCart, { actionText, cart, onCommit }),
   ]);
 };

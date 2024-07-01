@@ -152,6 +152,6 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
           })
         : spinnerOverlay,
     ]),
-    h(ConceptCart, { cart, onClick: () => _.flow(onCommit)(cart), actionText }),
+    h(ConceptCart, { actionText, cart, onCommit }),
   ]);
 };
