@@ -2,6 +2,8 @@ import { ReactElement } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary } from 'src/components/common';
 
+export const ACTION_BAR_HEIGHT = '5rem';
+
 type ActionBarProps = {
   /** The prompt to display next to the action bar button. */
   prompt: string | ReactElement;
@@ -22,8 +24,8 @@ export const ActionBar = (props: ActionBarProps) => {
         width: '100%',
         display: 'flex',
         justifyContent: 'flex-end',
-        height: '5rem',
-        position: 'absolute',
+        height: ACTION_BAR_HEIGHT,
+        position: 'fixed',
         bottom: 0,
         backgroundColor: 'white',
         boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',

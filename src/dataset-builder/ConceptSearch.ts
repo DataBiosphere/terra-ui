@@ -2,11 +2,11 @@ import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { div, h, h2, strong } from 'react-hyperscript-helpers';
-import { ActionBar } from 'src/components/ActionBar';
 import { LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
+import { ConceptCart } from 'src/dataset-builder/ConceptCart';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
@@ -152,11 +152,6 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
           })
         : spinnerOverlay,
     ]),
-    cart.length !== 0 &&
-      h(ActionBar, {
-        prompt: cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
-        actionText,
-        onClick: () => _.flow(onCommit)(cart),
-      }),
+    h(ConceptCart, { actionText, cart, onCommit }),
   ]);
 };
