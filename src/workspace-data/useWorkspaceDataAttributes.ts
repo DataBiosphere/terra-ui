@@ -24,7 +24,9 @@ const isWorkspaceDataAttribute = (name: string): boolean => {
  * @param workspaceAttributes - Workspace attributes.
  * @returns List of [attribute name, attribute value, attribute description] tuples.
  */
-export const getWorkspaceDataAttributes = (workspaceAttributes: { [key: string]: unknown }) => {
+export const getWorkspaceDataAttributes = (workspaceAttributes: {
+  [key: string]: unknown;
+}): [string, unknown, string | undefined][] => {
   return Object.entries(workspaceAttributes)
     .filter(([name]) => isWorkspaceDataAttribute(name))
     .map(([name, value]): [string, unknown, string | undefined] => {
@@ -44,7 +46,7 @@ export const getWorkspaceDataAttributes = (workspaceAttributes: { [key: string]:
 export const useWorkspaceDataAttributes = (
   namespace: string,
   name: string
-): [AutoLoadedState<[string, unknown, unknown]>, () => Promise<void>] => {
+): [AutoLoadedState<[string, unknown, string | undefined][]>, () => Promise<void>] => {
   const { reportError } = useNotificationsFromContext();
 
   const signal = useCancellation();
@@ -55,7 +57,7 @@ export const useWorkspaceDataAttributes = (
     return getWorkspaceDataAttributes(attributes) as any;
   }, [namespace, name, signal]);
 
-  const [state, load] = useAutoLoadedData<[string, unknown, unknown]>(loadAttributes, [namespace, name], {
+  const [state, load] = useAutoLoadedData<[string, unknown, string | undefined][]>(loadAttributes, [namespace, name], {
     onError: ({ error }) => reportError('Error loading workspace data', error),
   });
 
