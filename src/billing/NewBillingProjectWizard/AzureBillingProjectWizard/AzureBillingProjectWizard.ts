@@ -142,8 +142,11 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
         title: 'Link an Azure Subscription to Terra',
         intro: h(Fragment, [
           p([
-            'The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in a Terra workspace. ',
-            'Cloud costs are billed directly from Azure and passed through Terra billing projects with no markup.',
+            'To access the Terra managed application in the Azure Marketplace, please contact ' +
+              'terra-enterprise@broadinstitute.org with your Azure Subscription ID and details about your use case. The ' +
+              'linked subscription is required to cover all Azure data storage, compute and egress costs incurred in a ' +
+              'Terra workspace. Cloud costs are billed directly from Azure and passed through Terra billing projects with' +
+              ' no markup.',
           ]),
           isAnvil() &&
             p({ style: { fontWeight: 'bold' } }, [
