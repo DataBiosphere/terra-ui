@@ -1,13 +1,12 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
-import { calculateTotalCost, collapseStatus, renderTaskCostElement } from 'src/components/job-common';
+import { icon } from 'src/components/icons';
+import { collapseStatus } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
-import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
@@ -18,12 +17,12 @@ import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable';
 import InputOutputModal from 'src/workflows-app/components/InputOutputModal';
 import { HeaderSection, statusType, SubmitNewWorkflowButton } from 'src/workflows-app/components/job-common';
 import { LogViewer } from 'src/workflows-app/components/LogViewer';
-import { TroubleshootingBox } from 'src/workflows-app/components/TroubleshootingBox';
+import { WorkflowCostBox } from 'src/workflows-app/components/WorkflowCostBox';
 import { WorkflowInfoBox } from 'src/workflows-app/components/WorkflowInfoBox';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
-import { fetchMetadata } from './utils/submission-utils';
+import { fetchMetadata } from './utils/cromwell-metadata-utils';
 
 export const CromwellPollInterval = 1000 * 30; // 30 seconds
 
@@ -56,8 +55,6 @@ export const BaseRunDetails = (
   const [showTaskData, setShowTaskData] = useState(false);
 
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
-  const [stdOut, setStdOut] = useState();
-  const [appIdMatched, setAppIdMatched] = useState();
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -107,6 +104,25 @@ export const BaseRunDetails = (
   );
   const excludeKey = useMemo(() => [], []);
 
+  const loadForSubworkflows = useCallback(
+    async (workflowId) => {
+      const keysForCost = ['calls', 'subWorkflowId', 'taskStartTime', 'taskEndTime', 'vmCostUsd'];
+      try {
+        const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
+        return await fetchMetadata({
+          cromwellProxyUrl: cromwellProxyUrlState.state,
+          workflowId,
+          signal,
+          includeKeys: keysForCost,
+          expandSubWorkflows: true,
+        });
+      } catch (error) {
+        notify('error', 'Error fetching cost data.', { detail: error instanceof Response ? await error.text() : error });
+      }
+    },
+    [signal, workspaceId]
+  );
+
   const loadWorkflow = useCallback(
     async (workflowId, updateWorkflowPath = undefined) => {
       try {
@@ -119,6 +135,7 @@ export const BaseRunDetails = (
             signal,
             includeKeys: includeKey,
             excludeKeys: excludeKey,
+            expandSubWorkflows: false,
           });
           if (metadata?.status?.toLocaleLowerCase() === 'failed') {
             try {
@@ -128,12 +145,6 @@ export const BaseRunDetails = (
             }
           }
           const { workflowName } = metadata;
-          const metadataCalls = Object.values(metadata.calls);
-          const firstCall = metadataCalls ? metadataCalls[0] : null;
-          const firstCallInfo = firstCall && firstCall !== null ? firstCall[0] : null;
-          const stdOut = firstCallInfo.stdout;
-          setStdOut(stdOut);
-          setAppIdMatched(stdOut && stdOut !== null ? stdOut.match('terra-app-[0-9a-fA-f-]*') : null);
           _.isNil(updateWorkflowPath) && setWorkflow(metadata);
           if (!_.isEmpty(metadata?.calls)) {
             setFailedTasks(Object.values(failedTasks)[0]?.calls || {});
@@ -150,7 +161,7 @@ export const BaseRunDetails = (
         notify('error', 'Error loading run details', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [signal, workspaceId, includeKey, excludeKey]
+    [workspaceId, signal, includeKey, excludeKey]
   );
 
   //  Below two methods are data fetchers used in the call cache wizard. Defined
@@ -165,16 +176,6 @@ export const BaseRunDetails = (
     [signal, workspaceId]
   );
 
-  const renderInProgressElement = (workflow) => {
-    if (workflow.status === 'Running') {
-      return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
-    }
-  };
-
-  const taskCostTotal = useMemo(() => {
-    return callObjects ? calculateTotalCost(callObjects) : undefined;
-  }, [callObjects]);
-
   const loadCallCacheMetadata = useCallback(
     async (wfId, includeKey, excludeKey) => {
       const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
@@ -184,14 +185,6 @@ export const BaseRunDetails = (
     },
     [signal, workspaceId]
   );
-
-  const getWorkflowName = () => {
-    return appIdMatched
-      ? stdOut
-          .substring(appIdMatched.index + appIdMatched[0].length + 1)
-          .substring(0, stdOut.substring(appIdMatched.index + appIdMatched[0].length + 1).indexOf('/'))
-      : null;
-  };
 
   // poll if we're missing CBAS proxy url and stop polling when we have it
   usePollingEffect(() => !doesAppProxyUrlExist(workspaceId, 'cromwellProxyUrlState') && loadWorkflow(workflowId), {
@@ -257,7 +250,13 @@ export const BaseRunDetails = (
       ],
       [
         workflow === undefined,
-        () => h(Fragment, [div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']), centeredSpinner()]),
+        div({ style: { width: '100%' } }, [
+          div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
+          div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
+            h(WorkflowInfoBox, { workflow, name, namespace, submissionId, workflowId, workspaceId, showLogModal }),
+          ]),
+          div({ style: { marginTop: '125px' } }, [h(Spinner, { size: 48, style: { width: '100%', justifyContent: 'center' } })]),
+        ]),
       ],
       [
         metadataArchiveStatus === 'ArchivedAndDeleted',
@@ -279,38 +278,12 @@ export const BaseRunDetails = (
           ]),
       ],
       () =>
-        div([
+        div({ style: { width: '100%' } }, [
           div({ style: { padding: '1rem 2rem 2rem' } }, [header]),
           div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
-            h(WorkflowInfoBox, { workflow }, []),
-            h(
-              TroubleshootingBox,
-              {
-                name,
-                namespace,
-                logUri: workflow.workflowLog,
-                submissionId,
-                workflowId,
-                showLogModal,
-                appId: appIdMatched,
-                workflowName: getWorkflowName(),
-              },
-              []
-            ),
+            h(WorkflowInfoBox, { workflow, name, namespace, submissionId, workflowId, workspaceId, showLogModal }),
           ]),
-          div({ style: { fontSize: 16, padding: '0rem 2.5rem 1rem' } }, [
-            span({ style: { fontWeight: 'bold' } }, ['Approximate workflow cost: ']),
-            renderInProgressElement(workflow),
-            renderTaskCostElement(taskCostTotal),
-            h(
-              TooltipTrigger,
-              {
-                content:
-                  'Approximate cost is calculated based on the list price of the VMs used and does not include disk cost, subworkflow cost, or any cloud account discounts',
-              },
-              [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
-            ),
-          ]),
+          h(WorkflowCostBox, { workflowId, signal, workspaceId, loadForSubworkflows }, []),
           div(
             {
               style: {
@@ -335,6 +308,7 @@ export const BaseRunDetails = (
                 namespace,
                 submissionId,
                 isAzure: true,
+                loadForSubworkflows,
               }),
             ]
           ),

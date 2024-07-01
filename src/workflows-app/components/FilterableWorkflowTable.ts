@@ -14,12 +14,8 @@ import { useCancellation } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
 import { customFormatDuration, differenceFromNowInSeconds } from 'src/libs/utils';
 import { statusType } from 'src/workflows-app/components/job-common';
-import {
-  fetchMetadata,
-  makeStatusLine,
-  parseMethodString,
-  WorkflowMetadata,
-} from 'src/workflows-app/utils/submission-utils';
+import { fetchMetadata, WorkflowMetadata } from 'src/workflows-app/utils/cromwell-metadata-utils';
+import { makeStatusLine, parseMethodString } from 'src/workflows-app/utils/submission-utils';
 import { isAzureUri } from 'src/workspace-data/data-table/uri-viewer/uri-viewer-utils';
 
 import { loadAppUrls } from '../utils/app-utils';
@@ -203,6 +199,7 @@ const FilterableWorkflowTable = ({
             signal,
             includeKeys,
             excludeKeys,
+            expandSubWorkflows: false,
           });
         }
         return undefined;

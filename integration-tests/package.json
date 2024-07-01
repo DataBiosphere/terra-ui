@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "test-local": "TERRA_SA_KEY=$(vault read --format=json secret/dsde/firecloud/dev/common/firecloud-account.json | jq .data) LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) TEST_URL=http://localhost:3000 yarn test",
+    "test-local": "TERRA_SA_KEY=$(gcloud --project broad-dsde-dev secrets versions access latest --secret firecloud-sa) LYLE_SA_KEY=$(gcloud --project broad-dsde-dev secrets versions access latest --secret lyle-sa-dev-b64 | jq --raw-output .key  | base64 --decode) TEST_URL=http://localhost:3000 yarn test",
     "test-flakes": "FLAKES=true yarn test-local --runInBand"
   },
   "devDependencies": {
