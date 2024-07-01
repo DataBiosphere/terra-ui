@@ -56,7 +56,7 @@ export interface SubworkflowMetadata extends WorkflowMetadata {
 }
 
 // Used to make a web request to cromwell to get certain pieces of metadata for a specific workflow
-type MetadataOptions = {
+export type MetadataOptions = {
   cromwellProxyUrl: string;
   excludeKeys: string[];
   includeKeys: string[];
@@ -65,7 +65,7 @@ type MetadataOptions = {
   expandSubWorkflows: boolean;
 };
 
-const fetchMetadata = async (options: MetadataOptions): Promise<WorkflowMetadata> =>
+export const fetchMetadata = async (options: MetadataOptions): Promise<WorkflowMetadata> =>
   Ajax(options.signal).CromwellApp.workflows(options.workflowId).metadata(options.cromwellProxyUrl, {
     includeKey: options.includeKeys,
     excludeKey: options.excludeKeys,

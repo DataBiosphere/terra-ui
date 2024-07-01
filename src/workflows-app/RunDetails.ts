@@ -22,14 +22,6 @@ import { loadAppUrls } from './utils/app-utils';
 import { fetchCostMetadata, fetchWorkflowAndCallsMetadata, WorkflowMetadata } from './utils/cromwell-metadata-utils';
 import { wrapWorkflowsPage } from './WorkflowsContainer';
 
-export interface RunDetailsProps {
-  workspaceName: string; // e.g. 'my-workspace'
-  workspaceBillingProject: string; // e.g. 'dsp-dev-testing-20230921'
-  workspaceId: string; // UUID
-  submissionId: string; // UUID
-  workflowId: string; // UUID
-}
-
 type LogModalState = {
   showing: boolean;
   title: string;
@@ -50,8 +42,22 @@ type CromwellProxyUrlState =
 
 export const CromwellPollInterval = 1000 * 30; // 30 seconds
 
-export const BaseRunDetails = (props: RunDetailsProps): ReactNode => {
-  const { workspaceName, workspaceBillingProject, workspaceId, submissionId, workflowId } = props;
+export const BaseRunDetails = (
+  {
+    // Not using a 'props' type in order to conform with other things that use the workspace wrapper.
+    name,
+    namespace,
+    workspace: {
+      workspace: { workspaceId },
+    },
+    submissionId,
+    workflowId,
+  },
+  _ref
+): ReactNode => {
+  const workspaceName: string | undefined = name;
+  const workspaceBillingProject: string | undefined = namespace;
+
   /* State Setup */
 
   /* URL to talk to Cromwell. Must be retrieved from Leo, and is necessary for all Cromwell API calls. */
@@ -101,7 +107,7 @@ export const BaseRunDetails = (props: RunDetailsProps): ReactNode => {
   /* Data fetching */
 
   // Fetch the Cromwell App URL and status from Leo, exactly once, on load.
-  useOnMount(() => {
+  useEffect(() => {
     const fetchCromwellProxyState = async () => {
       try {
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
@@ -230,6 +236,15 @@ export const BaseRunDetails = (props: RunDetailsProps): ReactNode => {
 
   /* render */
   const renderHeader = () => {
+    if (
+      !workspaceName ||
+      !workspaceBillingProject ||
+      !submissionId ||
+      !workflowMetadata ||
+      !workflowMetadata?.workflowName
+    ) {
+      return null;
+    }
     const breadcrumbPathObjects = [
       {
         label: 'Submission History',
@@ -249,7 +264,7 @@ export const BaseRunDetails = (props: RunDetailsProps): ReactNode => {
 
     return h(HeaderSection, {
       breadcrumbPathObjects,
-      button: h(SubmitNewWorkflowButton, { name: workspaceName, namespace: workspaceBillingProject }),
+      button: h(SubmitNewWorkflowButton, { name: workspaceName, namespace: workspaceBillingProject || '' }),
       title: 'Workflow Details',
     });
   };
@@ -267,7 +282,6 @@ export const BaseRunDetails = (props: RunDetailsProps): ReactNode => {
       div({ style: { padding: '1rem 2rem 2rem' } }, [renderHeader()]),
       div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
         h(WorkflowInfoBox, {
-          workflow: workflowMetadata,
           name: workspaceName,
           namespace: workspaceBillingProject,
           submissionId,
@@ -306,7 +320,7 @@ export const BaseRunDetails = (props: RunDetailsProps): ReactNode => {
       div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
         h(WorkflowInfoBox, {
           name: workspaceName,
-          namespace: workspaceBillingProject,
+          namespace: workspaceBillingProject || '',
           submissionId,
           workflowId,
           workspaceId,
@@ -335,7 +349,7 @@ export const BaseRunDetails = (props: RunDetailsProps): ReactNode => {
             workflowName: workflowMetadata?.workflowName,
             workflowId: workflowMetadata?.id,
             name: workspaceName,
-            namespace: workspaceBillingProject,
+            namespace: workspaceBillingProject || '',
             submissionId,
             isAzure: true,
             loadForSubworkflows: fetchCostMetadata,
