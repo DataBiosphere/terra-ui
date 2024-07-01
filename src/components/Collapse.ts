@@ -9,7 +9,7 @@ import * as Style from 'src/libs/style';
 
 type DivProps = JSX.IntrinsicElements['div'];
 
-interface CollapseProps extends Omit<DivProps, 'title'> {
+export interface CollapseProps extends Omit<DivProps, 'title'> {
   title?: ReactNode;
   hover?: LinkProps['hover'];
   tooltip?: string;
@@ -25,7 +25,7 @@ interface CollapseProps extends Omit<DivProps, 'title'> {
   disabled?: boolean;
 }
 
-const Collapse = (props: CollapseProps): ReactNode => {
+export const Collapse = (props: CollapseProps): ReactNode => {
   const {
     title,
     hover,
@@ -114,5 +114,3 @@ const Collapse = (props: CollapseProps): ReactNode => {
     isOpened && div({ id, style: detailsStyle }, [children]),
   ]);
 };
-
-export default Collapse;
