@@ -14,6 +14,7 @@ import { FlexTable, HeaderCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
+import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { renderDataCell } from 'src/workspace-data/data-table/entity-service/renderDataCell';
 import * as WorkspaceUtils from 'src/workspaces/utils';
@@ -211,10 +212,18 @@ export const WorkspaceAttributes = ({
               h(
                 ButtonSecondary,
                 {
-                  style: { marginRight: '1.5rem' },
                   onClick: download,
                 },
                 [h(Icon, { icon: 'download', style: { marginRight: '0.5rem' } }), 'Download TSV']
+              ),
+              div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+              div(
+                {
+                  role: 'status',
+                  'aria-atomic': true,
+                  style: { marginRight: '0.5rem' },
+                },
+                [`${numSelected} row${numSelected === 1 ? '' : 's'} selected`]
               ),
               h(DelayedSearchInput, {
                 'aria-label': 'Search',
@@ -244,7 +253,13 @@ export const WorkspaceAttributes = ({
                           h(Checkbox, {
                             checked: allVisibleAttributesSelected,
                             disabled: initialAttributes.length === 0 || editIndex !== undefined,
-                            onChange: () => {},
+                            onChange: () => {
+                              if (allVisibleAttributesSelected) {
+                                setSelection({});
+                              } else {
+                                setSelection((previous) => ({ ...previous, ...Object.fromEntries(filteredAttributes.map(([id]) => [id, true])) }));
+                              }
+                            },
                             'aria-label': 'Select all',
                           }),
                           h(
@@ -263,7 +278,11 @@ export const WorkspaceAttributes = ({
                                   h(
                                     MenuButton,
                                     {
-                                      onClick: () => setSelection(Object.fromEntries(filteredAttributes.map(([id]) => [id, true]))),
+                                      onClick: () =>
+                                        setSelection((previous) => ({
+                                          ...previous,
+                                          ...Object.fromEntries(filteredAttributes.map(([id]) => [id, true])),
+                                        })),
                                     },
                                     [`Filtered (${filteredAttributes.length})`]
                                   ),
