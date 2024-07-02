@@ -1,15 +1,15 @@
-import { ButtonSecondary, Icon } from '@terra-ui-packages/components';
+import { ButtonSecondary, Clickable, Icon } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, p } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
-import { DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common';
+import { Checkbox, DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput, TextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
-import { MenuTrigger } from 'src/components/PopupTrigger';
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
@@ -30,8 +30,11 @@ export const WorkspaceAttributes = ({
   },
   refreshKey,
 }) => {
+  const [selection, setSelection] = useState({});
+  const numSelected = Object.entries(selection).filter(([_, selected]) => selected).length;
+
   const [editIndex, setEditIndex] = useState();
-  const [deleteIndex, setDeleteIndex] = useState();
+  const [deleting, setDeleting] = useState(false);
   const [editKey, setEditKey] = useState();
   const [editValue, setEditValue] = useState();
   const [editDescription, setEditDescription] = useState();
@@ -61,14 +64,17 @@ export const WorkspaceAttributes = ({
 
   const initialAttributes = attributes.state || [];
   const creatingNewVariable = editIndex === initialAttributes.length;
-  const amendedAttributes = _.flow(
-    _.filter(([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`)),
-    creatingNewVariable ? Utils.append(['', '', '']) : _.identity
-  )(initialAttributes);
+  const filteredAttributes = _.filter(
+    ([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`),
+    initialAttributes
+  );
+  const amendedAttributes = _.flow(creatingNewVariable ? Utils.append(['', '', '']) : _.identity)(filteredAttributes);
+
+  const allVisibleAttributesSelected = filteredAttributes.every(([id]) => selection[id]);
 
   const DESCRIPTION_MAX_LENGTH = 200;
   const inputErrors = editIndex !== undefined && [
-    ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
+    ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes.state)).includes(editKey) ? ['Key must be unique'] : []),
     ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
     ...(editKey === 'description' ? ["Key cannot be 'description'"] : []),
     ...(isDescriptionKey(editKey) ? [`Key cannot start with '${DESCRIPTION_PREFIX}'`] : []),
@@ -177,12 +183,23 @@ export const WorkspaceAttributes = ({
                       },
                       ['Upload TSV']
                     ),
+                    h(MenuDivider),
+                    h(
+                      MenuButton,
+                      {
+                        disabled: numSelected === 0,
+                        tooltip: numSelected === 0 ? 'Select variables to delete in the table' : undefined,
+                        onClick: () => setDeleting(true),
+                      },
+                      'Delete selected variables'
+                    ),
                   ]),
                 },
                 [
                   h(
                     ButtonSecondary,
                     {
+                      disabled: editIndex !== undefined,
                       tooltip: 'Edit data',
                       ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
                       style: { marginRight: '1.5rem' },
@@ -220,6 +237,64 @@ export const WorkspaceAttributes = ({
                   noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
                   border: false,
                   columns: [
+                    {
+                      size: { basis: 70, grow: 0 },
+                      headerRenderer: () => {
+                        return h(Fragment, [
+                          h(Checkbox, {
+                            checked: allVisibleAttributesSelected,
+                            disabled: initialAttributes.length === 0 || editIndex !== undefined,
+                            onChange: () => {},
+                            'aria-label': 'Select all',
+                          }),
+                          h(
+                            MenuTrigger,
+                            {
+                              closeOnClick: true,
+                              content: h(Fragment, [
+                                h(
+                                  MenuButton,
+                                  {
+                                    onClick: () => setSelection(Object.fromEntries(initialAttributes.map(([id]) => [id, true]))),
+                                  },
+                                  [`All (${initialAttributes.length})`]
+                                ),
+                                filteredAttributes.length < initialAttributes.length &&
+                                  h(
+                                    MenuButton,
+                                    {
+                                      onClick: () => setSelection(Object.fromEntries(filteredAttributes.map(([id]) => [id, true]))),
+                                    },
+                                    [`Filtered (${filteredAttributes.length})`]
+                                  ),
+                                h(
+                                  MenuButton,
+                                  {
+                                    onClick: () => setSelection({}),
+                                  },
+                                  ['None']
+                                ),
+                              ]),
+                              side: 'bottom',
+                            },
+                            [h(Clickable, { 'aria-label': '"Select All" options' }, [h(Icon, { icon: 'caretDown' })])]
+                          ),
+                        ]);
+                      },
+                      cellRenderer: ({ rowIndex }) => {
+                        if (rowIndex === editIndex) {
+                          return null;
+                        }
+
+                        const [id] = filteredAttributes[rowIndex];
+                        return h(Checkbox, {
+                          'aria-label': id,
+                          checked: !!selection[id],
+                          disabled: editIndex !== undefined,
+                          onChange: () => setSelection((previous) => ({ ...previous, [id]: !previous[id] })),
+                        });
+                      },
+                    },
                     {
                       size: { basis: 400, grow: 0 },
                       headerRenderer: () => h(HeaderCell, ['Key']),
@@ -321,17 +396,6 @@ export const WorkspaceAttributes = ({
                                   },
                                   [icon('edit', { size: 19 })]
                                 ),
-                                h(
-                                  Link,
-                                  {
-                                    tooltip: 'Delete variable',
-                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
-                                    style: { marginLeft: '1rem' },
-                                    onClick: () => setDeleteIndex(rowIndex),
-                                    'aria-haspopup': 'dialog',
-                                  },
-                                  [icon('trash', { size: 19 })]
-                                ),
                               ]),
                         ]);
                       },
@@ -340,22 +404,31 @@ export const WorkspaceAttributes = ({
                 }),
             ]),
           ]),
-          deleteIndex !== undefined &&
-            h(DeleteConfirmationModal, {
-              objectType: 'variable',
-              objectName: amendedAttributes[deleteIndex][0],
-              onConfirm: _.flow(
-                Utils.withBusyState(setBusy),
-                withErrorReporting('Error deleting workspace variable')
-              )(async () => {
-                setDeleteIndex(undefined);
-                await Ajax()
-                  .Workspaces.workspace(namespace, name)
-                  .deleteAttributes([amendedAttributes[deleteIndex][0], toDescriptionKey(amendedAttributes[deleteIndex][0])]);
-                refreshAttributes();
-              }),
-              onDismiss: () => setDeleteIndex(undefined),
-            }),
+          deleting &&
+            h(
+              DeleteConfirmationModal,
+              {
+                objectType: numSelected > 1 ? 'variables' : 'variable',
+                title: `Delete ${numSelected} ${numSelected > 1 ? 'variables' : 'variable'}`,
+                onConfirm: _.flow(
+                  Utils.withBusyState(setBusy),
+                  withErrorReporting('Error deleting workspace variables')
+                )(async () => {
+                  setDeleting(false);
+                  await Ajax()
+                    .Workspaces.workspace(namespace, name)
+                    .deleteAttributes(
+                      Object.entries(selection)
+                        .filter(([_, selected]) => selected)
+                        .flatMap(([id]) => [id, toDescriptionKey(id)])
+                    );
+                  setSelection({});
+                  refreshAttributes();
+                }),
+                onDismiss: () => setDeleting(false),
+              },
+              [p([`Are you sure you want to delete the selected variable${numSelected > 1 ? 's' : ''}?`])]
+            ),
           (attributes.status === 'Loading' || busy) && spinnerOverlay,
         ]),
     ]
