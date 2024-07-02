@@ -582,6 +582,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
     Ajax.mockImplementation(() => ({ ...altMockObj, ...subworkflowCromwellAjaxMock({ status: 'Succeeded' }) }));
     await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
+    screen.logTestingPlaygroundURL();
     const table = screen.getByRole('table');
     within(table).getByText('$0.19');
   });

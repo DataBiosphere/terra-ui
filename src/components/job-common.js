@@ -188,6 +188,11 @@ export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
     // Re-assigning callObs to be the call objects fetched from the subWorkflow
     callObs = subWorkflows?.calls;
   }
+
+  if (_.isNil(callObs)) {
+    return 0;
+  }
+
   for (const call of Object.values(callObs)) {
     for (const s of call) {
       const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId, subWorkflowMetadata } = s;

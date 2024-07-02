@@ -19,7 +19,12 @@ import { LogViewer } from './components/LogViewer';
 import { WorkflowCostBox } from './components/WorkflowCostBox';
 import { WorkflowInfoBox } from './components/WorkflowInfoBox';
 import { loadAppUrls } from './utils/app-utils';
-import { fetchCostMetadata, fetchWorkflowAndCallsMetadata, WorkflowMetadata } from './utils/cromwell-metadata-utils';
+import {
+  calculateCostOfCallsArray,
+  fetchCostMetadata,
+  fetchWorkflowAndCallsMetadata,
+  WorkflowMetadata,
+} from './utils/cromwell-metadata-utils';
 import { wrapWorkflowsPage } from './WorkflowsContainer';
 
 type LogModalState = {
@@ -42,6 +47,7 @@ type CromwellProxyUrlState =
 
 export const CromwellPollInterval = 1000 * 30; // 30 seconds
 
+// Conforms to the WrapWorfklowsPage function
 interface RunDetailsProps {
   name?: string;
   namespace?: string;
@@ -62,22 +68,36 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
 
   /* State Setup */
 
-  /* URL to talk to Cromwell. Must be retrieved from Leo, and is necessary for all Cromwell API calls. */
+  /* Leo app state of Cromwell, which includes both the app status and the app URL.
+   Must be retrieved from Leo, and is necessary for all Cromwell API calls.
+   Cached here so we only fetch it once. */
   const [cromwellProxyState, setCromwellProxyState] = useState<CromwellProxyUrlState>();
+
+  /* Workflow metadta, which includes the call objects array, among other things. 
+  The web request to fetch this data may be slow. */
   const [workflowMetadata, setWorkflowMetadata] = useState<WorkflowMetadata>();
   const [callObjects, setCallObjects] = useState<any[] | undefined>([]);
+
+  const [costMetadata, setCostMetadata] = useState<WorkflowMetadata>();
+  const [rootWorkflowCost, setRootWorkflowCost] = useState<number>();
+  /* If a workflow fails, we make a special request to get the failed tasks. */
   const [failedTasks, setFailedTasks] = useState<any[]>([]);
+
+  /* Modal states. Child components are given a callback to open these modals. */
   const [logModalState, setLogModalState] = useState<LogModalState>({
     showing: false,
     title: '',
     logsArray: [],
     templateTesLog: '',
   });
+
   const [taskModalState, setTaskModalState] = useState<TaskModalState>({
     showing: false,
     taskDataTile: '',
     taskDataJson: {},
   });
+
+  /* State to track if the workflow failed to load. */
   const [loadWorkflowFailed, setLoadWorkflowFailed] = useState(false);
   const signal = useCancellation();
   const stateRefreshTimer = useRef<NodeJS.Timeout>();
@@ -115,7 +135,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
         const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
         setCromwellProxyState(cromwellProxyUrlState);
       } catch (error) {
-        setLoadWorkflowFailed(true); // If we can't get the Cromwell URL, everything else will fail. Give up here.
         notify('error', 'Error fetching Cromwell proxy URL for workspace.', {
           detail: error instanceof Response ? await error.text() : error,
         });
@@ -124,7 +143,7 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
     fetchCromwellProxyState();
   }, [workspaceId]);
 
-  // Fetch the SAS token, exactly once, on load.
+  // Fetch the SAS token on load.
   useEffect(() => {
     if (!workspaceId) return;
     const fetchSasToken = async () => {
@@ -140,13 +159,12 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
     fetchSasToken();
   }, [signal, workspaceId]);
 
-  // This fetch function is also passed to the CallTable component, so it can refresh this pages data when needed.
+  // This fetch function is also passed to the CallTable component, so it can refresh this page's data when needed.
   const fetchWorkflowMetadata = useCallback(
-    async (
-      workflowId: string,
-      cromwellProxyState: CromwellProxyUrlState,
-      updateWorkflowPath: CallableFunction | undefined = undefined
-    ) => {
+    async (workflowId: string, updateWorkflowPath: CallableFunction | undefined = undefined) => {
+      if (!cromwellProxyState || !cromwellProxyState.state || !workflowId) {
+        return;
+      }
       try {
         if (cromwellProxyState.status === AppProxyUrlStatus.Ready) {
           const metadata = await fetchWorkflowAndCallsMetadata({
@@ -178,7 +196,7 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
               _.includes(collapseStatus(metadata?.status), [statusType.running, statusType.submitted])
             ) {
               stateRefreshTimer.current = setTimeout(() => {
-                fetchWorkflowMetadata(workflowId, cromwellProxyState, updateWorkflowPath);
+                fetchWorkflowMetadata(workflowId, updateWorkflowPath);
               }, 60000);
             }
           }
@@ -186,13 +204,13 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
           !_.isNil(updateWorkflowPath) && updateWorkflowPath(workflowId, workflowName);
         }
       } catch (error) {
-        console.error('Error loading run details', error);
+        setLoadWorkflowFailed(true);
         notify('error', 'Error loading run details', {
           detail: error instanceof Response ? await error.text() : error,
         });
       }
     },
-    [signal, stateRefreshTimer]
+    [signal, stateRefreshTimer, cromwellProxyState]
   );
 
   // Fetch the workflow & calls metadata once the Cromwell URL is available.
@@ -200,8 +218,39 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
     if (!cromwellProxyState || !cromwellProxyState.state || !workflowId) {
       return;
     }
-    fetchWorkflowMetadata(workflowId, cromwellProxyState);
+    fetchWorkflowMetadata(workflowId);
   }, [workflowId, cromwellProxyState, fetchWorkflowMetadata]);
+
+  // Fetch the cost data for the workflow and all of its subworkflows.
+  useEffect(() => {
+    if (!cromwellProxyState || !cromwellProxyState.state || !workflowId) {
+      return;
+    }
+    const makeCostMetadataRequest = async () => {
+      const costMetadata = await fetchCostMetadata({ cromwellProxyUrl: cromwellProxyState.state, signal, workflowId });
+      setCostMetadata(costMetadata);
+      setRootWorkflowCost(calculateCostOfCallsArray(costMetadata.calls));
+    };
+    makeCostMetadataRequest();
+  }, [cromwellProxyState, signal, workflowId]);
+
+  // Given a call name (e.g. )
+  const getCostOfCallFn = useCallback(
+    (callName: string): number | undefined => {
+      if (!costMetadata || !costMetadata.calls) {
+        console.error('Cannot fetch call cost without cost metadata');
+        return undefined;
+      }
+
+      for (const callKey of Object.keys(costMetadata.calls)) {
+        if (callKey === callName) {
+          return calculateCostOfCallsArray(costMetadata.calls[callKey].calls);
+        }
+      }
+      return 79.99;
+    },
+    [costMetadata]
+  );
 
   //  Below two methods are data fetchers used in the call cache wizard. Defined
   // here so we can easily use the cloud context (we're in Azure, which proxy URL.)
@@ -227,11 +276,11 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
     [signal, workspaceId]
   );
 
-  // poll if we're missing CBAS proxy url and stop polling when we have it
+  // poll if we're missing Cromwell proxy url and stop polling when we have it
   usePollingEffect(
     () => {
       if (cromwellProxyState && cromwellProxyState.state && workflowId) {
-        fetchWorkflowMetadata(workflowId, cromwellProxyState);
+        fetchWorkflowMetadata(workflowId);
       }
       return Promise.resolve();
     },
@@ -341,7 +390,7 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
           showLogModal,
         }),
       ]),
-      h(WorkflowCostBox, { workflowId, signal, workspaceId, loadForSubworkflows: fetchCostMetadata }),
+      h(WorkflowCostBox, { workflowCost: rootWorkflowCost, workflowStatus: workflowMetadata?.status }),
       div(
         {
           style: {
@@ -366,7 +415,7 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
             namespace: workspaceBillingProject,
             submissionId,
             isAzure: true,
-            loadForSubworkflows: fetchCostMetadata,
+            getCostOfCallFn,
           }),
         ]
       ),
