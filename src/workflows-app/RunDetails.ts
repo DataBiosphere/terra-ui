@@ -1,6 +1,6 @@
 import { icon, Link, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash';
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { collapseStatus, statusType } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
@@ -167,6 +167,9 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
           // If the updateWorkflowPath function is not provided, we are in the RunDetailsPage and should update the state.
           _.isNil(updateWorkflowPath) && setWorkflowMetadata(metadata);
 
+          if (!_.isEmpty(metadata?.calls)) {
+            setCallObjects(metadata.calls);
+          }
           if (!_.isEmpty(metadata?.calls) && !_.isEmpty(failedTasks)) {
             setFailedTasks((Object.values(failedTasks)[0] as { calls: any })?.calls || {});
             metadata.calls ? setCallObjects(metadata.calls) : setCallObjects(undefined);
