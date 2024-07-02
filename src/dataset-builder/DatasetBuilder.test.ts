@@ -60,6 +60,12 @@ describe('DatasetBuilder', () => {
         onStateChange: (state) => state,
         snapshotId: testSnapshotId,
         snapshotBuilderSettings: testSettings,
+        selectedCohorts: [],
+        selectedConceptSets: [],
+        selectedValues: [],
+        updateSelectedCohorts: jest.fn(),
+        updateSelectedConceptSets: jest.fn(),
+        updateSelectedValues: jest.fn(),
         ...overrides,
       })
     );
