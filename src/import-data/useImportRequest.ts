@@ -1,5 +1,5 @@
-import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
+import * as R from 'remeda';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources } from 'src/libs/ajax/SamResources';
@@ -174,7 +174,7 @@ export const getImportRequest = async (queryParams: QueryParams): Promise<Import
     case 'tdrexportmanifest':
       return getTDRSnapshotExportImportRequest({
         ...queryParams,
-        tdrmanifest: await _.flow(_.get('snapshotId'), requireStringFp('snapshot id'), prepareForExport)(queryParams),
+        tdrmanifest: await R.pipe(queryParams, R.prop('snapshotId'), requireStringFp('snapshot id'), prepareForExport),
       });
     case 'snapshot':
       return getTDRSnapshotReferenceImportRequest(queryParams);
