@@ -103,7 +103,7 @@ describe('DatasetBuilder', () => {
       }),
   });
 
-  const initializeValidDatasetRequest = async () => {
+  const initializeValidDatasetRequest = () => {
     const cohortOne = newCohort('cohort 1');
     const conditionConceptSet = newConceptSet('Condition');
     showDatasetBuilderContents({
@@ -226,11 +226,11 @@ describe('DatasetBuilder', () => {
     });
 
     // Assert
-    expect(screen.getByLabelText('cohort 1')).toBeChecked();
-    expect(screen.getByLabelText('cohort 2')).not.toBeChecked();
-    expect(screen.getByLabelText('Condition')).toBeChecked();
-    expect(screen.getByLabelText('Procedure')).not.toBeChecked();
-    expect(screen.getByLabelText('Observation')).not.toBeChecked();
+    expect(await screen.findByLabelText('cohort 1')).toBeChecked();
+    expect(await screen.findByLabelText('cohort 2')).not.toBeChecked();
+    expect(await screen.findByLabelText('Condition')).toBeChecked();
+    expect(await screen.findByLabelText('Procedure')).not.toBeChecked();
+    expect(await screen.findByLabelText('Observation')).not.toBeChecked();
   });
 
   it('calls update on selecting cohorts, and concept sets', async () => {
@@ -288,7 +288,7 @@ describe('DatasetBuilder', () => {
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Arrange
-    await initializeValidDatasetRequest();
+    initializeValidDatasetRequest();
     // Assert
     expect(await screen.findByText('100 participants in this dataset')).toBeTruthy();
     expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
