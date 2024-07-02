@@ -1,13 +1,13 @@
 import { icon, Link, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash';
-import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { collapseStatus, statusType } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
-import { useCancellation, useOnMount, usePollingEffect } from 'src/libs/react-utils';
+import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
 import { elements } from 'src/libs/style';
 import { newTabLinkProps } from 'src/libs/utils';
@@ -42,21 +42,23 @@ type CromwellProxyUrlState =
 
 export const CromwellPollInterval = 1000 * 30; // 30 seconds
 
-export const BaseRunDetails = (
-  {
-    // Not using a 'props' type in order to conform with other things that use the workspace wrapper.
-    name,
-    namespace,
+interface RunDetailsProps {
+  name?: string;
+  namespace?: string;
+  workspace?: {
     workspace: {
-      workspace: { workspaceId },
-    },
-    submissionId,
-    workflowId,
-  },
-  _ref
-): ReactNode => {
-  const workspaceName: string | undefined = name;
-  const workspaceBillingProject: string | undefined = namespace;
+      workspaceId: string;
+    };
+  };
+  submissionId?: string;
+  workflowId?: string;
+}
+
+export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
+  const workspaceName = props.name;
+  const workspaceBillingProject = props.namespace;
+  const workspaceId = props?.workspace?.workspace.workspaceId;
+  const { submissionId, workflowId } = props;
 
   /* State Setup */
 
@@ -106,7 +108,7 @@ export const BaseRunDetails = (
 
   /* Data fetching */
 
-  // Fetch the Cromwell App URL and status from Leo, exactly once, on load.
+  // Fetch the Cromwell App URL and status from Leo.
   useEffect(() => {
     const fetchCromwellProxyState = async () => {
       try {
@@ -120,10 +122,11 @@ export const BaseRunDetails = (
       }
     };
     fetchCromwellProxyState();
-  });
+  }, [workspaceId]);
 
   // Fetch the SAS token, exactly once, on load.
-  useOnMount(() => {
+  useEffect(() => {
+    if (!workspaceId) return;
     const fetchSasToken = async () => {
       try {
         const { sas } = await Ajax(signal).AzureStorage.details(workspaceId);
@@ -135,7 +138,7 @@ export const BaseRunDetails = (
       }
     };
     fetchSasToken();
-  });
+  }, [signal, workspaceId]);
 
   // This fetch function is also passed to the CallTable component, so it can refresh this pages data when needed.
   const fetchWorkflowMetadata = useCallback(
@@ -151,12 +154,12 @@ export const BaseRunDetails = (
             signal,
             workflowId,
           });
-
           let failedTasks: any;
           if (metadata?.status?.toLocaleLowerCase() === 'failed') {
             try {
               failedTasks = await Ajax(signal).CromwellApp.workflows(workflowId).failedTasks(cromwellProxyState.state);
             } catch (error) {
+              console.error('Error loading failed tasks', error);
               // do nothing, failure here means that user may not have access to an updated version of Cromwell
             }
           }
@@ -164,7 +167,7 @@ export const BaseRunDetails = (
           // If the updateWorkflowPath function is not provided, we are in the RunDetailsPage and should update the state.
           _.isNil(updateWorkflowPath) && setWorkflowMetadata(metadata);
 
-          if (!_.isEmpty(metadata?.calls)) {
+          if (!_.isEmpty(metadata?.calls) && !_.isEmpty(failedTasks)) {
             setFailedTasks((Object.values(failedTasks)[0] as { calls: any })?.calls || {});
             metadata.calls ? setCallObjects(metadata.calls) : setCallObjects(undefined);
             if (
@@ -180,6 +183,7 @@ export const BaseRunDetails = (
           !_.isNil(updateWorkflowPath) && updateWorkflowPath(workflowId, workflowName);
         }
       } catch (error) {
+        console.error('Error loading run details', error);
         notify('error', 'Error loading run details', {
           detail: error instanceof Response ? await error.text() : error,
         });
@@ -223,7 +227,7 @@ export const BaseRunDetails = (
   // poll if we're missing CBAS proxy url and stop polling when we have it
   usePollingEffect(
     () => {
-      if (cromwellProxyState && cromwellProxyState.state) {
+      if (cromwellProxyState && cromwellProxyState.state && workflowId) {
         fetchWorkflowMetadata(workflowId, cromwellProxyState);
       }
       return Promise.resolve();
@@ -236,26 +240,17 @@ export const BaseRunDetails = (
 
   /* render */
   const renderHeader = () => {
-    if (
-      !workspaceName ||
-      !workspaceBillingProject ||
-      !submissionId ||
-      !workflowMetadata ||
-      !workflowMetadata?.workflowName
-    ) {
-      return null;
-    }
     const breadcrumbPathObjects = [
       {
         label: 'Submission History',
         path: 'workspace-workflows-app',
-        pathParams: { workspaceName, workspaceBillingProject },
+        pathParams: { name: workspaceName, namespace: workspaceBillingProject },
         queryParams: { tab: 'submission-history' },
       },
       {
         label: `Submission ${submissionId}`,
         path: 'workspace-workflows-app-submission-details',
-        pathParams: { workspaceName, workspaceBillingProject, submissionId },
+        pathParams: { name: workspaceName, namespace: workspaceBillingProject, submissionId },
       },
       {
         label: workflowMetadata?.workflowName,
@@ -264,7 +259,7 @@ export const BaseRunDetails = (
 
     return h(HeaderSection, {
       breadcrumbPathObjects,
-      button: h(SubmitNewWorkflowButton, { name: workspaceName, namespace: workspaceBillingProject || '' }),
+      button: h(SubmitNewWorkflowButton, { name: workspaceName, namespace: workspaceBillingProject }),
       title: 'Workflow Details',
     });
   };
@@ -278,6 +273,11 @@ export const BaseRunDetails = (
   };
 
   const renderLoadingState = () => {
+    if (!workspaceName || !workspaceBillingProject || !submissionId || !workflowId || !workspaceId) {
+      return div({ style: { marginTop: '125px' } }, [
+        h(Spinner, { size: 48, style: { width: '100%', justifyContent: 'center' } }),
+      ]);
+    }
     return div({ style: { width: '100%' } }, [
       div({ style: { padding: '1rem 2rem 2rem' } }, [renderHeader()]),
       div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
@@ -315,12 +315,23 @@ export const BaseRunDetails = (
   };
 
   const renderSuccessfullyLoadedState = () => {
+    if (
+      !workspaceName ||
+      !workspaceBillingProject ||
+      !submissionId ||
+      !workspaceId ||
+      !workflowId ||
+      !workflowMetadata ||
+      !callObjects
+    ) {
+      return null;
+    }
     return div({ style: { width: '100%' } }, [
       div({ style: { padding: '1rem 2rem 2rem' } }, [renderHeader()]),
       div({ style: { display: 'flex', justifyContent: 'space-between', padding: '1rem 2rem 1rem' } }, [
         h(WorkflowInfoBox, {
           name: workspaceName,
-          namespace: workspaceBillingProject || '',
+          namespace: workspaceBillingProject,
           submissionId,
           workflowId,
           workspaceId,
@@ -349,7 +360,7 @@ export const BaseRunDetails = (
             workflowName: workflowMetadata?.workflowName,
             workflowId: workflowMetadata?.id,
             name: workspaceName,
-            namespace: workspaceBillingProject || '',
+            namespace: workspaceBillingProject,
             submissionId,
             isAzure: true,
             loadForSubworkflows: fetchCostMetadata,
@@ -377,6 +388,7 @@ export const BaseRunDetails = (
         }),
     ]);
   };
+
   if (loadWorkflowFailed) {
     return renderFailedState();
   }
