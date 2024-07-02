@@ -1,4 +1,6 @@
+import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
+import { Ajax } from 'src/libs/ajax';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -31,6 +33,9 @@ const requireString = (value: unknown, label = 'value'): string => {
   }
   return value;
 };
+
+// A version of requireString that takes a label and returns a function that takes the value, for use in `flow`.
+const requireStringFp = (label: string) => (value: unknown) => requireString(value, label);
 
 /**
  * Validate that a value can be parsed as a URL. Throw an error if it cannot.
@@ -134,7 +139,27 @@ const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatase
   };
 };
 
-export const getImportRequest = (queryParams: QueryParams): Promise<ImportRequest> => {
+// Handle the case where the format is 'tdrexportmanifest' by generating a manifest for the snapshot.
+// Once the manifest is generated, the import request can be created as if the format was 'tdrexport'.
+const prepareForExport = async (snapshotId: string): Promise<URL> => {
+  const { id } = await DataRepo().snapshot(snapshotId).exportSnapshot();
+  const jobApi = Ajax().DataRepo.job(id);
+  let jobInfo = await jobApi.details();
+  while (jobInfo.job_status === 'running') {
+    // sleep for 1000 ms
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    jobInfo = await jobApi.details();
+  }
+  if (jobInfo.job_status !== 'succeeded') {
+    throw new Error('Failed to export snapshot.');
+  }
+  const jobResult = await jobApi.result();
+  // @ts-ignore - this has an unknown response type, but in this case it should
+  // include these fields
+  return jobResult?.format?.parquet?.manifest;
+};
+
+export const getImportRequest = async (queryParams: QueryParams): Promise<ImportRequest> => {
   const format = getFormat(queryParams);
 
   switch (format) {
@@ -146,6 +171,11 @@ export const getImportRequest = (queryParams: QueryParams): Promise<ImportReques
       return Promise.resolve(getFileImportRequest(queryParams, 'entities'));
     case 'tdrexport':
       return getTDRSnapshotExportImportRequest(queryParams);
+    case 'tdrexportmanifest':
+      return getTDRSnapshotExportImportRequest({
+        ...queryParams,
+        tdrmanifest: await _.flow(_.get('snapshotId'), requireStringFp('snapshot id'), prepareForExport)(queryParams),
+      });
     case 'snapshot':
       return getTDRSnapshotReferenceImportRequest(queryParams);
     case 'catalog':
