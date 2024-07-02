@@ -1,3 +1,4 @@
+import { ButtonSecondary, Icon } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
@@ -5,9 +6,10 @@ import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
-import FloatingActionButton from 'src/components/FloatingActionButton';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput, TextInput } from 'src/components/input';
+import { MenuButton } from 'src/components/MenuButton';
+import { MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
@@ -142,19 +144,64 @@ export const WorkspaceAttributes = ({
                 flex: 'none',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'flex-end',
                 padding: '1rem',
                 background: colors.light(0.5),
                 borderBottom: `1px solid ${colors.grey(0.4)}`,
               },
             },
             [
-              h(Link, { onClick: download }, ['Download TSV']),
-              WorkspaceUtils.canEditWorkspace(workspace).value &&
-                h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']), h(Link, { onClick: openUploader }, ['upload TSV'])]),
+              h(
+                MenuTrigger,
+                {
+                  side: 'bottom',
+                  closeOnClick: true,
+                  content: h(Fragment, [
+                    h(
+                      MenuButton,
+                      {
+                        disabled: editIndex !== undefined,
+                        onClick: () => {
+                          setEditIndex(amendedAttributes.length);
+                          setEditValue('');
+                          setEditKey('');
+                          setEditType('string');
+                          setEditDescription('');
+                        },
+                      },
+                      ['Add variable']
+                    ),
+                    h(
+                      MenuButton,
+                      {
+                        onClick: openUploader,
+                      },
+                      ['Upload TSV']
+                    ),
+                  ]),
+                },
+                [
+                  h(
+                    ButtonSecondary,
+                    {
+                      tooltip: 'Edit data',
+                      ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+                      style: { marginRight: '1.5rem' },
+                    },
+                    [h(Icon, { icon: 'edit', style: { marginRight: '0.5rem' } }), 'Edit']
+                  ),
+                ]
+              ),
+              h(
+                ButtonSecondary,
+                {
+                  style: { marginRight: '1.5rem' },
+                  onClick: download,
+                },
+                [h(Icon, { icon: 'download', style: { marginRight: '0.5rem' } }), 'Download TSV']
+              ),
               h(DelayedSearchInput, {
                 'aria-label': 'Search',
-                style: { width: 300, marginLeft: '1rem' },
+                style: { width: 300, marginLeft: 'auto' },
                 placeholder: 'Search',
                 onChange: setTextFilter,
                 value: textFilter,
@@ -293,20 +340,6 @@ export const WorkspaceAttributes = ({
                 }),
             ]),
           ]),
-          !creatingNewVariable &&
-            editIndex === undefined &&
-            WorkspaceUtils.canEditWorkspace(workspace).value &&
-            h(FloatingActionButton, {
-              label: 'ADD VARIABLE',
-              iconShape: 'plus',
-              onClick: () => {
-                setEditIndex(amendedAttributes.length);
-                setEditValue('');
-                setEditKey('');
-                setEditType('string');
-                setEditDescription('');
-              },
-            }),
           deleteIndex !== undefined &&
             h(DeleteConfirmationModal, {
               objectType: 'variable',
