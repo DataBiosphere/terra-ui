@@ -20,7 +20,7 @@ const meta: Meta<typeof InfoBox> = {
     },
     side: {
       control: 'select',
-      options: sideOptions,
+      options: [...sideOptions],
       description: 'Determines the side that the popup appears on when the InfoBox is clicked.',
     },
     size: {
