@@ -1,11 +1,14 @@
 import { useArgs } from '@storybook/preview-api';
 import type { Meta, StoryFn } from '@storybook/react';
 import React from 'react';
-import { NumberInput } from 'src/components/input';
+import { DelayedSearchInput, TextArea } from 'src/components/input';
 
-const meta: Meta<typeof NumberInput> = {
-  title: 'src/Components/NumberInput',
-  component: NumberInput,
+/**
+ * This is the SearchInput component, wrapped with a 250ms "debounce" to prevent excessive API calls.
+ */
+const meta: Meta<typeof DelayedSearchInput> = {
+  title: 'src/Components/DelayedSearchInput',
+  component: DelayedSearchInput,
   parameters: {
     layout: 'centered',
   },
@@ -15,13 +18,8 @@ const meta: Meta<typeof NumberInput> = {
       control: 'text',
       description: 'Placeholder text for when the input is empty',
     },
-    tooltip: {
-      control: 'text',
-      description:
-        'Tooltip to display on hover (right side only). It will also be used as the aria label if aria-label is not specified.',
-    },
     value: {
-      control: 'number',
+      control: 'text',
       description: 'Value for the field',
     },
     disabled: {
@@ -29,20 +27,6 @@ const meta: Meta<typeof NumberInput> = {
       description: 'Should the input be disabled?',
       table: {
         defaultValue: { summary: 'false' },
-      },
-    },
-    onlyInteger: {
-      control: 'boolean',
-      description: 'Should the input be limited to integers?',
-      table: {
-        defaultValue: { summary: 'false' },
-      },
-    },
-    isClearable: {
-      control: 'boolean',
-      description: 'Can the value in the input be deleted?',
-      table: {
-        defaultValue: { summary: 'true' },
       },
     },
     onChange: {
@@ -72,36 +56,44 @@ const meta: Meta<typeof NumberInput> = {
       },
     },
   },
-  args: {
-    tooltip: 'This is a number input',
-    min: 0,
-    max: 10,
-    isClearable: true,
-  },
+  args: {},
 };
 
 export default meta;
 
-export const Example: StoryFn<typeof NumberInput> = (props) => {
+export const Example: StoryFn<typeof DelayedSearchInput> = (props) => {
   const [_, updateArgs] = useArgs();
   const onChange = (value) => {
     updateArgs({ value });
   };
   return (
-    <NumberInput
-      value={props.value}
-      placeholder={props.placeholder}
-      disabled={props.disabled}
-      onChange={onChange}
-      aria-label={props['aria-label']}
-      id={props.id}
-      autoFocus={props.autoFocus}
-      style={props.style}
-      min={props.min}
-      max={props.max}
-      isClearable={props.isClearable}
-      onlyInteger={props.onlyInteger}
-      tooltip={props.tooltip}
-    />
+    <div style={{ display: 'grid' }}>
+      {/* eslint-disable jsx-a11y/label-has-associated-control */}
+      <label style={{ marginBottom: '10px' }} htmlFor='search-input'>
+        Enter a search term:
+      </label>
+      <DelayedSearchInput
+        value={props.value}
+        placeholder={props.placeholder}
+        disabled={props.disabled}
+        onChange={onChange}
+        aria-label={props['aria-label']}
+        id='search-input'
+        autoFocus={props.autoFocus}
+        style={props.style}
+      />
+      {/* eslint-disable jsx-a11y/label-has-associated-control */}
+      <label
+        style={{
+          marginTop: '20px',
+          marginBottom: '10px',
+          fontStyle: 'italic',
+        }}
+        htmlFor='text-area'
+      >
+        onChange callback fired:
+      </label>
+      <TextArea value={props.value} id='text-area' disabled />
+    </div>
   );
 };

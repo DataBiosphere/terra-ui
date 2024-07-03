@@ -31,11 +31,8 @@ const meta: Meta<typeof TextInput> = {
       description: 'callback when the text is changed',
     },
     'aria-label': {
-      control: 'text',
+      control: false,
       description: 'Accessible label to use for the input if it is not linked to a label via the ID attribute',
-      table: {
-        readonly: true,
-      },
     },
     id: {
       control: false,
