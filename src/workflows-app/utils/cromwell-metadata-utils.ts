@@ -128,7 +128,7 @@ export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Pro
 };
 
 const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime?: string): number => {
-  const endTime = taskEndTime ? Date.parse(taskEndTime) : Date.now();
+  const endTime = taskEndTime ? Date.parse(taskEndTime) : Date.now(); // Tasks with no end time are still running, so use now as the end time
   const vmCostDouble = parseFloat(vmCostUsd);
   const startTime = Date.parse(taskStartTime);
   const elapsedTime = endTime - startTime;
@@ -136,7 +136,7 @@ const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime
 };
 
 // A 'call' is either a task or a subworkflow. Subworkflows contain their own 'calls' array.
-const calculateCostOfCall = (taskOrSubworkflow: any): number => {
+export const calculateCostOfCall = (taskOrSubworkflow: any): number => {
   let totalCost = 0;
   if (taskOrSubworkflow.taskStartTime && taskOrSubworkflow.vmCostUsd) {
     totalCost += calculateTaskCost(
@@ -159,7 +159,7 @@ export const calculateCostOfCallsArray = (callsArray: any): number => {
   let totalCost = 0;
   // Each workflow has a calls array, which is a list of all its child tasks and subworkflows ("calls").
   // Each call itself is an array of attempts, where each attempt is an actual task or subworkflow.
-  for (const callAttemptsArray of Object.values(callsArray)) {
+  for (const callAttemptsArray of Object.values(callsArray) as any[]) {
     for (const taskOrSubworkflowAttempt of callAttemptsArray) {
       totalCost += calculateCostOfCall(taskOrSubworkflowAttempt);
     }

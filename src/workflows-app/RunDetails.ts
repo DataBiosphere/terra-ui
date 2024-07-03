@@ -20,6 +20,7 @@ import { WorkflowCostBox } from './components/WorkflowCostBox';
 import { WorkflowInfoBox } from './components/WorkflowInfoBox';
 import { loadAppUrls } from './utils/app-utils';
 import {
+  calculateCostOfCall,
   calculateCostOfCallsArray,
   fetchCostMetadata,
   fetchWorkflowAndCallsMetadata,
@@ -79,6 +80,8 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
   const [callObjects, setCallObjects] = useState<any[] | undefined>([]);
 
   const [costMetadata, setCostMetadata] = useState<WorkflowMetadata>();
+  const [isCostMetadataLoading, setIsCostMetadataLoading] = useState<boolean>(true);
+
   const [rootWorkflowCost, setRootWorkflowCost] = useState<number>();
   /* If a workflow fails, we make a special request to get the failed tasks. */
   const [failedTasks, setFailedTasks] = useState<any[]>([]);
@@ -232,22 +235,25 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
       setRootWorkflowCost(calculateCostOfCallsArray(costMetadata.calls));
     };
     makeCostMetadataRequest();
+    setIsCostMetadataLoading(false);
   }, [cromwellProxyState, signal, workflowId]);
 
   // Given a call name (e.g. )
   const getCostOfCallFn = useCallback(
     (callName: string): number | undefined => {
       if (!costMetadata || !costMetadata.calls) {
-        console.error('Cannot fetch call cost without cost metadata');
         return undefined;
       }
 
+      let totalCost = 0;
       for (const callKey of Object.keys(costMetadata.calls)) {
         if (callKey === callName) {
-          return calculateCostOfCallsArray(costMetadata.calls[callKey].calls);
+          for (const callAttempt of costMetadata.calls[callKey]) {
+            totalCost += calculateCostOfCall(callAttempt);
+          }
         }
       }
-      return 79.99;
+      return totalCost;
     },
     [costMetadata]
   );
@@ -416,6 +422,7 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
             submissionId,
             isAzure: true,
             getCostOfCallFn,
+            isCostMetadataLoading,
           }),
         ]
       ),

@@ -132,6 +132,7 @@ const CallTable = ({
   failedTasks,
   isAzure,
   getCostOfCallFn,
+  isCostMetadataLoading,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -368,6 +369,7 @@ const CallTable = ({
                       return h(CallCostCell, {
                         call: filteredCallObjects[rowIndex],
                         getCostOfCallFn,
+                        isCostMetadataLoading,
                       });
                     },
                   },
