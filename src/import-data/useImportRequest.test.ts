@@ -321,16 +321,15 @@ describe('getImportRequest', () => {
       }
     );
 
-    it('supports generating a manifest URL for a snapshot export', async () => {
+    it('supports generating a manifest for a snapshot export', async () => {
       const queryParams = {
-        format: 'tdrexportmanifest',
+        format: 'tdrexport',
         snapshotId: googleSnapshotFixture.id,
         tdrSyncPermissions: 'false',
         url: 'https://data.terra.bio',
       };
       // Arrange
-      // Mock the snapshot export API
-      const manifest = 'https://example.com/manifest.parquet';
+      const manifestUrl = new URL('https://example.com/manifest.parquet');
       const mockDataRepo = {
         snapshot: (snapshotId: string): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
           exportSnapshot: jest.fn().mockResolvedValue({ jobId: '1234' }),
@@ -341,7 +340,7 @@ describe('getImportRequest', () => {
             .fn()
             .mockResolvedValueOnce({ job_status: 'running' })
             .mockResolvedValueOnce({ job_status: 'succeeded' }),
-          result: jest.fn().mockResolvedValue({ format: { parquet: { manifest } } }),
+          result: jest.fn().mockResolvedValue({ format: { parquet: { manifest: manifestUrl } } }),
         }),
       };
       asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
@@ -349,7 +348,7 @@ describe('getImportRequest', () => {
       const importRequest = await getImportRequest(queryParams);
       // Assert
       expect(importRequest).toEqual({
-        manifestUrl: new URL(manifest),
+        manifestUrl,
         snapshot: googleSnapshotFixture,
         snapshotAccessControls: [],
         syncPermissions: false,
