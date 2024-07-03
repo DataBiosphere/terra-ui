@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { InfoBox } from '@terra-ui-packages/components';
-import { allIconIds } from '@terra-ui-packages/components';
+import { allIconIds, sideOptions } from '@terra-ui-packages/components';
 
 const meta: Meta<typeof InfoBox> = {
   title: 'Packages/Components/InfoBox',
@@ -21,7 +21,7 @@ const meta: Meta<typeof InfoBox> = {
     },
     side: {
       control: 'select',
-      options: ['top', 'bottom', 'right', 'left'],
+      options: sideOptions,
       description: 'Determines the side that the popup appears on when the InfoBox is clicked.',
     },
     size: {
