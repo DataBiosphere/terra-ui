@@ -124,12 +124,13 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
 
   const renderInstructionalElements = (userId) => {
     const introDiv = div(['See workflows that were submitted by all collaborators in this workspace.']);
+    const nickname = samIdToWorkspaceNickname(userId);
     const nicknameDivs = userId
       ? [
-          div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]), '.']),
+          div(['Your nickname is ', span({ style: { fontWeight: 'bold' } }, [nickname]), '.']),
           div([
             'Other users in this workspace will see ',
-            span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]),
+            span({ style: { fontWeight: 'bold' } }, [nickname]),
             ' in the Submitter column of  your submissions.',
           ]),
         ]
@@ -409,19 +410,16 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                 ),
 
                               cellRenderer: ({ rowIndex }) => {
+                                const nickname = samIdToWorkspaceNickname(paginatedRunSets[rowIndex].user_id);
                                 return h(
                                   TextCell,
                                   { style: { whiteSpace: 'normal' } },
                                   paginatedRunSets[rowIndex].user_id === userId
                                     ? [
                                         span({ style: { fontWeight: 'bold' } }, 'You '),
-                                        span({ style: { fontStyle: 'italic' } }, [
-                                          '(',
-                                          samIdToWorkspaceNickname(paginatedRunSets[rowIndex].user_id),
-                                          ')',
-                                        ]),
+                                        span({ style: { fontStyle: 'italic' } }, ['(', nickname, ')']),
                                       ]
-                                    : [span({ style: { fontWeight: 'bold' } }, samIdToWorkspaceNickname(paginatedRunSets[rowIndex].user_id))]
+                                    : [span({ style: { fontWeight: 'bold' } }, nickname)]
                                 );
                               },
                             },
