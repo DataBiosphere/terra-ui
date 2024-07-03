@@ -1,5 +1,11 @@
 import { Ajax } from 'src/libs/ajax';
-import { convertToRawUrl, getMethodVersionName, getSortableRunSets, isCovid19Method } from 'src/workflows-app/utils/method-common';
+import {
+  convertToRawUrl,
+  getMethodVersionName,
+  getSortableRunSets,
+  isCovid19Method,
+  samIdToAnonymousName,
+} from 'src/workflows-app/utils/method-common';
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -150,5 +156,26 @@ describe('add submitter_priority field to enable sorting by submitter', () => {
     expect(sortableRunSets[0].a_nested_field).toHaveProperty('message', 'hello world');
     expect(sortableRunSets[1].a_nested_field).toHaveProperty('message', 'hello new york');
     expect(sortableRunSets[2].a_nested_field).toHaveProperty('message', 'foo bar baz');
+  });
+});
+
+describe('test workspace nicknames for deterministic ordering', () => {
+  const expectedNicknames = [
+    {
+      samId: '2649769319098f1d7cae2',
+      nickname: 'priceless dalmatian',
+    },
+    {
+      samId: '26497726685082cc6be53',
+      nickname: 'angry marmosett',
+    },
+    {
+      samId: '2654885223328825f67e1',
+      nickname: 'laughing elephant',
+    },
+  ];
+
+  test.each(expectedNicknames)('returns expected nickname for samId', ({ samId, nickname }) => {
+    expect(samIdToAnonymousName(samId)).toBe(nickname);
   });
 });
