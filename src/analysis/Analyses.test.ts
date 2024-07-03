@@ -5,7 +5,8 @@ import { h } from 'react-hyperscript-helpers';
 import { AnalysesData, AnalysesProps, BaseAnalyses, getUniqueFileName } from 'src/analysis/Analyses';
 import { analysisLauncherTabName } from 'src/analysis/runtime-common-text';
 import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/analysis/useAnalysisFiles';
-import { AbsolutePath, FileName, findPotentialNotebookLockers, notebookLockHash } from 'src/analysis/utils/file-utils';
+import { AbsolutePath, FileName, notebookLockHash } from 'src/analysis/utils/file-utils';
+import { findPotentialNotebookLockers } from 'src/analysis/utils/notebook-lockers';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -31,6 +32,13 @@ jest.mock(
   (): FileUtilsExports => ({
     ...jest.requireActual('src/analysis/utils/file-utils'),
     notebookLockHash: jest.fn(),
+  })
+);
+
+type NotebookLockersExports = typeof import('src/analysis/utils/notebook-lockers');
+jest.mock(
+  'src/analysis/utils/notebook-lockers',
+  (): NotebookLockersExports => ({
     findPotentialNotebookLockers: jest.fn(),
   })
 );

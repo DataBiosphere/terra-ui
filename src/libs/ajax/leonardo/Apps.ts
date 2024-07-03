@@ -2,7 +2,9 @@ import { LeoResourceLabels } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { AppAccessScope, AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { appIdentifier, fetchLeo } from 'src/libs/ajax/ajax-common';
+import { jsonBody } from 'src/libs/ajax/fetch/fetch-core';
 import { CreateAppV1Request, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 
 export const Apps = (signal: AbortSignal) => ({

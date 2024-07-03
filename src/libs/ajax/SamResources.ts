@@ -1,6 +1,8 @@
 import _ from 'lodash/fp';
+import { authOpts } from 'src/auth/auth-fetch';
 import { Ajax } from 'src/libs/ajax';
-import { appIdentifier, authOpts, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { appIdentifier, fetchSam } from 'src/libs/ajax/ajax-common';
+import { jsonBody } from 'src/libs/ajax/fetch/fetch-core';
 
 type RequesterPaysProject = undefined | string;
 

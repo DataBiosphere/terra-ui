@@ -1,6 +1,8 @@
 import _ from 'lodash/fp';
 import qs from 'qs';
-import { authOpts, fetchFromProxy, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchFromProxy } from 'src/libs/ajax/ajax-common';
+import { jsonBody } from 'src/libs/ajax/fetch/fetch-core';
 
 export const Cbas = (signal) => ({
   status: async (cbasUrlRoot) => {

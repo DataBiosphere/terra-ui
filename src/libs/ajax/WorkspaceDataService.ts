@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
-import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
   RecordResponseBody,
@@ -7,6 +8,7 @@ import {
   SearchRequest,
   TsvUploadResponse,
 } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
+import { jsonBody } from 'src/libs/ajax/fetch/fetch-core';
 
 export type WDSVersionResponse = {
   // Older versions of WDS may not have the "app" field.

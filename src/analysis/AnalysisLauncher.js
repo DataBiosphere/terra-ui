@@ -11,8 +11,9 @@ import ExportAnalysisModal from 'src/analysis/modals/ExportAnalysisModal/ExportA
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/analysis/runtime-common-components';
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName, appLauncherWithAnalysisTabName } from 'src/analysis/runtime-common-text';
 import { getCurrentPersistentDisk } from 'src/analysis/utils/disk-utils';
-import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/analysis/utils/file-utils';
+import { getExtension, getFileName, notebookLockHash } from 'src/analysis/utils/file-utils';
 import { dataSyncingDocUrl } from 'src/analysis/utils/gce-machines';
+import { findPotentialNotebookLockers } from 'src/analysis/utils/notebook-lockers';
 import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/analysis/utils/runtime-utils';
 import { getPatternFromRuntimeTool, getToolLabelFromCloudEnv, getToolLabelFromFileExtension, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';

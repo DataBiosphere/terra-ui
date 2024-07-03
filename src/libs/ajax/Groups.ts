@@ -1,5 +1,7 @@
 import _ from 'lodash/fp';
-import { authOpts, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchSam } from 'src/libs/ajax/ajax-common';
+import { jsonBody } from 'src/libs/ajax/fetch/fetch-core';
 import { SupportSummary } from 'src/support/SupportResourceType';
 
 export type GroupRole = 'admin' | 'member';

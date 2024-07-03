@@ -1,5 +1,6 @@
 import { azureDisk, galaxyDisk, undecoratePd } from 'src/analysis/_testData/testData';
-import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -20,6 +21,13 @@ jest.mock('src/libs/ajax/ajax-common', (): Partial<AjaxCommonExports> => {
     withAppIdentifier: jest.fn(),
     withAuthSession: jest.fn(),
     fetchLeo: jest.fn(),
+  })
+);
+type AuthFetchExports = typeof import('src/auth/auth-fetch');
+jest.mock(
+  'src/auth/auth-fetch',
+  (): AuthFetchExports => ({
+    ...jest.requireActual('src/auth/auth-fetch'),
     authOpts: jest.fn(),
     jsonBody: jest.fn(),
   };
