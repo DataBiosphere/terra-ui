@@ -173,6 +173,10 @@ describe('test workspace nicknames for deterministic ordering', () => {
       samId: '2654885223328825f67e1',
       nickname: 'laughing elephant',
     },
+    {
+      samId: undefined,
+      nickname: '',
+    },
   ];
 
   test.each(expectedNicknames)('returns expected nickname for samId', ({ samId, nickname }) => {

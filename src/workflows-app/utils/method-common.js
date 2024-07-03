@@ -128,11 +128,14 @@ export const getFilteredRunSets = (filterOption, runSetsToFilter, userId, errorS
 
 export const getSortableRunSets = (runSets, samId) => {
   // samId must be a string representing a base16 integer
-  return _.map((rs) => _.merge({ submitter_priority: samId === rs.user_id ? -1 : parseInt(samId, 16) }, _.cloneDeep(rs)), runSets);
+  return _.map((rs) => _.merge({ submitter_priority: samId && samId === rs.user_id ? -1 : parseInt(samId || 0, 16) }, _.cloneDeep(rs)), runSets);
 };
 
 export const samIdToWorkspaceNickname = (samId) => {
-  const leftIdx = parseInt(samId, 16) % leftNames.length;
-  const rightIdx = parseInt(samId, 16) % rightNames.length;
-  return `${leftNames[leftIdx]} ${rightNames[rightIdx]}`;
+  if (parseInt(samId, 16)) {
+    const leftIdx = parseInt(samId, 16) % leftNames.length;
+    const rightIdx = parseInt(samId, 16) % rightNames.length;
+    return `${leftNames[leftIdx]} ${rightNames[rightIdx]}`;
+  }
+  return '';
 };

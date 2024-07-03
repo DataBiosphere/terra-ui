@@ -122,6 +122,22 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
     }
   };
 
+  const renderInstructionalElements = (userId) => {
+    const introDiv = div(['See workflows that were submitted by all collaborators in this workspace.']);
+    const nicknameDivs = userId
+      ? [
+          div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]), '.']),
+          div([
+            'Other users in this workspace will see ',
+            span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]),
+            ' in the Submitter column of  your submissions.',
+          ]),
+        ]
+      : [];
+
+    return [introDiv, ...nicknameDivs];
+  };
+
   useOnMount(() => {
     const loadWorkflowsApp = async () => {
       const { cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
@@ -235,15 +251,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                         },
                         ['No workflows match the given filter.']
                       )
-                    : div({}, [
-                        div(['See workflows that were submitted by all collaborators in this workspace.']),
-                        div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]), '.']),
-                        div([
-                          'Other users in this workspace will see ',
-                          span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]),
-                          ' in the Submitter column of  your submissions.',
-                        ]),
-                      ]),
+                    : div({}, renderInstructionalElements(userId)),
                 ]),
             paginatedRunSets.length > 0 &&
               h(Fragment, [
