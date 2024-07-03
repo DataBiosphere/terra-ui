@@ -131,7 +131,7 @@ export const getSortableRunSets = (runSets, samId) => {
   return _.map((rs) => _.merge({ submitter_priority: samId === rs.user_id ? -1 : parseInt(samId, 16) }, _.cloneDeep(rs)), runSets);
 };
 
-export const samIdToAnonymousName = (samId) => {
+export const samIdToWorkspaceNickname = (samId) => {
   const leftIdx = parseInt(samId, 16) % leftNames.length;
   const rightIdx = parseInt(samId, 16) % rightNames.length;
   return `${leftNames[leftIdx]} ${rightNames[rightIdx]}`;

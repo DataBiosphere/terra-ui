@@ -25,7 +25,7 @@ import {
 } from 'src/workflows-app/utils/submission-utils';
 
 import FilterSubmissionsDropdown from './components/FilterSubmissionsDropdown';
-import { getFilteredRunSets, getSortableRunSets, samIdToAnonymousName } from './utils/method-common';
+import { getFilteredRunSets, getSortableRunSets, samIdToWorkspaceNickname } from './utils/method-common';
 
 export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
   // State
@@ -237,10 +237,10 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                       )
                     : div({}, [
                         div(['See workflows that were submitted by all collaborators in this workspace.']),
-                        div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToAnonymousName(userId)]), '.']),
+                        div(['Your workspace nickname is ', span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]), '.']),
                         div([
                           'Other users in this workspace will see ',
-                          span({ style: { fontWeight: 'bold' } }, [samIdToAnonymousName(userId)]),
+                          span({ style: { fontWeight: 'bold' } }, [samIdToWorkspaceNickname(userId)]),
                           ' in the Submitter column of  your submissions.',
                         ]),
                       ]),
@@ -409,11 +409,11 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
                                         span({ style: { fontWeight: 'bold' } }, 'You '),
                                         span({ style: { fontStyle: 'italic' } }, [
                                           '(',
-                                          samIdToAnonymousName(paginatedRunSets[rowIndex].user_id),
+                                          samIdToWorkspaceNickname(paginatedRunSets[rowIndex].user_id),
                                           ')',
                                         ]),
                                       ]
-                                    : [span({ style: { fontWeight: 'bold' } }, samIdToAnonymousName(paginatedRunSets[rowIndex].user_id))]
+                                    : [span({ style: { fontWeight: 'bold' } }, samIdToWorkspaceNickname(paginatedRunSets[rowIndex].user_id))]
                                 );
                               },
                             },

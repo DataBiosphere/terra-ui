@@ -4,7 +4,7 @@ import {
   getMethodVersionName,
   getSortableRunSets,
   isCovid19Method,
-  samIdToAnonymousName,
+  samIdToWorkspaceNickname,
 } from 'src/workflows-app/utils/method-common';
 
 jest.mock('src/libs/config', () => ({
@@ -176,6 +176,6 @@ describe('test workspace nicknames for deterministic ordering', () => {
   ];
 
   test.each(expectedNicknames)('returns expected nickname for samId', ({ samId, nickname }) => {
-    expect(samIdToAnonymousName(samId)).toBe(nickname);
+    expect(samIdToWorkspaceNickname(samId)).toBe(nickname);
   });
 });
