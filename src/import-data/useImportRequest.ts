@@ -34,7 +34,9 @@ const requireString = (value: unknown, label = 'value'): string => {
   return value;
 };
 
-// A version of requireString that takes a label and returns a function that takes the value, for use in `pipe`.
+/**
+ * A version of requireString that takes a label and returns a function that takes the value, for use in `pipe`.
+ */
 const requireStringFp = (label: string) => (value: unknown) => requireString(value, label);
 
 /**
@@ -139,8 +141,10 @@ const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatase
   };
 };
 
-// Handle the case where the format is 'tdrexportmanifest' by generating a manifest for the snapshot.
-// Once the manifest is generated, the import request can be created as if the format was 'tdrexport'.
+/**
+ * Handle the case where the format is 'tdrexportmanifest' by generating a manifest for the snapshot.
+ * Once the manifest is generated, the import request can be created as if the format was 'tdrexport'.
+ */
 const prepareForExport = async (snapshotId: string): Promise<URL> => {
   const { id } = await DataRepo().snapshot(snapshotId).exportSnapshot();
   const jobApi = Ajax().DataRepo.job(id);
@@ -190,9 +194,10 @@ export type UseImportRequestResult =
   | { status: 'Ready'; importRequest: ImportRequest }
   | { status: 'Error'; error: Error };
 
-// For each format that takes a long time to prepare, define a message to display while the import request is being loaded.
+/**
+ * For each format that takes a long time to prepare, define a message to display while the import request is being loaded.
+ */
 const messages = {
-  // This format requires a manifest to be generated, which can take a long time.
   tdrexportmanifest: 'Preparing your snapshot for importing.',
 };
 
