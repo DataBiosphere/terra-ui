@@ -1,11 +1,11 @@
-// import { useArgs } from '@storybook/preview-api';
+import { useArgs } from '@storybook/preview-api';
 import type { Meta, StoryFn } from '@storybook/react';
 import React from 'react';
-import { NumberInput, TextInput } from 'src/components/input';
+import { TextInput } from 'src/components/input';
 
-const meta: Meta<typeof NumberInput> = {
-  title: 'src/Components/NumberInput',
-  component: NumberInput,
+const meta: Meta<typeof TextInput> = {
+  title: 'src/Components/TextInput',
+  component: TextInput,
   parameters: {
     layout: 'centered',
   },
@@ -15,25 +15,13 @@ const meta: Meta<typeof NumberInput> = {
       control: 'text',
       description: 'Placeholder text for when the input is empty',
     },
-    tooltip: {
-      control: 'text',
-      description:
-        'Tooltip to display on hover (right side only). It will also be used as the aria label if aria-label is not specified.',
-    },
     value: {
-      control: 'number',
+      control: 'text',
       description: 'Value for the field',
     },
     disabled: {
       control: 'boolean',
       description: 'Should the input be disabled?',
-      table: {
-        defaultValue: { summary: 'false' },
-      },
-    },
-    onlyInteger: {
-      control: 'boolean',
-      description: 'Should the input allow decimals?',
       table: {
         defaultValue: { summary: 'false' },
       },
@@ -69,10 +57,8 @@ const meta: Meta<typeof NumberInput> = {
     },
   },
   args: {
-    tooltip: 'This is a number input',
-    min: 0,
-    max: 10,
-    isClearable: false,
+    placeholder: 'Enter a value',
+    'aria-label': 'Non-visible label for accessibility',
   },
 };
 
@@ -84,7 +70,7 @@ export const Example: StoryFn<typeof TextInput> = (props) => {
     updateArgs({ value });
   };
   return (
-    <NumberInput
+    <TextInput
       value={props.value}
       placeholder={props.placeholder}
       disabled={props.disabled}
@@ -93,11 +79,6 @@ export const Example: StoryFn<typeof TextInput> = (props) => {
       id={props.id}
       autoFocus={props.autoFocus}
       style={props.style}
-      min={props.min}
-      max={props.max}
-      isClearable={props.isClearable}
-      onlyInteger={props.onlyInteger}
-      tooltip={props.tooltip}
     />
   );
 };
