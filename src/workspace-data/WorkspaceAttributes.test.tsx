@@ -1,4 +1,4 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import React from 'react';
@@ -52,7 +52,7 @@ type AjaxContract = ReturnType<typeof Ajax>;
 
 describe('WorkspaceAttributes', () => {
   interface SetupArgs {
-    attributes?: [string, unknown, string][];
+    attributes?: [string, unknown, string | undefined][];
     workspace?: WorkspaceWrapper;
   }
 
@@ -102,6 +102,33 @@ describe('WorkspaceAttributes', () => {
       'value2',
       'description2Edit variable',
     ]);
+  });
+
+  it.each([
+    { filter: 'f', expectedMatches: ['foo', 'baz'] },
+    { filter: '2', expectedMatches: ['bar'] },
+    { filter: 'def', expectedMatches: ['baz'] },
+  ])('filters workspace data attributes by name, value, or description', async ({ filter, expectedMatches }) => {
+    // Arrange
+    setup({
+      attributes: [
+        ['foo', '1', undefined],
+        ['bar', '2', 'abc'],
+        ['baz', '3', 'def'],
+      ],
+    });
+
+    // Act
+    const filterInput = screen.getByLabelText('Search');
+    fireEvent.change(filterInput, { target: { value: filter } });
+
+    await act(() => delay(250)); // debounced input
+
+    // Assert
+    const rows = screen.getAllByRole('row').slice(1);
+    const filteredAttributes = rows.map((row) => within(row).getAllByRole('cell')[1].textContent);
+
+    expect(filteredAttributes).toEqual(expectedMatches);
   });
 
   it('has option to add a new variable', () => {
