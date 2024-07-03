@@ -183,7 +183,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-textarea-autosize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:8.5.2"],\
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.5"],\
             ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch::version=9.22.5&hash=5f11d8&locator=terra-ui%40workspace%3A."],\
-            ["remeda", "npm:2.2.2"],\
             ["setimmediate", "npm:1.0.5"],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["storybook", "npm:8.0.10"],\
@@ -20844,16 +20843,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["remeda", [\
-        ["npm:2.2.2", {\
-          "packageLocation": "./.yarn/cache/remeda-npm-2.2.2-eb605477c6-276730dfcd.zip/node_modules/remeda/",\
-          "packageDependencies": [\
-            ["remeda", "npm:2.2.2"],\
-            ["type-fest", "npm:4.21.0"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["remove-trailing-separator", [\
         ["npm:1.1.0", {\
           "packageLocation": "./.yarn/cache/remove-trailing-separator-npm-1.1.0-16d7231316-d3c20b5a2d.zip/node_modules/remove-trailing-separator/",\
@@ -22264,7 +22253,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-textarea-autosize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:8.5.2"],\
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.5"],\
             ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch::version=9.22.5&hash=5f11d8&locator=terra-ui%40workspace%3A."],\
-            ["remeda", "npm:2.2.2"],\
             ["setimmediate", "npm:1.0.5"],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["storybook", "npm:8.0.10"],\
@@ -22624,13 +22612,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/type-fest-npm-2.19.0-918b953248-a4ef07ece2.zip/node_modules/type-fest/",\
           "packageDependencies": [\
             ["type-fest", "npm:2.19.0"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
-        ["npm:4.21.0", {\
-          "packageLocation": "./.yarn/cache/type-fest-npm-4.21.0-7d4de1ec34-32d3536aca.zip/node_modules/type-fest/",\
-          "packageDependencies": [\
-            ["type-fest", "npm:4.21.0"]\
           ],\
           "linkType": "HARD"\
         }]\

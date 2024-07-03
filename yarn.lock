@@ -15062,15 +15062,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:^2.2.2":
-  version: 2.2.2
-  resolution: "remeda@npm:2.2.2"
-  dependencies:
-    type-fest: ^4.20.1
-  checksum: 276730dfcd7c56ce1d7c408624cdadcf2b2a7014031ef838c7f9256e4ce993e340a27ad7aad3e4fcd851132a48a9bda2790648db1db969831b8227b884750233
-  languageName: node
-  linkType: hard
-
 "remove-trailing-separator@npm:^1.0.1":
   version: 1.1.0
   resolution: "remove-trailing-separator@npm:1.1.0"
@@ -16431,7 +16422,6 @@ __metadata:
     react-textarea-autosize: ^8.5.2
     react-transition-group: ^4.4.5
     react-virtualized: "patch:react-virtualized@npm:^9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch"
-    remeda: ^2.2.2
     setimmediate: ^1.0.5
     source-map-explorer: ^2.5.2
     storybook: ^8.0.10
@@ -16731,13 +16721,6 @@ __metadata:
   version: 2.19.0
   resolution: "type-fest@npm:2.19.0"
   checksum: a4ef07ece297c9fba78fc1bd6d85dff4472fe043ede98bd4710d2615d15776902b595abf62bd78339ed6278f021235fb28a96361f8be86ed754f778973a0d278
-  languageName: node
-  linkType: hard
-
-"type-fest@npm:^4.20.1":
-  version: 4.21.0
-  resolution: "type-fest@npm:4.21.0"
-  checksum: 32d3536acac388cc32a3c0e31966d36e44124ffd6cb7d6f6c846602ffdeda68b723f5fdcd13d136f9d855b166e5c1d529bcdfac9d5d0ed4e96cff4867710adae
   languageName: node
   linkType: hard
 
