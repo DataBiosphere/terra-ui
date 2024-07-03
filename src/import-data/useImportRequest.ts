@@ -160,7 +160,7 @@ const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatase
   };
 };
 
-export const getImportRequest = async (queryParams: QueryParams): Promise<ImportRequest> => {
+export const getImportRequest = (queryParams: QueryParams): Promise<ImportRequest> => {
   const format = getFormat(queryParams);
 
   switch (format) {
