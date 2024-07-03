@@ -467,6 +467,13 @@ export type DatasetBuilderContentsProps = {
   snapshotId: string;
   snapshotBuilderSettings: SnapshotBuilderSettings;
   cohorts: Cohort[];
+  conceptSets: ConceptSet[];
+  selectedCohorts: HeaderAndValues<Cohort>[];
+  updateSelectedCohorts: (cohorts: HeaderAndValues<Cohort>[]) => void;
+  selectedConceptSets: HeaderAndValues<ConceptSet>[];
+  updateSelectedConceptSets: (cohorts: HeaderAndValues<ConceptSet>[]) => void;
+  selectedValues: RequiredHeaderAndValues<DatasetBuilderValue>[];
+  updateSelectedValues: (values: RequiredHeaderAndValues<DatasetBuilderValue>[]) => void;
 };
 
 export const DatasetBuilderContents = ({
@@ -475,10 +482,14 @@ export const DatasetBuilderContents = ({
   snapshotId,
   snapshotBuilderSettings,
   cohorts,
+  conceptSets,
+  selectedCohorts,
+  updateSelectedCohorts,
+  selectedConceptSets,
+  updateSelectedConceptSets,
+  selectedValues,
+  updateSelectedValues,
 }: DatasetBuilderContentsProps) => {
-  const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
-  const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
@@ -524,11 +535,6 @@ export const DatasetBuilderContents = ({
       }))
     )(snapshotBuilderSettings.featureValueGroups);
 
-  const generateConceptSets = (): ConceptSet[] => [
-    ..._.map(convertDomainOptionToConceptSet, snapshotBuilderSettings.domainOptions),
-    ...(snapshotBuilderSettings.datasetConceptSets ?? []),
-  ];
-
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
@@ -541,13 +547,13 @@ export const DatasetBuilderContents = ({
           h(CohortSelector, {
             cohorts,
             selectedCohorts,
-            onChange: setSelectedCohorts,
+            onChange: updateSelectedCohorts,
             updateCohorts,
             onStateChange,
           }),
           h(ConceptSetSelector, {
             // all concept sets
-            conceptSets: generateConceptSets(),
+            conceptSets,
             selectedConceptSets,
             onChange: async (conceptSets) => {
               const includedFeatureValueGroups = _.flow(
@@ -555,11 +561,11 @@ export const DatasetBuilderContents = ({
                 _.map((conceptSet: ConceptSet) => conceptSet.featureValueGroupName)
               )(conceptSets);
               const newFeatureValueGroups = getNewFeatureValueGroups(includedFeatureValueGroups);
-              setSelectedValues([
+              updateSelectedValues([
                 ...selectedValues,
                 ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups),
               ]);
-              setSelectedConceptSets(conceptSets);
+              updateSelectedConceptSets(conceptSets);
             },
             onStateChange,
           }),
@@ -633,6 +639,16 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
+  const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
+  const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
+  const [selectedValues, setSelectedValues] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
+  const conceptSets =
+    snapshotBuilderSettings.status === 'Ready'
+      ? [
+          ..._.map(convertDomainOptionToConceptSet, snapshotBuilderSettings.state.domainOptions),
+          ...(snapshotBuilderSettings.state.datasetConceptSets ?? []),
+        ]
+      : [];
   const onStateChange = setDatasetBuilderState;
 
   const getNextCriteriaIndex = () => {
@@ -673,6 +689,13 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   snapshotId,
                   snapshotBuilderSettings: snapshotBuilderSettings.state,
                   cohorts,
+                  conceptSets,
+                  selectedCohorts,
+                  updateSelectedCohorts: setSelectedCohorts,
+                  selectedConceptSets,
+                  updateSelectedConceptSets: setSelectedConceptSets,
+                  selectedValues,
+                  updateSelectedValues: setSelectedValues,
                 });
               case 'cohort-editor':
                 return h(CohortEditor, {
