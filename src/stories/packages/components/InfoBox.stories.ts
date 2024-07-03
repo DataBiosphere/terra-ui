@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { InfoBox } from '@terra-ui-packages/components';
-import { allIconIds, sideOptions } from '@terra-ui-packages/components';
+import { allIconIds, InfoBox, sideOptions } from '@terra-ui-packages/components';
 
 const meta: Meta<typeof InfoBox> = {
   title: 'Packages/Components/InfoBox',
