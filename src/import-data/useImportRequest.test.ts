@@ -344,6 +344,12 @@ describe('getImportRequest', () => {
         }),
       };
       asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
+      // Reset mock state from previous tests.
+      asMockedFn(SamResources).mockReturnValue(
+        partial<SamResourcesContract>({
+          getAuthDomains: jest.fn().mockResolvedValue([]),
+        })
+      );
       // Act
       const importRequest = await getImportRequest(queryParams);
       // Assert
