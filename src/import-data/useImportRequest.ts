@@ -1,3 +1,4 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import { useEffect, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
@@ -79,8 +80,7 @@ const generateSnapshotManifest = async (snapshotId: string): Promise<URL> => {
   const jobApi = Ajax().DataRepo.job(id);
   let jobInfo = await jobApi.details();
   while (jobInfo.job_status === 'running') {
-    // sleep for 1000 ms
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await delay(1000);
     jobInfo = await jobApi.details();
   }
   if (jobInfo.job_status !== 'succeeded') {
