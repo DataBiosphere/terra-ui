@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
+import { div, h, h2, p } from 'react-hyperscript-helpers';
+import { TerraHexagonsAnimation } from 'src/branding/TerraHexagonsAnimation';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -202,6 +203,38 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   ]);
 };
 
+interface PreparingImportMessageProps {
+  message: string;
+}
+
+export const PreparingImportOverlay = (props: PreparingImportMessageProps) => {
+  const { message } = props;
+  return div(
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        margin: '2rem auto',
+        padding: '1rem',
+        borderRadius: '0.5rem',
+        border: '1px solid black',
+      },
+    },
+    [
+      h(TerraHexagonsAnimation, { 'aria-hidden': true, size: 150, style: { margin: '2rem 0' } }, [
+        div({ style: { color: '#225C00', fontWeight: 'bold' } }, ['Loading...']),
+      ]),
+      div({ role: 'alert', style: { marginBottom: '2rem', textAlign: 'center' } }, [
+        p({ style: { fontWeight: 'bold' } }, ['Please stand by...']),
+        p([message]),
+        p(['This may take a few minutes.']),
+      ]),
+    ]
+  );
+};
+
 /**
  * Validate the import request from the URL.
  */
@@ -209,7 +242,8 @@ export const ImportDataContainer = () => {
   const result = useImportRequest();
 
   if (result.status === 'Loading') {
-    return spinnerOverlay;
+    const message = result.message;
+    return message ? h(PreparingImportOverlay, { message }) : spinnerOverlay;
   }
 
   if (result.status === 'Error') {

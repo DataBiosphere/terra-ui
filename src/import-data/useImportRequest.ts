@@ -34,7 +34,7 @@ const requireString = (value: unknown, label = 'value'): string => {
   return value;
 };
 
-// A version of requireString that takes a label and returns a function that takes the value, for use in `flow`.
+// A version of requireString that takes a label and returns a function that takes the value, for use in `pipe`.
 const requireStringFp = (label: string) => (value: unknown) => requireString(value, label);
 
 /**
@@ -186,18 +186,25 @@ export const getImportRequest = async (queryParams: QueryParams): Promise<Import
 };
 
 export type UseImportRequestResult =
-  | { status: 'Loading' }
+  | { status: 'Loading'; message?: string }
   | { status: 'Ready'; importRequest: ImportRequest }
   | { status: 'Error'; error: Error };
 
+// For each format that takes a long time to prepare, define a message to display while the import request is being loaded.
+const messages = {
+  // This format requires a manifest to be generated, which can take a long time.
+  tdrexportmanifest: 'Preparing your snapshot for importing.',
+};
+
 export const useImportRequest = (): UseImportRequestResult => {
   const { query } = useRoute();
+  const message = messages[query.format];
 
-  const [result, setResult] = useState<UseImportRequestResult>({ status: 'Loading' });
+  const [result, setResult] = useState<UseImportRequestResult>({ status: 'Loading', message });
   useEffect(() => {
     (async () => {
       try {
-        setResult({ status: 'Loading' });
+        setResult({ status: 'Loading', message });
         const importRequest = await getImportRequest(query);
         setResult({ status: 'Ready', importRequest });
       } catch (originalError: unknown) {
