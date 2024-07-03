@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { InfoBox } from '@terra-ui-packages/components';
+import { allIconIds } from '@terra-ui-packages/components';
 
 const meta: Meta<typeof InfoBox> = {
   title: 'Packages/Components/InfoBox',
@@ -9,9 +10,34 @@ const meta: Meta<typeof InfoBox> = {
   },
   tags: ['autodocs'],
   argTypes: {
+    children: {
+      control: 'text',
+      description: 'Defines the popup content to appear when the InfoBox is clicked.',
+    },
+    icon: {
+      control: 'select',
+      options: allIconIds,
+      description: 'The ID of an icon to be used from IconLibrary',
+    },
+    side: {
+      control: 'select',
+      options: ['top', 'bottom', 'right', 'left'],
+      description: 'Determines the side that the popup appears on when the InfoBox is clicked.',
+    },
+    size: {
+      control: 'number',
+      description: "The size of the InfoBox's icon.",
+      table: {
+        defaultValue: { summary: '16' },
+      },
+    },
+    style: {
+      control: 'object',
+      description: 'A CSS style object.',
+    },
     tooltip: {
       control: 'text',
-      description: 'tooltip text to display on mouse over',
+      description: 'The text text to display when hovering over the InfoBox.',
     },
   },
 };
@@ -21,6 +47,7 @@ type Story = StoryObj<typeof InfoBox>;
 
 export const Example: Story = {
   args: {
-    tooltip: 'https://support.terra.bio',
+    children: 'This is some text that appears when the InfoBox is clicked.',
+    tooltip: 'example tooltip',
   },
 };
