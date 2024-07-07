@@ -147,7 +147,7 @@ export const calculateCostOfCall = (taskOrSubworkflow: any): number => {
   } else if (taskOrSubworkflow.subWorkflowMetadata) {
     totalCost += calculateCostOfCallsArray(taskOrSubworkflow.subWorkflowMetadata.calls);
   } else {
-    console.error('Could not calculate cost of task or subworkflow', taskOrSubworkflow);
+    // console.error('Could not calculate cost of task or subworkflow', taskOrSubworkflow);
   }
   return totalCost;
 };

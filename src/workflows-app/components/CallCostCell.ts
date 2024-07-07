@@ -48,5 +48,5 @@ export const CallCostCell = (props: CallCostCellProps) => {
     return div({}, ['-']);
   }
 
-  return div({}, [calculatedCost !== undefined ? renderTaskCostElement(calculatedCost) : '-']);
+  return div({}, [calculatedCost === undefined ? '-' : renderTaskCostElement(calculatedCost)]);
 };

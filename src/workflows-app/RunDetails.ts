@@ -262,24 +262,26 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
   // here so we can easily use the cloud context (we're in Azure, which proxy URL.)
   const loadCallCacheDiff = useCallback(
     async (thisWorkflow, thatWorkflow) => {
-      const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
-      if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        return Ajax(signal).CromwellApp.callCacheDiff(cromwellProxyUrlState.state, thisWorkflow, thatWorkflow);
+      if (!cromwellProxyState || !cromwellProxyState.state) {
+        return undefined;
+      }
+      if (cromwellProxyState.status === AppProxyUrlStatus.Ready) {
+        return Ajax(signal).CromwellApp.callCacheDiff(cromwellProxyState.state, thisWorkflow, thatWorkflow);
       }
     },
-    [signal, workspaceId]
+    [signal, cromwellProxyState]
   );
 
   const loadCallCacheMetadata = useCallback(
     async (wfId, includeKey, excludeKey) => {
-      const { cromwellProxyUrlState } = await loadAppUrls(workspaceId, 'cromwellProxyUrlState');
-      if (cromwellProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        return Ajax(signal)
-          .CromwellApp.workflows(wfId)
-          .metadata(cromwellProxyUrlState.state, { includeKey, excludeKey });
+      if (!cromwellProxyState || !cromwellProxyState.state) {
+        return undefined;
+      }
+      if (cromwellProxyState.status === AppProxyUrlStatus.Ready) {
+        return Ajax(signal).CromwellApp.workflows(wfId).metadata(cromwellProxyState.state, { includeKey, excludeKey });
       }
     },
-    [signal, workspaceId]
+    [signal, cromwellProxyState]
   );
 
   // poll if we're missing Cromwell proxy url and stop polling when we have it
