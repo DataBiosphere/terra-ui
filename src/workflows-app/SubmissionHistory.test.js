@@ -97,7 +97,8 @@ describe('SubmissionHistory tab', () => {
     Status: 2,
     'Date Submitted': 3,
     Duration: 4,
-    Comment: 5,
+    Submitter: 5,
+    Comment: 6,
   };
 
   it('should sort columns properly', async () => {
@@ -141,7 +142,7 @@ describe('SubmissionHistory tab', () => {
     expect(rows.length).toBe(3);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
+    expect(headers.length).toBe(7);
 
     const topRowCells = (column) => {
       const topRowCells = within(rows[1]).getAllByRole('cell');
@@ -253,14 +254,14 @@ describe('SubmissionHistory tab', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6');
+    expect(table).toHaveAttribute('aria-colcount', '7');
     expect(table).toHaveAttribute('aria-rowcount', '3');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(3);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
+    expect(headers.length).toBe(7);
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(headers[headerPosition.Submission]).getByText('Submission name');
     within(headers[headerPosition.Status]).getByText('Status');
@@ -270,7 +271,7 @@ describe('SubmissionHistory tab', () => {
 
     // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(6);
+    expect(cellsFromDataRow1.length).toBe(7);
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(cellsFromDataRow1[headerPosition.Submission]).getByText('Data used: FOO');
     within(cellsFromDataRow1[headerPosition.Submission]).getByText('1 workflows');
@@ -279,7 +280,7 @@ describe('SubmissionHistory tab', () => {
     within(cellsFromDataRow1[headerPosition.Duration]).getByText('1 day 1 hour 1 minute 1 second');
 
     const cellsFromDataRow2 = within(rows[2]).getAllByRole('cell');
-    expect(cellsFromDataRow2.length).toBe(6);
+    expect(cellsFromDataRow2.length).toBe(7);
     within(headers[headerPosition.Actions]).getByText('Actions');
     within(cellsFromDataRow2[headerPosition.Submission]).getByText('Data used: FOO');
     within(cellsFromDataRow2[headerPosition.Status]).getByText('Failed with 1 errors');
@@ -356,7 +357,7 @@ describe('SubmissionHistory tab', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6');
+    expect(table).toHaveAttribute('aria-colcount', '7');
     expect(table).toHaveAttribute('aria-rowcount', '4');
 
     const rows = within(table).getAllByRole('row');
@@ -462,24 +463,25 @@ describe('SubmissionHistory tab', () => {
     const table = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '6');
+    expect(table).toHaveAttribute('aria-colcount', '7');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toBe(2);
 
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
+    expect(headers.length).toBe(7);
     within(headers[0]).getByText('Actions');
     within(headers[1]).getByText('Submission name');
     within(headers[2]).getByText('Status');
     within(headers[3]).getByText('Date Submitted');
     within(headers[4]).getByText('Duration');
-    within(headers[5]).getByText('Comment');
+    within(headers[5]).getByText('Submitter');
+    within(headers[6]).getByText('Comment');
 
     // // check data rows are rendered as expected
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
-    expect(cellsFromDataRow1.length).toBe(6);
+    expect(cellsFromDataRow1.length).toBe(7);
     within(cellsFromDataRow1[0]).getByText('Abort');
     within(cellsFromDataRow1[1]).getByText('No name');
     within(cellsFromDataRow1[1]).getByText('Data used: FOO');
@@ -487,7 +489,7 @@ describe('SubmissionHistory tab', () => {
     within(cellsFromDataRow1[2]).getByText('Failed with 1 errors');
     within(cellsFromDataRow1[3]).getByText('Jul 10, 2021, 12:00 PM');
     within(cellsFromDataRow1[4]).getByText('1 month 1 day 1 hour 1 minute 1 second');
-    within(cellsFromDataRow1[5]).getByText('No Description');
+    within(cellsFromDataRow1[6]).getByText('No Description');
   });
 
   it('Gives abort option for actions button', async () => {
@@ -529,7 +531,7 @@ describe('SubmissionHistory tab', () => {
 
     const rows = within(table).getAllByRole('row');
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
+    expect(headers.length).toBe(7);
 
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     const actionsMenu = within(cellsFromDataRow1[1]).getByRole('button');
@@ -589,7 +591,7 @@ describe('SubmissionHistory tab', () => {
     const table = await screen.findByRole('table');
     const rows = within(table).getAllByRole('row');
     const headers = within(rows[0]).getAllByRole('columnheader');
-    expect(headers.length).toBe(6);
+    expect(headers.length).toBe(7);
 
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     const actionsMenu = within(cellsFromDataRow1[1]).getByRole('button');
