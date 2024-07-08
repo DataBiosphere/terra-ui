@@ -9,6 +9,7 @@ import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/commo
 import { icon } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { getConfig } from 'src/libs/config';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { getLocalPref } from 'src/libs/prefs';
@@ -138,7 +139,7 @@ export function AuthenticatedCookieSetter() {
   const cookiesAccepted = getLocalPref(cookiesAcceptedKey) !== false;
   const allowedToUseSystem = termsOfService.permitsSystemUsage;
 
-  return allowedToUseSystem && cookiesAccepted ? h(PeriodicCookieSetter) : null;
+  return allowedToUseSystem && cookiesAccepted && getConfig().cloudEnvironment !== 'azure' ? h(PeriodicCookieSetter) : null;
 }
 
 export function PeriodicCookieSetter() {
