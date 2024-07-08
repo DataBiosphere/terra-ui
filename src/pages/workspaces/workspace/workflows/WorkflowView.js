@@ -1022,7 +1022,6 @@ export const WorkflowView = _.flow(
               ]),
               div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
                 // This span is to prevent vertical resizing when the memory retry multiplier input is visible.
-                // span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
                 span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
                   div({}, [
                     span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
@@ -1102,7 +1101,6 @@ export const WorkflowView = _.flow(
                     [' Retry with more memory']
                   ),
                 ]),
-                // ]),
                 retryWithMoreMemory &&
                   span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
                     h(IdContainer, [
