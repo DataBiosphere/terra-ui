@@ -1114,7 +1114,7 @@ export const WorkflowView = _.flow(
                                 },
                                 ['Memory retry factor:']
                               ),
-                              div({ style: { display: 'inline-block', marginLeft: '0.25rem' } }, [
+                              div({ style: { display: 'inline-block', marginLeft: '0.25rem', height: '1.75rem' } }, [
                                 h(NumberInput, {
                                   id,
                                   min: 1.1,
