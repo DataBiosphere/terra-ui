@@ -17,11 +17,17 @@ const meta: Meta<typeof InfoBox> = {
       control: 'select',
       options: allIconIds,
       description: 'The ID of an icon to be used from IconLibrary',
+      table: {
+        defaultValue: { summary: 'info-circle' },
+      },
     },
     side: {
       control: 'select',
       options: [...sideOptions],
       description: 'Determines the side that the popup appears on when the InfoBox is clicked.',
+      table: {
+        defaultValue: { summary: 'top' },
+      },
     },
     size: {
       control: 'number',
