@@ -1,28 +1,5 @@
 import { Ajax } from 'src/libs/ajax';
 
-// Returned in the 'calls' array field of the metadata response from cromwell.
-// This represents a task OR a subworkflow.
-// Note that not all fields will be present in the response, as this depends on the include keys used in the request.
-export interface WorkflowTask {
-  tes_stderr?: string; // URL to the TES stderr file for the task (not to be confused with the Cromwell tasks's stderr)
-  tes_stdout?: string; // URL to the TES stdout file for the task (not to be confused with the Cromwell tasks's stdout)
-  executionStatus?: string; // The status of the task (e.g. 'Done', 'Running', 'Failed')
-  stdout?: string; // URL to the Cromwell task's stdout file
-  stderr?: string; // URL to the Cromwell task's stderr file
-  backendStatus?: string;
-  shardIndex?: number; // The shard index of the task. -1 if not a scatter task.
-  outputs?: {}; // The output values of this task
-  callCaching?: {
-    allowResultReuse: boolean;
-    effectiveCallCachingMode: string;
-  };
-  inputs?: {}; // The input values of this task
-  jobId?: string; // The job ID of the task
-  start?: string; // The start time of the task
-  end?: string; // The end time of the task
-  attempt?: number; // How many times this task has been attempted
-}
-
 export interface WorkflowMetadata {
   actualWorkflowLanguage?: string;
   actualWorkflowLanguageVersion?: string;
@@ -49,10 +26,6 @@ export interface WorkflowMetadata {
   workflowProcessingEvents?: {}[];
   workflowRoot?: string;
   metadataArchiveStatus?: string;
-}
-
-export interface SubworkflowMetadata extends WorkflowMetadata {
-  subworkflowId: string;
 }
 
 // Used to make a web request to cromwell to get certain pieces of metadata for a specific workflow
@@ -115,6 +88,7 @@ export const fetchWorkflowAndCallsMetadata = async (fetchOptions: FetchMetadataO
   return fetchMetadata(options);
 };
 
+// Web request to get the entire workflow metadata graph, with only the keys needed for cost calculations
 export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Promise<WorkflowMetadata> => {
   const options: MetadataOptions = {
     cromwellProxyUrl: fetchOptions.cromwellProxyUrl,
@@ -131,7 +105,7 @@ export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Pro
 // Tasks are the leaf nodes of the metadata graph, and are the only things that actually cost money. The cost of a (sub)workflow is the sum of the costs of its tasks.
 const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime?: string): number => {
   const endTime = taskEndTime ? Date.parse(taskEndTime) : Date.now(); // Tasks with no end time are still running, so use now as the end time
-  const vmCostDouble = parseFloat(vmCostUsd);
+  const vmCostDouble = parseFloat(vmCostUsd) * 1000;
   const startTime = Date.parse(taskStartTime);
   const elapsedTime = endTime - startTime;
   return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2)); // 1 hour = 3600000 ms
