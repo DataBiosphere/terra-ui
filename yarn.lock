@@ -3679,19 +3679,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/channels@npm:8.1.10":
-  version: 8.1.10
-  resolution: "@storybook/channels@npm:8.1.10"
-  dependencies:
-    "@storybook/client-logger": 8.1.10
-    "@storybook/core-events": 8.1.10
-    "@storybook/global": ^5.0.0
-    telejson: ^7.2.0
-    tiny-invariant: ^1.3.1
-  checksum: 4dd6537d29e2fb4af53370fe20d9448937c152e55343749f9337c4070f3f923fb5ec3c2f28e70a022fa2b43cc1db16821ce69f8f26874f6fd35fcc6122894180
-  languageName: node
-  linkType: hard
-
 "@storybook/cli@npm:8.0.10":
   version: 8.0.10
   resolution: "@storybook/cli@npm:8.0.10"
@@ -3754,15 +3741,6 @@ __metadata:
   dependencies:
     "@storybook/global": ^5.0.0
   checksum: b9aad55dd6550ed060f5a1e4dcc8608a5968907189e63c39b48918fc47abc0dbd3e86ca517df44338096aa4dbabaa6bd4be283ee0e23e67a765c0688230d661b
-  languageName: node
-  linkType: hard
-
-"@storybook/client-logger@npm:8.1.10":
-  version: 8.1.10
-  resolution: "@storybook/client-logger@npm:8.1.10"
-  dependencies:
-    "@storybook/global": ^5.0.0
-  checksum: e4f0e3a408f5ab2770a5fa4028f5398282533d4757aa3239863594a0c4ca6de801d8d57c88233e69e420e66d9de846d2690ca47993c35cb1f4b1f9ce6aa5a839
   languageName: node
   linkType: hard
 
@@ -3894,16 +3872,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/core-events@npm:8.1.10":
-  version: 8.1.10
-  resolution: "@storybook/core-events@npm:8.1.10"
-  dependencies:
-    "@storybook/csf": ^0.1.7
-    ts-dedent: ^2.0.0
-  checksum: 2e4cdb3aac8deb8ea243379ad4f30b59668090d20c1b7541554be89fffed764d9c9406b08effd392cc138a6a1bda3373c60202f892cbc686db9bc9b0630a45ab
-  languageName: node
-  linkType: hard
-
 "@storybook/core-server@npm:8.0.10":
   version: 8.0.10
   resolution: "@storybook/core-server@npm:8.0.10"
@@ -4014,15 +3982,6 @@ __metadata:
   dependencies:
     type-fest: ^2.19.0
   checksum: 0f2b32a3d3920620d032436429fff9f3a08add8e52dc735a5dfd6ce46260a12c7ec87f4fff065bf0e8baae988d1655eea25d5aaba810e7687119ac5661eaeaa4
-  languageName: node
-  linkType: hard
-
-"@storybook/csf@npm:^0.1.7":
-  version: 0.1.9
-  resolution: "@storybook/csf@npm:0.1.9"
-  dependencies:
-    type-fest: ^2.19.0
-  checksum: a0023f103d613b00acb3fd96004d30ef1eaea3b1ca6349e9fb33c269aa889ed2f6e3d91037fcfe99bf581865068e6cd0f567558644599e6619c2cb280f0512a2
   languageName: node
   linkType: hard
 
@@ -4144,28 +4103,6 @@ __metadata:
     ts-dedent: ^2.0.0
     util-deprecate: ^1.0.2
   checksum: 612d671f490d61b44ddcbd3e8099134637788b6ab4ac55297a1b66c6a5dd8a573be380ee5a623a05cbda135c0c3aae85f06053a201d81a51a58d54ddbc60c8f4
-  languageName: node
-  linkType: hard
-
-"@storybook/preview-api@npm:^8.1.10":
-  version: 8.1.10
-  resolution: "@storybook/preview-api@npm:8.1.10"
-  dependencies:
-    "@storybook/channels": 8.1.10
-    "@storybook/client-logger": 8.1.10
-    "@storybook/core-events": 8.1.10
-    "@storybook/csf": ^0.1.7
-    "@storybook/global": ^5.0.0
-    "@storybook/types": 8.1.10
-    "@types/qs": ^6.9.5
-    dequal: ^2.0.2
-    lodash: ^4.17.21
-    memoizerific: ^1.11.3
-    qs: ^6.10.0
-    tiny-invariant: ^1.3.1
-    ts-dedent: ^2.0.0
-    util-deprecate: ^1.0.2
-  checksum: 75bf2b8ede92cd5851a07e0b9cb6a2eb38a4da3897b9de3c9e23bdd797b78a7a0bdedccd6d9c396d3a4bcd4fee089403a7cc41c2803dd2357cb09154c8eeddf5
   languageName: node
   linkType: hard
 
@@ -4345,17 +4282,6 @@ __metadata:
     "@types/express": ^4.7.0
     file-system-cache: 2.3.0
   checksum: 59a1128913a2743c122413586c20d4d11def565bf52b7365301806bc4d898a2d78eb3b9636cec9b115c8d37f97e2841427b5a3524aa6b52bcd0433fd8761e2bb
-  languageName: node
-  linkType: hard
-
-"@storybook/types@npm:8.1.10":
-  version: 8.1.10
-  resolution: "@storybook/types@npm:8.1.10"
-  dependencies:
-    "@storybook/channels": 8.1.10
-    "@types/express": ^4.7.0
-    file-system-cache: 2.3.0
-  checksum: 3c1add3acb8ae957846b5fbaa22d81774fb28404d1c4b54e7721b76857fccdf2be2349bb8bf754e03ebc4edc45f90727aaf1d45b3c31fad877691951229c22b1
   languageName: node
   linkType: hard
 
@@ -16401,7 +16327,6 @@ __metadata:
     "@storybook/addon-links": ^8.0.10
     "@storybook/addon-onboarding": ^1.0.11
     "@storybook/blocks": ^8.0.10
-    "@storybook/preview-api": ^8.1.10
     "@storybook/react": ^8.0.10
     "@storybook/react-vite": ^8.0.10
     "@storybook/test": ^8.0.10
