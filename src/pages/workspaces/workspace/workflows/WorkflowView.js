@@ -1072,6 +1072,18 @@ export const WorkflowView = _.flow(
                     h(
                       LabeledCheckbox,
                       {
+                        checked: ignoreEmptyOutputs,
+                        onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
+                        style: styles.checkBoxLeftMargin,
+                      },
+                      [' Ignore empty outputs']
+                    ),
+                  ]),
+                  h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
+                  span({ style: styles.checkBoxSpanMargins }, [
+                    h(
+                      LabeledCheckbox,
+                      {
                         checked: retryWithMoreMemory,
                         onChange: (v) => this.setState({ retryWithMoreMemory: v }),
                         style: styles.checkBoxLeftMargin,
@@ -1119,18 +1131,6 @@ export const WorkflowView = _.flow(
                       'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
                       h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
-                span({ style: styles.checkBoxSpanMargins }, [
-                  h(
-                    LabeledCheckbox,
-                    {
-                      checked: ignoreEmptyOutputs,
-                      onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
-                      style: styles.checkBoxLeftMargin,
-                    },
-                    [' Ignore empty outputs']
-                  ),
-                ]),
-                h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
                 div({}, [
                   span({ style: styles.checkBoxSpanMargins }, [
                     h(
