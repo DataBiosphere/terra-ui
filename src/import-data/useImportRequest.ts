@@ -190,7 +190,7 @@ export type UseImportRequestResult =
  * For each format that takes a long time to prepare, define a message to display while the import request is being loaded.
  */
 const messages = {
-  tdrexport: 'Preparing your snapshot for importing.',
+  tdrexport: 'Preparing your snapshot for import.',
 };
 
 export const useImportRequest = (): UseImportRequestResult => {

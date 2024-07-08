@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { TerraHexagonsAnimationOverlay } from 'src/branding/TerraHexagonsAnimation';
+import { TerraLengthyOperationOverlay } from 'src/branding/TerraLengthyOperationOverlay';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -209,7 +209,7 @@ interface PreparingImportMessageProps {
 
 export const PreparingImportOverlay = (props: PreparingImportMessageProps) => {
   const { message } = props;
-  return h(TerraHexagonsAnimationOverlay, {
+  return h(TerraLengthyOperationOverlay, {
     message,
     style: {
       backgroundColor: 'white',
