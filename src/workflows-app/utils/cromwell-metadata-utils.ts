@@ -76,9 +76,6 @@ export const fetchWorkflowAndCallsMetadata = async (fetchOptions: FetchMetadataO
       'callCaching',
       'workflowLog',
       'failures',
-      'taskStartTime',
-      'taskEndTime',
-      'vmCostUsd',
       'workflowName',
     ],
     signal: fetchOptions.signal,
@@ -88,7 +85,7 @@ export const fetchWorkflowAndCallsMetadata = async (fetchOptions: FetchMetadataO
   return fetchMetadata(options);
 };
 
-// Web request to get the entire workflow metadata graph, with only the keys needed for cost calculations
+// Web request to get the entire workflow metadata graph, with only the keys needed for cost calculations.
 export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Promise<WorkflowMetadata> => {
   const options: MetadataOptions = {
     cromwellProxyUrl: fetchOptions.cromwellProxyUrl,
