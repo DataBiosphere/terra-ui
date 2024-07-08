@@ -1022,76 +1022,87 @@ export const WorkflowView = _.flow(
               ]),
               div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
                 // This span is to prevent vertical resizing when the memory retry multiplier input is visible.
+                // span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
                 span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
-                  span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        disabled: currentSnapRedacted || !WorkspaceUtils.canRunAnalysisInWorkspace(ws).value,
-                        checked: useCallCache,
-                        onChange: (v) => this.setState({ useCallCache: v }),
-                      },
-                      [' Use call caching']
-                    ),
+                  div({}, [
+                    span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          disabled: currentSnapRedacted || !WorkspaceUtils.canRunAnalysisInWorkspace(ws).value,
+                          checked: useCallCache,
+                          onChange: (v) => this.setState({ useCallCache: v }),
+                        },
+                        [' Use call caching']
+                      ),
+                    ]),
+                    h(InfoBox, [
+                      "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
+                      h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
                   ]),
-                  h(InfoBox, [
-                    "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
-                    h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  ]),
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: deleteIntermediateOutputFiles,
-                        onChange: (v) => this.setState({ deleteIntermediateOutputFiles: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Delete intermediate outputs']
-                    ),
-                  ]),
-                  h(InfoBox, [
-                    'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
-                    h(Link, { href: this.getSupportLink('360039681632'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  ]),
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: useReferenceDisks,
-                        onChange: (v) => this.setState({ useReferenceDisks: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Use reference disks']
-                    ),
-                  ]),
-                  h(InfoBox, [
-                    'Use a reference disk image if available rather than localizing reference inputs. ',
-                    h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  ]),
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: ignoreEmptyOutputs,
-                        onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Ignore empty outputs']
-                    ),
-                  ]),
-                  h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: retryWithMoreMemory,
-                        onChange: (v) => this.setState({ retryWithMoreMemory: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Retry with more memory']
-                    ),
+                  div({}, [
+                    span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: deleteIntermediateOutputFiles,
+                          onChange: (v) => this.setState({ deleteIntermediateOutputFiles: v }),
+                        },
+                        [' Delete intermediate outputs']
+                      ),
+                    ]),
+                    h(InfoBox, [
+                      'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
+                      h(Link, { href: this.getSupportLink('360039681632'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
                   ]),
                 ]),
+                span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
+                  div({}, [
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: useReferenceDisks,
+                          onChange: (v) => this.setState({ useReferenceDisks: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Use reference disks']
+                      ),
+                    ]),
+                    h(InfoBox, [
+                      'Use a reference disk image if available rather than localizing reference inputs. ',
+                      h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
+                  ]),
+                  div({}, [
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: ignoreEmptyOutputs,
+                          onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Ignore empty outputs']
+                      ),
+                    ]),
+                    h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
+                  ]),
+                ]),
+                span({ style: styles.checkBoxSpanMargins }, [
+                  h(
+                    LabeledCheckbox,
+                    {
+                      checked: retryWithMoreMemory,
+                      onChange: (v) => this.setState({ retryWithMoreMemory: v }),
+                      style: styles.checkBoxLeftMargin,
+                    },
+                    [' Retry with more memory']
+                  ),
+                ]),
+                // ]),
                 retryWithMoreMemory &&
                   span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
                     h(IdContainer, [
