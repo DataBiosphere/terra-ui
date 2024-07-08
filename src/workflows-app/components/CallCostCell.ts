@@ -9,7 +9,7 @@ export interface CallCostCellProps {
   isCostMetadataLoading: boolean;
 }
 
-const isTask = (call: any): boolean => {
+export const isTask = (call: any): boolean => {
   return call?.subWorkflowId === undefined;
 };
 

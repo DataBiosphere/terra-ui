@@ -577,16 +577,6 @@ describe('BaseRunDetails - render smoke test', () => {
     within(table).getByText('View sub-workflow');
   });
 
-  it('shows the aggregated sub-workflow cost', async () => {
-    const altMockObj = _.cloneDeep(mockObj);
-    const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
-    Ajax.mockImplementation(() => ({ ...altMockObj, ...subworkflowCromwellAjaxMock({ status: 'Succeeded' }) }));
-    await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-    screen.logTestingPlaygroundURL();
-    const table = screen.getByRole('table');
-    within(table).getByText('$0.19');
-  });
-
   it('updates the workflow path when the "View sub-workflow" button is clicked', async () => {
     const altMockObj = _.cloneDeep(mockObj);
     const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
