@@ -1,9 +1,13 @@
+import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 import { notify } from 'src/libs/notifications';
 import { workflowsAppStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { leftNames, rightNames } from 'src/workflows-app/utils/anonymous-username-pairs';
 import { doesAppProxyUrlExist } from 'src/workflows-app/utils/app-utils';
 import { CbasPollInterval } from 'src/workflows-app/utils/submission-utils';
+
+import { FilterOptions } from '../components/FilterSubmissionsDropdown';
 
 const MethodSource = Object.freeze({
   GitHub: 'GitHub',
@@ -80,12 +84,12 @@ export const getMethodVersionName = (url) => {
 export const getFilteredRuns = (filterOption, runsToFilter, errorStates) => {
   return runsToFilter.filter((run) => {
     switch (filterOption) {
-      case 'Failed':
+      case FilterOptions.Failed:
         if (errorStates.includes(run.state)) {
           return true;
         }
         break;
-      case 'Succeeded':
+      case FilterOptions.Succeeded:
         if (run.state === 'COMPLETE') {
           return true;
         }
@@ -95,4 +99,43 @@ export const getFilteredRuns = (filterOption, runsToFilter, errorStates) => {
     }
     return false;
   });
+};
+
+export const getFilteredRunSets = (filterOption, runSetsToFilter, userId, errorStates) => {
+  return runSetsToFilter.filter((runSet) => {
+    switch (filterOption) {
+      case FilterOptions.Failed:
+        if (errorStates.includes(runSet.state)) {
+          return true;
+        }
+        break;
+      case FilterOptions.Succeeded:
+        if (runSet.state === 'COMPLETE') {
+          return true;
+        }
+        break;
+      case FilterOptions.OwnSubmissions:
+        if (runSet.user_id === userId) {
+          return true;
+        }
+        break;
+      default:
+        return true;
+    }
+    return false;
+  });
+};
+
+export const getSortableRunSets = (runSets, samId) => {
+  // samId must be a string representing a base16 integer
+  return _.map((rs) => _.merge({ submitter_priority: samId && samId === rs.user_id ? -1 : parseInt(samId || 0, 16) }, _.cloneDeep(rs)), runSets);
+};
+
+export const samIdToWorkspaceNickname = (samId) => {
+  if (parseInt(samId, 16)) {
+    const leftIdx = parseInt(samId, 16) % leftNames.length;
+    const rightIdx = parseInt(samId, 16) % rightNames.length;
+    return `${leftNames[leftIdx]} ${rightNames[rightIdx]}`;
+  }
+  return '';
 };

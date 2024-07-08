@@ -65,10 +65,9 @@ export const WorkspaceAttributes = ({
 
   const initialAttributes = attributes.state || [];
   const creatingNewVariable = editIndex === initialAttributes.length;
-  const filteredAttributes = _.filter(
-    ([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`),
-    initialAttributes
-  );
+  const filteredAttributes = initialAttributes.filter(([key, value, description]) => {
+    return [key, value, description].some((v) => `${v ?? ''}`.toLowerCase().includes(textFilter.toLowerCase()));
+  });
   const amendedAttributes = _.flow(creatingNewVariable ? Utils.append(['', '', '']) : _.identity)(filteredAttributes);
 
   const allVisibleAttributesSelected = filteredAttributes.every(([id]) => selection[id]);
