@@ -8,6 +8,11 @@ const meta: Meta<typeof Select> = {
   component: Select,
   parameters: {
     layout: 'centered',
+    docs: {
+      story: {
+        height: '200px',
+      },
+    },
   },
   tags: ['autodocs'],
   args: { options: ['First', 'Second', 'Third'], value: 'First' },
