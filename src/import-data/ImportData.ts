@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
-import { div, h, h2, p } from 'react-hyperscript-helpers';
-import { TerraHexagonsAnimation } from 'src/branding/TerraHexagonsAnimation';
+import { div, h, h2 } from 'react-hyperscript-helpers';
+import { TerraHexagonsAnimationOverlay } from 'src/branding/TerraHexagonsAnimation';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -209,30 +209,16 @@ interface PreparingImportMessageProps {
 
 export const PreparingImportOverlay = (props: PreparingImportMessageProps) => {
   const { message } = props;
-  return div(
-    {
-      style: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        backgroundColor: 'white',
-        margin: '2rem auto',
-        padding: '1rem',
-        borderRadius: '0.5rem',
-        border: '1px solid black',
-      },
+  return h(TerraHexagonsAnimationOverlay, {
+    message,
+    style: {
+      backgroundColor: 'white',
+      margin: '2rem auto',
+      padding: '1rem',
+      borderRadius: '0.5rem',
+      border: '1px solid black',
     },
-    [
-      h(TerraHexagonsAnimation, { 'aria-hidden': true, size: 150, style: { margin: '2rem 0' } }, [
-        div({ style: { color: '#225C00', fontWeight: 'bold' } }, ['Loading...']),
-      ]),
-      div({ role: 'alert', style: { marginBottom: '2rem', textAlign: 'center' } }, [
-        p({ style: { fontWeight: 'bold' } }, ['Please stand by...']),
-        p([message]),
-        p(['This may take a few minutes.']),
-      ]),
-    ]
-  );
+  });
 };
 
 /**

@@ -1,6 +1,6 @@
 import { injectStyle } from '@terra-ui-packages/components';
 import { CSSProperties, ReactNode } from 'react';
-import { div } from 'react-hyperscript-helpers';
+import { div, h, p } from 'react-hyperscript-helpers';
 
 type DivProps = JSX.IntrinsicElements['div'];
 
@@ -40,7 +40,6 @@ export const TerraHexagonsAnimation = (props: TerraHexagonsAnimationProps): Reac
         justifyContent: 'center',
         alignItems: 'center',
         height: size,
-        width: size,
       },
     },
     [
@@ -88,6 +87,34 @@ export const TerraHexagonsAnimation = (props: TerraHexagonsAnimationProps): Reac
           },
           [children]
         ),
+    ]
+  );
+};
+
+export interface TerraHexagonsAnimationOverlayProps extends TerraHexagonsAnimationProps {
+  message: string;
+}
+
+export const TerraHexagonsAnimationOverlay = (props: TerraHexagonsAnimationOverlayProps): ReactNode => {
+  const { message, ...otherProps } = props;
+  return div(
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      },
+      ...otherProps,
+    },
+    [
+      h(TerraHexagonsAnimation, { 'aria-hidden': true, size: 150, style: { margin: '2rem 0' } }, [
+        div({ style: { color: '#225C00', fontWeight: 'bold' } }, ['Loading...']),
+      ]),
+      div({ role: 'alert', style: { marginBottom: '2rem', textAlign: 'center' } }, [
+        p({ style: { fontWeight: 'bold' } }, ['Please stand by...']),
+        p([message]),
+        p(['This may take a few minutes.']),
+      ]),
     ]
   );
 };

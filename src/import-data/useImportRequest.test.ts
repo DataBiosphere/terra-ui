@@ -167,12 +167,12 @@ describe('getImportRequest', () => {
   const mockSnapshotDetails = (snapshotId: string) =>
     jest.fn().mockImplementation(() => {
       if (snapshotId === azureSnapshotFixture.id) {
-        return azureSnapshotFixture;
+        return Promise.resolve(azureSnapshotFixture);
       }
       if (snapshotId === googleSnapshotFixture.id) {
-        return googleSnapshotFixture;
+        return Promise.resolve(googleSnapshotFixture);
       }
-      throw new Response('{"message":"Snapshot not found"}', { status: 404 });
+      return Promise.reject(new Response('{"message":"Snapshot not found"}', { status: 404 }));
     });
 
   beforeAll(() => {
