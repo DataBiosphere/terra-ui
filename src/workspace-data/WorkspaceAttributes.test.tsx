@@ -1,6 +1,7 @@
 import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -198,5 +199,27 @@ describe('WorkspaceAttributes', () => {
       'attribute3',
       '__DESCRIPTION__attribute3',
     ]);
+  });
+
+  it('requires unique keys when editing', async () => {
+    // Arrange
+    setup({
+      attributes: [
+        ['attribute1', 'value1', 'description1'],
+        ['attribute2', 'value2', 'description2'],
+      ],
+    });
+
+    // Act
+    const rows = screen.getAllByRole('row');
+    const editMenuButton = within(rows[1]).getByRole('button', { name: 'Edit variable' });
+    fireEvent.click(editMenuButton);
+
+    const input = within(rows[1]).getAllByRole('textbox')[0];
+    await userEvent.clear(input);
+    await userEvent.type(input, 'attribute2');
+
+    // Assert
+    within(rows[1]).getByRole('button', { name: 'Key must be unique' });
   });
 });
