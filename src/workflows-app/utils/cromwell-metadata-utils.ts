@@ -127,16 +127,19 @@ export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Pro
   return fetchMetadata(options);
 };
 
+// Returns the cost in USD of a given task.
+// Tasks are the leaf nodes of the metadata graph, and are the only things that actually cost money. The cost of a (sub)workflow is the sum of the costs of its tasks.
 const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime?: string): number => {
   const endTime = taskEndTime ? Date.parse(taskEndTime) : Date.now(); // Tasks with no end time are still running, so use now as the end time
   const vmCostDouble = parseFloat(vmCostUsd);
   const startTime = Date.parse(taskStartTime);
   const elapsedTime = endTime - startTime;
-  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
+  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2)); // 1 hour = 3600000 ms
 };
 
-// A 'call' is either a task or a subworkflow. Subworkflows contain their own 'calls' array.
-export const calculateCostOfCall = (taskOrSubworkflow: any): number => {
+// Returns the cost in USD of a single call attempt.
+// A 'call' is either a task or a subworkflow. Subworkflows contain their own 'calls' array, which can be recursively searched.
+const calculateCostOfCallAttempt = (taskOrSubworkflow: any): number => {
   let totalCost = 0;
   if (taskOrSubworkflow.taskStartTime && taskOrSubworkflow.vmCostUsd) {
     totalCost += calculateTaskCost(
@@ -147,22 +150,58 @@ export const calculateCostOfCall = (taskOrSubworkflow: any): number => {
   } else if (taskOrSubworkflow.subWorkflowMetadata) {
     totalCost += calculateCostOfCallsArray(taskOrSubworkflow.subWorkflowMetadata.calls);
   } else {
-    // console.error('Could not calculate cost of task or subworkflow', taskOrSubworkflow);
+    console.error('Could not calculate cost of task or subworkflow', taskOrSubworkflow);
   }
   return totalCost;
 };
 
+// Helper function to sum up the costs of everything in a 'calls' array, which is owned by a (sub)workflow.
+// N.B. Don't confuse the 'calls' array with the array of attmepts for a single call.
 export const calculateCostOfCallsArray = (callsArray: any): number => {
   if (!callsArray) {
+    console.error('Could not calculate cost of calls array', callsArray);
     return 0;
   }
   let totalCost = 0;
   // Each workflow has a calls array, which is a list of all its child tasks and subworkflows ("calls").
   // Each call itself is an array of attempts, where each attempt is an actual task or subworkflow.
   for (const callAttemptsArray of Object.values(callsArray) as any[]) {
-    for (const taskOrSubworkflowAttempt of callAttemptsArray) {
-      totalCost += calculateCostOfCall(taskOrSubworkflowAttempt);
-    }
+    totalCost += sumCostsOfCallAttempts(callAttemptsArray);
   }
   return totalCost;
+};
+
+// Helper function to sum up the costs of all the attempts for a single call.
+// N.B. Don't confuse the attempts array of a single call with the 'calls' array of a (sub)workflow.
+export const sumCostsOfCallAttempts = (callAttempts: any[]): number => {
+  let totalCost = 0;
+  for (const taskOrSubworkflowAttempt of callAttempts) {
+    totalCost += calculateCostOfCallAttempt(taskOrSubworkflowAttempt);
+  }
+  return totalCost;
+};
+
+// Recursively searches the metadata for a call with the given name.
+// Returns the array of attempts for that call if found, otherwise returns undefined.
+export const findCallAttemptsByCallNameInCostGraph = (callName: string, costMetadata: any) => {
+  // For every call in the workflow
+  for (const callKey of Object.keys(costMetadata.calls)) {
+    // If the call is the one we're looking for, return it
+    if (callKey === callName) {
+      return costMetadata.calls[callKey];
+    }
+    // If the call is a subworkflow, search its calls
+    const callAttemptArray = costMetadata.calls[callKey];
+    if (callAttemptArray && Array.isArray(callAttemptArray) && callAttemptArray.length > 0) {
+      const lastAttempt = callAttemptArray[callAttemptArray.length - 1];
+      if (lastAttempt.subWorkflowMetadata) {
+        const foundCall = findCallAttemptsByCallNameInCostGraph(callName, lastAttempt.subWorkflowMetadata);
+        if (foundCall) {
+          return foundCall;
+        }
+      }
+    }
+  }
+  // Failed to find the call in the cost graph
+  return undefined;
 };

@@ -20,10 +20,11 @@ import { WorkflowCostBox } from './components/WorkflowCostBox';
 import { WorkflowInfoBox } from './components/WorkflowInfoBox';
 import { loadAppUrls } from './utils/app-utils';
 import {
-  calculateCostOfCall,
   calculateCostOfCallsArray,
   fetchCostMetadata,
   fetchWorkflowAndCallsMetadata,
+  findCallAttemptsByCallNameInCostGraph,
+  sumCostsOfCallAttempts,
   WorkflowMetadata,
 } from './utils/cromwell-metadata-utils';
 import { wrapWorkflowsPage } from './WorkflowsContainer';
@@ -238,22 +239,19 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
     setIsCostMetadataLoading(false);
   }, [cromwellProxyState, signal, workflowId]);
 
-  // Given a call name (e.g. )
+  // Given a call name (e.g. main_worfklow.taskName or main_workflow.subworkflowName, return the cost of that call, or undefined if it can't be found.
+  // Passed to child components so they can calculate the cost of individual calls using the cost metadata this page fetched.
   const getCostOfCallFn = useCallback(
     (callName: string): number | undefined => {
       if (!costMetadata || !costMetadata.calls) {
         return undefined;
       }
-
-      let totalCost = 0;
-      for (const callKey of Object.keys(costMetadata.calls)) {
-        if (callKey === callName) {
-          for (const callAttempt of costMetadata.calls[callKey]) {
-            totalCost += calculateCostOfCall(callAttempt);
-          }
-        }
+      const foundCallAttempts = findCallAttemptsByCallNameInCostGraph(callName, costMetadata);
+      if (!foundCallAttempts) {
+        console.error('Call not found', callName, costMetadata.calls);
+        return undefined;
       }
-      return totalCost;
+      return sumCostsOfCallAttempts(foundCallAttempts);
     },
     [costMetadata]
   );
