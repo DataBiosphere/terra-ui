@@ -32,7 +32,7 @@ const meta: Meta<typeof Select> = {
     },
     isSearchable: {
       control: 'boolean',
-      description: 'whether the select can be cleared',
+      description: 'whether the select can be searched',
     },
     isMulti: {
       control: 'boolean',
