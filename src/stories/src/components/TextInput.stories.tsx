@@ -32,11 +32,11 @@ const meta: Meta<typeof TextInput> = {
     },
     'aria-label': {
       control: false,
-      description: 'Accessible label to use for the input if it is not linked to a label via the ID attribute',
+      description: 'Accessible label to use for the input if it is not linked to a label via the `id` attribute',
     },
     id: {
       control: false,
-      description: 'ID of the label associated with the input',
+      description: 'Id to associate with the input. This should be linked to a label via `htmlFor`.',
     },
     autoFocus: {
       control: 'boolean',

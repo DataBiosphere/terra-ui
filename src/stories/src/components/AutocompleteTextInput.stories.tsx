@@ -56,10 +56,6 @@ const meta: Meta<typeof AutocompleteTextInput> = {
       description:
         "Id of the label associated with the input, which is necessary for accessibility. If no visible label is desired, use `className: 'sr-only'` on the label to hide it.",
     },
-    id: {
-      control: false,
-      description: 'ID of the label associated with the input',
-    },
     autoFocus: {
       control: 'boolean',
       description: 'Should the input get initial focus on render?',
