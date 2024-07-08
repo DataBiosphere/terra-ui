@@ -214,3 +214,5 @@ export type IconId = keyof typeof iconLibrary;
 
 // TODO: Improve types
 export default iconLibrary as Record<IconId, (props: any) => ReactNode>;
+
+export const allIconIds = Object.keys(iconLibrary) as IconId[];
