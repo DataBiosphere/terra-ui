@@ -221,6 +221,5 @@ describe('WorkspaceAttributes', () => {
 
     // Assert
     within(rows[1]).getByRole('button', { name: 'Key must be unique' });
-    // expect(saveChanges).toHaveLength(1);
   });
 });
