@@ -1,6 +1,7 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
+import { appIdentifier, authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
 
 import { AuditInfo, CloudContext, LeoResourceLabels } from './models/core-models';
 
