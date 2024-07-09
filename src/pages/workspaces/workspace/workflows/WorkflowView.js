@@ -1022,7 +1022,7 @@ export const WorkflowView = _.flow(
               ]),
               div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
                 span({ style: { marginTop: '1.0rem', marginBottom: '0.5rem' } }, [
-                  div({}, [
+                  div([
                     span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
                       h(
                         LabeledCheckbox,
@@ -1039,7 +1039,7 @@ export const WorkflowView = _.flow(
                       h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
                   ]),
-                  div({}, [
+                  div([
                     span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
                       h(
                         LabeledCheckbox,
@@ -1057,7 +1057,7 @@ export const WorkflowView = _.flow(
                   ]),
                 ]),
                 span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
-                  div({}, [
+                  div([
                     span({ style: styles.checkBoxSpanMargins }, [
                       h(
                         LabeledCheckbox,
@@ -1074,7 +1074,7 @@ export const WorkflowView = _.flow(
                       h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
                   ]),
-                  div({}, [
+                  div([
                     span({ style: styles.checkBoxSpanMargins }, [
                       h(
                         LabeledCheckbox,
@@ -1098,7 +1098,7 @@ export const WorkflowView = _.flow(
                           h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                         ]),
                   ]),
-                  div({}, [
+                  div([
                     retryWithMoreMemory &&
                       span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
                         h(IdContainer, [
@@ -1130,7 +1130,7 @@ export const WorkflowView = _.flow(
                   ]),
                 ]),
                 span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
-                  div({}, [
+                  div([
                     span({ style: styles.checkBoxSpanMargins }, [
                       h(
                         LabeledCheckbox,
@@ -1144,7 +1144,7 @@ export const WorkflowView = _.flow(
                     ]),
                     h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
                   ]),
-                  div({}, [
+                  div([
                     span({ style: styles.checkBoxSpanMargins }, [
                       h(
                         LabeledCheckbox,
