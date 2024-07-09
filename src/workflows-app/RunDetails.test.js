@@ -209,7 +209,6 @@ describe('BaseRunDetails - render smoke test', () => {
 
   it('shows expected cost details', async () => {
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    screen.logTestingPlaygroundURL();
 
     const table = screen.getByRole('table');
     const tableRows = within(table).getAllByRole('row').slice(1); // omit header row
