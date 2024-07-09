@@ -246,7 +246,7 @@ const FilterableWorkflowTable = ({
 
   const getAppIdAndTaskName = useCallback(async () => {
     const workflow: WorkflowMetadata | undefined = await getWorkflow(0);
-    if (workflow !== undefined) {
+    if (workflow !== undefined && workflow?.workflowLog !== undefined) {
       setTaskName(workflow.workflowName);
       const logs = await fetchLogContent(workflow.workflowLog);
       const textContent = logs !== null ? logs.textContent : null;
@@ -472,7 +472,7 @@ const FilterableWorkflowTable = ({
                                   onClick: async () => {
                                     setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
-                                    if (workflow !== undefined) {
+                                    if (workflow !== undefined && workflow?.inputs !== undefined) {
                                       const shortenedInputs = stripWorkflowPrefixFromKeys(workflow.inputs);
                                       setTaskDataModal({ taskDataTitle: 'Inputs', taskJson: shortenedInputs });
                                     }
@@ -486,7 +486,7 @@ const FilterableWorkflowTable = ({
                                   onClick: async () => {
                                     setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: null });
                                     const workflow: WorkflowMetadata | undefined = await getWorkflow(rowIndex);
-                                    if (workflow !== undefined) {
+                                    if (workflow !== undefined && workflow?.outputs !== undefined) {
                                       const shortenedOutputs = stripWorkflowPrefixFromKeys(workflow.outputs);
                                       setTaskDataModal({ taskDataTitle: 'Outputs', taskJson: shortenedOutputs });
                                     }
