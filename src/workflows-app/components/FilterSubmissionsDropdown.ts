@@ -10,9 +10,15 @@ export enum FilterOptions {
   Failed = 'Failed',
   NoFilter = 'No filter',
   Succeeded = 'Succeeded',
+  OwnSubmissions = 'Your submissions',
 }
 
-const filterOptions: FilterOptions[] = [FilterOptions.Failed, FilterOptions.NoFilter, FilterOptions.Succeeded];
+const filterOptions: FilterOptions[] = [
+  FilterOptions.Failed,
+  FilterOptions.NoFilter,
+  FilterOptions.Succeeded,
+  FilterOptions.OwnSubmissions,
+];
 
 const FilterSubmissionsDropdown = ({ filterOption, setFilterOption }: FilterSubmissionsDropdownProps) => {
   return div([

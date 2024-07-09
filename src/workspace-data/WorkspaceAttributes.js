@@ -65,17 +65,21 @@ export const WorkspaceAttributes = ({
 
   const initialAttributes = attributes.state || [];
   const creatingNewVariable = editIndex === initialAttributes.length;
-  const filteredAttributes = _.filter(
-    ([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`),
-    initialAttributes
-  );
+  const filteredAttributes = initialAttributes.filter(([key, value, description]) => {
+    return [key, value, description].some((v) => `${v ?? ''}`.toLowerCase().includes(textFilter.toLowerCase()));
+  });
   const amendedAttributes = _.flow(creatingNewVariable ? Utils.append(['', '', '']) : _.identity)(filteredAttributes);
 
   const allVisibleAttributesSelected = filteredAttributes.every(([id]) => selection[id]);
 
   const DESCRIPTION_MAX_LENGTH = 200;
   const inputErrors = editIndex !== undefined && [
-    ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes.state)).includes(editKey) ? ['Key must be unique'] : []),
+    ...(_.map(
+      (innerArray) => _.first(innerArray),
+      attributes.state.filter((_, index) => index !== editIndex)
+    ).includes(editKey)
+      ? ['Key must be unique']
+      : []),
     ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
     ...(editKey === 'description' ? ["Key cannot be 'description'"] : []),
     ...(isDescriptionKey(editKey) ? [`Key cannot start with '${DESCRIPTION_PREFIX}'`] : []),
