@@ -1109,9 +1109,9 @@ export const WorkflowView = _.flow(
                                   htmlFor: id,
                                   style: { ...styles.label, verticalAlign: 'middle', marginLeft: '1.5rem' },
                                 },
-                                ['Memory retry factor:']
+                                ['Memory factor:']
                               ),
-                              div({ style: { display: 'inline-block', marginLeft: '0.25rem', height: '1.75rem' } }, [
+                              div({ style: { display: 'inline-block', marginLeft: '0.5rem', height: '1.75rem', marginTop: '0.5rem' } }, [
                                 h(NumberInput, {
                                   id,
                                   min: 1.1,
