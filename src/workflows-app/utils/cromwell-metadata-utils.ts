@@ -130,7 +130,6 @@ export const calculateCostOfCallAttempt = (taskOrSubworkflow: any): number => {
 // N.B. Don't confuse the 'calls' array with the array of attmepts for a single call.
 export const calculateCostOfCallsArray = (callsArray: any): number => {
   if (!callsArray) {
-    console.error('Could not calculate cost of calls array', callsArray);
     return 0;
   }
   let totalCost = 0;

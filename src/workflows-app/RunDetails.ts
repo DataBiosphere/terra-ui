@@ -64,7 +64,6 @@ interface RunDetailsProps {
 export const getCostOfCall = (costMetadata: any, callName: string, attemptNumber: number, shardIndex: number) => {
   const foundCallAttempts = findCallAttemptsByCallNameInCostGraph(callName, costMetadata);
   if (!foundCallAttempts) {
-    console.error('Call not found', callName, costMetadata.calls);
     return undefined;
   }
   for (const taskOrSubworkflowAttempt of foundCallAttempts) {
