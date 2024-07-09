@@ -20,11 +20,11 @@ import { WorkflowCostBox } from './components/WorkflowCostBox';
 import { WorkflowInfoBox } from './components/WorkflowInfoBox';
 import { loadAppUrls } from './utils/app-utils';
 import {
+  calculateCostOfCallAttempt,
   calculateCostOfCallsArray,
   fetchCostMetadata,
   fetchWorkflowAndCallsMetadata,
   findCallAttemptsByCallNameInCostGraph,
-  sumCostsOfCallAttempts,
   WorkflowMetadata,
 } from './utils/cromwell-metadata-utils';
 import { wrapWorkflowsPage } from './WorkflowsContainer';
@@ -61,6 +61,21 @@ interface RunDetailsProps {
   submissionId?: string;
   workflowId?: string;
 }
+
+// Exported for testing
+export const getCostOfCall = (costMetadata: any, callName: string, attemptNumber: number, shardIndex: number) => {
+  const foundCallAttempts = findCallAttemptsByCallNameInCostGraph(callName, costMetadata);
+  if (!foundCallAttempts) {
+    console.error('Call not found', callName, costMetadata.calls);
+    return undefined;
+  }
+  for (const taskOrSubworkflowAttempt of foundCallAttempts) {
+    if (taskOrSubworkflowAttempt?.attempt === attemptNumber && taskOrSubworkflowAttempt?.shardIndex === shardIndex) {
+      return calculateCostOfCallAttempt(taskOrSubworkflowAttempt);
+    }
+  }
+  return undefined;
+};
 
 export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
   const workspaceName = props.name;
@@ -181,7 +196,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
             try {
               failedTasks = await Ajax(signal).CromwellApp.workflows(workflowId).failedTasks(cromwellProxyState.state);
             } catch (error) {
-              console.error('Error loading failed tasks', error);
               // do nothing, failure here means that user may not have access to an updated version of Cromwell
             }
           }
@@ -242,16 +256,11 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
   // Given a call name (e.g. main_worfklow.taskName or main_workflow.subworkflowName, return the cost of that call, or undefined if it can't be found.
   // Passed to child components so they can calculate the cost of individual calls using the cost metadata this page fetched.
   const getCostOfCallFn = useCallback(
-    (callName: string): number | undefined => {
+    (callName: string, attemptNumber: number, shardIndex: number): number | undefined => {
       if (!costMetadata || !costMetadata.calls) {
         return undefined;
       }
-      const foundCallAttempts = findCallAttemptsByCallNameInCostGraph(callName, costMetadata);
-      if (!foundCallAttempts) {
-        console.error('Call not found', callName, costMetadata.calls);
-        return undefined;
-      }
-      return sumCostsOfCallAttempts(foundCallAttempts);
+      return getCostOfCall(costMetadata, callName, attemptNumber, shardIndex);
     },
     [costMetadata]
   );

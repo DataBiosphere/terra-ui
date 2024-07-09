@@ -57,6 +57,4 @@ describe('CallTable functions', () => {
     expect(isTask(mockTask)).toEqual(true);
     expect(isTask(mockSubworkflow)).toEqual(false);
   });
-
-  // TODO: Add tests that assert it renders properly when the tasks are in different states
 });

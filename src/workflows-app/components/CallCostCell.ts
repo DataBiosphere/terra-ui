@@ -5,7 +5,7 @@ import { renderInProgressElement, renderTaskCostElement } from 'src/components/j
 
 export interface CallCostCellProps {
   call: any;
-  getCostOfCallFn: (fullyQualifiedCallPath: string) => number | undefined;
+  getCostOfCallFn: (fullyQualifiedCallPath: string, attemptNumber: number, shardIndex: number) => number | undefined;
   isCostMetadataLoading: boolean;
 }
 
@@ -15,23 +15,23 @@ export const isTask = (call: any): boolean => {
 
 const isCostDataAbsent = (task) => {
   // If the task failed, was call cached, or never started, we won't have cost data
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true) {
+  if (task?.callCaching?.hit === true) {
     return true;
   }
 };
 
 export const CallCostCell = (props: CallCostCellProps) => {
-  const { taskName, executionStatus } = props?.call || {};
+  const { taskName, executionStatus, attempt, shardIndex } = props?.call || {};
 
   const [calculatedCost, setCalculatedCost] = useState<number | undefined>();
 
   useEffect(() => {
     const calculateCost = async () => {
-      const calculatedCost = props.getCostOfCallFn(taskName);
+      const calculatedCost = props.getCostOfCallFn(taskName, attempt, shardIndex);
       setCalculatedCost(calculatedCost);
     };
     calculateCost();
-  }, [taskName, props]);
+  }, [taskName, attempt, shardIndex, props]);
 
   // Every call should have a 'taskName' field.
   // If we don't have it, we're still loading.

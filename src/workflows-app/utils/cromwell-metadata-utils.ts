@@ -100,9 +100,9 @@ export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Pro
 
 // Returns the cost in USD of a given task.
 // Tasks are the leaf nodes of the metadata graph, and are the only things that actually cost money. The cost of a (sub)workflow is the sum of the costs of its tasks.
-const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime?: string): number => {
+export const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime?: string): number => {
   const endTime = taskEndTime ? Date.parse(taskEndTime) : Date.now(); // Tasks with no end time are still running, so use now as the end time
-  const vmCostDouble = parseFloat(vmCostUsd) * 1000;
+  const vmCostDouble = parseFloat(vmCostUsd);
   const startTime = Date.parse(taskStartTime);
   const elapsedTime = endTime - startTime;
   return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2)); // 1 hour = 3600000 ms
@@ -110,7 +110,7 @@ const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime
 
 // Returns the cost in USD of a single call attempt.
 // A 'call' is either a task or a subworkflow. Subworkflows contain their own 'calls' array, which can be recursively searched.
-const calculateCostOfCallAttempt = (taskOrSubworkflow: any): number => {
+export const calculateCostOfCallAttempt = (taskOrSubworkflow: any): number => {
   let totalCost = 0;
   if (taskOrSubworkflow.taskStartTime && taskOrSubworkflow.vmCostUsd) {
     totalCost += calculateTaskCost(
@@ -121,7 +121,7 @@ const calculateCostOfCallAttempt = (taskOrSubworkflow: any): number => {
   } else if (taskOrSubworkflow.subWorkflowMetadata) {
     totalCost += calculateCostOfCallsArray(taskOrSubworkflow.subWorkflowMetadata.calls);
   } else {
-    console.error('Could not calculate cost of task or subworkflow', taskOrSubworkflow);
+    // This is an error for new workspaces, but old tests and code won't have cost data, so we don't throw or complain here
   }
   return totalCost;
 };
