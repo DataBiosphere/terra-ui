@@ -25,27 +25,45 @@ const meta: Meta<typeof Select> = {
     isClearable: {
       control: 'boolean',
       description: 'whether the select can be cleared',
+      table: {
+        defaultValue: { summary: 'false' },
+      },
     },
     isDisabled: {
       control: 'boolean',
       description: 'whether the select is disabled',
+      table: {
+        defaultValue: { summary: 'false' },
+      },
     },
     isSearchable: {
       control: 'boolean',
       description: 'whether the select can be searched',
+      table: {
+        defaultValue: { summary: 'true' },
+      },
     },
     isMulti: {
       control: 'boolean',
       description: 'whether the select is multiselect or not',
+      table: {
+        defaultValue: { summary: 'false' },
+      },
     },
     menuPlacement: {
       control: 'select',
       description: 'determines where the menu is placed',
       options: ['bottom', 'auto', 'top'],
+      table: {
+        defaultValue: { summary: 'bottom' },
+      },
     },
     placeholder: {
       control: 'text',
       description: 'placeholder value for the select',
+      table: {
+        defaultValue: { summary: 'Select...' },
+      },
     },
   },
 };
