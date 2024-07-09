@@ -360,7 +360,7 @@ const CallTable = ({
                           TooltipTrigger,
                           {
                             content:
-                              "Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts. Tasks that successfully call cached don't incur cost.",
+                              "Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts. Tasks that call cache don't incur cost.",
                           },
                           [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
                         ),
