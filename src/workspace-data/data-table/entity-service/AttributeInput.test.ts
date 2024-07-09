@@ -14,9 +14,12 @@ describe('AttributeTypeInput', () => {
     );
 
     const radioButtons = getAllByRole('radio');
-    const labels = Array.from(radioButtons).map((el) => el.labels[0].textContent);
-
     expect(radioButtons.length).toBe(4);
+
+    const labels = Array.from(radioButtons).map((el) => {
+      const inputElement = el as HTMLInputElement;
+      return inputElement.labels ? inputElement.labels[0].textContent : '';
+    });
     expect(labels).toEqual(['String', 'Reference', 'Number', 'Boolean']);
   });
 
@@ -99,6 +102,8 @@ describe('AttributeInput', () => {
     it('renders radio buttons for available types', () => {
       const { getAllByRole } = render(
         h(AttributeInput, {
+          attributeValue: 'value',
+          entityTypes: [],
           onChange: jest.fn(),
         })
       );
@@ -113,7 +118,7 @@ describe('AttributeInput', () => {
     it('renders an entity types menu for reference values', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: { entityType: 'foo', entityName: 'foo_1' },
+          attributeValue: { entityType: 'foo', entityName: 'foo_1' },
           entityTypes: ['foo', 'bar', 'baz'],
           onChange: jest.fn(),
         })
@@ -126,7 +131,7 @@ describe('AttributeInput', () => {
     it('renders a radio button for JSON type for JSON values', () => {
       const { queryByLabelText } = render(
         h(AttributeInput, {
-          value: { key: 'value' },
+          attributeValue: { key: 'value' },
           onChange: jest.fn(),
         })
       );
@@ -153,7 +158,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: '123',
+          attributeValue: '123',
           onChange,
         })
       );
@@ -169,7 +174,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: '123',
+          attributeValue: '123',
           initialValue: '456',
           onChange,
         })
@@ -186,7 +191,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: 'value',
+          attributeValue: 'value',
           onChange,
         })
       );
@@ -222,7 +227,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: 123,
+          attributeValue: 123,
           onChange,
         })
       );
@@ -240,7 +245,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: true,
+          attributeValue: true,
           onChange,
         })
       );
@@ -259,7 +264,7 @@ describe('AttributeInput', () => {
     it('renders a checkbox for list status', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange: jest.fn(),
         })
       );
@@ -273,7 +278,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: 'foo',
+          attributeValue: 'foo',
           onChange,
         })
       );
@@ -288,7 +293,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
         })
       );
@@ -303,7 +308,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getAllByLabelText } = render(
         h(AttributeInput, {
-          value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
         })
       );
@@ -320,7 +325,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getAllByLabelText } = render(
         h(AttributeInput, {
-          value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
         })
       );
@@ -336,7 +341,7 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByText } = render(
         h(AttributeInput, {
-          value: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
         })
       );
