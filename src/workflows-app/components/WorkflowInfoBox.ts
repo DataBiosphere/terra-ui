@@ -49,7 +49,7 @@ export const WorkflowInfoBox = (props: WorkflowInfoBoxProps): ReactNode => {
       const data: FetchedWorkflowInfoData = {
         start: metadata.start,
         end: metadata.end,
-        wdlScript: metadata.submittedFiles.workflow,
+        wdlScript: metadata?.submittedFiles?.workflow,
         status: metadata.status,
         workflowLog: metadata.workflowLog,
         executionDirectory: metadata.workflowRoot,

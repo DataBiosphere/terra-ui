@@ -12,7 +12,7 @@ interface TroubleshootingBoxProps {
   submissionId: string;
   workflowId: string;
   showLogModal: (modalTitle: string, logsArray: any[], tesLog: string) => void;
-  executionDirectory: string;
+  executionDirectory: string | undefined;
 }
 
 export const TroubleshootingBox = (props: TroubleshootingBoxProps): ReactNode => {
