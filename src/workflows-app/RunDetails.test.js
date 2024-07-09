@@ -208,35 +208,21 @@ describe('BaseRunDetails - render smoke test', () => {
   });
 
   it('shows expected cost details', async () => {
-    /*
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
+    screen.logTestingPlaygroundURL();
 
     const table = screen.getByRole('table');
     const tableRows = within(table).getAllByRole('row').slice(1); // omit header row
 
+    // cost should be calculated and displayed
     const task1Row = tableRows[0];
     const cellsFromDataRow1 = within(task1Row).getAllByRole('cell');
     within(cellsFromDataRow1[7]).getByText('$12.72');
-
-    const task2Row = tableRows[1];
-    const cellsFromDataRow2 = within(task2Row).getAllByRole('cell');
-    within(cellsFromDataRow2[7]).getByText(/In Progress -/); // Can't accurately calculate cost for an 'In Progress' task in a test
-
-    // Running task with no start time should be fetching cost data
-    const task3Row = tableRows[2];
-    const cellsFromDataRow3 = within(task3Row).getAllByRole('cell');
-    within(cellsFromDataRow3[7]).getByText('Fetching cost information');
 
     // Cache hit should display a dash
     const task4Row = tableRows[3];
     const cellsFromDataRow4 = within(task4Row).getAllByRole('cell');
     within(cellsFromDataRow4[7]).getByText('-');
-
-    // Task with no start/cost and 'Done' should display a dash
-    const task5Row = tableRows[4];
-    const cellsFromDataRow5 = within(task5Row).getAllByRole('cell');
-    within(cellsFromDataRow5[7]).getByText('-');
-    */
   });
 
   it('only shows failed tasks if a workflow has failed', async () => {

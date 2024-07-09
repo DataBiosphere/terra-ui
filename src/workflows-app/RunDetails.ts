@@ -1,6 +1,6 @@
-import { icon, Link, Spinner } from '@terra-ui-packages/components';
+import { Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash';
-import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { collapseStatus, statusType } from 'src/components/job-common';
 import { Ajax } from 'src/libs/ajax';
@@ -9,8 +9,6 @@ import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, usePollingEffect } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
-import { elements } from 'src/libs/style';
-import { newTabLinkProps } from 'src/libs/utils';
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable';
 
 import InputOutputModal from './components/InputOutputModal';
@@ -123,8 +121,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
   const { captureEvent } = useMetricsEvent();
 
   const [sasToken, setSasToken] = useState('');
-
-  const metadataArchiveStatus = useMemo(() => workflowMetadata?.metadataArchiveStatus, [workflowMetadata]);
 
   /* Callback for child components to use to open the log modal */
   const showLogModal = useCallback((modalTitle, logsArray, tesLog) => {
@@ -363,24 +359,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
     ]);
   };
 
-  const renderArchivedAndDeletedState = () => {
-    return h(Fragment, [
-      div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...elements.sectionHeader } }, [' Run Details Archived']),
-      div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-        "This run's details have been archived. Please refer to the ",
-        h(
-          Link,
-          {
-            href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
-            ...newTabLinkProps,
-          },
-          [icon('pop-out', { size: 18 }), ' Run Details Archived']
-        ),
-        ' support article for details on how to access the archive.',
-      ]),
-    ]);
-  };
-
   const renderSuccessfullyLoadedState = () => {
     if (
       !workspaceName ||
@@ -462,9 +440,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
   }
   if (workflowMetadata === undefined) {
     return renderLoadingState();
-  }
-  if (metadataArchiveStatus === 'ArchivedAndDeleted') {
-    return renderArchivedAndDeletedState();
   }
   return renderSuccessfullyLoadedState();
 };
