@@ -3679,6 +3679,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/channels@npm:8.1.11":
+  version: 8.1.11
+  resolution: "@storybook/channels@npm:8.1.11"
+  dependencies:
+    "@storybook/client-logger": 8.1.11
+    "@storybook/core-events": 8.1.11
+    "@storybook/global": ^5.0.0
+    telejson: ^7.2.0
+    tiny-invariant: ^1.3.1
+  checksum: 9f4840c8f6737fe1357344400d0fd6ab85dbff4f3b3329e02dea9ebaa003f20c5a45711074aadcfc82f7e8976466196935def308e0f389c11d5bad48ab3362e5
+  languageName: node
+  linkType: hard
+
 "@storybook/cli@npm:8.0.10":
   version: 8.0.10
   resolution: "@storybook/cli@npm:8.0.10"
@@ -3741,6 +3754,15 @@ __metadata:
   dependencies:
     "@storybook/global": ^5.0.0
   checksum: b9aad55dd6550ed060f5a1e4dcc8608a5968907189e63c39b48918fc47abc0dbd3e86ca517df44338096aa4dbabaa6bd4be283ee0e23e67a765c0688230d661b
+  languageName: node
+  linkType: hard
+
+"@storybook/client-logger@npm:8.1.11":
+  version: 8.1.11
+  resolution: "@storybook/client-logger@npm:8.1.11"
+  dependencies:
+    "@storybook/global": ^5.0.0
+  checksum: c1dac97b3bd138daed0018825ca7b36d1dff108c9c5134182b4b1bbad633b627436da7c7d557c4d5ecd9e78ccda0b2ce74d22bf8b7e59b30efe799eea05b7a15
   languageName: node
   linkType: hard
 
@@ -3872,6 +3894,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/core-events@npm:8.1.11":
+  version: 8.1.11
+  resolution: "@storybook/core-events@npm:8.1.11"
+  dependencies:
+    "@storybook/csf": ^0.1.7
+    ts-dedent: ^2.0.0
+  checksum: 3b3231b299367def8d6d9ee8dc939ad145473bbd561d495f0dac3e5cd3adb93b7e87f1d0a6787917275f8dfae8193959c872336530930ad90207b6df5de37910
+  languageName: node
+  linkType: hard
+
 "@storybook/core-server@npm:8.0.10":
   version: 8.0.10
   resolution: "@storybook/core-server@npm:8.0.10"
@@ -3976,12 +4008,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/csf@npm:^0.1.2, @storybook/csf@npm:^0.1.4":
-  version: 0.1.7
-  resolution: "@storybook/csf@npm:0.1.7"
+"@storybook/csf@npm:^0.1.2, @storybook/csf@npm:^0.1.4, @storybook/csf@npm:^0.1.7":
+  version: 0.1.11
+  resolution: "@storybook/csf@npm:0.1.11"
   dependencies:
     type-fest: ^2.19.0
-  checksum: 0f2b32a3d3920620d032436429fff9f3a08add8e52dc735a5dfd6ce46260a12c7ec87f4fff065bf0e8baae988d1655eea25d5aaba810e7687119ac5661eaeaa4
+  checksum: ba2a265f62ad82a2853b069f77e974efe31bed263a640ca1dd8e6d7e194022018a67ad4a2587ae928f33ae45aaf6ffedd5925ba3fcf3fe5b7996667a918e22eb
   languageName: node
   linkType: hard
 
@@ -4103,6 +4135,28 @@ __metadata:
     ts-dedent: ^2.0.0
     util-deprecate: ^1.0.2
   checksum: 612d671f490d61b44ddcbd3e8099134637788b6ab4ac55297a1b66c6a5dd8a573be380ee5a623a05cbda135c0c3aae85f06053a201d81a51a58d54ddbc60c8f4
+  languageName: node
+  linkType: hard
+
+"@storybook/preview-api@npm:^8.1.10":
+  version: 8.1.11
+  resolution: "@storybook/preview-api@npm:8.1.11"
+  dependencies:
+    "@storybook/channels": 8.1.11
+    "@storybook/client-logger": 8.1.11
+    "@storybook/core-events": 8.1.11
+    "@storybook/csf": ^0.1.7
+    "@storybook/global": ^5.0.0
+    "@storybook/types": 8.1.11
+    "@types/qs": ^6.9.5
+    dequal: ^2.0.2
+    lodash: ^4.17.21
+    memoizerific: ^1.11.3
+    qs: ^6.10.0
+    tiny-invariant: ^1.3.1
+    ts-dedent: ^2.0.0
+    util-deprecate: ^1.0.2
+  checksum: d070af119e2375d0bfe78af903853df13dbcc7004fe9da29019f0f861f27730e64ff95b8fd8c4ef1f16b3fb65cb6716579d9019536d4e06dec9b59c22cc85ebe
   languageName: node
   linkType: hard
 
@@ -4282,6 +4336,17 @@ __metadata:
     "@types/express": ^4.7.0
     file-system-cache: 2.3.0
   checksum: 59a1128913a2743c122413586c20d4d11def565bf52b7365301806bc4d898a2d78eb3b9636cec9b115c8d37f97e2841427b5a3524aa6b52bcd0433fd8761e2bb
+  languageName: node
+  linkType: hard
+
+"@storybook/types@npm:8.1.11":
+  version: 8.1.11
+  resolution: "@storybook/types@npm:8.1.11"
+  dependencies:
+    "@storybook/channels": 8.1.11
+    "@types/express": ^4.7.0
+    file-system-cache: 2.3.0
+  checksum: 99215c9dc8ffcdfd9e54182cf2fe2f6f84cc94bdfe853096876d4715c1cc926317cdb8314ebc4ee78f2b98c65de718f9350d5545d579a08ba08da01864d1291b
   languageName: node
   linkType: hard
 
@@ -4509,7 +4574,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
+"@terra-ui-packages/data-client-core@*, @terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-clients/core"
   dependencies:
@@ -16327,12 +16392,14 @@ __metadata:
     "@storybook/addon-links": ^8.0.10
     "@storybook/addon-onboarding": ^1.0.11
     "@storybook/blocks": ^8.0.10
+    "@storybook/preview-api": ^8.1.10
     "@storybook/react": ^8.0.10
     "@storybook/react-vite": ^8.0.10
     "@storybook/test": ^8.0.10
     "@terra-ui-packages/analysis": "*"
     "@terra-ui-packages/components": "*"
     "@terra-ui-packages/core-utils": "*"
+    "@terra-ui-packages/data-client-core": "*"
     "@terra-ui-packages/notifications": "*"
     "@terra-ui-packages/test-utils": 1.0.0
     "@testing-library/dom": ^9.3.1

@@ -1,6 +1,9 @@
+import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
+import { Ajax } from 'src/libs/ajax';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
@@ -37,9 +40,20 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
   };
 });
 
+type AjaxExports = typeof import('src/libs/ajax');
+jest.mock(
+  'src/libs/ajax',
+  (): AjaxExports => ({
+    ...jest.requireActual<AjaxExports>('src/libs/ajax'),
+    Ajax: jest.fn(),
+  })
+);
+
+type AjaxContract = ReturnType<typeof Ajax>;
+
 describe('WorkspaceAttributes', () => {
   interface SetupArgs {
-    attributes?: [string, unknown, string][];
+    attributes?: [string, unknown, string | undefined][];
     workspace?: WorkspaceWrapper;
   }
 
@@ -77,18 +91,45 @@ describe('WorkspaceAttributes', () => {
     const rows = screen.getAllByRole('row');
 
     const firstRowCells = within(rows[1]).getAllByRole('cell');
-    expect(firstRowCells.map((el) => el.textContent)).toEqual([
+    expect(firstRowCells.slice(1).map((el) => el.textContent)).toEqual([
       'attribute1',
       'value1',
-      'description1Edit variableDelete variable',
+      'description1Edit variable',
     ]);
 
     const secondRowCells = within(rows[2]).getAllByRole('cell');
-    expect(secondRowCells.map((el) => el.textContent)).toEqual([
+    expect(secondRowCells.slice(1).map((el) => el.textContent)).toEqual([
       'attribute2',
       'value2',
-      'description2Edit variableDelete variable',
+      'description2Edit variable',
     ]);
+  });
+
+  it.each([
+    { filter: 'f', expectedMatches: ['foo', 'baz'] },
+    { filter: '2', expectedMatches: ['bar'] },
+    { filter: 'def', expectedMatches: ['baz'] },
+  ])('filters workspace data attributes by name, value, or description', async ({ filter, expectedMatches }) => {
+    // Arrange
+    setup({
+      attributes: [
+        ['foo', '1', undefined],
+        ['bar', '2', 'abc'],
+        ['baz', '3', 'def'],
+      ],
+    });
+
+    // Act
+    const filterInput = screen.getByLabelText('Search');
+    fireEvent.change(filterInput, { target: { value: filter } });
+
+    await act(() => delay(250)); // debounced input
+
+    // Assert
+    const rows = screen.getAllByRole('row').slice(1);
+    const filteredAttributes = rows.map((row) => within(row).getAllByRole('cell')[1].textContent);
+
+    expect(filteredAttributes).toEqual(expectedMatches);
   });
 
   it('has option to add a new variable', () => {
@@ -120,5 +161,65 @@ describe('WorkspaceAttributes', () => {
     // Assert
     const editMenuButton = screen.getByRole('button', { name: 'Edit' });
     expect(editMenuButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('allows selecting and deleting attributes', async () => {
+    // Arrange/Act
+    const deleteAttributes = jest.fn().mockResolvedValue(undefined);
+    const workspace = jest.fn(() => ({ deleteAttributes }));
+
+    asMockedFn(Ajax).mockImplementation(
+      () => ({ Workspaces: { workspace } } as DeepPartial<AjaxContract> as AjaxContract)
+    );
+
+    setup({
+      attributes: [
+        ['attribute1', 'value1', 'description1'],
+        ['attribute2', 'value2', 'description2'],
+        ['attribute3', 'value3', 'description3'],
+      ],
+    });
+
+    // Act
+    fireEvent.click(screen.getByRole('checkbox', { name: 'attribute2' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'attribute3' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.click(screen.getByText('Delete selected variables'));
+
+    screen.getByText('Are you sure you want to delete the selected variables?');
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete variables' }));
+    });
+
+    // Assert
+    expect(deleteAttributes).toHaveBeenCalledWith([
+      'attribute2',
+      '__DESCRIPTION__attribute2',
+      'attribute3',
+      '__DESCRIPTION__attribute3',
+    ]);
+  });
+
+  it('requires unique keys when editing', async () => {
+    // Arrange
+    setup({
+      attributes: [
+        ['attribute1', 'value1', 'description1'],
+        ['attribute2', 'value2', 'description2'],
+      ],
+    });
+
+    // Act
+    const rows = screen.getAllByRole('row');
+    const editMenuButton = within(rows[1]).getByRole('button', { name: 'Edit variable' });
+    fireEvent.click(editMenuButton);
+
+    const input = within(rows[1]).getAllByRole('textbox')[0];
+    await userEvent.clear(input);
+    await userEvent.type(input, 'attribute2');
+
+    // Assert
+    within(rows[1]).getByRole('button', { name: 'Key must be unique' });
   });
 });
