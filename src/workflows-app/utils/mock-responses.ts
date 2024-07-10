@@ -1,7 +1,7 @@
+import { AuditInfo } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import { appAccessScopes } from 'src/analysis/utils/tool-utils';
 import { App, LeoAppStatus } from 'src/libs/ajax/leonardo/models/app-models';
-import { AuditInfo } from 'src/libs/ajax/leonardo/models/core-models';
 import { defaultAzureRegion } from 'src/libs/azure-utils';
 import { InputDefinition, OutputDefinition } from 'src/workflows-app/models/submission-models';
 import { AzureWorkspace } from 'src/workspaces/utils';
