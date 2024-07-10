@@ -3,6 +3,7 @@ import * as qs from 'qs';
 import {
   appIdentifier,
   authOpts,
+  drsAppIdentifier,
   fetchAgora,
   fetchDrsHub,
   fetchGoogleForms,
@@ -697,7 +698,13 @@ const DrsUriResolver = (signal) => ({
   getSignedUrl: async ({ bucket, object, dataObjectUri, googleProject }) => {
     const res = await fetchDrsHub(
       '/api/v4/gcs/getSignedUrl',
-      _.mergeAll([jsonBody({ bucket, object, dataObjectUri, googleProject }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+      _.mergeAll([
+        jsonBody({ bucket, object, dataObjectUri, googleProject }),
+        authOpts(),
+        appIdentifier,
+        drsAppIdentifier,
+        { signal, method: 'POST' },
+      ])
     );
     return res.json();
   },
@@ -705,7 +712,7 @@ const DrsUriResolver = (signal) => ({
   getDataObjectMetadata: async (url, fields) => {
     const res = await fetchDrsHub(
       '/api/v4/drs/resolve',
-      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, drsAppIdentifier, { signal, method: 'POST' }])
     );
     return res.json();
   },
