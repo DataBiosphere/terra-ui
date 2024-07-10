@@ -4,7 +4,6 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, fieldset, h, label, legend, span } from 'react-hyperscript-helpers';
 import { IdContainer, LabeledCheckbox, Link, RadioButton, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { AttributeArray } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import * as Utils from 'src/libs/utils';
 
 import { renderInputForAttributeType } from '../shared/AttributeInput';
@@ -19,12 +18,28 @@ interface AttributeTypeInputProps {
   showJsonTypeOption?: boolean;
 }
 
-interface TypeOption {
+interface BaseTypeOption {
   type: string;
-  label?: string;
-  tooltip?: string;
-  entityType?: string;
 }
+
+interface ReferenceTypeOption extends BaseTypeOption {
+  tooltip: string;
+  entityType: string;
+}
+
+function isReferenceTypeOption(typeOption: TypeOption): typeOption is ReferenceTypeOption {
+  return 'tooltip' in typeOption;
+}
+
+interface JsonTypeOption extends BaseTypeOption {
+  label: string;
+}
+
+function isJsonTypeOption(typeOption: TypeOption): typeOption is JsonTypeOption {
+  return 'label' in typeOption;
+}
+
+type TypeOption = BaseTypeOption | ReferenceTypeOption | JsonTypeOption;
 
 export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
   const { type, entityType: referenceEntityType } = props.value;
@@ -60,17 +75,21 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
         },
         _.map(
           (typeOption: TypeOption) =>
-            h(TooltipTrigger, { content: typeOption.tooltip }, [
+            h(TooltipTrigger, { content: isReferenceTypeOption(typeOption) ? typeOption.tooltip : '' }, [
               span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
                 h(RadioButton, {
                   name: `radio-button-${typeOption.type}`,
-                  text: typeOption.label || _.startCase(typeOption.type),
+                  text: isJsonTypeOption(typeOption) ? typeOption.label : _.startCase(typeOption.type),
                   checked: type === typeOption.type,
                   onChange: () => {
-                    const newType = typeOption;
-                    if (typeOption.type === 'reference') {
-                      newType.entityType = defaultReferenceEntityType || sortedEntityTypes[0];
+                    let newType: TypeOption | (TypeOption & { entityType?: string }) = typeOption;
+                    if (isReferenceTypeOption(typeOption)) {
+                      newType = { ...typeOption, entityType: defaultReferenceEntityType || sortedEntityTypes[0] };
                     }
+                    // const newType = typeOption;
+                    // if (isReferenceTypeOption(typeOption)) {
+                    //   newType.entityType = defaultReferenceEntityType || sortedEntityTypes[0];
+                    // }
                     props.onChange(newType);
                   },
                   labelStyle: { paddingLeft: '0.5rem' },
@@ -89,9 +108,10 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
               label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, ['Referenced entity type:']),
               h(Select, {
                 key: id,
+                id,
                 value: referenceEntityType,
                 options: sortedEntityTypes,
-                onChange: ({ value: newReferenceEntityType }) => {
+                onChange: ({ type: newReferenceEntityType }) => {
                   props.onChange({ ...props.value, entityType: newReferenceEntityType });
                 },
               }),
@@ -114,13 +134,18 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
 
 type EntityReference = { entityName: string; entityType: string };
 
-type SingleValue = string | EntityReference;
+type SingleAttributeValue = string | EntityReference | number | boolean | {};
 
-type AttributeValue = SingleValue | AttributeArray;
+interface AttributeList<T extends SingleAttributeValue = SingleAttributeValue> {
+  itemsType: 'AttributeValue' | 'EntityReference'; // TODO what should this be?
+  items: T[];
+}
 
-// function isListValue(value: AttributeValue): value is ListValue {
-//   return getAttributeType(value);
-// }
+type AttributeValue = SingleAttributeValue | AttributeList;
+
+function isListValue(value: AttributeValue): value is AttributeList {
+  return typeof value === 'object' && 'items' in value;
+}
 
 interface AttributeInputProps {
   autoFocus?: boolean;
@@ -142,10 +167,10 @@ const AttributeInput = (props: AttributeInputProps) => {
 
   const referenceEntityType = Utils.cond(
     [
-      attributeType === 'reference' && isList,
+      attributeType === 'reference' && isListValue(props.attributeValue),
       () =>
-        !_.isEmpty((props.attributeValue as AttributeArray).items)
-          ? ((props.attributeValue as AttributeArray).items[0] as EntityReference).entityType
+        !_.isEmpty((props.attributeValue as AttributeList).items)
+          ? ((props.attributeValue as AttributeList).items[0] as EntityReference).entityType
           : entityTypes[0],
     ],
     [attributeType === 'reference', () => (props.attributeValue as EntityReference).entityType]
@@ -187,12 +212,12 @@ const AttributeInput = (props: AttributeInputProps) => {
           {
             checked: isList,
             onChange: (willBeList) => {
-              const newAttributeValue = willBeList
-                ? {
+              const newAttributeValue: AttributeValue = willBeList
+                ? ({
                     items: [props.attributeValue],
                     itemsType: attributeType === 'reference' ? 'EntityReference' : 'AttributeValue',
-                  }
-                : props.attributeValue.items[0];
+                  } as AttributeList)
+                : (props.attributeValue as AttributeList).items[0];
               props.onChange(newAttributeValue);
             },
           },
@@ -214,10 +239,10 @@ const AttributeInput = (props: AttributeInputProps) => {
                       'aria-label': `List value ${i + 1}`,
                       autoFocus: i === 0 && autoFocus,
                       ref:
-                        i === (props.attributeValue as AttributeArray).items.length - 1 ? lastListItemInput : undefined,
+                        i === (props.attributeValue as AttributeList).items.length - 1 ? lastListItemInput : undefined,
                       value,
                       onChange: (v) => {
-                        const newAttributeValue = _.update('items', _.set(i, v), props.attributeValue);
+                        const newAttributeValue = _.update('items', _.set(i, v), props.attributeValue as AttributeList);
                         setEdited(true);
                         props.onChange(newAttributeValue);
                       },
@@ -226,9 +251,13 @@ const AttributeInput = (props: AttributeInputProps) => {
                       Link,
                       {
                         'aria-label': `Remove list value ${i + 1}`,
-                        disabled: _.size((props.attributeValue as AttributeArray).items) === 1,
+                        disabled: _.size((props.attributeValue as AttributeList).items) === 1,
                         onClick: () => {
-                          const newAttributeValue = _.update('items', _.pullAt(i), props.attributeValue);
+                          const newAttributeValue = _.update(
+                            'items',
+                            _.pullAt(i),
+                            props.attributeValue as AttributeList
+                          );
                           setEdited(true);
                           props.onChange(newAttributeValue);
                         },
@@ -238,7 +267,7 @@ const AttributeInput = (props: AttributeInputProps) => {
                     ),
                   ]
                 ),
-              Utils.toIndexPairs((props.attributeValue as AttributeArray).items)
+              Utils.toIndexPairs((props.attributeValue as AttributeList).items)
             )
           ),
           h(
@@ -247,7 +276,11 @@ const AttributeInput = (props: AttributeInputProps) => {
               style: { display: 'block', marginTop: '1rem' },
               onClick: () => {
                 focusLastListItemInput.current = true;
-                const newAttributeValue = _.update('items', Utils.append(defaultValue), props.attributeValue);
+                const newAttributeValue = _.update(
+                  'items',
+                  Utils.append(defaultValue),
+                  props.attributeValue as AttributeList
+                );
                 setEdited(true);
                 props.onChange(newAttributeValue);
               },

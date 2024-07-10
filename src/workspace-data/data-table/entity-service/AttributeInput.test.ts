@@ -77,7 +77,7 @@ describe('AttributeTypeInput', () => {
 
       fireEvent.click(getByLabelText('Reference'));
 
-      expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'baz' });
+      expect(onChange).toHaveBeenCalledWith({ type: 'reference', tooltip: 'A link to another row', entityType: 'baz' });
     });
 
     it('selecting reference type uses the alphabetically first entity type if no default reference entity type is provided', () => {
@@ -92,7 +92,7 @@ describe('AttributeTypeInput', () => {
 
       fireEvent.click(getByLabelText('Reference'));
 
-      expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'bar' });
+      expect(onChange).toHaveBeenCalledWith({ type: 'reference', tooltip: 'A link to another row', entityType: 'bar' });
     });
   });
 });
@@ -109,9 +109,18 @@ describe('AttributeInput', () => {
       );
 
       const radioButtons = getAllByRole('radio');
-      const labels = Array.from(radioButtons).map((el) => el.labels[0].textContent);
-
       expect(radioButtons.length).toBe(4);
+      const labels: (string | null)[] = [];
+      for (const el of radioButtons) {
+        expect(el instanceof HTMLInputElement).toBe(true);
+        const inputElement = el as HTMLInputElement;
+        expect(inputElement.labels).not.toBeNull();
+        expect(inputElement.labels![0]).not.toBeNull();
+        expect(inputElement.labels![0] instanceof HTMLLabelElement).toBe(true);
+        const label = inputElement.labels![0] as HTMLLabelElement;
+        labels.push(label.textContent);
+      }
+
       expect(labels).toEqual(['String', 'Reference', 'Number', 'Boolean']);
     });
 
@@ -132,6 +141,7 @@ describe('AttributeInput', () => {
       const { queryByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { key: 'value' },
+          entityTypes: [],
           onChange: jest.fn(),
         })
       );
@@ -145,6 +155,8 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           onChange: jest.fn(),
           showJsonTypeOption: true,
+          attributeValue: 'value',
+          entityTypes: [],
         })
       );
 
@@ -160,6 +172,7 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: '123',
           onChange,
+          entityTypes: [],
         })
       );
 
@@ -177,6 +190,7 @@ describe('AttributeInput', () => {
           attributeValue: '123',
           initialValue: '456',
           onChange,
+          entityTypes: [],
         })
       );
 
@@ -193,13 +207,15 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: 'value',
           onChange,
+          entityTypes: [],
         })
       );
       const valueInput = getByLabelText('New value');
 
       expect(valueInput.tagName).toBe('INPUT');
-      expect(valueInput.type).toBe('text');
-      expect(valueInput.value).toBe('value');
+      expect(valueInput instanceof HTMLInputElement).toBe(true);
+      expect((valueInput as HTMLInputElement).type).toBe('text');
+      expect((valueInput as HTMLInputElement).value).toBe('value');
 
       fireEvent.change(valueInput, { target: { value: 'newvalue' } });
       expect(onChange).toHaveBeenCalledWith('newvalue');
@@ -209,15 +225,16 @@ describe('AttributeInput', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
-          value: { entityType: 'thing', entityName: 'thing_one' },
+          attributeValue: { entityType: 'thing', entityName: 'thing_one' },
           onChange,
+          entityTypes: ['thing'],
         })
       );
       const valueInput = getByLabelText('New value');
 
       expect(valueInput.tagName).toBe('INPUT');
-      expect(valueInput.type).toBe('text');
-      expect(valueInput.value).toBe('thing_one');
+      expect((valueInput as HTMLInputElement).type).toBe('text');
+      expect((valueInput as HTMLInputElement).value).toBe('thing_one');
 
       fireEvent.change(valueInput, { target: { value: 'thing_two' } });
       expect(onChange).toHaveBeenCalledWith({ entityType: 'thing', entityName: 'thing_two' });
@@ -229,13 +246,14 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: 123,
           onChange,
+          entityTypes: [],
         })
       );
       const valueInput = getByLabelText('New value');
 
       expect(valueInput.tagName).toBe('INPUT');
-      expect(valueInput.type).toBe('number');
-      expect(valueInput.value).toBe('123');
+      expect((valueInput as HTMLInputElement).type).toBe('number');
+      expect((valueInput as HTMLInputElement).value).toBe('123');
 
       fireEvent.change(valueInput, { target: { value: '456' } });
       expect(onChange).toHaveBeenCalledWith(456);
@@ -247,13 +265,14 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: true,
           onChange,
+          entityTypes: [],
         })
       );
       const valueInput = getByLabelText('New value');
 
       expect(valueInput.tagName).toBe('INPUT');
-      expect(valueInput.type).toBe('checkbox');
-      expect(valueInput.checked).toBe(true);
+      expect((valueInput as HTMLInputElement).type).toBe('checkbox');
+      expect((valueInput as HTMLInputElement).checked).toBe(true);
 
       fireEvent.click(valueInput);
       expect(onChange).toHaveBeenCalledWith(false);
@@ -266,6 +285,7 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange: jest.fn(),
+          entityTypes: [],
         })
       );
 
@@ -280,6 +300,7 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: 'foo',
           onChange,
+          entityTypes: [],
         })
       );
 
@@ -295,6 +316,7 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
+          entityTypes: [],
         })
       );
 
@@ -310,12 +332,22 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
+          entityTypes: [],
         })
       );
 
       const valueInputs = getAllByLabelText(/^List value \d+/);
       expect(valueInputs.length).toBe(3);
-      expect(Array.from(valueInputs).map((el) => el.value)).toEqual(['foo', 'bar', 'baz']);
+
+      const labels: (string | null)[] = [];
+      for (const el of valueInputs) {
+        expect(el instanceof HTMLInputElement).toBe(true);
+        const inputElement = el as HTMLInputElement;
+        expect(inputElement.value).not.toBeNull();
+        labels.push(inputElement.value);
+      }
+
+      expect(labels).toEqual(['foo', 'bar', 'baz']);
 
       fireEvent.change(valueInputs[1], { target: { value: 'qux' } });
       expect(onChange).toHaveBeenCalledWith({ itemsType: 'AttributeValue', items: ['foo', 'qux', 'baz'] });
@@ -327,6 +359,7 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
+          entityTypes: [],
         })
       );
 
@@ -343,6 +376,7 @@ describe('AttributeInput', () => {
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
+          entityTypes: [],
         })
       );
 
