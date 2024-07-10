@@ -1,41 +1,28 @@
+import { ButtonSecondary, Clickable, Icon } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { div, h, p } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
-import { DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common';
+import { Checkbox, DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common';
 import Dropzone from 'src/components/Dropzone';
-import FloatingActionButton from 'src/components/FloatingActionButton';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput, TextInput } from 'src/components/input';
+import { MenuButton } from 'src/components/MenuButton';
+import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { FlexTable, HeaderCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { useCancellation } from 'src/libs/react-utils';
+import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { renderDataCell } from 'src/workspace-data/data-table/entity-service/renderDataCell';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
-export const getDisplayedAttribute = (arr) => {
-  const { key, value, description = '' } = _.mergeAll(arr);
-  return [key, value, description];
-};
+import { useWorkspaceDataAttributes } from './useWorkspaceDataAttributes';
 
 const DESCRIPTION_PREFIX = '__DESCRIPTION__';
 const isDescriptionKey = _.startsWith(DESCRIPTION_PREFIX);
-
-export const renameAttribute = ([k, v]) => (isDescriptionKey(k) ? { key: k.slice(DESCRIPTION_PREFIX.length), description: v } : { key: k, value: v });
-
-export const convertInitialAttributes = _.flow(
-  _.toPairs,
-  _.remove(([key]) => /^description$|:|^referenceData_/.test(key)),
-  _.map(renameAttribute),
-  _.groupBy('key'),
-  _.values,
-  _.map(getDisplayedAttribute),
-  _.sortBy(_.first)
-);
 
 export const WorkspaceAttributes = ({
   workspace,
@@ -44,10 +31,11 @@ export const WorkspaceAttributes = ({
   },
   refreshKey,
 }) => {
-  const signal = useCancellation();
+  const [selection, setSelection] = useState({});
+  const numSelected = Object.entries(selection).filter(([_, selected]) => selected).length;
 
   const [editIndex, setEditIndex] = useState();
-  const [deleteIndex, setDeleteIndex] = useState();
+  const [deleting, setDeleting] = useState(false);
   const [editKey, setEditKey] = useState();
   const [editValue, setEditValue] = useState();
   const [editDescription, setEditDescription] = useState();
@@ -55,21 +43,15 @@ export const WorkspaceAttributes = ({
   const [textFilter, setTextFilter] = useState('');
 
   const [busy, setBusy] = useState();
-  const [attributes, setAttributes] = useState();
+  const [attributes, refreshAttributes] = useWorkspaceDataAttributes(namespace, name);
 
-  const loadAttributes = _.flow(
-    withErrorReporting('Error loading workspace data'),
-    Utils.withBusyState(setBusy)
-  )(async () => {
-    const {
-      workspace: { attributes },
-    } = await Ajax(signal).Workspaces.workspace(namespace, name).details(['workspace.attributes']);
-    setAttributes(attributes);
-  });
-
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    loadAttributes();
-  }, [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!isFirstRender.current) {
+      refreshAttributes();
+    }
+    isFirstRender.current = false;
+  }, [refreshAttributes, refreshKey]);
 
   const stopEditing = () => {
     setEditIndex();
@@ -81,17 +63,23 @@ export const WorkspaceAttributes = ({
 
   const toDescriptionKey = (k) => DESCRIPTION_PREFIX + k;
 
-  const initialAttributes = convertInitialAttributes(attributes);
-
+  const initialAttributes = attributes.state || [];
   const creatingNewVariable = editIndex === initialAttributes.length;
-  const amendedAttributes = _.flow(
-    _.filter(([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`)),
-    creatingNewVariable ? Utils.append(['', '', '']) : _.identity
-  )(initialAttributes);
+  const filteredAttributes = initialAttributes.filter(([key, value, description]) => {
+    return [key, value, description].some((v) => `${v ?? ''}`.toLowerCase().includes(textFilter.toLowerCase()));
+  });
+  const amendedAttributes = _.flow(creatingNewVariable ? Utils.append(['', '', '']) : _.identity)(filteredAttributes);
+
+  const allVisibleAttributesSelected = filteredAttributes.every(([id]) => selection[id]);
 
   const DESCRIPTION_MAX_LENGTH = 200;
   const inputErrors = editIndex !== undefined && [
-    ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
+    ...(_.map(
+      (innerArray) => _.first(innerArray),
+      attributes.state.filter((_, index) => index !== editIndex)
+    ).includes(editKey)
+      ? ['Key must be unique']
+      : []),
     ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
     ...(editKey === 'description' ? ["Key cannot be 'description'"] : []),
     ...(isDescriptionKey(editKey) ? [`Key cannot start with '${DESCRIPTION_PREFIX}'`] : []),
@@ -128,7 +116,7 @@ export const WorkspaceAttributes = ({
     await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(attributesToMerge);
     await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete);
 
-    await loadAttributes();
+    await refreshAttributes();
 
     stopEditing();
     setTextFilter('');
@@ -139,7 +127,7 @@ export const WorkspaceAttributes = ({
     Utils.withBusyState(setBusy)
   )(async ([file]) => {
     await Ajax().Workspaces.workspace(namespace, name).importAttributes(file);
-    await loadAttributes();
+    await refreshAttributes();
   });
 
   const download = _.flow(
@@ -167,19 +155,83 @@ export const WorkspaceAttributes = ({
                 flex: 'none',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'flex-end',
                 padding: '1rem',
                 background: colors.light(0.5),
                 borderBottom: `1px solid ${colors.grey(0.4)}`,
               },
             },
             [
-              h(Link, { onClick: download }, ['Download TSV']),
-              WorkspaceUtils.canEditWorkspace(workspace).value &&
-                h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']), h(Link, { onClick: openUploader }, ['upload TSV'])]),
+              h(
+                MenuTrigger,
+                {
+                  side: 'bottom',
+                  closeOnClick: true,
+                  content: h(Fragment, [
+                    h(
+                      MenuButton,
+                      {
+                        disabled: editIndex !== undefined,
+                        onClick: () => {
+                          setEditIndex(amendedAttributes.length);
+                          setEditValue('');
+                          setEditKey('');
+                          setEditType('string');
+                          setEditDescription('');
+                        },
+                      },
+                      ['Add variable']
+                    ),
+                    h(
+                      MenuButton,
+                      {
+                        onClick: openUploader,
+                      },
+                      ['Upload TSV']
+                    ),
+                    h(MenuDivider),
+                    h(
+                      MenuButton,
+                      {
+                        disabled: numSelected === 0,
+                        tooltip: numSelected === 0 ? 'Select variables to delete in the table' : undefined,
+                        onClick: () => setDeleting(true),
+                      },
+                      'Delete selected variables'
+                    ),
+                  ]),
+                },
+                [
+                  h(
+                    ButtonSecondary,
+                    {
+                      disabled: editIndex !== undefined,
+                      tooltip: 'Edit data',
+                      ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+                      style: { marginRight: '1.5rem' },
+                    },
+                    [h(Icon, { icon: 'edit', style: { marginRight: '0.5rem' } }), 'Edit']
+                  ),
+                ]
+              ),
+              h(
+                ButtonSecondary,
+                {
+                  onClick: download,
+                },
+                [h(Icon, { icon: 'download', style: { marginRight: '0.5rem' } }), 'Download TSV']
+              ),
+              div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+              div(
+                {
+                  role: 'status',
+                  'aria-atomic': true,
+                  style: { marginRight: '0.5rem' },
+                },
+                [`${numSelected} row${numSelected === 1 ? '' : 's'} selected`]
+              ),
               h(DelayedSearchInput, {
                 'aria-label': 'Search',
-                style: { width: 300, marginLeft: '1rem' },
+                style: { width: 300, marginLeft: 'auto' },
                 placeholder: 'Search',
                 onChange: setTextFilter,
                 value: textFilter,
@@ -198,6 +250,74 @@ export const WorkspaceAttributes = ({
                   noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
                   border: false,
                   columns: [
+                    {
+                      size: { basis: 70, grow: 0 },
+                      headerRenderer: () => {
+                        return h(Fragment, [
+                          h(Checkbox, {
+                            checked: allVisibleAttributesSelected,
+                            disabled: initialAttributes.length === 0 || editIndex !== undefined,
+                            onChange: () => {
+                              if (allVisibleAttributesSelected) {
+                                setSelection({});
+                              } else {
+                                setSelection((previous) => ({ ...previous, ...Object.fromEntries(filteredAttributes.map(([id]) => [id, true])) }));
+                              }
+                            },
+                            'aria-label': 'Select all',
+                          }),
+                          h(
+                            MenuTrigger,
+                            {
+                              closeOnClick: true,
+                              content: h(Fragment, [
+                                h(
+                                  MenuButton,
+                                  {
+                                    onClick: () => setSelection(Object.fromEntries(initialAttributes.map(([id]) => [id, true]))),
+                                  },
+                                  [`All (${initialAttributes.length})`]
+                                ),
+                                filteredAttributes.length < initialAttributes.length &&
+                                  h(
+                                    MenuButton,
+                                    {
+                                      onClick: () =>
+                                        setSelection((previous) => ({
+                                          ...previous,
+                                          ...Object.fromEntries(filteredAttributes.map(([id]) => [id, true])),
+                                        })),
+                                    },
+                                    [`Filtered (${filteredAttributes.length})`]
+                                  ),
+                                h(
+                                  MenuButton,
+                                  {
+                                    onClick: () => setSelection({}),
+                                  },
+                                  ['None']
+                                ),
+                              ]),
+                              side: 'bottom',
+                            },
+                            [h(Clickable, { 'aria-label': '"Select All" options' }, [h(Icon, { icon: 'caretDown' })])]
+                          ),
+                        ]);
+                      },
+                      cellRenderer: ({ rowIndex }) => {
+                        if (rowIndex === editIndex) {
+                          return null;
+                        }
+
+                        const [id] = filteredAttributes[rowIndex];
+                        return h(Checkbox, {
+                          'aria-label': id,
+                          checked: !!selection[id],
+                          disabled: editIndex !== undefined,
+                          onChange: () => setSelection((previous) => ({ ...previous, [id]: !previous[id] })),
+                        });
+                      },
+                    },
                     {
                       size: { basis: 400, grow: 0 },
                       headerRenderer: () => h(HeaderCell, ['Key']),
@@ -299,17 +419,6 @@ export const WorkspaceAttributes = ({
                                   },
                                   [icon('edit', { size: 19 })]
                                 ),
-                                h(
-                                  Link,
-                                  {
-                                    tooltip: 'Delete variable',
-                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
-                                    style: { marginLeft: '1rem' },
-                                    onClick: () => setDeleteIndex(rowIndex),
-                                    'aria-haspopup': 'dialog',
-                                  },
-                                  [icon('trash', { size: 19 })]
-                                ),
                               ]),
                         ]);
                       },
@@ -318,37 +427,32 @@ export const WorkspaceAttributes = ({
                 }),
             ]),
           ]),
-          !creatingNewVariable &&
-            editIndex === undefined &&
-            WorkspaceUtils.canEditWorkspace(workspace).value &&
-            h(FloatingActionButton, {
-              label: 'ADD VARIABLE',
-              iconShape: 'plus',
-              onClick: () => {
-                setEditIndex(amendedAttributes.length);
-                setEditValue('');
-                setEditKey('');
-                setEditType('string');
-                setEditDescription('');
+          deleting &&
+            h(
+              DeleteConfirmationModal,
+              {
+                objectType: numSelected > 1 ? 'variables' : 'variable',
+                title: `Delete ${numSelected} ${numSelected > 1 ? 'variables' : 'variable'}`,
+                onConfirm: _.flow(
+                  Utils.withBusyState(setBusy),
+                  withErrorReporting('Error deleting workspace variables')
+                )(async () => {
+                  setDeleting(false);
+                  await Ajax()
+                    .Workspaces.workspace(namespace, name)
+                    .deleteAttributes(
+                      Object.entries(selection)
+                        .filter(([_, selected]) => selected)
+                        .flatMap(([id]) => [id, toDescriptionKey(id)])
+                    );
+                  setSelection({});
+                  refreshAttributes();
+                }),
+                onDismiss: () => setDeleting(false),
               },
-            }),
-          deleteIndex !== undefined &&
-            h(DeleteConfirmationModal, {
-              objectType: 'variable',
-              objectName: amendedAttributes[deleteIndex][0],
-              onConfirm: _.flow(
-                Utils.withBusyState(setBusy),
-                withErrorReporting('Error deleting workspace variable')
-              )(async () => {
-                setDeleteIndex(undefined);
-                await Ajax()
-                  .Workspaces.workspace(namespace, name)
-                  .deleteAttributes([amendedAttributes[deleteIndex][0], toDescriptionKey(amendedAttributes[deleteIndex][0])]);
-                loadAttributes();
-              }),
-              onDismiss: () => setDeleteIndex(undefined),
-            }),
-          busy && spinnerOverlay,
+              [p([`Are you sure you want to delete the selected variable${numSelected > 1 ? 's' : ''}?`])]
+            ),
+          (attributes.status === 'Loading' || busy) && spinnerOverlay,
         ]),
     ]
   );

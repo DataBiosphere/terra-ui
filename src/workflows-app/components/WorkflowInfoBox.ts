@@ -22,12 +22,12 @@ export interface WorkflowInfoBoxProps {
 }
 
 interface FetchedWorkflowInfoData {
-  start: string;
+  start?: string;
   end?: string;
   wdlScript?: string;
-  status: string;
-  workflowLog: string;
-  executionDirectory: string;
+  status?: string;
+  workflowLog?: string;
+  executionDirectory?: string;
 }
 
 export const WorkflowInfoBox = (props: WorkflowInfoBoxProps): ReactNode => {
@@ -44,11 +44,12 @@ export const WorkflowInfoBox = (props: WorkflowInfoBoxProps): ReactNode => {
         signal,
         includeKeys: ['start', 'end', 'submittedFiles', 'status', 'workflowLog', 'workflowRoot'],
         excludeKeys: ['calls'], // NB: Calls can be very large, so it's important for performance to exclude them from the web request (in this component)
+        expandSubWorkflows: false,
       });
       const data: FetchedWorkflowInfoData = {
         start: metadata.start,
         end: metadata.end,
-        wdlScript: metadata.submittedFiles.workflow,
+        wdlScript: metadata?.submittedFiles?.workflow,
         status: metadata.status,
         workflowLog: metadata.workflowLog,
         executionDirectory: metadata.workflowRoot,

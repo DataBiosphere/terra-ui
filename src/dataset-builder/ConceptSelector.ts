@@ -1,10 +1,10 @@
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { ActionBar } from 'src/components/ActionBar';
 import { LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Parent, RowContents, TreeGrid } from 'src/components/TreeGrid';
+import { ConceptCart } from 'src/dataset-builder/ConceptCart';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
@@ -102,11 +102,6 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         headerStyle: tableHeaderStyle,
       }),
     ]),
-    cart.length !== 0 &&
-      h(ActionBar, {
-        prompt: cart.length === 1 ? '1 concept selected' : `${cart.length} concepts selected`,
-        actionText,
-        onClick: () => _.flow(onCommit)(cart),
-      }),
+    h(ConceptCart, { actionText, cart, onCommit }),
   ]);
 };

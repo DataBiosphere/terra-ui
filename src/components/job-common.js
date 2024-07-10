@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { div, h, h3, h4 } from 'react-hyperscript-helpers';
+import { div, h, h3, h4, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TooltipCell } from 'src/components/table';
@@ -162,32 +162,15 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
   ]);
 };
 
-export const getTaskCost = ({ vmCostUsd, taskStartTime, taskEndTime }) => {
-  const currentEndTime = Date.parse(taskEndTime) || Date.now();
-  const vmCostDouble = parseFloat(vmCostUsd);
-  const startDateTime = Date.parse(taskStartTime);
-
-  const elapsedTime = currentEndTime - startDateTime;
-  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
-};
-
 export const renderTaskCostElement = (cost) => {
-  if (cost === 0.0) {
+  if (cost.toFixed(2) === '0.00') {
     return '< $0.01';
   }
   return `$${cost.toFixed(2)}`;
 };
 
-export const calculateTotalCost = (callObjects) => {
-  let total = 0;
-  Object.values(callObjects).forEach((call) => {
-    if (!call[0].taskStartTime) {
-      total += 0;
-    } else if (call[0].taskEndTime) {
-      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime, taskEndTime: call[0].taskEndTime });
-    } else {
-      total += getTaskCost({ vmCostUsd: call[0].vmCostUsd, taskStartTime: call[0].taskStartTime });
-    }
-  });
-  return total;
+export const renderInProgressElement = ({ status }) => {
+  if (status === 'Running') {
+    return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
+  }
 };
