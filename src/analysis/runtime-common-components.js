@@ -139,7 +139,7 @@ export function AuthenticatedCookieSetter() {
   const cookiesAccepted = getLocalPref(cookiesAcceptedKey) !== false;
   const allowedToUseSystem = termsOfService.permitsSystemUsage;
 
-  return allowedToUseSystem && cookiesAccepted && getConfig().cloudEnvironment !== 'azure' ? h(PeriodicCookieSetter) : null;
+  return allowedToUseSystem && cookiesAccepted && getConfig().terraDeploymentCloudEnv !== 'azure' ? h(PeriodicCookieSetter) : null;
 }
 
 export function PeriodicCookieSetter() {
