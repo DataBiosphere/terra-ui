@@ -630,7 +630,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
             ],
           }),
         ]),
-      h2({ style: { ...styleElements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, [
+      h2({ style: { ...styleElements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0, display:'none' } }, [
         'Your persistent disks',
       ]),
       disks &&

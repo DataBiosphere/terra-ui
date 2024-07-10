@@ -24,7 +24,7 @@
   },
   "editor.formatOnPaste": false, // required
   "editor.formatOnType": false, // required
-  "editor.formatOnSave": true, // optional
-  "editor.formatOnSaveMode": "file", // required to format on save
+  "editor.formatOnSave": false, // optional
+  "editor.formatOnSaveMode": "modifications", // required to format on save
   "prettier.prettierPath": ".yarn/sdks/prettier/index.js"
 }
