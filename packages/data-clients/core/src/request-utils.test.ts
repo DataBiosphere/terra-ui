@@ -8,7 +8,7 @@ describe('jsonBody', () => {
     const expectedBody = JSON.stringify(testBody);
 
     // Assert
-    expect(actual).toBe({
+    expect(actual).toStrictEqual({
       body: expectedBody,
       headers: { 'Content-Type': 'application/json' },
     });
