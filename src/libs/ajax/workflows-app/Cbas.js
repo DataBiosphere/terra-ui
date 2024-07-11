@@ -11,6 +11,10 @@ export const Cbas = (signal) => ({
     const res = await fetchFromProxy(cbasUrlRoot)('actuator/info', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
     return res.json();
   },
+  capabilities: async (cbasUrlRoot) => {
+    const res = await fetchFromProxy(cbasUrlRoot)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+    return res.json();
+  },
   runs: {
     get: async (cbasUrlRoot, submissionId) => {
       const keyParams = qs.stringify({ run_set_id: submissionId });

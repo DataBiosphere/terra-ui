@@ -45,6 +45,7 @@ export const BaseSubmissionConfig = (
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
+  const [cbasSubmissionLimits, setCbasSubmissionLimits] = useState({ 'submission.limits.maxWorkflows': 100 });
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState();
@@ -62,9 +63,11 @@ export const BaseSubmissionConfig = (
   const errorMessageCount = _.filter((message) => message.type === 'error')(inputValidations).length;
 
   const loadRecordsData = useCallback(
-    async (recordType, wdsUrlRoot) => {
+    async (recordType, wdsUrlRoot, searchLimit) => {
       try {
-        const searchResult = await Ajax(signal).WorkspaceData.queryRecords(wdsUrlRoot, workspaceId, recordType);
+        // console.log(`CBAS limit using state: ${JSON.stringify(cbasSubmissionLimits)}`);
+        // console.log(`WDS search limit from param: ${searchLimit}`);
+        const searchResult = await Ajax(signal).WorkspaceData.queryRecords(wdsUrlRoot, workspaceId, recordType, searchLimit);
         setRecords(searchResult.records);
       } catch (error) {
         if (recordType === undefined) {
@@ -120,6 +123,23 @@ export const BaseSubmissionConfig = (
     [methodId, signal]
   );
 
+  const loadCapabilities = useCallback(
+    async (cbasUrlRoot) => {
+      try {
+        const capabilities = await Ajax(signal).Cbas.capabilities(cbasUrlRoot);
+        setCbasSubmissionLimits(capabilities);
+        return capabilities;
+      } catch (error) {
+        // in case the /capabilities API doesn't exist in this CBAS instance or the API exists but CBAS
+        // threw Internal Server Error, then use default submission limits
+        if (error instanceof Response && error.status === 500) {
+          return cbasSubmissionLimits;
+        }
+      }
+    },
+    [signal, cbasSubmissionLimits]
+  );
+
   const loadRecordTypes = useCallback(
     async (wdsUrlRoot) => {
       try {
@@ -132,7 +152,7 @@ export const BaseSubmissionConfig = (
   );
 
   const loadWdsData = useCallback(
-    async ({ wdsProxyUrlDetails, recordType, includeLoadRecordTypes = true }) => {
+    async ({ wdsProxyUrlDetails, recordType, searchLimit, includeLoadRecordTypes = true }) => {
       try {
         // try to load WDS proxy URL if one doesn't exist
         if (wdsProxyUrlDetails.status !== AppProxyUrlStatus.Ready) {
@@ -142,7 +162,7 @@ export const BaseSubmissionConfig = (
             if (includeLoadRecordTypes) {
               await loadRecordTypes(wdsProxyUrlState.state);
             }
-            await loadRecordsData(recordType, wdsProxyUrlState.state);
+            await loadRecordsData(recordType, wdsProxyUrlState.state, searchLimit);
           } else {
             const wdsUrlState = wdsProxyUrlState.state;
             const errorDetails = wdsUrlState instanceof Response ? await wdsUrlState.text() : wdsUrlState;
@@ -159,7 +179,7 @@ export const BaseSubmissionConfig = (
           if (includeLoadRecordTypes) {
             await loadRecordTypes(wdsUrlRoot);
           }
-          await loadRecordsData(recordType, wdsUrlRoot);
+          await loadRecordsData(recordType, wdsUrlRoot, searchLimit);
         }
       } catch (error) {
         notify('error', 'Error loading data tables', { detail: error instanceof Response ? await error.text() : error });
@@ -179,7 +199,15 @@ export const BaseSubmissionConfig = (
             loadRunSet(cbasProxyUrlState.state).then((runSet) => {
               if (runSet !== undefined) {
                 loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-                loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSet.record_type });
+
+                // TODO: should a check happen that key 'submission.limits.maxWorkflows' exists and then use it?
+                loadCapabilities(cbasProxyUrlState.state).then((capabilities) => {
+                  loadWdsData({
+                    wdsProxyUrlDetails: wdsProxyUrlState,
+                    recordType: runSet.record_type,
+                    searchLimit: capabilities['submission.limits.maxWorkflows'],
+                  });
+                });
               }
             });
           } else {
@@ -196,7 +224,10 @@ export const BaseSubmissionConfig = (
           loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
             if (runSet !== undefined) {
               loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-              loadWdsData({ wdsProxyUrlDetails, recordType: runSet.record_type });
+
+              loadCapabilities(cbasProxyUrlDetails.state).then((capabilities) => {
+                loadWdsData({ wdsProxyUrlDetails, recordType: runSet.record_type, searchLimit: capabilities['submission.limits.maxWorkflows'] });
+              });
             }
           });
         }
@@ -204,7 +235,7 @@ export const BaseSubmissionConfig = (
         notify('error', 'Error loading Workflows app', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [loadMethodsData, loadRunSet, loadWdsData, workspaceId]
+    [loadCapabilities, loadMethodsData, loadRunSet, loadWdsData, workspaceId]
   );
 
   useOnMount(() => {
@@ -215,7 +246,14 @@ export const BaseSubmissionConfig = (
         loadRunSet(cbasProxyUrlState.state).then((runSet) => {
           if (runSet !== undefined) {
             loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
-            loadWdsData({ wdsProxyUrlDetails: wdsProxyUrlState, recordType: runSet.record_type });
+
+            loadCapabilities(cbasProxyUrlState.state).then((capabilities) => {
+              loadWdsData({
+                wdsProxyUrlDetails: wdsProxyUrlState,
+                recordType: runSet.record_type,
+                searchLimit: capabilities['submission.limits.maxWorkflows'],
+              });
+            });
           }
         });
       }
@@ -276,7 +314,11 @@ export const BaseSubmissionConfig = (
   usePollingEffect(
     () =>
       !doesAppProxyUrlExist(workspaceId, 'wdsProxyUrlState') &&
-      loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: selectedRecordType }),
+      loadWdsData({
+        wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState,
+        recordType: selectedRecordType,
+        searchLimit: cbasSubmissionLimits[['submission.limits.maxWorkflows']],
+      }),
     { ms: WdsPollInterval, leading: false }
   );
 
@@ -372,7 +414,12 @@ export const BaseSubmissionConfig = (
               setNoRecordTypeData(null);
               setSelectedRecordType(value);
               setSelectedRecords(null);
-              loadWdsData({ wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState, recordType: value, includeLoadRecordTypes: false });
+              loadWdsData({
+                wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState,
+                recordType: value,
+                searchLimit: cbasSubmissionLimits['submission.limits.maxWorkflows'],
+                includeLoadRecordTypes: false,
+              });
             },
             placeholder: 'None selected',
             styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200 }), paddingRight: '2rem' },
