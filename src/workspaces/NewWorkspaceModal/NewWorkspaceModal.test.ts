@@ -1355,6 +1355,8 @@ describe('NewWorkspaceModal', () => {
         const user = userEvent.setup();
         const { checkBucketLocation } = setup({ billingProjects: [gcpBillingProject] });
         checkBucketLocation.mockRejectedValue(mockRejectedValue);
+        // Don't show expected message about bucket location not being available
+        jest.spyOn(console, 'log').mockImplementation(() => {});
 
         // Act
         await act(async () => {
