@@ -282,14 +282,14 @@ export const NewWorkspaceModal = withDisplayName(
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
               setSourceGcpWorkspaceRegion(location);
             })
-            .catch((error) => {
+            .catch((_) => {
               // We cannot get the bucket location in a couple of scenarios:
               // 1. The bucket is requester pays.
               // 2. The user permissions are still syncing.
               // In either case, we will just show a generic egress warning message to prevent the
               // user from being blocked from cloning the workspace.
-              console.log(`Error getting the source workspace bucket location: ${error}`); // eslint-disable-line no-console
               setSourceGCPWorkspaceRegionError(true);
+              console.log('Error getting the source workspace bucket location'); // eslint-disable-line no-console
             }),
         !!cloneWorkspace &&
           isAzureWorkspace(cloneWorkspace) &&
