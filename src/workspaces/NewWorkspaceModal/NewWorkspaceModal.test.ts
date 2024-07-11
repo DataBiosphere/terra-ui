@@ -1344,31 +1344,38 @@ describe('NewWorkspaceModal', () => {
       );
     });
 
-    it('shows a generic message if the source workspace is requester pays', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const { checkBucketLocation } = setup({ billingProjects: [gcpBillingProject] });
-      checkBucketLocation.mockRejectedValue(mockBucketRequesterPaysError);
+    it.each([
+      { mockRejectedValue: mockBucketRequesterPaysError },
+      { mockRejectedValue: new Response('', { status: 403 }) },
+      { mockRejectedValue: new Response('', { status: 500 }) },
+    ] as { mockRejectedValue: any }[])(
+      'shows a generic message if the source bucket location cannot be obtained ($mockRejectedValue)',
+      async ({ mockRejectedValue }) => {
+        // Arrange
+        const user = userEvent.setup();
+        const { checkBucketLocation } = setup({ billingProjects: [gcpBillingProject] });
+        checkBucketLocation.mockRejectedValue(mockRejectedValue);
 
-      // Act
-      await act(async () => {
-        render(
-          h(NewWorkspaceModal, {
-            cloneWorkspace: defaultGoogleWorkspace,
-            onDismiss: () => {},
-            onSuccess: () => {},
-          })
-        );
-      });
+        // Act
+        await act(async () => {
+          render(
+            h(NewWorkspaceModal, {
+              cloneWorkspace: defaultGoogleWorkspace,
+              onDismiss: () => {},
+              onSuccess: () => {},
+            })
+          );
+        });
 
-      // Verify warning doesn't show up until a destination billing project is selected.
-      expect(screen.queryByText(egressWarning)).toBeNull();
+        // Verify warning doesn't show up until a destination billing project is selected.
+        expect(screen.queryByText(egressWarning)).toBeNull();
 
-      await selectBillingProject(user, 'Google Billing Project');
+        await selectBillingProject(user, 'Google Billing Project');
 
-      // Assert
-      screen.getByText(nonRegionSpecificEgressWarning);
-    });
+        // Assert
+        screen.getByText(nonRegionSpecificEgressWarning);
+      }
+    );
   });
 
   describe('shows egress warnings for cloning Azure workspaces', () => {
