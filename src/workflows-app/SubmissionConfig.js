@@ -45,7 +45,11 @@ export const BaseSubmissionConfig = (
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
-  const [cbasSubmissionLimits, setCbasSubmissionLimits] = useState({ 'submission.limits.maxWorkflows': 100 });
+  const [cbasSubmissionLimits, setCbasSubmissionLimits] = useState({
+    maxWorkflows: 100,
+    maxInputs: 200,
+    maxOutputs: 300,
+  });
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState();
@@ -65,8 +69,6 @@ export const BaseSubmissionConfig = (
   const loadRecordsData = useCallback(
     async (recordType, wdsUrlRoot, searchLimit) => {
       try {
-        // console.log(`CBAS limit using state: ${JSON.stringify(cbasSubmissionLimits)}`);
-        // console.log(`WDS search limit from param: ${searchLimit}`);
         const searchResult = await Ajax(signal).WorkspaceData.queryRecords(wdsUrlRoot, workspaceId, recordType, searchLimit);
         setRecords(searchResult.records);
       } catch (error) {
@@ -123,18 +125,27 @@ export const BaseSubmissionConfig = (
     [methodId, signal]
   );
 
-  const loadCapabilities = useCallback(
+  const loadCbasSubmissionLimits = useCallback(
     async (cbasUrlRoot) => {
       try {
         const capabilities = await Ajax(signal).Cbas.capabilities(cbasUrlRoot);
-        setCbasSubmissionLimits(capabilities);
-        return capabilities;
+        if (capabilities) {
+          const newCapabilities = {
+            maxWorkflows: capabilities['submission.limits.maxWorkflows']
+              ? capabilities['submission.limits.maxWorkflows']
+              : cbasSubmissionLimits.maxWorkflows,
+            maxInputs: capabilities['submission.limits.maxInputs'] ? capabilities['submission.limits.maxInputs'] : cbasSubmissionLimits.maxInputs,
+            maxOutputs: capabilities['submission.limits.maxOutputs'] ? capabilities['submission.limits.maxOutputs'] : cbasSubmissionLimits.maxOutputs,
+          };
+          setCbasSubmissionLimits(newCapabilities);
+          return newCapabilities;
+        }
+
+        return cbasSubmissionLimits;
       } catch (error) {
         // in case the /capabilities API doesn't exist in this CBAS instance or the API exists but CBAS
-        // threw Internal Server Error, then use default submission limits
-        if (error instanceof Response && error.status === 500) {
-          return cbasSubmissionLimits;
-        }
+        // threw non-OK status, then use default submission limits
+        return cbasSubmissionLimits;
       }
     },
     [signal, cbasSubmissionLimits]
@@ -198,14 +209,12 @@ export const BaseSubmissionConfig = (
           if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
             loadRunSet(cbasProxyUrlState.state).then((runSet) => {
               if (runSet !== undefined) {
-                loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-
-                // TODO: should a check happen that key 'submission.limits.maxWorkflows' exists and then use it?
-                loadCapabilities(cbasProxyUrlState.state).then((capabilities) => {
+                loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+                loadCbasSubmissionLimits(cbasProxyUrlState.state).then((submissionLimits) => {
                   loadWdsData({
                     wdsProxyUrlDetails: wdsProxyUrlState,
                     recordType: runSet.record_type,
-                    searchLimit: capabilities['submission.limits.maxWorkflows'],
+                    searchLimit: submissionLimits.maxWorkflows,
                   });
                 });
               }
@@ -224,9 +233,8 @@ export const BaseSubmissionConfig = (
           loadRunSet(cbasProxyUrlDetails.state).then((runSet) => {
             if (runSet !== undefined) {
               loadMethodsData(cbasProxyUrlDetails.state, runSet.method_id, runSet.method_version_id);
-
-              loadCapabilities(cbasProxyUrlDetails.state).then((capabilities) => {
-                loadWdsData({ wdsProxyUrlDetails, recordType: runSet.record_type, searchLimit: capabilities['submission.limits.maxWorkflows'] });
+              loadCbasSubmissionLimits(cbasProxyUrlDetails.state).then((submissionLimits) => {
+                loadWdsData({ wdsProxyUrlDetails, recordType: runSet.record_type, searchLimit: submissionLimits.maxWorkflows });
               });
             }
           });
@@ -235,7 +243,7 @@ export const BaseSubmissionConfig = (
         notify('error', 'Error loading Workflows app', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [loadCapabilities, loadMethodsData, loadRunSet, loadWdsData, workspaceId]
+    [loadCbasSubmissionLimits, loadMethodsData, loadRunSet, loadWdsData, workspaceId]
   );
 
   useOnMount(() => {
@@ -246,12 +254,11 @@ export const BaseSubmissionConfig = (
         loadRunSet(cbasProxyUrlState.state).then((runSet) => {
           if (runSet !== undefined) {
             loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
-
-            loadCapabilities(cbasProxyUrlState.state).then((capabilities) => {
+            loadCbasSubmissionLimits(cbasProxyUrlState.state).then((submissionLimits) => {
               loadWdsData({
                 wdsProxyUrlDetails: wdsProxyUrlState,
                 recordType: runSet.record_type,
-                searchLimit: capabilities['submission.limits.maxWorkflows'],
+                searchLimit: submissionLimits.maxWorkflows,
               });
             });
           }
@@ -317,7 +324,7 @@ export const BaseSubmissionConfig = (
       loadWdsData({
         wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState,
         recordType: selectedRecordType,
-        searchLimit: cbasSubmissionLimits[['submission.limits.maxWorkflows']],
+        searchLimit: cbasSubmissionLimits.maxWorkflows,
       }),
     { ms: WdsPollInterval, leading: false }
   );
@@ -417,7 +424,7 @@ export const BaseSubmissionConfig = (
               loadWdsData({
                 wdsProxyUrlDetails: workflowsAppStore.get().wdsProxyUrlState,
                 recordType: value,
-                searchLimit: cbasSubmissionLimits['submission.limits.maxWorkflows'],
+                searchLimit: cbasSubmissionLimits.maxWorkflows,
                 includeLoadRecordTypes: false,
               });
             },
