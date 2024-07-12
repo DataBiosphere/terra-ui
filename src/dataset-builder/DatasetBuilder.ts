@@ -592,7 +592,7 @@ export const DatasetBuilderContents = ({
                             domain: outputTables.header,
                             columns: outputTables.values,
                           }),
-                          selectedColumns // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                          selectedColumns // convert from HeaderAndValues<DatasetBuilderType>[] to OutputTable[]
                         )
                       )
                     )

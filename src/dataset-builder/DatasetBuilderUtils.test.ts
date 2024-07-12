@@ -4,7 +4,7 @@ import {
   Cohort,
   convertCohort,
   convertCriteria,
-  convertValueSet,
+  convertOutputTable,
   createSnapshotAccessRequest,
   CriteriaGroup,
   formatCount,
@@ -184,7 +184,7 @@ describe('test conversion of a cohort', () => {
 
 describe('test conversion of valueSets', () => {
   test('outputTable converted to outputTableApi', () => {
-    expect(convertValueSet(outputTable)).toStrictEqual(outputTableApi);
+    expect(convertOutputTable(outputTable)).toStrictEqual(outputTableApi);
   });
 });
 

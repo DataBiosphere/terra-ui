@@ -81,10 +81,10 @@ export type SnapshotAccessRequest = {
   datasetRequest: SnapshotBuilderRequest;
 };
 
-export const convertValueSet = (valueSet: OutputTable): SnapshotBuilderOutputTableApi => {
+export const convertOutputTable = (outputTable: OutputTable): SnapshotBuilderOutputTableApi => {
   return {
-    name: valueSet.domain,
-    columns: _.map('name', valueSet.columns),
+    name: outputTable.domain,
+    columns: _.map('name', outputTable.columns),
   };
 };
 
@@ -137,7 +137,7 @@ export const createSnapshotAccessRequest = (
     researchPurposeStatement,
     snapshotBuilderRequest: {
       cohorts: _.map(convertCohort, cohorts),
-      outputTables: _.map(convertValueSet, valueSets),
+      outputTables: _.map(convertOutputTable, valueSets),
     },
   };
 };
