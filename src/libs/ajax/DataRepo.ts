@@ -53,13 +53,19 @@ export interface DatasetBuilderType {
 }
 
 export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
-  featureValueGroupName: string;
+  table: SnapshotBuilderTable;
 }
+
+export type SnapshotBuilderTable = {
+  datasetTableName: string;
+  columns: string[];
+  primaryTableRelationship?: string;
+  secondaryTableRelationships?: string[];
+};
 
 export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
-  featureValueGroups: SnapshotBuilderFeatureValueGroup[];
   datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
 };
 
@@ -102,15 +108,14 @@ export interface SnapshotBuilderCohort extends DatasetBuilderType {
   criteriaGroups: SnapshotBuilderCriteriaGroup[];
 }
 
-export type SnapshotBuilderFeatureValueGroup = {
+export type SnapshotBuilderOutputTableApi = {
   name: string;
-  values: string[];
+  columns: string[];
 };
 
 export type SnapshotBuilderRequest = {
   cohorts: SnapshotBuilderCohort[];
-  conceptSets: SnapshotBuilderDatasetConceptSet[];
-  valueSets: SnapshotBuilderFeatureValueGroup[];
+  outputTables: SnapshotBuilderOutputTableApi[];
 };
 
 interface SnapshotDataset {
