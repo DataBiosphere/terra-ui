@@ -2186,7 +2186,7 @@ describe('CBAS Capabilities API', () => {
       expect(mockSearchResponse).toHaveBeenCalledTimes(1);
       expect(mockCapabilitiesResponse).toHaveBeenCalledTimes(1);
 
-      // verify that search limit was set to default because /capabilities API threw error
+      // verify that search limit was set to expected value
       expect(mockSearchResponse).toHaveBeenCalledWith('https://lz-abc/wds-abc-c07807929cd1/', 'abc-c07807929cd1', 'FOO', test.expectedSearchLimit);
     });
   });
