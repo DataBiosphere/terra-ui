@@ -85,7 +85,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   };
 
   const parseAzureUri = (datum) => {
-    if (datum === undefined || datum.split('/').length < 4) {
+    if (typeof datum !== 'string' || datum.split('/').length < 4) {
       return null;
     }
     return datum.split('/')[3].replace('sc-', '');
