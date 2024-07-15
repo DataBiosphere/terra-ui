@@ -20,7 +20,7 @@ import {
 import { RuntimeToolLabel, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { useWorkspaceBillingProfile } from 'src/billing/useWorkspaceBillingProfile';
 import { getResourceLimits } from 'src/billing-core/resource-limits';
-import { ButtonOutline, ButtonPrimary, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, Side, spinnerOverlay } from 'src/components/common';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
@@ -213,26 +213,32 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
 
   const doesRuntimeExist = () => !!currentRuntimeDetails;
 
+  interface CommonButtonProps {
+    readonly tooltipSide: Side;
+    readonly disabled: boolean;
+    readonly tooltip?: string | undefined;
+  }
+
   const renderActionButton = () => {
-    if (currentRuntimeDetails) {
-      const commonButtonProps = {
-        tooltipSide: 'left',
-        disabled: Utils.cond(
-          [loading, true],
-          [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
-          () => doesRuntimeExist()
-        ),
-        tooltip: Utils.cond(
-          [loading, 'Loading cloud environments'],
-          [
-            viewMode === 'deleteEnvironment',
-            () => (getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined),
-          ],
-          [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
-          () => undefined
-        ),
-      };
-    }
+    const commonButtonProps: CommonButtonProps | Map<any, any> = currentRuntimeDetails
+      ? {
+          tooltipSide: 'left',
+          disabled: Utils.cond(
+            [loading, true],
+            [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
+            () => doesRuntimeExist()
+          ),
+          tooltip: Utils.cond(
+            [loading, 'Loading cloud environments'],
+            [
+              viewMode === 'deleteEnvironment',
+              () => (getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined),
+            ],
+            [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
+            () => undefined
+          ),
+        }
+      : new Map();
 
     return h(
       ButtonPrimary,
