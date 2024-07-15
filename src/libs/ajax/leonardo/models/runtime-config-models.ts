@@ -16,6 +16,7 @@ export const cloudServiceTypes: Record<ComputeType, ComputeType> = {
 };
 
 export interface BaseRuntimeConfig {
+  autopauseThreshold: number | null;
   cloudService: ComputeType;
   normalizedRegion: NormalizedComputeRegion;
 }
@@ -37,7 +38,6 @@ export interface GceWithPdConfig extends BaseRuntimeConfig {
 
 export interface DataprocConfig extends BaseRuntimeConfig {
   numberOfWorkers: number;
-  autopauseThreshold: number | null; // TODO: Add to base config
   masterMachineType: string;
   masterDiskSize: number;
   workerMachineType: string | null;
@@ -53,7 +53,7 @@ export interface DataprocConfig extends BaseRuntimeConfig {
 export interface AzureConfig extends BaseRuntimeConfig {
   machineType: string;
   persistentDiskId: number;
-  region: string | null;
+  region: string;
 }
 
 export type GoogleRuntimeConfig = GceConfig | GceWithPdConfig | DataprocConfig;

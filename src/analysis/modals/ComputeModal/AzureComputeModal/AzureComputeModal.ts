@@ -46,6 +46,8 @@ const titleId = 'azure-compute-modal-title';
 
 const minAutopause = 10;
 
+export type viewModeTypes = 'deleteEnvironment' | 'aboutPersistentDisk' | undefined;
+
 export interface AzureComputeModalBaseProps {
   readonly onDismiss: () => void;
   readonly onSuccess: () => void;
@@ -73,7 +75,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
     hideCloseButton = false,
   } = props;
   const [_loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState(undefined);
+  const [viewMode, setViewMode] = useState<viewModeTypes>(undefined);
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime);
   const [currentPersistentDiskDetails] = useState(currentDisk);
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig);
@@ -291,9 +293,15 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
           Utils.cond(
             [
               doesRuntimeExist(),
-              () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected),
+              () =>
+                currentRuntime
+                  ? Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)
+                  : {},
             ], // delete runtime
-            [!!persistentDiskExists, () => leoDiskProvider.delete(currentPersistentDiskDetails)] // delete disk
+            [
+              !!persistentDiskExists,
+              () => (currentPersistentDiskDetails ? leoDiskProvider.delete(currentPersistentDiskDetails) : {}),
+            ] // delete disk
           ),
       ],
       [

@@ -25,7 +25,6 @@ import { diskStatuses, LeoDiskStatus } from 'src/libs/ajax/leonardo/Disks';
 import { App, appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
-  AzureConfig,
   GoogleRuntimeConfig,
   isAzureConfig,
   isDataprocConfig,
@@ -274,10 +273,15 @@ export const getGalaxyDiskCost = (
 
 // AZURE COST METHODS begin
 
-export const getAzureComputeCostEstimate = (runtimeConfig: AzureConfig): number => {
+export const getAzureComputeCostEstimate = ({
+  region,
+  machineType,
+}: {
+  region: string;
+  machineType: string;
+}): number => {
   // console.log('getAzureComputeCostEstimate', { runtimeConfig });
-  if (!runtimeConfig) return 0;
-  const { region, machineType } = runtimeConfig;
+  if (!region || !machineType) return 0;
   const regionPriceObj = getAzurePricesForRegion(region) || {};
   const total = regionPriceObj[machineType];
   // console.log('getAzureComputeCostEstimate', total);
@@ -350,7 +354,10 @@ export const getRuntimeCost = (runtime: Runtime): number => {
       status,
       [runtimeStatuses.stopped.leoLabel, () => 0.0],
       [runtimeStatuses.error.leoLabel, () => 0.0],
-      [Utils.DEFAULT, () => getAzureComputeCostEstimate(runtimeConfig)]
+      [
+        Utils.DEFAULT,
+        () => getAzureComputeCostEstimate({ region: runtimeConfig.region, machineType: runtimeConfig.machineType }),
+      ]
     );
     // console.log('getRuntimeCost', total);
     return total;
