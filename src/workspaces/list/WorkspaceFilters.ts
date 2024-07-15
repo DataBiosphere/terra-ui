@@ -32,14 +32,14 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
   const { query } = Nav.useRoute();
   const filters = getWorkspaceFiltersFromQuery(query);
 
-  let keywordLastEvented = useInstance(() => filters.nameFilter);
+  let keywordLastEvented = useInstance(() => filters.keywordFilter);
   const [lastKeywordSearched, setLastKeywordSearched] = useState(keywordLastEvented);
 
   return div({ style: { display: 'flex', margin: '1rem 0' } }, [
     div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
       h(DelayedSearchInput, {
-        placeholder: 'Search by keyword',
-        'aria-label': 'Search workspaces by keyword',
+        placeholder: 'Search by name or project',
+        'aria-label': 'Search workspaces by name or project',
         onChange: (newFilter) => {
           // Store in a state variable to make unit testing possible (as opposed to onBlur comparing the current
           // value to what exists in filters.nameFilter).
@@ -52,7 +52,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
             Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'keyword', option: keywordLastEvented });
           }
         },
-        value: filters.nameFilter,
+        value: filters.keywordFilter,
       }),
     ]),
     div({ style: styles.filter }, [
@@ -124,7 +124,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
 };
 
 export interface WorkspaceFilterValues {
-  nameFilter: string;
+  keywordFilter: string;
   accessLevels: string[];
   projects?: string;
   cloudPlatform?: CloudPlatform;
@@ -133,7 +133,7 @@ export interface WorkspaceFilterValues {
 }
 
 export const getWorkspaceFiltersFromQuery = (query: any): WorkspaceFilterValues => ({
-  nameFilter: query.filter || '',
+  keywordFilter: query.filter || '',
   accessLevels: query.accessLevelsFilter || EMPTY_LIST,
   projects: query.projectsFilter || undefined,
   cloudPlatform: query.cloudPlatform || undefined,
