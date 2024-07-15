@@ -5,9 +5,15 @@ import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
 import { updateSearch, useRoute } from 'src/libs/nav';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import {
+  defaultAzureWorkspace,
+  defaultGoogleWorkspace,
+  defaultInitializedGoogleWorkspace,
+} from 'src/testing/workspace-fixtures';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
-import { WorkspacesListTabs } from 'src/workspaces/list/WorkspacesListTabs';
+import { getWorkspaceFiltersFromQuery } from 'src/workspaces/list/WorkspaceFilters';
+import { filterWorkspaces, WorkspacesListTabs } from 'src/workspaces/list/WorkspacesListTabs';
+import { AzureWorkspace, cloudProviderTypes } from 'src/workspaces/utils';
 
 // the FlexTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.
@@ -38,6 +44,208 @@ asMockedFn(Ajax).mockImplementation(
       Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
     } as Partial<AjaxContract> as AjaxContract)
 );
+
+describe('The filterWorkspaces method', () => {
+  it('should filter based on name', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      public: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      newAndInteresting: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      featured: [defaultAzureWorkspace, defaultGoogleWorkspace],
+    };
+    const filters = getWorkspaceFiltersFromQuery({ tab: 'myWorkspaces', filter: defaultAzureWorkspace.workspace.name });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultAzureWorkspace]);
+    // All categories should be filtered
+    expect(filteredWorkspaces.public).toEqual([defaultAzureWorkspace]);
+    expect(filteredWorkspaces.newAndInteresting).toEqual([defaultAzureWorkspace]);
+    expect(filteredWorkspaces.featured).toEqual([defaultAzureWorkspace]);
+  });
+
+  it('should filter based on namespace (case insensitive, keyword search)', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace, defaultInitializedGoogleWorkspace],
+      public: [],
+      newAndInteresting: [],
+      featured: [],
+    };
+    const filters = getWorkspaceFiltersFromQuery({
+      tab: 'myWorkspaces',
+      filter: defaultGoogleWorkspace.workspace.namespace.toUpperCase(),
+    });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(defaultGoogleWorkspace.workspace.namespace).toEqual(defaultInitializedGoogleWorkspace.workspace.namespace);
+    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultGoogleWorkspace, defaultInitializedGoogleWorkspace]);
+  });
+
+  it('should filter based on google project', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace, defaultInitializedGoogleWorkspace],
+      public: [],
+      newAndInteresting: [],
+      featured: [],
+    };
+    const filters = getWorkspaceFiltersFromQuery({ filter: defaultGoogleWorkspace.workspace.googleProject });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(defaultGoogleWorkspace.workspace.googleProject).toEqual(
+      defaultInitializedGoogleWorkspace.workspace.googleProject
+    );
+    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultGoogleWorkspace, defaultInitializedGoogleWorkspace]);
+  });
+
+  it('should filter based on workspace state (partial match)', () => {
+    // Arrange
+    const deleteFailedWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'DeleteFailed',
+      },
+    };
+
+    const cloningFailedWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        state: 'CloningFailed',
+      },
+    };
+
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, deleteFailedWorkspace, cloningFailedWorkspace],
+      public: [],
+      newAndInteresting: [],
+      featured: [],
+    };
+    const filters = getWorkspaceFiltersFromQuery({ filter: 'fail' });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(filteredWorkspaces.myWorkspaces).toEqual([deleteFailedWorkspace, cloningFailedWorkspace]);
+  });
+
+  it('should filter based on namespace (project search)', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace, defaultInitializedGoogleWorkspace],
+      public: [],
+      newAndInteresting: [],
+      featured: [],
+    };
+    const filters = getWorkspaceFiltersFromQuery({ projectsFilter: defaultGoogleWorkspace.workspace.namespace });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(defaultGoogleWorkspace.workspace.namespace).toEqual(defaultInitializedGoogleWorkspace.workspace.namespace);
+    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultGoogleWorkspace, defaultInitializedGoogleWorkspace]);
+  });
+
+  it('should filter based on cloudPlatform', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      public: [],
+      newAndInteresting: [],
+      featured: [],
+    };
+    const filters = getWorkspaceFiltersFromQuery({ cloudPlatform: cloudProviderTypes.GCP });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultGoogleWorkspace]);
+  });
+
+  it('should filter based on access level', () => {
+    // Arrange
+    const readerWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      accessLevel: 'READER',
+    };
+
+    const writerWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      accessLevel: 'WRITER',
+    };
+
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, readerWorkspace, writerWorkspace],
+      public: [],
+      newAndInteresting: [],
+      featured: [],
+    };
+    const filters = getWorkspaceFiltersFromQuery({ accessLevelsFilter: ['OWNER', 'WRITER'] });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultAzureWorkspace, writerWorkspace]);
+  });
+
+  it('should filter based on tags (must contain all)', () => {
+    // Arrange
+    const fooTagWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        attributes: {
+          'tag:tags': {
+            itemsType: 'AttributeValue',
+            items: ['foo'],
+          },
+        },
+      },
+    };
+
+    const fooBarTagWorkspace: AzureWorkspace = {
+      ...defaultAzureWorkspace,
+      workspace: {
+        ...defaultAzureWorkspace.workspace,
+        attributes: {
+          'tag:tags': {
+            itemsType: 'AttributeValue',
+            items: ['foo', 'bar'],
+          },
+        },
+      },
+    };
+
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, fooTagWorkspace, fooBarTagWorkspace],
+      public: [],
+      newAndInteresting: [],
+      featured: [],
+    };
+    const filters = getWorkspaceFiltersFromQuery({ tagsFilter: ['foo', 'bar'] });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(filteredWorkspaces.myWorkspaces).toEqual([fooBarTagWorkspace]);
+  });
+});
 
 describe('The WorkspacesListTabs component', () => {
   it('should render the workspaces of the current tab', () => {
