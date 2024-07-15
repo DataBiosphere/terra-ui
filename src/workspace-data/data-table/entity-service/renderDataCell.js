@@ -93,7 +93,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const hasNonCurrentWorkspaceUrls = Utils.cond(
     [type === 'json' && _.isArray(attributeValue), () => _.some(isNonCurrentWorkspaceUrls, attributeValue)],
-    [type === 'string' && isList, () => _.some(isNonCurrentWorkspaceUrls, attributeValue.items)],
+    [(type === 'string' || type === 'object') && isList, () => _.some(isNonCurrentWorkspaceUrls, attributeValue.items)],
     [type === 'string', () => isNonCurrentWorkspaceUrls(attributeValue)],
     () => false
   );
