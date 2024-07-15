@@ -45,6 +45,12 @@ export const renderDataCell = (attributeValue, workspace) => {
   } = workspace;
 
   const renderCell = (datum) => {
+    // handle nested arrays, where datum is itself an array. Recurse back to renderArray() for this, but surround its
+    // result with [] to indicate to the end user where the nested arrays start and stop
+    if (_.isArray(datum)) {
+      return [span({}, '['), renderArray(datum), span({}, ']')];
+    }
+    // handle non-nested arrays:
     const stringDatum = Utils.convertValue('string', datum);
     return isViewableUri(datum, workspace) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum;
   };
