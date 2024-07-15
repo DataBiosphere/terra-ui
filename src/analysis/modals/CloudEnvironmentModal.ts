@@ -83,7 +83,7 @@ export const CloudEnvironmentModal = ({
   filterForTool = undefined,
 }: {
   isOpen: boolean;
-  onSuccess: (string: string) => void;
+  onSuccess: (string?: string | undefined) => void;
   onDismiss: () => void;
   canCompute: boolean;
   runtimes: Runtime[];

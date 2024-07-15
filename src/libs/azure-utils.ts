@@ -22,11 +22,11 @@ export const defaultAzureComputeConfig = {
 export const getRegionLabel = (key) =>
   Utils.cond(
     [!key, () => 'Loading'],
-    [_.has(key, azureRegions), () => azureRegions[key].label],
+    [Boolean(_.has(key, azureRegions)), () => azureRegions[key].label],
     () => 'Unknown azure region'
   );
 export const getRegionFlag = (key) =>
-  Utils.cond([!key, () => ''], [_.has(key, azureRegions), () => azureRegions[key].flag], () => '❓');
+  Utils.cond([!key, () => ''], [Boolean(_.has(key, azureRegions)), () => azureRegions[key].flag], () => '❓');
 
 export const azureMachineTypes = {
   Standard_DS2_v2: { cpu: 2, ramInGb: 7 },

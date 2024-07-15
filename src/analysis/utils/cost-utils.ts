@@ -277,8 +277,8 @@ export const getAzureComputeCostEstimate = ({
   region,
   machineType,
 }: {
-  region: string;
-  machineType: string;
+  region: string | null;
+  machineType: string | null;
 }): number => {
   // console.log('getAzureComputeCostEstimate', { runtimeConfig });
   if (!region || !machineType) return 0;
@@ -299,7 +299,7 @@ export const getAzureDiskCostEstimate = ({
   if (!region || !persistentDiskSize) return 0;
   const regionPriceObj = getAzurePricesForRegion(region) || {};
   const diskType = getDiskType(persistentDiskSize ?? persistentDiskSize);
-  const total = regionPriceObj[diskType];
+  const total = diskType ? regionPriceObj[diskType] : 0;
   // console.log('getAzureDiskCostEstimate', total);
   return total;
 };

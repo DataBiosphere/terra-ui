@@ -49,6 +49,7 @@ const defaultModalProps = {
   workspace: defaultAzureWorkspace,
   location: testAzureDefaultRegion,
   isLoadingCloudEnvironments: false,
+  hideCloseButton: false,
 };
 
 const persistentDiskModalProps = {
@@ -61,6 +62,7 @@ const persistentDiskModalProps = {
   workspace: defaultAzureWorkspace,
   location: testAzureDefaultRegion,
   isLoadingCloudEnvironments: false,
+  hideCloseButton: false,
 };
 
 type AjaxContract = ReturnType<typeof Ajax>;
@@ -431,7 +433,7 @@ describe('AzureComputeModal', () => {
         h(AzureComputeModalBase, {
           ...defaultModalProps,
           currentDisk: disk,
-          currentRuntime: null,
+          currentRuntime: undefined,
         })
       );
     });

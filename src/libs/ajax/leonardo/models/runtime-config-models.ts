@@ -53,7 +53,7 @@ export interface DataprocConfig extends BaseRuntimeConfig {
 export interface AzureConfig extends BaseRuntimeConfig {
   machineType: string;
   persistentDiskId: number;
-  region: string;
+  region: string | null;
 }
 
 export type GoogleRuntimeConfig = GceConfig | GceWithPdConfig | DataprocConfig;

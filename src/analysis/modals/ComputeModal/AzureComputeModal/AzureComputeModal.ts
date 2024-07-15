@@ -17,7 +17,7 @@ import {
   generateRuntimeName,
   getIsRuntimeBusy,
 } from 'src/analysis/utils/runtime-utils';
-import { RuntimeToolLabel, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
+import { isRuntimeToolLabel, runtimeToolLabels, ToolLabel } from 'src/analysis/utils/tool-utils';
 import { useWorkspaceBillingProfile } from 'src/billing/useWorkspaceBillingProfile';
 import { getResourceLimits } from 'src/billing-core/resource-limits';
 import { ButtonOutline, ButtonPrimary, Side, spinnerOverlay } from 'src/components/common';
@@ -40,7 +40,7 @@ import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Utils from 'src/libs/utils';
-import { AzureWorkspace, cloudProviderTypes } from 'src/workspaces/utils';
+import { BaseWorkspace, cloudProviderTypes } from 'src/workspaces/utils';
 
 const titleId = 'azure-compute-modal-title';
 
@@ -50,14 +50,14 @@ export type viewModeTypes = 'deleteEnvironment' | 'aboutPersistentDisk' | undefi
 
 export interface AzureComputeModalBaseProps {
   readonly onDismiss: () => void;
-  readonly onSuccess: () => void;
+  readonly onSuccess: (string?: string | undefined) => void;
   readonly onError: () => void;
-  readonly workspace: AzureWorkspace;
+  readonly workspace: BaseWorkspace;
   readonly currentRuntime?: Runtime | undefined;
   readonly currentDisk?: PersistentDisk | undefined;
   readonly isLoadingCloudEnvironments: boolean;
   readonly location: string;
-  readonly tool: RuntimeToolLabel;
+  readonly tool?: ToolLabel | undefined;
   readonly hideCloseButton: boolean;
 }
 
@@ -429,7 +429,13 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
       viewMode,
       [
         'aboutPersistentDisk',
-        () => h(AboutPersistentDiskView, { titleId, tool, onDismiss, onPrevious: () => setViewMode(undefined) }),
+        () =>
+          h(AboutPersistentDiskView, {
+            titleId,
+            tool: tool && isRuntimeToolLabel(tool) ? tool : runtimeToolLabels.JupyterLab,
+            onDismiss,
+            onPrevious: () => setViewMode(undefined),
+          }),
       ],
       [
         'deleteEnvironment',
