@@ -49,6 +49,23 @@ describe('renderDataCell', () => {
     expect(render(renderDataCell({ items: [], itemsType: 'AttributeValue' }, testWorkspace)).container).toHaveTextContent('');
   });
 
+  it.each([{ testWorkspace: testGoogleWorkspace }, { testWorkspace: testAzureWorkspace }])('renders nested lists', ({ testWorkspace }) => {
+    expect(
+      render(
+        renderDataCell(
+          {
+            items: [
+              ['foo', 'bar'],
+              ['baz', 'qux'],
+            ],
+            itemsType: 'AttributeValue',
+          },
+          testWorkspace
+        )
+      ).container
+    ).toHaveTextContent('[foo,bar],[baz,qux]');
+  });
+
   it.each([{ testWorkspace: testGoogleWorkspace }, { testWorkspace: testAzureWorkspace }])(
     'limits the number of list items rendered',
     ({ testWorkspace }) => {
