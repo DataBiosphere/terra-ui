@@ -48,7 +48,7 @@ export const renderDataCell = (attributeValue, workspace) => {
     // handle nested arrays, where datum is itself an array. Recurse back to renderArray() for this, but surround its
     // result with [] to indicate to the end user where the nested arrays start and stop
     if (_.isArray(datum)) {
-      return [span({}, '['), renderArray(datum), span({}, ']')];
+      return span({}, ['[', renderArray(datum), ']']);
     }
     // handle non-nested arrays:
     const stringDatum = Utils.convertValue('string', datum);
