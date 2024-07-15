@@ -26,7 +26,7 @@ export const UriViewerLink = (props: UriViewerLinkProps): ReactNode => {
           setModalOpen(true);
         },
       },
-      [isGsUri(uri) || isAzureUri(uri) ? _.last(uri.split(/\/\b/)) : uri]
+      [typeof uri === 'string' && (isGsUri(uri) || isAzureUri(uri)) ? _.last(uri.split(/\/\b/)) : uri]
     ),
     modalOpen &&
       h(UriViewer, {
