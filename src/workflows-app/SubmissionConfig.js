@@ -162,6 +162,26 @@ export const BaseSubmissionConfig = (
     [signal, workspaceId]
   );
 
+  const loadRecordTypesAndData = useCallback(
+    async (wdsUrlRoot, recordType, searchLimit, includeLoadRecordTypes) => {
+      if (includeLoadRecordTypes) {
+        await loadRecordTypes(wdsUrlRoot);
+      }
+      await loadRecordsData(recordType, wdsUrlRoot, searchLimit);
+    },
+    [loadRecordsData, loadRecordTypes]
+  );
+
+  const handleWdsAppNotFound = useCallback(async (wdsUrlState) => {
+    const errorDetails = wdsUrlState instanceof Response ? await wdsUrlState.text() : wdsUrlState;
+    const additionalDetails = errorDetails ? `Error details: ${JSON.stringify(errorDetails)}` : '';
+    // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
+    notify('warn', 'Error loading data tables', {
+      detail: `Data Table app not found. Will retry in 30 seconds. ${additionalDetails}`,
+      timeout: WdsPollInterval - 1000,
+    });
+  }, []);
+
   const loadWdsData = useCallback(
     async ({ wdsProxyUrlDetails, recordType, searchLimit, includeLoadRecordTypes = true }) => {
       try {
@@ -170,33 +190,19 @@ export const BaseSubmissionConfig = (
           const { wdsProxyUrlState } = await loadAppUrls(workspaceId, 'wdsProxyUrlState');
 
           if (wdsProxyUrlState.status === AppProxyUrlStatus.Ready) {
-            if (includeLoadRecordTypes) {
-              await loadRecordTypes(wdsProxyUrlState.state);
-            }
-            await loadRecordsData(recordType, wdsProxyUrlState.state, searchLimit);
+            await loadRecordTypesAndData(wdsProxyUrlState.state, recordType, searchLimit, includeLoadRecordTypes);
           } else {
-            const wdsUrlState = wdsProxyUrlState.state;
-            const errorDetails = wdsUrlState instanceof Response ? await wdsUrlState.text() : wdsUrlState;
-            const additionalDetails = errorDetails ? `Error details: ${JSON.stringify(errorDetails)}` : '';
-            // to avoid stacked warning banners due to auto-poll for WDS url, we remove the current banner at 29th second
-            notify('warn', 'Error loading data tables', {
-              detail: `Data Table app not found. Will retry in 30 seconds. ${additionalDetails}`,
-              timeout: WdsPollInterval - 1000,
-            });
+            await handleWdsAppNotFound(wdsProxyUrlState.state);
           }
         } else {
           // if we have the WDS proxy URL load the WDS data
-          const wdsUrlRoot = wdsProxyUrlDetails.state;
-          if (includeLoadRecordTypes) {
-            await loadRecordTypes(wdsUrlRoot);
-          }
-          await loadRecordsData(recordType, wdsUrlRoot, searchLimit);
+          await loadRecordTypesAndData(wdsProxyUrlDetails.state, recordType, searchLimit, includeLoadRecordTypes);
         }
       } catch (error) {
         notify('error', 'Error loading data tables', { detail: error instanceof Response ? await error.text() : error });
       }
     },
-    [loadRecordsData, loadRecordTypes, workspaceId]
+    [workspaceId, loadRecordTypesAndData, handleWdsAppNotFound]
   );
 
   const loadConfigData = useCallback(
