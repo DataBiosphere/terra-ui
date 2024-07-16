@@ -45,6 +45,12 @@ export const renderDataCell = (attributeValue, workspace) => {
   } = workspace;
 
   const renderCell = (datum) => {
+    // handle nested arrays, where datum is itself an array. Recurse back to renderArray() for this, but surround its
+    // result with [] to indicate to the end user where the nested arrays start and stop
+    if (_.isArray(datum)) {
+      return span({}, ['[', renderArray(datum), ']']);
+    }
+    // handle non-nested arrays:
     const stringDatum = Utils.convertValue('string', datum);
     return isViewableUri(datum, workspace) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum;
   };
@@ -79,7 +85,7 @@ export const renderDataCell = (attributeValue, workspace) => {
   };
 
   const parseAzureUri = (datum) => {
-    if (datum === undefined || datum.split('/').length < 4) {
+    if (typeof datum !== 'string' || datum.split('/').length < 4) {
       return null;
     }
     return datum.split('/')[3].replace('sc-', '');
@@ -87,7 +93,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const hasNonCurrentWorkspaceUrls = Utils.cond(
     [type === 'json' && _.isArray(attributeValue), () => _.some(isNonCurrentWorkspaceUrls, attributeValue)],
-    [type === 'string' && isList, () => _.some(isNonCurrentWorkspaceUrls, attributeValue.items)],
+    [(type === 'string' || type === 'object') && isList, () => _.some(isNonCurrentWorkspaceUrls, attributeValue.items)],
     [type === 'string', () => isNonCurrentWorkspaceUrls(attributeValue)],
     () => false
   );
