@@ -220,25 +220,29 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
   }
 
   const renderActionButton = () => {
-    const commonButtonProps: CommonButtonProps | Map<any, any> = currentRuntimeDetails
-      ? {
-          tooltipSide: 'left',
-          disabled: Utils.cond(
-            [loading, true],
-            [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
-            () => doesRuntimeExist()
-          ),
-          tooltip: Utils.cond(
-            [loading, 'Loading cloud environments'],
-            [
-              viewMode === 'deleteEnvironment',
-              () => (getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined),
-            ],
-            [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
-            () => undefined
-          ),
-        }
-      : new Map();
+    const commonButtonProps: CommonButtonProps = {
+      tooltipSide: 'left',
+      disabled: Utils.cond(
+        [loading, true],
+        [
+          viewMode === 'deleteEnvironment',
+          () => (currentRuntimeDetails ? getIsRuntimeBusy(currentRuntimeDetails) : false),
+        ],
+        () => doesRuntimeExist()
+      ),
+      tooltip: Utils.cond(
+        [loading, 'Loading cloud environments'],
+        [
+          viewMode === 'deleteEnvironment',
+          () =>
+            currentRuntimeDetails && getIsRuntimeBusy(currentRuntimeDetails)
+              ? 'Cannot delete a runtime while it is busy'
+              : undefined,
+        ],
+        [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
+        () => undefined
+      ),
+    };
 
     return h(
       ButtonPrimary,
