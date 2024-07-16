@@ -251,18 +251,16 @@ export const BaseSubmissionConfig = (
       const { wdsProxyUrlState, cbasProxyUrlState } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
 
       if (cbasProxyUrlState.status === AppProxyUrlStatus.Ready) {
-        loadRunSet(cbasProxyUrlState.state).then((runSet) => {
-          if (runSet !== undefined) {
-            loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
-            loadCbasSubmissionLimits(cbasProxyUrlState.state).then((submissionLimits) => {
-              loadWdsData({
-                wdsProxyUrlDetails: wdsProxyUrlState,
-                recordType: runSet.record_type,
-                searchLimit: submissionLimits.maxWorkflows,
-              });
-            });
-          }
-        });
+        const runSet = await loadRunSet(cbasProxyUrlState.state);
+        if (runSet !== undefined) {
+          await loadMethodsData(cbasProxyUrlState.state, runSet.method_id, runSet.method_version_id);
+          const submissionLimits = await loadCbasSubmissionLimits(cbasProxyUrlState.state);
+          await loadWdsData({
+            wdsProxyUrlDetails: wdsProxyUrlState,
+            recordType: runSet.record_type,
+            searchLimit: submissionLimits.maxWorkflows,
+          });
+        }
       }
     };
     loadWorkflowsApp();
