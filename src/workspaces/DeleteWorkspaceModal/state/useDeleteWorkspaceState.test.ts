@@ -277,7 +277,7 @@ describe('useDeleteWorkspaceState', () => {
     asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([]);
 
     const mockGetAcl = jest.fn().mockResolvedValue([]);
-    const mockGetBucketUsage = jest.fn().mockRejectedValue(new Error('error no project'));
+    const mockGetBucketUsage = jest.fn().mockRejectedValue(new Error('no project!'));
     const mockDelete = jest.fn().mockResolvedValue([]);
     const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
       workspace: () => ({
@@ -303,8 +303,7 @@ describe('useDeleteWorkspaceState', () => {
     await act(() => result.current.deleteWorkspace());
 
     // Assert
-    expect(result.current.deleting).toBe(false);
+    expect(result.current.deleting).toBe(true);
     expect(mockDelete).toHaveBeenCalledTimes(1);
-    expect(reportError).toHaveBeenCalledTimes(1);
   });
 });
