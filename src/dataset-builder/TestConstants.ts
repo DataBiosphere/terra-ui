@@ -134,6 +134,15 @@ export const testSnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
       },
     },
   ],
+  rootTable: {
+    datasetTableName: 'person',
+    rootColumn: 'person_id',
+    columns: [],
+  },
+  dictionaryTable: {
+    datasetTableName: 'concept',
+    columns: [],
+  },
 });
 
 const dummyConcepts = [

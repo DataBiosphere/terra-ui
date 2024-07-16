@@ -63,10 +63,16 @@ export type SnapshotBuilderTable = {
   secondaryTableRelationships?: string[];
 };
 
+interface SnapshotBuilderRootTable extends SnapshotBuilderTable {
+  rootColumn: string;
+}
+
 export type SnapshotBuilderSettings = {
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
+  rootTable: SnapshotBuilderRootTable;
+  dictionaryTable?: SnapshotBuilderTable;
 };
 
 /** Criteria */
