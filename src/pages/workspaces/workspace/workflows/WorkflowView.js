@@ -1158,7 +1158,7 @@ export const WorkflowView = _.flow(
                     ]),
                     h(InfoBox, [
                       'Specify user-provided tools to monitor task resources. ',
-                      h(Link, { href: 'https://cromwell.readthedocs.io/en/stable/wf_options/Google/', ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                      h(Link, { href: this.getSupportLink('27341964316699'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
                     expandResourceMonitoring &&
                       div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
