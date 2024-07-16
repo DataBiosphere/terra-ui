@@ -1,3 +1,4 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
@@ -10,7 +11,7 @@ import {
   makeRequestRetry,
   withAppIdentifier,
 } from 'src/libs/ajax/ajax-common';
-import { fetchOk, jsonBody } from 'src/libs/ajax/fetch/fetch-core';
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { LeoRuntimesV1DataClient, makeLeoRuntimesV1DataClient } from 'src/libs/ajax/leonardo/LeoRuntimesV1DataClient';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
 import {

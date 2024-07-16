@@ -1,3 +1,4 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-fetch';
@@ -8,7 +9,7 @@ import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
-import { fetchOk, jsonBody } from 'src/libs/ajax/fetch/fetch-core';
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';

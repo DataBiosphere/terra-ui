@@ -1,9 +1,10 @@
 import 'setimmediate';
 
 import { MatchersV3, PactV3, SpecificationVersion } from '@pact-foundation/pact';
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import path from 'path';
 import { fetchFromProxy } from 'src/libs/ajax/ajax-common';
-import { fetchOk, jsonBody } from 'src/libs/ajax/fetch/fetch-core';
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import {
   runSetInputDef,

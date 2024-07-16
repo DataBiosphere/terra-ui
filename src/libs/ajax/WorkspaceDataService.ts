@@ -1,3 +1,4 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import { authOpts } from 'src/auth/auth-fetch';
 import { fetchWDS } from 'src/libs/ajax/ajax-common';
@@ -8,7 +9,6 @@ import {
   SearchRequest,
   TsvUploadResponse,
 } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
-import { jsonBody } from 'src/libs/ajax/fetch/fetch-core';
 
 export type WDSVersionResponse = {
   // Older versions of WDS may not have the "app" field.

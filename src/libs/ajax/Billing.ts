@@ -1,8 +1,8 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-fetch';
 import { fetchBillingProfileManager, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
-import { jsonBody } from 'src/libs/ajax/fetch/fetch-core';
 import { WorkspacePolicy } from 'src/workspaces/utils';
 
 export interface GoogleBillingAccount {

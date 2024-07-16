@@ -1,14 +1,13 @@
 import _ from 'lodash/fp';
-import {
-  AuthTokenState,
-  getAuthToken,
-  getAuthTokenFromLocalStorage,
-  loadAuthToken,
-  sendRetryMetric,
-} from 'src/auth/auth';
-import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
-import { signOut, SignOutCause } from 'src/auth/signout/sign-out';
 import { FetchFn } from 'src/libs/ajax/data-client-common';
+
+import { AuthTokenState, getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, sendRetryMetric } from './auth';
+import { sessionExpirationErrorMessage } from './auth-errors';
+import { signOut, SignOutCause } from './signout/sign-out';
+
+//
+// Auth mechanics for use on typical auth-session scoped application data requests.
+//
 
 export const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } });
 
