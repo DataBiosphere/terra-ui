@@ -11,10 +11,10 @@ import { convertAttributeValue, getAttributeType } from './attribute-utils';
 
 interface AttributeTypeInputProps {
   label?: string;
-  value: { type: string; entityType?: string };
-  onChange: (newValue: { type: string; entityType?: string }) => void;
+  value: TypeOption;
+  onChange: (newValue: TypeOption) => void;
   entityTypes?: string[];
-  defaultReferenceEntityType?: string | null;
+  defaultReferenceEntityType?: string;
   showJsonTypeOption?: boolean;
 }
 
@@ -42,11 +42,15 @@ function isJsonTypeOption(typeOption: TypeOption): typeOption is JsonTypeOption 
 type TypeOption = BaseTypeOption | ReferenceTypeOption | JsonTypeOption;
 
 export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
-  const { type, entityType: referenceEntityType } = props.value;
-  const labelText = props.label || 'Type';
-  const entityTypes = props.entityTypes || [];
-  const defaultReferenceEntityType = props.defaultReferenceEntityType || null;
-  const showJsonTypeOption = props.showJsonTypeOption || false;
+  const type = props.value.type;
+  const labelText = props.label !== undefined && !!props.label ? props.label : 'Type';
+  const entityTypes = props.entityTypes !== undefined && !!props.entityTypes ? props.entityTypes : [];
+  const defaultReferenceEntityType =
+    props.defaultReferenceEntityType !== undefined && !!props.defaultReferenceEntityType
+      ? props.defaultReferenceEntityType
+      : null;
+
+  const showJsonTypeOption = props.showJsonTypeOption !== undefined ? props.showJsonTypeOption : false;
 
   const typeOptions: TypeOption[] = [
     { type: 'string' },
@@ -59,7 +63,11 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
     typeOptions.push({ type: 'json', label: 'JSON' });
   }
 
-  const sortedEntityTypes = _.sortBy(_.identity, entityTypes);
+  const sortedEntityTypes: ReferenceTypeOption[] = _.sortBy(_.identity, entityTypes).map((entityType) => ({
+    type: 'reference',
+    tooltip: 'A link to another row',
+    entityType,
+  }));
 
   return div({ style: { marginBottom: '1rem' } }, [
     fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
@@ -82,14 +90,13 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
                   text: isJsonTypeOption(typeOption) ? typeOption.label : _.startCase(typeOption.type),
                   checked: type === typeOption.type,
                   onChange: () => {
-                    let newType: TypeOption | (TypeOption & { entityType?: string }) = typeOption;
+                    let newType: TypeOption = typeOption;
                     if (isReferenceTypeOption(typeOption)) {
-                      newType = { ...typeOption, entityType: defaultReferenceEntityType || sortedEntityTypes[0] };
+                      newType = {
+                        ...typeOption,
+                        entityType: defaultReferenceEntityType || sortedEntityTypes[0].entityType,
+                      };
                     }
-                    // const newType = typeOption;
-                    // if (isReferenceTypeOption(typeOption)) {
-                    //   newType.entityType = defaultReferenceEntityType || sortedEntityTypes[0];
-                    // }
                     props.onChange(newType);
                   },
                   labelStyle: { paddingLeft: '0.5rem' },
@@ -106,13 +113,13 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
           (id) =>
             h(Fragment, [
               label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, ['Referenced entity type:']),
-              h(Select, {
-                key: id,
+              h(Select<ReferenceTypeOption>, {
                 id,
-                value: referenceEntityType,
+                value: props.value as ReferenceTypeOption,
                 options: sortedEntityTypes,
-                onChange: ({ type: newReferenceEntityType }) => {
-                  props.onChange({ ...props.value, entityType: newReferenceEntityType });
+                onChange: (selectedEntityType) => {
+                  const newReferenceEntityType = selectedEntityType!.value;
+                  props.onChange({ ...props.value, entityType: newReferenceEntityType.entityType });
                 },
               }),
             ]),
@@ -196,11 +203,11 @@ const AttributeInput = (props: AttributeInputProps) => {
       entityTypes,
       defaultReferenceEntityType: referenceEntityType,
       showJsonTypeOption: attributeType === 'json' || showJsonTypeOption,
-      onChange: ({ type: newType, entityType: newEntityType }) => {
+      onChange: (typeOption) => {
         const newAttributeValue = convertAttributeValue(
           props.initialValue && !edited ? props.initialValue : props.attributeValue,
-          newType,
-          newEntityType
+          typeOption.type,
+          isReferenceTypeOption(typeOption) ? typeOption.entityType : null
         );
         props.onChange(newAttributeValue);
       },
@@ -242,9 +249,15 @@ const AttributeInput = (props: AttributeInputProps) => {
                         i === (props.attributeValue as AttributeList).items.length - 1 ? lastListItemInput : undefined,
                       value,
                       onChange: (v) => {
-                        const newAttributeValue = _.update('items', _.set(i, v), props.attributeValue as AttributeList);
-                        setEdited(true);
-                        props.onChange(newAttributeValue);
+                        if ('value' in v) {
+                          const newAttributeValue = _.update(
+                            'items',
+                            _.set(i, v.value),
+                            props.attributeValue as AttributeList
+                          );
+                          setEdited(true);
+                          props.onChange(newAttributeValue);
+                        }
                       },
                     }),
                     h(
@@ -285,7 +298,7 @@ const AttributeInput = (props: AttributeInputProps) => {
                 props.onChange(newAttributeValue);
               },
             },
-            [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']
+            [icon('plus', { style: { marginRight: '0.5rem' } }), ['Add item']]
           ),
         ])
       : div({ style: { marginTop: '1.5rem' } }, [
