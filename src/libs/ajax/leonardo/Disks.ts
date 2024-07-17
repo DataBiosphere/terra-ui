@@ -1,16 +1,14 @@
-import { jsonBody } from '@terra-ui-packages/data-client-core';
 import { AuditInfo, CloudContext, LeoResourceLabels } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { appIdentifier, authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
+import { appIdentifier, authOpts, fetchLeo, withAppIdentifier, withAuthSession } from 'src/libs/ajax/ajax-common';
 
-export const Disks = (signal?: AbortSignal) => {
-  const diskV2Root = 'api/v2/disks';
-  const v2Func = () => ({
-    delete: (diskId: number): Promise<void> => {
-      return fetchLeo(`${diskV2Root}/${diskId}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]));
-    },
-  });
+import { FetchFn } from '../data-client-common';
+import { LeoDisksV1DataClient, makeLeoDisksV1DataClient } from './LeoDisksV1DataClient';
+import { LeoDisksV2DataClient, makeLeoDisksV2DataClient } from './LeoDisksV2DataClient';
+
+export const makeDisksHelper = (deps: DisksHelperDeps) => (signal?: AbortSignal) => {
+  const { v1Api, v2Api } = deps;
 
   const v1Func = () => ({
     list: async (labels = {}): Promise<RawListDiskItem[]> => {
@@ -22,34 +20,30 @@ export const Disks = (signal?: AbortSignal) => {
       return disks;
     },
     disk: (project: string, name: string) => ({
-      delete: (): Promise<void> => {
-        return fetchLeo(
-          `api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }])
-        );
+      delete: async (): Promise<void> => {
+        await v1Api.delete(project, name, { signal });
       },
-      update: (size: number): Promise<void> => {
-        return fetchLeo(
-          `api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }])
-        );
+      update: async (size: number): Promise<void> => {
+        await v1Api.update(project, name, size, { signal });
       },
       details: async (): Promise<RawGetDiskItem> => {
-        const res = await fetchLeo(
-          `api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])
-        );
-        const disk: RawGetDiskItem = await res.json();
-        return disk;
+        const details = await v1Api.details(project, name, { signal });
+        return details;
       },
     }),
   });
 
   return {
     disksV1: v1Func,
-    disksV2: v2Func,
+    disksV2: () => v2Api,
   };
 };
+
+export type DisksHelperDeps = {
+  v1Api: LeoDisksV1DataClient;
+  v2Api: LeoDisksV2DataClient;
+};
+
 export type AzureDiskType = 'Standard_LRS'; // TODO: Uncomment when enabling SSDs | 'StandardSSD_LRS';
 
 export type GoogleDiskType = 'pd-standard' | 'pd-ssd' | 'pd-balanced';
@@ -90,6 +84,23 @@ export interface RawGetDiskItem extends RawListDiskItem {
   samResource: number;
   formattedBy: string | null;
 }
+
+export interface LeoDisksDataClientDeps {
+  /**
+   * fetch function that takes care of desired auth/session mechanics, api endpoint root url prefixing,
+   * baseline expected request headers, etc.
+   */
+  fetchAuthedLeo: FetchFn;
+}
+
+export const Disks = makeDisksHelper({
+  v1Api: makeLeoDisksV1DataClient({
+    fetchAuthedLeo: withAuthSession(withAppIdentifier(fetchLeo)),
+  }),
+  v2Api: makeLeoDisksV2DataClient({
+    fetchAuthedLeo: withAuthSession(withAppIdentifier(fetchLeo)),
+  }),
+});
 
 export type DisksDataClientContract = ReturnType<typeof Disks>;
 export type DisksContractV1 = ReturnType<DisksDataClientContract['disksV1']>;
