@@ -11,6 +11,7 @@ import { IdContainer, Select } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
+import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 
 const LazyChart = lazy(() => import('src/components/Chart'));
@@ -155,7 +156,17 @@ export const SpendReport = (props: SpendReportProps) => {
     xAxis: {
       categories: costPerWorkspace.workspaceNames,
       crosshair: true,
-      labels: { style: { fontSize: '12px' } },
+      labels: {
+        formatter() {
+          return `<a style="color:${colors.accent()}" href=${Nav.getLink('workspace-dashboard', {
+            namespace: props.billingProjectName,
+            // @ts-ignore
+            name: this.value,
+            // @ts-ignore
+          })}>${this.value}</a>`;
+        },
+        style: { xfontSize: '12px' },
+      },
     },
     yAxis: {
       crosshair: true,
