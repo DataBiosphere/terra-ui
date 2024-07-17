@@ -445,8 +445,8 @@ describe('ImportData', () => {
   it.each([
     { queryParams: { format: 'pfb' }, expectedErrorMessage: 'A URL is required' },
     {
-      queryParams: { format: 'tdrexport', snapshotId: '00001111-2222-3333-aaaa-bbbbccccdddd' },
-      expectedErrorMessage: 'A manifest URL is required',
+      queryParams: { format: 'tdrexport' },
+      expectedErrorMessage: 'A snapshot ID is required',
     },
   ] as { queryParams: Record<string, any>; expectedErrorMessage: string }[])(
     'renders an error message for invalid import requests',

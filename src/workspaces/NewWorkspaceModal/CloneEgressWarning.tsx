@@ -1,4 +1,4 @@
-import { icon, Link } from '@terra-ui-packages/components';
+import { Icon, Link } from '@terra-ui-packages/components';
 import { CSSProperties, ReactNode } from 'react';
 import * as React from 'react';
 import { getLocationType, getRegionInfo } from 'src/components/region-common';
@@ -25,15 +25,15 @@ export interface CloneEgressWarningProps {
   sourceAzureWorkspaceRegion: string; // default value is ''
   selectedBillingProject: BillingProject;
   sourceGCPWorkspaceRegion: string; // default is a defaultLocation ('US-CENTRAL1')
+  sourceGCPWorkspaceRegionError: boolean; // did we encounter an error getting the actual GCP workspace bucket location?
   selectedGcpBucketLocation: string | undefined;
-  requesterPaysWorkspace: boolean;
 }
 
 export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode => {
   const sourceWorkspace = props.sourceWorkspace;
   const sourceAzureWorkspaceRegion = props.sourceAzureWorkspaceRegion;
   const selectedBillingProject = props.selectedBillingProject;
-  const requesterPaysWorkspace = props.requesterPaysWorkspace;
+  const sourceGCPWorkspaceRegionError = props.sourceGCPWorkspaceRegionError;
   const selectedGcpBucketLocation = props.selectedGcpBucketLocation;
   const sourceGCPWorkspaceRegion = props.sourceGCPWorkspaceRegion;
 
@@ -53,13 +53,9 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
 
   const shouldShowGcpRegionWarning =
     !isAzureWorkspace(sourceWorkspace) &&
-    // If requester pays workspace, don't know the source region
-    (requesterPaysWorkspace || (!!selectedGcpBucketLocation && selectedGcpBucketLocation !== sourceGCPWorkspaceRegion));
-
-  const warningIcon = icon('warning-standard', {
-    size: 24,
-    style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' },
-  });
+    // If we could not get the source workspace bucket location, we default to showing a generic warning.
+    (sourceGCPWorkspaceRegionError ||
+      (!!selectedGcpBucketLocation && selectedGcpBucketLocation !== sourceGCPWorkspaceRegion));
 
   const genericEgressMessage = <span>Copying data may incur network egress charges.</span>;
   const renderRegionSpecificMessage = (sourceRegion: string, destinationRegion: string): ReactNode => {
@@ -74,7 +70,11 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
   if (shouldShowAzureRegionWarning) {
     return (
       <div style={warningStyle}>
-        {warningIcon}
+        <Icon
+          icon='warning-standard'
+          size={24}
+          style={{ color: colors.warning(), flex: 'none', marginRight: '0.5rem' }}
+        />
         <div style={{ flex: 1 }}>
           {!haveAzureRegionNames
             ? genericEgressMessage
@@ -91,9 +91,13 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
   if (shouldShowGcpRegionWarning) {
     return (
       <div style={warningStyle}>
-        {warningIcon}
+        <Icon
+          icon='warning-standard'
+          size={24}
+          style={{ color: colors.warning(), flex: 'none', marginRight: '0.5rem' }}
+        />
         <div style={{ flex: 1 }}>
-          {requesterPaysWorkspace
+          {sourceGCPWorkspaceRegionError
             ? genericEgressMessage
             : renderRegionSpecificMessage(
                 getRegionInfo(sourceGCPWorkspaceRegion, getLocationType(sourceGCPWorkspaceRegion)).regionDescription,
@@ -104,7 +108,7 @@ export const CloneEgressWarning = (props: CloneEgressWarningProps): ReactNode =>
           <span> </span>
           <Link href='https://support.terra.bio/hc/en-us/articles/360058964552' {...Utils.newTabLinkProps}>
             For more information please read the documentation.
-            {icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })}
+            <Icon icon='pop-out' size={12} style={{ marginLeft: '0.25rem' }} />
           </Link>
         </div>
       </div>

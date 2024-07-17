@@ -5,7 +5,6 @@ import React, { ReactNode, useState } from 'react';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { supportsPhiTracking } from 'src/billing-core/utils';
-import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {
   ButtonPrimary,
@@ -121,7 +120,7 @@ export const NewWorkspaceModal = withDisplayName(
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
     const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
     const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
-    const [requesterPaysError, setRequesterPaysError] = useState(false);
+    const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const [phiTracking, setPhiTracking] = useState<boolean | undefined>(undefined);
     const signal = useCancellation();
@@ -283,12 +282,14 @@ export const NewWorkspaceModal = withDisplayName(
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
               setSourceGcpWorkspaceRegion(location);
             })
-            .catch((error) => {
-              if (isBucketErrorRequesterPays(error)) {
-                setRequesterPaysError(true);
-              } else {
-                throw error;
-              }
+            .catch((_) => {
+              // We cannot get the bucket location in a couple of scenarios:
+              // 1. The bucket is requester pays.
+              // 2. The user permissions are still syncing.
+              // In either case, we will just show a generic egress warning message to prevent the
+              // user from being blocked from cloning the workspace.
+              setSourceGCPWorkspaceRegionError(true);
+              console.log('Error getting the source workspace bucket location'); // eslint-disable-line no-console
             }),
         !!cloneWorkspace &&
           isAzureWorkspace(cloneWorkspace) &&
@@ -584,9 +585,9 @@ export const NewWorkspaceModal = withDisplayName(
                     sourceWorkspace={cloneWorkspace}
                     sourceAzureWorkspaceRegion={sourceAzureWorkspaceRegion}
                     selectedBillingProject={selectedBillingProject}
-                    requesterPaysWorkspace={requesterPaysError}
                     selectedGcpBucketLocation={bucketLocation}
                     sourceGCPWorkspaceRegion={sourceGCPWorkspaceRegion}
+                    sourceGCPWorkspaceRegionError={sourceGCPWorkspaceRegionError}
                   />
                 )}
                 <IdContainer>

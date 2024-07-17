@@ -34,7 +34,7 @@ const testPreviewDrsUriFn = _.flow(
 
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await waitForNoSpinners(page);
-  await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
+  await fillIn(page, input({ placeholder: 'Search by name or project' }), workspaceName);
   await click(page, clickable({ textContains: workspaceName }), { timeout: Millis.ofMinute });
 
   await noSpinnersAfter(page, {

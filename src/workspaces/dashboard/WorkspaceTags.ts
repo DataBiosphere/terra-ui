@@ -83,7 +83,7 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
       div({ style: { margin: '0.5rem' } }, [
         div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
           `${brand.name} is not intended to host personally identifiable information.`,
-          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+          h(InfoBox, { style: { marginLeft: '1ch' } }, [
             `${brand.name} is not intended to host personally identifiable information. Do not use any patient identifier including name,
               social security number, or medical record number.`,
           ]),

@@ -1,3 +1,4 @@
+import { CloudContext } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import { gpuTypes, machineTypes, zonesToGpus } from 'src/analysis/utils/gce-machines';
 import {
@@ -8,7 +9,6 @@ import {
   runtimeToolLabels,
   ToolLabel,
 } from 'src/analysis/utils/tool-utils';
-import { CloudContext } from 'src/libs/ajax/leonardo/models/core-models';
 import {
   DisplayRuntimeStatus,
   GetRuntimeItem,
