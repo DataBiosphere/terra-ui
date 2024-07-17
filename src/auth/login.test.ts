@@ -1,7 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
-import { loadTerraUser } from 'src/auth/auth';
+import { loadTerraUser } from 'src/auth/user-profile/user';
 import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
