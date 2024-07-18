@@ -23,7 +23,7 @@ const meta: Meta<typeof InfoBox> = {
     },
     side: {
       control: 'select',
-      options: [...sideOptions],
+      options: Object.values(sideOptions),
       description: 'Determines the side that the popup appears on when the InfoBox is clicked.',
       table: {
         defaultValue: { summary: 'top' },

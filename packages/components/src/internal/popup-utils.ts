@@ -13,8 +13,14 @@ export interface Position {
   left: number;
 }
 
-export const sideOptions = ['top', 'right', 'bottom', 'left'] as const;
-export type Side = (typeof sideOptions)[number];
+export type Side = 'top' | 'right' | 'bottom' | 'left';
+
+export const sideOptions: Record<Side, Side> = {
+  top: 'top',
+  right: 'right',
+  bottom: 'bottom',
+  left: 'left',
+};
 
 export interface ComputePopupPositionArgs {
   /* Size of the popup element. */
