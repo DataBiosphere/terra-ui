@@ -43,6 +43,7 @@ export const BaseSubmissionConfig = (
   const [availableMethodVersions, setAvailableMethodVersions] = useState();
   const [selectedMethodVersion, setSelectedMethodVersion] = useState();
   const [records, setRecords] = useState([]);
+  const [totalRecordsInActualDataTable, setTotalRecordsInActualDataTable] = useState();
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
   const [cbasSubmissionLimits, setCbasSubmissionLimits] = useState({
@@ -71,6 +72,7 @@ export const BaseSubmissionConfig = (
       try {
         const searchResult = await Ajax(signal).WorkspaceData.queryRecords(wdsUrlRoot, workspaceId, recordType, searchLimit);
         setRecords(searchResult.records);
+        setTotalRecordsInActualDataTable(searchResult.totalRecords);
       } catch (error) {
         if (recordType === undefined) {
           setNoRecordTypeData('Select a data table');
@@ -528,6 +530,7 @@ export const BaseSubmissionConfig = (
           selectedRecords,
           setSelectedRecords,
           selectedDataTable: _.keyBy('name', recordTypes)[selectedRecordType || records[0].type],
+          totalRecordsInActualDataTable,
         })
       : 'No data table rows selected...';
   };

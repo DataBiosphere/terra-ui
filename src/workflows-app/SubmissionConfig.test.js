@@ -610,6 +610,8 @@ describe('Initial state', () => {
 
     const cells = within(rows[1]).getAllByRole('cell');
     expect(cells.length).toBe(4);
+
+    screen.getByText("Note: You are viewing 4 out of 4 records from the 'FOO' data table");
   });
 
   it('should initially populate the inputs definition table with attributes determined by the previously executed run set', async () => {
@@ -979,6 +981,8 @@ describe('Records Table updates', () => {
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+    screen.getByText("Note: You are viewing 4 out of 4 records from the 'FOO' data table");
+
     const table = screen.getByRole('table');
 
     // ** ACT **
@@ -995,6 +999,7 @@ describe('Records Table updates', () => {
     expect(headers.length).toBe(4);
     const cells = within(rowsBAR[1]).getAllByRole('cell');
     expect(cells.length).toBe(4);
+    screen.getByText("Note: You are viewing 2 out of 2 records from the 'BAR' data table");
 
     // ** ACT **
     await dropdownSelect.selectOption('FOO');
