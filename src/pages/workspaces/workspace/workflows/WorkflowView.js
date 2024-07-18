@@ -34,6 +34,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
 import { workflowSelectionStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
@@ -372,18 +373,23 @@ export const WorkflowView = _.flow(
     constructor(props) {
       super(props);
 
+      const { workspace } = this.props;
+
+      // console.log(getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`));
+
       this.state = {
         activeTab: 'inputs',
         entitySelectionModel: { selectedEntities: {} },
         useCallCache: true,
-        deleteIntermediateOutputFiles: false,
-        useReferenceDisks: false,
-        retryWithMoreMemory: false,
-        retryMemoryFactor: 1.2,
-        ignoreEmptyOutputs: false,
-        monitoringScript: null,
-        monitoringImage: null,
-        monitoringImageScript: null,
+        deleteIntermediateOutputFiles: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.deleteIntermediateOutputFiles || false,
+        useReferenceDisks: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.useReferenceDisks || false,
+        retryWithMoreMemory: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.retryWithMoreMemory?.enabled || false,
+        retryMemoryFactor: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.retryWithMoreMemory?.factor || 1.2,
+        ignoreEmptyOutputs: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.ignoreEmptyOutputs || false,
+        expandResourceMonitoring: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.enabled || false,
+        monitoringScript: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.script || null,
+        monitoringImage: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.image || null,
+        monitoringImageScript: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.imageScript || null,
         includeOptionalInputs: true,
         filter: '',
         errors: { inputs: {}, outputs: {} },
@@ -639,6 +645,8 @@ export const WorkflowView = _.flow(
     }
 
     componentDidUpdate() {
+      const { workspace } = this.props;
+
       StateHistory.update(
         _.pick(
           [
@@ -656,6 +664,22 @@ export const WorkflowView = _.flow(
           this.state
         )
       );
+
+      setLocalPref(`${workspace.workspace.workspaceId}/workflow_options`, {
+        useReferenceDisks: this.state.useReferenceDisks,
+        ignoreEmptyOutputs: this.state.ignoreEmptyOutputs,
+        deleteIntermediateOutputFiles: this.state.deleteIntermediateOutputFiles,
+        retryWithMoreMemory: {
+          enabled: this.state.retryWithMoreMemory,
+          factor: this.state.retryMemoryFactor,
+        },
+        resourceMonitoring: {
+          enabled: this.state.expandResourceMonitoring,
+          script: this.state.monitoringScript,
+          image: this.state.monitoringImage,
+          imageScript: this.state.monitoringImageScript,
+        },
+      });
     }
 
     async fetchInfo(savedConfig, currentSnapRedacted) {
@@ -1063,7 +1087,10 @@ export const WorkflowView = _.flow(
                         LabeledCheckbox,
                         {
                           checked: useReferenceDisks,
-                          onChange: (v) => this.setState({ useReferenceDisks: v }),
+                          onChange: (v) => {
+                            this.setState({ useReferenceDisks: v });
+                            // setLocalPref(`${workspace.workspaceId}/workflow_options`, {useReferenceDisks: v})
+                          },
                           style: styles.checkBoxLeftMargin,
                         },
                         [' Use reference disks']
@@ -1136,7 +1163,10 @@ export const WorkflowView = _.flow(
                         LabeledCheckbox,
                         {
                           checked: ignoreEmptyOutputs,
-                          onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
+                          onChange: (v) => {
+                            this.setState({ ignoreEmptyOutputs: v });
+                            // setLocalPref(`${workspace.workspaceId}/workflow_options`, {...get(), ...{ignoreEmptyOutputs: v}})
+                          },
                           style: styles.checkBoxLeftMargin,
                         },
                         [' Ignore empty outputs']
