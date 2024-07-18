@@ -19,7 +19,7 @@ export const jsonBody = (body) => ({
   headers: { 'Content-Type': 'application/json' },
 });
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
-// export const drsAppIdentifier = { headers: { 'X-Terra-Service-ID': 'terra_ui' } };
+export const terraServiceIdentifier = { headers: { 'X-Terra-Service-ID': 'terra_ui' } };
 
 export const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args);
