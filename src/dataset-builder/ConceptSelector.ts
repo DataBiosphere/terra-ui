@@ -91,7 +91,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
           { name: 'Concept ID', width: 195, render: _.get('id') },
           { name: 'Code', width: 195, render: _.get('code') },
           {
-            name: 'Roll-up count',
+            name: 'Number of Participants',
             width: 205,
             render: (row) => formatCount(row.count),
           },
