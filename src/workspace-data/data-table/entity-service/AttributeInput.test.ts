@@ -77,7 +77,7 @@ describe('AttributeTypeInput', () => {
 
       fireEvent.click(getByLabelText('Reference'));
 
-      expect(onChange).toHaveBeenCalledWith({ type: 'reference', tooltip: 'A link to another row', entityType: 'baz' });
+      expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'baz' });
     });
 
     it('selecting reference type uses the alphabetically first entity type if no default reference entity type is provided', () => {
@@ -92,7 +92,7 @@ describe('AttributeTypeInput', () => {
 
       fireEvent.click(getByLabelText('Reference'));
 
-      expect(onChange).toHaveBeenCalledWith({ type: 'reference', tooltip: 'A link to another row', entityType: 'bar' });
+      expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'bar' });
     });
   });
 });

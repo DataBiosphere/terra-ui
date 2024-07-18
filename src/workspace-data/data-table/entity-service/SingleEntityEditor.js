@@ -92,7 +92,7 @@ export const SingleEntityEditor = ({
         : h(Fragment, [
             h(AttributeInput, {
               autoFocus: true,
-              value: newValue,
+              attributeValue: newValue,
               onChange: setNewValue,
               initialValue: attributeValue,
               entityTypes,

@@ -23,12 +23,11 @@ interface BaseTypeOption {
 }
 
 interface ReferenceTypeOption extends BaseTypeOption {
-  tooltip: string;
   entityType: string;
 }
 
 function isReferenceTypeOption(typeOption: TypeOption): typeOption is ReferenceTypeOption {
-  return 'tooltip' in typeOption;
+  return 'entityType' in typeOption;
 }
 
 interface JsonTypeOption extends BaseTypeOption {
@@ -54,7 +53,7 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
 
   const typeOptions: TypeOption[] = [
     { type: 'string' },
-    { type: 'reference', tooltip: 'A link to another row' },
+    { type: 'reference', entityType: defaultReferenceEntityType || entityTypes[0] },
     { type: 'number' },
     { type: 'boolean' },
   ];
@@ -63,11 +62,7 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
     typeOptions.push({ type: 'json', label: 'JSON' });
   }
 
-  const sortedEntityTypes: ReferenceTypeOption[] = _.sortBy(_.identity, entityTypes).map((entityType) => ({
-    type: 'reference',
-    tooltip: 'A link to another row',
-    entityType,
-  }));
+  const sortedEntityTypes: string[] = _.sortBy(_.identity, entityTypes);
 
   return div({ style: { marginBottom: '1rem' } }, [
     fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
@@ -83,7 +78,7 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
         },
         _.map(
           (typeOption: TypeOption) =>
-            h(TooltipTrigger, { content: isReferenceTypeOption(typeOption) ? typeOption.tooltip : '' }, [
+            h(TooltipTrigger, { content: isReferenceTypeOption(typeOption) ? 'A link to another row' : '' }, [
               span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
                 h(RadioButton, {
                   name: `radio-button-${typeOption.type}`,
@@ -94,7 +89,7 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
                     if (isReferenceTypeOption(typeOption)) {
                       newType = {
                         ...typeOption,
-                        entityType: defaultReferenceEntityType || sortedEntityTypes[0].entityType,
+                        entityType: defaultReferenceEntityType || sortedEntityTypes[0],
                       };
                     }
                     props.onChange(newType);
@@ -113,13 +108,13 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
           (id) =>
             h(Fragment, [
               label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, ['Referenced entity type:']),
-              h(Select<ReferenceTypeOption>, {
+              h(Select<string>, {
                 id,
-                value: props.value as ReferenceTypeOption,
+                value: (props.value as ReferenceTypeOption).entityType,
                 options: sortedEntityTypes,
                 onChange: (selectedEntityType) => {
-                  const newReferenceEntityType = selectedEntityType!.value;
-                  props.onChange({ ...props.value, entityType: newReferenceEntityType.entityType });
+                  const newReferenceEntityType = selectedEntityType?.value;
+                  props.onChange({ ...props.value, entityType: newReferenceEntityType });
                 },
               }),
             ]),
@@ -157,7 +152,7 @@ function isListValue(value: AttributeValue): value is AttributeList {
 interface AttributeInputProps {
   autoFocus?: boolean;
   attributeValue: AttributeValue;
-  initialValue?: AttributeValue;
+  initialValue: AttributeValue;
   onChange: (newValue: AttributeValue) => void;
   entityTypes: string[];
   showJsonTypeOption?: boolean;
@@ -249,15 +244,9 @@ const AttributeInput = (props: AttributeInputProps) => {
                         i === (props.attributeValue as AttributeList).items.length - 1 ? lastListItemInput : undefined,
                       value,
                       onChange: (v) => {
-                        if ('value' in v) {
-                          const newAttributeValue = _.update(
-                            'items',
-                            _.set(i, v.value),
-                            props.attributeValue as AttributeList
-                          );
-                          setEdited(true);
-                          props.onChange(newAttributeValue);
-                        }
+                        const newAttributeValue = _.update('items', _.set(i, v), props.attributeValue as AttributeList);
+                        setEdited(true);
+                        props.onChange(newAttributeValue);
                       },
                     }),
                     h(
