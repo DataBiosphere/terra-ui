@@ -103,6 +103,7 @@ describe('AttributeInput', () => {
       const { getAllByRole } = render(
         h(AttributeInput, {
           attributeValue: 'value',
+          initialValue: 'value',
           entityTypes: [],
           onChange: jest.fn(),
         })
@@ -128,6 +129,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { entityType: 'foo', entityName: 'foo_1' },
+          initialValue: { entityType: 'foo', entityName: 'foo_1' },
           entityTypes: ['foo', 'bar', 'baz'],
           onChange: jest.fn(),
         })
@@ -141,6 +143,7 @@ describe('AttributeInput', () => {
       const { queryByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { key: 'value' },
+          initialValue: { key: 'value' },
           entityTypes: [],
           onChange: jest.fn(),
         })
@@ -156,6 +159,7 @@ describe('AttributeInput', () => {
           onChange: jest.fn(),
           showJsonTypeOption: true,
           attributeValue: 'value',
+          initialValue: 'value',
           entityTypes: [],
         })
       );
@@ -171,6 +175,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: '123',
+          initialValue: '123',
           onChange,
           entityTypes: [],
         })
@@ -206,6 +211,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: 'value',
+          initialValue: 'value',
           onChange,
           entityTypes: [],
         })
@@ -226,6 +232,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { entityType: 'thing', entityName: 'thing_one' },
+          initialValue: { entityType: 'thing', entityName: 'thing_one' },
           onChange,
           entityTypes: ['thing'],
         })
@@ -245,6 +252,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: 123,
+          initialValue: 123,
           onChange,
           entityTypes: [],
         })
@@ -264,6 +272,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: true,
+          initialValue: true,
           onChange,
           entityTypes: [],
         })
@@ -284,6 +293,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          initialValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange: jest.fn(),
           entityTypes: [],
         })
@@ -299,6 +309,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: 'foo',
+          initialValue: 'foo',
           onChange,
           entityTypes: [],
         })
@@ -315,6 +326,7 @@ describe('AttributeInput', () => {
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          initialValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
           entityTypes: [],
         })
@@ -331,6 +343,7 @@ describe('AttributeInput', () => {
       const { getAllByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          initialValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
           entityTypes: [],
         })
@@ -358,6 +371,7 @@ describe('AttributeInput', () => {
       const { getAllByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          initialValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
           entityTypes: [],
         })
@@ -375,6 +389,7 @@ describe('AttributeInput', () => {
       const { getByText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
+          initialValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
           onChange,
           entityTypes: [],
         })
