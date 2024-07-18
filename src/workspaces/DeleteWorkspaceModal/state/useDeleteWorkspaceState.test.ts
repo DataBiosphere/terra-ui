@@ -268,4 +268,42 @@ describe('useDeleteWorkspaceState', () => {
     expect(mockDelete).toHaveBeenCalledTimes(1);
     expect(reportError).toHaveBeenCalledTimes(1);
   });
+
+  it('can delete a google workspace with no google project', async () => {
+    // Arrange
+    const mockApps: Partial<AjaxAppsContract> = {
+      listWithoutProject: jest.fn(),
+    };
+    asMockedFn((mockApps as AjaxAppsContract).listWithoutProject).mockResolvedValue([]);
+
+    const mockGetAcl = jest.fn().mockResolvedValue([]);
+    const mockGetBucketUsage = jest.fn().mockRejectedValue(new Error('no project!'));
+    const mockDelete = jest.fn().mockResolvedValue([]);
+    const mockWorkspaces: DeepPartial<AjaxWorkspacesContract> = {
+      workspace: () => ({
+        getAcl: mockGetAcl,
+        bucketUsage: mockGetBucketUsage,
+      }),
+      workspaceV2: () => ({
+        delete: mockDelete,
+      }),
+    };
+
+    const mockAjax: Partial<AjaxContract> = {
+      Apps: mockApps as AjaxAppsContract,
+      Workspaces: mockWorkspaces as AjaxWorkspacesContract,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    // Act
+    const { result } = await renderHookInAct(() =>
+      useDeleteWorkspaceState({ workspace: googleWorkspace, onDismiss: mockOnDismiss, onSuccess: mockOnSuccess })
+    );
+
+    await act(() => result.current.deleteWorkspace());
+
+    // Assert
+    expect(result.current.deleting).toBe(true);
+    expect(mockDelete).toHaveBeenCalledTimes(1);
+  });
 });
