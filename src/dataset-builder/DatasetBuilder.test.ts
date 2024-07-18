@@ -331,7 +331,7 @@ describe('DatasetBuilder', () => {
     const input = 'input';
     const user = userEvent.setup();
     // Act
-    await user.type(await screen.findByLabelText('Name your data snapshot *'), input);
+    await user.type(await screen.findByLabelText('Name your data snapshot'), input);
     // Assert
     expect(updateSnapshotRequestName).toBeCalledTimes(input.length);
     input.split('').forEach((inputCharacter) => {
