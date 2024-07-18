@@ -114,18 +114,6 @@ export const testSnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
       },
     },
     {
-      name: 'Demographics',
-      table: {
-        datasetTableName: 'person',
-        columns: [],
-        secondaryTableRelationships: [
-          'fpk_person_ethnicity_concept',
-          'fpk_person_ethnicity_concept_s',
-          'fpk_person_race_concept',
-        ],
-      },
-    },
-    {
       name: 'Genomics',
       table: {
         datasetTableName: 'sample',

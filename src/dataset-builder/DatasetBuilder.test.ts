@@ -132,7 +132,7 @@ describe('DatasetBuilder', () => {
   const renderConceptSetSelector = () =>
     render(
       h(ConceptSetSelector, {
-        conceptSets: [...(testSettings.datasetConceptSets ?? [])],
+        conceptSets: testSettings.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,

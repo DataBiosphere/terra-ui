@@ -637,7 +637,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedColumns, setSelectedColumns] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
   const conceptSets =
-    snapshotBuilderSettings.status === 'Ready' ? [...(snapshotBuilderSettings.state.datasetConceptSets ?? [])] : [];
+    snapshotBuilderSettings.status === 'Ready' ? snapshotBuilderSettings.state.datasetConceptSets : [];
   const onStateChange = setDatasetBuilderState;
 
   const getNextCriteriaIndex = () => {
