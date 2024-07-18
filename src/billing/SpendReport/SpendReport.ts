@@ -158,12 +158,8 @@ export const SpendReport = (props: SpendReportProps) => {
       crosshair: true,
       labels: {
         formatter() {
-          return `<a style="color:${colors.accent()}" href=${Nav.getLink('workspace-dashboard', {
-            namespace: props.billingProjectName,
-            // @ts-ignore
-            name: this.value,
-            // @ts-ignore
-          })}>${this.value}</a>`;
+          // @ts-ignore
+          return WorkspaceLink(props.billingProjectName, this.value);
         },
         style: { xfontSize: '12px' },
       },
@@ -390,4 +386,11 @@ export const SpendReport = (props: SpendReportProps) => {
     ]),
     updatingProjectCost && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
+};
+
+export const WorkspaceLink = (billingProject, workspace) => {
+  return `<a style="color:${colors.accent()}" href=${Nav.getLink('workspace-dashboard', {
+    namespace: billingProject,
+    name: workspace,
+  })}>${workspace}</a>`;
 };
