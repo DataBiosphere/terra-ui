@@ -559,7 +559,7 @@ export const DatasetBuilderContents = ({
         ]),
         h(IdContainer, [
           (id) =>
-            div({ style: { height: '4rem', paddingBottom: '1rem' } }, [
+            div({ style: { height: '4rem', paddingBottom: '1rem', width: '30rem' } }, [
               h(FormLabel, { htmlFor: id, style: { fontSize: 14, paddingBottom: '0.5rem' } }, [
                 'Name your data snapshot',
               ]),
@@ -572,9 +572,6 @@ export const DatasetBuilderContents = ({
                     updateSnapshotRequestName(v);
                   },
                   placeholder: 'Enter a name',
-                  style: {
-                    width: '30rem',
-                  },
                 },
                 error: snapshotRequestNameTouched && Utils.summarizeErrors(errors),
               }),
