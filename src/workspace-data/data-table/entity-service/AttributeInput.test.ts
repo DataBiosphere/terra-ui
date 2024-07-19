@@ -6,13 +6,14 @@ import AttributeInput, { AttributeTypeInput } from './AttributeInput';
 
 describe('AttributeTypeInput', () => {
   it('renders radio buttons for available types', () => {
+    // Arrange
     const { getAllByRole } = render(
       h(AttributeTypeInput, {
         value: { type: 'string' },
         onChange: jest.fn(),
       })
     );
-
+    // Assert
     const radioButtons = getAllByRole('radio');
     expect(radioButtons.length).toBe(4);
 
@@ -24,6 +25,7 @@ describe('AttributeTypeInput', () => {
   });
 
   it('renders a radio button for JSON type if requested', () => {
+    // Arrange
     const { queryByLabelText } = render(
       h(AttributeTypeInput, {
         value: { type: 'string' },
@@ -31,12 +33,13 @@ describe('AttributeTypeInput', () => {
         showJsonTypeOption: true,
       })
     );
-
+    // Assert
     const jsonRadioButton = queryByLabelText('JSON');
     expect(jsonRadioButton).not.toBeNull();
   });
 
   it('calls onChange callback when a type is selected', () => {
+    // Arrange
     const onChange = jest.fn();
     const { getByLabelText } = render(
       h(AttributeTypeInput, {
@@ -45,13 +48,15 @@ describe('AttributeTypeInput', () => {
       })
     );
 
+    // Act
     fireEvent.click(getByLabelText('Number'));
-
+    // Assert
     expect(onChange).toHaveBeenCalledWith({ type: 'number' });
   });
 
   describe('references', () => {
     it('renders an entity types menu for reference values', () => {
+      // Arrange
       const { getByLabelText } = render(
         h(AttributeTypeInput, {
           value: { type: 'reference', entityType: 'foo' },
@@ -59,12 +64,13 @@ describe('AttributeTypeInput', () => {
           onChange: jest.fn(),
         })
       );
-
+      // Assert
       const entityTypeInput = getByLabelText('Referenced entity type:');
       expect(entityTypeInput.getAttribute('role')).toBe('combobox');
     });
 
     it('selecting reference type uses the default reference entity type if one is provided', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeTypeInput, {
@@ -74,13 +80,14 @@ describe('AttributeTypeInput', () => {
           onChange,
         })
       );
-
+      // Act
       fireEvent.click(getByLabelText('Reference'));
-
+      // Assert
       expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'baz' });
     });
 
     it('selecting reference type uses the alphabetically first entity type if no default reference entity type is provided', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeTypeInput, {
@@ -89,9 +96,9 @@ describe('AttributeTypeInput', () => {
           onChange,
         })
       );
-
+      // Act
       fireEvent.click(getByLabelText('Reference'));
-
+      // Assert
       expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'bar' });
     });
   });
@@ -100,6 +107,7 @@ describe('AttributeTypeInput', () => {
 describe('AttributeInput', () => {
   describe('type buttons', () => {
     it('renders radio buttons for available types', () => {
+      // Arrange
       const { getAllByRole } = render(
         h(AttributeInput, {
           attributeValue: 'value',
@@ -108,7 +116,7 @@ describe('AttributeInput', () => {
           onChange: jest.fn(),
         })
       );
-
+      // Assert
       const radioButtons = getAllByRole('radio');
       expect(radioButtons.length).toBe(4);
       const labels: (string | null)[] = [];
@@ -126,6 +134,7 @@ describe('AttributeInput', () => {
     });
 
     it('renders an entity types menu for reference values', () => {
+      // Arrange
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { entityType: 'foo', entityName: 'foo_1' },
@@ -134,12 +143,13 @@ describe('AttributeInput', () => {
           onChange: jest.fn(),
         })
       );
-
+      // Assert
       const entityTypeInput = getByLabelText('Referenced entity type:');
       expect(entityTypeInput.getAttribute('role')).toBe('combobox');
     });
 
     it('renders a radio button for JSON type for JSON values', () => {
+      // Arrange
       const { queryByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { key: 'value' },
@@ -148,12 +158,13 @@ describe('AttributeInput', () => {
           onChange: jest.fn(),
         })
       );
-
+      // Assert
       const jsonRadioButton = queryByLabelText('JSON');
       expect(jsonRadioButton).not.toBeNull();
     });
 
     it('renders a radio button for JSON type if requested', () => {
+      // Arrange
       const { queryByLabelText } = render(
         h(AttributeInput, {
           onChange: jest.fn(),
@@ -163,7 +174,7 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Assert
       const jsonRadioButton = queryByLabelText('JSON');
       expect(jsonRadioButton).not.toBeNull();
     });
@@ -171,6 +182,7 @@ describe('AttributeInput', () => {
 
   describe('selecting a type', () => {
     it('converts value to the selected type', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
@@ -180,15 +192,16 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Act
       fireEvent.click(getByLabelText('Number'));
-
+      // Assert
       expect(onChange).toHaveBeenCalledWith(123);
     });
 
     it('if an initial value is provided, converts initial value to the selected type', () => {
       // When editing an attribute, this allows previewing the effect of a type change without
       // performing the lossy conversion.
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
@@ -198,9 +211,9 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Act
       fireEvent.click(getByLabelText('Number'));
-
+      // Assert
       expect(onChange).toHaveBeenCalledWith(456);
     });
   });
@@ -208,6 +221,7 @@ describe('AttributeInput', () => {
   describe('renders a value input based on the attribute type', () => {
     it('renders a text input for string attributes', () => {
       const onChange = jest.fn();
+      // Arrange
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: 'value',
@@ -217,17 +231,19 @@ describe('AttributeInput', () => {
         })
       );
       const valueInput = getByLabelText('New value');
-
+      // Assert
       expect(valueInput.tagName).toBe('INPUT');
       expect(valueInput instanceof HTMLInputElement).toBe(true);
       expect((valueInput as HTMLInputElement).type).toBe('text');
       expect((valueInput as HTMLInputElement).value).toBe('value');
-
+      // Act
       fireEvent.change(valueInput, { target: { value: 'newvalue' } });
+      // Assert
       expect(onChange).toHaveBeenCalledWith('newvalue');
     });
 
     it('renders a text input for reference attributes', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
@@ -238,16 +254,18 @@ describe('AttributeInput', () => {
         })
       );
       const valueInput = getByLabelText('New value');
-
+      // Assert
       expect(valueInput.tagName).toBe('INPUT');
       expect((valueInput as HTMLInputElement).type).toBe('text');
       expect((valueInput as HTMLInputElement).value).toBe('thing_one');
-
+      // Act
       fireEvent.change(valueInput, { target: { value: 'thing_two' } });
+      // Assert
       expect(onChange).toHaveBeenCalledWith({ entityType: 'thing', entityName: 'thing_two' });
     });
 
     it('renders a number input for number attributes', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
@@ -258,16 +276,18 @@ describe('AttributeInput', () => {
         })
       );
       const valueInput = getByLabelText('New value');
-
+      // Assert
       expect(valueInput.tagName).toBe('INPUT');
       expect((valueInput as HTMLInputElement).type).toBe('number');
       expect((valueInput as HTMLInputElement).value).toBe('123');
-
+      // Act
       fireEvent.change(valueInput, { target: { value: '456' } });
+      // Assert
       expect(onChange).toHaveBeenCalledWith(456);
     });
 
     it('renders a switch for boolean attributes', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
@@ -278,18 +298,20 @@ describe('AttributeInput', () => {
         })
       );
       const valueInput = getByLabelText('New value');
-
+      // Assert
       expect(valueInput.tagName).toBe('INPUT');
       expect((valueInput as HTMLInputElement).type).toBe('checkbox');
       expect((valueInput as HTMLInputElement).checked).toBe(true);
-
+      // Act
       fireEvent.click(valueInput);
+      // Assert
       expect(onChange).toHaveBeenCalledWith(false);
     });
   });
 
   describe('lists', () => {
     it('renders a checkbox for list status', () => {
+      // Arrange
       const { getByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
@@ -298,13 +320,14 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Assert
       const listCheckbox = getByLabelText('Value is a list');
       expect(listCheckbox.getAttribute('role')).toBe('checkbox');
       expect(listCheckbox.getAttribute('aria-checked')).toBe('true');
     });
 
     it('it converts single value to a list when list checkbox is checked', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
@@ -314,14 +337,15 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Act
       const listCheckbox = getByLabelText('Value is a list');
       fireEvent.click(listCheckbox);
-
+      // Assert
       expect(onChange).toHaveBeenCalledWith({ itemsType: 'AttributeValue', items: ['foo'] });
     });
 
     it('it converts list to a single value when list checkbox is unchecked', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getByLabelText } = render(
         h(AttributeInput, {
@@ -331,14 +355,15 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Act
       const listCheckbox = getByLabelText('Value is a list');
       fireEvent.click(listCheckbox);
-
+      // Assert
       expect(onChange).toHaveBeenCalledWith('foo');
     });
 
     it('renders an input for each list item', () => {
+      // Arrange
       const onChange = jest.fn();
       const { getAllByLabelText } = render(
         h(AttributeInput, {
@@ -348,7 +373,7 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Assert
       const valueInputs = getAllByLabelText(/^List value \d+/);
       expect(valueInputs.length).toBe(3);
 
@@ -361,13 +386,15 @@ describe('AttributeInput', () => {
       }
 
       expect(labels).toEqual(['foo', 'bar', 'baz']);
-
+      // Act
       fireEvent.change(valueInputs[1], { target: { value: 'qux' } });
+      // Assert
       expect(onChange).toHaveBeenCalledWith({ itemsType: 'AttributeValue', items: ['foo', 'qux', 'baz'] });
     });
 
     it('renders buttons to remove items from list', () => {
       const onChange = jest.fn();
+      // Arrange
       const { getAllByLabelText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
@@ -376,16 +403,18 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Assert
       const removeButtons = getAllByLabelText(/^Remove list value \d+/);
       expect(removeButtons.length).toBe(3);
-
+      // Act
       fireEvent.click(removeButtons[1]);
+      // Assert
       expect(onChange).toHaveBeenCalledWith({ itemsType: 'AttributeValue', items: ['foo', 'baz'] });
     });
 
     it('renders button to add item to list', () => {
       const onChange = jest.fn();
+      // Arrange
       const { getByText } = render(
         h(AttributeInput, {
           attributeValue: { itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz'] },
@@ -394,10 +423,10 @@ describe('AttributeInput', () => {
           entityTypes: [],
         })
       );
-
+      // Act
       const addButton = getByText('Add item');
       fireEvent.click(addButton);
-
+      // Assert
       expect(onChange).toHaveBeenCalledWith({ itemsType: 'AttributeValue', items: ['foo', 'bar', 'baz', ''] });
     });
   });

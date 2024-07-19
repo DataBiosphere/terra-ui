@@ -19,7 +19,7 @@ interface AttributeTypeInputProps {
 }
 
 interface BaseTypeOption {
-  type: string;
+  type: 'string' | 'reference' | 'number' | 'boolean' | 'json';
 }
 
 interface ReferenceTypeOption extends BaseTypeOption {
@@ -27,7 +27,7 @@ interface ReferenceTypeOption extends BaseTypeOption {
 }
 
 function isReferenceTypeOption(typeOption: TypeOption): typeOption is ReferenceTypeOption {
-  return 'entityType' in typeOption;
+  return typeOption.type === 'reference';
 }
 
 interface JsonTypeOption extends BaseTypeOption {
