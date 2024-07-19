@@ -536,7 +536,9 @@ export const GridTable = forwardRefWithName(
       recomputeColumnSizes: () => {
         header.current.recomputeGridSize();
         body.current.recomputeGridSize();
-        body.current.measureAllCells();
+        if (rowCount > 0) {
+          body.current.measureAllCells();
+        }
       },
       scrollToTop: () => {
         body.current.scrollToPosition({ scrollTop: 0, scrollLeft: 0 });
