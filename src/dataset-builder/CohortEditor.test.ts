@@ -307,7 +307,7 @@ describe('CohortEditor', () => {
       ...args,
     };
     const cohort = newCohort('cohort');
-    const criteriaGroup = newCriteriaGroup();
+    const criteriaGroup = newCriteriaGroup(cohort.criteriaGroups.length + 1);
     if (initializeGroup) {
       initializeGroup(criteriaGroup);
     }
@@ -479,7 +479,7 @@ describe('CohortEditor', () => {
     await user.click(screen.getByText('Save cohort'));
     // Assert
     // Don't compare name since it's generated.
-    const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
+    const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup(originalCohort.criteriaGroups.length + 1);
     expect(updateCohorts.mock.calls[0][0]([])).toMatchObject([
       { ...originalCohort, criteriaGroups: [expectedCriteriaGroup] },
     ]);
