@@ -397,7 +397,6 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                 {
                   'aria-label': 'delete group',
                   onClick: () => {
-                    // set at 'criteriaGroups' the current [criteriaGroup] without the cohort.criteriaGroup
                     updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups)));
                     if (cohort.criteriaGroups.indexOf(criteriaGroup) < cohort.criteriaGroups.length - 1) {
                       // update names of all groups after it
