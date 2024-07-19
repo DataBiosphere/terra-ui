@@ -1,4 +1,4 @@
-import { CloudProvider } from 'src/workspaces/utils';
+export type CloudProvider = 'AZURE' | 'GCP';
 
 export interface AuditInfo {
   creator: string;

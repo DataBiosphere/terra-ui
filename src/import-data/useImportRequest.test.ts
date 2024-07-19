@@ -164,18 +164,21 @@ describe('getImportRequest', () => {
     },
   ];
 
+  const mockSnapshotDetails = (snapshotId: string) =>
+    jest.fn().mockImplementation(() => {
+      if (snapshotId === azureSnapshotFixture.id) {
+        return Promise.resolve(azureSnapshotFixture);
+      }
+      if (snapshotId === googleSnapshotFixture.id) {
+        return Promise.resolve(googleSnapshotFixture);
+      }
+      return Promise.reject(new Response('{"message":"Snapshot not found"}', { status: 404 }));
+    });
+
   beforeAll(() => {
     const mockDataRepo = {
       snapshot: (snapshotId: string): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
-        details: jest.fn().mockImplementation(() => {
-          if (snapshotId === azureSnapshotFixture.id) {
-            return azureSnapshotFixture;
-          }
-          if (snapshotId === googleSnapshotFixture.id) {
-            return googleSnapshotFixture;
-          }
-          throw new Response('{"message":"Snapshot not found"}', { status: 404 });
-        }),
+        details: mockSnapshotDetails(snapshotId),
       }),
     };
     asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
@@ -317,6 +320,47 @@ describe('getImportRequest', () => {
         expect(snapshotAccessControls).toEqual(mockAccessControlGroups);
       }
     );
+
+    it('supports generating a manifest for a snapshot export', async () => {
+      const queryParams = {
+        format: 'tdrexport',
+        snapshotId: googleSnapshotFixture.id,
+        tdrSyncPermissions: 'false',
+        url: 'https://data.terra.bio',
+      };
+      // Arrange
+      const manifestUrl = new URL('https://example.com/manifest.parquet');
+      const mockDataRepo = {
+        snapshot: (snapshotId: string): Partial<ReturnType<DataRepoContract['snapshot']>> => ({
+          exportSnapshot: jest.fn().mockResolvedValue({ jobId: '1234' }),
+          details: mockSnapshotDetails(snapshotId),
+        }),
+        job: (_jobId: string): Partial<ReturnType<DataRepoContract['job']>> => ({
+          details: jest
+            .fn()
+            .mockResolvedValueOnce({ job_status: 'running' })
+            .mockResolvedValueOnce({ job_status: 'succeeded' }),
+          result: jest.fn().mockResolvedValue({ format: { parquet: { manifest: manifestUrl } } }),
+        }),
+      };
+      asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
+      // Reset mock state from previous tests.
+      asMockedFn(SamResources).mockReturnValue(
+        partial<SamResourcesContract>({
+          getAuthDomains: jest.fn().mockResolvedValue([]),
+        })
+      );
+      // Act
+      const importRequest = await getImportRequest(queryParams);
+      // Assert
+      expect(importRequest).toEqual({
+        manifestUrl,
+        snapshot: googleSnapshotFixture,
+        snapshotAccessControls: [],
+        syncPermissions: false,
+        type: 'tdr-snapshot-export',
+      });
+    });
 
     it('rejects snapshot imports for Azure snapshots unless feature preview is enabled', async () => {
       // Arrange

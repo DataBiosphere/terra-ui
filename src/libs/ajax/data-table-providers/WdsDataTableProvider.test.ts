@@ -457,6 +457,90 @@ describe('WdsDataTableProvider', () => {
 
       expect(actual).toStrictEqual(expected);
     });
+    it('restructures nested array attributes', () => {
+      // Arrange
+      const provider = new TestableWdsProvider();
+
+      // example response from WDS, copy-pasted from a WDS swagger call
+      const wdsPage: RecordQueryResponse = {
+        searchRequest: {
+          limit: 1,
+          offset: 0,
+          sort: 'asc',
+          sortAttribute: 'stringAttr',
+        },
+        records: [
+          {
+            id: '1',
+            type: recordType,
+            attributes: {
+              stringAttr: 'string',
+              nestedArrayOfUrls: [
+                ['https://foo.blob.core.windows.net/1', 'https://foo.blob.core.windows.net/2'],
+                ['https://foo.blob.core.windows.net/3', 'https://foo.blob.core.windows.net/4'],
+              ],
+            },
+          },
+        ],
+        totalRecords: 1,
+      };
+
+      // example metadata for the previous response
+      const metadata: EntityMetadata = {
+        item: {
+          count: 7,
+          attributeNames: ['nestedArrayOfUrls', 'stringAttr'],
+          attributes: [
+            {
+              name: 'nestedArrayOfUrls',
+              datatype: 'ARRAY_OF_STRING',
+            },
+            {
+              name: 'stringAttr',
+              datatype: 'STRING',
+            },
+          ],
+          idName: 'stringAttr',
+        },
+      };
+
+      // Act
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions, metadata);
+
+      // Assert
+      const expected: EntityQueryResponse = {
+        results: [
+          {
+            entityType: recordType,
+            attributes: {
+              nestedArrayOfUrls: {
+                itemsType: 'AttributeValue',
+                items: [
+                  ['https://foo.blob.core.windows.net/1', 'https://foo.blob.core.windows.net/2'],
+                  ['https://foo.blob.core.windows.net/3', 'https://foo.blob.core.windows.net/4'],
+                ],
+              },
+            },
+            name: '1',
+          },
+        ],
+        parameters: {
+          page: 2,
+          pageSize: 50,
+          sortField: 'stringAttr',
+          sortDirection: 'desc',
+          filterTerms: '',
+          filterOperator: 'and',
+        },
+        resultMetadata: {
+          filteredCount: 1,
+          unfilteredCount: 1,
+          filteredPageCount: -1,
+        },
+      };
+
+      expect(actual).toStrictEqual(expected);
+    });
     it('restructures relation URIs, both scalar and array', () => {
       // Arrange
       const provider = new TestableWdsProvider();

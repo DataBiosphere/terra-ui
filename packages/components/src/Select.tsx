@@ -191,7 +191,7 @@ export type SelectProps<
  * @param [props.id] - The HTML ID to give the form element
  * @param [props.isClearable] - whether the select can be cleared
  * @param [props.isDisabled] - whether the select is disabled
- * @param [props.isSearchable] - whether the select can be cleared
+ * @param [props.isSearchable] - whether the select can be searched
  * @param [props.isMulti] - whether the select is multiselect or not
  * @param [props.menuPlacement] - determines where the menu is placed
  * @param [props.placeholder] - The placeholder value for the select

@@ -1,5 +1,5 @@
+import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from '@terra-ui-packages/leonardo-data-client';
 import { AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 
 export interface KubernetesRuntimeConfig {
   numNodes: number;

@@ -1,4 +1,4 @@
-import { noCostData } from 'src/pages/workspaces/workspace/jobHistory/CallTable';
+import { isTask } from './CallCostCell';
 
 describe('CallTable functions', () => {
   it.each([
@@ -49,11 +49,12 @@ describe('CallTable functions', () => {
       },
       expected: undefined,
     },
-  ])('returns expected boolean given task data', ({ task, expected }) => {
-    // Arrange
-    const cost = noCostData(task);
+  ]);
 
-    // Assert
-    expect(cost).toBe(expected);
+  it('correctly differentiates tasks and subworkflows', async () => {
+    const mockTask = { start: '2024-06-17T21:19:14.6913148', end: '2024-06-17T21:19:14.6913148', vmCostUsd: 9001 };
+    const mockSubworkflow = { subWorkflowId: 'acec1c90-0871-48fe-899f-6d2b38a07196', calls: {} };
+    expect(isTask(mockTask)).toEqual(true);
+    expect(isTask(mockSubworkflow)).toEqual(false);
   });
 });
