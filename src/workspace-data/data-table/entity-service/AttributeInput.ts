@@ -180,7 +180,7 @@ const AttributeInput = (props: AttributeInputProps) => {
   const defaultValue = defaultValueForAttributeType(attributeType, referenceEntityType);
 
   const focusLastListItemInput = useRef(false);
-  const lastListItemInput = useRef(null);
+  const lastListItemInput = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (!isList) {
       lastListItemInput.current = null;
