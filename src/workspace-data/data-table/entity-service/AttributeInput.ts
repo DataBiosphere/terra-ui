@@ -49,11 +49,11 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
       ? props.defaultReferenceEntityType
       : null;
 
-  const showJsonTypeOption = props.showJsonTypeOption !== undefined ? props.showJsonTypeOption : false;
+  const showJsonTypeOption = props.showJsonTypeOption ?? false;
 
   const typeOptions: TypeOption[] = [
     { type: 'string' },
-    { type: 'reference', entityType: defaultReferenceEntityType || entityTypes[0] },
+    { type: 'reference', entityType: defaultReferenceEntityType ?? entityTypes[0] },
     { type: 'number' },
     { type: 'boolean' },
   ];
@@ -89,7 +89,7 @@ export const AttributeTypeInput = (props: AttributeTypeInputProps) => {
                     if (isReferenceTypeOption(typeOption)) {
                       newType = {
                         ...typeOption,
-                        entityType: defaultReferenceEntityType || sortedEntityTypes[0],
+                        entityType: defaultReferenceEntityType ?? sortedEntityTypes[0],
                       };
                     }
                     props.onChange(newType);
@@ -139,7 +139,7 @@ type EntityReference = { entityName: string; entityType: string };
 type SingleAttributeValue = string | EntityReference | number | boolean | {};
 
 interface AttributeList<T extends SingleAttributeValue = SingleAttributeValue> {
-  itemsType: 'AttributeValue' | 'EntityReference'; // TODO what should this be?
+  itemsType: 'AttributeValue' | 'EntityReference';
   items: T[];
 }
 
@@ -186,7 +186,7 @@ const AttributeInput = (props: AttributeInputProps) => {
       lastListItemInput.current = null;
     }
     if (focusLastListItemInput.current && lastListItemInput.current) {
-      // lastListItemInput.current.focus();
+      lastListItemInput.current.focus();
       focusLastListItemInput.current = false;
     }
   }, [props.attributeValue, isList]);
