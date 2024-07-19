@@ -5,10 +5,9 @@ import {
   SnapshotBuilderDomainOption,
 } from 'src/libs/ajax/DataRepo';
 
-let groupCount = 1;
-export const newCriteriaGroup = (): CriteriaGroup => {
+export const newCriteriaGroup = (idx: number): CriteriaGroup => {
   return {
-    name: `Group ${groupCount++}`,
+    name: `Group ${idx++}`,
     criteria: [],
     mustMeet: true,
     meetAll: false,

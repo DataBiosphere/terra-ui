@@ -396,8 +396,20 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
                 Link,
                 {
                   'aria-label': 'delete group',
-                  onClick: () =>
-                    updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
+                  onClick: () => {
+                    // set at 'criteriaGroups' the current [criteriaGroup] without the cohort.criteriaGroup
+                    updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups)));
+                    if (cohort.criteriaGroups.indexOf(criteriaGroup) < cohort.criteriaGroups.length - 1) {
+                      // update names of all groups after it
+                      for (
+                        let i = cohort.criteriaGroups.indexOf(criteriaGroup) + 1;
+                        i < cohort.criteriaGroups.length;
+                        i++
+                      ) {
+                        cohort.criteriaGroups[i].name = `Group ${i}`;
+                      }
+                    }
+                  },
                 },
                 [icon('trash-circle-filled', { size: 24 })]
               ),
@@ -556,7 +568,12 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
         {
           style: { marginTop: wideMargin },
           onClick: (e) => {
-            updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
+            updateCohort(
+              _.set(
+                `criteriaGroups.${cohort.criteriaGroups.length}`,
+                newCriteriaGroup(cohort.criteriaGroups.length + 1)
+              )
+            );
             // Lose button focus, since button moves out from under the user's cursor.
             e.currentTarget.blur();
           },
