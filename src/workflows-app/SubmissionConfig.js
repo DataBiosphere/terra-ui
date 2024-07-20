@@ -22,7 +22,13 @@ import { SubmitWorkflowModal } from 'src/workflows-app/components/SubmitWorkflow
 import ViewWorkflowScriptModal from 'src/workflows-app/components/ViewWorkflowScriptModal';
 import { doesAppProxyUrlExist, loadAppUrls } from 'src/workflows-app/utils/app-utils';
 import { convertToRawUrl } from 'src/workflows-app/utils/method-common';
-import { autofillOutputDef, CbasPollInterval, validateInputs, WdsPollInterval } from 'src/workflows-app/utils/submission-utils';
+import {
+  autofillOutputDef,
+  CbasDefaultSubmissionLimits,
+  CbasPollInterval,
+  validateInputs,
+  WdsPollInterval,
+} from 'src/workflows-app/utils/submission-utils';
 import { wrapWorkflowsPage } from 'src/workflows-app/WorkflowsContainer';
 
 export const BaseSubmissionConfig = (
@@ -46,11 +52,7 @@ export const BaseSubmissionConfig = (
   const [totalRecordsInActualDataTable, setTotalRecordsInActualDataTable] = useState();
   const [loading, setLoading] = useState(false);
   const [workflowScript, setWorkflowScript] = useState();
-  const [cbasSubmissionLimits, setCbasSubmissionLimits] = useState({
-    maxWorkflows: 100,
-    maxInputs: 200,
-    maxOutputs: 300,
-  });
+  const [cbasSubmissionLimits, setCbasSubmissionLimits] = useState(CbasDefaultSubmissionLimits);
 
   // Options chosen on this page:
   const [selectedRecordType, setSelectedRecordType] = useState();
@@ -143,11 +145,11 @@ export const BaseSubmissionConfig = (
           return newCapabilities;
         }
 
-        return cbasSubmissionLimits;
+        return CbasDefaultSubmissionLimits;
       } catch (error) {
         // in case the /capabilities API doesn't exist in this CBAS instance or the API exists but CBAS
         // threw non-OK status, then use default submission limits
-        return cbasSubmissionLimits;
+        return CbasDefaultSubmissionLimits;
       }
     },
     [signal, cbasSubmissionLimits]
@@ -165,7 +167,7 @@ export const BaseSubmissionConfig = (
   );
 
   const loadRecordTypesAndData = useCallback(
-    async (wdsUrlRoot, recordType, searchLimit, includeLoadRecordTypes) => {
+    async ({ wdsUrlRoot, recordType, searchLimit, includeLoadRecordTypes }) => {
       if (includeLoadRecordTypes) {
         await loadRecordTypes(wdsUrlRoot);
       }
@@ -192,13 +194,13 @@ export const BaseSubmissionConfig = (
           const { wdsProxyUrlState } = await loadAppUrls(workspaceId, 'wdsProxyUrlState');
 
           if (wdsProxyUrlState.status === AppProxyUrlStatus.Ready) {
-            await loadRecordTypesAndData(wdsProxyUrlState.state, recordType, searchLimit, includeLoadRecordTypes);
+            await loadRecordTypesAndData({ wdsUrlRoot: wdsProxyUrlState.state, recordType, searchLimit, includeLoadRecordTypes });
           } else {
             await handleWdsAppNotFound(wdsProxyUrlState.state);
           }
         } else {
           // if we have the WDS proxy URL load the WDS data
-          await loadRecordTypesAndData(wdsProxyUrlDetails.state, recordType, searchLimit, includeLoadRecordTypes);
+          await loadRecordTypesAndData({ wdsUrlRoot: wdsProxyUrlDetails.state, recordType, searchLimit, includeLoadRecordTypes });
         }
       } catch (error) {
         notify('error', 'Error loading data tables', { detail: error instanceof Response ? await error.text() : error });
