@@ -132,7 +132,7 @@ const GCSFileBrowserProvider = ({
       return await Ajax(signal).SamResources.getSignedUrl(bucket, path);
     },
     getDownloadCommandForFile: (path) => {
-      return Promise.resolve(`gsutil cp 'gs://${bucket}/${path}' .`);
+      return Promise.resolve(`gcloud storage cp 'gs://${bucket}/${path}' .`);
     },
     uploadFileToDirectory: (directoryPath, file) => {
       return Ajax().Buckets.upload(project, bucket, directoryPath, file);
