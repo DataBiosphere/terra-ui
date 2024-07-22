@@ -1,4 +1,4 @@
-import { Modal, Spinner } from '@terra-ui-packages/components';
+import { Modal, Spinner, Switch } from '@terra-ui-packages/components';
 import filesize from 'filesize';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
@@ -9,7 +9,6 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
 import { parseGsUri } from 'src/components/data/data-utils';
-import { SimpleTabBar } from 'src/components/tabBars';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -34,6 +33,9 @@ export const UriViewer = _.flow(
   const [metadata, setMetadata] = useState();
   const [loadingError, setLoadingError] = useState(false);
   const [useFileName, setUseFileName] = useState(true);
+  const toggleUseFileName = () => {
+    setUseFileName((prevUseFileName) => !prevUseFileName);
+  };
 
   const loadMetadata = async () => {
     try {
@@ -102,17 +104,6 @@ export const UriViewer = _.flow(
 
     return h(Fragment, [
       p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
-      h(SimpleTabBar, {
-        'aria-label': 'import type',
-        tabs: [
-          { title: 'Download to Current Directory', key: 'current', width: 207 },
-          { title: 'Mirror File Directory', key: 'mirror', width: 207 },
-        ],
-        value: useFileName ? 'mirror' : 'current',
-        onChange: (value) => {
-          setUseFileName(value === 'mirror');
-        },
-      }),
       pre(
         {
           style: {
@@ -144,6 +135,17 @@ export const UriViewer = _.flow(
           }),
         ]
       ),
+      div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } }, [
+        h(Switch, {
+          onLabel: ' ',
+          offLabel: ' ',
+          onChange: toggleUseFileName,
+          checked: useFileName,
+          width: 40,
+          height: 20,
+        }),
+        ['Download to current directory or mirror file directory'],
+      ]),
     ]);
   };
 
