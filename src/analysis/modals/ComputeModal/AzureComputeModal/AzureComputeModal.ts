@@ -39,6 +39,7 @@ import {
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
 import { BaseWorkspace, cloudProviderTypes } from 'src/workspaces/utils';
 
@@ -88,6 +89,8 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
   const availableMachineTypes = resourceLimits?.availableMachineTypes || Object.keys(azureMachineTypes);
 
   const loading = _loading || isLoadingCloudEnvironments || billingProfile.status === 'Loading';
+
+  const kubernetesDeploymentEnabled = isFeaturePreviewEnabled('jupyterlab-azure');
 
   // Lifecycle
   useEffect(() => {

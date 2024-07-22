@@ -5,6 +5,7 @@ export const ENABLE_WORKFLOW_RESOURCE_MONITORING = 'enableWorkflowResourceMonito
 export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
 export const FIRECLOUD_UI_MIGRATION = 'firecloudUiMigration';
+export const JUPYTERLAB_AZURE_FEATURE_ID = 'jupyterlab-azure';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -66,6 +67,14 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description: 'Enabling this feature will allow you to launch notebooks using JupyterLab in GCP workspaces.',
     groups: ['preview-jupyterlab-gcp'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (GCP)')}`,
+  },
+  {
+    id: JUPYTERLAB_AZURE_FEATURE_ID,
+    title: 'Customized JupyterLab on Azure',
+    description:
+      'Enabling this feature will allow you to launch notebooks using customized JupyterLab environments in Azure workspaces.',
+    // groups: ['preview-jupyterlab-azure'],
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (AZURE)')}`,
   },
   {
     id: 'workspace-files',
