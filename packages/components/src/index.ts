@@ -29,3 +29,4 @@ export * from './spinners/Spinner';
 export * from './spinners/SpinnerOverlay';
 export * from './theme';
 export * from './useModalHandler';
+export { sideOptions } from './internal/popup-utils';

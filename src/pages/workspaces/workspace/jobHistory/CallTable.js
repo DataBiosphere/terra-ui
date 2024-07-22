@@ -5,7 +5,7 @@ import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { getTaskCost, makeCromwellStatusLine, makeStatusLine, renderTaskCostElement, statusType } from 'src/components/job-common';
+import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
 import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
@@ -96,16 +96,6 @@ const SearchBar = ({ searchText, setSearchText }) => {
   );
 };
 
-const doesTaskHaveCostData = (task) => {
-  return !!(task?.taskStartTime && task?.vmCostUsd);
-};
-
-export const noCostData = (task) => {
-  if (task?.executionStatus === 'Failed' || task?.callCaching?.hit === true || !task?.taskStartTime) {
-    return true;
-  }
-};
-
 /* WORKFLOW BREADCRUMB SUB-COMPONENT */
 const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) => {
   const workflowPathRender = workflowPath.map((workflow, index) => {
@@ -141,7 +131,8 @@ const CallTable = ({
   workflowId,
   failedTasks,
   isAzure,
-  loadForSubworkflows,
+  getCostOfCallFn,
+  isCostMetadataLoading,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -369,28 +360,17 @@ const CallTable = ({
                           TooltipTrigger,
                           {
                             content:
-                              'Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts.',
+                              "Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts. Tasks that call cache don't incur cost.",
                           },
                           [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
                         ),
                       ]),
                     cellRenderer: ({ rowIndex }) => {
-                      const { vmCostUsd, taskStartTime, taskEndTime, subWorkflowId, executionStatus } = filteredCallObjects[rowIndex];
-                      if (subWorkflowId) {
-                        return h(CallCostCell, { call: filteredCallObjects[rowIndex], loadForSubworkflows });
-                      }
-                      if (doesTaskHaveCostData(filteredCallObjects[rowIndex])) {
-                        if (taskEndTime) {
-                          const cost = getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
-                          return div({}, [renderTaskCostElement(cost)]);
-                        }
-                        const cost = getTaskCost({ vmCostUsd, taskStartTime });
-                        return div([span({ style: { fontStyle: 'italic' } }, ['In Progress - ']), `$${cost}`]);
-                      }
-                      if (noCostData(filteredCallObjects[rowIndex]) && executionStatus !== 'Running') {
-                        return div({}, ['-']);
-                      }
-                      return div({ style: { fontStyle: 'italic' } }, ['Fetching cost information']);
+                      return h(CallCostCell, {
+                        call: filteredCallObjects[rowIndex],
+                        getCostOfCallFn,
+                        isCostMetadataLoading,
+                      });
                     },
                   },
                   {

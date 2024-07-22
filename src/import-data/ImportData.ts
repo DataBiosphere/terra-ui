@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
+import { TerraLengthyOperationOverlay } from 'src/branding/TerraLengthyOperationOverlay';
 import { spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -202,6 +203,24 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   ]);
 };
 
+interface PreparingImportMessageProps {
+  message: string;
+}
+
+export const PreparingImportOverlay = (props: PreparingImportMessageProps) => {
+  const { message } = props;
+  return h(TerraLengthyOperationOverlay, {
+    message,
+    style: {
+      backgroundColor: 'white',
+      margin: '2rem auto',
+      padding: '1rem',
+      borderRadius: '0.5rem',
+      border: '1px solid black',
+    },
+  });
+};
+
 /**
  * Validate the import request from the URL.
  */
@@ -209,7 +228,8 @@ export const ImportDataContainer = () => {
   const result = useImportRequest();
 
   if (result.status === 'Loading') {
-    return spinnerOverlay;
+    const message = result.message;
+    return message ? h(PreparingImportOverlay, { message }) : spinnerOverlay;
   }
 
   if (result.status === 'Error') {

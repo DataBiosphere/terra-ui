@@ -1,4 +1,4 @@
-import { Link } from '@terra-ui-packages/components';
+import { InfoBox, Link } from '@terra-ui-packages/components';
 import { cond } from '@terra-ui-packages/core-utils';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, dl, h } from 'react-hyperscript-helpers';
@@ -170,7 +170,12 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               ]
             ),
           },
-          [storageCost?.estimate || '$ ...']
+          [
+            storageCost?.estimate || '$ ...',
+            h(InfoBox, { style: { marginLeft: '1ch' }, side: 'top' }, [
+              'Based on list price. Does not include savings from Autoclass or other discounts.',
+            ]),
+          ]
         ),
       canWrite(accessLevel) &&
         h(

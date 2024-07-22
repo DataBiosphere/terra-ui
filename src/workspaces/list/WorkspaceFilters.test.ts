@@ -109,7 +109,7 @@ describe('WorkspaceFilters', () => {
       render(h(WorkspaceFilters, { workspaces: [defaultGoogleWorkspace] }));
     });
 
-    const filterSelector = screen.getByLabelText('Search workspaces by keyword');
+    const filterSelector = screen.getByLabelText('Search workspaces by name or project');
     await filterSelector.click();
     await user.type(filterSelector, 'x');
     await act(() => delay(300)); // debounced search

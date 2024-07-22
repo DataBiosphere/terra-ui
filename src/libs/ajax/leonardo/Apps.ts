@@ -1,10 +1,9 @@
+import { LeoResourceLabels } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { AppAccessScope } from 'src/analysis/utils/tool-utils';
+import { AppAccessScope, AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common';
 import { CreateAppV1Request, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 
 export const Apps = (signal: AbortSignal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppItem[]> => {

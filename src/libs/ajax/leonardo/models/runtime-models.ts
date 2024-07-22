@@ -1,6 +1,6 @@
+import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from '@terra-ui-packages/leonardo-data-client';
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
-import { AuditInfo, CloudContext, LeoError, LeoResourceLabels } from 'src/libs/ajax/leonardo/models/core-models';
 import { RuntimeConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 
 import { DiskType } from '../Disks';

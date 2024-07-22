@@ -1,4 +1,4 @@
-import { refreshSamUserAttributes, refreshTerraProfile } from 'src/auth/auth';
+import { refreshSamUserAttributes, refreshTerraProfile } from 'src/auth/user-profile/user';
 import { Ajax } from 'src/libs/ajax';
 import Events, { EventWorkspaceAttributes, extractWorkspaceDetails } from 'src/libs/events';
 

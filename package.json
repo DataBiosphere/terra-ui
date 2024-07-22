@@ -11,6 +11,8 @@
     "@terra-ui-packages/analysis": "*",
     "@terra-ui-packages/components": "*",
     "@terra-ui-packages/core-utils": "*",
+    "@terra-ui-packages/data-client-core": "*",
+    "@terra-ui-packages/leonardo-data-client": "*",
     "@terra-ui-packages/notifications": "*",
     "animate.css": "^4.1.1",
     "array-move": "^4.0.0",

@@ -95,6 +95,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@terra-ui-packages/analysis", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/analysis"],\
             ["@terra-ui-packages/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
             ["@terra-ui-packages/core-utils", "workspace:packages/core-utils"],\
+            ["@terra-ui-packages/data-client-core", "workspace:packages/data-clients/core"],\
+            ["@terra-ui-packages/leonardo-data-client", "workspace:packages/data-clients/leonardo"],\
             ["@terra-ui-packages/notifications", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/notifications"],\
             ["@terra-ui-packages/test-utils", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.4"],\
@@ -22226,6 +22228,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@terra-ui-packages/analysis", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/analysis"],\
             ["@terra-ui-packages/components", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/components"],\
             ["@terra-ui-packages/core-utils", "workspace:packages/core-utils"],\
+            ["@terra-ui-packages/data-client-core", "workspace:packages/data-clients/core"],\
+            ["@terra-ui-packages/leonardo-data-client", "workspace:packages/data-clients/leonardo"],\
             ["@terra-ui-packages/notifications", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/notifications"],\
             ["@terra-ui-packages/test-utils", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#workspace:packages/test-utils"],\
             ["@testing-library/dom", "npm:9.3.4"],\

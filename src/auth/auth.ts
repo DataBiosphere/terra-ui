@@ -1,42 +1,13 @@
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import _ from 'lodash/fp';
 import { cookiesAcceptedKey } from 'src/auth/accept-cookies';
-import {
-  B2cIdTokenClaims,
-  getCurrentOidcUser,
-  initializeOidcUserManager,
-  oidcSignIn,
-  OidcSignInArgs,
-  OidcUser,
-} from 'src/auth/oidc-broker';
-import { fetchOk } from 'src/libs/ajax/ajax-common';
-import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
-import { Groups } from 'src/libs/ajax/Groups';
+import { B2cIdTokenClaims, getCurrentOidcUser, oidcSignIn, OidcSignInArgs, OidcUser } from 'src/auth/oidc-broker';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { SamUserAttributes, User } from 'src/libs/ajax/User';
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
-import Events, { captureAppcuesEvent, MetricsEventName } from 'src/libs/events';
-import * as Nav from 'src/libs/nav';
-import { clearNotification, sessionExpirationProps } from 'src/libs/notifications';
-import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs';
-import {
-  asyncImportJobStore,
-  AuthState,
-  authStore,
-  getTerraUser,
-  metricStore,
-  oidcStore,
-  requesterPaysProjectStore,
-  TerraUserProfile,
-  TerraUserState,
-  TokenMetadata,
-  userStore,
-  workspacesStore,
-  workspaceStore,
-} from 'src/libs/state';
+import Events, { MetricsEventName } from 'src/libs/events';
+import { getLocalPrefForUserId } from 'src/libs/prefs';
+import { AuthState, authStore, getTerraUser, metricStore, oidcStore, TokenMetadata, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { getTimestampMetricLabel } from 'src/libs/utils';
-import { allOAuth2Providers } from 'src/profile/external-identities/OAuth2Providers';
 import { v4 as uuid } from 'uuid';
 
 export const getAuthToken = (): string | undefined => {
@@ -264,24 +235,6 @@ export const ensureBillingScope = async () => {
   }
 };
 
-const userCanNowUseTerra = (oldState: AuthState, state: AuthState) => {
-  return (
-    // The user was not loaded, and became loaded and is allowed to use the system.
-    (oldState.signInStatus !== 'userLoaded' &&
-      state.signInStatus === 'userLoaded' &&
-      state.terraUserAllowances.allowed) ||
-    // The user was loaded and not allowed, but became allowed to use the system
-    (oldState.signInStatus === 'userLoaded' &&
-      !oldState.terraUserAllowances.allowed &&
-      state.signInStatus === 'userLoaded' &&
-      state.terraUserAllowances.allowed)
-  );
-};
-
-const isNowSignedIn = (oldState: AuthState, state: AuthState) => {
-  return oldState.signInStatus !== 'authenticated' && state.signInStatus === 'authenticated';
-};
-
 export const isUserInitialized = (state: AuthState): boolean => {
   return state.signInStatus !== 'uninitialized';
 };
@@ -340,74 +293,6 @@ export const loadOidcUser = (user: OidcUser): void => {
   }));
 };
 
-// this function is only called when the browser refreshes
-export const initializeAuth = _.memoize(async (): Promise<void> => {
-  initializeOidcUserManager();
-  const setSignedOut = () =>
-    authStore.update((state) => ({
-      ...state,
-      signInStatus: 'signedOut',
-    }));
-  try {
-    const initialOidcUser: OidcUser | null = await getCurrentOidcUser();
-    if (initialOidcUser !== null) {
-      loadOidcUser(initialOidcUser);
-    } else {
-      setSignedOut();
-    }
-  } catch (e) {
-    console.error('Error in contacting oidc-client');
-    setSignedOut();
-    throw new Error('Failed to initialize auth.');
-  }
-});
-
-interface GoogleUserInfo {
-  sub: string;
-  name: string;
-  given_name: string;
-  family_name: string;
-  picture: string;
-  email: string;
-  email_verified: boolean;
-  locale: string;
-  hd: string;
-}
-
-// This is intended for integration tests to short circuit the login flow
-window.forceSignIn = withErrorReporting('Error forcing sign in')(async (token) => {
-  await initializeAuth(); // don't want this clobbered when real auth initializes
-  const res = await fetchOk('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const data: GoogleUserInfo = await res.json();
-  oidcStore.update((state) => ({
-    ...state,
-    user: {
-      ...data,
-      access_token: token,
-    } as unknown as OidcUser,
-  }));
-  authStore.update((state) => ({
-    ...state,
-    signInStatus: 'authenticated',
-    isTimeoutEnabled: undefined,
-    cookiesAccepted: true,
-  }));
-  userStore.update((state) => ({
-    ...state,
-    terraUser: {
-      token,
-      id: data.sub,
-      email: data.email,
-      name: data.name,
-      givenName: data.given_name,
-      familyName: data.family_name,
-      imageUrl: data.picture,
-    },
-  }));
-});
-
 // extending Window interface to access Appcues
 declare global {
   interface Window {
@@ -429,165 +314,3 @@ declare global {
     forceSignIn: any;
   }
 }
-
-authStore.subscribe(
-  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
-    if (!oldState.termsOfService.permitsSystemUsage && state.termsOfService.permitsSystemUsage) {
-      if (window.Appcues) {
-        const { terraUser, samUser } = userStore.get();
-        // for Sam users who have been invited but not yet registered
-        // and for a set of users who didn't have registration dates to migrate into Sam
-        // registeredAt may be null in the Sam db. In that case, default to epoch (1970) instead
-        // so the survey won't be immediately displayed
-        const dateJoined = samUser.registeredAt ? samUser.registeredAt.getTime() : new Date('1970-01-01').getTime();
-        window.Appcues.identify(terraUser.id!, {
-          dateJoined,
-        });
-        window.Appcues.on('all', captureAppcuesEvent);
-      }
-    }
-  })
-);
-
-authStore.subscribe((state: AuthState) => {
-  // We can't guarantee that someone reopening the window is the same user,
-  // so we should not persist cookie acceptance across sessions for people signed out
-  // Per compliance recommendation, we could probably persist through a session, but
-  // that would require a second store in session storage instead of local storage
-  if (state.signInStatus === 'userLoaded' && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
-    setLocalPref(cookiesAcceptedKey, state.cookiesAccepted);
-  }
-});
-
-authStore.subscribe(
-  withErrorReporting('Error checking groups for timeout status')(async (state: AuthState, oldState: AuthState) => {
-    if (userCanNowUseTerra(oldState, state)) {
-      const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Groups().list());
-      authStore.update((state) => ({ ...state, isTimeoutEnabled }));
-    }
-  })
-);
-
-export const refreshTerraProfile = async () => {
-  const profile: TerraUserProfile = await User().profile.get();
-  userStore.update((state: TerraUserState) => ({ ...state, profile }));
-};
-
-export const refreshSamUserAttributes = async (): Promise<void> => {
-  const terraUserAttributes: SamUserAttributes = await User().getUserAttributes();
-  userStore.update((state: TerraUserState) => ({ ...state, terraUserAttributes }));
-};
-
-export const loadTerraUser = async (): Promise<void> => {
-  try {
-    const signInStatus = 'userLoaded';
-    const getProfile = User().profile.get();
-    const getCombinedState = User().getSamUserCombinedState();
-    const [profile, terraUserCombinedState] = await Promise.all([getProfile, getCombinedState]);
-    const { terraUserAttributes, enterpriseFeatures, samUser, terraUserAllowances, termsOfService } =
-      terraUserCombinedState;
-    clearNotification(sessionExpirationProps.id);
-    userStore.update((state: TerraUserState) => ({
-      ...state,
-      profile,
-      terraUserAttributes,
-      enterpriseFeatures,
-      samUser,
-    }));
-    authStore.update((state: AuthState) => ({
-      ...state,
-      signInStatus,
-      terraUserAllowances,
-      termsOfService,
-    }));
-  } catch (error: unknown) {
-    if ((error as Response).status !== 403) {
-      throw error;
-    }
-    // If the call to User endpoints fail with a 403, it means the user is not registered.
-    // Update the AuthStore state to forward them to the registration page.
-    const signInStatus = 'unregistered';
-    authStore.update((state: AuthState) => ({ ...state, signInStatus }));
-  }
-};
-
-const doSignInEvents = (state: AuthState) => {
-  if (state.termsOfService.isCurrentVersion === false) {
-    // The user could theoretically navigate away from the Terms of Service page during the Rolling Acceptance Window.
-    // This is not a concern, since the user will be denied access to the system once the Rolling Acceptance Window ends.
-    // This is really just a convenience to make sure the user is not disrupted once the Rolling Acceptance Window ends.
-    Nav.goToPath('terms-of-service');
-  }
-};
-
-authStore.subscribe(
-  withErrorReporting('Error loading user')(async (state: AuthState, oldState: AuthState) => {
-    if (isNowSignedIn(oldState, state)) {
-      await loadTerraUser();
-      if (state.userJustSignedIn) {
-        const loadedState = authStore.get();
-        doSignInEvents(loadedState);
-        authStore.update((state: AuthState) => ({ ...state, userJustSignedIn: false }));
-      }
-    }
-  })
-);
-
-authStore.subscribe(
-  withErrorReporting('Error loading NIH account link status')(async (state: AuthState, oldState: AuthState) => {
-    if (userCanNowUseTerra(oldState, state)) {
-      const nihStatus = await User().getNihStatus();
-      authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
-    }
-  })
-);
-
-authStore.subscribe(
-  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
-    if (userCanNowUseTerra(oldState, state)) {
-      await Metrics().syncProfile();
-    }
-  })
-);
-
-authStore.subscribe(
-  withErrorIgnoring(async (state: AuthState, oldState: AuthState) => {
-    if (userCanNowUseTerra(oldState, state)) {
-      const { anonymousId } = metricStore.get();
-      if (anonymousId) {
-        return await Metrics().identify(anonymousId);
-      }
-    }
-  })
-);
-
-authStore.subscribe(
-  withErrorReporting('Error loading OAuth2 account status')(async (state: AuthState, oldState: AuthState) => {
-    if (userCanNowUseTerra(oldState, state)) {
-      await Promise.all(
-        _.map(async (provider) => {
-          const status = await ExternalCredentials()(provider).getAccountLinkStatus();
-          authStore.update(_.set(['oAuth2AccountStatus', provider.key], status));
-        }, allOAuth2Providers)
-      );
-    }
-  })
-);
-
-authStore.subscribe((state: AuthState, oldState: AuthState) => {
-  const isSignedOut = state.signInStatus === 'signedOut';
-  const wasSignedIn = oldState.signInStatus !== 'signedOut';
-  if (wasSignedIn && isSignedOut) {
-    workspaceStore.reset();
-    workspacesStore.reset();
-    asyncImportJobStore.reset();
-    window.Appcues?.reset();
-  }
-});
-
-workspaceStore.subscribe((newState, oldState) => {
-  const getWorkspaceId = (ws) => ws?.workspace.workspaceId;
-  if (getWorkspaceId(newState) !== getWorkspaceId(oldState)) {
-    requesterPaysProjectStore.reset();
-  }
-});
