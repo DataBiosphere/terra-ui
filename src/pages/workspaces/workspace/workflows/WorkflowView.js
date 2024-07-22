@@ -375,21 +375,26 @@ export const WorkflowView = _.flow(
 
       const { workspace } = this.props;
 
-      // console.log(getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`));
+      // console.log(getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.namespace}/workflow_options`));
+
+      const workflowOptionsPref = getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.namespace}/workflow_options`);
+      const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
+      const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
+      const resourceMonitoringEnabledPref = resourceMonitoringPref?.enabled;
 
       this.state = {
         activeTab: 'inputs',
         entitySelectionModel: { selectedEntities: {} },
         useCallCache: true,
-        deleteIntermediateOutputFiles: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.deleteIntermediateOutputFiles || false,
-        useReferenceDisks: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.useReferenceDisks || false,
-        retryWithMoreMemory: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.retryWithMoreMemory?.enabled || false,
-        retryMemoryFactor: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.retryWithMoreMemory?.factor || 1.2,
-        ignoreEmptyOutputs: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.ignoreEmptyOutputs || false,
-        expandResourceMonitoring: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.enabled || false,
-        monitoringScript: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.script || null,
-        monitoringImage: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.image || null,
-        monitoringImageScript: getLocalPref(`${workspace.workspace.workspaceId}/workflow_options`)?.resourceMonitoring?.imageScript || null,
+        deleteIntermediateOutputFiles: workflowOptionsPref?.deleteIntermediateOutputFiles || false,
+        useReferenceDisks: workflowOptionsPref?.useReferenceDisks || false,
+        retryWithMoreMemory: retryWithMoreMemoryPref?.enabled || false,
+        retryMemoryFactor: retryWithMoreMemoryPref?.enabled ? retryWithMoreMemoryPref?.factor : 1.2,
+        ignoreEmptyOutputs: workflowOptionsPref?.ignoreEmptyOutputs || false,
+        expandResourceMonitoring: resourceMonitoringEnabledPref || false,
+        monitoringScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.script : null,
+        monitoringImage: resourceMonitoringEnabledPref ? resourceMonitoringPref?.image : null,
+        monitoringImageScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.imageScript : null,
         includeOptionalInputs: true,
         filter: '',
         errors: { inputs: {}, outputs: {} },
@@ -644,6 +649,49 @@ export const WorkflowView = _.flow(
       }
     }
 
+    updatedWorkflowOptionsPref() {
+      const {
+        useReferenceDisks,
+        ignoreEmptyOutputs,
+        deleteIntermediateOutputFiles,
+        retryWithMoreMemory,
+        retryMemoryFactor,
+        expandResourceMonitoring,
+        monitoringScript,
+        monitoringImage,
+        monitoringImageScript,
+      } = this.state;
+
+      let updatedWfOptionsPref;
+      if (useReferenceDisks) updatedWfOptionsPref = { ...updatedWfOptionsPref, ...{ useReferenceDisks } };
+      if (ignoreEmptyOutputs) updatedWfOptionsPref = { ...updatedWfOptionsPref, ...{ ignoreEmptyOutputs } };
+      if (deleteIntermediateOutputFiles) updatedWfOptionsPref = { ...updatedWfOptionsPref, ...{ deleteIntermediateOutputFiles } };
+      if (retryWithMoreMemory)
+        updatedWfOptionsPref = {
+          ...updatedWfOptionsPref,
+          ...{
+            retryWithMoreMemory: {
+              enabled: retryWithMoreMemory,
+              factor: retryMemoryFactor,
+            },
+          },
+        };
+      if (expandResourceMonitoring)
+        updatedWfOptionsPref = {
+          ...updatedWfOptionsPref,
+          ...{
+            resourceMonitoring: {
+              enabled: expandResourceMonitoring,
+              script: monitoringScript,
+              image: monitoringImage,
+              imageScript: monitoringImageScript,
+            },
+          },
+        };
+
+      return updatedWfOptionsPref;
+    }
+
     componentDidUpdate() {
       const { workspace } = this.props;
 
@@ -665,21 +713,11 @@ export const WorkflowView = _.flow(
         )
       );
 
-      setLocalPref(`${workspace.workspace.workspaceId}/workflow_options`, {
-        useReferenceDisks: this.state.useReferenceDisks,
-        ignoreEmptyOutputs: this.state.ignoreEmptyOutputs,
-        deleteIntermediateOutputFiles: this.state.deleteIntermediateOutputFiles,
-        retryWithMoreMemory: {
-          enabled: this.state.retryWithMoreMemory,
-          factor: this.state.retryMemoryFactor,
-        },
-        resourceMonitoring: {
-          enabled: this.state.expandResourceMonitoring,
-          script: this.state.monitoringScript,
-          image: this.state.monitoringImage,
-          imageScript: this.state.monitoringImageScript,
-        },
-      });
+      const updatedWfOptionsPref = this.updatedWorkflowOptionsPref();
+
+      // console.log(`updatedWfOptionsPref: ${JSON.stringify(updatedWfOptionsPref)}`);
+
+      setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.namespace}/workflow_options`, updatedWfOptionsPref);
     }
 
     async fetchInfo(savedConfig, currentSnapRedacted) {
