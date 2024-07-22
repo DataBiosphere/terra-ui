@@ -26,7 +26,7 @@ import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import { isAzureConfig, isAzureDiskType } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { leoDiskProvider, PersistentDiskDetail } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import {
   azureMachineTypes,
   defaultAzureComputeConfig,
@@ -54,7 +54,7 @@ export interface AzureComputeModalBaseProps {
   readonly onError: () => void;
   readonly workspace: BaseWorkspace;
   readonly currentRuntime?: Runtime;
-  readonly currentDisk?: PersistentDiskDetail;
+  readonly currentDisk?: PersistentDisk;
   readonly isLoadingCloudEnvironments: boolean;
   readonly location: string;
   readonly tool?: ToolLabel;
@@ -75,7 +75,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
     hideCloseButton = false,
   } = props;
   const [_loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<viewModeTypes>(undefined);
+  const [viewMode, setViewMode] = useState<viewModeTypes>('baseViewMode');
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime);
   const [currentPersistentDiskDetails] = useState(currentDisk);
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig);
@@ -438,7 +438,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
             titleId,
             tool: tool && isRuntimeToolLabel(tool) ? tool : runtimeToolLabels.JupyterLab,
             onDismiss,
-            onPrevious: () => setViewMode(undefined),
+            onPrevious: () => setViewMode('baseViewMode'),
           }),
       ],
       [
@@ -454,7 +454,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
             renderActionButton,
             hideCloseButton: false,
             onDismiss,
-            onPrevious: () => setViewMode(undefined),
+            onPrevious: () => setViewMode('baseViewMode'),
             toolLabel: currentRuntimeDetails && currentRuntimeDetails.labels.tool,
           }),
       ],
