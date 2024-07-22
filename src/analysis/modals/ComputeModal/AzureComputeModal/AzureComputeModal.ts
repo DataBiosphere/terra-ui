@@ -26,7 +26,7 @@ import TitleBar from 'src/components/TitleBar';
 import { Ajax } from 'src/libs/ajax';
 import { isAzureConfig, isAzureDiskType } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
-import { leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { leoDiskProvider, PersistentDiskDetail } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import {
   azureMachineTypes,
   defaultAzureComputeConfig,
@@ -46,18 +46,18 @@ const titleId = 'azure-compute-modal-title';
 
 const minAutopause = 10;
 
-export type viewModeTypes = 'deleteEnvironment' | 'aboutPersistentDisk' | undefined;
+export type viewModeTypes = 'deleteEnvironment' | 'aboutPersistentDisk' | 'baseViewMode';
 
 export interface AzureComputeModalBaseProps {
   readonly onDismiss: () => void;
-  readonly onSuccess: (string?: string | undefined) => void;
+  readonly onSuccess: (string?: string) => void;
   readonly onError: () => void;
   readonly workspace: BaseWorkspace;
-  readonly currentRuntime?: Runtime | undefined;
-  readonly currentDisk?: PersistentDisk | undefined;
+  readonly currentRuntime?: Runtime;
+  readonly currentDisk?: PersistentDiskDetail;
   readonly isLoadingCloudEnvironments: boolean;
   readonly location: string;
-  readonly tool?: ToolLabel | undefined;
+  readonly tool?: ToolLabel;
   readonly hideCloseButton: boolean;
 }
 
@@ -213,14 +213,14 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
 
   const doesRuntimeExist = () => !!currentRuntimeDetails;
 
-  interface CommonButtonProps {
+  interface ActionButtonProps {
     readonly tooltipSide: Side;
     readonly disabled: boolean;
     readonly tooltip?: string | undefined;
   }
 
   const renderActionButton = () => {
-    const commonButtonProps: CommonButtonProps = {
+    const actionButtonProps: ActionButtonProps = {
       tooltipSide: 'left',
       disabled: Utils.cond(
         [loading, true],
@@ -247,7 +247,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
     return h(
       ButtonPrimary,
       {
-        ...commonButtonProps,
+        ...actionButtonProps,
         tooltip:
           persistentDiskExists && viewMode !== 'deleteEnvironment'
             ? 'Mount existing Persistent disk to a new Virtual Machine.'
@@ -309,7 +309,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
                   : {},
             ], // delete runtime
             [
-              !!persistentDiskExists,
+              !!persistentDiskExists && currentPersistentDiskDetails,
               () => (currentPersistentDiskDetails ? leoDiskProvider.delete(currentPersistentDiskDetails) : {}),
             ] // delete disk
           ),
