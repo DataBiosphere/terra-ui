@@ -11,13 +11,17 @@ type ActionBarProps = {
   actionText: string | ReactElement;
   /** The onClick handler for the action bar button.  */
   onClick: () => void;
+  /** An optional flag for whether the button is disabled */
+  disabled?: boolean;
+  /** An optional tooltip for the action button */
+  tooltip?: string | ReactElement[] | false;
 };
 
 /**
  * A component that displays a prompt and an action button at the bottom of a page.
  */
 export const ActionBar = (props: ActionBarProps) => {
-  const { prompt, actionText, onClick } = props;
+  const { prompt, actionText, onClick, tooltip, disabled } = props;
   return div(
     {
       style: {
@@ -35,7 +39,7 @@ export const ActionBar = (props: ActionBarProps) => {
     },
     [
       div({ style: { display: 'flex', alignItems: 'center' } }, [prompt]),
-      h(ButtonPrimary, { style: { marginLeft: '2rem', borderRadius: 0 }, onClick }, [actionText]),
+      h(ButtonPrimary, { tooltip, disabled, style: { marginLeft: '2rem', borderRadius: 0 }, onClick }, [actionText]),
     ]
   );
 };

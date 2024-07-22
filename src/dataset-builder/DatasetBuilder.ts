@@ -4,8 +4,9 @@ import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'rea
 import { div, h, h2, h3, label, li, span, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonOutline, ButtonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
+import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
+import { ValidatedInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
@@ -30,8 +31,10 @@ import {
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
+import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
@@ -461,6 +464,10 @@ const RequestAccessModal = (props: RequestAccessModalProps) => {
   );
 };
 
+export const snapshotRequestNameValidator = {
+  length: { minimum: 3, maximum: 511 },
+};
+
 export type DatasetBuilderContentsProps = {
   onStateChange: OnStateChangeHandler;
   updateCohorts: Updater<Cohort[]>;
@@ -474,6 +481,8 @@ export type DatasetBuilderContentsProps = {
   updateSelectedConceptSets: (cohorts: HeaderAndValues<ConceptSet>[]) => void;
   selectedColumns: RequiredHeaderAndValues<DatasetBuilderValue>[];
   updateSelectedColumns: (values: RequiredHeaderAndValues<DatasetBuilderValue>[]) => void;
+  snapshotRequestName: string;
+  updateSnapshotRequestName: (string) => void;
 };
 
 export const DatasetBuilderContents = ({
@@ -489,11 +498,14 @@ export const DatasetBuilderContents = ({
   updateSelectedConceptSets,
   selectedColumns,
   updateSelectedColumns,
+  snapshotRequestName,
+  updateSnapshotRequestName,
 }: DatasetBuilderContentsProps) => {
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
   const [snapshotAccessRequest, setSnapshotAccessRequest] = useLoadedData<SnapshotAccessRequestResponse>();
+  const [snapshotRequestNameTouched, setSnapshotRequestNameTouched] = useState(false);
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
   const allConceptSets: ConceptSet[] = useMemo(() => _.flatMap('values', selectedConceptSets), [selectedConceptSets]);
@@ -533,6 +545,8 @@ export const DatasetBuilderContents = ({
       }))
     )(snapshotBuilderSettings.datasetConceptSets);
 
+  const errors = validate({ snapshotRequestName }, { snapshotRequestName: snapshotRequestNameValidator });
+
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
       h(BuilderPageHeader, [
@@ -540,6 +554,26 @@ export const DatasetBuilderContents = ({
         div(['Build a snapshot by selecting the participants and data for one or more of your cohorts.']),
         div({ style: { marginTop: '5px', whiteSpace: 'pre-line' } }, [
           'Then, request access in order to export the data snapshot to a Terra Workspace, where you can perform your analysis.',
+        ]),
+        h(IdContainer, [
+          (id) =>
+            div({ style: { height: '4rem', paddingBottom: '1rem', width: '30rem' } }, [
+              h(FormLabel, { htmlFor: id, style: { fontSize: 14, paddingBottom: '0.5rem' } }, [
+                'Name your data snapshot',
+              ]),
+              h(ValidatedInput, {
+                inputProps: {
+                  id,
+                  value: snapshotRequestName,
+                  onChange: (v) => {
+                    setSnapshotRequestNameTouched(true);
+                    updateSnapshotRequestName(v);
+                  },
+                  placeholder: 'Enter a name',
+                },
+                error: snapshotRequestNameTouched && Utils.summarizeErrors(errors),
+              }),
+            ]),
         ]),
         ul({ style: { display: 'flex', width: '100%', marginTop: '2rem', listStyleType: 'none', padding: 0 } }, [
           h(CohortSelector, {
@@ -574,6 +608,8 @@ export const DatasetBuilderContents = ({
               : h(Spinner),
             ' participants in this dataset',
           ]),
+          disabled: !!errors,
+          tooltip: !!errors && _.map((error) => div({ key: error }, [error]), errors),
           actionText: 'Request this data snapshot',
           onClick: () => {
             setSnapshotAccessRequest(
@@ -636,6 +672,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedColumns, setSelectedColumns] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
+  const [snapshotRequestName, setSnapshotRequestName] = useState('');
   const conceptSets =
     snapshotBuilderSettings.status === 'Ready' ? snapshotBuilderSettings.state.datasetConceptSets : [];
   const onStateChange = setDatasetBuilderState;
@@ -685,6 +722,8 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   updateSelectedConceptSets: setSelectedConceptSets,
                   selectedColumns,
                   updateSelectedColumns: setSelectedColumns,
+                  snapshotRequestName,
+                  updateSnapshotRequestName: setSnapshotRequestName,
                 });
               case 'cohort-editor':
                 return h(CohortEditor, {
