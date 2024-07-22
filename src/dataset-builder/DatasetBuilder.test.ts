@@ -2,12 +2,11 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort, convertDomainOptionToConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
+import { Cohort } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   DataRepoContract,
   SnapshotBuilderDatasetConceptSet,
-  SnapshotBuilderDomainOption,
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
@@ -69,12 +68,12 @@ describe('DatasetBuilder', () => {
         snapshotBuilderSettings: testSettings,
         selectedCohorts: [],
         selectedConceptSets: [],
-        selectedValues: [],
+        selectedColumns: [],
         snapshotRequestName: '',
+        updateSnapshotRequestName: jest.fn(),
         updateSelectedCohorts: jest.fn(),
         updateSelectedConceptSets: jest.fn(),
-        updateSelectedValues: jest.fn(),
-        updateSnapshotRequestName: jest.fn(),
+        updateSelectedColumns: jest.fn(),
         ...overrides,
       })
     );
@@ -139,10 +138,7 @@ describe('DatasetBuilder', () => {
   const renderConceptSetSelector = () =>
     render(
       h(ConceptSetSelector, {
-        conceptSets: [
-          ..._.map(convertDomainOptionToConceptSet, testSettings.domainOptions),
-          ...testSettings.datasetConceptSets,
-        ],
+        conceptSets: testSettings.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -201,10 +197,6 @@ describe('DatasetBuilder', () => {
 
   it('renders concept sets', () => {
     renderConceptSetSelector();
-    _.flow(
-      _.map((domainOption: SnapshotBuilderDomainOption) => domainOption.name),
-      _.forEach((domainConceptSetName: string) => expect(screen.getByText(domainConceptSetName)).toBeTruthy())
-    )(testSettings.domainOptions);
     _.flow(
       _.map((conceptSet: SnapshotBuilderDatasetConceptSet) => conceptSet.name),
       _.forEach((conceptSetName: string) => expect(screen.getByText(conceptSetName)).toBeTruthy())

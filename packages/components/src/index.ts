@@ -13,6 +13,7 @@ export * from './Select';
 export * from './spinners/Spinner';
 export * from './spinners/CenteredSpinner';
 export * from './spinners/SpinnerOverlay';
+export { sideOptions } from './internal/popup-utils';
 export * from './Switch';
 export * from './TooltipTrigger';
 export * from './buttons';

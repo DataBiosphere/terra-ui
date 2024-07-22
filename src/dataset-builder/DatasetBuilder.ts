@@ -13,7 +13,6 @@ import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   Cohort,
-  convertDomainOptionToConceptSet,
   createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
   DatasetBuilderValue,
@@ -26,7 +25,8 @@ import {
   SnapshotAccessRequestResponse,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDatasetConceptSet as ConceptSet,
-  SnapshotBuilderFeatureValueGroup as FeatureValueGroup,
+  SnapshotBuilderDatasetConceptSet,
+  SnapshotBuilderOutputTableApi as OutputTable,
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
@@ -479,8 +479,8 @@ export type DatasetBuilderContentsProps = {
   updateSelectedCohorts: (cohorts: HeaderAndValues<Cohort>[]) => void;
   selectedConceptSets: HeaderAndValues<ConceptSet>[];
   updateSelectedConceptSets: (cohorts: HeaderAndValues<ConceptSet>[]) => void;
-  selectedValues: RequiredHeaderAndValues<DatasetBuilderValue>[];
-  updateSelectedValues: (values: RequiredHeaderAndValues<DatasetBuilderValue>[]) => void;
+  selectedColumns: RequiredHeaderAndValues<DatasetBuilderValue>[];
+  updateSelectedColumns: (values: RequiredHeaderAndValues<DatasetBuilderValue>[]) => void;
   snapshotRequestName: string;
   updateSnapshotRequestName: (string) => void;
 };
@@ -496,8 +496,8 @@ export const DatasetBuilderContents = ({
   updateSelectedCohorts,
   selectedConceptSets,
   updateSelectedConceptSets,
-  selectedValues,
-  updateSelectedValues,
+  selectedColumns,
+  updateSelectedColumns,
   snapshotRequestName,
   updateSnapshotRequestName,
 }: DatasetBuilderContentsProps) => {
@@ -519,33 +519,31 @@ export const DatasetBuilderContents = ({
           DataRepo().snapshot(snapshotId).getSnapshotBuilderCount(createSnapshotBuilderCountRequest(allCohorts))
         )
       );
-  }, [snapshotId, selectedValues, setSnapshotRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+  }, [snapshotId, selectedColumns, setSnapshotRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
 
-  const getNewFeatureValueGroups = (includedFeatureValueGroups: string[]): string[] =>
+  const getNewColumns = (includedColumns: string[]): string[] =>
     _.without(
       [
         ..._.flatMap(
-          (selectedValueGroups: RequiredHeaderAndValues<DatasetBuilderValue>) => selectedValueGroups.header,
-          selectedValues
+          (selectedHeaderValues: RequiredHeaderAndValues<DatasetBuilderValue>) => selectedHeaderValues.header,
+          selectedColumns
         ),
         ..._.flow(
           _.flatMap((selectedConceptSetGroup: HeaderAndValues<ConceptSet>) => selectedConceptSetGroup.values),
-          _.map((selectedConceptSet) => selectedConceptSet.featureValueGroupName)
+          _.map((selectedConceptSet) => selectedConceptSet.name)
         )(selectedConceptSets),
       ],
-      includedFeatureValueGroups
+      includedColumns
     );
 
-  const createHeaderAndValuesFromFeatureValueGroups = (
-    featureValueGroups: string[]
-  ): RequiredHeaderAndValues<DatasetBuilderValue>[] =>
+  const createHeaderAndValuesFromColumns = (columns: string[]): RequiredHeaderAndValues<DatasetBuilderValue>[] =>
     _.flow(
-      _.filter((featureValueGroup: FeatureValueGroup) => _.includes(featureValueGroup.name, featureValueGroups)),
-      _.map((featureValueGroup: FeatureValueGroup) => ({
-        header: featureValueGroup.name,
-        values: _.map((value) => ({ name: value }), featureValueGroup.values),
+      _.filter((outputTable: OutputTable) => _.includes(outputTable.name, columns)),
+      _.map((datasetConceptSet: SnapshotBuilderDatasetConceptSet) => ({
+        header: datasetConceptSet.name,
+        values: _.map((value) => ({ name: value }), datasetConceptSet.table.columns),
       }))
-    )(snapshotBuilderSettings.featureValueGroups);
+    )(snapshotBuilderSettings.datasetConceptSets);
 
   const errors = validate({ snapshotRequestName }, { snapshotRequestName: snapshotRequestNameValidator });
 
@@ -590,15 +588,12 @@ export const DatasetBuilderContents = ({
             conceptSets,
             selectedConceptSets,
             onChange: async (conceptSets) => {
-              const includedFeatureValueGroups = _.flow(
+              const includedColumns = _.flow(
                 _.flatMap((headerAndValues: HeaderAndValues<ConceptSet>) => headerAndValues.values),
-                _.map((conceptSet: ConceptSet) => conceptSet.featureValueGroupName)
+                _.map((conceptSet: ConceptSet) => conceptSet.name)
               )(conceptSets);
-              const newFeatureValueGroups = getNewFeatureValueGroups(includedFeatureValueGroups);
-              updateSelectedValues([
-                ...selectedValues,
-                ...createHeaderAndValuesFromFeatureValueGroups(newFeatureValueGroups),
-              ]);
+              const newColumns = getNewColumns(includedColumns);
+              updateSelectedColumns([...selectedColumns, ...createHeaderAndValuesFromColumns(newColumns)]);
               updateSelectedConceptSets(conceptSets);
             },
             onStateChange,
@@ -628,13 +623,12 @@ export const DatasetBuilderContents = ({
                         '',
                         snapshotId,
                         _.flatMap((cohortSet) => cohortSet.values, selectedCohorts),
-                        _.flatMap((conceptSetSet) => conceptSetSet.values, selectedConceptSets),
                         _.map(
-                          (valuesSet: RequiredHeaderAndValues<DatasetBuilderValue>) => ({
-                            domain: valuesSet.header,
-                            values: valuesSet.values,
+                          (outputTables: RequiredHeaderAndValues<DatasetBuilderValue>) => ({
+                            domain: outputTables.header,
+                            columns: outputTables.values,
                           }),
-                          selectedValues // convert from HeaderAndValues<DatasetBuilderType>[] to ValueSet[]
+                          selectedColumns // convert from HeaderAndValues<DatasetBuilderType>[] to OutputTable[]
                         )
                       )
                     )
@@ -677,15 +671,10 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
-  const [selectedValues, setSelectedValues] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
+  const [selectedColumns, setSelectedColumns] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
   const [snapshotRequestName, setSnapshotRequestName] = useState('');
   const conceptSets =
-    snapshotBuilderSettings.status === 'Ready'
-      ? [
-          ..._.map(convertDomainOptionToConceptSet, snapshotBuilderSettings.state.domainOptions),
-          ...(snapshotBuilderSettings.state.datasetConceptSets ?? []),
-        ]
-      : [];
+    snapshotBuilderSettings.status === 'Ready' ? snapshotBuilderSettings.state.datasetConceptSets : [];
   const onStateChange = setDatasetBuilderState;
 
   const getNextCriteriaIndex = () => {
@@ -731,8 +720,8 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   updateSelectedCohorts: setSelectedCohorts,
                   selectedConceptSets,
                   updateSelectedConceptSets: setSelectedConceptSets,
-                  selectedValues,
-                  updateSelectedValues: setSelectedValues,
+                  selectedColumns,
+                  updateSelectedColumns: setSelectedColumns,
                   snapshotRequestName,
                   updateSnapshotRequestName: setSnapshotRequestName,
                 });
