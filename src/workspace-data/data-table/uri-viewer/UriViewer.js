@@ -9,6 +9,7 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
 import { parseGsUri } from 'src/components/data/data-utils';
+import { SimpleTabBar } from 'src/components/tabBars';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -32,6 +33,7 @@ export const UriViewer = _.flow(
   const signal = useCancellation();
   const [metadata, setMetadata] = useState();
   const [loadingError, setLoadingError] = useState(false);
+  const [useFileName, setUseFileName] = useState(true);
 
   const loadMetadata = async () => {
     try {
@@ -95,11 +97,22 @@ export const UriViewer = _.flow(
     const { bucket, name } = metadata;
     const gsUri = `gs://${bucket}/${name}`;
     const downloadCommand = isAzureUri(uri)
-      ? getDownloadCommand(metadata.name, getAzureStorageUrl(metadata), metadata.accessUrl)
-      : getDownloadCommand(metadata.name, gsUri, metadata.accessUrl);
+      ? getDownloadCommand(metadata.name, getAzureStorageUrl(metadata), useFileName, metadata.accessUrl)
+      : getDownloadCommand(metadata.name, gsUri, useFileName, metadata.accessUrl);
 
     return h(Fragment, [
       p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
+      h(SimpleTabBar, {
+        'aria-label': 'import type',
+        tabs: [
+          { title: 'Download to Current Directory', key: 'current', width: 207 },
+          { title: 'Mirror File Directory', key: 'mirror', width: 207 },
+        ],
+        value: useFileName ? 'mirror' : 'current',
+        onChange: (value) => {
+          setUseFileName(value === 'mirror');
+        },
+      }),
       pre(
         {
           style: {
@@ -110,6 +123,7 @@ export const UriViewer = _.flow(
             background: colors.light(0.4),
           },
         },
+
         [
           span(
             {

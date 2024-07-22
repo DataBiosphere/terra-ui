@@ -12,7 +12,12 @@ type AccessUrl = {
   headers: { [key: string]: string };
 };
 
-export const getDownloadCommand = (fileName: string, uri: string, accessUrl?: AccessUrl): string | undefined => {
+export const getDownloadCommand = (
+  fileName: string,
+  uri: string,
+  useFileName: boolean,
+  accessUrl?: AccessUrl
+): string | undefined => {
   const { url: httpUrl, headers: httpHeaders } = accessUrl || {};
   if (httpUrl) {
     const headers = _.flow(
@@ -25,10 +30,10 @@ export const getDownloadCommand = (fileName: string, uri: string, accessUrl?: Ac
   }
 
   if (isAzureUri(uri)) {
-    return `azcopy copy '${uri}' ${fileName || '.'}`;
+    return `azcopy copy '${uri}' ${useFileName && fileName ? `'${fileName}'` : '.'}`;
   }
 
   if (isGsUri(uri)) {
-    return `gsutil cp '${uri}' ${fileName || '.'}`;
+    return `gsutil cp '${uri}' ${useFileName && fileName ? `'${fileName}'` : '.'}`;
   }
 };
