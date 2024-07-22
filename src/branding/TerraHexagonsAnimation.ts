@@ -40,7 +40,6 @@ export const TerraHexagonsAnimation = (props: TerraHexagonsAnimationProps): Reac
         justifyContent: 'center',
         alignItems: 'center',
         height: size,
-        width: size,
       },
     },
     [

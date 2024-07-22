@@ -22,12 +22,12 @@ export interface WorkflowInfoBoxProps {
 }
 
 interface FetchedWorkflowInfoData {
-  start: string;
+  start?: string;
   end?: string;
   wdlScript?: string;
-  status: string;
-  workflowLog: string;
-  executionDirectory: string;
+  status?: string;
+  workflowLog?: string;
+  executionDirectory?: string;
 }
 
 export const WorkflowInfoBox = (props: WorkflowInfoBoxProps): ReactNode => {
@@ -49,7 +49,7 @@ export const WorkflowInfoBox = (props: WorkflowInfoBoxProps): ReactNode => {
       const data: FetchedWorkflowInfoData = {
         start: metadata.start,
         end: metadata.end,
-        wdlScript: metadata.submittedFiles.workflow,
+        wdlScript: metadata?.submittedFiles?.workflow,
         status: metadata.status,
         workflowLog: metadata.workflowLog,
         executionDirectory: metadata.workflowRoot,

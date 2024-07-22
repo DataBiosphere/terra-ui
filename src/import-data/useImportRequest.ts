@@ -1,4 +1,6 @@
+import { delay } from '@terra-ui-packages/core-utils';
 import { useEffect, useState } from 'react';
+import { Ajax } from 'src/libs/ajax';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -70,10 +72,34 @@ const getFileImportRequest = (queryParams: QueryParams, type: FileImportRequest[
   return { type, url };
 };
 
+/**
+ * Generate a snapshot manifest on demand for importing a TDR snapshot.
+ */
+const generateSnapshotManifest = async (snapshotId: string): Promise<URL> => {
+  const { id } = await DataRepo().snapshot(snapshotId).exportSnapshot();
+  const jobApi = Ajax().DataRepo.job(id);
+  let jobInfo = await jobApi.details();
+  while (jobInfo.job_status === 'running') {
+    await delay(1000);
+    jobInfo = await jobApi.details();
+  }
+  if (jobInfo.job_status !== 'succeeded') {
+    throw new Error(`Failed to generate manifest for snapshot ${id}.`);
+  }
+  const jobResult = await jobApi.result();
+  // @ts-ignore - this has an unknown response type, but in this case it should
+  // include these fields
+  return jobResult?.format?.parquet?.manifest;
+};
+
 const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Promise<TDRSnapshotExportImportRequest> => {
-  const manifestUrl = requireUrl(queryParams.tdrmanifest, 'manifest URL');
   const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
   const syncPermissions = queryParams.tdrSyncPermissions === 'true';
+
+  const { tdrmanifest } = queryParams;
+  const manifestUrl = tdrmanifest
+    ? requireUrl(tdrmanifest, 'manifest URL')
+    : await generateSnapshotManifest(snapshotId);
 
   let snapshot: Snapshot;
   let snapshotAccessControls: string[];
@@ -156,18 +182,26 @@ export const getImportRequest = (queryParams: QueryParams): Promise<ImportReques
 };
 
 export type UseImportRequestResult =
-  | { status: 'Loading' }
+  | { status: 'Loading'; message?: string }
   | { status: 'Ready'; importRequest: ImportRequest }
   | { status: 'Error'; error: Error };
 
+/**
+ * For each format that takes a long time to prepare, define a message to display while the import request is being loaded.
+ */
+const messages = {
+  tdrexport: 'Preparing your snapshot for import.',
+};
+
 export const useImportRequest = (): UseImportRequestResult => {
   const { query } = useRoute();
+  const message = messages[query.format];
 
-  const [result, setResult] = useState<UseImportRequestResult>({ status: 'Loading' });
+  const [result, setResult] = useState<UseImportRequestResult>({ status: 'Loading', message });
   useEffect(() => {
     (async () => {
       try {
-        setResult({ status: 'Loading' });
+        setResult({ status: 'Loading', message });
         const importRequest = await getImportRequest(query);
         setResult({ status: 'Ready', importRequest });
       } catch (originalError: unknown) {

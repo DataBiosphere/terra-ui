@@ -31,7 +31,7 @@ import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_WORKFLOW_RESOURCE_MONITORING, FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
+import { FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
@@ -1021,118 +1021,130 @@ export const WorkflowView = _.flow(
                   ]),
               ]),
               div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
-                // This span is to prevent vertical resizing when the memory retry multiplier input is visible.
+                span({ style: { marginTop: '1.0rem', marginBottom: '0.5rem' } }, [
+                  div([
+                    span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          disabled: currentSnapRedacted || !WorkspaceUtils.canRunAnalysisInWorkspace(ws).value,
+                          checked: useCallCache,
+                          onChange: (v) => this.setState({ useCallCache: v }),
+                        },
+                        [' Use call caching']
+                      ),
+                    ]),
+                    h(InfoBox, [
+                      "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
+                      h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
+                  ]),
+                  div([
+                    span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: deleteIntermediateOutputFiles,
+                          onChange: (v) => this.setState({ deleteIntermediateOutputFiles: v }),
+                        },
+                        [' Delete intermediate outputs']
+                      ),
+                    ]),
+                    h(InfoBox, [
+                      'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
+                      h(Link, { href: this.getSupportLink('360039681632'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
+                  ]),
+                ]),
                 span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
-                  span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        disabled: currentSnapRedacted || !WorkspaceUtils.canRunAnalysisInWorkspace(ws).value,
-                        checked: useCallCache,
-                        onChange: (v) => this.setState({ useCallCache: v }),
-                      },
-                      [' Use call caching']
-                    ),
+                  div([
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: useReferenceDisks,
+                          onChange: (v) => this.setState({ useReferenceDisks: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Use reference disks']
+                      ),
+                    ]),
+                    h(InfoBox, [
+                      'Use a reference disk image if available rather than localizing reference inputs. ',
+                      h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    ]),
                   ]),
-                  h(InfoBox, [
-                    "Call caching detects when a job has been run in the past so that it doesn't have to re-compute results. ",
-                    h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  ]),
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: deleteIntermediateOutputFiles,
-                        onChange: (v) => this.setState({ deleteIntermediateOutputFiles: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Delete intermediate outputs']
-                    ),
-                  ]),
-                  h(InfoBox, [
-                    'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
-                    h(Link, { href: this.getSupportLink('360039681632'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  ]),
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: useReferenceDisks,
-                        onChange: (v) => this.setState({ useReferenceDisks: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Use reference disks']
-                    ),
-                  ]),
-                  h(InfoBox, [
-                    'Use a reference disk image if available rather than localizing reference inputs. ',
-                    h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  ]),
-                  span({ style: styles.checkBoxSpanMargins }, [
-                    h(
-                      LabeledCheckbox,
-                      {
-                        checked: retryWithMoreMemory,
-                        onChange: (v) => this.setState({ retryWithMoreMemory: v }),
-                        style: styles.checkBoxLeftMargin,
-                      },
-                      [' Retry with more memory']
-                    ),
-                  ]),
-                ]),
-                retryWithMoreMemory &&
-                  span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
-                    h(IdContainer, [
-                      (id) =>
-                        h(Fragment, [
-                          label(
-                            {
-                              htmlFor: id,
-                              style: { ...styles.label, verticalAlign: 'middle' },
-                            },
-                            ['Memory retry factor:']
-                          ),
-                          div({ style: { display: 'inline-block', marginLeft: '0.25rem' } }, [
-                            h(NumberInput, {
-                              id,
-                              min: 1.1,
-                              max: 10,
-                              step: 0.1,
-                              isClearable: false,
-                              onlyInteger: false,
-                              value: retryMemoryFactor,
-                              style: { width: '5rem' },
-                              onChange: (v) => this.setState({ retryMemoryFactor: v }),
-                            }),
-                          ]),
+                  div([
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: retryWithMoreMemory,
+                          onChange: (v) => this.setState({ retryWithMoreMemory: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Retry with more memory']
+                      ),
+                    ]),
+                    // We show either an info message or a warning, based on whether increasing memory on retries is
+                    // enabled and the value of the retry multiplier.
+                    retryWithMoreMemory && retryMemoryFactor > 2
+                      ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
+                          'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
+                          h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                        ])
+                      : h(InfoBox, [
+                          'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
+                          h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                         ]),
-                    ]),
                   ]),
-                // We show either an info message or a warning, based on whether increasing memory on retries is
-                // enabled and the value of the retry multiplier.
-                retryWithMoreMemory && retryMemoryFactor > 2
-                  ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
-                      'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
-                      h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                    ])
-                  : h(InfoBox, [
-                      'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
-                      h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                    ]),
-                span({ style: styles.checkBoxSpanMargins }, [
-                  h(
-                    LabeledCheckbox,
-                    {
-                      checked: ignoreEmptyOutputs,
-                      onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
-                      style: styles.checkBoxLeftMargin,
-                    },
-                    [' Ignore empty outputs']
-                  ),
+                  div([
+                    retryWithMoreMemory &&
+                      span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
+                        h(IdContainer, [
+                          (id) =>
+                            h(Fragment, [
+                              label(
+                                {
+                                  htmlFor: id,
+                                  style: { ...styles.label, verticalAlign: 'middle', marginLeft: '1.5rem' },
+                                },
+                                ['Memory factor:']
+                              ),
+                              div({ style: { display: 'inline-block', marginLeft: '0.5rem', height: '1.75rem', marginTop: '0.5rem' } }, [
+                                h(NumberInput, {
+                                  id,
+                                  min: 1.1,
+                                  max: 10,
+                                  step: 0.1,
+                                  isClearable: false,
+                                  onlyInteger: false,
+                                  value: retryMemoryFactor,
+                                  style: { width: '5rem' },
+                                  onChange: (v) => this.setState({ retryMemoryFactor: v }),
+                                }),
+                              ]),
+                            ]),
+                        ]),
+                      ]),
+                  ]),
                 ]),
-                h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
-                div({}, [
-                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
+                span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
+                  div([
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: ignoreEmptyOutputs,
+                          onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Ignore empty outputs']
+                      ),
+                    ]),
+                    h(InfoBox, ['Do not create output columns if the data is null/empty. ']),
+                  ]),
+                  div([
                     span({ style: styles.checkBoxSpanMargins }, [
                       h(
                         LabeledCheckbox,
@@ -1144,44 +1156,44 @@ export const WorkflowView = _.flow(
                         [' Resource monitoring']
                       ),
                     ]),
-                  isFeaturePreviewEnabled(ENABLE_WORKFLOW_RESOURCE_MONITORING) &&
                     h(InfoBox, [
                       'Specify user-provided tools to monitor task resources. ',
-                      h(Link, { href: 'https://cromwell.readthedocs.io/en/stable/wf_options/Google/', ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                      h(Link, { href: this.getSupportLink('27341964316699'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
-                  expandResourceMonitoring &&
-                    div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
-                      div({ display: 'flex', flexDirection: 'row' }, [
-                        h(TextInput, {
-                          id: 'resource-monitoring-script',
-                          placeholder: 'Script',
-                          value: monitoringScript,
-                          onChange: (v) => this.setState({ monitoringScript: v }),
-                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
-                        }),
-                        h(InfoBox, ['Standalone .sh script that runs inside task container']),
+                    expandResourceMonitoring &&
+                      div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
+                        div({ display: 'flex', flexDirection: 'row' }, [
+                          h(TextInput, {
+                            id: 'resource-monitoring-script',
+                            placeholder: 'Script',
+                            value: monitoringScript,
+                            onChange: (v) => this.setState({ monitoringScript: v }),
+                            style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                          }),
+                          h(InfoBox, ['Standalone .sh script that runs inside task container']),
+                        ]),
+                        div({ display: 'flex', flexDirection: 'row' }, [
+                          h(TextInput, {
+                            id: 'resource-monitoring-image',
+                            placeholder: 'Image',
+                            value: monitoringImage,
+                            onChange: (v) => this.setState({ monitoringImage: v }),
+                            style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                          }),
+                          h(InfoBox, ['Image that runs as a sibling alongside task container']),
+                        ]),
+                        div({ display: 'flex', flexDirection: 'row' }, [
+                          h(TextInput, {
+                            id: 'resource-monitoring-image-script',
+                            placeholder: 'Image script',
+                            value: monitoringImageScript,
+                            onChange: (v) => this.setState({ monitoringImageScript: v }),
+                            style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
+                          }),
+                          h(InfoBox, ['Script that runs inside the sibling container']),
+                        ]),
                       ]),
-                      div({ display: 'flex', flexDirection: 'row' }, [
-                        h(TextInput, {
-                          id: 'resource-monitoring-image',
-                          placeholder: 'Image',
-                          value: monitoringImage,
-                          onChange: (v) => this.setState({ monitoringImage: v }),
-                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
-                        }),
-                        h(InfoBox, ['Image that runs as a sibling alongside task container']),
-                      ]),
-                      div({ display: 'flex', flexDirection: 'row' }, [
-                        h(TextInput, {
-                          id: 'resource-monitoring-image-script',
-                          placeholder: 'Image script',
-                          value: monitoringImageScript,
-                          onChange: (v) => this.setState({ monitoringImageScript: v }),
-                          style: { marginTop: '0.5rem', width: '90%', marginRight: '0.5rem' },
-                        }),
-                        h(InfoBox, ['Script that runs inside the sibling container']),
-                      ]),
-                    ]),
+                  ]),
                 ]),
               ]),
               h(StepButtons, {

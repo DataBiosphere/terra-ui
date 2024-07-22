@@ -7,8 +7,10 @@ import { h } from 'react-hyperscript-helpers';
 import RModal from 'react-modal';
 import { startPollingServiceAlerts } from 'src/alerts/service-alerts-polling';
 import { startPollingVersion } from 'src/alerts/version-polling';
-import { initializeAuth } from 'src/auth/auth';
-import { initializeClientId } from 'src/auth/oidc-broker';
+import { initializeAuthListeners, initializeAuthUser } from 'src/auth/app-load/init-auth';
+import { initAuthTesting } from 'src/auth/app-load/init-auth-test';
+import { initializeAuthMetrics } from 'src/auth/app-load/init-metrics';
+import { initializeClientId } from 'src/auth/app-load/initializeClientId';
 import { initializeSystemProperties } from 'src/auth/system-loader';
 import { isAxeEnabled } from 'src/libs/config';
 import Main from 'src/pages/Main';
@@ -19,6 +21,10 @@ RModal.defaultStyles = { overlay: {}, content: {} };
 
 window._ = _;
 
+initializeAuthListeners();
+initializeAuthMetrics();
+initAuthTesting();
+
 initializeClientId().then(() => {
   const root = createRoot(rootElement);
   root.render(h(Main));
@@ -28,7 +34,7 @@ initializeClientId().then(() => {
   // doing anything that may show a notification.
   setTimeout(() => {
     initializeSystemProperties();
-    initializeAuth();
+    initializeAuthUser();
     startPollingServiceAlerts();
     startPollingVersion();
   }, 0);

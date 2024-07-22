@@ -260,7 +260,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
           ),
         },
         {
-          label: 'Program Data',
+          label: 'Demographics',
           options: _.map((programDataOption) => {
             return {
               value: programDataOption,

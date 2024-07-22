@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { refreshTerraProfile } from 'src/auth/auth';
+import { refreshTerraProfile } from 'src/auth/user-profile/user';
 import { UpdateTerraUserProfileRequest, User } from 'src/libs/ajax/User';
 import { reportError } from 'src/libs/error';
 import { useStore } from 'src/libs/react-utils';

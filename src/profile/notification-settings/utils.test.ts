@@ -1,5 +1,5 @@
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { refreshSamUserAttributes, refreshTerraProfile } from 'src/auth/auth';
+import { refreshSamUserAttributes, refreshTerraProfile } from 'src/auth/user-profile/user';
 import { Ajax } from 'src/libs/ajax';
 import Events, { EventWorkspaceAttributes, extractWorkspaceDetails } from 'src/libs/events';
 
@@ -8,6 +8,7 @@ import { notificationEnabled, updateNotificationPreferences, updateUserAttribute
 type AjaxContract = ReturnType<typeof Ajax>;
 
 jest.mock('src/auth/auth');
+jest.mock('src/auth/user-profile/user');
 jest.mock('src/libs/ajax');
 
 describe('utils', () => {

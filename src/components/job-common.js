@@ -1,4 +1,3 @@
-import _ from 'lodash/fp';
 import { Fragment } from 'react';
 import { div, h, h3, h4, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
@@ -163,15 +162,6 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
   ]);
 };
 
-export const getTaskCost = ({ vmCostUsd, taskStartTime, taskEndTime }) => {
-  const currentEndTime = Date.parse(taskEndTime) || Date.now();
-  const vmCostDouble = parseFloat(vmCostUsd);
-  const startDateTime = Date.parse(taskStartTime);
-
-  const elapsedTime = currentEndTime - startDateTime;
-  return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2));
-};
-
 export const renderTaskCostElement = (cost) => {
   if (cost.toFixed(2) === '0.00') {
     return '< $0.01';
@@ -179,46 +169,8 @@ export const renderTaskCostElement = (cost) => {
   return `$${cost.toFixed(2)}`;
 };
 
-export const calculateTotalCost = async (callObjects, loadForSubworkflows) => {
-  let total = 0;
-  let callObs = callObjects;
-
-  if (!_.isNil(callObjects) && callObjects?.subWorkflowId) {
-    const subWorkflows = await loadForSubworkflows(callObjects.subWorkflowId);
-    // Re-assigning callObs to be the call objects fetched from the subWorkflow
-    callObs = subWorkflows?.calls;
-  }
-  for (const call of Object.values(callObs)) {
-    for (const s of call) {
-      const { taskStartTime, taskEndTime, vmCostUsd, subWorkflowId, subWorkflowMetadata } = s;
-      if (subWorkflowId) {
-        const subWorkflows = await loadForSubworkflows(subWorkflowId);
-        const subworkflowCalls = subWorkflows?.calls;
-        total += await calculateTotalCost(subworkflowCalls, loadForSubworkflows);
-      } else if (subWorkflowMetadata) {
-        const subWorkflowMetadataCalls = subWorkflowMetadata.calls;
-        total += await calculateTotalCost(subWorkflowMetadataCalls, loadForSubworkflows);
-      }
-      total += costComprehension({ taskStartTime, taskEndTime, vmCostUsd });
-    }
-  }
-  return total;
-};
-
 export const renderInProgressElement = ({ status }) => {
   if (status === 'Running') {
     return span({ style: { fontStyle: 'italic' } }, ['In progress - ']);
   }
-};
-
-const costComprehension = ({ taskStartTime, taskEndTime, vmCostUsd }) => {
-  let total = 0;
-  if (!taskStartTime) {
-    total += 0;
-  } else if (taskEndTime) {
-    total += getTaskCost({ vmCostUsd, taskStartTime, taskEndTime });
-  } else {
-    total += getTaskCost({ vmCostUsd, taskStartTime });
-  }
-  return total;
 };

@@ -4574,7 +4574,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
+"@terra-ui-packages/data-client-core@*, @terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-clients/core"
   dependencies:
@@ -4587,7 +4587,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo":
+"@terra-ui-packages/leonardo-data-client@*, @terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo"
   dependencies:
@@ -16399,6 +16399,8 @@ __metadata:
     "@terra-ui-packages/analysis": "*"
     "@terra-ui-packages/components": "*"
     "@terra-ui-packages/core-utils": "*"
+    "@terra-ui-packages/data-client-core": "*"
+    "@terra-ui-packages/leonardo-data-client": "*"
     "@terra-ui-packages/notifications": "*"
     "@terra-ui-packages/test-utils": 1.0.0
     "@testing-library/dom": ^9.3.1
