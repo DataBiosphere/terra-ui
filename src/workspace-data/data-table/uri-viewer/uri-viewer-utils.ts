@@ -30,10 +30,10 @@ export const getDownloadCommand = (
   }
 
   if (isAzureUri(uri)) {
-    return `azcopy copy '${uri}' ${useFileName && fileName ? `'${fileName}'` : '.'}`;
+    return `azcopy copy '${uri}' ${useFileName && fileName ? `${fileName}` : '.'}`;
   }
 
   if (isGsUri(uri)) {
-    return `gcloud storage cp '${uri}' ${useFileName && fileName ? `'${fileName}'` : '.'}`;
+    return `gcloud storage cp '${uri}' ${useFileName && fileName ? `${fileName}` : '.'}`;
   }
 };

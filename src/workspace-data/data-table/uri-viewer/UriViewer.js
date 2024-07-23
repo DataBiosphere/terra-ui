@@ -104,20 +104,23 @@ export const UriViewer = _.flow(
       : getDownloadCommand(metadata.name, gsUri, useFileName, metadata.accessUrl);
 
     return h(Fragment, [
-      p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
-      p({ style: { marginBottom: '0.5rem', fontWeight: 200 } }, ['Download to:']),
-      div({ marginBottom: '0.5rem', fontWeight: 200 }, [
+      p({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Terminal download command']),
+      p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Download to:']),
+      div({ marginBottom: '0.5rem' }, [
         h(LabeledRadioGroup, { style: { marginTop: 0, marginBottom: 0 } }, [
           LabeledRadioButton({
             text: 'Current Directory',
             name: 'current-directory',
             checked: !useFileName,
             onChange: toggleUseFileName,
+            labelStyle: { color: 'black', fontWeight: 250 },
           }),
           LabeledRadioButton({
             text: 'New Subdirectory',
             name: 'new-subdirectory',
+            checked: useFileName,
             onChange: toggleUseFileName,
+            labelStyle: { color: 'black', fontWeight: 250 },
           }),
         ]),
       ]),
