@@ -34,6 +34,6 @@ export const getDownloadCommand = (
   }
 
   if (isGsUri(uri)) {
-    return `gsutil cp '${uri}' ${useFileName && fileName ? `'${fileName}'` : '.'}`;
+    return `gcloud storage cp '${uri}' ${useFileName && fileName ? `'${fileName}'` : '.'}`;
   }
 };

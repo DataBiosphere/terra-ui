@@ -165,7 +165,7 @@ describe('GCSFileBrowserProvider', () => {
     expect(downloadUrl).toBe('signedUrl');
   });
 
-  it('returns a gsutil download command', async () => {
+  it('returns a gcloud storage download command', async () => {
     // Arrange
     const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' });
 
@@ -173,7 +173,7 @@ describe('GCSFileBrowserProvider', () => {
     const downloadCommand = await provider.getDownloadCommandForFile('path/to/example.txt');
 
     // Assert
-    expect(downloadCommand).toBe("gsutil cp 'gs://test-bucket/path/to/example.txt' .");
+    expect(downloadCommand).toBe("gcloud storage cp 'gs://test-bucket/path/to/example.txt' .");
   });
 
   it('uploads a file', async () => {

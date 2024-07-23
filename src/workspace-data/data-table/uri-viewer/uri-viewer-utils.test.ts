@@ -1,9 +1,9 @@
 import { getDownloadCommand } from './uri-viewer-utils';
 
 describe('getDownloadCommand', () => {
-  it('gets download command for gsutil', () => {
+  it('gets download command for gcloud storage', () => {
     expect(getDownloadCommand('test.txt', 'gs://demo-data/test.txt')).toBe(
-      "gsutil cp 'gs://demo-data/test.txt' test.txt"
+      "gcloud storage cp 'gs://demo-data/test.txt' test.txt"
     );
   });
 
