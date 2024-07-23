@@ -375,9 +375,11 @@ export const WorkflowView = _.flow(
 
       const { workspace } = this.props;
 
-      // console.log(getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.namespace}/workflow_options`));
+      // console.log(
+      //   `from local storage: ${JSON.stringify(getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`))}`
+      // );
 
-      const workflowOptionsPref = getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.namespace}/workflow_options`);
+      const workflowOptionsPref = getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`);
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
       const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
       const resourceMonitoringEnabledPref = resourceMonitoringPref?.enabled;
@@ -392,9 +394,9 @@ export const WorkflowView = _.flow(
         retryMemoryFactor: retryWithMoreMemoryPref?.enabled ? retryWithMoreMemoryPref?.factor : 1.2,
         ignoreEmptyOutputs: workflowOptionsPref?.ignoreEmptyOutputs || false,
         expandResourceMonitoring: resourceMonitoringEnabledPref || false,
-        monitoringScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.script : null,
-        monitoringImage: resourceMonitoringEnabledPref ? resourceMonitoringPref?.image : null,
-        monitoringImageScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.imageScript : null,
+        monitoringScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.script : '',
+        monitoringImage: resourceMonitoringEnabledPref ? resourceMonitoringPref?.image : '',
+        monitoringImageScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.imageScript : '',
         includeOptionalInputs: true,
         filter: '',
         errors: { inputs: {}, outputs: {} },
@@ -649,7 +651,7 @@ export const WorkflowView = _.flow(
       }
     }
 
-    updatedWorkflowOptionsPref() {
+    getUpdatedWorkflowOptionsPref() {
       const {
         useReferenceDisks,
         ignoreEmptyOutputs,
@@ -662,31 +664,22 @@ export const WorkflowView = _.flow(
         monitoringImageScript,
       } = this.state;
 
-      let updatedWfOptionsPref;
-      if (useReferenceDisks) updatedWfOptionsPref = { ...updatedWfOptionsPref, ...{ useReferenceDisks } };
-      if (ignoreEmptyOutputs) updatedWfOptionsPref = { ...updatedWfOptionsPref, ...{ ignoreEmptyOutputs } };
-      if (deleteIntermediateOutputFiles) updatedWfOptionsPref = { ...updatedWfOptionsPref, ...{ deleteIntermediateOutputFiles } };
+      const updatedWfOptionsPref = {};
+
+      if (useReferenceDisks) updatedWfOptionsPref.useReferenceDisks = useReferenceDisks;
+      if (ignoreEmptyOutputs) updatedWfOptionsPref.ignoreEmptyOutputs = ignoreEmptyOutputs;
+      if (deleteIntermediateOutputFiles) updatedWfOptionsPref.deleteIntermediateOutputFiles = deleteIntermediateOutputFiles;
       if (retryWithMoreMemory)
-        updatedWfOptionsPref = {
-          ...updatedWfOptionsPref,
-          ...{
-            retryWithMoreMemory: {
-              enabled: retryWithMoreMemory,
-              factor: retryMemoryFactor,
-            },
-          },
+        updatedWfOptionsPref.retryWithMoreMemory = {
+          enabled: retryWithMoreMemory,
+          factor: retryMemoryFactor,
         };
       if (expandResourceMonitoring)
-        updatedWfOptionsPref = {
-          ...updatedWfOptionsPref,
-          ...{
-            resourceMonitoring: {
-              enabled: expandResourceMonitoring,
-              script: monitoringScript,
-              image: monitoringImage,
-              imageScript: monitoringImageScript,
-            },
-          },
+        updatedWfOptionsPref.resourceMonitoring = {
+          enabled: expandResourceMonitoring,
+          script: monitoringScript,
+          image: monitoringImage,
+          imageScript: monitoringImageScript,
         };
 
       return updatedWfOptionsPref;
@@ -713,11 +706,12 @@ export const WorkflowView = _.flow(
         )
       );
 
-      const updatedWfOptionsPref = this.updatedWorkflowOptionsPref();
+      const updatedWfOptionsPref = this.getUpdatedWorkflowOptionsPref();
 
       // console.log(`updatedWfOptionsPref: ${JSON.stringify(updatedWfOptionsPref)}`);
 
-      setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.namespace}/workflow_options`, updatedWfOptionsPref);
+      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`, undefined);
+      else setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`, updatedWfOptionsPref);
     }
 
     async fetchInfo(savedConfig, currentSnapRedacted) {
@@ -1127,7 +1121,6 @@ export const WorkflowView = _.flow(
                           checked: useReferenceDisks,
                           onChange: (v) => {
                             this.setState({ useReferenceDisks: v });
-                            // setLocalPref(`${workspace.workspaceId}/workflow_options`, {useReferenceDisks: v})
                           },
                           style: styles.checkBoxLeftMargin,
                         },
@@ -1203,7 +1196,6 @@ export const WorkflowView = _.flow(
                           checked: ignoreEmptyOutputs,
                           onChange: (v) => {
                             this.setState({ ignoreEmptyOutputs: v });
-                            // setLocalPref(`${workspace.workspaceId}/workflow_options`, {...get(), ...{ignoreEmptyOutputs: v}})
                           },
                           style: styles.checkBoxLeftMargin,
                         },
@@ -1230,7 +1222,7 @@ export const WorkflowView = _.flow(
                     ]),
                     expandResourceMonitoring &&
                       div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
-                        div({ display: 'flex', flexDirection: 'row' }, [
+                        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {
                             id: 'resource-monitoring-script',
                             placeholder: 'Script',
@@ -1240,7 +1232,7 @@ export const WorkflowView = _.flow(
                           }),
                           h(InfoBox, ['Standalone .sh script that runs inside task container']),
                         ]),
-                        div({ display: 'flex', flexDirection: 'row' }, [
+                        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {
                             id: 'resource-monitoring-image',
                             placeholder: 'Image',
@@ -1250,7 +1242,7 @@ export const WorkflowView = _.flow(
                           }),
                           h(InfoBox, ['Image that runs as a sibling alongside task container']),
                         ]),
-                        div({ display: 'flex', flexDirection: 'row' }, [
+                        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {
                             id: 'resource-monitoring-image-script',
                             placeholder: 'Image script',
