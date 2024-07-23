@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { Dispatch, Fragment, SetStateAction, useEffect, useRef, useState } from 'react';
-import { h, span } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { Checkbox } from 'src/components/common';
 import { GridTable, HeaderCell, Resizable, Sortable, TextCell } from 'src/components/table';
@@ -21,9 +21,16 @@ type RecordsTableProps = {
   selectedRecords: Record<string, RecordResponse>;
   setSelectedRecords: Dispatch<SetStateAction<Record<string, RecordResponse>>>;
   selectedDataTable: RecordTypeSchema;
+  totalRecordsInActualDataTable: number;
 };
 
-const RecordsTable = ({ records, selectedRecords, setSelectedRecords, selectedDataTable }: RecordsTableProps) => {
+const RecordsTable = ({
+  records,
+  selectedRecords,
+  setSelectedRecords,
+  selectedDataTable,
+  totalRecordsInActualDataTable,
+}: RecordsTableProps) => {
   const [dataTableColumnWidths, setDataTableColumnWidths] = useState({});
   const dataTableRef = useRef<{ recomputeColumnSizes: () => void }>(null);
   const [recordsTableSort, setRecordsTableSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({
@@ -74,114 +81,121 @@ const RecordsTable = ({ records, selectedRecords, setSelectedRecords, selectedDa
     return data;
   };
 
-  return h(AutoSizer, { disableHeight: true }, [
-    ({ width }) =>
-      h(GridTable, {
-        'aria-label': `${selectedDataTable.name} data table`,
-        ref: dataTableRef,
-        // @ts-ignore
-        sort: recordsTableSort,
-        width,
-        height: (1 + recordsTableData.length) * 48,
-        // Keeping these properties here as a reminder: can we use them?
-        // noContentMessage: DEFAULT,
-        // noContentRenderer: DEFAULT,
-        rowCount: recordsTableData.length,
-        numFixedColumns: 1,
-        columns: [
-          {
-            width: 50,
-            headerRenderer: () => {
-              return h(Fragment, [
-                h(Checkbox, {
-                  checked: allSelected(),
-                  disabled: !recordsTableData.length,
-                  onChange: allSelected() ? deselectAll : selectAll,
-                  'aria-label': 'Select all',
-                }),
-              ]);
+  return h(div, [
+    div({ style: { fontStyle: 'italic', marginBottom: '1.5em' } }, [
+      `Note: You are viewing ${records.length} out of ${totalRecordsInActualDataTable} records from the '${selectedDataTable.name}' data table`,
+    ]),
+    h(AutoSizer, { disableHeight: true }, [
+      ({ width }) =>
+        h(GridTable, {
+          'aria-label': `${selectedDataTable.name} data table`,
+          ref: dataTableRef,
+          // @ts-ignore
+          sort: recordsTableSort,
+          width,
+          height: (1 + recordsTableData.length) * 48,
+          // Keeping these properties here as a reminder: can we use them?
+          // noContentMessage: DEFAULT,
+          // noContentRenderer: DEFAULT,
+          rowCount: recordsTableData.length,
+          numFixedColumns: 1,
+          columns: [
+            {
+              width: 50,
+              headerRenderer: () => {
+                return h(Fragment, [
+                  h(Checkbox, {
+                    checked: allSelected(),
+                    disabled: !recordsTableData.length,
+                    onChange: allSelected() ? deselectAll : selectAll,
+                    'aria-label': 'Select all',
+                  }),
+                ]);
+              },
+              cellRenderer: ({ rowIndex }) => {
+                const thisRecord = recordsTableData[rowIndex];
+                const { id } = thisRecord;
+                const checked = _.has([id], selectedRecords);
+                return h(Checkbox, {
+                  'aria-label': id || 'id-pending',
+                  checked,
+                  onChange: () => {
+                    setSelectedRecords((checked ? _.unset([id]) : _.set([id], thisRecord))(selectedRecords));
+                  },
+                });
+              },
             },
-            cellRenderer: ({ rowIndex }) => {
-              const thisRecord = recordsTableData[rowIndex];
-              const { id } = thisRecord;
-              const checked = _.has([id], selectedRecords);
-              return h(Checkbox, {
-                'aria-label': id || 'id-pending',
-                checked,
-                onChange: () => {
-                  setSelectedRecords((checked ? _.unset([id]) : _.set([id], thisRecord))(selectedRecords));
-                },
-              });
-            },
-          },
-          {
-            field: 'id',
-            width: dataTableColumnWidths[withDataTableNamePrefix('id')] || 300,
-            headerRenderer: () => {
-              const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('id')] || 300;
-              return h(
-                Resizable,
-                {
-                  width: columnWidth,
-                  onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('id')),
-                },
-                [
-                  h(
-                    Sortable,
-                    {
-                      sort: recordsTableSort,
-                      field: 'id',
-                      onSort: setRecordsTableSort,
-                    },
-                    [h(HeaderCell, ['ID'])]
-                  ),
-                ]
-              );
-            },
-            cellRenderer: ({ rowIndex }) => {
-              return h(TextCell, {}, [renderCellData(_.get('id', recordsTableData[rowIndex]))]);
-            },
-          },
-          ..._.map(({ name: attributeName }) => {
-            const columnWidth = dataTableColumnWidths[withDataTableNamePrefix(attributeName)] || 300;
-            const { columnNamespace, columnName } = parseAttributeName(attributeName);
-            return {
-              field: attributeName,
-              width: columnWidth,
-              headerRenderer: () =>
-                h(
+            {
+              field: 'id',
+              width: dataTableColumnWidths[withDataTableNamePrefix('id')] || 300,
+              headerRenderer: () => {
+                const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('id')] || 300;
+                return h(
                   Resizable,
                   {
                     width: columnWidth,
-                    onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix(attributeName)),
+                    onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('id')),
                   },
                   [
                     h(
                       Sortable,
                       {
                         sort: recordsTableSort,
-                        field: attributeName,
+                        field: 'id',
                         onSort: setRecordsTableSort,
                       },
-                      [
-                        h(HeaderCell, [
-                          !!columnNamespace &&
-                            span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [
-                              columnNamespace,
-                            ]),
-                          columnName,
-                        ]),
-                      ]
+                      [h(HeaderCell, ['ID'])]
                     ),
                   ]
-                ),
-              cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, {}, [renderCellData(_.get(attributeName, recordsTableData[rowIndex]))]);
+                );
               },
-            };
-          }, selectedDataTable.attributes),
-        ],
-      }),
+              cellRenderer: ({ rowIndex }) => {
+                return h(TextCell, {}, [renderCellData(_.get('id', recordsTableData[rowIndex]))]);
+              },
+            },
+            ..._.map(({ name: attributeName }) => {
+              const columnWidth = dataTableColumnWidths[withDataTableNamePrefix(attributeName)] || 300;
+              const { columnNamespace, columnName } = parseAttributeName(attributeName);
+              return {
+                field: attributeName,
+                width: columnWidth,
+                headerRenderer: () =>
+                  h(
+                    Resizable,
+                    {
+                      width: columnWidth,
+                      onWidthChange: (delta) =>
+                        resizeColumn(columnWidth, delta, withDataTableNamePrefix(attributeName)),
+                    },
+                    [
+                      h(
+                        Sortable,
+                        {
+                          sort: recordsTableSort,
+                          field: attributeName,
+                          onSort: setRecordsTableSort,
+                        },
+                        [
+                          h(HeaderCell, [
+                            !!columnNamespace &&
+                              span(
+                                { style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
+                                [columnNamespace]
+                              ),
+                            columnName,
+                          ]),
+                        ]
+                      ),
+                    ]
+                  ),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, {}, [renderCellData(_.get(attributeName, recordsTableData[rowIndex]))]);
+                },
+              };
+            }, selectedDataTable.attributes),
+          ],
+        }),
+    ]),
   ]);
 };
 

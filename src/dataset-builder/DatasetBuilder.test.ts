@@ -2,12 +2,11 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort, convertDomainOptionToConceptSet } from 'src/dataset-builder/DatasetBuilderUtils';
+import { Cohort } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   DataRepoContract,
   SnapshotBuilderDatasetConceptSet,
-  SnapshotBuilderDomainOption,
   SnapshotBuilderSettings,
 } from 'src/libs/ajax/DataRepo';
 import * as Nav from 'src/libs/nav';
@@ -52,8 +51,10 @@ describe('DatasetBuilder', () => {
     conceptSets?: SnapshotBuilderDatasetConceptSet[];
     selectedCohorts?: HeaderAndValues<Cohort>[];
     selectedConceptSets?: HeaderAndValues<SnapshotBuilderDatasetConceptSet>[];
+    snapshotRequestName?: string;
     updateSelectedCohorts?: (cohorts: HeaderAndValues<Cohort>[]) => void;
     updateSelectedConceptSets?: (conceptSets: HeaderAndValues<SnapshotBuilderDatasetConceptSet>[]) => void;
+    updateSnapshotRequestName?: (snapshotRequestName: string) => void;
   };
   const showDatasetBuilderContents = (overrides?: DatasetBuilderContentsPropsOverrides) => {
     render(
@@ -67,10 +68,12 @@ describe('DatasetBuilder', () => {
         snapshotBuilderSettings: testSettings,
         selectedCohorts: [],
         selectedConceptSets: [],
-        selectedValues: [],
+        selectedColumns: [],
+        snapshotRequestName: '',
+        updateSnapshotRequestName: jest.fn(),
         updateSelectedCohorts: jest.fn(),
         updateSelectedConceptSets: jest.fn(),
-        updateSelectedValues: jest.fn(),
+        updateSelectedColumns: jest.fn(),
         ...overrides,
       })
     );
@@ -106,11 +109,13 @@ describe('DatasetBuilder', () => {
   const initializeValidDatasetRequest = () => {
     const cohortOne = newCohort('cohort 1');
     const conditionConceptSet = newConceptSet('Condition');
+    const snapshotRequestName = 'valid name';
     showDatasetBuilderContents({
       cohorts: [cohortOne],
       selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
       conceptSets: [conditionConceptSet],
       selectedConceptSets: [{ values: [conditionConceptSet] }],
+      snapshotRequestName,
     });
   };
 
@@ -133,10 +138,7 @@ describe('DatasetBuilder', () => {
   const renderConceptSetSelector = () =>
     render(
       h(ConceptSetSelector, {
-        conceptSets: [
-          ..._.map(convertDomainOptionToConceptSet, testSettings.domainOptions),
-          ...testSettings.datasetConceptSets,
-        ],
+        conceptSets: testSettings.datasetConceptSets,
         selectedConceptSets: [],
         updateConceptSets: jest.fn(),
         onChange: (conceptSets) => conceptSets,
@@ -195,10 +197,6 @@ describe('DatasetBuilder', () => {
 
   it('renders concept sets', () => {
     renderConceptSetSelector();
-    _.flow(
-      _.map((domainOption: SnapshotBuilderDomainOption) => domainOption.name),
-      _.forEach((domainConceptSetName: string) => expect(screen.getByText(domainConceptSetName)).toBeTruthy())
-    )(testSettings.domainOptions);
     _.flow(
       _.map((conceptSet: SnapshotBuilderDatasetConceptSet) => conceptSet.name),
       _.forEach((conceptSetName: string) => expect(screen.getByText(conceptSetName)).toBeTruthy())
@@ -292,6 +290,45 @@ describe('DatasetBuilder', () => {
     // Assert
     expect(await screen.findByText('100 participants in this dataset')).toBeTruthy();
     expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
+  });
+
+  it('shows the participant count and disabled request button when request is valid but no name', async () => {
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      snapshot: (_snapshotId) =>
+        ({
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 100 }, sql: '' }),
+        } as Partial<DataRepoContract['snapshot']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+    // Arrange
+    const cohortOne = newCohort('cohort 1');
+    const conditionConceptSet = newConceptSet('Condition');
+    showDatasetBuilderContents({
+      cohorts: [cohortOne],
+      selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
+      conceptSets: [conditionConceptSet],
+      selectedConceptSets: [{ values: [conditionConceptSet] }],
+    });
+    // Assert
+    expect(await screen.findByText('100 participants in this dataset')).toBeTruthy();
+    const requestButton = await screen.findByText('Request this data snapshot');
+    expect(requestButton).toBeTruthy();
+    expect(requestButton.hasAttribute('disabled')).toBeTruthy();
+  });
+
+  it('updates name when name is entered into text field', async () => {
+    // Arrange
+    const updateSnapshotRequestName = jest.fn();
+    showDatasetBuilderContents({ updateSnapshotRequestName });
+    const input = 'input';
+    const user = userEvent.setup();
+    // Act
+    await user.type(await screen.findByLabelText('Name your data snapshot'), input);
+    // Assert
+    expect(updateSnapshotRequestName).toBeCalledTimes(input.length);
+    input.split('').forEach((inputCharacter) => {
+      expect(updateSnapshotRequestName).toBeCalledWith(inputCharacter);
+    });
   });
 
   it('hides the count with there are few participants in this dataset ', async () => {

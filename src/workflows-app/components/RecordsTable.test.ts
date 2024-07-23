@@ -87,8 +87,11 @@ describe('RecordsTable', () => {
         selectedRecords,
         setSelectedRecords,
         selectedDataTable,
+        totalRecordsInActualDataTable: mockRecordsData.length,
       })
     );
+
+    screen.getByText("Note: You are viewing 1 out of 1 records from the 'foo-data' data table");
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
@@ -165,8 +168,11 @@ describe('RecordsTable', () => {
         selectedRecords,
         setSelectedRecords,
         selectedDataTable,
+        totalRecordsInActualDataTable: records.length,
       })
     );
+
+    screen.getByText("Note: You are viewing 4 out of 4 records from the 'FOO' data table");
 
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');

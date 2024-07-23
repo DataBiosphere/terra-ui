@@ -610,6 +610,8 @@ describe('Initial state', () => {
 
     const cells = within(rows[1]).getAllByRole('cell');
     expect(cells.length).toBe(4);
+
+    screen.getByText("Note: You are viewing 4 out of 4 records from the 'FOO' data table");
   });
 
   it('should initially populate the inputs definition table with attributes determined by the previously executed run set', async () => {
@@ -979,6 +981,8 @@ describe('Records Table updates', () => {
     expect(mockMethodsResponse).toHaveBeenCalledTimes(1);
     expect(mockSearchResponse).toHaveBeenCalledTimes(1);
     expect(mockWdlResponse).toHaveBeenCalledTimes(1);
+    screen.getByText("Note: You are viewing 4 out of 4 records from the 'FOO' data table");
+
     const table = screen.getByRole('table');
 
     // ** ACT **
@@ -995,6 +999,7 @@ describe('Records Table updates', () => {
     expect(headers.length).toBe(4);
     const cells = within(rowsBAR[1]).getAllByRole('cell');
     expect(cells.length).toBe(4);
+    screen.getByText("Note: You are viewing 2 out of 2 records from the 'BAR' data table");
 
     // ** ACT **
     await dropdownSelect.selectOption('FOO');
@@ -2096,5 +2101,98 @@ describe('Submitting a run set', () => {
         },
       })
     );
+  });
+});
+
+describe('CBAS Capabilities API', () => {
+  beforeAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 800 });
+  });
+
+  beforeEach(() => {
+    getConfig.mockReturnValue({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', originalOffsetHeight);
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
+  });
+
+  // default max workflows is 100
+  const testCases = [
+    {
+      name: 'max workflows less than default',
+      apiMockResponse: jest.fn(() =>
+        Promise.resolve({
+          'submission.limits.maxOutputs': 3,
+          'submission.limits.maxWorkflows': 1,
+          'submission.limits.maxInputs': 2,
+        })
+      ),
+      expectedSearchLimit: 1,
+    },
+    {
+      name: 'max workflows more than default',
+      apiMockResponse: jest.fn(() =>
+        Promise.resolve({
+          'submission.limits.maxOutputs': 300,
+          'submission.limits.maxWorkflows': 300,
+          'submission.limits.maxInputs': 200,
+        })
+      ),
+      expectedSearchLimit: 300,
+    },
+    {
+      name: "capabilities API doesn't exist in this CBAS instance",
+      apiMockResponse: jest.fn(() => Promise.reject(new Error('No API found'))),
+      expectedSearchLimit: 100,
+    },
+  ];
+
+  testCases.forEach((test) => {
+    it(test.name, async () => {
+      // ** ARRANGE **
+      const mockRunSetResponse = jest.fn(() => Promise.resolve(runSetResponse));
+      const mockMethodsResponse = jest.fn(() => Promise.resolve(methodsResponse));
+      const mockSearchResponse = jest.fn((_root, _instanceId, recordType) => Promise.resolve(searchResponses[recordType]));
+      const mockCapabilitiesResponse = test.apiMockResponse;
+
+      Ajax.mockImplementation(() => {
+        return {
+          Cbas: {
+            runSets: {
+              getForMethod: mockRunSetResponse,
+            },
+            methods: {
+              getById: mockMethodsResponse,
+            },
+            capabilities: mockCapabilitiesResponse,
+          },
+          WorkspaceData: {
+            queryRecords: mockSearchResponse,
+          },
+        };
+      });
+
+      // ** ACT **
+      await act(async () =>
+        render(
+          h(BaseSubmissionConfig, {
+            methodId: '123',
+            name: 'test-azure-ws-name',
+            namespace: 'test-azure-ws-namespace',
+            workspace: mockAzureWorkspace,
+          })
+        )
+      );
+
+      // ** ASSERT **
+      expect(mockSearchResponse).toHaveBeenCalledTimes(1);
+      expect(mockCapabilitiesResponse).toHaveBeenCalledTimes(1);
+
+      // verify that search limit was set to expected value
+      expect(mockSearchResponse).toHaveBeenCalledWith('https://lz-abc/wds-abc-c07807929cd1/', 'abc-c07807929cd1', 'FOO', test.expectedSearchLimit);
+    });
   });
 });

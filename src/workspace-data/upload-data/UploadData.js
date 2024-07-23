@@ -623,7 +623,8 @@ const MetadataUploadPanel = ({
       let otherRows = _.drop(1, rows);
 
       // Perform validation on the first row
-      if (!idColumn) {
+      // presence of '' in the first row indicates too many tab characters
+      if (!idColumn || _.indexOf('', headerRow) > -1) {
         errors.push(['This does not look like a valid .tsv file.']);
         // Return right away
         setErrors(errors);

@@ -22,7 +22,7 @@ export const newCohort = (name: string): Cohort => ({
 
 export const newConceptSet = (name: string): SnapshotBuilderDatasetConceptSet => ({
   name,
-  featureValueGroupName: '',
+  table: { datasetTableName: 'datasetTableName', columns: [] },
 });
 
 type DatasetBuilderMode =

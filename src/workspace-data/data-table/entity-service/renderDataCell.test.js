@@ -49,6 +49,23 @@ describe('renderDataCell', () => {
     expect(render(renderDataCell({ items: [], itemsType: 'AttributeValue' }, testWorkspace)).container).toHaveTextContent('');
   });
 
+  it.each([{ testWorkspace: testGoogleWorkspace }, { testWorkspace: testAzureWorkspace }])('renders nested lists', ({ testWorkspace }) => {
+    expect(
+      render(
+        renderDataCell(
+          {
+            items: [
+              ['foo', 'bar'],
+              ['baz', 'qux'],
+            ],
+            itemsType: 'AttributeValue',
+          },
+          testWorkspace
+        )
+      ).container
+    ).toHaveTextContent('[foo,bar],[baz,qux]');
+  });
+
   it.each([{ testWorkspace: testGoogleWorkspace }, { testWorkspace: testAzureWorkspace }])(
     'limits the number of list items rendered',
     ({ testWorkspace }) => {
@@ -144,6 +161,65 @@ describe('renderDataCell', () => {
       const links = getAllByRole('link');
       expect(_.map('textContent', links)).toEqual(['file1.txt', 'file2.txt', 'file3.txt']);
       expect(_.map('href', links)).toEqual(['gs://bucket/file1.txt', 'gs://bucket/file2.txt', 'gs://bucket/file3.txt']);
+    });
+
+    it('renders nested lists of GCS URLs', () => {
+      const { getAllByRole } = render(
+        renderDataCell(
+          {
+            itemsType: 'AttributeValue',
+            items: [
+              ['gs://bucket/file1.txt', 'gs://bucket/file2.txt'],
+              ['gs://bucket/file3.txt', 'gs://bucket/file4.txt'],
+            ],
+          },
+          testGoogleWorkspace
+        )
+      );
+      const links = getAllByRole('link');
+      expect(_.map('textContent', links)).toEqual(['file1.txt', 'file2.txt', 'file3.txt', 'file4.txt']);
+      expect(_.map('href', links)).toEqual(['gs://bucket/file1.txt', 'gs://bucket/file2.txt', 'gs://bucket/file3.txt', 'gs://bucket/file4.txt']);
+    });
+
+    it('renders lists of Azure URLs', () => {
+      const { getAllByRole } = render(
+        renderDataCell(
+          {
+            itemsType: 'AttributeValue',
+            items: ['https://foo.blob.core.windows.net/testContainer/file1.txt', 'https://foo.blob.core.windows.net/testContainer/file2.txt'],
+          },
+          testAzureWorkspace
+        )
+      );
+      const links = getAllByRole('link');
+      expect(_.map('textContent', links)).toEqual(['file1.txt', 'file2.txt']);
+      expect(_.map('href', links)).toEqual([
+        'https://foo.blob.core.windows.net/testContainer/file1.txt',
+        'https://foo.blob.core.windows.net/testContainer/file2.txt',
+      ]);
+    });
+
+    it('renders nested lists of Azure URLs', () => {
+      const { getAllByRole } = render(
+        renderDataCell(
+          {
+            itemsType: 'AttributeValue',
+            items: [
+              ['https://foo.blob.core.windows.net/testContainer/file1.txt', 'https://foo.blob.core.windows.net/testContainer/file2.txt'],
+              ['https://foo.blob.core.windows.net/testContainer/file3.txt', 'https://foo.blob.core.windows.net/testContainer/file4.txt'],
+            ],
+          },
+          testAzureWorkspace
+        )
+      );
+      const links = getAllByRole('link');
+      expect(_.map('textContent', links)).toEqual(['file1.txt', 'file2.txt', 'file3.txt', 'file4.txt']);
+      expect(_.map('href', links)).toEqual([
+        'https://foo.blob.core.windows.net/testContainer/file1.txt',
+        'https://foo.blob.core.windows.net/testContainer/file2.txt',
+        'https://foo.blob.core.windows.net/testContainer/file3.txt',
+        'https://foo.blob.core.windows.net/testContainer/file4.txt',
+      ]);
     });
 
     it.each([{ testWorkspace: testGoogleWorkspace }, { testWorkspace: testAzureWorkspace }])('renders links to DRS URLs', ({ testWorkspace }) => {
