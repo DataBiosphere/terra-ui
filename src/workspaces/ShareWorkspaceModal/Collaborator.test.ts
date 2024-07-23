@@ -280,4 +280,31 @@ describe('a Collaborator component', () => {
       }
     });
   });
+
+  it('hides the Can Compute option when giving a collaborator Reader access', async () => {
+    // Arrange
+    const setAcl = jest.fn();
+    const item: AccessEntry = {
+      email: 'user1@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: false,
+      accessLevel: 'READER',
+    };
+    const acl = [item];
+
+    // Act
+    render(
+      h(Collaborator, {
+        aclItem: item,
+        acl,
+        setAcl,
+        originalAcl: acl,
+        workspace: { ...workspace, accessLevel: 'OWNER' },
+      })
+    );
+
+    // Assert
+    expect(screen.queryByText('Can compute')).not.toBeInTheDocument();
+  });
 });
