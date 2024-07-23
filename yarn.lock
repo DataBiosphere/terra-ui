@@ -10161,10 +10161,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highcharts@npm:^9.3.3":
-  version: 9.3.3
-  resolution: "highcharts@npm:9.3.3"
-  checksum: bd952eafcf7b1c136ab1e20d6b58172f9aeab9381c13e3d67f08b10eb6b2c1f96e62a8d276f29b1e92ef0a8cbc6d1696cd0e554691063a5183235e820b42404b
+"highcharts@npm:^10.3.3":
+  version: 10.3.3
+  resolution: "highcharts@npm:10.3.3"
+  checksum: f40690109486fdada407cdc94f257dd869ebbcdd0c7ac4c7b85021c087523b4c32ea88725dce5f1b490c9669573240e17622c4765366ed4c38ff2b2503f092e9
   languageName: node
   linkType: hard
 
@@ -16445,7 +16445,7 @@ __metadata:
     file-saver: ^2.0.5
     filesize: ^7.0.0
     github-markdown-css: ^4.0.0
-    highcharts: ^9.3.3
+    highcharts: ^10.3.3
     highcharts-react-official: ^3.1.0
     history: ^4.10.1
     husky: ^7.0.2
