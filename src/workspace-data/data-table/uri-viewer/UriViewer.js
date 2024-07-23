@@ -1,9 +1,10 @@
-import { Modal, Spinner, Switch } from '@terra-ui-packages/components';
+import { Modal, Spinner } from '@terra-ui-packages/components';
 import filesize from 'filesize';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, p, pre, span } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
+import { LabeledRadioButton, LabeledRadioGroup } from 'src/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
@@ -104,6 +105,22 @@ export const UriViewer = _.flow(
 
     return h(Fragment, [
       p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
+      p({ style: { marginBottom: '0.5rem', fontWeight: 200 } }, ['Download to:']),
+      div({ marginBottom: '0.5rem', fontWeight: 200 }, [
+        h(LabeledRadioGroup, { style: { marginTop: 0, marginBottom: 0 } }, [
+          LabeledRadioButton({
+            text: 'Current Directory',
+            name: 'current-directory',
+            checked: !useFileName,
+            onChange: toggleUseFileName,
+          }),
+          LabeledRadioButton({
+            text: 'New Subdirectory',
+            name: 'new-subdirectory',
+            onChange: toggleUseFileName,
+          }),
+        ]),
+      ]),
       pre(
         {
           style: {
@@ -135,17 +152,6 @@ export const UriViewer = _.flow(
           }),
         ]
       ),
-      div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } }, [
-        h(Switch, {
-          onLabel: ' ',
-          offLabel: ' ',
-          onChange: toggleUseFileName,
-          checked: useFileName,
-          width: 40,
-          height: 20,
-        }),
-        ['Download to current directory or mirror file directory'],
-      ]),
     ]);
   };
 
