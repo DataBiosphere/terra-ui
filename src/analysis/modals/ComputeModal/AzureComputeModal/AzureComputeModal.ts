@@ -1,3 +1,4 @@
+import { cond } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -183,7 +184,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
             disabled: loading,
           },
           [
-            Utils.cond(
+            cond(
               [doesRuntimeExist(), () => 'Delete Environment'],
               [persistentDiskExists, () => 'Delete Persistent Disk'],
               () => 'Delete Environment'
@@ -222,15 +223,15 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
   const renderActionButton = () => {
     const actionButtonProps: ActionButtonProps = {
       tooltipSide: 'left',
-      disabled: Utils.cond(
+      disabled: cond(
         [loading, true],
         [
-          viewMode === 'deleteEnvironment',
+          viewMode === 'deleteEnvironment' && !!currentRuntimeDetails,
           () => (currentRuntimeDetails ? getIsRuntimeBusy(currentRuntimeDetails) : false),
         ],
         () => doesRuntimeExist()
       ),
-      tooltip: Utils.cond(
+      tooltip: cond(
         [loading, 'Loading cloud environments'],
         [
           viewMode === 'deleteEnvironment',
@@ -254,18 +255,12 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
             : undefined,
         onClick: () => applyChanges(),
       },
-      [
-        Utils.cond(
-          [viewMode === 'deleteEnvironment', () => 'Delete'],
-          [doesRuntimeExist(), () => 'Update'],
-          () => 'Create'
-        ),
-      ]
+      [cond([viewMode === 'deleteEnvironment', () => 'Delete'], [doesRuntimeExist(), () => 'Update'], () => 'Create')]
     );
   };
 
   const sendCloudEnvironmentMetrics = () => {
-    const metricsEvent = Utils.cond(
+    const metricsEvent = cond(
       [viewMode === 'deleteEnvironment', () => 'cloudEnvironmentDelete'],
       // TODO: IA-4163 -When update is available, include in metrics
       // [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
@@ -296,11 +291,11 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
     sendCloudEnvironmentMetrics();
 
     // each branch of the cond should return a promise
-    await Utils.cond(
+    await cond(
       [
         viewMode === 'deleteEnvironment',
         () =>
-          Utils.cond(
+          cond(
             [
               doesRuntimeExist(),
               () =>
@@ -309,7 +304,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
                   : {},
             ], // delete runtime
             [
-              !!persistentDiskExists && currentPersistentDiskDetails,
+              !!persistentDiskExists,
               () => (currentPersistentDiskDetails ? leoDiskProvider.delete(currentPersistentDiskDetails) : {}),
             ] // delete disk
           ),
