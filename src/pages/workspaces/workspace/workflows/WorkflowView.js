@@ -375,10 +375,6 @@ export const WorkflowView = _.flow(
 
       const { workspace } = this.props;
 
-      // console.log(
-      //   `from local storage: ${JSON.stringify(getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`))}`
-      // );
-
       const workflowOptionsPref = getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`);
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
       const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
@@ -707,8 +703,6 @@ export const WorkflowView = _.flow(
       );
 
       const updatedWfOptionsPref = this.getUpdatedWorkflowOptionsPref();
-
-      // console.log(`updatedWfOptionsPref: ${JSON.stringify(updatedWfOptionsPref)}`);
 
       if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`, undefined);
       else setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`, updatedWfOptionsPref);
@@ -1119,9 +1113,7 @@ export const WorkflowView = _.flow(
                         LabeledCheckbox,
                         {
                           checked: useReferenceDisks,
-                          onChange: (v) => {
-                            this.setState({ useReferenceDisks: v });
-                          },
+                          onChange: (v) => this.setState({ useReferenceDisks: v }),
                           style: styles.checkBoxLeftMargin,
                         },
                         [' Use reference disks']
@@ -1194,9 +1186,7 @@ export const WorkflowView = _.flow(
                         LabeledCheckbox,
                         {
                           checked: ignoreEmptyOutputs,
-                          onChange: (v) => {
-                            this.setState({ ignoreEmptyOutputs: v });
-                          },
+                          onChange: (v) => this.setState({ ignoreEmptyOutputs: v }),
                           style: styles.checkBoxLeftMargin,
                         },
                         [' Ignore empty outputs']
