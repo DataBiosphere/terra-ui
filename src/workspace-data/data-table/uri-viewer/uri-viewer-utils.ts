@@ -28,12 +28,13 @@ export const getDownloadCommand = (
     const output = fileName ? `-o '${fileName}' ` : '-O ';
     return `curl ${headers}${output}'${httpUrl}'`;
   }
+  const downloadDir = useFileName && fileName ? `${fileName}` : '.';
 
   if (isAzureUri(uri)) {
-    return `azcopy copy '${uri}' ${useFileName && fileName ? `${fileName}` : '.'}`;
+    return `azcopy copy '${uri}' ${downloadDir}`;
   }
 
   if (isGsUri(uri)) {
-    return `gcloud storage cp '${uri}' ${useFileName && fileName ? `${fileName}` : '.'}`;
+    return `gcloud storage cp '${uri}' ${downloadDir}`;
   }
 };
