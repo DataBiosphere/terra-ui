@@ -11,6 +11,7 @@ import { IdContainer, Select } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
+import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 
 const LazyChart = lazy(() => import('src/components/Chart'));
@@ -155,7 +156,13 @@ export const SpendReport = (props: SpendReportProps) => {
     xAxis: {
       categories: costPerWorkspace.workspaceNames,
       crosshair: true,
-      labels: { style: { fontSize: '12px' } },
+      labels: {
+        formatter() {
+          // @ts-ignore
+          return WorkspaceLink(props.billingProjectName, this.value);
+        },
+        style: { xfontSize: '12px' },
+      },
     },
     yAxis: {
       crosshair: true,
@@ -379,4 +386,11 @@ export const SpendReport = (props: SpendReportProps) => {
     ]),
     updatingProjectCost && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
   ]);
+};
+
+export const WorkspaceLink = (billingProject, workspace) => {
+  return `<a style="color:${colors.accent()}" href=${Nav.getLink('workspace-dashboard', {
+    namespace: billingProject,
+    name: workspace,
+  })}>${workspace}</a>`;
 };
