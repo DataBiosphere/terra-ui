@@ -29,6 +29,6 @@ export const getDownloadCommand = (fileName: string, uri: string, accessUrl?: Ac
   }
 
   if (isGsUri(uri)) {
-    return `gsutil cp '${uri}' ${fileName || '.'}`;
+    return `gcloud storage cp '${uri}' ${fileName || '.'}`;
   }
 };
