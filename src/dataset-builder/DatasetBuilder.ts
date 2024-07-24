@@ -688,11 +688,18 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   };
 
   const updateSelectedCohortsOnCreate = (cohort: Cohort) => {
+    // TODO - we should try to share this with the ObjectSetListSection
+    const index = _.findIndex(
+      (selectedCohort: HeaderAndValues<Cohort>) => selectedCohort.header === defaultHeader,
+      selectedCohorts
+    );
     setSelectedCohorts(
-      selectedCohorts.concat({
-        header: defaultHeader,
-        values: [cohort],
-      })
+      index === -1
+        ? selectedCohorts.concat({
+            header: defaultHeader,
+            values: [cohort],
+          })
+        : _.set(`[${index}].values`, _.xorWith(_.isEqual, selectedCohorts[index].values, [cohort]), selectedCohorts)
     );
   };
 
