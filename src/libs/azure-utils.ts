@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
 import { defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
+import { AzureDiskType } from 'src/libs/ajax/leonardo/Disks';
 import { azureRegions } from 'src/libs/azure-regions';
 import * as Utils from 'src/libs/utils';
 
@@ -8,7 +9,7 @@ import * as Utils from 'src/libs/utils';
 export const defaultAzureMachineType = 'Standard_DS2_v2';
 export const defaultAzureDiskSize = 64;
 export const defaultAzureRegion = 'eastus';
-export const defaultAzurePersistentDiskType = 'Standard_LRS';
+export const defaultAzurePersistentDiskType: AzureDiskType = 'Standard_LRS';
 
 export const defaultAzureComputeConfig = {
   autopauseThreshold: defaultAutopauseThreshold,
@@ -19,8 +20,13 @@ export const defaultAzureComputeConfig = {
 };
 
 export const getRegionLabel = (key) =>
-  Utils.cond([!key, () => 'Loading'], [_.has(key, azureRegions), () => azureRegions[key].label], () => 'Unknown azure region');
-export const getRegionFlag = (key) => Utils.cond([!key, () => ''], [_.has(key, azureRegions), () => azureRegions[key].flag], () => '❓');
+  Utils.cond(
+    [!key, () => 'Loading'],
+    [Boolean(_.has(key, azureRegions)), () => azureRegions[key].label],
+    () => 'Unknown azure region'
+  );
+export const getRegionFlag = (key) =>
+  Utils.cond([!key, () => ''], [Boolean(_.has(key, azureRegions)), () => azureRegions[key].flag], () => '❓');
 
 export const azureMachineTypes = {
   Standard_DS2_v2: { cpu: 2, ramInGb: 7 },
@@ -33,7 +39,9 @@ export const azureMachineTypes = {
 };
 
 export const getMachineTypeLabel = (key) =>
-  _.has(key, azureMachineTypes) ? `${key}, ${azureMachineTypes[key].cpu} CPU(s), ${azureMachineTypes[key].ramInGb} GBs` : 'Unknown machine type';
+  _.has(key, azureMachineTypes)
+    ? `${key}, ${azureMachineTypes[key].cpu} CPU(s), ${azureMachineTypes[key].ramInGb} GBs`
+    : 'Unknown machine type';
 
 export const machineTypeHasGpu = (machineType) => !!azureMachineTypes[machineType]?.hasGpu;
 
@@ -2352,6 +2360,7 @@ const azureRegionToPrices = [
   },
 ];
 
-export const getAzurePricesForRegion = (key) => (_.has(key, azureRegions) ? _.find((priceObj) => priceObj.name === key, azureRegionToPrices) : {});
+export const getAzurePricesForRegion = (key) =>
+  _.has(key, azureRegions) ? _.find((priceObj) => priceObj.name === key, azureRegionToPrices) : {};
 
 export const version = '1';
