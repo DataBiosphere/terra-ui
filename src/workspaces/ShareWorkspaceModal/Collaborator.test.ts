@@ -281,30 +281,44 @@ describe('a Collaborator component', () => {
     });
   });
 
-  it('hides the Can Compute option when giving a collaborator Reader access', async () => {
+  describe('hides the Can Compute option for collaborators with Reader access', () => {
     // Arrange
     const setAcl = jest.fn();
-    const item: AccessEntry = {
+    const item1: AccessEntry = {
       email: 'user1@test.com',
-      pending: false,
+      pending: true,
       canShare: true,
       canCompute: false,
       accessLevel: 'READER',
     };
-    const acl = [item];
+    const item2: AccessEntry = {
+      email: 'user2@test.com',
+      pending: false,
+      canShare: false,
+      canCompute: false,
+      accessLevel: 'READER',
+    };
 
-    // Act
-    render(
-      h(Collaborator, {
-        aclItem: item,
-        acl,
-        setAcl,
-        originalAcl: acl,
-        workspace: { ...workspace, accessLevel: 'OWNER' },
-      })
+    test.each([{ item: item1 }, { item: item2 }])(
+      'hides Can Compute when pending is $item.pending and Can Share is $item.canShare',
+      ({ item }) => {
+        const acl = [item];
+
+        // Act
+        render(
+          h(Collaborator, {
+            aclItem: item,
+            acl,
+            setAcl,
+            originalAcl: acl,
+            workspace: { ...workspace, accessLevel: 'OWNER' },
+          })
+        );
+
+        // Assert
+        expect(screen.queryByText('Can compute')).not.toBeInTheDocument();
+        expect(screen.queryByText('Can share')).toBeInTheDocument();
+      }
     );
-
-    // Assert
-    expect(screen.queryByText('Can compute')).not.toBeInTheDocument();
   });
 });
