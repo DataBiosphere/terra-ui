@@ -9,6 +9,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ButtonSecondary, Link, Select } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner, icon } from 'src/components/icons';
+import { DelayedSearchInput } from 'src/components/input';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import { TabBar } from 'src/components/tabBars';
 import { FlexTable, HeaderCell } from 'src/components/table';
@@ -175,7 +176,25 @@ const WorkflowWdl = () => {
   ]);
 };
 
-const WorkflowConfigs = () => {
+const trying = ({ allConfigs, filterWord }) => {
+  // console.log(allConfigs)
+  const lowerCaseFilter = filterWord.toLocaleLowerCase();
+  const keys = ['name', 'namespace', 'snapshotId'];
+  // console.log(allConfigs?.filter((config) => keys.some((key) => config[key].toLowerCase().includes(lowerCaseFilter))));
+  return allConfigs?.filter((config) => keys.some((key) => config[key].toString().toLowerCase().includes(lowerCaseFilter))); // _.filter((configs) => Utils.textMatch(lowerCaseFilter, configs.name))(allConfigs);
+
+  // return allConfigs?.filter(
+  //   (config) => {
+  //     const { name, namespace, snapshotId } = config;
+  //     return _.filter()
+  //   }
+  //   // config.name.toLocaleLowerCase().includes(lowerCaseFilter) ||
+  //   // config.namespace.toLocaleLowerCase().includes(lowerCaseFilter) ||
+  //   // config.snapshotId.toLocaleLowerCase().includes(lowerCaseFilter)
+  // );
+};
+
+const WorkflowConfigs = ({ searchFilter }) => {
   const signal = useCancellation();
   const { namespace, name, snapshotId } = useStore(snapshotStore);
   const [allConfigs, setAllConfigs] = useState();
@@ -195,6 +214,9 @@ const WorkflowConfigs = () => {
     loadConfigs();
   });
 
+  const filteredConfigs = trying({ allConfigs, filterWord: searchFilter });
+  // console.log(trying({ allConfigs, filterWord: '3' }));
+
   return div({ style: { flex: 1, padding: '1rem' }, role: 'tabpanel' }, [
     !allConfigs
       ? centeredSpinner()
@@ -204,7 +226,7 @@ const WorkflowConfigs = () => {
               width,
               height,
               'aria-label': 'workflow configuration',
-              rowCount: allConfigs.length,
+              rowCount: filteredConfigs.length,
               columns: [
                 {
                   headerRenderer: () => div({ className: 'sr-only' }, ['Warnings']),
@@ -227,7 +249,7 @@ const WorkflowConfigs = () => {
                 {
                   headerRenderer: () => h(HeaderCell, ['Configuration']),
                   cellRenderer: ({ rowIndex }) => {
-                    const { namespace, name, snapshotId } = allConfigs[rowIndex];
+                    const { namespace, name, snapshotId } = filteredConfigs[rowIndex];
 
                     return h(Link, [`${namespace}/${name} Snapshot ID: ${snapshotId}`]);
                   },
@@ -262,11 +284,28 @@ const WorkflowConfigs = () => {
 };
 
 const WorkflowDetails = (props) => {
+  const [searchFilter, setSearchFilter] = useState('');
+
   return h(WorkflowWrapper, props, [
     h(SnapshotWrapper, props, [
-      Utils.switchCase(props.tabName, ['dashboard', () => h(WorkflowSummary)], ['wdl', () => h(WorkflowWdl)], ['configs', () => h(WorkflowConfigs)]),
+      Utils.switchCase(
+        props.tabName,
+        ['dashboard', () => h(WorkflowSummary)],
+        ['wdl', () => h(WorkflowWdl)],
+        ['configs', () => h(Fragment, {}, [h(Filter, { searchFilter, setSearchFilter }), h(WorkflowConfigs, { searchFilter })])]
+      ),
     ]),
   ]);
+};
+
+const Filter = ({ searchFilter, setSearchFilter }) => {
+  return h(DelayedSearchInput, {
+    style: { marginLeft: '1rem', width: 200 },
+    value: searchFilter,
+    onChange: setSearchFilter,
+    'aria-label': 'Search inputs',
+    placeholder: 'SEARCH INPUTS',
+  });
 };
 
 export const navPaths = [
