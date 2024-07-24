@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort } from 'src/dataset-builder/DatasetBuilderUtils';
+import { Cohort, convertCohort } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   DataRepoContract,
@@ -106,16 +106,17 @@ describe('DatasetBuilder', () => {
       }),
   });
 
+  const validDatasetRequestCohort = newCohort('cohort 1');
+  const validDatasetRequestConceptSet = newConceptSet('Condition');
+  const validDatasetRequestSnapshotRequestName = 'valid name';
+
   const initializeValidDatasetRequest = () => {
-    const cohortOne = newCohort('cohort 1');
-    const conditionConceptSet = newConceptSet('Condition');
-    const snapshotRequestName = 'valid name';
     showDatasetBuilderContents({
-      cohorts: [cohortOne],
-      selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
-      conceptSets: [conditionConceptSet],
-      selectedConceptSets: [{ values: [conditionConceptSet] }],
-      snapshotRequestName,
+      cohorts: [validDatasetRequestCohort],
+      selectedCohorts: [{ header: 'Saved cohorts', values: [validDatasetRequestCohort] }],
+      conceptSets: [validDatasetRequestConceptSet],
+      selectedConceptSets: [{ values: [validDatasetRequestConceptSet] }],
+      snapshotRequestName: validDatasetRequestSnapshotRequestName,
     });
   };
 
@@ -366,6 +367,37 @@ describe('DatasetBuilder', () => {
     await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
     expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
+  });
+
+  it('Calls createSnapshotAccessRequest with the correct body', async () => {
+    const createSnapshotAccessRequest = jest.fn().mockResolvedValue(mockCreateSnapshotAccessRequest);
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      snapshot: (_snapshotId) =>
+        ({
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+        } as Partial<DataRepoContract['snapshot']>),
+      snapshotAccessRequest: () =>
+        ({
+          createSnapshotAccessRequest,
+        } as Partial<DataRepoContract['snapshotAccessRequest']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+
+    // Arrange
+    const user = userEvent.setup();
+    await initializeValidDatasetRequest();
+    await user.click(await screen.findByText('Request this data snapshot'));
+    // Assert
+    expect(createSnapshotAccessRequest).toBeCalledWith({
+      name: validDatasetRequestSnapshotRequestName,
+      researchPurposeStatement: '',
+      sourceSnapshotId: testSnapshotId,
+      snapshotBuilderRequest: {
+        cohorts: _.map(convertCohort, [validDatasetRequestCohort]),
+        outputTables: [],
+      },
+    });
   });
 
   it('enables editing cohorts', async () => {
