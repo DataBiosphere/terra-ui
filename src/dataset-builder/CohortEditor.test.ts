@@ -307,7 +307,7 @@ describe('CohortEditor', () => {
       ...args,
     };
     const cohort = newCohort('cohort');
-    const criteriaGroup = newCriteriaGroup(cohort.criteriaGroups.length + 1);
+    const criteriaGroup = newCriteriaGroup();
     if (initializeGroup) {
       initializeGroup(criteriaGroup);
     }
@@ -337,7 +337,7 @@ describe('CohortEditor', () => {
     // Arrange
     const count = 12345;
     mockDataRepo([getSnapshotBuilderCountMock(count)]);
-    const { cohort } = showCriteriaGroup({
+    showCriteriaGroup({
       initializeGroup: (criteriaGroup) => {
         criteriaGroup.meetAll = false;
         criteriaGroup.mustMeet = false;
@@ -346,9 +346,8 @@ describe('CohortEditor', () => {
     // Assert
     expect(screen.getByText('Must not')).toBeTruthy();
     expect(screen.getByText('any')).toBeTruthy();
-    const criteriaGroup = cohort.criteriaGroups[0];
     expect(await screen.findByText(`${count}`, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteriaGroup.name)).toBeTruthy();
+    expect(screen.getByText('Group 1')).toBeTruthy();
   });
 
   it('can delete criteria group', async () => {
@@ -356,7 +355,7 @@ describe('CohortEditor', () => {
     const { cohort, updateCohort } = showCriteriaGroup();
     const user = userEvent.setup();
     // Act
-    await user.click(screen.getByLabelText('delete group'));
+    await user.click(screen.getByLabelText('delete group 1'));
     // Assert
     expect(updateCohort).toHaveBeenCalled();
     expect(updateCohort.mock.calls[0][0](cohort)).toStrictEqual(newCohort('cohort'));
@@ -424,6 +423,49 @@ describe('CohortEditor', () => {
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([]);
   });
 
+  it('produces user understandable criteria group names after deletion', async () => {
+    // Arrange
+    showCohortEditor();
+    const user = userEvent.setup();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    await user.click(screen.getByLabelText('delete group 1'));
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+  });
+
+  it('can add/delete criteria groups and maintain user understandable names', async () => {
+    // Arrange
+    showCohortEditor();
+    const user = userEvent.setup();
+    // Assert
+    expect(screen.queryByText('Group 1')).toBeFalsy();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 2')).toBeTruthy();
+    // Act
+    await user.click(screen.getByLabelText('delete group 2'));
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+    expect(screen.getByText('Group 2')).toBeTruthy();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 3')).toBeTruthy();
+    // Act
+    await user.click(screen.getByLabelText('delete group 2'));
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+    expect(screen.getByText('Group 2')).toBeTruthy();
+  });
+
   function showCohortEditor(originalCohort = newCohort('my cohort name')) {
     const onStateChange = jest.fn();
     const updateCohorts = jest.fn();
@@ -479,7 +521,7 @@ describe('CohortEditor', () => {
     await user.click(screen.getByText('Save cohort'));
     // Assert
     // Don't compare name since it's generated.
-    const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup(originalCohort.criteriaGroups.length + 1);
+    const { id: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
     expect(updateCohorts.mock.calls[0][0]([])).toMatchObject([
       { ...originalCohort, criteriaGroups: [expectedCriteriaGroup] },
     ]);

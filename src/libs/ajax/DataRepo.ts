@@ -104,7 +104,6 @@ export type AnySnapshotBuilderCriteria =
   | SnapshotBuilderProgramDataRangeCriteria
   | SnapshotBuilderProgramDataListCriteria;
 export interface SnapshotBuilderCriteriaGroup {
-  name: string;
   criteria: AnySnapshotBuilderCriteria[];
   mustMeet: boolean;
   meetAll: boolean;

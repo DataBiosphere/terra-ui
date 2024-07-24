@@ -68,7 +68,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                 createSnapshotBuilderCountRequest([
                   {
                     // Create a "cohort" to get the count of participants for these criteria on its own.
-                    criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
+                    criteriaGroups: [{ id: 0, criteria: [criteria], meetAll: true, mustMeet: true }],
                     name: '',
                   },
                 ])
@@ -339,7 +339,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const updateGroupParticipantCount = useRef(
     _.debounce(250, (snapshotId: string, criteriaGroup: CriteriaGroup) =>
       setGroupParticipantCount(
-        withErrorReporting(`Error getting criteria group count for ${criteriaGroup.name}`)(async () =>
+        withErrorReporting('Error getting criteria group count')(async () =>
           DataRepo()
             .snapshot(snapshotId)
             .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
@@ -391,24 +391,13 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
               ]
             ),
             div({ style: { alignItems: 'center', display: 'flex' } }, [
-              strong({ style: { marginRight: narrowMargin, fontSize: 16 } }, [criteriaGroup.name]),
+              strong({ style: { marginRight: narrowMargin, fontSize: 16 } }, [`Group ${index + 1}`]),
               h(
                 Link,
                 {
-                  'aria-label': 'delete group',
-                  onClick: () => {
-                    updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups)));
-                    if (cohort.criteriaGroups.indexOf(criteriaGroup) < cohort.criteriaGroups.length - 1) {
-                      // update names of all groups after it
-                      for (
-                        let i = cohort.criteriaGroups.indexOf(criteriaGroup) + 1;
-                        i < cohort.criteriaGroups.length;
-                        i++
-                      ) {
-                        cohort.criteriaGroups[i].name = `Group ${i}`;
-                      }
-                    }
-                  },
+                  'aria-label': `delete group ${index + 1}`,
+                  onClick: () =>
+                    updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
                 },
                 [icon('trash-circle-filled', { size: 24 })]
               ),
@@ -486,7 +475,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
       : div([
           _.map(
             ([index, criteriaGroup]) =>
-              h(Fragment, { key: criteriaGroup.name }, [
+              h(Fragment, { key: index }, [
                 h(CriteriaGroupView, {
                   index,
                   criteriaGroup,
@@ -567,12 +556,7 @@ const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
         {
           style: { marginTop: wideMargin },
           onClick: (e) => {
-            updateCohort(
-              _.set(
-                `criteriaGroups.${cohort.criteriaGroups.length}`,
-                newCriteriaGroup(cohort.criteriaGroups.length + 1)
-              )
-            );
+            updateCohort(_.set(`criteriaGroups.${cohort.criteriaGroups.length}`, newCriteriaGroup()));
             // Lose button focus, since button moves out from under the user's cursor.
             e.currentTarget.blur();
           },

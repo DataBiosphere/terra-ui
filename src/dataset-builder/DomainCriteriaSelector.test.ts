@@ -37,7 +37,7 @@ describe('DomainCriteriaSelector', () => {
   const children = [dummyGetConceptForId(102)];
   const domainOption = testSnapshotBuilderSettings().domainOptions[0];
   const cohort = newCohort('cohort');
-  cohort.criteriaGroups.push(newCriteriaGroup(cohort.criteriaGroups.length + 1));
+  cohort.criteriaGroups.push(newCriteriaGroup());
   asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
   const state = domainCriteriaSelectorState.new(
     cohort,
