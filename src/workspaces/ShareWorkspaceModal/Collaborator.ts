@@ -7,9 +7,8 @@ import { getPopupRoot } from 'src/components/popup-utils';
 import colors from 'src/libs/colors';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { cond } from 'src/libs/utils';
 import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
-import { BaseWorkspace, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
+import { BaseWorkspace, canWrite, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 /**
  * @param aclItem {AccessEntry} the item to render
@@ -139,20 +138,17 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
           ),
         ]),
         div([
-          cond([
-            !(accessLevel === 'READER'),
-            () =>
-              h(
-                LabeledCheckbox,
-                {
-                  disabled: disabled || !userCanShareAdditionalPerms,
-                  checked: canCompute,
-                  onChange: () => onChange(_.update('canCompute', (b) => !b, value)),
-                  ...tooltipProps,
-                },
-                [' Can compute']
-              ),
-          ]),
+          canWrite(accessLevel) &&
+            h(
+              LabeledCheckbox,
+              {
+                disabled: disabled || !userCanShareAdditionalPerms,
+                checked: canCompute,
+                onChange: () => onChange(_.update('canCompute', (b) => !b, value)),
+                ...tooltipProps,
+              },
+              [' Can compute']
+            ),
         ]),
       ]),
   ]);
