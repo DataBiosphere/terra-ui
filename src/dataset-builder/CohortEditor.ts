@@ -475,7 +475,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
       : div([
           _.map(
             ([index, criteriaGroup]) =>
-              h(Fragment, { key: index }, [
+              h(Fragment, { key: index + 1 }, [
                 h(CriteriaGroupView, {
                   index,
                   criteriaGroup,
