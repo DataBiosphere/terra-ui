@@ -23,6 +23,7 @@ import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg';
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg';
+import { getConfig } from 'src/libs/config';
 
 const nonBreakingHyphen = '\u2011';
 
@@ -84,6 +85,9 @@ export interface BrandConfiguration {
   /** Optionally filter which datasets show up in the Data Catalog */
   catalogDataCollectionsToInclude?: string[];
 
+  /** Snapshot ID for dataset builder */
+  datasetBuilderSnapshotId?: string;
+
   /** Theme for components */
   theme: Theme;
 }
@@ -123,7 +127,7 @@ const baseColors: Theme['colorPalette'] = {
  * Configuration for Terra co-brands (a.k.a. white label sites)
  * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
  */
-export const brands: Record<string, BrandConfiguration> = {
+export const { brands }: Record<string, BrandConfiguration> = {
   analytixin: {
     name: 'AnalytiXIN',
     queryName: 'analytixin',
@@ -151,6 +155,10 @@ export const brands: Record<string, BrandConfiguration> = {
         light: '#e9ecef',
       },
     },
+    datasetBuilderSnapshotId:
+      getConfig().terraDeploymentEnv === 'dev'
+        ? 'c3eb4708-444f-4cbf-a32c-0d3bb93d4819'
+        : '1f2c98d2-ccec-410e-8242-d995f9aa2ec6',
   },
   anvil: {
     name: 'AnVIL',

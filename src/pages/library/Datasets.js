@@ -23,6 +23,7 @@ import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg';
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png';
 import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
+import { brands } from 'src/libs/brands';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
@@ -268,7 +269,7 @@ const axin = () =>
         {
           'aria-label': 'View AnalytiXIN details',
           tooltip: 'View details about this dataset',
-          href: '/#library/builder/c3eb4708-444f-4cbf-a32c-0d3bb93d4819',
+          href: `/#library/builder/${brands.analytiXin.datasetBuilderSnapshotId}`,
           onClick: () => captureBrowseDataEvent('AXIN'),
         },
         ['View AnalytiXIN details']
