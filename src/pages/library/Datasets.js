@@ -269,7 +269,7 @@ const axin = () =>
         {
           'aria-label': 'View AnalytiXIN details',
           tooltip: 'View details about this dataset',
-          href: `/#library/builder/${brands.analytiXin.datasetBuilderSnapshotId}`,
+          href: `/#library/builder/${brands.analytixin.datasetBuilderSnapshotId}`,
           onClick: () => captureBrowseDataEvent('AXIN'),
         },
         ['View AnalytiXIN details']

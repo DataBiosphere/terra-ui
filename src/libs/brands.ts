@@ -127,7 +127,7 @@ const baseColors: Theme['colorPalette'] = {
  * Configuration for Terra co-brands (a.k.a. white label sites)
  * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
  */
-export const { brands }: Record<string, BrandConfiguration> = {
+export const brands: Record<string, BrandConfiguration> = {
   analytixin: {
     name: 'AnalytiXIN',
     queryName: 'analytixin',
