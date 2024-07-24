@@ -619,7 +619,7 @@ export const DatasetBuilderContents = ({
                     .snapshotAccessRequest()
                     .createSnapshotAccessRequest(
                       createSnapshotAccessRequest(
-                        '',
+                        snapshotRequestName,
                         '',
                         snapshotId,
                         _.flatMap((cohortSet) => cohortSet.values, selectedCohorts),
