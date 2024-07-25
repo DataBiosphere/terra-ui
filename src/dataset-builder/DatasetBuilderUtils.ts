@@ -53,7 +53,7 @@ export type AnyCriteria = ProgramDomainCriteria | ProgramDataRangeCriteria | Pro
 
 /** A group of criteria. */
 export interface CriteriaGroup {
-  name: string;
+  id: number;
   criteria: AnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
@@ -93,7 +93,6 @@ export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
     name: cohort.name,
     criteriaGroups: _.map(
       (criteriaGroup) => ({
-        name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
         criteria: _.map((criteria: AnyCriteria) => convertCriteria(criteria), criteriaGroup.criteria),

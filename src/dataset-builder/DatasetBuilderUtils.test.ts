@@ -130,14 +130,13 @@ const anyCriteriaArray: AnyCriteria[] = [domainCriteria, rangeCriteria, listCrit
 const anyCriteriaArrayApi: AnySnapshotBuilderCriteria[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
 
 const criteriaGroup: CriteriaGroup = {
-  name: 'criteriaGroup',
+  id: 0,
   criteria: anyCriteriaArray,
   mustMeet: true,
   meetAll: false,
 };
 
 const criteriaGroupApi: SnapshotBuilderCriteriaGroup = {
-  name: 'criteriaGroup',
   criteria: anyCriteriaArrayApi,
   mustMeet: true,
   meetAll: false,
