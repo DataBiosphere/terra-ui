@@ -520,7 +520,7 @@ describe('CohortEditor', () => {
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByText('Save cohort'));
     // Assert
-    // Don't compare name since it's generated.
+    // Don't compare id since it's generated.
     const { id: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
     expect(updateCohorts.mock.calls[0][0]([])).toMatchObject([
       { ...originalCohort, criteriaGroups: [expectedCriteriaGroup] },
