@@ -4574,7 +4574,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/data-client-core@*, @terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
+"@terra-ui-packages/data-client-core@*, @terra-ui-packages/data-client-core@^0.0.1, @terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-clients/core"
   dependencies:
@@ -4592,9 +4592,12 @@ __metadata:
   resolution: "@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo"
   dependencies:
     "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/data-client-core": ^0.0.1
     "@terra-ui-packages/test-utils": ^1.0.0
     "@types/jest": ^28.1.8
+    "@types/qs": ^6.9.15
     jest: ^27.4.3
+    qs: ^6.10.1
     typescript: ~5.1.6
     vite: ^5.2.11
   languageName: unknown
@@ -5184,6 +5187,13 @@ __metadata:
   version: 6.9.11
   resolution: "@types/qs@npm:6.9.11"
   checksum: 620ca1628bf3da65662c54ed6ebb120b18a3da477d0bfcc872b696685a9bb1893c3c92b53a1190a8f54d52eaddb6af8b2157755699ac83164604329935e8a7f2
+  languageName: node
+  linkType: hard
+
+"@types/qs@npm:^6.9.15":
+  version: 6.9.15
+  resolution: "@types/qs@npm:6.9.15"
+  checksum: 97d8208c2b82013b618e7a9fc14df6bd40a73e1385ac479b6896bafc7949a46201c15f42afd06e86a05e914f146f495f606b6fb65610cc60cf2e0ff743ec38a2
   languageName: node
   linkType: hard
 

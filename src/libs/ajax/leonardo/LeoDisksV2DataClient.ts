@@ -1,4 +1,5 @@
-import { AbortOption } from '../data-client-common';
+import { AbortOption } from '@terra-ui-packages/data-client-core';
+
 import { LeoDisksDataClientDeps } from './Disks';
 
 export interface LeoDisksV2DataClient {
