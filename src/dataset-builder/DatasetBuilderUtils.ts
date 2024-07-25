@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
+import { HeaderAndValues } from 'src/dataset-builder/DatasetBuilder';
 import {
   AnySnapshotBuilderCriteria,
   DatasetBuilderType,
@@ -164,4 +165,24 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 
 export const formatCount = (count: number): string => {
   return count === 19 ? 'Less than 20' : count.toString();
+};
+
+export const addCohortToSelectedCohorts = (
+  cohort: Cohort,
+  cohortGroupName: string,
+  selectedCohorts: HeaderAndValues<Cohort>[],
+  setSelectedCohorts: (cohorts: HeaderAndValues<Cohort>[]) => void
+) => {
+  const index = _.findIndex(
+    (selectedCohort: HeaderAndValues<Cohort>) => selectedCohort.header === cohortGroupName,
+    selectedCohorts
+  );
+  setSelectedCohorts(
+    index === -1
+      ? selectedCohorts.concat({
+          header: cohortGroupName,
+          values: [cohort],
+        })
+      : _.set(`[${index}].values`, _.xorWith(_.isEqual, selectedCohorts[index].values, [cohort]), selectedCohorts)
+  );
 };

@@ -74,7 +74,7 @@ describe('DatasetBuilder', () => {
         updateSelectedCohorts: jest.fn(),
         updateSelectedConceptSets: jest.fn(),
         updateSelectedColumns: jest.fn(),
-        defaultHeader: 'Saved cohorts',
+        cohortGroupName: 'Saved cohorts',
         ...overrides,
       })
     );
@@ -133,7 +133,7 @@ describe('DatasetBuilder', () => {
         selectedCohorts: [],
         onChange: (cohorts) => cohorts,
         onStateChange: (state) => state,
-        defaultHeader: 'Saved cohorts',
+        cohortGroupName: 'Saved cohorts',
       })
     );
   };
