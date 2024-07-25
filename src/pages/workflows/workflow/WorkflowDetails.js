@@ -2,7 +2,7 @@ import { TooltipTrigger, useUniqueId } from '@terra-ui-packages/components';
 import * as clipboard from 'clipboard-polyfill/text';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, h2, label } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -12,7 +12,7 @@ import { centeredSpinner, icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import { TabBar } from 'src/components/tabBars';
-import { FlexTable, HeaderCell } from 'src/components/table';
+import { GridTable, HeaderCell, Resizable } from 'src/components/table';
 import TopBar from 'src/components/TopBar';
 import WDLViewer from 'src/components/WDLViewer';
 import { Ajax } from 'src/libs/ajax';
@@ -176,22 +176,10 @@ const WorkflowWdl = () => {
   ]);
 };
 
-const trying = ({ allConfigs, filterWord }) => {
-  // console.log(allConfigs)
+const getFilteredConfigs = ({ allConfigs, filterWord }) => {
   const lowerCaseFilter = filterWord.toLocaleLowerCase();
   const keys = ['name', 'namespace', 'snapshotId'];
-  // console.log(allConfigs?.filter((config) => keys.some((key) => config[key].toLowerCase().includes(lowerCaseFilter))));
   return allConfigs?.filter((config) => keys.some((key) => config[key].toString().toLowerCase().includes(lowerCaseFilter))); // _.filter((configs) => Utils.textMatch(lowerCaseFilter, configs.name))(allConfigs);
-
-  // return allConfigs?.filter(
-  //   (config) => {
-  //     const { name, namespace, snapshotId } = config;
-  //     return _.filter()
-  //   }
-  //   // config.name.toLocaleLowerCase().includes(lowerCaseFilter) ||
-  //   // config.namespace.toLocaleLowerCase().includes(lowerCaseFilter) ||
-  //   // config.snapshotId.toLocaleLowerCase().includes(lowerCaseFilter)
-  // );
 };
 
 const WorkflowConfigs = ({ searchFilter }) => {
@@ -199,6 +187,12 @@ const WorkflowConfigs = ({ searchFilter }) => {
   const { namespace, name, snapshotId } = useStore(snapshotStore);
   const [allConfigs, setAllConfigs] = useState();
   const [snapshotConfigs, setSnapshotConfigs] = useState();
+  const [dataTableColumnWidths, setDataTableColumnWidths] = useState({});
+  const resizeColumn = (currentWidth, delta, columnKey) => {
+    setDataTableColumnWidths(_.set(columnKey, currentWidth + delta));
+  };
+  const withDataTableNamePrefix = (columnName) => `${columnName}`;
+  const dataTableRef = useRef(null);
 
   useOnMount(() => {
     const loadConfigs = async () => {
@@ -214,21 +208,27 @@ const WorkflowConfigs = ({ searchFilter }) => {
     loadConfigs();
   });
 
-  const filteredConfigs = trying({ allConfigs, filterWord: searchFilter });
-  // console.log(trying({ allConfigs, filterWord: '3' }));
+  const filteredConfigs = getFilteredConfigs({ allConfigs, filterWord: searchFilter });
+
+  useEffect(() => {
+    dataTableRef.current?.recomputeColumnSizes();
+  }, [dataTableColumnWidths]);
 
   return div({ style: { flex: 1, padding: '1rem' }, role: 'tabpanel' }, [
     !allConfigs
       ? centeredSpinner()
-      : h(AutoSizer, [
-          ({ width, height }) =>
-            h(FlexTable, {
+      : h(AutoSizer, { disableHeight: true }, [
+          ({ width }) =>
+            h(GridTable, {
+              ref: dataTableRef,
               width,
-              height,
+              height: (1 + allConfigs.length) * 48,
               'aria-label': 'workflow configuration',
               rowCount: filteredConfigs.length,
+              numFixedColumns: 1,
               columns: [
                 {
+                  width: 50,
                   headerRenderer: () => div({ className: 'sr-only' }, ['Warnings']),
                   cellRenderer: ({ rowIndex }) => {
                     const config = allConfigs[rowIndex];
@@ -247,16 +247,38 @@ const WorkflowConfigs = ({ searchFilter }) => {
                   size: { basis: 45, grow: 0, shrink: 0 },
                 },
                 {
-                  headerRenderer: () => h(HeaderCell, ['Configuration']),
+                  field: 'configurations',
+                  width: dataTableColumnWidths[withDataTableNamePrefix('configurations')] || 300,
+                  headerRenderer: () => {
+                    const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('configurations')] || 300;
+                    return h(
+                      Resizable,
+                      {
+                        width: columnWidth,
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('configurations')),
+                      },
+                      [h(HeaderCell, ['Configuration'])]
+                    );
+                  },
                   cellRenderer: ({ rowIndex }) => {
                     const { namespace, name, snapshotId } = filteredConfigs[rowIndex];
-
                     return h(Link, [`${namespace}/${name} Snapshot ID: ${snapshotId}`]);
                   },
-                  size: { basis: 400, grow: 0, shrink: 0 },
                 },
                 {
-                  headerRenderer: () => h(HeaderCell, ['Workflow Snapshot']),
+                  field: 'workflow_snapshot',
+                  width: dataTableColumnWidths[withDataTableNamePrefix('workflow_snapshot')] || 300,
+                  headerRenderer: () => {
+                    const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('workflow_snapshot')] || 300;
+                    return h(
+                      Resizable,
+                      {
+                        width: columnWidth,
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('workflow_snapshot')),
+                      },
+                      [h(HeaderCell, ['Workflow Snapshot'])]
+                    );
+                  },
                   cellRenderer: ({ rowIndex }) => {
                     const {
                       payloadObject: {
@@ -266,10 +288,21 @@ const WorkflowConfigs = ({ searchFilter }) => {
 
                     return methodVersion;
                   },
-                  size: { basis: 200, grow: 0, shrink: 0 },
                 },
                 {
-                  headerRenderer: () => h(HeaderCell, ['Synopsis']),
+                  field: 'synopsis',
+                  width: dataTableColumnWidths[withDataTableNamePrefix('synopsis')] || 300,
+                  headerRenderer: () => {
+                    const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('synopsis')] || 300;
+                    return h(
+                      Resizable,
+                      {
+                        width: columnWidth,
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, 'synopsis'),
+                      },
+                      [h(HeaderCell, ['Synopsis'])]
+                    );
+                  },
                   cellRenderer: ({ rowIndex }) => {
                     const { synopsis } = allConfigs[rowIndex];
 
@@ -292,7 +325,7 @@ const WorkflowDetails = (props) => {
         props.tabName,
         ['dashboard', () => h(WorkflowSummary)],
         ['wdl', () => h(WorkflowWdl)],
-        ['configs', () => h(Fragment, {}, [h(Filter, { searchFilter, setSearchFilter }), h(WorkflowConfigs, { searchFilter })])]
+        ['configs', () => h(Fragment, [h(Filter, { searchFilter, setSearchFilter }), h(WorkflowConfigs, { searchFilter })])]
       ),
     ]),
   ]);
@@ -300,11 +333,11 @@ const WorkflowDetails = (props) => {
 
 const Filter = ({ searchFilter, setSearchFilter }) => {
   return h(DelayedSearchInput, {
-    style: { marginLeft: '1rem', width: 200 },
+    style: { marginLeft: '1rem', marginTop: '1rem', width: 205 },
     value: searchFilter,
     onChange: setSearchFilter,
-    'aria-label': 'Search inputs',
-    placeholder: 'SEARCH INPUTS',
+    'aria-label': 'Search configurations',
+    placeholder: 'Search Configurations',
   });
 };
 
