@@ -1,8 +1,6 @@
 import { NominalType } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import { Ajax } from 'src/libs/ajax';
 import * as Utils from 'src/libs/utils';
-import { GoogleWorkspace, hasAccessLevel } from 'src/workspaces/utils';
 
 export type FileName = NominalType<string, 'FileName'>; // represents a file with an extension and no path, eg `dir/file.ipynb` =>  `file.ipynb`
 export type AbsolutePath = NominalType<string, 'AbsolutePath'>; // represents an absolute path in the context of a cloud storage directory structure, i.e. `dir/file.ipynb`
@@ -22,27 +20,3 @@ export const getDisplayName = (path: string): DisplayName => _.flow(getFileName,
 
 export const notebookLockHash = (bucketName: string, email: string): Promise<string> =>
   Utils.sha256(`${bucketName}:${email}`);
-
-export const findPotentialNotebookLockers = async (workspace: GoogleWorkspace): Promise<{ [key: string]: string }> => {
-  const {
-    canShare,
-    workspace: { namespace, name, bucketName },
-  } = workspace;
-  if (!canShare) {
-    return {};
-  }
-  // TODO: type
-  const { acl } = await Ajax().Workspaces.workspace(namespace, name).getAcl();
-  const potentialLockers = _.flow(
-    _.toPairs,
-    _.map(([email, data]) => ({ email, ...data })),
-    _.filter(({ accessLevel }) => hasAccessLevel('WRITER', accessLevel))
-  )(acl);
-  const lockHolderPromises = _.map(async ({ email }) => {
-    const lockHash = await notebookLockHash(bucketName, email);
-    return { [lockHash]: email };
-  }, potentialLockers);
-  const lockHolders = _.mergeAll(await Promise.all(lockHolderPromises));
-
-  return lockHolders;
-};

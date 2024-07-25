@@ -1,12 +1,19 @@
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { asMockedFn } from 'src/testing/test-utils';
 
-import { fetchDockstore, fetchOk } from './ajax-common';
+import { fetchDockstore } from './ajax-common';
 import { Dockstore } from './Dockstore';
 
 type AjaxCommonExports = typeof import('./ajax-common');
 jest.mock('./ajax-common', (): Partial<AjaxCommonExports> => {
   return {
     fetchDockstore: jest.fn(),
+  };
+});
+
+type FetchCoreExports = typeof import('src/libs/ajax/fetch/fetch-core');
+jest.mock('src/libs/ajax/fetch/fetch-core', (): Partial<FetchCoreExports> => {
+  return {
     fetchOk: jest.fn(),
   };
 });

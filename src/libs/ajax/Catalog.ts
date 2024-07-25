@@ -1,5 +1,7 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import * as _ from 'lodash/fp';
-import { authOpts, fetchCatalog, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchCatalog } from 'src/libs/ajax/ajax-common';
 
 // Types are pulled from https://github.com/DataBiosphere/terra-data-catalog/blob/main/common/src/main/resources/schema/development/schema.json
 export type StorageSystem = 'wks' | 'ext' | 'tdr';

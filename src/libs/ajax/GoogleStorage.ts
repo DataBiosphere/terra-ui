@@ -1,3 +1,4 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { AnalysisFile, AnalysisFileMetadata } from 'src/analysis/useAnalysisFiles';
@@ -9,16 +10,10 @@ import {
   ToolLabel,
 } from 'src/analysis/utils/tool-utils';
 import { getAuthToken } from 'src/auth/auth';
-import {
-  authOpts,
-  checkRequesterPaysError,
-  fetchOk,
-  fetchSam,
-  jsonBody,
-  withRetryOnError,
-  withUrlPrefix,
-} from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { checkRequesterPaysError, fetchSam, withRetryOnError } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
+import { fetchOk, withUrlPrefix } from 'src/libs/ajax/fetch/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';

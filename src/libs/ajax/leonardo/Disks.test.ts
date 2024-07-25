@@ -1,11 +1,10 @@
 import { azureDisk, galaxyDisk, undecoratePd } from 'src/analysis/_testData/testData';
-import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { FetchFn } from '../data-client-common';
-
-// Undecorated jsons that are expected to be returned from the leo API
 
 const mockWatchWithAuth = jest.fn();
 const mockWatchWithAppId = jest.fn();
@@ -18,20 +17,31 @@ jest.mock('src/libs/ajax/ajax-common', (): Partial<AjaxCommonExports> => {
   const mocks: Partial<AjaxCommonExports> = {
     ...jest.requireActual('src/libs/ajax/ajax-common'),
     withAppIdentifier: jest.fn(),
-    withAuthSession: jest.fn(),
     fetchLeo: jest.fn(),
+  };
+  // mock fetch augmentors to call watcher for test assertions below.
+  // (mock here so that it's baked in for module-load-time of Disks.ts)
+
+  asMockedFn(mocks.withAppIdentifier!).mockImplementation((fn: FetchFn) => (path, args) => {
+    mockWatchWithAppId(path, args);
+    return fn(path, args);
+  });
+  return mocks;
+});
+
+type AuthFetchExports = typeof import('src/auth/auth-fetch');
+jest.mock('src/auth/auth-fetch', (): AuthFetchExports => {
+  const { asMockedFn } = jest.requireActual<TestUtilsExports>('src/testing/test-utils');
+  const mocks: AuthFetchExports = {
+    ...jest.requireActual<AuthFetchExports>('src/auth/auth-fetch'),
     authOpts: jest.fn(),
-    jsonBody: jest.fn(),
+    withAuthSession: jest.fn(),
   };
   // mock fetch augmentors to call watcher for test assertions below.
   // (mock here so that it's baked in for module-load-time of Disks.ts)
 
   asMockedFn(mocks.withAuthSession!).mockImplementation((fn: FetchFn) => (path, args) => {
     mockWatchWithAuth(path, args);
-    return fn(path, args);
-  });
-  asMockedFn(mocks.withAppIdentifier!).mockImplementation((fn: FetchFn) => (path, args) => {
-    mockWatchWithAppId(path, args);
     return fn(path, args);
   });
   return mocks;
