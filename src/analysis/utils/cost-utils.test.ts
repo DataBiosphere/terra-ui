@@ -1,3 +1,4 @@
+import { diskStatuses } from '@terra-ui-packages/leonardo-data-client';
 import {
   azureDisk,
   azureRuntime,
@@ -16,7 +17,6 @@ import {
   runtimeConfigCost,
 } from 'src/analysis/utils/cost-utils';
 import { appToolLabels, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { diskStatuses } from 'src/libs/ajax/leonardo/Disks';
 import {
   cloudServiceTypes,
   GoogleRuntimeConfig,

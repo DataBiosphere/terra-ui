@@ -1,4 +1,8 @@
 export type CloudProvider = 'AZURE' | 'GCP';
+export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
+  AZURE: 'AZURE',
+  GCP: 'GCP',
+};
 
 export interface AuditInfo {
   creator: string;

@@ -7,7 +7,7 @@ export const makeDisksHelper = (deps: DisksHelperDeps) => (signal?: AbortSignal)
   const { v1Api, v2Api } = deps;
 
   const v1Func = () => ({
-    list: async (labels: LeoResourceLabels): Promise<RawListDiskItem[]> => {
+    list: async (labels?: LeoResourceLabels): Promise<RawListDiskItem[]> => {
       return await v1Api.list(labels, { signal });
     },
     disk: (project: string, name: string) => ({

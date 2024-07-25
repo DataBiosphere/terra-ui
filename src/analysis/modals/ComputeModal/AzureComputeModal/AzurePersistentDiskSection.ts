@@ -1,10 +1,10 @@
+import { AzureDiskType } from '@terra-ui-packages/leonardo-data-client';
 import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskSection } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskSection';
 import { AzurePersistentDiskSizeSelectInput } from 'src/analysis/modals/ComputeModal/AzureComputeModal/AzurePersistentDiskSizeSelectInput';
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
-import { AzureDiskType } from 'src/libs/ajax/leonardo/Disks';
 import { AzurePdType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { defaultAzurePersistentDiskType } from 'src/libs/azure-utils';
 

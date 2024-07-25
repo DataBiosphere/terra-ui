@@ -5,7 +5,7 @@ import { LeoResourceLabels } from './core-models';
 import { RawGetDiskItem, RawListDiskItem } from './disk-models';
 
 export interface LeoDisksV1DataClient {
-  list: (labels: LeoResourceLabels, options?: AbortOption) => Promise<RawListDiskItem[]>;
+  list: (labels?: LeoResourceLabels, options?: AbortOption) => Promise<RawListDiskItem[]>;
   delete: (project: string, name: string, options?: AbortOption) => Promise<void>;
   update: (project: string, name: string, size: number, options?: AbortOption) => Promise<void>;
   details: (project: string, name: string, options?: AbortOption) => Promise<RawGetDiskItem>;
