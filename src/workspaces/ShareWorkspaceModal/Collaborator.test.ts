@@ -281,7 +281,7 @@ describe('a Collaborator component', () => {
     });
   });
 
-  describe('hides the Can Compute option for collaborators with Reader access', () => {
+  describe('the Can Compute option', () => {
     // Arrange
     const setAcl = jest.fn();
     const item1: AccessEntry = {
@@ -300,7 +300,7 @@ describe('a Collaborator component', () => {
     };
 
     test.each([{ item: item1 }, { item: item2 }])(
-      'hides Can Compute when pending is $item.pending and Can Share is $item.canShare',
+      'is hidden for readers when pending is $item.pending and Can Share is $item.canShare',
       ({ item }) => {
         const acl = [item];
 
