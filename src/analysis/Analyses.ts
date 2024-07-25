@@ -13,12 +13,12 @@ import { AnalysisFile, AnalysisFileMetadata, useAnalysisFiles } from 'src/analys
 import {
   AbsolutePath,
   FileName,
-  findPotentialNotebookLockers,
   getDisplayName,
   getExtension,
   getFileName,
   notebookLockHash,
 } from 'src/analysis/utils/file-utils';
+import { findPotentialNotebookLockers } from 'src/analysis/utils/notebook-lockers';
 import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import {
   getToolLabelFromCloudEnv,

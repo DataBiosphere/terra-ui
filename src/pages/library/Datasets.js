@@ -5,6 +5,7 @@ import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { libraryTopMatter } from 'src/components/library-common';
 import { Browser } from 'src/data-catalog/DataBrowser';
+import axinLogo from 'src/images/brands/analytiXin/analytixin-logo-color.svg';
 import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png';
 import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png';
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png';
@@ -22,9 +23,12 @@ import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg';
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png';
 import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
+import { brands } from 'src/libs/brands';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { AXIN_DATASET_CARD } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import * as Style from 'src/libs/style';
@@ -236,6 +240,39 @@ const amppd = () =>
           onClick: () => captureBrowseDataEvent('AMP PD Featured Workspace'),
         },
         ['Explore AMP PD']
+      ),
+    ]
+  );
+
+const axin = () =>
+  h(
+    Participant,
+    {
+      logo: { src: axinLogo, alt: 'AnalytiXIN logo', height: '55%' },
+      title: 'AnalytiX Indiana Health Dataset',
+      description: h(Fragment, [
+        'The ',
+        h(Link, { href: 'https://analytixindiana.com', ...Utils.newTabLinkProps }, 'AnalytiXIN life sciences health data asset (HDA)'),
+        ` has been designed through a working
+        collaboration involving Eli Lilly and Company, IU Health, the Indiana Biobank within the
+        IU School of Medicine, the Indiana Health Information Exchange, and other partners to build
+        a shared health-data platform linking consented clinical and genomic patient data. This
+        collaboration is further leveraging the Broad Institute’s technical and genomic
+        infrastructure to accelerate the build-out as well as connect to broader national
+        initiatives such as the National Institutes of Health All of Us research program.`,
+      ]),
+      sizeText: 'Participants: > 35,000',
+    },
+    [
+      h(
+        ButtonPrimary,
+        {
+          'aria-label': 'View AnalytiXIN details',
+          tooltip: 'View details about this dataset',
+          href: Nav.getLink('dataset-builder-details', { snapshotId: brands.analytixin.datasetBuilderSnapshotId }),
+          onClick: () => captureBrowseDataEvent('AXIN'),
+        },
+        ['View AnalytiXIN details']
       ),
     ]
   );
@@ -637,6 +674,7 @@ export const Datasets = () => {
           thousandGenomesHighCoverage(),
           thousandGenomesLowCoverage(),
           amppd(),
+          isFeaturePreviewEnabled(AXIN_DATASET_CARD) && axin(),
           baseline(),
           ccdg(),
           cmg(),

@@ -2,10 +2,6 @@ import { abandonedPromise } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { ajaxOverridesStore } from 'src/libs/state';
 
-export const jsonBody = (body) => ({
-  body: JSON.stringify(body),
-  headers: { 'Content-Type': 'application/json' },
-});
 // Allows use of ajaxOverrideStore to stub responses for testing
 export const withInstrumentation =
   (wrappedFetch) =>

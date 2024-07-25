@@ -1,6 +1,8 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import qs from 'qs';
-import { authOpts, fetchFromProxy, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchFromProxy } from 'src/libs/ajax/ajax-common';
 
 export const Cbas = (signal) => ({
   status: async (cbasUrlRoot) => {
@@ -9,6 +11,10 @@ export const Cbas = (signal) => ({
   },
   info: async (cbasUrlRoot) => {
     const res = await fetchFromProxy(cbasUrlRoot)('actuator/info', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
+    return res.json();
+  },
+  capabilities: async (cbasUrlRoot) => {
+    const res = await fetchFromProxy(cbasUrlRoot)('capabilities/v1', _.mergeAll([authOpts(), { signal, method: 'GET' }]));
     return res.json();
   },
   runs: {

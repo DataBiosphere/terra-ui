@@ -1,5 +1,7 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
   RecordResponseBody,
@@ -175,8 +177,8 @@ export const WorkspaceData = (signal) => ({
     );
     return await res.json();
   },
-  queryRecords: async (root: string, instanceId: string, wdsType: string): Promise<any> => {
-    const searchPayload = { limit: 100 };
+  queryRecords: async (root: string, instanceId: string, wdsType: string, searchLimit: number): Promise<any> => {
+    const searchPayload = { limit: searchLimit };
     const res = await fetchWDS(root)(
       `${instanceId}/search/v0.2/${wdsType}`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody(searchPayload)])

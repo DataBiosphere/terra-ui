@@ -1,22 +1,15 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import {
-  appIdentifier,
-  authOpts,
-  fetchAgora,
-  fetchDrsHub,
-  fetchGoogleForms,
-  fetchOk,
-  fetchOrchestration,
-  fetchRawls,
-  jsonBody,
-} from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { appIdentifier, fetchAgora, fetchDrsHub, fetchGoogleForms, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';

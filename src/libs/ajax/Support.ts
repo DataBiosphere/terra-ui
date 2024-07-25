@@ -1,5 +1,6 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { fetchOk, jsonBody } from 'src/libs/ajax/ajax-common';
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 
 export interface ZendeskCreateSupportRequestRequest {
   name: string;

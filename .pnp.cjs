@@ -141,7 +141,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["file-saver", "npm:2.0.5"],\
             ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\
-            ["highcharts", "npm:9.3.3"],\
+            ["highcharts", "npm:10.3.3"],\
             ["highcharts-react-official", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.1.0"],\
             ["history", "npm:4.10.1"],\
             ["husky", "npm:7.0.2"],\
@@ -14518,10 +14518,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["highcharts", [\
-        ["npm:9.3.3", {\
-          "packageLocation": "./.yarn/cache/highcharts-npm-9.3.3-536a5928ee-bd952eafcf.zip/node_modules/highcharts/",\
+        ["npm:10.3.3", {\
+          "packageLocation": "./.yarn/cache/highcharts-npm-10.3.3-c7af5563d7-f406901094.zip/node_modules/highcharts/",\
           "packageDependencies": [\
-            ["highcharts", "npm:9.3.3"]\
+            ["highcharts", "npm:10.3.3"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -14540,7 +14540,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["highcharts-react-official", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.1.0"],\
             ["@types/highcharts", null],\
             ["@types/react", "npm:18.3.1"],\
-            ["highcharts", "npm:9.3.3"],\
+            ["highcharts", "npm:10.3.3"],\
             ["react", "npm:18.2.0"]\
           ],\
           "packagePeers": [\
@@ -22274,7 +22274,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["file-saver", "npm:2.0.5"],\
             ["filesize", "npm:7.0.0"],\
             ["github-markdown-css", "npm:4.0.0"],\
-            ["highcharts", "npm:9.3.3"],\
+            ["highcharts", "npm:10.3.3"],\
             ["highcharts-react-official", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.1.0"],\
             ["history", "npm:4.10.1"],\
             ["husky", "npm:7.0.2"],\

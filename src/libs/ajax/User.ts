@@ -1,5 +1,7 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { authOpts, fetchOrchestration, fetchSam, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchOrchestration, fetchSam } from 'src/libs/ajax/ajax-common';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
 import { TerraUserProfile } from 'src/libs/state';
 

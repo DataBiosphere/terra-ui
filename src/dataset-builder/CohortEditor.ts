@@ -68,7 +68,7 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                 createSnapshotBuilderCountRequest([
                   {
                     // Create a "cohort" to get the count of participants for these criteria on its own.
-                    criteriaGroups: [{ criteria: [criteria], name: '', meetAll: true, mustMeet: true }],
+                    criteriaGroups: [{ id: 0, criteria: [criteria], meetAll: true, mustMeet: true }],
                     name: '',
                   },
                 ])
@@ -260,7 +260,7 @@ const AddCriteriaSelector: React.FC<AddCriteriaSelectorProps> = (props) => {
           ),
         },
         {
-          label: 'Program Data',
+          label: 'Demographics',
           options: _.map((programDataOption) => {
             return {
               value: programDataOption,
@@ -339,7 +339,7 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const updateGroupParticipantCount = useRef(
     _.debounce(250, (snapshotId: string, criteriaGroup: CriteriaGroup) =>
       setGroupParticipantCount(
-        withErrorReporting(`Error getting criteria group count for ${criteriaGroup.name}`)(async () =>
+        withErrorReporting('Error getting criteria group count')(async () =>
           DataRepo()
             .snapshot(snapshotId)
             .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
@@ -391,11 +391,11 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
               ]
             ),
             div({ style: { alignItems: 'center', display: 'flex' } }, [
-              strong({ style: { marginRight: narrowMargin, fontSize: 16 } }, [criteriaGroup.name]),
+              strong({ style: { marginRight: narrowMargin, fontSize: 16 } }, [`Group ${index + 1}`]),
               h(
                 Link,
                 {
-                  'aria-label': 'delete group',
+                  'aria-label': `delete group ${index + 1}`,
                   onClick: () =>
                     updateCohort(_.set('criteriaGroups', _.without([criteriaGroup], cohort.criteriaGroups))),
                 },
@@ -475,7 +475,7 @@ const CohortGroups: React.FC<CohortGroupsProps> = (props) => {
       : div([
           _.map(
             ([index, criteriaGroup]) =>
-              h(Fragment, { key: criteriaGroup.name }, [
+              h(Fragment, { key: index + 1 }, [
                 h(CriteriaGroupView, {
                   index,
                   criteriaGroup,

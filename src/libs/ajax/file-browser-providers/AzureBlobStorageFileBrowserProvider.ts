@@ -1,5 +1,5 @@
-import { fetchOk } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider';
 import IncrementalResponse from 'src/libs/ajax/incremental-response/IncrementalResponse';
 import * as Utils from 'src/libs/utils';

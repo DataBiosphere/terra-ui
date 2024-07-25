@@ -6,14 +6,12 @@ import {
   DatasetBuilderType,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
-  SnapshotBuilderConcept,
   SnapshotBuilderCountRequest,
-  SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
-  SnapshotBuilderFeatureValueGroup,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
+  SnapshotBuilderOutputTableApi,
   SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
@@ -31,9 +29,6 @@ export interface Criteria {
 }
 
 /** Below are the UI types */
-export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
-  concept: SnapshotBuilderConcept;
-}
 
 export interface ProgramDomainCriteria extends Criteria {
   kind: 'domain';
@@ -56,11 +51,9 @@ export interface ProgramDataListCriteria extends Criteria {
 
 export type AnyCriteria = ProgramDomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
-export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
-
 /** A group of criteria. */
 export interface CriteriaGroup {
-  name: string;
+  id: number;
   criteria: AnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
@@ -72,15 +65,14 @@ export interface Cohort extends DatasetBuilderType {
 
 export type DatasetBuilderValue = DatasetBuilderType;
 
-export type ValueSet = {
+export type OutputTable = {
   domain: string;
-  values: DatasetBuilderValue[];
+  columns: DatasetBuilderValue[];
 };
 
 export type SnapshotBuilderRequest = {
   cohorts: Cohort[];
-  conceptSets: SnapshotBuilderDatasetConceptSet[];
-  valueSets: ValueSet[];
+  outputTables: OutputTable[];
 };
 
 export type SnapshotAccessRequest = {
@@ -89,19 +81,10 @@ export type SnapshotAccessRequest = {
   datasetRequest: SnapshotBuilderRequest;
 };
 
-export const convertDomainOptionToConceptSet = (
-  domainOption: SnapshotBuilderDomainOption
-): SnapshotBuilderDatasetConceptSet => {
+export const convertOutputTable = (outputTable: OutputTable): SnapshotBuilderOutputTableApi => {
   return {
-    name: domainOption.name,
-    featureValueGroupName: domainOption.name,
-  };
-};
-
-export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {
-  return {
-    name: valueSet.domain,
-    values: _.map('name', valueSet.values),
+    name: outputTable.domain,
+    columns: _.map('name', outputTable.columns),
   };
 };
 
@@ -110,7 +93,6 @@ export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
     name: cohort.name,
     criteriaGroups: _.map(
       (criteriaGroup) => ({
-        name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
         criteria: _.map((criteria: AnyCriteria) => convertCriteria(criteria), criteriaGroup.criteria),
@@ -146,8 +128,7 @@ export const createSnapshotAccessRequest = (
   researchPurposeStatement: string,
   snapshotId: string,
   cohorts: Cohort[],
-  conceptSets: SnapshotBuilderDatasetConceptSet[],
-  valueSets: ValueSet[]
+  valueSets: OutputTable[]
 ): SnapshotAccessRequestApi => {
   return {
     name,
@@ -155,8 +136,7 @@ export const createSnapshotAccessRequest = (
     researchPurposeStatement,
     snapshotBuilderRequest: {
       cohorts: _.map(convertCohort, cohorts),
-      conceptSets,
-      valueSets: _.map(convertValueSet, valueSets),
+      outputTables: _.map(convertOutputTable, valueSets),
     },
   };
 };

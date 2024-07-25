@@ -50,7 +50,7 @@ export const saveSelected =
   ) =>
   (selected: SnapshotBuilderConcept[]) => {
     const cartCriteria = _.map(toCriteria(state.domainOption, getNextCriteriaIndex), selected);
-    const groupIndex = _.findIndex({ name: state.criteriaGroup.name }, state.cohort.criteriaGroups);
+    const groupIndex = _.findIndex({ id: state.criteriaGroup.id }, state.cohort.criteriaGroups);
     // add/remove all cart elements to the domain group's criteria list in the cohort
     _.flow(
       _.update(`criteriaGroups.${groupIndex}.criteria`, _.xor(cartCriteria)),

@@ -5,12 +5,23 @@ import {
   AggregatedWorkspaceSpendData,
   SpendReport,
   SpendReportServerResponse,
+  WorkspaceLink,
 } from 'src/billing/SpendReport/SpendReport';
 import { Ajax } from 'src/libs/ajax';
+import { getLink } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
+
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual('src/libs/nav'),
+    getLink: jest.fn(),
+  })
+);
 
 describe('SpendReport', () => {
   beforeEach(() => {
@@ -289,5 +300,29 @@ describe('SpendReport', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('No spend data for 90 days');
     });
+  });
+});
+
+describe('WorkspaceLink', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('calls nav function and produces a link', () => {
+    // Arrange
+    asMockedFn(getLink).mockImplementation(() => {
+      return 'https://mock-link';
+    });
+
+    // Act
+    const link = WorkspaceLink('test-billing-project', 'test-workspace');
+
+    // Assert
+    expect(getLink).toHaveBeenCalledWith('workspace-dashboard', {
+      namespace: 'test-billing-project',
+      name: 'test-workspace',
+    });
+    expect(link).toContain('href=https://mock-link');
+    expect(link).toContain('test-workspace');
   });
 });

@@ -85,12 +85,15 @@ export const useDeleteWorkspaceState = (hookArgs: DeleteWorkspaceHookArgs): Dele
       setWorkspaceResources(appsInfo);
 
       if (isGoogleWorkspace(hookArgs.workspace)) {
-        const [{ acl }, { usageInBytes }] = await Promise.all([
+        const [{ acl }, bucketUsage] = await Promise.all([
           Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).getAcl(),
-          Ajax(signal).Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name).bucketUsage(),
+          Ajax(signal)
+            .Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name)
+            .bucketUsage()
+            .catch((_error) => undefined),
         ]);
         setCollaboratorEmails(_.without([getTerraUser().email!], _.keys(acl)));
-        setWorkspaceBucketUsageInBytes(usageInBytes);
+        setWorkspaceBucketUsageInBytes(bucketUsage?.usageInBytes);
       }
     });
     load();

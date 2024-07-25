@@ -1,5 +1,6 @@
 import _ from 'lodash/fp';
-import { authOpts, fetchSam } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchSam } from 'src/libs/ajax/ajax-common';
 
 export interface SamUserTermsOfServiceDetails {
   latestAcceptedVersion?: string;

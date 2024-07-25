@@ -1,8 +1,10 @@
 import 'setimmediate';
 
 import { MatchersV3, PactV3, SpecificationVersion } from '@pact-foundation/pact';
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import path from 'path';
-import { fetchFromProxy, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common';
+import { fetchFromProxy } from 'src/libs/ajax/ajax-common';
+import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
 import {
   runSetInputDef,
@@ -14,7 +16,15 @@ import {
 jest.mock('src/libs/ajax/ajax-common', () => ({
   ...jest.requireActual('src/libs/ajax/ajax-common'),
   fetchFromProxy: jest.fn(),
+}));
+
+jest.mock('src/libs/ajax/fetch/fetch-core', () => ({
+  ...jest.requireActual('src/libs/ajax/fetch/fetch-core'),
   fetchOk: jest.fn(),
+}));
+
+jest.mock('src/auth/auth-fetch', () => ({
+  ...jest.requireActual('src/auth/auth-fetch'),
   authOpts: jest.fn(),
 }));
 

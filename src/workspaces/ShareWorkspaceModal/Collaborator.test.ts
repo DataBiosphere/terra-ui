@@ -280,4 +280,45 @@ describe('a Collaborator component', () => {
       }
     });
   });
+
+  describe('the Can Compute option', () => {
+    // Arrange
+    const setAcl = jest.fn();
+    const item1: AccessEntry = {
+      email: 'user1@test.com',
+      pending: true,
+      canShare: true,
+      canCompute: false,
+      accessLevel: 'READER',
+    };
+    const item2: AccessEntry = {
+      email: 'user2@test.com',
+      pending: false,
+      canShare: false,
+      canCompute: false,
+      accessLevel: 'READER',
+    };
+
+    test.each([{ item: item1 }, { item: item2 }])(
+      'is hidden for readers when pending is $item.pending and Can Share is $item.canShare',
+      ({ item }) => {
+        const acl = [item];
+
+        // Act
+        render(
+          h(Collaborator, {
+            aclItem: item,
+            acl,
+            setAcl,
+            originalAcl: acl,
+            workspace: { ...workspace, accessLevel: 'OWNER' },
+          })
+        );
+
+        // Assert
+        expect(screen.queryByText('Can compute')).not.toBeInTheDocument();
+        expect(screen.queryByText('Can share')).toBeInTheDocument();
+      }
+    );
+  });
 });
