@@ -27,15 +27,24 @@ interface GroupedWorkflows {
   public: MethodDefinition[];
 }
 
+interface NewQueryParams {
+  newTab?: string;
+  newFilter?: string;
+}
+
 // TODO: add error handling, consider wrapping query updates in useEffect
 const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
-  const signal = useCancellation();
-  const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
+  const signal: AbortSignal = useCancellation();
   const [workflows, setWorkflows] = useState<GroupedWorkflows>();
 
-  const getTabQueryName = (newTab) => (newTab === 'mine' ? undefined : newTab);
+  // Valid direction values are 'asc' and 'desc' (based on expected
+  // function signatures from the Sortable component used in this
+  // component)
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
 
-  const getUpdatedQuery = ({ newTab = tab, newFilter = filter }) => {
+  const getTabQueryName = (newTab: string | undefined): string | undefined => (newTab === 'mine' ? undefined : newTab);
+
+  const getUpdatedQuery = ({ newTab = tab, newFilter = filter }: NewQueryParams): string => {
     // Note: setting undefined so that falsy values don't show up at all
     return qs.stringify(
       { ...query, tab: getTabQueryName(newTab), filter: newFilter || undefined },
@@ -43,19 +52,20 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     );
   };
 
-  const updateQuery = (newParams) => {
-    const newSearch = getUpdatedQuery(newParams);
+  const updateQuery = (newParams: NewQueryParams): void => {
+    const newSearch: string = getUpdatedQuery(newParams);
 
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch });
     }
   };
 
-  const tabName = tab || 'mine';
+  const tabName: string = tab || 'mine';
   const tabs = { mine: 'My Workflows', public: 'Public Workflows', featured: 'Featured Workflows' };
 
   useOnMount(() => {
-    const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getTerraUser().email, managers);
+    const isMine = ({ public: isPublic, managers }: MethodDefinition): boolean =>
+      !isPublic || _.includes(getTerraUser().email, managers);
 
     const loadWorkflows = async () => {
       const [allWorkflows, featuredList] = await Promise.all([
