@@ -19,7 +19,7 @@ module.exports = {
   },
   staging: {
     billingProject: 'saturn-integration-test-stage',
-    billingProjectAzure: 'dsp-staging-testing-20230915',
+    billingProjectAzure: 'terra-ui-testing-20240726',
     testUrl: 'https://bvdp-saturn-staging.appspot.com',
     workflowName: 'echo_to_file',
     /**
