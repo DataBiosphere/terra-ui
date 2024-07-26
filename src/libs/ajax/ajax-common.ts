@@ -1,59 +1,11 @@
 import { delay } from '@terra-ui-packages/core-utils';
-import { FetchFn } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import { withRetryAfterReloadingExpiredAuthToken } from 'src/auth/auth-fetch';
 import { getConfig } from 'src/libs/config';
-
+import { FetchFn } from './data-client-common';
 import { fetchOk, withCancellation, withInstrumentation, withUrlPrefix } from './fetch/fetch-core';
 
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
-
-export const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
-  const timeout = 5000;
-  const somePointInTheFuture = Date.now() + timeout;
-  const maxDelayIncrement = 1500;
-  const minDelay = 500;
-
-  while (Date.now() < somePointInTheFuture) {
-    try {
-      await delay(minDelay + maxDelayIncrement * Math.random());
-      return await wrappedFetch(...args);
-    } catch (error) {
-      if (shouldNotRetryFn(error)) {
-        throw error;
-      }
-      // ignore error will retry
-    }
-  }
-  return wrappedFetch(...args);
-});
-
-export const DEFAULT_TIMEOUT_DURATION = 10000;
-export const DEFAULT_RETRY_COUNT = 5;
-
-export async function makeRequestRetry(request: Function, retryCount: number, timeoutInMs: number): Promise<any> {
-  let retriesLeft = retryCount;
-  while (retriesLeft >= 0) {
-    try {
-      const response = await Promise.race([
-        request(),
-        // If the request takes longer than 10 seconds, reject it and try again.
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), timeoutInMs)),
-      ]);
-
-      if (response.ok) {
-        return response.json();
-      }
-    } catch (error) {
-      if (retriesLeft === 0) {
-        throw error;
-      }
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, timeoutInMs));
-    retriesLeft--;
-  }
-}
 
 export const withAppIdentifier =
   (wrappedFetch: FetchFn): FetchFn =>
