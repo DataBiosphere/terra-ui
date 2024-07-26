@@ -194,6 +194,76 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       ]),
     ]),
   ]);
+
+  // return (
+  //   <FooterWrapper>
+  //     <TopBar title='Workflows'>
+  //       <DelayedSearchInput
+  //         style={{ marginLeft: '2rem', width: 500 }}
+  //         placeholder='SEARCH WORKFLOWS'
+  //         aria-label='Search workflows'
+  //         onChange={(val) => updateQuery({ newFilter: val })}
+  //         value={filter}
+  //       />
+  //     </TopBar>
+  //     <TabBar
+  //       aria-label='workflows menu'
+  //       activeTab={tabName}
+  //       tabNames={Object.keys(tabs)}
+  //       displayNames={tabs}
+  //       getHref={(currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`}
+  //       getOnClick={(currentTab) => (e) => {
+  //         e.preventDefault();
+  //         updateQuery({ newTab: currentTab });
+  //       }}
+  //     />
+  //     <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+  //       <div style={{ flex: 1 }}>
+  //         {workflows && (
+  //           <AutoSizer>
+  //             {({ width, height }) => (
+  //               <FlexTable
+  //                 aria-label={tabs[tabName]}
+  //                 width={width}
+  //                 height={height}
+  //                 sort={sort}
+  //                 rowCount={sortedWorkflows.length}
+  //                 columns={[
+  //                   {
+  //                     field: 'name',
+  //                     headerRenderer: () => (
+  //                       <Sortable sort={sort} field='name' onSort={setSort}>
+  //                         <HeaderCell>Workflow</HeaderCell>
+  //                       </Sortable>
+  //                     ),
+  //                     cellRenderer: ({ rowIndex }) => {
+  //                       const { namespace, name } = sortedWorkflows[rowIndex];
+  //
+  //                       return (
+  //                         <TooltipCell tooltip={`${namespace}${name}`}>
+  //                           <div style={{ fontSize: 12 }}>
+  //                             {[namespace]}
+  //                             <Link
+  //                               style={{ fontWeight: 600 }}
+  //                               href={Nav.getLink('workflow-dashboard', { namespace, name })}
+  //                             >
+  //                               {[name]}
+  //                             </Link>
+  //                           </div>
+  //                         </TooltipCell>
+  //                       );
+  //                     },
+  //                     size: { basis: 300 },
+  //                   },
+  //                 ]}
+  //               />
+  //             )}
+  //           </AutoSizer>
+  //         )}
+  //       </div>
+  //     </div>
+  //   </FooterWrapper>
+  // );
 };
 
 export const navPaths = [
