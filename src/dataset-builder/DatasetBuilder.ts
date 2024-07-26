@@ -12,7 +12,7 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
-  addCohortToSelectedCohorts,
+  addSelectableObjectToGroup,
   Cohort,
   createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
@@ -199,7 +199,7 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
                     objectSet,
                     selectedValues,
                     onChange: (value, header) => {
-                      addCohortToSelectedCohorts(value, header, selectedObjectSets, onChange);
+                      addSelectableObjectToGroup(value, header, selectedObjectSets, onChange);
                     },
                   }),
                 _.filter((objectSet) => objectSet.values?.length > 0, objectSets)
@@ -284,14 +284,12 @@ export const CohortSelector = ({
   updateCohorts,
   onChange,
   onStateChange,
-  cohortGroupName,
 }: {
   cohorts: Cohort[];
   selectedCohorts: HeaderAndValues<Cohort>[];
   updateCohorts: Updater<Cohort[]>;
   onChange: (cohorts: HeaderAndValues<Cohort>[]) => void;
   onStateChange: OnStateChangeHandler;
-  cohortGroupName: string;
 }) => {
   const [creatingCohort, setCreatingCohort] = useState(false);
 
@@ -311,7 +309,7 @@ export const CohortSelector = ({
       objectSets: [
         {
           values: cohorts,
-          header: cohortGroupName,
+          header: selectedCohorts?.length > 0 ? selectedCohorts[0].header : '',
           makeIcon: (value, header) =>
             h(
               MenuTrigger,
@@ -470,7 +468,6 @@ export type DatasetBuilderContentsProps = {
   updateSelectedColumns: (values: RequiredHeaderAndValues<DatasetBuilderValue>[]) => void;
   snapshotRequestName: string;
   updateSnapshotRequestName: (string) => void;
-  cohortGroupName: string;
 };
 
 export const DatasetBuilderContents = ({
@@ -488,7 +485,6 @@ export const DatasetBuilderContents = ({
   updateSelectedColumns,
   snapshotRequestName,
   updateSnapshotRequestName,
-  cohortGroupName,
 }: DatasetBuilderContentsProps) => {
   const [requestingAccess, setRequestingAccess] = useState(false);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
@@ -571,7 +567,6 @@ export const DatasetBuilderContents = ({
             onChange: updateSelectedCohorts,
             updateCohorts,
             onStateChange,
-            cohortGroupName,
           }),
           h(ConceptSetSelector, {
             // all concept sets
@@ -651,6 +646,8 @@ const editorBackgroundColor = colors.light(0.7);
 
 let criteriaCount = 1;
 
+const defaultHeader = 'Saved cohorts';
+
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { snapshotId, initialState } = props;
   const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
@@ -659,7 +656,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const defaultHeader = 'Saved cohorts';
   const [selectedCohorts, setSelectedCohorts] = useState([
     { header: defaultHeader, values: [] },
   ] as HeaderAndValues<Cohort>[]);
@@ -675,8 +671,8 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     return criteriaCount;
   };
 
-  const updateSelectedCohortsOnCreate = (cohort: Cohort) => {
-    addCohortToSelectedCohorts(cohort, defaultHeader, selectedCohorts, setSelectedCohorts);
+  const addSelectedCohort = (cohort: Cohort) => {
+    addSelectableObjectToGroup(cohort, defaultHeader, selectedCohorts, setSelectedCohorts);
   };
 
   useOnMount(() => {
@@ -721,14 +717,13 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   updateSelectedColumns: setSelectedColumns,
                   snapshotRequestName,
                   updateSnapshotRequestName: setSnapshotRequestName,
-                  cohortGroupName: defaultHeader,
                 });
               case 'cohort-editor':
                 return h(CohortEditor, {
                   onStateChange,
                   originalCohort: datasetBuilderState.cohort,
                   snapshotId,
-                  updateSelectedCohortsOnCreate,
+                  addSelectedCohort,
                   snapshotBuilderSettings: snapshotBuilderSettings.state,
                   updateCohorts: setCohorts,
                   getNextCriteriaIndex,

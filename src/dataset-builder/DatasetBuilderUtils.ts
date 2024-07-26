@@ -167,22 +167,19 @@ export const formatCount = (count: number): string => {
   return count === 19 ? 'Less than 20' : count.toString();
 };
 
-export const addCohortToSelectedCohorts = (
-  cohort: Cohort,
-  cohortGroupName: string,
-  selectedCohorts: HeaderAndValues<Cohort>[],
-  setSelectedCohorts: (cohorts: HeaderAndValues<Cohort>[]) => void
+export const addSelectableObjectToGroup = <T extends DatasetBuilderType>(
+  selectableObject: T,
+  header: string,
+  group: HeaderAndValues<T>[],
+  setGroup: (cohorts: HeaderAndValues<T>[]) => void
 ) => {
-  const index = _.findIndex(
-    (selectedCohort: HeaderAndValues<Cohort>) => selectedCohort.header === cohortGroupName,
-    selectedCohorts
-  );
-  setSelectedCohorts(
+  const index = _.findIndex((selectedCohort: HeaderAndValues<T>) => selectedCohort.header === header, group);
+  setGroup(
     index === -1
-      ? selectedCohorts.concat({
-          header: cohortGroupName,
-          values: [cohort],
+      ? group.concat({
+          header,
+          values: [selectableObject],
         })
-      : _.set(`[${index}].values`, _.xorWith(_.isEqual, selectedCohorts[index].values, [cohort]), selectedCohorts)
+      : _.set(`[${index}].values`, _.xorWith(_.isEqual, group[index].values, [selectableObject]), group)
   );
 };

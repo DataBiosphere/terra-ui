@@ -573,7 +573,7 @@ interface CohortEditorProps {
   readonly snapshotBuilderSettings: SnapshotBuilderSettings;
   readonly originalCohort: Cohort;
   readonly updateCohorts: Updater<Cohort[]>;
-  readonly updateSelectedCohortsOnCreate: (cohort: Cohort) => void;
+  readonly addSelectedCohort: (cohort: Cohort) => void;
   readonly getNextCriteriaIndex: () => number;
 }
 
@@ -584,7 +584,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     snapshotBuilderSettings,
     originalCohort,
     updateCohorts,
-    updateSelectedCohortsOnCreate,
+    addSelectedCohort,
     getNextCriteriaIndex,
   } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
@@ -620,7 +620,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
                 const index = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
                 if (index === -1) {
                   // Only add to selectedCohorts on creation of new cohort
-                  updateSelectedCohortsOnCreate(cohort);
+                  addSelectedCohort(cohort);
                 }
                 return _.set(`[${index === -1 ? cohorts.length : index}]`, cohort, cohorts);
               });

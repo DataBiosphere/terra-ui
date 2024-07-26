@@ -469,7 +469,7 @@ describe('CohortEditor', () => {
   function showCohortEditor(originalCohort = newCohort('my cohort name')) {
     const onStateChange = jest.fn();
     const updateCohorts = jest.fn();
-    const updateSelectedCohortsOnCreate = jest.fn();
+    const addSelectedCohort = jest.fn();
 
     render(
       h(CohortEditor, {
@@ -478,7 +478,7 @@ describe('CohortEditor', () => {
         snapshotBuilderSettings,
         originalCohort,
         updateCohorts,
-        updateSelectedCohortsOnCreate,
+        addSelectedCohort,
         getNextCriteriaIndex,
       })
     );
