@@ -361,6 +361,8 @@ export const WorkflowView = _.flow(
   withCancellationSignal
 )(
   class WorkflowView extends Component {
+    wfOptionsPersistenceId = `${this.props.namespace}/${this.props.name}/workflow_options`;
+
     resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, isSnapshot) {
       const { workflowName } = this.props;
       return {
@@ -373,9 +375,7 @@ export const WorkflowView = _.flow(
     constructor(props) {
       super(props);
 
-      const { workspace } = this.props;
-
-      const workflowOptionsPref = getLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`);
+      const workflowOptionsPref = getLocalPref(this.wfOptionsPersistenceId);
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
       const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
       const resourceMonitoringEnabledPref = resourceMonitoringPref?.enabled;
@@ -682,8 +682,6 @@ export const WorkflowView = _.flow(
     }
 
     componentDidUpdate() {
-      const { workspace } = this.props;
-
       StateHistory.update(
         _.pick(
           [
@@ -704,8 +702,9 @@ export const WorkflowView = _.flow(
 
       const updatedWfOptionsPref = this.getUpdatedWorkflowOptionsPref();
 
-      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`, undefined);
-      else setLocalPref(`${workspace.workspace.namespace}/${workspace.workspace.name}/workflow_options`, updatedWfOptionsPref);
+      // note: setting the key to 'undefined' will remove it from local storage. See method implementation for more details.
+      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(this.wfOptionsPersistenceId, undefined);
+      else setLocalPref(this.wfOptionsPersistenceId, updatedWfOptionsPref);
     }
 
     async fetchInfo(savedConfig, currentSnapRedacted) {
