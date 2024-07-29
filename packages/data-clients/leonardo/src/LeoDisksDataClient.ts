@@ -3,6 +3,11 @@ import { RawGetDiskItem, RawListDiskItem } from './disk-models';
 import { LeoDisksV1DataClient } from './LeoDisksV1DataClient';
 import { LeoDisksV2DataClient } from './LeoDisksV2DataClient';
 
+export type DisksHelperDeps = {
+  v1Api: LeoDisksV1DataClient;
+  v2Api: LeoDisksV2DataClient;
+};
+
 export const makeDisksHelper = (deps: DisksHelperDeps) => (signal?: AbortSignal) => {
   const { v1Api, v2Api } = deps;
 
@@ -28,9 +33,4 @@ export const makeDisksHelper = (deps: DisksHelperDeps) => (signal?: AbortSignal)
     disksV1: v1Func,
     disksV2: () => v2Api,
   };
-};
-
-export type DisksHelperDeps = {
-  v1Api: LeoDisksV1DataClient;
-  v2Api: LeoDisksV2DataClient;
 };
