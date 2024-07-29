@@ -9,7 +9,7 @@ import * as Nav from 'src/libs/nav';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
-import { isGoogleWorkspace } from 'src/workspaces/utils';
+import { isGoogleWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 
 const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
   h(
@@ -18,18 +18,29 @@ const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
       href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
       ...Utils.newTabLinkProps,
     },
-    ['Why is a workspace required to access this data?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })]
+    [
+      'Why is a workspace required to access this data?',
+      icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 }),
+    ]
   ),
 ]);
 
-const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
+interface RequesterPaysModalProps {
+  onDismiss: () => void;
+  onSuccess: (selectedGoogleProject: string) => void;
+}
+
+const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismiss, onSuccess }) => {
   const { workspaces, loading } = useWorkspaces();
   const billableWorkspaces = _.filter(
-    (workspace) => isGoogleWorkspace(workspace) && (workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER'),
+    (workspace: WorkspaceWrapper) =>
+      isGoogleWorkspace(workspace) && (workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER'),
     workspaces
   );
 
-  const [selectedGoogleProject, setSelectedGoogleProject] = useState(requesterPaysProjectStore.get());
+  const [selectedGoogleProject, setSelectedGoogleProject] = useState<string | undefined>(
+    requesterPaysProjectStore.get()
+  );
 
   return Utils.cond(
     [
@@ -60,7 +71,9 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
               {
                 disabled: !selectedGoogleProject,
                 onClick: () => {
-                  onSuccess(selectedGoogleProject);
+                  if (selectedGoogleProject) {
+                    onSuccess(selectedGoogleProject);
+                  }
                 },
               },
               ['Ok']
@@ -69,7 +82,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
           [
             'This data is in a requester pays bucket. Choose a workspace to bill to in order to continue:',
             h(IdContainer, [
-              (id) =>
+              (id: string) =>
                 h(Fragment, [
                   h(FormLabel, { htmlFor: id, required: true }, ['Workspace']),
                   h(VirtualizedSelect, {
@@ -79,7 +92,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
                     placeholder: 'Select a workspace',
                     onChange: ({ value }) => setSelectedGoogleProject(value),
                     options: _.flow(
-                      _.map(({ workspace: { googleProject, namespace, name } }) => ({
+                      _.map(({ workspace: { googleProject, namespace, name } }: WorkspaceWrapper) => ({
                         value: googleProject,
                         label: `${namespace}/${name}`,
                       })),
@@ -105,13 +118,13 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
                 Nav.goToPath('workspaces');
               },
             },
-            'Go to Workspaces'
+            ['Go to Workspaces']
           ),
         },
         [
-          div(
-            'To view or download data in this workspace, please ensure you have at least one workspace with owner or project owner permissions in order to bill to.'
-          ),
+          div([
+            'To view or download data in this workspace, please ensure you have at least one workspace with owner or project owner permissions in order to bill to.',
+          ]),
           requesterPaysHelpInfo,
         ]
       )
