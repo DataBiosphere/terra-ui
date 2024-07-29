@@ -1,3 +1,4 @@
+import { GoogleDiskType } from '@terra-ui-packages/leonardo-data-client';
 import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AboutPersistentDiskSection } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskSection';
@@ -5,7 +6,6 @@ import { GcpPersistentDiskSizeNumberInput } from 'src/analysis/modals/ComputeMod
 import { PersistentDiskTypeInputContainer } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInputContainer';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { defaultPersistentDiskType } from 'src/analysis/utils/disk-utils';
-import { GoogleDiskType } from 'src/libs/ajax/leonardo/Disks';
 import { GooglePdType, googlePdTypes } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { CloudProvider } from 'src/workspaces/utils';
 

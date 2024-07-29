@@ -7584,9 +7584,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@terra-ui-packages/leonardo-data-client", "workspace:packages/data-clients/leonardo"],\
             ["@terra-ui-packages/build-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/build-utils"],\
+            ["@terra-ui-packages/data-client-core", "workspace:packages/data-clients/core"],\
             ["@terra-ui-packages/test-utils", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#workspace:packages/test-utils"],\
             ["@types/jest", "npm:28.1.8"],\
+            ["@types/qs", "npm:6.9.15"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
+            ["qs", "npm:6.11.2"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:5.2.11"]\
           ],\
@@ -8446,6 +8449,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-qs-npm-6.9.11-e12802ac61-620ca1628b.zip/node_modules/@types/qs/",\
           "packageDependencies": [\
             ["@types/qs", "npm:6.9.11"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:6.9.15", {\
+          "packageLocation": "./.yarn/cache/@types-qs-npm-6.9.15-aae1b1e2f7-97d8208c2b.zip/node_modules/@types/qs/",\
+          "packageDependencies": [\
+            ["@types/qs", "npm:6.9.15"]\
           ],\
           "linkType": "HARD"\
         }]\

@@ -1,11 +1,11 @@
 import { TooltipTrigger } from '@terra-ui-packages/components';
+import { DiskType } from '@terra-ui-packages/leonardo-data-client';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import {
   PersistentDiskTypeInput,
   PersistentDiskTypeInputProps,
 } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
-import { DiskType } from 'src/libs/ajax/leonardo/Disks';
 
 export interface PersistentDiskTypeContainerProps<T extends DiskType, Option extends { value: T; label: string }>
   extends Pick<PersistentDiskTypeInputProps<T, Option>, 'options' | 'value' | 'onChange'> {
