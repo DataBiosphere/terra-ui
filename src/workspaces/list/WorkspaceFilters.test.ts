@@ -1,6 +1,5 @@
 import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
-import { act } from '@testing-library/react';
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -109,7 +108,7 @@ describe('WorkspaceFilters', () => {
       render(h(WorkspaceFilters, { workspaces: [defaultGoogleWorkspace] }));
     });
 
-    const filterSelector = screen.getByLabelText('Search workspaces by name or project');
+    const filterSelector = screen.getByLabelText('Search workspaces by name, project, or bucket');
     await filterSelector.click();
     await user.type(filterSelector, 'x');
     await act(() => delay(300)); // debounced search
