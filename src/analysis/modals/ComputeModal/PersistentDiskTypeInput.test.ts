@@ -1,3 +1,4 @@
+import { GoogleDiskType } from '@terra-ui-packages/leonardo-data-client';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
@@ -5,7 +6,6 @@ import {
   PersistentDiskTypeInput,
   PersistentDiskTypeInputProps,
 } from 'src/analysis/modals/ComputeModal/PersistentDiskTypeInput';
-import { GoogleDiskType } from 'src/libs/ajax/leonardo/Disks';
 import { GooglePdType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 

@@ -1,7 +1,6 @@
 import { NominalType } from '@terra-ui-packages/core-utils';
+import { AzureDiskType, DiskType } from '@terra-ui-packages/leonardo-data-client';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
-
-import { AzureDiskType, DiskType } from '../Disks';
 
 export interface GpuConfig {
   gpuType: string;
