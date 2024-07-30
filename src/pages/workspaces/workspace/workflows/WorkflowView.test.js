@@ -521,6 +521,45 @@ describe('Workflow View (GCP)', () => {
     expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, undefined);
   });
 
+  it('stores call cache in local storage if it is disabled and removes it when enabled', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    getLocalPref.mockReturnValue(undefined);
+
+    renderWorkflowView();
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Assert
+    // check that call caching is initially checked
+    const useCallCacheCheckbox = screen.getByRole('checkbox', { name: 'Use call caching' });
+    expect(useCallCacheCheckbox).toBeChecked();
+
+    // Act
+    // user unchecks call caching
+    await user.click(useCallCacheCheckbox);
+
+    // Assert
+    // check 'useCallCache' was saved to local storage
+    expect(useCallCacheCheckbox).not.toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, { useCallCache: false });
+
+    // Act
+    // user checks call caching
+    await user.click(useCallCacheCheckbox);
+
+    // Assert
+    // check that 'undefined' was sent as value for workflow options in local storage (which removes it from local storage)
+    expect(useCallCacheCheckbox).toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, undefined);
+  });
+
   it('renders run analysis modal', async () => {
     // Arrange
     const user = userEvent.setup();

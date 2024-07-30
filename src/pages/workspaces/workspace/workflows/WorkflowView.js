@@ -383,7 +383,7 @@ export const WorkflowView = _.flow(
       this.state = {
         activeTab: 'inputs',
         entitySelectionModel: { selectedEntities: {} },
-        useCallCache: true,
+        useCallCache: workflowOptionsPref && 'useCallCache' in workflowOptionsPref ? workflowOptionsPref.useCallCache : true,
         deleteIntermediateOutputFiles: workflowOptionsPref?.deleteIntermediateOutputFiles || false,
         useReferenceDisks: workflowOptionsPref?.useReferenceDisks || false,
         retryWithMoreMemory: retryWithMoreMemoryPref?.enabled || false,
@@ -649,6 +649,7 @@ export const WorkflowView = _.flow(
 
     getUpdatedWorkflowOptionsPref() {
       const {
+        useCallCache,
         useReferenceDisks,
         ignoreEmptyOutputs,
         deleteIntermediateOutputFiles,
@@ -662,6 +663,10 @@ export const WorkflowView = _.flow(
 
       const updatedWfOptionsPref = {};
 
+      // call caching by default is checked hence persist it only if it is unchecked
+      if (!useCallCache) updatedWfOptionsPref.useCallCache = useCallCache;
+
+      // below workflow options are unchecked by default hence persist them if they are checked
       if (useReferenceDisks) updatedWfOptionsPref.useReferenceDisks = useReferenceDisks;
       if (ignoreEmptyOutputs) updatedWfOptionsPref.ignoreEmptyOutputs = ignoreEmptyOutputs;
       if (deleteIntermediateOutputFiles) updatedWfOptionsPref.deleteIntermediateOutputFiles = deleteIntermediateOutputFiles;
