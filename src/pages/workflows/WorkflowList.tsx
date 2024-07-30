@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -31,6 +31,32 @@ interface NewQueryParams {
   newTab?: string;
   newFilter?: string;
 }
+
+interface WorkflowTableHeaderProps {
+  sort;
+  field: string;
+  onSort;
+  children: string;
+}
+
+/**
+ * @param {WorkflowTableHeaderProps} props
+ * @param props.sort - the current sort properties of the table
+ * @param {string} props.field - the field identifier of the header's column
+ * (should match the sort field if this column is being sorted)
+ * @param props.onSort - the function to be called with the new sort properties
+ * if the header's column is selected for sorting
+ * @param {string} props.children - the text to display in the header cell
+ */
+const WorkflowTableHeader = (props: WorkflowTableHeaderProps) => {
+  const { sort, field, onSort, children: text } = props;
+
+  return (
+    <Sortable sort={sort} field={field} onSort={onSort}>
+      <HeaderCell>{text}</HeaderCell>
+    </Sortable>
+  );
+};
 
 // TODO: add error handling, consider wrapping query updates in useEffect
 const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
@@ -91,180 +117,129 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
   )(workflows?.[tabName]);
 
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Workflows' }, [
-      h(DelayedSearchInput, {
-        style: { marginLeft: '2rem', width: 500 },
-        placeholder: 'SEARCH WORKFLOWS',
-        'aria-label': 'Search workflows',
-        onChange: (val) => updateQuery({ newFilter: val }),
-        value: filter,
-      }),
-    ]),
-    h(TabBar, {
-      'aria-label': 'workflows menu',
-      activeTab: tabName,
-      tabNames: Object.keys(tabs),
-      displayNames: tabs,
-      getHref: (currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`,
-      getOnClick: (currentTab) => (e) => {
-        e.preventDefault();
-        updateQuery({ newTab: currentTab });
-      },
-    }),
-    div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { flex: 1 } }, [
-        workflows &&
-          h(AutoSizer, [
-            ({ width, height }) =>
-              h(FlexTable, {
-                'aria-label': tabs[tabName],
-                width,
-                height,
-                sort,
-                rowCount: sortedWorkflows.length,
-                columns: [
-                  {
-                    field: 'name',
-                    headerRenderer: () =>
-                      h(Sortable, { sort, field: 'name', onSort: setSort }, [h(HeaderCell, ['Workflow'])]),
-                    cellRenderer: ({ rowIndex }) => {
-                      const { namespace, name } = sortedWorkflows[rowIndex];
-
-                      return h(TooltipCell, { tooltip: `${namespace}/${name}` }, [
-                        div({ style: { fontSize: 12 } }, [namespace]),
-                        h(
-                          Link,
-                          { style: { fontWeight: 600 }, href: Nav.getLink('workflow-dashboard', { namespace, name }) },
-                          [name]
-                        ),
-                      ]);
-                    },
-                    size: { basis: 300 },
-                  },
-                  {
-                    field: 'synopsis',
-                    headerRenderer: () =>
-                      h(Sortable, { sort, field: 'synopsis', onSort: setSort }, [h(HeaderCell, ['Synopsis'])]),
-                    cellRenderer: ({ rowIndex }) => {
-                      const { synopsis } = sortedWorkflows[rowIndex];
-
-                      return h(TooltipCell, [synopsis]);
-                    },
-                    size: { basis: 475 },
-                  },
-                  {
-                    field: 'managers',
-                    headerRenderer: () =>
-                      h(Sortable, { sort, field: 'managers', onSort: setSort }, [h(HeaderCell, ['Owners'])]),
-                    cellRenderer: ({ rowIndex }) => {
-                      const { managers } = sortedWorkflows[rowIndex];
-
-                      return h(TooltipCell, [managers?.join(', ')]);
-                    },
-                    size: { basis: 225 },
-                  },
-                  {
-                    field: 'numSnapshots',
-                    headerRenderer: () =>
-                      h(Sortable, { sort, field: 'numSnapshots', onSort: setSort }, [h(HeaderCell, ['Snapshots'])]),
-                    cellRenderer: ({ rowIndex }) => {
-                      const { numSnapshots } = sortedWorkflows[rowIndex];
-
-                      return div({ style: { textAlign: 'end', flex: 1 } }, [numSnapshots]);
-                    },
-                    size: { basis: 108, grow: 0, shrink: 0 },
-                  },
-                  {
-                    field: 'numConfigurations',
-                    headerRenderer: () =>
-                      h(Sortable, { sort, field: 'numConfigurations', onSort: setSort }, [
-                        h(HeaderCell, ['Configurations']),
-                      ]),
-                    cellRenderer: ({ rowIndex }) => {
-                      const { numConfigurations } = sortedWorkflows[rowIndex];
-
-                      return div({ style: { textAlign: 'end', flex: 1 } }, [numConfigurations]);
-                    },
-                    size: { basis: 145, grow: 0, shrink: 0 },
-                  },
-                ],
-              }),
-          ]),
-      ]),
-    ]),
-  ]);
-
-  // return (
-  //   <FooterWrapper>
-  //     <TopBar title='Workflows'>
-  //       <DelayedSearchInput
-  //         style={{ marginLeft: '2rem', width: 500 }}
-  //         placeholder='SEARCH WORKFLOWS'
-  //         aria-label='Search workflows'
-  //         onChange={(val) => updateQuery({ newFilter: val })}
-  //         value={filter}
-  //       />
-  //     </TopBar>
-  //     <TabBar
-  //       aria-label='workflows menu'
-  //       activeTab={tabName}
-  //       tabNames={Object.keys(tabs)}
-  //       displayNames={tabs}
-  //       getHref={(currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`}
-  //       getOnClick={(currentTab) => (e) => {
-  //         e.preventDefault();
-  //         updateQuery({ newTab: currentTab });
-  //       }}
-  //     />
-  //     <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-  //       <div style={{ flex: 1 }}>
-  //         {workflows && (
-  //           <AutoSizer>
-  //             {({ width, height }) => (
-  //               <FlexTable
-  //                 aria-label={tabs[tabName]}
-  //                 width={width}
-  //                 height={height}
-  //                 sort={sort}
-  //                 rowCount={sortedWorkflows.length}
-  //                 columns={[
-  //                   {
-  //                     field: 'name',
-  //                     headerRenderer: () => (
-  //                       <Sortable sort={sort} field='name' onSort={setSort}>
-  //                         <HeaderCell>Workflow</HeaderCell>
-  //                       </Sortable>
-  //                     ),
-  //                     cellRenderer: ({ rowIndex }) => {
-  //                       const { namespace, name } = sortedWorkflows[rowIndex];
-  //
-  //                       return (
-  //                         <TooltipCell tooltip={`${namespace}${name}`}>
-  //                           <div style={{ fontSize: 12 }}>
-  //                             {[namespace]}
-  //                             <Link
-  //                               style={{ fontWeight: 600 }}
-  //                               href={Nav.getLink('workflow-dashboard', { namespace, name })}
-  //                             >
-  //                               {[name]}
-  //                             </Link>
-  //                           </div>
-  //                         </TooltipCell>
-  //                       );
-  //                     },
-  //                     size: { basis: 300 },
-  //                   },
-  //                 ]}
-  //               />
-  //             )}
-  //           </AutoSizer>
-  //         )}
-  //       </div>
-  //     </div>
-  //   </FooterWrapper>
-  // );
+  return (
+    <FooterWrapper>
+      <TopBar title='Workflows'>
+        <DelayedSearchInput
+          style={{ marginLeft: '2rem', width: 500 }}
+          placeholder='SEARCH WORKFLOWS'
+          aria-label='Search workflows'
+          onChange={(val) => updateQuery({ newFilter: val })}
+          value={filter}
+        />
+      </TopBar>
+      <TabBar
+        aria-label='workflows menu'
+        activeTab={tabName}
+        tabNames={Object.keys(tabs)}
+        displayNames={tabs}
+        getHref={(currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`}
+        getOnClick={(currentTab) => (e) => {
+          e.preventDefault();
+          updateQuery({ newTab: currentTab });
+        }}
+      />
+      <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1 }}>
+          {workflows && (
+            <AutoSizer>
+              {({ width, height }) => (
+                <FlexTable
+                  aria-label={tabs[tabName]}
+                  width={width}
+                  height={height}
+                  sort={sort}
+                  rowCount={sortedWorkflows.length}
+                  columns={getColumns(sort, setSort, sortedWorkflows)}
+                />
+              )}
+            </AutoSizer>
+          )}
+        </div>
+      </div>
+    </FooterWrapper>
+  );
 };
+
+const getColumns = (sort, setSort, sortedWorkflows) => [
+  {
+    field: 'name',
+    headerRenderer: () => (
+      <WorkflowTableHeader sort={sort} field='name' onSort={setSort}>
+        Workflow
+      </WorkflowTableHeader>
+    ),
+    cellRenderer: ({ rowIndex }) => {
+      const { namespace, name } = sortedWorkflows[rowIndex];
+
+      return (
+        <TooltipCell tooltip={`${namespace}/${name}`}>
+          <div style={{ fontSize: 12 }}>{namespace}</div>
+          <Link style={{ fontWeight: 600 }} href={Nav.getLink('workflow-dashboard', { namespace, name })}>
+            {name}
+          </Link>
+        </TooltipCell>
+      );
+    },
+    size: { basis: 300 },
+  },
+  {
+    field: 'synopsis',
+    headerRenderer: () => (
+      <WorkflowTableHeader sort={sort} field='synopsis' onSort={setSort}>
+        Synopsis
+      </WorkflowTableHeader>
+    ),
+    cellRenderer: ({ rowIndex }) => {
+      const { synopsis } = sortedWorkflows[rowIndex];
+
+      return <TooltipCell>{synopsis}</TooltipCell>;
+    },
+    size: { basis: 475 },
+  },
+  {
+    field: 'managers',
+    headerRenderer: () => (
+      <WorkflowTableHeader sort={sort} field='managers' onSort={setSort}>
+        Owners
+      </WorkflowTableHeader>
+    ),
+    cellRenderer: ({ rowIndex }) => {
+      const { managers } = sortedWorkflows[rowIndex];
+
+      return <TooltipCell>{managers?.join(', ')}</TooltipCell>;
+    },
+    size: { basis: 225 },
+  },
+  {
+    field: 'numSnapshots',
+    headerRenderer: () => (
+      <WorkflowTableHeader sort={sort} field='numSnapshots' onSort={setSort}>
+        Snapshots
+      </WorkflowTableHeader>
+    ),
+    cellRenderer: ({ rowIndex }) => {
+      const { numSnapshots } = sortedWorkflows[rowIndex];
+
+      return <div style={{ textAlign: 'end', flex: 1 }}>{numSnapshots}</div>;
+    },
+    size: { basis: 108, grow: 0, shrink: 0 },
+  },
+  {
+    field: 'numConfigurations',
+    headerRenderer: () => (
+      <WorkflowTableHeader sort={sort} field='numConfigurations' onSort={setSort}>
+        Configurations
+      </WorkflowTableHeader>
+    ),
+    cellRenderer: ({ rowIndex }) => {
+      const { numConfigurations } = sortedWorkflows[rowIndex];
+
+      return <div style={{ textAlign: 'end', flex: 1 }}>{numConfigurations}</div>;
+    },
+    size: { basis: 145, grow: 0, shrink: 0 },
+  },
+];
 
 export const navPaths = [
   {
