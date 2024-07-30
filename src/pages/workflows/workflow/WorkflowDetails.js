@@ -179,20 +179,20 @@ const WorkflowWdl = () => {
 const getFilteredConfigs = ({ allConfigs, filterWord }) => {
   const lowerCaseFilter = filterWord.toLocaleLowerCase();
   const keys = ['name', 'namespace', 'snapshotId'];
-  return allConfigs?.filter((config) => keys.some((key) => config[key].toString().toLowerCase().includes(lowerCaseFilter))); // _.filter((configs) => Utils.textMatch(lowerCaseFilter, configs.name))(allConfigs);
+  return allConfigs?.filter((config) => keys.some((key) => config[key].toString().toLowerCase().includes(lowerCaseFilter)));
 };
 
-const WorkflowConfigs = ({ searchFilter }) => {
+export const WorkflowConfigs = ({ searchFilter }) => {
   const signal = useCancellation();
   const { namespace, name, snapshotId } = useStore(snapshotStore);
   const [allConfigs, setAllConfigs] = useState();
   const [snapshotConfigs, setSnapshotConfigs] = useState();
-  const [dataTableColumnWidths, setDataTableColumnWidths] = useState({});
+  const [configTableColumnWidths, setConfigTableColumnWidths] = useState({});
   const resizeColumn = (currentWidth, delta, columnKey) => {
-    setDataTableColumnWidths(_.set(columnKey, currentWidth + delta));
+    setConfigTableColumnWidths(_.set(columnKey, currentWidth + delta));
   };
-  const withDataTableNamePrefix = (columnName) => `${columnName}`;
-  const dataTableRef = useRef(null);
+  const withConfigTableName = (columnName) => `${columnName}`;
+  const configTableRef = useRef(null);
 
   useOnMount(() => {
     const loadConfigs = async () => {
@@ -211,8 +211,8 @@ const WorkflowConfigs = ({ searchFilter }) => {
   const filteredConfigs = getFilteredConfigs({ allConfigs, filterWord: searchFilter });
 
   useEffect(() => {
-    dataTableRef.current?.recomputeColumnSizes();
-  }, [dataTableColumnWidths]);
+    configTableRef.current?.recomputeColumnSizes();
+  }, [configTableColumnWidths]);
 
   return div({ style: { flex: 1, padding: '1rem' }, role: 'tabpanel' }, [
     !allConfigs
@@ -220,7 +220,7 @@ const WorkflowConfigs = ({ searchFilter }) => {
       : h(AutoSizer, { disableHeight: true }, [
           ({ width }) =>
             h(GridTable, {
-              ref: dataTableRef,
+              ref: configTableRef,
               width,
               height: (1 + allConfigs.length) * 48,
               'aria-label': 'workflow configuration',
@@ -248,14 +248,14 @@ const WorkflowConfigs = ({ searchFilter }) => {
                 },
                 {
                   field: 'configurations',
-                  width: dataTableColumnWidths[withDataTableNamePrefix('configurations')] || 300,
+                  width: configTableColumnWidths[withConfigTableName('configurations')] || 300,
                   headerRenderer: () => {
-                    const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('configurations')] || 300;
+                    const columnWidth = configTableColumnWidths[withConfigTableName('configurations')] || 300;
                     return h(
                       Resizable,
                       {
                         width: columnWidth,
-                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('configurations')),
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withConfigTableName('configurations')),
                       },
                       [h(HeaderCell, ['Configuration'])]
                     );
@@ -267,14 +267,14 @@ const WorkflowConfigs = ({ searchFilter }) => {
                 },
                 {
                   field: 'workflow_snapshot',
-                  width: dataTableColumnWidths[withDataTableNamePrefix('workflow_snapshot')] || 300,
+                  width: configTableColumnWidths[withConfigTableName('workflow_snapshot')] || 300,
                   headerRenderer: () => {
-                    const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('workflow_snapshot')] || 300;
+                    const columnWidth = configTableColumnWidths[withConfigTableName('workflow_snapshot')] || 300;
                     return h(
                       Resizable,
                       {
                         width: columnWidth,
-                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withDataTableNamePrefix('workflow_snapshot')),
+                        onWidthChange: (delta) => resizeColumn(columnWidth, delta, withConfigTableName('workflow_snapshot')),
                       },
                       [h(HeaderCell, ['Workflow Snapshot'])]
                     );
@@ -291,9 +291,9 @@ const WorkflowConfigs = ({ searchFilter }) => {
                 },
                 {
                   field: 'synopsis',
-                  width: dataTableColumnWidths[withDataTableNamePrefix('synopsis')] || 300,
+                  width: configTableColumnWidths[withConfigTableName('synopsis')] || 300,
                   headerRenderer: () => {
-                    const columnWidth = dataTableColumnWidths[withDataTableNamePrefix('synopsis')] || 300;
+                    const columnWidth = configTableColumnWidths[withConfigTableName('synopsis')] || 300;
                     return h(
                       Resizable,
                       {
@@ -316,9 +316,8 @@ const WorkflowConfigs = ({ searchFilter }) => {
   ]);
 };
 
-const WorkflowDetails = (props) => {
+export const WorkflowDetails = (props) => {
   const [searchFilter, setSearchFilter] = useState('');
-
   return h(WorkflowWrapper, props, [
     h(SnapshotWrapper, props, [
       Utils.switchCase(
