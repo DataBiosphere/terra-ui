@@ -361,7 +361,7 @@ export const WorkflowView = _.flow(
   withCancellationSignal
 )(
   class WorkflowView extends Component {
-    wfOptionsPersistenceId = `${this.props.namespace}/${this.props.name}/workflow_options`;
+    wfOptionsPersistenceId;
 
     resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, isSnapshot) {
       const { workflowName } = this.props;
@@ -374,6 +374,8 @@ export const WorkflowView = _.flow(
 
     constructor(props) {
       super(props);
+
+      this.wfOptionsPersistenceId = `${props.namespace}/${props.name}/workflow_options`;
 
       const workflowOptionsPref = getLocalPref(this.wfOptionsPersistenceId);
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
