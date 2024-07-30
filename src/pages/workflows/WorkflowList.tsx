@@ -27,11 +27,11 @@ interface GroupedWorkflows {
   public: MethodDefinition[];
 }
 
-// This is actually the sort type from the FlexTable component
+// This is based on the sort type from the FlexTable component
 // When that component is converted to TypeScript, we should use its sort type
 // instead
 interface SortProperties {
-  field: string;
+  field: keyof MethodDefinition;
   direction: 'asc' | 'desc';
 }
 
@@ -121,9 +121,12 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     loadWorkflows();
   });
 
-  const sortedWorkflows = _.flow(
-    _.filter(({ namespace, name }) => Utils.textMatch(filter, `${namespace}/${name}`)),
-    _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
+  const sortedWorkflows: MethodDefinition[] = _.flow<MethodDefinition[], MethodDefinition[], MethodDefinition[]>(
+    _.filter(({ namespace, name }: MethodDefinition) => Utils.textMatch(filter, `${namespace}/${name}`)),
+    _.orderBy(
+      [({ [sort.field]: field }: MethodDefinition) => (field == null ? '' : _.lowerCase(field.toString()))],
+      [sort.direction]
+    )
   )(workflows?.[tabName]);
 
   return (
@@ -173,8 +176,10 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
 const getColumns = (
   sort: SortProperties,
   setSort: React.Dispatch<React.SetStateAction<SortProperties>>,
-  sortedWorkflows
+  sortedWorkflows: MethodDefinition[]
 ) => [
+  // Note: 'field' values should be MethodDefinition property names for sorting
+  // to work properly
   {
     field: 'name',
     headerRenderer: () => (
