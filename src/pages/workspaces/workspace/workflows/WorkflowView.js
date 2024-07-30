@@ -375,7 +375,7 @@ export const WorkflowView = _.flow(
     constructor(props) {
       super(props);
 
-      this.wfOptionsPersistenceId = `${props.namespace}/${props.name}/workflow_options`;
+      this.wfOptionsPersistenceId = `${props?.namespace}/${props?.name}/workflow_options`;
 
       const workflowOptionsPref = getLocalPref(this.wfOptionsPersistenceId);
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
