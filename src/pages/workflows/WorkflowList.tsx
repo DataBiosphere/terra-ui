@@ -131,7 +131,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
 
   return (
     <FooterWrapper>
-      <TopBar title='Workflows'>
+      <TopBar title='Workflows' href=''>
         <DelayedSearchInput
           style={{ marginLeft: '2rem', width: 500 }}
           placeholder='SEARCH WORKFLOWS'
@@ -150,7 +150,9 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
           e.preventDefault();
           updateQuery({ newTab: currentTab });
         }}
-      />
+      >
+        {null /* nothing to display at the end of the tab bar */}
+      </TabBar>
       <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1 }}>
           {workflows && (
@@ -160,9 +162,12 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
                   aria-label={tabs[tabName]}
                   width={width}
                   height={height}
-                  sort={sort}
+                  sort={sort as any /* necessary until FlexTable is converted to TS */}
                   rowCount={sortedWorkflows.length}
                   columns={getColumns(sort, setSort, sortedWorkflows)}
+                  variant=''
+                  noContentMessage={null /* default message */}
+                  tabIndex={-1}
                 />
               )}
             </AutoSizer>
@@ -211,7 +216,7 @@ const getColumns = (
     cellRenderer: ({ rowIndex }) => {
       const { synopsis } = sortedWorkflows[rowIndex];
 
-      return <TooltipCell>{synopsis}</TooltipCell>;
+      return <TooltipCell tooltip={null}>{synopsis}</TooltipCell>;
     },
     size: { basis: 475 },
   },
@@ -225,7 +230,7 @@ const getColumns = (
     cellRenderer: ({ rowIndex }) => {
       const { managers } = sortedWorkflows[rowIndex];
 
-      return <TooltipCell>{managers?.join(', ')}</TooltipCell>;
+      return <TooltipCell tooltip={null}>{managers?.join(', ')}</TooltipCell>;
     },
     size: { basis: 225 },
   },
