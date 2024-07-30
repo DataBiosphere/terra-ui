@@ -248,9 +248,9 @@ export const WorkflowConfigs = ({ searchFilter }) => {
                 },
                 {
                   field: 'configurations',
-                  width: configTableColumnWidths[withConfigTableName('configurations')] || 300,
+                  width: configTableColumnWidths[withConfigTableName('configurations')] || 500,
                   headerRenderer: () => {
-                    const columnWidth = configTableColumnWidths[withConfigTableName('configurations')] || 300;
+                    const columnWidth = configTableColumnWidths[withConfigTableName('configurations')] || 500;
                     return h(
                       Resizable,
                       {
@@ -291,9 +291,9 @@ export const WorkflowConfigs = ({ searchFilter }) => {
                 },
                 {
                   field: 'synopsis',
-                  width: configTableColumnWidths[withConfigTableName('synopsis')] || 300,
+                  width: configTableColumnWidths[withConfigTableName('synopsis')] || 500,
                   headerRenderer: () => {
-                    const columnWidth = configTableColumnWidths[withConfigTableName('synopsis')] || 300;
+                    const columnWidth = configTableColumnWidths[withConfigTableName('synopsis')] || 500;
                     return h(
                       Resizable,
                       {
