@@ -1,7 +1,6 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import PropTypes from 'prop-types';
 import { Component, Fragment, useEffect, useState } from 'react';
 import { b, div, h, label, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -353,6 +352,10 @@ const findPossibleSets = (listOfExistingEntities) => {
   );
 };
 
+const getWfOptionsPersistenceId = (namespace, name) => {
+  return `${namespace}/${name}/workflow_options`;
+};
+
 export const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
@@ -362,8 +365,6 @@ export const WorkflowView = _.flow(
   withCancellationSignal
 )(
   class WorkflowView extends Component {
-    wfOptionsPersistenceId;
-
     resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, isSnapshot) {
       const { workflowName } = this.props;
       return {
@@ -376,9 +377,7 @@ export const WorkflowView = _.flow(
     constructor(props) {
       super(props);
 
-      this.wfOptionsPersistenceId = `${props.namespace}/${props.name}/workflow_options`;
-
-      const workflowOptionsPref = getLocalPref(this.wfOptionsPersistenceId);
+      const workflowOptionsPref = getLocalPref(getWfOptionsPersistenceId(props.namespace, props.name));
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
       const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
       const resourceMonitoringEnabledPref = resourceMonitoringPref?.enabled;
@@ -711,8 +710,8 @@ export const WorkflowView = _.flow(
       const updatedWfOptionsPref = this.getUpdatedWorkflowOptionsPref();
 
       // note: setting the key to 'undefined' will remove it from local storage. See method implementation for more details.
-      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(this.wfOptionsPersistenceId, undefined);
-      else setLocalPref(this.wfOptionsPersistenceId, updatedWfOptionsPref);
+      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(getWfOptionsPersistenceId(this.props.namespace, this.props.name), undefined);
+      else setLocalPref(getWfOptionsPersistenceId(this.props.namespace, this.props.name), updatedWfOptionsPref);
     }
 
     async fetchInfo(savedConfig, currentSnapRedacted) {
@@ -1634,11 +1633,6 @@ export const WorkflowView = _.flow(
     }
   }
 );
-
-WorkflowView.propTypes = {
-  namespace: PropTypes.string,
-  name: PropTypes.string,
-};
 
 export const navPaths = [
   {
