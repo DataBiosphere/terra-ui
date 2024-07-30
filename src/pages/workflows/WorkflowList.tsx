@@ -27,25 +27,34 @@ interface GroupedWorkflows {
   public: MethodDefinition[];
 }
 
+// This is actually the sort type from the FlexTable component
+// When that component is converted to TypeScript, we should use its sort type
+// instead
+interface SortProperties {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
 interface NewQueryParams {
   newTab?: string;
   newFilter?: string;
 }
 
 interface WorkflowTableHeaderProps {
-  sort;
+  sort: SortProperties;
   field: string;
-  onSort;
+  onSort: React.Dispatch<React.SetStateAction<SortProperties>>;
   children: string;
 }
 
 /**
  * @param {WorkflowTableHeaderProps} props
- * @param props.sort - the current sort properties of the table
+ * @param {SortProperties} props.sort - the current sort properties of the table
  * @param {string} props.field - the field identifier of the header's column
  * (should match the sort field if this column is being sorted)
- * @param props.onSort - the function to be called with the new sort properties
- * if the header's column is selected for sorting
+ * @param {React.Dispatch<React.SetStateAction<SortProperties>>} props.onSort -
+ * called to update the sort properties if the header's column is selected for
+ * sorting
  * @param {string} props.children - the text to display in the header cell
  */
 const WorkflowTableHeader = (props: WorkflowTableHeaderProps) => {
@@ -66,7 +75,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   // Valid direction values are 'asc' and 'desc' (based on expected
   // function signatures from the Sortable component used in this
   // component)
-  const [sort, setSort] = useState({ field: 'name', direction: 'asc' });
+  const [sort, setSort] = useState<SortProperties>({ field: 'name', direction: 'asc' });
 
   const getTabQueryName = (newTab: string | undefined): string | undefined => (newTab === 'mine' ? undefined : newTab);
 
@@ -161,7 +170,11 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   );
 };
 
-const getColumns = (sort, setSort, sortedWorkflows) => [
+const getColumns = (
+  sort: SortProperties,
+  setSort: React.Dispatch<React.SetStateAction<SortProperties>>,
+  sortedWorkflows
+) => [
   {
     field: 'name',
     headerRenderer: () => (
