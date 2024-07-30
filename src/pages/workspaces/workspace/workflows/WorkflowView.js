@@ -1,6 +1,7 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import PropTypes from 'prop-types';
 import { Component, Fragment, useEffect, useState } from 'react';
 import { b, div, h, label, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -375,7 +376,7 @@ export const WorkflowView = _.flow(
     constructor(props) {
       super(props);
 
-      this.wfOptionsPersistenceId = `${props?.namespace}/${props?.name}/workflow_options`;
+      this.wfOptionsPersistenceId = `${props.namespace}/${props.name}/workflow_options`;
 
       const workflowOptionsPref = getLocalPref(this.wfOptionsPersistenceId);
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
@@ -1633,6 +1634,11 @@ export const WorkflowView = _.flow(
     }
   }
 );
+
+WorkflowView.propTypes = {
+  namespace: PropTypes.string,
+  name: PropTypes.string,
+};
 
 export const navPaths = [
   {
