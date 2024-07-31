@@ -377,7 +377,9 @@ export const WorkflowView = _.flow(
     constructor(props) {
       super(props);
 
-      const workflowOptionsPref = getLocalPref(getWfOptionsPersistenceId(props.namespace, props.name));
+      const { namespace, name } = props;
+
+      const workflowOptionsPref = getLocalPref(getWfOptionsPersistenceId(namespace, name));
       const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
       const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
       const resourceMonitoringEnabledPref = resourceMonitoringPref?.enabled;
@@ -707,11 +709,13 @@ export const WorkflowView = _.flow(
         )
       );
 
+      const { namespace, name } = this.props;
+
       const updatedWfOptionsPref = this.getUpdatedWorkflowOptionsPref();
 
       // note: setting the key to 'undefined' will remove it from local storage. See method implementation for more details.
-      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(getWfOptionsPersistenceId(this.props.namespace, this.props.name), undefined);
-      else setLocalPref(getWfOptionsPersistenceId(this.props.namespace, this.props.name), updatedWfOptionsPref);
+      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(getWfOptionsPersistenceId(namespace, name), undefined);
+      else setLocalPref(getWfOptionsPersistenceId(namespace, name), updatedWfOptionsPref);
     }
 
     async fetchInfo(savedConfig, currentSnapRedacted) {
