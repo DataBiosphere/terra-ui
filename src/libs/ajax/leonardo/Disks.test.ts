@@ -1,5 +1,5 @@
 import { azureDisk, galaxyDisk, undecoratePd } from 'src/analysis/_testData/testData';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-options';
 import { fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { asMockedFn } from 'src/testing/test-utils';

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-options';
 import { fetchSam } from 'src/libs/ajax/ajax-common';
 
 export interface SamUserTermsOfServiceDetails {

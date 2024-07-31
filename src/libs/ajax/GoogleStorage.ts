@@ -10,7 +10,7 @@ import {
   ToolLabel,
 } from 'src/analysis/utils/tool-utils';
 import { getAuthToken } from 'src/auth/auth';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-options';
 import { checkRequesterPaysError, fetchSam, withRetryOnError } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { fetchOk, withUrlPrefix } from 'src/libs/ajax/fetch/fetch-core';

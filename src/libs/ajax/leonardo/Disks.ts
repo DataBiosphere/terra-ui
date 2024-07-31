@@ -1,7 +1,7 @@
 import { AuditInfo, CloudContext, LeoResourceLabels } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts, withAuthSession } from 'src/auth/auth-fetch';
+import { authOpts, withAuthSession } from 'src/auth/auth-options';
 import { appIdentifier, fetchLeo, withAppIdentifier } from 'src/libs/ajax/ajax-common';
 
 import { FetchFn } from '../data-client-common';

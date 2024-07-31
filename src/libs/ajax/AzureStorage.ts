@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { AnalysisFile, AnalysisFileMetadata } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath, getDisplayName, getExtension, getFileName } from 'src/analysis/utils/file-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-options';
 import { Ajax } from 'src/libs/ajax';
 import { fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';

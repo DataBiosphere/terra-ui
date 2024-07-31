@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-options';
 import { fetchEcm } from 'src/libs/ajax/ajax-common';
 import { OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 

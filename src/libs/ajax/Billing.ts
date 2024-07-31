@@ -1,7 +1,7 @@
 import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-options';
 import { fetchBillingProfileManager, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { WorkspacePolicy } from 'src/workspaces/utils';
 

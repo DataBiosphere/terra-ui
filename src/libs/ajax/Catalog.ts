@@ -1,6 +1,6 @@
 import { jsonBody } from '@terra-ui-packages/data-client-core';
 import * as _ from 'lodash/fp';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-options';
 import { fetchCatalog } from 'src/libs/ajax/ajax-common';
 
 // Types are pulled from https://github.com/DataBiosphere/terra-data-catalog/blob/main/common/src/main/resources/schema/development/schema.json

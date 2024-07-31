@@ -2,7 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
-import { authOpts, withAuthSession } from 'src/auth/auth-fetch';
+import { authOpts, withAuthSession } from 'src/auth/auth-options';
 import {
   appIdentifier,
   DEFAULT_RETRY_COUNT,
@@ -180,10 +180,6 @@ export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal: AbortSi
       const runtimes: RawListRuntimeItem[] = await res.json();
       const normalizedRuntimes: ListRuntimeItem[] = _.map(getNormalizedListRuntime, runtimes);
       return normalizedRuntimes;
-    },
-
-    invalidateCookie: () => {
-      return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }));
     },
 
     setCookie: () => {
