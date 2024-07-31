@@ -290,14 +290,11 @@ describe('Workflow View (GCP)', () => {
   };
 
   it('view workflow in workspace from mock import', async () => {
-    const namespace = 'gatk';
-    const name = 'echo_to_file-configured';
-
     renderWorkflowView();
 
     // Act
     await act(async () => {
-      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+      render(h(WorkflowView, { queryParams: { selectionKey } }));
     });
 
     expect(
