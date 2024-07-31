@@ -1,21 +1,14 @@
+// import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
 import { signOutCallbackLinkName } from 'src/auth/signout/SignOutPage';
+import { leoCookieProvider } from 'src/libs/ajax/leonardo/providers/LeoCookieProvider';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { getSessionStorage } from 'src/libs/browser-storage';
 import Events, { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify, sessionExpirationProps } from 'src/libs/notifications';
-import {
-  authStore,
-  azureCookieReadyStore,
-  cookieReadyStore,
-  MetricState,
-  metricStore,
-  oidcStore,
-  TokenMetadata,
-  userStore,
-} from 'src/libs/state';
+import { authStore, MetricState, metricStore, oidcStore, TokenMetadata, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { DEFAULT, getTimestampMetricLabel, switchCase } from 'src/libs/utils';
 
@@ -42,20 +35,24 @@ export const signOut = (signOutCause: SignOutCause = 'unspecified'): void => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   // sendSignOutMetrics should _not_ be awaited. It's fire-and-forget, and we don't want to block the user's signout
   sendSignOutMetrics(signOutCause);
-
-  try {
-    const userManager = oidcStore.get().userManager;
-    const redirectUrl = `${Nav.getWindowOrigin()}/${Nav.getLink(signOutCallbackLinkName)}`;
-    // This will redirect to the logout callback page, which calls `userSignedOut` and then redirects to the homepage.
-    const { name, query, params }: SignOutRedirect = Nav.getCurrentRoute();
-    const signOutState: SignOutState = { signOutRedirect: { name, query, params }, signOutCause };
-    const encodedState = btoa(JSON.stringify(signOutState));
-    userManager!.signoutRedirect({ post_logout_redirect_uri: redirectUrl, extraQueryParams: { state: encodedState } });
-  } catch (e: unknown) {
-    console.error('Signing out with B2C failed. Falling back on local signout', e);
-    userSignedOut(signOutCause, true);
-    Nav.goToPath('root');
-  }
+  leoCookieProvider.unsetCookies().finally(() => {
+    try {
+      const userManager = oidcStore.get().userManager;
+      const redirectUrl = `${Nav.getWindowOrigin()}/${Nav.getLink(signOutCallbackLinkName)}`;
+      // This will redirect to the logout callback page, which calls `userSignedOut` and then redirects to the homepage.
+      const { name, query, params }: SignOutRedirect = Nav.getCurrentRoute();
+      const signOutState: SignOutState = { signOutRedirect: { name, query, params }, signOutCause };
+      const encodedState = btoa(JSON.stringify(signOutState));
+      userManager!.signoutRedirect({
+        post_logout_redirect_uri: redirectUrl,
+        extraQueryParams: { state: encodedState },
+      });
+    } catch (e: unknown) {
+      console.error('Signing out with B2C failed. Falling back on local signout', e);
+      userSignedOut(signOutCause, true);
+      Nav.goToPath('root');
+    }
+  });
 };
 
 const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
@@ -86,8 +83,6 @@ const sendSignOutMetrics = async (cause: SignOutCause): Promise<void> => {
 
 export const userSignedOut = (cause?: SignOutCause, redirectFailed = false) => {
   // At this point, we are guaranteed to not have a valid token, if the redirect succeeded.
-  cookieReadyStore.reset();
-  azureCookieReadyStore.reset();
   getSessionStorage().clear();
 
   if (cause === 'errorRefreshingAuthToken') {
