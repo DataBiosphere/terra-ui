@@ -17,13 +17,12 @@ import * as Utils from 'src/libs/utils';
 import { MethodDefinition } from 'src/pages/workflows/workflow-utils';
 
 /**
- * Represents a list of method definitions grouped into 3
- * categories: My Workflows, Public Workflows, and
- * Featured Workflows.
+ * Represents a list of method definitions grouped into two
+ * categories — My Workflows and Public Workflows — corresponding
+ * to the tabs above the workflows table.
  */
 interface GroupedWorkflows {
   mine: MethodDefinition[];
-  featured: MethodDefinition[];
   public: MethodDefinition[];
 }
 
@@ -96,24 +95,17 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   };
 
   const tabName: string = tab || 'mine';
-  const tabs = { mine: 'My Workflows', public: 'Public Workflows', featured: 'Featured Workflows' };
+  const tabs = { mine: 'My Workflows', public: 'Public Workflows' };
 
   useOnMount(() => {
     const isMine = ({ public: isPublic, managers }: MethodDefinition): boolean =>
       !isPublic || _.includes(getTerraUser().email, managers);
 
     const loadWorkflows = async () => {
-      const [allWorkflows, featuredList] = await Promise.all([
-        Ajax(signal).Methods.definitions(),
-        Ajax(signal).FirecloudBucket.getFeaturedMethods(),
-      ]);
+      const allWorkflows = await Ajax(signal).Methods.definitions();
 
       setWorkflows({
         mine: _.filter(isMine, allWorkflows),
-        featured: _.flow(
-          _.map((featuredWf) => _.find(featuredWf, allWorkflows)),
-          _.compact
-        )(featuredList),
         public: _.filter('public', allWorkflows),
       });
     };
