@@ -67,7 +67,7 @@ const WorkflowTableHeader = (props: WorkflowTableHeaderProps) => {
 };
 
 // TODO: add error handling, consider wrapping query updates in useEffect
-const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
+export const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   const signal: AbortSignal = useCancellation();
   const [workflows, setWorkflows] = useState<GroupedWorkflows>();
 
