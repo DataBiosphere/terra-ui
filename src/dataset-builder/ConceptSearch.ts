@@ -109,10 +109,10 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               paddingBottom: 10,
             },
             columns: [
-              { header: strong(['Concept name']), key: 'name', size: { grow: 2.2 } },
+              { header: strong(['Concept name']), key: 'name', size: { grow: 2.3 } },
               { header: strong(['Concept ID']), key: 'id', size: { grow: 0.5 } },
               { header: strong(['Code']), key: 'code', size: { grow: 0.75 } },
-              { header: strong(['Number of Participants']), key: 'count', size: { grow: 0.75 } },
+              { header: strong(['# Participants']), key: 'count', size: { grow: 0.5 } },
               { key: 'hierarchy', size: { grow: 0.5 } },
             ],
             rows: _.map((concept) => {
