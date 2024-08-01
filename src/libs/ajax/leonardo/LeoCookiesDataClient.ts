@@ -35,7 +35,7 @@ export const makeLeoCookiesDataClient = (deps: LeoCookiesDataClientDeps): LeoCoo
     unsetCookie: async (options: AbortOption = {}): Promise<void> => {
       const { signal } = options;
       // No retry: if this request fails for auth reasons, the cookie is already invalid.
-      await fetchAuthedLeoWithoutRetry('proxy/invalidateToken', _.merge({ signal, credentials: 'include' }));
+      await fetchAuthedLeoWithoutRetry('proxy/invalidateToken', { signal, credentials: 'include' });
     },
   };
 };
