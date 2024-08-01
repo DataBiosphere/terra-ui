@@ -171,9 +171,9 @@ export const addSelectableObjectToGroup = <T extends DatasetBuilderType>(
   selectableObject: T,
   header: string,
   group: HeaderAndValues<T>[],
-  setGroup: (cohorts: HeaderAndValues<T>[]) => void
+  setGroup: (groups: HeaderAndValues<T>[]) => void
 ) => {
-  const index = _.findIndex((selectedCohort: HeaderAndValues<T>) => selectedCohort.header === header, group);
+  const index = _.findIndex((selectedObject: HeaderAndValues<T>) => selectedObject.header === header, group);
   setGroup(
     index === -1
       ? group.concat({
