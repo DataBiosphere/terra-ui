@@ -31,7 +31,6 @@ type SignOutState = {
 };
 
 export const signOut = (signOutCause: SignOutCause = 'unspecified'): void => {
-  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   // sendSignOutMetrics should _not_ be awaited. It's fire-and-forget, and we don't want to block the user's signout
   sendSignOutMetrics(signOutCause);
   leoCookieProvider.unsetCookies().finally(() => {
