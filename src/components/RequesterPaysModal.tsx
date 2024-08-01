@@ -25,7 +25,7 @@ interface RequesterPaysModalProps {
 }
 
 const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismiss, onSuccess }) => {
-  const { workspaces, loading } = useWorkspaces(['accessLevel', 'canCompute', 'workspace'] as FieldsArg);
+  const { workspaces, loading } = useWorkspaces(['accessLevel', 'canCompute', 'workspace'] satisfies FieldsArg);
 
   const billableWorkspaces = _.filter(
     (workspace: WorkspaceWrapper) =>
