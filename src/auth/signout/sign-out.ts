@@ -1,4 +1,3 @@
-// import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { sessionExpirationErrorMessage } from 'src/auth/auth-errors';
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
 import { signOutCallbackLinkName } from 'src/auth/signout/SignOutPage';

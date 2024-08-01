@@ -8,7 +8,6 @@ export interface LeoCookieProvider {
 export const leoCookieProvider: LeoCookieProvider = {
   unsetCookies: async () => {
     // TODO: call azure invalidate cookie once endpoint exists, https://broadworkbench.atlassian.net/browse/IA-3498
-    // TODO: use runtime provider here
 
     await Cookies()
       .unsetCookie()
