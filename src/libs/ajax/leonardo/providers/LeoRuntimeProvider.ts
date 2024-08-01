@@ -1,6 +1,6 @@
+import { AbortOption } from '@terra-ui-packages/data-client-core';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
 import { Ajax } from 'src/libs/ajax';
-import { AbortOption } from 'src/libs/ajax/data-client-common';
 import { ListRuntimeItem, Runtime, RuntimeError } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { AzureRuntimeWrapper, GoogleRuntimeWrapper, RuntimeWrapper } from 'src/libs/ajax/leonardo/Runtimes';
 
