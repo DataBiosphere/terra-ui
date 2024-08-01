@@ -1,9 +1,9 @@
 import { Select, SelectProps, useUniqueId } from '@terra-ui-packages/components';
+import { DiskType } from '@terra-ui-packages/leonardo-data-client';
 import { ReactNode } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { IComputeConfig } from 'src/analysis/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
-import { DiskType } from 'src/libs/ajax/leonardo/Disks';
 
 type PersistentDiskTypeSelectProps<
   T extends IComputeConfig['persistentDiskType'],

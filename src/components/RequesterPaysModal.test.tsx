@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import RequesterPaysModal from './RequesterPaysModal';
 
@@ -11,26 +12,46 @@ jest.mock('src/workspaces/common/state/useWorkspaces', () => ({
     loading: false,
     workspaces: [
       {
-        workspace: { namespace: 'test-namespace', name: 'workspace-1', cloudPlatform: 'Gcp', googleProject: 'test-project-1' },
+        workspace: {
+          namespace: 'test-namespace',
+          name: 'workspace-1',
+          cloudPlatform: 'Gcp',
+          googleProject: 'test-project-1',
+        },
         accessLevel: 'PROJECT_OWNER',
       },
       {
-        workspace: { namespace: 'test-namespace', name: 'workspace-2', cloudPlatform: 'Gcp', googleProject: 'test-project-2' },
+        workspace: {
+          namespace: 'test-namespace',
+          name: 'workspace-2',
+          cloudPlatform: 'Gcp',
+          googleProject: 'test-project-2',
+        },
         accessLevel: 'OWNER',
       },
       {
-        workspace: { namespace: 'test-namespace', name: 'workspace-3', cloudPlatform: 'Gcp', googleProject: 'test-project-3' },
+        workspace: {
+          namespace: 'test-namespace',
+          name: 'workspace-3',
+          cloudPlatform: 'Gcp',
+          googleProject: 'test-project-3',
+        },
         accessLevel: 'WRITER',
       },
       {
-        workspace: { namespace: 'test-namespace', name: 'workspace-4', cloudPlatform: 'Gcp', googleProject: 'test-project-4' },
+        workspace: {
+          namespace: 'test-namespace',
+          name: 'workspace-4',
+          cloudPlatform: 'Gcp',
+          googleProject: 'test-project-4',
+        },
         accessLevel: 'READER',
       },
       {
         workspace: { namespace: 'test-namespace', name: 'workspace-5', cloudPlatform: 'Azure' },
         accessLevel: 'OWNER',
       },
-    ],
+    ] as WorkspaceWrapper[],
   }),
 }));
 
@@ -39,12 +60,7 @@ describe('RequesterPaysModal', () => {
     // Arrange
     const user = userEvent.setup();
 
-    render(
-      h(RequesterPaysModal, {
-        onDismiss: () => {},
-        onSuccess: () => {},
-      })
-    );
+    render(<RequesterPaysModal onDismiss={() => {}} onSuccess={() => {}} />);
 
     // Act
     const workspaceInput = screen.getByLabelText('Workspace *');
@@ -60,12 +76,7 @@ describe('RequesterPaysModal', () => {
     const user = userEvent.setup();
 
     const onSuccess = jest.fn();
-    render(
-      h(RequesterPaysModal, {
-        onDismiss: () => {},
-        onSuccess,
-      })
-    );
+    render(<RequesterPaysModal onDismiss={() => {}} onSuccess={onSuccess} />);
 
     const workspaceInput = screen.getByLabelText('Workspace *');
     await user.click(workspaceInput);

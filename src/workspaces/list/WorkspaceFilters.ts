@@ -38,8 +38,8 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
   return div({ style: { display: 'flex', margin: '1rem 0' } }, [
     div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
       h(DelayedSearchInput, {
-        placeholder: 'Search by name or project',
-        'aria-label': 'Search workspaces by name or project',
+        placeholder: 'Search by name, project, or bucket',
+        'aria-label': 'Search workspaces by name, project, or bucket',
         onChange: (newFilter) => {
           // Store in a state variable to make unit testing possible (as opposed to onBlur comparing the current
           // value to what exists in filters.nameFilter).

@@ -1,8 +1,8 @@
+import { diskStatuses } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import { getCurrentAppIncludingDeleting, getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appTools } from 'src/analysis/utils/tool-utils';
-import { diskStatuses } from 'src/libs/ajax/leonardo/Disks';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { googlePdTypes, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';

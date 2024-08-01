@@ -1,4 +1,4 @@
-import { CloudContext } from '@terra-ui-packages/leonardo-data-client';
+import { CloudContext, diskStatuses, LeoDiskStatus } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import { getAppStatusForDisplay } from 'src/analysis/utils/app-utils';
 import {
@@ -22,7 +22,6 @@ import {
   isAzureContext,
 } from 'src/analysis/utils/runtime-utils';
 import { AppToolLabel, appToolLabels, appTools, RuntimeToolLabel, ToolLabel } from 'src/analysis/utils/tool-utils';
-import { diskStatuses, LeoDiskStatus } from 'src/libs/ajax/leonardo/Disks';
 import { App, appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import {
   GoogleRuntimeConfig,
