@@ -25,12 +25,12 @@ jest.mock('src/libs/ajax/ajax-common', (): Partial<AjaxCommonExports> => {
   return mocks;
 });
 
-type AuthFetchExports = typeof import('src/auth/auth-fetch');
-jest.mock('src/auth/auth-fetch', (): AuthFetchExports => {
+type AuthOptionsExports = typeof import('src/auth/auth-options');
+jest.mock('src/auth/auth-fetch', (): AuthOptionsExports => {
   const { asMockedFn } = jest.requireActual<TestUtilsExports>('src/testing/test-utils');
 
   const mocks = {
-    ...jest.requireActual('src/auth/auth-fetch'),
+    ...jest.requireActual('src/auth/auth-options'),
     authOpts: jest.fn(),
     withAuthSession: jest.fn(),
   };
