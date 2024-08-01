@@ -141,6 +141,30 @@ describe('The filterWorkspaces method', () => {
     expect(filteredWorkspaces.myWorkspaces).toEqual([deleteFailedWorkspace, cloningFailedWorkspace]);
   });
 
+  it('should filter based on bucket name', () => {
+    // Arrange
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      public: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      newAndInteresting: [defaultAzureWorkspace, defaultGoogleWorkspace],
+      featured: [defaultAzureWorkspace, defaultGoogleWorkspace],
+    };
+    const filters = getWorkspaceFiltersFromQuery({
+      tab: 'myWorkspaces',
+      filter: defaultGoogleWorkspace.workspace.bucketName,
+    });
+
+    // Act
+    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
+
+    // Assert
+    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultGoogleWorkspace]);
+    // All categories should be filtered
+    expect(filteredWorkspaces.public).toEqual([defaultGoogleWorkspace]);
+    expect(filteredWorkspaces.newAndInteresting).toEqual([defaultGoogleWorkspace]);
+    expect(filteredWorkspaces.featured).toEqual([defaultGoogleWorkspace]);
+  });
+
   it('should filter based on namespace (project search)', () => {
     // Arrange
     const workspaces: CategorizedWorkspaces = {

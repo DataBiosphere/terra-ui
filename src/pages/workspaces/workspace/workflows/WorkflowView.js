@@ -34,6 +34,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { FIRECLOUD_UI_MIGRATION } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils';
 import { workflowSelectionStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
@@ -351,6 +352,10 @@ const findPossibleSets = (listOfExistingEntities) => {
   );
 };
 
+const getWfOptionsPersistenceId = (namespace, name) => {
+  return `${namespace}/${name}/workflow_options`;
+};
+
 export const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
@@ -372,18 +377,26 @@ export const WorkflowView = _.flow(
     constructor(props) {
       super(props);
 
+      const { namespace, name } = props;
+
+      const workflowOptionsPref = getLocalPref(getWfOptionsPersistenceId(namespace, name));
+      const retryWithMoreMemoryPref = workflowOptionsPref?.retryWithMoreMemory;
+      const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
+      const resourceMonitoringEnabledPref = resourceMonitoringPref?.enabled;
+
       this.state = {
         activeTab: 'inputs',
         entitySelectionModel: { selectedEntities: {} },
-        useCallCache: true,
-        deleteIntermediateOutputFiles: false,
-        useReferenceDisks: false,
-        retryWithMoreMemory: false,
-        retryMemoryFactor: 1.2,
-        ignoreEmptyOutputs: false,
-        monitoringScript: null,
-        monitoringImage: null,
-        monitoringImageScript: null,
+        useCallCache: workflowOptionsPref && 'useCallCache' in workflowOptionsPref ? workflowOptionsPref.useCallCache : true,
+        deleteIntermediateOutputFiles: workflowOptionsPref?.deleteIntermediateOutputFiles || false,
+        useReferenceDisks: workflowOptionsPref?.useReferenceDisks || false,
+        retryWithMoreMemory: retryWithMoreMemoryPref?.enabled || false,
+        retryMemoryFactor: retryWithMoreMemoryPref?.enabled ? retryWithMoreMemoryPref?.factor : 1.2,
+        ignoreEmptyOutputs: workflowOptionsPref?.ignoreEmptyOutputs || false,
+        expandResourceMonitoring: resourceMonitoringEnabledPref || false,
+        monitoringScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.script : '',
+        monitoringImage: resourceMonitoringEnabledPref ? resourceMonitoringPref?.image : '',
+        monitoringImageScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.imageScript : '',
         includeOptionalInputs: true,
         filter: '',
         errors: { inputs: {}, outputs: {} },
@@ -638,6 +651,45 @@ export const WorkflowView = _.flow(
       }
     }
 
+    getUpdatedWorkflowOptionsPref() {
+      const {
+        useCallCache,
+        useReferenceDisks,
+        ignoreEmptyOutputs,
+        deleteIntermediateOutputFiles,
+        retryWithMoreMemory,
+        retryMemoryFactor,
+        expandResourceMonitoring,
+        monitoringScript,
+        monitoringImage,
+        monitoringImageScript,
+      } = this.state;
+
+      const updatedWfOptionsPref = {};
+
+      // call caching by default is checked hence persist it only if it is unchecked
+      if (!useCallCache) updatedWfOptionsPref.useCallCache = useCallCache;
+
+      // below workflow options are unchecked by default hence persist them if they are checked
+      if (useReferenceDisks) updatedWfOptionsPref.useReferenceDisks = useReferenceDisks;
+      if (ignoreEmptyOutputs) updatedWfOptionsPref.ignoreEmptyOutputs = ignoreEmptyOutputs;
+      if (deleteIntermediateOutputFiles) updatedWfOptionsPref.deleteIntermediateOutputFiles = deleteIntermediateOutputFiles;
+      if (retryWithMoreMemory)
+        updatedWfOptionsPref.retryWithMoreMemory = {
+          enabled: retryWithMoreMemory,
+          factor: retryMemoryFactor,
+        };
+      if (expandResourceMonitoring)
+        updatedWfOptionsPref.resourceMonitoring = {
+          enabled: expandResourceMonitoring,
+          script: monitoringScript,
+          image: monitoringImage,
+          imageScript: monitoringImageScript,
+        };
+
+      return updatedWfOptionsPref;
+    }
+
     componentDidUpdate() {
       StateHistory.update(
         _.pick(
@@ -656,6 +708,13 @@ export const WorkflowView = _.flow(
           this.state
         )
       );
+
+      const { namespace, name } = this.props;
+      const updatedWfOptionsPref = this.getUpdatedWorkflowOptionsPref();
+
+      // note: setting the key to 'undefined' will remove it from local storage. See method implementation for more details.
+      if (_.isEmpty(updatedWfOptionsPref)) setLocalPref(getWfOptionsPersistenceId(namespace, name), undefined);
+      else setLocalPref(getWfOptionsPersistenceId(namespace, name), updatedWfOptionsPref);
     }
 
     async fetchInfo(savedConfig, currentSnapRedacted) {
@@ -1162,7 +1221,7 @@ export const WorkflowView = _.flow(
                     ]),
                     expandResourceMonitoring &&
                       div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
-                        div({ display: 'flex', flexDirection: 'row' }, [
+                        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {
                             id: 'resource-monitoring-script',
                             placeholder: 'Script',
@@ -1172,7 +1231,7 @@ export const WorkflowView = _.flow(
                           }),
                           h(InfoBox, ['Standalone .sh script that runs inside task container']),
                         ]),
-                        div({ display: 'flex', flexDirection: 'row' }, [
+                        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {
                             id: 'resource-monitoring-image',
                             placeholder: 'Image',
@@ -1182,7 +1241,7 @@ export const WorkflowView = _.flow(
                           }),
                           h(InfoBox, ['Image that runs as a sibling alongside task container']),
                         ]),
-                        div({ display: 'flex', flexDirection: 'row' }, [
+                        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {
                             id: 'resource-monitoring-image-script',
                             placeholder: 'Image script',

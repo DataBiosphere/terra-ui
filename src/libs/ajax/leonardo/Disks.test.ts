@@ -62,7 +62,7 @@ describe('Disks ajax', () => {
     asMockedFn(fetchLeo).mockImplementation(mockFetchLeo);
 
     // Act
-    const disks = await Disks(signal).disksV1().list();
+    const disks = await Disks(signal).disksV1().list({});
 
     // Assert
     expect(mockFetchLeo).toHaveBeenCalledWith('api/google/v1/disks', expect.anything());

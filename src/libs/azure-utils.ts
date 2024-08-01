@@ -1,6 +1,6 @@
+import { AzureDiskType } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import { defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
-import { AzureDiskType } from 'src/libs/ajax/leonardo/Disks';
 import { azureRegions } from 'src/libs/azure-regions';
 import * as Utils from 'src/libs/utils';
 
