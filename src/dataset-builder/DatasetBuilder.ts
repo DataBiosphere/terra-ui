@@ -309,7 +309,7 @@ export const CohortSelector = ({
       objectSets: [
         {
           values: cohorts,
-          header: selectedCohorts?.length > 0 ? selectedCohorts[0].header : '',
+          header: selectedCohorts[0]?.header,
           makeIcon: (value, header) =>
             h(
               MenuTrigger,
