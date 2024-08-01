@@ -56,7 +56,7 @@ describe('workflows table', () => {
 
     // Act
     await act(async () => {
-      render(<WorkflowList queryParams={{ tab: 'mine' }} />);
+      render(<WorkflowList />);
     });
 
     // Assert
