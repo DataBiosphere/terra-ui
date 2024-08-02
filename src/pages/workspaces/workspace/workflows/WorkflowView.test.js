@@ -560,7 +560,7 @@ describe('Workflow View (GCP)', () => {
     expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, undefined);
   });
 
-  it('renders run analysis modal', async () => {
+  it('renders run analysis modal and check workflow option expectations', async () => {
     // Arrange
     const user = userEvent.setup();
     const namespace = 'gatk';
@@ -615,15 +615,15 @@ describe('Workflow View (GCP)', () => {
           entitySelectionModel: { type: chooseRootType, selectedEntities, newSetName: 'newSetName' },
           mockValidate,
           config: { rootEntityType },
-          useCallCache: false,
+          useCallCache: true,
           deleteIntermediateOutputFiles: false,
           useReferenceDisks: false,
           retryWithMoreMemory: false,
           retryMemoryFactor: jest.fn(),
           ignoreEmptyOutputs: true,
-          monitoringScript: jest.fn(),
-          monitoringImage: jest.fn(),
-          monitoringImageScript: jest.fn(),
+          monitoringScript: 'some_script',
+          monitoringImage: '',
+          monitoringImageScript: '',
           onSuccess: jest.fn(),
         })
       );
@@ -634,5 +634,19 @@ describe('Workflow View (GCP)', () => {
 
     expect(mockLaunchResponse).toHaveBeenCalledTimes(1);
     expect(screen.getByText('Launching analysis...')).toBeInTheDocument;
+
+    // check various workflow options
+    expect(mockLaunchResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        useCallCache: true,
+        deleteIntermediateOutputFiles: false,
+        ignoreEmptyOutputs: true,
+        useReferenceDisks: false,
+        memoryRetryMultiplier: undefined,
+        monitoringScript: 'some_script',
+        monitoringImage: null,
+        monitoringImageScript: null,
+      })
+    );
   });
 });
