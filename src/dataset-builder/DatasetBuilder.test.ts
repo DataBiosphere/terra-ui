@@ -280,6 +280,20 @@ describe('DatasetBuilder', () => {
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
   });
 
+  it('selects cohort on creation', async () => {
+    // Arrange
+    mockDataRepo([
+      snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
+      snapshotRolesMock(['aggregate_data_reader']),
+    ]);
+    const user = userEvent.setup();
+    const initialState = cohortEditorState.new(newCohort('my test cohort'));
+    render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
+    // Assert
+    await user.click(await screen.findByText('Save cohort'));
+    expect(await screen.findByLabelText(initialState.cohort.name)).toBeChecked();
+  });
+
   it('shows the participant count and request access buttons when request is valid', async () => {
     const mockDataRepoContract: Partial<DataRepoContract> = {
       snapshot: (_snapshotId) =>
