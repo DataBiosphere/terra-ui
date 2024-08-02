@@ -1,7 +1,6 @@
 import { Icon, IconId, PopupTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { CSSProperties, Fragment, ReactNode, useEffect, useState } from 'react';
-import React from 'react';
+import React, { CSSProperties, ReactNode, useEffect, useState } from 'react';
 import { Clickable, Link } from 'src/components/common';
 import colors from 'src/libs/colors';
 import { useLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
@@ -69,7 +68,7 @@ const Alert = (props: AlertProps): ReactNode => {
       {link && (
         <div style={{ marginTop: '0.25rem' }}>
           <Link {...Utils.newTabLinkProps} href={link} style={{ fontWeight: 700 }}>
-            {linkTitle || 'Read more'}
+            {linkTitle ?? 'Read more'}
           </Link>
         </div>
       )}
