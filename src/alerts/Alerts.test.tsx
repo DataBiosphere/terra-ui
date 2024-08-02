@@ -84,6 +84,5 @@ describe('Alerts', () => {
 
     // Assert
     expect(screen.getByRole('dialog')).toHaveTextContent('No system alerts at this time.');
-    screen.logTestingPlaygroundURL();
   });
 });
