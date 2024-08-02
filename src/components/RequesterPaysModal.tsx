@@ -2,6 +2,7 @@ import { ButtonPrimary, ExternalLink, Modal, useUniqueId } from '@terra-ui-packa
 import * as _ from 'lodash/fp';
 import React, { useState } from 'react';
 import { spinnerOverlay, VirtualizedSelect } from 'src/components/common';
+import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { requesterPaysProjectStore } from 'src/libs/state';
@@ -24,10 +25,14 @@ interface RequesterPaysModalProps {
 }
 
 const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismiss, onSuccess }) => {
-  const { workspaces, loading } = useWorkspaces();
+  const { workspaces, loading } = useWorkspaces(['accessLevel', 'canCompute', 'workspace'] satisfies FieldsArg);
+
   const billableWorkspaces = _.filter(
     (workspace: WorkspaceWrapper) =>
-      isGoogleWorkspace(workspace) && (workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER'),
+      isGoogleWorkspace(workspace) &&
+      (workspace.accessLevel === 'OWNER' ||
+        workspace.accessLevel === 'PROJECT_OWNER' ||
+        (workspace.accessLevel === 'WRITER' && workspace.canCompute)),
     workspaces
   );
   const selectId = useUniqueId('select');

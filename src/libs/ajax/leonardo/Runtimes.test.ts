@@ -1,6 +1,6 @@
+import { FetchFn } from '@terra-ui-packages/data-client-core';
 import { authOpts } from 'src/auth/auth-fetch';
 import { fetchLeo } from 'src/libs/ajax/ajax-common';
-import { FetchFn } from 'src/libs/ajax/data-client-common';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn } from 'src/testing/test-utils';
 
