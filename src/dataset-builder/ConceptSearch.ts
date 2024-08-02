@@ -119,7 +119,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
             ],
             rows: _.map((concept) => {
               return {
-                name: div({ style: { display: 'flex', alignItems: 'start' } }, [
+                name: div({ style: { display: 'flex', alignItems: 'flex-start' } }, [
                   h(
                     LabeledCheckbox,
                     {
