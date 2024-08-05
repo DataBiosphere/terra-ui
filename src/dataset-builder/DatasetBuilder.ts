@@ -552,7 +552,7 @@ export const DatasetBuilderContents = ({
             setRequestingAccess(false);
             Nav.goToPath('dataset-builder-details', { snapshotId });
           },
-          snapshotId: snapshotAccessRequest.state.id,
+          requestId: snapshotAccessRequest.state.id,
           summary: snapshotAccessRequest.state.summary,
         }),
   ]);

@@ -19,12 +19,12 @@ const clipboardButtonProps = (copyableText, labelDescriptor): ClipboardButtonPro
 
 interface RequestAccessModalProps {
   onDismiss: () => void;
-  snapshotId: string;
+  requestId: string;
   summary: string;
 }
 
 export const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, snapshotId, summary } = props;
+  const { onDismiss, requestId, summary } = props;
 
   return h(
     Modal,
@@ -78,7 +78,7 @@ export const RequestAccessModal = (props: RequestAccessModalProps) => {
               ]
             ),
             div({ style: { marginTop: 20 } }, [
-              h(ClipboardButton, { ...clipboardButtonProps(snapshotId, 'Request ID') }, ['Request ID']),
+              h(ClipboardButton, { ...clipboardButtonProps(requestId, 'Request ID') }, ['Request ID']),
               h(ClipboardButton, { ...clipboardButtonProps(summary, 'Request Summary') }, ['Request Summary']),
             ]),
           ]),
