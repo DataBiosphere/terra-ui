@@ -119,11 +119,11 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
             ],
             rows: _.map((concept) => {
               return {
-                name: div({ style: { display: 'flex', alignItems: 'flex-start' } }, [
+                name: div({ style: { display: 'flex' } }, [
                   h(
                     LabeledCheckbox,
                     {
-                      style: { marginRight: 5, marginTop: 1 },
+                      style: { paddingRight: 22, marginTop: 1 },
                       checked: _.contains(concept, cart),
                       onChange: () => setCart(_.xor(cart, [concept])),
                     },
