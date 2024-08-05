@@ -1,9 +1,8 @@
 import { Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
-import { div, h, h2, h3, label, li, span, ul } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
-import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { ValidatedInput } from 'src/components/input';
@@ -20,6 +19,7 @@ import {
   formatCount,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
+import { RequestAccessModal } from 'src/dataset-builder/RequestAccessModal';
 import {
   DataRepo,
   DatasetBuilderType,
@@ -369,86 +369,6 @@ export const ConceptSetSelector = ({
   });
 };
 
-interface RequestAccessModalProps {
-  onDismiss: () => void;
-  snapshotId: string;
-}
-
-const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, snapshotId } = props;
-
-  return h(
-    Modal,
-    {
-      title: 'Access request created in Terra',
-      showX: false,
-      onDismiss,
-      width: 500,
-      cancelText: 'Return to AxIN Overview',
-      okButton: h(
-        ButtonPrimary,
-        {
-          href: '',
-          target: '_blank',
-        },
-        ['Continue to Form']
-      ),
-    },
-    [
-      div({ style: { lineHeight: 1.5 } }, [
-        'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
-      ]),
-      div(
-        {
-          style: {
-            backgroundColor: colors.accent(0.15),
-            color: colors.dark(),
-            border: `1px solid ${colors.accent(1.25)}`,
-            borderRadius: 10,
-            height: 150,
-            padding: '1rem',
-            marginTop: '1.5rem',
-            marginBottom: '2rem',
-          },
-        },
-        [
-          div([
-            h3({
-              style: { marginTop: 5, fontWeight: 600 },
-              children: ['Important!'],
-            }),
-            div(
-              {
-                style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
-              },
-              [
-                span(['Please copy and paste the ']),
-                span({ style: { fontWeight: 600 } }, ['Request ID']),
-                span([' into the AnalytiXIN form:']),
-              ]
-            ),
-            div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
-              div(
-                {
-                  style: { fontWeight: 700, marginRight: 2 },
-                },
-                [snapshotId]
-              ),
-              h(ClipboardButton, {
-                'aria-label': 'Copy Request ID to clipboard',
-                className: 'cell-hover-only',
-                iconSize: 14,
-                text: snapshotId,
-                tooltip: 'Copy Request ID to clipboard',
-              }),
-            ]),
-          ]),
-        ]
-      ),
-    ]
-  );
-};
-
 export const snapshotRequestNameValidator = {
   length: { minimum: 3, maximum: 511 },
 };
@@ -633,6 +553,7 @@ export const DatasetBuilderContents = ({
             Nav.goToPath('dataset-builder-details', { snapshotId });
           },
           snapshotId: snapshotAccessRequest.state.id,
+          summary: snapshotAccessRequest.state.summary,
         }),
   ]);
 };
