@@ -179,6 +179,7 @@ export interface SnapshotAccessRequestResponse {
   snapshotSpecification: SnapshotAccessRequest;
   createdBy: string;
   status: JobStatus;
+  summary: string;
 }
 
 export type SnapshotBuilderCountResponse = {

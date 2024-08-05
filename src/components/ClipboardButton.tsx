@@ -16,7 +16,7 @@ const styles = {
   },
 };
 
-interface ClipboardButtonProps extends PropsWithChildren<ClickableProps> {
+export interface ClipboardButtonProps extends PropsWithChildren<ClickableProps> {
   text: (() => Promise<string>) | string;
   iconSize?: number;
 }
