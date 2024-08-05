@@ -91,9 +91,9 @@ const LaunchAnalysisModal = ({
         memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined,
         userComment: _.trim(userComment),
         ignoreEmptyOutputs,
-        monitoringScript,
-        monitoringImage,
-        monitoringImageScript,
+        monitoringScript: monitoringScript || null,
+        monitoringImage: monitoringImage || null,
+        monitoringImageScript: monitoringImageScript || null,
         onProgress: (stage) => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },

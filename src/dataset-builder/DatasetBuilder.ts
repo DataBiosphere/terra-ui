@@ -12,6 +12,7 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
+  addSelectableObjectToGroup,
   Cohort,
   createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
@@ -198,23 +199,7 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
                     objectSet,
                     selectedValues,
                     onChange: (value, header) => {
-                      const index = _.findIndex(
-                        (selectedObjectSet: HeaderAndValues<T>) => selectedObjectSet.header === header,
-                        selectedObjectSets
-                      );
-
-                      onChange(
-                        index === -1
-                          ? selectedObjectSets.concat({
-                              header,
-                              values: [value],
-                            })
-                          : _.set(
-                              `[${index}].values`,
-                              _.xorWith(_.isEqual, selectedObjectSets[index].values, [value]),
-                              selectedObjectSets
-                            )
-                      );
+                      addSelectableObjectToGroup(value, header, selectedObjectSets, onChange);
                     },
                   }),
                 _.filter((objectSet) => objectSet.values?.length > 0, objectSets)
@@ -324,7 +309,7 @@ export const CohortSelector = ({
       objectSets: [
         {
           values: cohorts,
-          header: 'Saved cohorts',
+          header: selectedCohorts[0]?.header,
           makeIcon: (value, header) =>
             h(
               MenuTrigger,
@@ -661,6 +646,8 @@ const editorBackgroundColor = colors.light(0.7);
 
 let criteriaCount = 1;
 
+const defaultHeader = 'Saved cohorts';
+
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { snapshotId, initialState } = props;
   const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
@@ -669,7 +656,9 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
+  const [selectedCohorts, setSelectedCohorts] = useState([
+    { header: defaultHeader, values: [] },
+  ] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedColumns, setSelectedColumns] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
   const [snapshotRequestName, setSnapshotRequestName] = useState('');
@@ -680,6 +669,10 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const getNextCriteriaIndex = () => {
     criteriaCount++;
     return criteriaCount;
+  };
+
+  const addSelectedCohort = (cohort: Cohort) => {
+    addSelectableObjectToGroup(cohort, defaultHeader, selectedCohorts, setSelectedCohorts);
   };
 
   useOnMount(() => {
@@ -730,6 +723,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   onStateChange,
                   originalCohort: datasetBuilderState.cohort,
                   snapshotId,
+                  addSelectedCohort,
                   snapshotBuilderSettings: snapshotBuilderSettings.state,
                   updateCohorts: setCohorts,
                   getNextCriteriaIndex,

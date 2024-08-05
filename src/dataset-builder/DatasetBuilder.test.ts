@@ -56,6 +56,8 @@ describe('DatasetBuilder', () => {
     updateSelectedConceptSets?: (conceptSets: HeaderAndValues<SnapshotBuilderDatasetConceptSet>[]) => void;
     updateSnapshotRequestName?: (snapshotRequestName: string) => void;
   };
+
+  const defaultHeader = 'Saved cohorts';
   const showDatasetBuilderContents = (overrides?: DatasetBuilderContentsPropsOverrides) => {
     render(
       h(DatasetBuilderContents, {
@@ -66,7 +68,7 @@ describe('DatasetBuilder', () => {
         onStateChange: (state) => state,
         snapshotId: testSnapshotId,
         snapshotBuilderSettings: testSettings,
-        selectedCohorts: [],
+        selectedCohorts: [{ header: defaultHeader, values: [] }],
         selectedConceptSets: [],
         selectedColumns: [],
         snapshotRequestName: '',
@@ -113,7 +115,7 @@ describe('DatasetBuilder', () => {
   const initializeValidDatasetRequest = () => {
     showDatasetBuilderContents({
       cohorts: [validDatasetRequestCohort],
-      selectedCohorts: [{ header: 'Saved cohorts', values: [validDatasetRequestCohort] }],
+      selectedCohorts: [{ header: defaultHeader, values: [validDatasetRequestCohort] }],
       conceptSets: [validDatasetRequestConceptSet],
       selectedConceptSets: [{ values: [validDatasetRequestConceptSet] }],
       snapshotRequestName: validDatasetRequestSnapshotRequestName,
@@ -129,7 +131,7 @@ describe('DatasetBuilder', () => {
       h(CohortSelector, {
         updateCohorts: jest.fn(),
         cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
-        selectedCohorts: [],
+        selectedCohorts: [{ header: defaultHeader, values: [] }],
         onChange: (cohorts) => cohorts,
         onStateChange: (state) => state,
       })
@@ -220,7 +222,7 @@ describe('DatasetBuilder', () => {
     showDatasetBuilderContents({
       cohorts: [cohortOne, newCohort('cohort 2')],
       conceptSets: [conditionConceptSet, newConceptSet('Procedure'), newConceptSet('Observation')],
-      selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
+      selectedCohorts: [{ header: defaultHeader, values: [cohortOne] }],
       selectedConceptSets: [{ values: [conditionConceptSet] }],
     });
 
@@ -250,7 +252,7 @@ describe('DatasetBuilder', () => {
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('Condition'));
     // Assert
-    expect(updateSelectedCohorts).toBeCalledWith([{ header: 'Saved cohorts', values: [cohortOne] }]);
+    expect(updateSelectedCohorts).toBeCalledWith([{ header: defaultHeader, values: [cohortOne] }]);
     expect(updateSelectedConceptSets).toBeCalledWith([{ values: [conditionConceptSet] }]);
   });
 
@@ -276,6 +278,20 @@ describe('DatasetBuilder', () => {
     render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
     // Assert
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
+  });
+
+  it('selects cohort on creation', async () => {
+    // Arrange
+    mockDataRepo([
+      snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
+      snapshotRolesMock(['aggregate_data_reader']),
+    ]);
+    const user = userEvent.setup();
+    const initialState = cohortEditorState.new(newCohort('my test cohort'));
+    render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
+    // Assert
+    await user.click(await screen.findByText('Save cohort'));
+    expect(await screen.findByLabelText(initialState.cohort.name)).toBeChecked();
   });
 
   it('shows the participant count and request access buttons when request is valid', async () => {
@@ -306,7 +322,7 @@ describe('DatasetBuilder', () => {
     const conditionConceptSet = newConceptSet('Condition');
     showDatasetBuilderContents({
       cohorts: [cohortOne],
-      selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
+      selectedCohorts: [{ header: defaultHeader, values: [cohortOne] }],
       conceptSets: [conditionConceptSet],
       selectedConceptSets: [{ values: [conditionConceptSet] }],
     });

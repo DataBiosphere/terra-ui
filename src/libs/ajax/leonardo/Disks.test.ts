@@ -1,10 +1,9 @@
+import { FetchFn } from '@terra-ui-packages/data-client-core';
 import { azureDisk, galaxyDisk, undecoratePd } from 'src/analysis/_testData/testData';
 import { authOpts } from 'src/auth/auth-fetch';
 import { fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Disks } from 'src/libs/ajax/leonardo/Disks';
 import { asMockedFn } from 'src/testing/test-utils';
-
-import { FetchFn } from '../data-client-common';
 
 const mockWatchWithAuth = jest.fn();
 const mockWatchWithAppId = jest.fn();
