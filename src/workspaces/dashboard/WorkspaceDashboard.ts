@@ -43,7 +43,7 @@ export const WorkspaceDashboard = forwardRef(
     // @ts-expect-error
     const { value: canEdit } = canEditWorkspace(workspace);
 
-    return div({ style: { flex: 1, display: 'flex' } }, [
+    return div({ style: { gridTemplateColumns: 'auto min-content', display: 'grid' } }, [
       div({ style: Style.dashboard.leftBox }, [
         h(WorkspaceDescription, { workspace, refreshWorkspace }),
         h(DatasetAttributes, { attributes }),
