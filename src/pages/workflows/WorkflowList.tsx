@@ -168,7 +168,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
                   sort={sort as any /* necessary until FlexTable is converted to TS */}
                   rowCount={sortedWorkflows.length}
                   columns={getColumns(sort, setSort, sortedWorkflows)}
-                  variant=''
+                  variant={null}
                   noContentMessage={null /* default message */}
                   tabIndex={-1}
                 />
