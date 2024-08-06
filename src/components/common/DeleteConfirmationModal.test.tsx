@@ -84,6 +84,7 @@ describe('DeleteConfirmationModal', () => {
     // Arrange
     const user = userEvent.setup();
     const onConfirm = jest.fn();
+
     // Act
     renderWithAppContexts(
       <DeleteConfirmationModal objectType='nut' objectName='pistachio' onConfirm={onConfirm} onDismiss={jest.fn()} />
@@ -100,6 +101,7 @@ describe('DeleteConfirmationModal', () => {
     // Arrange
     const user = userEvent.setup();
     const onConfirm = jest.fn();
+
     // Act
     renderWithAppContexts(
       <DeleteConfirmationModal
@@ -122,6 +124,7 @@ describe('DeleteConfirmationModal', () => {
     // Arrange
     const user = userEvent.setup();
     const onDismiss = jest.fn();
+
     // Act
     renderWithAppContexts(
       <DeleteConfirmationModal objectType='nut' objectName='pistachio' onConfirm={jest.fn()} onDismiss={onDismiss} />
