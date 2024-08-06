@@ -11,15 +11,8 @@ type AuthFetchExports = typeof import('src/auth/auth-fetch');
 jest.mock(
   'src/auth/auth-fetch',
   (): Partial<AuthFetchExports> => ({
-    withRetryAfterReloadingExpiredAuthToken: jest.fn().mockImplementation((fn) => fn),
-  })
-);
-
-type AuthOptionsExports = typeof import('src/auth/auth-options');
-jest.mock(
-  'src/auth/auth-options',
-  (): Partial<AuthOptionsExports> => ({
     authOpts: jest.fn().mockReturnValue({ headers: { Authorization: 'testToken' } }),
+    withRetryAfterReloadingExpiredAuthToken: jest.fn().mockImplementation((fn) => fn),
   })
 );
 

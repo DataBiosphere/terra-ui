@@ -3,7 +3,7 @@ import { FetchFn } from 'src/libs/ajax/data-client-common';
 
 import { AuthTokenState, getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, sendRetryMetric } from './auth';
 import { sessionExpirationErrorMessage } from './auth-errors';
-import { authOpts } from './auth-options';
+import { authOpts as _authOpts, withAuthSession as _withAuthSession } from './auth-options';
 import { signOut, SignOutCause } from './signout/sign-out';
 
 //
@@ -63,3 +63,6 @@ export const withRetryAfterReloadingExpiredAuthToken =
       }
     }
   };
+
+export const authOpts = _authOpts;
+export const withAuthSession = _withAuthSession;
