@@ -70,6 +70,7 @@ interface WorkflowListProps {
   queryParams?: {
     tab?: string;
     filter?: string;
+    [queryParam: string]: any;
   };
 }
 
