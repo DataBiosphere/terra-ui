@@ -2,7 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
-import { authOpts, withAuthSession } from 'src/auth/auth-options';
+import { authOpts, withAuthSession } from 'src/auth/auth-fetch';
 import {
   appIdentifier,
   DEFAULT_RETRY_COUNT,
