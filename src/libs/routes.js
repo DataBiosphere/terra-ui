@@ -27,7 +27,9 @@ import * as Profile from 'src/pages/ProfilePage';
 import * as Support from 'src/pages/SupportPage';
 import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowsList from 'src/pages/workflows/List';
-import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails';
+import * as WorkflowConfigs from 'src/pages/workflows/workflow/WorkflowConfigs';
+import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowSummary';
+import * as WorkflowWdl from 'src/pages/workflows/workflow/WorkflowWdl';
 import * as WorkspaceList from 'src/pages/workspaces/List';
 import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files';
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory';
@@ -87,6 +89,8 @@ const routes = _.flatten([
   WorkflowsApp.navPaths,
   SignOutPage.navPaths,
   Support.navPaths,
+  WorkflowWdl.navPaths,
+  WorkflowConfigs.navPaths,
   NotFound.navPaths, // must be last
 ]);
 
