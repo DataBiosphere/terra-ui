@@ -17,7 +17,7 @@
   "isProd": false,
   "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
-  "orchestrationUrlRoot": "https://local.broadinstitute.org:10443",
+  "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-dev.broadinstitute.org",
   "rawlsUrlRoot": "https://rawls.dsde-dev.broadinstitute.org",
   "samUrlRoot": "https://sam.dsde-dev.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
