@@ -28,7 +28,12 @@ const styles = {
   },
 };
 
-export const AdminNotifierCheckbox = ({ checked, onChange }) => {
+interface AdminNotifierCheckboxProps {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}
+export const AdminNotifierCheckbox = (props: AdminNotifierCheckboxProps) => {
+  const { checked, onChange } = props;
   return div({ style: { marginTop: '0.5rem', display: 'flex', alignItems: 'center' } }, [
     h(
       LabeledCheckbox,
@@ -92,7 +97,7 @@ export interface Sort {
 
 interface MemberCardHeadersProps {
   sort: Sort;
-  onSort: (arg: Sort) => void;
+  onSort: (v: Sort) => void;
 }
 
 export const MemberCardHeaders: React.FC<MemberCardHeadersProps> = memoWithName(
@@ -183,16 +188,27 @@ export const MemberCard: React.FC<MemberCardProps> = memoWithName('MemberCard', 
   );
 });
 
-export const NewUserModal = ({
-  addFunction,
-  addUnregisteredUser = false,
-  adminLabel,
-  userLabel,
-  title,
-  onSuccess,
-  onDismiss,
-  footer,
-}) => {
+interface NewUserModalProps {
+  addFunction: (roles: string[], email: string) => Promise<void>;
+  addUnregisteredUser?: boolean;
+  adminLabel: string;
+  userLabel: string;
+  title: string;
+  onSuccess: () => void;
+  onDismiss: () => void;
+  footer?: React.ReactNode[];
+}
+export const NewUserModal = (props: NewUserModalProps) => {
+  const {
+    addFunction,
+    addUnregisteredUser = false,
+    adminLabel,
+    userLabel,
+    title,
+    onSuccess,
+    onDismiss,
+    footer,
+  } = props;
   const [userEmail, setUserEmail] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [confirmAddUser, setConfirmAddUser] = useState(false);
