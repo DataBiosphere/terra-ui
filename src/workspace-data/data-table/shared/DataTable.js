@@ -186,6 +186,11 @@ const DataTable = (props) => {
     return !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
   };
 
+  const getColumnDatatype = (entityType, columnName) => {
+    const foundColumn = _.find({ name: columnName }, entityMetadata[entityType].attributes);
+    return foundColumn ? foundColumn.datatype : undefined;
+  };
+
   // Helpers
   const loadData =
     !!entityMetadata &&
@@ -507,7 +512,7 @@ const DataTable = (props) => {
                           {
                             sort,
                             field: 'name',
-                            datatype: 'foo',
+                            datatype: dataProvider.features.supportsPerColumnDatatype ? 'STRING' : undefined, // primary keys are always strings.
                             onSort: setSort,
                             renderSearch: !!googleProject,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
@@ -560,7 +565,7 @@ const DataTable = (props) => {
                             {
                               sort,
                               field: attributeName,
-                              datatype: 'dunno',
+                              datatype: dataProvider.features.supportsPerColumnDatatype ? getColumnDatatype(entityType, attributeName) : undefined,
                               onSort: setSort,
                               renderSearch: !!googleProject,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
