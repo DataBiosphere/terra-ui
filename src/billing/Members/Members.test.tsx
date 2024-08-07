@@ -86,7 +86,7 @@ describe('Members', () => {
     await user.click(addUserButton);
 
     // Assert
-    expect(addUserCallback).toHaveBeenCalled();
+    expect(addUserCallback).toHaveBeenCalledWith(true);
     // The actual display of the dialog to add a user is done in the parent file.
   });
 
@@ -183,7 +183,7 @@ describe('Members', () => {
     await user.click(removeButton);
 
     // Assert
-    expect(deletingUserCallback).toHaveBeenCalled();
+    expect(deletingUserCallback).toHaveBeenCalledWith({ email: ownerEmail, roles: ['Owner'] });
   });
 
   it('supports deleting a non-owner', async () => {
@@ -213,7 +213,7 @@ describe('Members', () => {
     await user.click(removeButton);
 
     // Assert
-    expect(deletingUserCallback).toHaveBeenCalled();
+    expect(deletingUserCallback).toHaveBeenCalledWith({ email: userEmail, roles: ['user'] });
   });
 
   it('supports editing a non-owner', async () => {
@@ -243,7 +243,7 @@ describe('Members', () => {
     await user.click(editButton);
 
     // Assert
-    expect(editingUserCallback).toHaveBeenCalled();
+    expect(editingUserCallback).toHaveBeenCalledWith({ email: userEmail, roles: ['user'] });
   });
 
   it('supports editing an owner if there are multiple owners', async () => {
@@ -273,6 +273,6 @@ describe('Members', () => {
     await user.click(editButton);
 
     // Assert
-    expect(editingUserCallback).toHaveBeenCalled();
+    expect(editingUserCallback).toHaveBeenCalledWith({ email: ownerEmail, roles: ['Owner'] });
   });
 });
