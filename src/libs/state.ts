@@ -4,6 +4,7 @@ import { AuthContextProps } from 'react-oidc-context';
 import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
+import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
@@ -311,7 +312,7 @@ export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 
 export const snapshotsListStore = atom<unknown>(undefined);
 
-export const snapshotStore = atom<unknown>(undefined);
+export const snapshotStore = atom<Snapshot[]>([]);
 
 export const dataCatalogStore = atom<Dataset[]>([]);
 
