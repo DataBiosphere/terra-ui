@@ -8,7 +8,7 @@ import {
 let groupCount = 1;
 export const newCriteriaGroup = (): CriteriaGroup => {
   return {
-    name: `Group ${groupCount++}`,
+    id: groupCount++,
     criteria: [],
     mustMeet: true,
     meetAll: false,

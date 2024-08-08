@@ -1,5 +1,6 @@
-import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common';
-import { FetchFn } from 'src/libs/ajax/data-client-common';
+import { FetchFn } from '@terra-ui-packages/data-client-core';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn } from 'src/testing/test-utils';
 
@@ -13,22 +14,34 @@ jest.mock('src/libs/ajax/ajax-common', (): Partial<AjaxCommonExports> => {
 
   const mocks: Partial<AjaxCommonExports> = {
     withAppIdentifier: jest.fn(),
-    withAuthSession: jest.fn(),
     fetchLeo: jest.fn(),
-    authOpts: jest.fn(),
-    jsonBody: jest.fn(),
   };
   // mock fetch augmentors to call watcher for test assertions below.
   // (mock here so that it's baked in for module-load-time of Runtimes.ts)
-
-  asMockedFn(mocks.withAuthSession!).mockImplementation((fn: FetchFn) => (path, args) => {
-    mockWatchWithAuth(path, args);
-    return fn(path, args);
-  });
   asMockedFn(mocks.withAppIdentifier!).mockImplementation((fn: FetchFn) => (path, args) => {
     mockWatchWithAppId(path, args);
     return fn(path, args);
   });
+  return mocks;
+});
+
+type AuthFetchExports = typeof import('src/auth/auth-fetch');
+jest.mock('src/auth/auth-fetch', (): AuthFetchExports => {
+  const { asMockedFn } = jest.requireActual<TestUtilsExports>('src/testing/test-utils');
+
+  const mocks = {
+    ...jest.requireActual('src/auth/auth-fetch'),
+    authOpts: jest.fn(),
+    withAuthSession: jest.fn(),
+  };
+
+  // mock fetch augmentors to call watcher for test assertions below.
+  // (mock here so that it's baked in for module-load-time of Runtimes.ts)
+  asMockedFn(mocks.withAuthSession!).mockImplementation((fn: FetchFn) => (path, args) => {
+    mockWatchWithAuth(path, args);
+    return fn(path, args);
+  });
+
   return mocks;
 });
 

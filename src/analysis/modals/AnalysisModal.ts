@@ -232,8 +232,10 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         currentRuntime,
         currentDisk: persistentDisks ? persistentDisks[0] : undefined,
         isLoadingCloudEnvironments,
+        hideCloseButton: false,
         onDismiss,
         onSuccess,
+        onError,
       });
 
     const renderAppModal = (appModalBase, toolLabel) =>

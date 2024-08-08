@@ -1,5 +1,7 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import * as _ from 'lodash/fp';
-import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-fetch';
+import { fetchDataRepo } from 'src/libs/ajax/ajax-common';
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
@@ -104,7 +106,6 @@ export type AnySnapshotBuilderCriteria =
   | SnapshotBuilderProgramDataRangeCriteria
   | SnapshotBuilderProgramDataListCriteria;
 export interface SnapshotBuilderCriteriaGroup {
-  name: string;
   criteria: AnySnapshotBuilderCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
@@ -178,6 +179,7 @@ export interface SnapshotAccessRequestResponse {
   snapshotSpecification: SnapshotAccessRequest;
   createdBy: string;
   status: JobStatus;
+  summary: string;
 }
 
 export type SnapshotBuilderCountResponse = {

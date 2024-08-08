@@ -16,7 +16,14 @@ import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/wo
 import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
-import { AzureWorkspace, canWrite, GoogleWorkspace, isAzureWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
+import {
+  AzureWorkspace,
+  canRead,
+  canWrite,
+  GoogleWorkspace,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+} from 'src/workspaces/utils';
 
 interface CloudInformationProps {
   storageDetails: StorageDetails;
@@ -114,9 +121,13 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
       }
     });
 
-    if (workspace.workspaceInitialized && canWrite(accessLevel)) {
-      loadStorageCost();
-      loadBucketSize();
+    if (workspace.workspaceInitialized) {
+      if (canRead(accessLevel)) {
+        loadBucketSize();
+      }
+      if (canWrite(accessLevel)) {
+        loadStorageCost();
+      }
     }
   }, [workspace, accessLevel, signal]);
 
@@ -177,7 +188,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
             ]),
           ]
         ),
-      canWrite(accessLevel) &&
+      canRead(accessLevel) &&
         h(
           InfoRow,
           {

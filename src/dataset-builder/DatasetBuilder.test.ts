@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Cohort } from 'src/dataset-builder/DatasetBuilderUtils';
+import { Cohort, convertCohort } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   DataRepoContract,
@@ -56,6 +56,8 @@ describe('DatasetBuilder', () => {
     updateSelectedConceptSets?: (conceptSets: HeaderAndValues<SnapshotBuilderDatasetConceptSet>[]) => void;
     updateSnapshotRequestName?: (snapshotRequestName: string) => void;
   };
+
+  const defaultHeader = 'Saved cohorts';
   const showDatasetBuilderContents = (overrides?: DatasetBuilderContentsPropsOverrides) => {
     render(
       h(DatasetBuilderContents, {
@@ -66,7 +68,7 @@ describe('DatasetBuilder', () => {
         onStateChange: (state) => state,
         snapshotId: testSnapshotId,
         snapshotBuilderSettings: testSettings,
-        selectedCohorts: [],
+        selectedCohorts: [{ header: defaultHeader, values: [] }],
         selectedConceptSets: [],
         selectedColumns: [],
         snapshotRequestName: '',
@@ -106,16 +108,17 @@ describe('DatasetBuilder', () => {
       }),
   });
 
+  const validDatasetRequestCohort = newCohort('cohort 1');
+  const validDatasetRequestConceptSet = newConceptSet('Condition');
+  const validDatasetRequestSnapshotRequestName = 'valid name';
+
   const initializeValidDatasetRequest = () => {
-    const cohortOne = newCohort('cohort 1');
-    const conditionConceptSet = newConceptSet('Condition');
-    const snapshotRequestName = 'valid name';
     showDatasetBuilderContents({
-      cohorts: [cohortOne],
-      selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
-      conceptSets: [conditionConceptSet],
-      selectedConceptSets: [{ values: [conditionConceptSet] }],
-      snapshotRequestName,
+      cohorts: [validDatasetRequestCohort],
+      selectedCohorts: [{ header: defaultHeader, values: [validDatasetRequestCohort] }],
+      conceptSets: [validDatasetRequestConceptSet],
+      selectedConceptSets: [{ values: [validDatasetRequestConceptSet] }],
+      snapshotRequestName: validDatasetRequestSnapshotRequestName,
     });
   };
 
@@ -128,7 +131,7 @@ describe('DatasetBuilder', () => {
       h(CohortSelector, {
         updateCohorts: jest.fn(),
         cohorts: [newCohort('cohort 1'), newCohort('cohort 2')],
-        selectedCohorts: [],
+        selectedCohorts: [{ header: defaultHeader, values: [] }],
         onChange: (cohorts) => cohorts,
         onStateChange: (state) => state,
       })
@@ -219,7 +222,7 @@ describe('DatasetBuilder', () => {
     showDatasetBuilderContents({
       cohorts: [cohortOne, newCohort('cohort 2')],
       conceptSets: [conditionConceptSet, newConceptSet('Procedure'), newConceptSet('Observation')],
-      selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
+      selectedCohorts: [{ header: defaultHeader, values: [cohortOne] }],
       selectedConceptSets: [{ values: [conditionConceptSet] }],
     });
 
@@ -249,7 +252,7 @@ describe('DatasetBuilder', () => {
     await user.click(screen.getByLabelText('cohort 1'));
     await user.click(screen.getByLabelText('Condition'));
     // Assert
-    expect(updateSelectedCohorts).toBeCalledWith([{ header: 'Saved cohorts', values: [cohortOne] }]);
+    expect(updateSelectedCohorts).toBeCalledWith([{ header: defaultHeader, values: [cohortOne] }]);
     expect(updateSelectedConceptSets).toBeCalledWith([{ values: [conditionConceptSet] }]);
   });
 
@@ -275,6 +278,20 @@ describe('DatasetBuilder', () => {
     render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
     // Assert
     expect(await screen.findByText(initialState.cohort.name)).toBeTruthy();
+  });
+
+  it('selects cohort on creation', async () => {
+    // Arrange
+    mockDataRepo([
+      snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
+      snapshotRolesMock(['aggregate_data_reader']),
+    ]);
+    const user = userEvent.setup();
+    const initialState = cohortEditorState.new(newCohort('my test cohort'));
+    render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
+    // Assert
+    await user.click(await screen.findByText('Save cohort'));
+    expect(await screen.findByLabelText(initialState.cohort.name)).toBeChecked();
   });
 
   it('shows the participant count and request access buttons when request is valid', async () => {
@@ -305,7 +322,7 @@ describe('DatasetBuilder', () => {
     const conditionConceptSet = newConceptSet('Condition');
     showDatasetBuilderContents({
       cohorts: [cohortOne],
-      selectedCohorts: [{ header: 'Saved cohorts', values: [cohortOne] }],
+      selectedCohorts: [{ header: defaultHeader, values: [cohortOne] }],
       conceptSets: [conditionConceptSet],
       selectedConceptSets: [{ values: [conditionConceptSet] }],
     });
@@ -366,6 +383,37 @@ describe('DatasetBuilder', () => {
     await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
     expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
+  });
+
+  it('Calls createSnapshotAccessRequest with the correct body', async () => {
+    const createSnapshotAccessRequest = jest.fn().mockResolvedValue(mockCreateSnapshotAccessRequest);
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      snapshot: (_snapshotId) =>
+        ({
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+        } as Partial<DataRepoContract['snapshot']>),
+      snapshotAccessRequest: () =>
+        ({
+          createSnapshotAccessRequest,
+        } as Partial<DataRepoContract['snapshotAccessRequest']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+
+    // Arrange
+    const user = userEvent.setup();
+    await initializeValidDatasetRequest();
+    await user.click(await screen.findByText('Request this data snapshot'));
+    // Assert
+    expect(createSnapshotAccessRequest).toBeCalledWith({
+      name: validDatasetRequestSnapshotRequestName,
+      researchPurposeStatement: '',
+      sourceSnapshotId: testSnapshotId,
+      snapshotBuilderRequest: {
+        cohorts: _.map(convertCohort, [validDatasetRequestCohort]),
+        outputTables: [],
+      },
+    });
   });
 
   it('enables editing cohorts', async () => {

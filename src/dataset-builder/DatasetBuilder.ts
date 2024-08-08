@@ -1,9 +1,8 @@
 import { Modal, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import * as _ from 'lodash/fp';
 import React, { Fragment, ReactElement, useEffect, useMemo, useState } from 'react';
-import { div, h, h2, h3, label, li, span, ul } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, label, li, ul } from 'react-hyperscript-helpers';
 import { ActionBar } from 'src/components/ActionBar';
-import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonOutline, ButtonPrimary, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { ValidatedInput } from 'src/components/input';
@@ -12,6 +11,7 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import TopBar from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
+  addSelectableObjectToGroup,
   Cohort,
   createSnapshotAccessRequest,
   createSnapshotBuilderCountRequest,
@@ -19,6 +19,7 @@ import {
   formatCount,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DomainCriteriaSearch } from 'src/dataset-builder/DomainCriteriaSearch';
+import { RequestAccessModal } from 'src/dataset-builder/RequestAccessModal';
 import {
   DataRepo,
   DatasetBuilderType,
@@ -198,23 +199,7 @@ const Selector: SelectorComponent = <T extends DatasetBuilderType>(props) => {
                     objectSet,
                     selectedValues,
                     onChange: (value, header) => {
-                      const index = _.findIndex(
-                        (selectedObjectSet: HeaderAndValues<T>) => selectedObjectSet.header === header,
-                        selectedObjectSets
-                      );
-
-                      onChange(
-                        index === -1
-                          ? selectedObjectSets.concat({
-                              header,
-                              values: [value],
-                            })
-                          : _.set(
-                              `[${index}].values`,
-                              _.xorWith(_.isEqual, selectedObjectSets[index].values, [value]),
-                              selectedObjectSets
-                            )
-                      );
+                      addSelectableObjectToGroup(value, header, selectedObjectSets, onChange);
                     },
                   }),
                 _.filter((objectSet) => objectSet.values?.length > 0, objectSets)
@@ -324,7 +309,7 @@ export const CohortSelector = ({
       objectSets: [
         {
           values: cohorts,
-          header: 'Saved cohorts',
+          header: selectedCohorts[0]?.header,
           makeIcon: (value, header) =>
             h(
               MenuTrigger,
@@ -382,86 +367,6 @@ export const ConceptSetSelector = ({
     subheader: 'Which information to include about participants',
     style: { marginLeft: '1rem' },
   });
-};
-
-interface RequestAccessModalProps {
-  onDismiss: () => void;
-  snapshotId: string;
-}
-
-const RequestAccessModal = (props: RequestAccessModalProps) => {
-  const { onDismiss, snapshotId } = props;
-
-  return h(
-    Modal,
-    {
-      title: 'Access request created in Terra',
-      showX: false,
-      onDismiss,
-      width: 500,
-      cancelText: 'Return to AxIN Overview',
-      okButton: h(
-        ButtonPrimary,
-        {
-          href: '',
-          target: '_blank',
-        },
-        ['Continue to Form']
-      ),
-    },
-    [
-      div({ style: { lineHeight: 1.5 } }, [
-        'A request has been generated and may take up to 72 hours for approval. Check your email for a copy of this request. You’ll also be notified via email on approval of the request.',
-      ]),
-      div(
-        {
-          style: {
-            backgroundColor: colors.accent(0.15),
-            color: colors.dark(),
-            border: `1px solid ${colors.accent(1.25)}`,
-            borderRadius: 10,
-            height: 150,
-            padding: '1rem',
-            marginTop: '1.5rem',
-            marginBottom: '2rem',
-          },
-        },
-        [
-          div([
-            h3({
-              style: { marginTop: 5, fontWeight: 600 },
-              children: ['Important!'],
-            }),
-            div(
-              {
-                style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
-              },
-              [
-                span(['Please copy and paste the ']),
-                span({ style: { fontWeight: 600 } }, ['Request ID']),
-                span([' into the AnalytiXIN form:']),
-              ]
-            ),
-            div({ style: { display: 'flex', marginTop: 20, color: colors.accent(1) } }, [
-              div(
-                {
-                  style: { fontWeight: 700, marginRight: 2 },
-                },
-                [snapshotId]
-              ),
-              h(ClipboardButton, {
-                'aria-label': 'Copy Request ID to clipboard',
-                className: 'cell-hover-only',
-                iconSize: 14,
-                text: snapshotId,
-                tooltip: 'Copy Request ID to clipboard',
-              }),
-            ]),
-          ]),
-        ]
-      ),
-    ]
-  );
 };
 
 export const snapshotRequestNameValidator = {
@@ -619,7 +524,7 @@ export const DatasetBuilderContents = ({
                     .snapshotAccessRequest()
                     .createSnapshotAccessRequest(
                       createSnapshotAccessRequest(
-                        '',
+                        snapshotRequestName,
                         '',
                         snapshotId,
                         _.flatMap((cohortSet) => cohortSet.values, selectedCohorts),
@@ -647,7 +552,8 @@ export const DatasetBuilderContents = ({
             setRequestingAccess(false);
             Nav.goToPath('dataset-builder-details', { snapshotId });
           },
-          snapshotId: snapshotAccessRequest.state.id,
+          requestId: snapshotAccessRequest.state.id,
+          summary: snapshotAccessRequest.state.summary,
         }),
   ]);
 };
@@ -661,6 +567,8 @@ const editorBackgroundColor = colors.light(0.7);
 
 let criteriaCount = 1;
 
+const defaultHeader = 'Saved cohorts';
+
 export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const { snapshotId, initialState } = props;
   const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
@@ -669,7 +577,9 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     initialState || homepageState.new()
   );
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [selectedCohorts, setSelectedCohorts] = useState([] as HeaderAndValues<Cohort>[]);
+  const [selectedCohorts, setSelectedCohorts] = useState([
+    { header: defaultHeader, values: [] },
+  ] as HeaderAndValues<Cohort>[]);
   const [selectedConceptSets, setSelectedConceptSets] = useState([] as HeaderAndValues<ConceptSet>[]);
   const [selectedColumns, setSelectedColumns] = useState([] as RequiredHeaderAndValues<DatasetBuilderValue>[]);
   const [snapshotRequestName, setSnapshotRequestName] = useState('');
@@ -680,6 +590,10 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
   const getNextCriteriaIndex = () => {
     criteriaCount++;
     return criteriaCount;
+  };
+
+  const addSelectedCohort = (cohort: Cohort) => {
+    addSelectableObjectToGroup(cohort, defaultHeader, selectedCohorts, setSelectedCohorts);
   };
 
   useOnMount(() => {
@@ -730,6 +644,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
                   onStateChange,
                   originalCohort: datasetBuilderState.cohort,
                   snapshotId,
+                  addSelectedCohort,
                   snapshotBuilderSettings: snapshotBuilderSettings.state,
                   updateCohorts: setCohorts,
                   getNextCriteriaIndex,

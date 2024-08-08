@@ -72,7 +72,7 @@ export const filterWorkspaces = (
   const filterWorkspacesCategory = (workspaces: Workspace[], filters: WorkspaceFilterValues): Workspace[] => {
     const matches = (ws: Workspace): boolean => {
       const {
-        workspace: { namespace, name, attributes, state, googleProject },
+        workspace: { namespace, name, attributes, state, googleProject, bucketName },
       } = ws;
 
       const containsKeywordFilter = (textToMatchWithin: string | undefined): boolean => {
@@ -82,7 +82,8 @@ export const filterWorkspaces = (
       return !!(
         (containsKeywordFilter(`${namespace}/${name}`) ||
           containsKeywordFilter(googleProject) ||
-          containsKeywordFilter(state)) &&
+          containsKeywordFilter(state) ||
+          containsKeywordFilter(bucketName)) &&
         (_.isEmpty(filters.accessLevels) || filters.accessLevels.includes(ws.accessLevel)) &&
         (_.isEmpty(filters.projects) || filters.projects === namespace) &&
         (_.isEmpty(filters.cloudPlatform) || getCloudProviderFromWorkspace(ws) === filters.cloudPlatform) &&

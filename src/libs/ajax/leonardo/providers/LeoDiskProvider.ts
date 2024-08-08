@@ -1,10 +1,16 @@
 import { Mutate } from '@terra-ui-packages/core-utils';
+import { AbortOption } from '@terra-ui-packages/data-client-core';
+import {
+  AzureDiskType,
+  GoogleDiskType,
+  RawGetDiskItem,
+  RawListDiskItem,
+} from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
-import { AbortOption } from 'src/libs/ajax/data-client-common';
 import * as Utils from 'src/libs/utils';
 
-import { AzureDiskType, Disks, GoogleDiskType, RawGetDiskItem, RawListDiskItem } from '../Disks';
+import { Disks } from '../Disks';
 
 export type DiskBasics = Pick<PersistentDisk, 'cloudContext' | 'name' | 'id'>;
 

@@ -4,6 +4,7 @@ export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
 export const FIRECLOUD_UI_MIGRATION = 'firecloudUiMigration';
+export const AXIN_DATASET_CARD = 'axinDatasetCard';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -106,6 +107,14 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description: 'Enabling this feature will update replaceable links to Firecloud UI with new links to Terra UI',
     feedbackUrl: `mailto:dsp-workflow-management@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on deprecating Firecloud UI'
+    )}`,
+  },
+  {
+    id: AXIN_DATASET_CARD,
+    title: 'AXIN Dataset Card',
+    description: 'Enabling this feature will show the card for AnalytiXIN in the Datasets tab in the Library.',
+    feedbackUrl: `mailto:dsp-data-exploration@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on Axin Dataset Card'
     )}`,
   },
 ];

@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
+import { HeaderAndValues } from 'src/dataset-builder/DatasetBuilder';
 import {
   AnySnapshotBuilderCriteria,
   DatasetBuilderType,
@@ -53,7 +54,7 @@ export type AnyCriteria = ProgramDomainCriteria | ProgramDataRangeCriteria | Pro
 
 /** A group of criteria. */
 export interface CriteriaGroup {
-  name: string;
+  id: number;
   criteria: AnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
@@ -93,7 +94,6 @@ export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
     name: cohort.name,
     criteriaGroups: _.map(
       (criteriaGroup) => ({
-        name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
         criteria: _.map((criteria: AnyCriteria) => convertCriteria(criteria), criteriaGroup.criteria),
@@ -165,4 +165,21 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 
 export const formatCount = (count: number): string => {
   return count === 19 ? 'Less than 20' : count.toString();
+};
+
+export const addSelectableObjectToGroup = <T extends DatasetBuilderType>(
+  selectableObject: T,
+  header: string,
+  group: HeaderAndValues<T>[],
+  setGroup: (groups: HeaderAndValues<T>[]) => void
+) => {
+  const index = _.findIndex((selectedObject: HeaderAndValues<T>) => selectedObject.header === header, group);
+  setGroup(
+    index === -1
+      ? group.concat({
+          header,
+          values: [selectableObject],
+        })
+      : _.set(`[${index}].values`, _.xorWith(_.isEqual, group[index].values, [selectableObject]), group)
+  );
 };

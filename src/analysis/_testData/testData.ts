@@ -1,3 +1,4 @@
+import { RawGetDiskItem, RawListDiskItem } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import {
   defaultGceBootDiskSize,
@@ -6,7 +7,6 @@ import {
 } from 'src/analysis/utils/disk-utils';
 import { defaultGceMachineType, defaultLocation, generateRuntimeName } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, tools } from 'src/analysis/utils/tool-utils';
-import { RawGetDiskItem, RawListDiskItem } from 'src/libs/ajax/leonardo/Disks';
 import { App, AppError, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import {
   AzureConfig,

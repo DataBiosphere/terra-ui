@@ -22,10 +22,15 @@
     "lib/es/**",
     "lib/types/**/*.d.ts"
   ],
+  "dependencies": {
+    "@terra-ui-packages/data-client-core": "^0.0.1",
+    "qs": "^6.10.1"
+  },
   "devDependencies": {
     "@terra-ui-packages/build-utils": "^2.0.0",
     "@terra-ui-packages/test-utils": "^1.0.0",
     "@types/jest": "^28.1.8",
+    "@types/qs": "^6.9.15",
     "jest": "^27.4.3",
     "typescript": "~5.1.6",
     "vite": "^5.2.11"
