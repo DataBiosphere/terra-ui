@@ -175,7 +175,7 @@ export const WorkflowConfigs = _.flow(
     title: 'Workflows',
     activeTab: 'configs',
   })
-)((props, _ref) => {
+)(() => {
   return h(BaseWorkflowConfigs);
 });
 
