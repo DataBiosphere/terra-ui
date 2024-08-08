@@ -46,13 +46,14 @@ const SubmissionDetailsInputsTable = ({ configuredInputDefinition }: SubmissionD
               'aria-label': 'input definition',
               width,
               height,
-              // @ts-expect-error
-              sort,
+              sort: sort as any, // necessary until FlexTable is converted to TS
               rowCount: configuredInputDefinition.length,
               noContentMessage: 'Nothing here yet! Your inputs for this submission will be displayed here.',
               hoverHighlight: true,
               rowHeight,
               rowWidth,
+              variant: null,
+              tabIndex: -1,
               columns: [
                 {
                   size: { basis: 350 },
