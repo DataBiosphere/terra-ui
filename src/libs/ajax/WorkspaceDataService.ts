@@ -159,8 +159,18 @@ export const WorkspaceData = (signal) => ({
     return res.json();
   },
   listInstances: async (root: string, workspaceId: string): Promise<any> => {
-    const res = await fetchWDS(root)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
-    return res.json();
+    try {
+      const response = await fetchWDS(root)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
+      const data = await response.json();
+      return data.map((instance) => instance.id);
+    } catch (error) {
+      if (error instanceof Response && error.status === 404) {
+        return await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal })).then((response) =>
+          response.json()
+        );
+      }
+      throw error;
+    }
   },
   getCloneStatus: async (root: string): Promise<WDSCloneStatusResponse> => {
     const res = await fetchWDS(root)('clone/v0.2', _.merge(authOpts(), { signal }));

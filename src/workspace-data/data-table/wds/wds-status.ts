@@ -195,9 +195,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         .then((instancesResponse) => {
           setStatus((previousStatus) => ({
             ...previousStatus,
-            defaultInstanceExists: instancesResponse.map((instance) => instance.id).includes(workspaceId)
-              ? 'true'
-              : 'false',
+            defaultInstanceExists: instancesResponse.includes(workspaceId) ? 'true' : 'false',
           }));
         })
         .catch(() => {
