@@ -188,7 +188,7 @@ const DataTable = (props) => {
 
   const getColumnDatatype = (entityType, columnName) => {
     const foundColumn = _.find({ name: columnName }, entityMetadata[entityType]?.attributes);
-    return foundColumn && foundColumn.datatype ? foundColumn.datatype : undefined;
+    return foundColumn?.datatype;
   };
 
   // Helpers
