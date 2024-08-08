@@ -12,7 +12,7 @@ import { withErrorReporting } from 'src/libs/error';
 import { forwardRefWithName, useStore } from 'src/libs/react-utils';
 import { snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
-import { wrapWorkflows } from 'src/pages/workflows/workflow/Wrapper';
+import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 
 // TODO: add error handling, dedupe
 const InfoTile = ({ title, children }) => {

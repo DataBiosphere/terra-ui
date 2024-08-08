@@ -12,7 +12,7 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
 import { snapshotStore } from 'src/libs/state';
-import { wrapWorkflows } from 'src/pages/workflows/workflow/Wrapper';
+import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 
 const getFilteredConfigs = ({ allConfigs, filterWord }) => {
   const lowerCaseFilter = filterWord.toLocaleLowerCase();
