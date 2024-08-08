@@ -141,6 +141,7 @@ export interface DataTableFeatures {
   supportsPointCorrection: boolean;
   supportsFiltering: boolean;
   supportsRowSelection: boolean;
+  supportsPerColumnDatatype: boolean;
 }
 
 export interface TSVFeatures {
