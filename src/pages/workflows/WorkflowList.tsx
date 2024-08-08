@@ -1,7 +1,6 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { useState } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import { Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
