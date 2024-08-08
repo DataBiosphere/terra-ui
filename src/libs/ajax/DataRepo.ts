@@ -70,6 +70,8 @@ interface SnapshotBuilderRootTable extends SnapshotBuilderTable {
 }
 
 export type SnapshotBuilderSettings = {
+  name?: string;
+  description?: string;
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
