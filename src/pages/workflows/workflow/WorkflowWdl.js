@@ -9,16 +9,8 @@ import { forwardRefWithName } from 'src/libs/react-utils';
 import { snapshotStore } from 'src/libs/state';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/Wrapper';
 
-const WorkflowWdl = _.flow(
-  forwardRefWithName('WorkflowWdl'),
-  wrapWorkflows({
-    breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
-    title: 'Workflows',
-    activeTab: 'wdl',
-  })
-)((props, _ref) => {
+export const BaseWorkflowWdl = () => {
   const { name, snapshotId, payload } = useStore(snapshotStore);
-
   return div({ style: { margin: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', flex: 1 }, role: 'tabpanel' }, [
     div({ style: { marginBottom: '1rem', alignSelf: 'flex-end' } }, [
       h(
@@ -34,6 +26,17 @@ const WorkflowWdl = _.flow(
     ]),
     div({ style: { flex: 1 } }, [h(AutoSizer, [({ height, width }) => h(WDLViewer, { wdl: payload, style: { maxHeight: height, width } })])]),
   ]);
+};
+
+const WorkflowWdl = _.flow(
+  forwardRefWithName('WorkflowWdl'),
+  wrapWorkflows({
+    breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
+    title: 'Workflows',
+    activeTab: 'wdl',
+  })
+)((props, _ref) => {
+  return h(BaseWorkflowWdl);
 });
 
 export const navPaths = [
