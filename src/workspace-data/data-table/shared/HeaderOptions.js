@@ -1,7 +1,7 @@
 import { PopupTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useRef } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
@@ -9,7 +9,7 @@ import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider } from 'src/components/PopupTrigger';
 import { Sortable } from 'src/components/table';
 
-export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch, searchByColumn, children }) => {
+export const HeaderOptions = ({ sort, field, datatype, onSort, extraActions, renderSearch, searchByColumn, children }) => {
   const popup = useRef();
   const columnMenu = h(
     PopupTrigger,
@@ -18,6 +18,14 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, renderSearch,
       closeOnClick: true,
       side: 'bottom',
       content: h(Fragment, [
+        datatype &&
+          h(Fragment, [
+            h(MenuButton, { disabled: true }, [
+              h(span, { style: { fontWeight: 'bold' } }, ['Column Type:']),
+              h(span, { style: { marginLeft: '.25rem' } }, [datatype]),
+            ]),
+            h(MenuDivider),
+          ]),
         h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
         h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
         renderSearch &&
