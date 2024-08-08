@@ -14,19 +14,48 @@ import { snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 
-// TODO: add error handling, dedupe
-const InfoTile = ({ title, children }) => {
-  return div({ style: Style.dashboard.infoTile }, [div({ style: Style.dashboard.tinyCaps }, [title]), div({ style: { fontSize: 12 } }, [children])]);
+type BaseWorkflowSummaryProps = {
+  namespace: string;
+  name: string;
+  snapshotId: number;
+  createDate: string;
+  managers: string[];
+  synopsis: string | undefined;
+  documentation: string | undefined;
+  public: boolean;
 };
 
-export const BaseWorkflowSummary = () => {
-  const { namespace, name, snapshotId, createDate, managers, synopsis, documentation, public: isPublic } = useStore(snapshotStore);
-  const [importUrlCopied, setImportUrlCopied] = useState();
-  const importUrl = `${getConfig().orchestrationUrlRoot}/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`;
+// TODO: add error handling, dedupe
+const InfoTile = ({ title, children }) => {
+  return div({ style: Style.dashboard.infoTile }, [
+    div({ style: Style.dashboard.tinyCaps }, [title]),
+    div({ style: { fontSize: 12 } }, [children]),
+  ]);
+};
+
+export const BaseWorkflowSummary = (props: BaseWorkflowSummaryProps) => {
+  const {
+    namespace,
+    name,
+    snapshotId,
+    createDate,
+    managers,
+    synopsis,
+    documentation,
+    public: isPublic,
+  } = useStore(snapshotStore);
+  const [importUrlCopied, setImportUrlCopied] = useState<boolean>();
+  const importUrl = `${
+    getConfig().orchestrationUrlRoot
+  }/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`;
 
   return div({ style: { flex: 1, display: 'flex' }, role: 'tabpanel' }, [
     div({ style: Style.dashboard.leftBox }, [
-      synopsis && h(Fragment, [h2({ style: Style.dashboard.header }, ['Synopsis']), div({ style: { fontSize: 16 } }, [synopsis])]),
+      synopsis &&
+        h(Fragment, [
+          h2({ style: Style.dashboard.header }, ['Synopsis']),
+          div({ style: { fontSize: 16 } }, [synopsis]),
+        ]),
       h2({ style: Style.dashboard.header }, ['Documentation']),
       documentation
         ? h(MarkdownViewer, { renderers: { link: newWindowLinkRenderer } }, [documentation])
@@ -40,7 +69,9 @@ export const BaseWorkflowSummary = () => {
       ]),
       h2({ style: Style.dashboard.header }, ['Owners']),
       _.map((email) => {
-        return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [h(Link, { href: `mailto:${email}` }, [email])]);
+        return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+          h(Link, { href: `mailto:${email}` }, [email]),
+        ]);
       }, managers),
       div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
       h2({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, ['Import URL']),
@@ -54,7 +85,7 @@ export const BaseWorkflowSummary = () => {
             onClick: withErrorReporting('Error copying to clipboard')(async () => {
               await clipboard.writeText(importUrl);
               setImportUrlCopied(true);
-              setTimeout(() => setImportUrlCopied(), 1500);
+              setTimeout(() => setImportUrlCopied, 1500);
             }),
           },
           [icon(importUrlCopied ? 'check' : 'copy-to-clipboard')]
@@ -71,7 +102,7 @@ const WorkflowSummary = _.flow(
     title: 'Workflows',
     activeTab: 'dashboard',
   })
-)((props, _ref) => {
+)(() => {
   return h(BaseWorkflowSummary);
 });
 
