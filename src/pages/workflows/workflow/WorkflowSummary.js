@@ -19,14 +19,7 @@ const InfoTile = ({ title, children }) => {
   return div({ style: Style.dashboard.infoTile }, [div({ style: Style.dashboard.tinyCaps }, [title]), div({ style: { fontSize: 12 } }, [children])]);
 };
 
-const WorkflowSummary = _.flow(
-  forwardRefWithName('WorkflowSummary'),
-  wrapWorkflows({
-    breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
-    title: 'Workflows',
-    activeTab: 'dashboard',
-  })
-)((props, _ref) => {
+export const BaseWorkflowSummary = () => {
   const { namespace, name, snapshotId, createDate, managers, synopsis, documentation, public: isPublic } = useStore(snapshotStore);
   const [importUrlCopied, setImportUrlCopied] = useState();
   const importUrl = `${getConfig().orchestrationUrlRoot}/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`;
@@ -69,6 +62,17 @@ const WorkflowSummary = _.flow(
       ]),
     ]),
   ]);
+};
+
+const WorkflowSummary = _.flow(
+  forwardRefWithName('WorkflowSummary'),
+  wrapWorkflows({
+    breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
+    title: 'Workflows',
+    activeTab: 'dashboard',
+  })
+)((props, _ref) => {
+  return h(BaseWorkflowSummary);
 });
 
 export const navPaths = [
