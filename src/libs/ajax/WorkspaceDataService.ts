@@ -158,7 +158,7 @@ export const WorkspaceData = (signal) => ({
     const res = await fetchWDS(root)('status', _.merge(authOpts(), { signal }));
     return res.json();
   },
-  listInstances: async (root: string, workspaceId: string): Promise<any> => {
+  listCollections: async (root: string, workspaceId: string): Promise<any> => {
     try {
       const response = await fetchWDS(root)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
       const data = await response.json();

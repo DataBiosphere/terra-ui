@@ -58,7 +58,7 @@ interface SetupResult {
   createWorkspace: jest.MockedFunction<AjaxContract['Workspaces']['create']>;
   getWorkspaceDetails: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['details']>;
   listApps: jest.MockedFunction<AjaxContract['Apps']['listAppsV2']>;
-  listWdsInstances: jest.MockedFunction<AjaxContract['WorkspaceData']['listInstances']>;
+  listWdsCollections: jest.MockedFunction<AjaxContract['WorkspaceData']['listCollections']>;
 }
 
 const setup = (opts: SetupOptions = {}): SetupResult => {
@@ -74,7 +74,7 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
   const getWorkspaceDetails = jest.fn().mockResolvedValue({ workspace: { attributes: { description: '' } } });
   const captureEvent = jest.fn();
   const listApps = jest.fn().mockResolvedValue([]);
-  const listWdsInstances = jest.fn().mockResolvedValue([]);
+  const listWdsCollections = jest.fn().mockResolvedValue([]);
 
   asMockedFn(Ajax).mockImplementation(
     () =>
@@ -107,7 +107,7 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
           }),
         },
         WorkspaceData: {
-          listInstances: listWdsInstances,
+          listCollections: listWdsCollections,
         },
       } as DeepPartial<AjaxContract> as AjaxContract)
   );
@@ -133,7 +133,7 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
     getWorkspaceDetails,
     captureEvent,
     listApps,
-    listWdsInstances,
+    listWdsCollections,
   };
 };
 
@@ -1128,7 +1128,7 @@ describe('NewWorkspaceModal', () => {
           authorizationDomain: [],
         };
 
-        const { createWorkspace, listApps, listWdsInstances } = setup({ billingProjects: [azureBillingProject] });
+        const { createWorkspace, listApps, listWdsCollections } = setup({ billingProjects: [azureBillingProject] });
         createWorkspace.mockResolvedValue(newWorkspace);
 
         const wdsApp: ListAppItem = {
@@ -1166,7 +1166,7 @@ describe('NewWorkspaceModal', () => {
           .mockResolvedValue([wdsApp])
           .mockResolvedValueOnce([{ ...wdsApp, status: 'PROVISIONING', proxyUrls: {} }]);
 
-        listWdsInstances.mockResolvedValue(['aaaabbbb-cccc-dddd-0000-111122223333']).mockResolvedValueOnce([]);
+        listWdsCollections.mockResolvedValue(['aaaabbbb-cccc-dddd-0000-111122223333']).mockResolvedValueOnce([]);
 
         const onSuccess = jest.fn();
 
@@ -1207,7 +1207,7 @@ describe('NewWorkspaceModal', () => {
 
         // Assert
         expect(listApps).toHaveBeenCalledTimes(2);
-        expect(listWdsInstances).toHaveBeenCalledTimes(1);
+        expect(listWdsCollections).toHaveBeenCalledTimes(1);
         expect(onSuccess).not.toHaveBeenCalled();
 
         // Act
@@ -1215,7 +1215,7 @@ describe('NewWorkspaceModal', () => {
 
         // Assert
         expect(listApps).toHaveBeenCalledTimes(2);
-        expect(listWdsInstances).toHaveBeenCalledTimes(2);
+        expect(listWdsCollections).toHaveBeenCalledTimes(2);
 
         expect(onSuccess).toHaveBeenCalled();
       })
