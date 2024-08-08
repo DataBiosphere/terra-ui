@@ -1,8 +1,7 @@
 import { Select, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment } from 'react';
+import { Fragment, PropsWithChildren, ReactNode } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
-import * as breadcrumbs from 'src/components/breadcrumbs';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner } from 'src/components/icons';
 import { TabBar } from 'src/components/tabBars';
@@ -13,10 +12,37 @@ import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs
 import { snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 
-export const wrapWorkflows = ({ activeTab }) => {
-  return (WrappedComponent) => {
-    const Wrapper = (props) => {
-      const { namespace, name, snapshotId, children } = props;
+export interface WrapWorkflowOptions {
+  breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
+  activeTab?: string;
+  title: string | ((props: { name: string; namespace: string }) => string);
+}
+
+interface WorkflowWrapperProps extends PropsWithChildren {
+  namespace: string;
+  name: string;
+  snapshotId: number;
+}
+
+interface WorkflowContainerProps extends PropsWithChildren {
+  namespace: string;
+  name: string;
+  snapshotId: number;
+  tabName: string | undefined;
+}
+
+interface WrappedComponentProps {
+  namespace: string;
+  name: string;
+}
+
+type WrappedWorkflowComponent = (props: WrappedComponentProps) => ReactNode;
+
+export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
+  const { breadcrumbs, activeTab } = opts;
+  return (WrappedComponent: WrappedWorkflowComponent) => {
+    const Wrapper = (props: WorkflowWrapperProps) => {
+      const { namespace, name, snapshotId } = props;
       const signal = useCancellation();
       const cachedSnapshotsList = useStore(snapshotsListStore);
       const snapshotsList =
@@ -37,13 +63,15 @@ export const wrapWorkflows = ({ activeTab }) => {
       return h(FooterWrapper, [
         h(TopBar, { title: 'Workflows', href: Nav.getLink('workflows') }, [
           div({ style: Style.breadcrumb.breadcrumb }, [
-            div(breadcrumbs.commonPaths.workflowList()),
+            div(breadcrumbs(props)),
             div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`${namespace}/${name}`]),
           ]),
         ]),
         div({ role: 'main', style: { flex: 1, display: 'flex', flexFlow: 'column nowrap' } }, [
           snapshotsList
-            ? h(WorkflowsContainer, { namespace, name, snapshotId, tabName: activeTab, children }, [h(WrappedComponent, { ...props })])
+            ? h(WorkflowsContainer, { namespace, name, snapshotId, tabName: activeTab }, [
+                h(WrappedComponent, { ...props }),
+              ])
             : centeredSpinner(),
         ]),
       ]);
@@ -52,15 +80,21 @@ export const wrapWorkflows = ({ activeTab }) => {
   };
 };
 
-export const WorkflowsContainer = ({ namespace, name, snapshotId, tabName, children }) => {
+export const WorkflowsContainer = (props: WorkflowContainerProps) => {
+  const { namespace, name, snapshotId, tabName, children } = props;
   const signal = useCancellation();
-  const cachedSnapshotsList = useStore(snapshotsListStore);
+  const cachedSnapshotsList: any = useStore(snapshotsListStore);
   const cachedSnapshot = useStore(snapshotStore);
-  const selectedSnapshot = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
+  // @ts-ignore
+  const selectedSnapshot: number | undefined = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
 
   const snapshot =
-    cachedSnapshot && _.isEqual({ namespace, name, snapshotId: selectedSnapshot }, _.pick(['namespace', 'name', 'snapshotId'], cachedSnapshot))
+    cachedSnapshot &&
+    _.isEqual(
+      { namespace, name, snapshotId: selectedSnapshot },
+      _.pick(['namespace', 'name', 'snapshotId'], cachedSnapshot)
+    )
       ? cachedSnapshot
       : undefined;
 
@@ -74,7 +108,11 @@ export const WorkflowsContainer = ({ namespace, name, snapshotId, tabName, child
     }
 
     if (!snapshotId) {
-      window.history.replaceState({}, '', Nav.getLink('workflow-dashboard', { namespace, name, snapshotId: selectedSnapshot }));
+      window.history.replaceState(
+        {},
+        '',
+        Nav.getLink('workflow-dashboard', { namespace, name, snapshotId: selectedSnapshot })
+      );
     }
   });
 
@@ -86,7 +124,8 @@ export const WorkflowsContainer = ({ namespace, name, snapshotId, tabName, child
         activeTab: tabName,
         tabNames: ['dashboard', 'wdl', 'configs'],
         displayNames: { configs: 'configurations' },
-        getHref: (currentTab) => Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
+        getHref: (currentTab) =>
+          Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
       },
       [
         label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
@@ -96,7 +135,7 @@ export const WorkflowsContainer = ({ namespace, name, snapshotId, tabName, child
             value: selectedSnapshot,
             isSearchable: false,
             options: _.map('snapshotId', cachedSnapshotsList),
-            onChange: ({ value }) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
+            onChange: (value) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
           }),
         ]),
       ]
