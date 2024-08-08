@@ -85,7 +85,8 @@ export const overrideAppsWithLocalWDS = async (workspaceId?: string) => {
       'Content-Type': 'application/json',
     },
   });
-  const instanceIds: string[] = await instancesResponse.json();
+  const instances = await instancesResponse.json();
+  const instanceIds: string[] = instances.map((instance) => instance.id);
 
   // Create an instance for the given workspace if one does not already exist.
   if (!instanceIds.includes(workspaceId)) {
