@@ -40,7 +40,7 @@ describe('WorkflowSummary Component', () => {
   it('renders a simple smoke test for the WorkflowSummary component', () => {
     // ** ACT **
     renderWithAppContexts(h(BaseWorkflowSummary));
-    screen.logTestingPlaygroundURL();
+
     // ** ASSERT **
     expect(screen.getByText('a very fancy method')).toBeInTheDocument();
     expect(screen.getByText('No documentation provided')).toBeInTheDocument();
