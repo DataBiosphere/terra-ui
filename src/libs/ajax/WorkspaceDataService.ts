@@ -158,8 +158,8 @@ export const WorkspaceData = (signal) => ({
     const res = await fetchWDS(root)('status', _.merge(authOpts(), { signal }));
     return res.json();
   },
-  listInstances: async (root: string): Promise<any> => {
-    const res = await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal }));
+  listInstances: async (root: string, workspaceId: string): Promise<any> => {
+    const res = await fetchWDS(root)(`/collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
   getCloneStatus: async (root: string): Promise<WDSCloneStatusResponse> => {

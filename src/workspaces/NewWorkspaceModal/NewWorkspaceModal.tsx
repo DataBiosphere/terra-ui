@@ -213,7 +213,10 @@ export const NewWorkspaceModal = withDisplayName(
           const proxyUrl = wds!.proxyUrls.wds;
           await Utils.poll(
             async () => {
-              const instances: string[] = await Ajax().WorkspaceData.listInstances(proxyUrl);
+              const instances: string[] = await Ajax().WorkspaceData.listInstances(
+                proxyUrl,
+                createdWorkspace.workspaceId
+              );
               if (instances.includes(createdWorkspace.workspaceId)) {
                 return { shouldContinue: false, result: true };
               }

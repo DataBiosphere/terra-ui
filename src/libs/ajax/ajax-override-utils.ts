@@ -79,7 +79,7 @@ export const overrideAppsWithLocalWDS = async (workspaceId?: string) => {
 
   // Get list of instances from local WDS.
   // Using base fetch here to avoid an import cycle with ajax-common.ts.
-  const instancesResponse = await fetch(`${wdsUrl}/instances/v0.2`, {
+  const instancesResponse = await fetch(`${wdsUrl}/collections/v1/{workspaceId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ export const overrideAppsWithLocalWDS = async (workspaceId?: string) => {
 
   // Create an instance for the given workspace if one does not already exist.
   if (!instanceIds.includes(workspaceId)) {
-    const createInstanceResponse = await fetch(`${wdsUrl}/instances/v0.2/${workspaceId}`, {
+    const createInstanceResponse = await fetch(`${wdsUrl}/collections/v1/{workspaceId}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,

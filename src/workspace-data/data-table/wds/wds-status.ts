@@ -191,7 +191,7 @@ export const useWdsStatus = ({ workspaceId }: UseWdsStatusArgs) => {
         }),
 
       Ajax(signal)
-        .WorkspaceData.listInstances(proxyUrl)
+        .WorkspaceData.listInstances(proxyUrl, workspaceId)
         .then((instancesResponse) => {
           setStatus((previousStatus) => ({
             ...previousStatus,

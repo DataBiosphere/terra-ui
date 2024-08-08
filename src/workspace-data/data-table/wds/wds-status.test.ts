@@ -206,7 +206,7 @@ describe('useWdsStatus', () => {
       // Assert
       expect(getVersion).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
       expect(getStatus).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
-      expect(listInstances).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
+      expect(listInstances).toHaveBeenCalledWith(wdsApp.proxyUrls.wds, workspaceId);
       expect(getCloneStatus).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
     });
 
