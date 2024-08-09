@@ -12,6 +12,7 @@ import {
   Cohort,
   createSnapshotBuilderCountRequest,
   CriteriaGroup,
+  debounceAsync,
   formatCount,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
@@ -51,31 +52,6 @@ type CriteriaViewProps = {
 };
 
 const addCriteriaText = 'Add criteria';
-
-// Debounce next calls until result's promise resolve
-// Code from stackoverflow answer: https://stackoverflow.com/questions/74800112/debounce-async-function-and-ensure-sequentiality
-const debounceAsync = (fn: any) => {
-  let activePromise: any = null;
-  let cancel: any = null;
-  const debouncedFn = (...args: any) => {
-    cancel?.();
-    if (activePromise) {
-      const abortController = new AbortController();
-      cancel = abortController.abort.bind(abortController);
-      activePromise.then(() => {
-        if (abortController.signal.aborted) return;
-        debouncedFn(...args);
-      });
-      return;
-    }
-
-    activePromise = Promise.resolve(fn(...args));
-    activePromise.finally(() => {
-      activePromise = null;
-    });
-  };
-  return debouncedFn;
-};
 
 export const CriteriaView = (props: CriteriaViewProps) => {
   const { snapshotId, criteria, deleteCriteria, updateCriteria } = props;
