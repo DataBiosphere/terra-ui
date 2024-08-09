@@ -11,21 +11,26 @@ import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 
 export const BaseWorkflowWdl = () => {
   const { name, snapshotId, payload } = useStore(snapshotStore);
-  return div({ style: { margin: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', flex: 1 }, role: 'tabpanel' }, [
-    div({ style: { marginBottom: '1rem', alignSelf: 'flex-end' } }, [
-      h(
-        ButtonSecondary,
-        {
-          onClick: () => {
-            const blob = new Blob([payload], { type: 'application/wdl' });
-            FileSaver.saveAs(blob, `${name}.${snapshotId}.wdl`);
+  return div(
+    { style: { margin: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', flex: 1 }, role: 'tabpanel' },
+    [
+      div({ style: { marginBottom: '1rem', alignSelf: 'flex-end' } }, [
+        h(
+          ButtonSecondary,
+          {
+            onClick: () => {
+              const blob = new Blob([payload], { type: 'application/wdl' });
+              FileSaver.saveAs(blob, `${name}.${snapshotId}.wdl`);
+            },
           },
-        },
-        [icon('download', { style: { marginRight: '0.5rem' } }), 'Download .wdl']
-      ),
-    ]),
-    div({ style: { flex: 1 } }, [h(AutoSizer, [({ height, width }) => h(WDLViewer, { wdl: payload, style: { maxHeight: height, width } })])]),
-  ]);
+          [icon('download', { style: { marginRight: '0.5rem' } }), 'Download .wdl']
+        ),
+      ]),
+      div({ style: { flex: 1 } }, [
+        h(AutoSizer, [({ height, width }) => h(WDLViewer, { wdl: payload, style: { maxHeight: height, width } })]),
+      ]),
+    ]
+  );
 };
 
 const WorkflowWdl = _.flow(
@@ -35,7 +40,7 @@ const WorkflowWdl = _.flow(
     title: 'Workflows',
     activeTab: 'wdl',
   })
-)((props, _ref) => {
+)(() => {
   return h(BaseWorkflowWdl);
 });
 

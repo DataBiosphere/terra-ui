@@ -14,26 +14,21 @@ import { snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 
-type BaseWorkflowSummaryProps = {
-  namespace: string;
-  name: string;
-  snapshotId: number;
-  createDate: string;
-  managers: string[];
-  synopsis: string | undefined;
-  documentation: string | undefined;
-  public: boolean;
+type InfoTileProps = {
+  title: string;
+  children: any;
 };
 
 // TODO: add error handling, dedupe
-const InfoTile = ({ title, children }) => {
+const InfoTile = (props: InfoTileProps) => {
+  const { title, children } = props;
   return div({ style: Style.dashboard.infoTile }, [
     div({ style: Style.dashboard.tinyCaps }, [title]),
     div({ style: { fontSize: 12 } }, [children]),
   ]);
 };
 
-export const BaseWorkflowSummary = (props: BaseWorkflowSummaryProps) => {
+export const BaseWorkflowSummary = () => {
   const {
     namespace,
     name,
@@ -65,7 +60,7 @@ export const BaseWorkflowSummary = (props: BaseWorkflowSummaryProps) => {
       h2({ style: Style.dashboard.header }, ['Snapshot information']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
         h(InfoTile, { title: 'Creation date' }, [new Date(createDate).toLocaleDateString()]),
-        h(InfoTile, { title: 'Public' }, [_.startCase(isPublic)]),
+        h(InfoTile, { title: 'Public' }, [_.startCase(isPublic as unknown as string)]),
       ]),
       h2({ style: Style.dashboard.header }, ['Owners']),
       _.map((email) => {
