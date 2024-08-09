@@ -1,7 +1,4 @@
-import _ from 'lodash/fp';
-import { Fragment, ReactNode, useContext } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
-import { cond } from 'src/libs/utils';
+import React, { ReactNode, useContext } from 'react';
 import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
@@ -17,15 +14,11 @@ export const NoContentMessage = (props: NoContentMessageProps): ReactNode => {
   const { loadingWorkspaces, workspaces, filters } = props;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
-  return cond(
-    [loadingWorkspaces, () => h(Fragment, ['Loading...'])],
-    [
-      _.isEmpty(workspaces.myWorkspaces) && filters.tab === 'myWorkspaces',
-      () =>
-        NoWorkspacesMessage({
-          onClick: () => setUserActions({ creatingNewWorkspace: true }),
-        }),
-    ],
-    () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
-  );
+  if (loadingWorkspaces) {
+    return <> Loading... </>;
+  }
+  if (workspaces.myWorkspaces.length === 0 && filters.tab === 'myWorkspaces') {
+    return <NoWorkspacesMessage onClick={() => setUserActions({ creatingNewWorkspace: true })} />;
+  }
+  return <div style={{ fontStyle: 'italic' }}> No matching workspaces</div>;
 };
