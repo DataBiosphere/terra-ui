@@ -1,6 +1,6 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { b, div, h, label } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -28,7 +28,12 @@ const styles = {
   },
 };
 
-export const AdminNotifierCheckbox = ({ checked, onChange }) => {
+interface AdminNotifierCheckboxProps {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}
+export const AdminNotifierCheckbox = (props: AdminNotifierCheckboxProps) => {
+  const { checked, onChange } = props;
   return div({ style: { marginTop: '0.5rem', display: 'flex', alignItems: 'center' } }, [
     h(
       LabeledCheckbox,
@@ -45,30 +50,38 @@ export const AdminNotifierCheckbox = ({ checked, onChange }) => {
   ]);
 };
 
-export const NewUserCard = ({ onClick }) => {
+interface NewUserCardProps {
+  onClick: () => void;
+}
+export const NewUserCard = (props: NewUserCardProps) => {
   return h(
     ButtonPrimary,
     {
       style: { textTransform: 'none' },
-      onClick,
+      onClick: props.onClick,
     },
     [icon('plus', { size: 14 }), div({ style: { marginLeft: '0.5rem' } }, ['Add User'])]
   );
 };
 
-const UserMenuContent = ({ onEdit, onDelete }) => {
+interface UserMenuContentProps {
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const UserMenuContent = (props: UserMenuContentProps) => {
   return h(Fragment, [
     h(
       MenuButton,
       {
-        onClick: onEdit,
+        onClick: props.onEdit,
       },
       [makeMenuIcon('edit'), 'Edit Role']
     ),
     h(
       MenuButton,
       {
-        onClick: onDelete,
+        onClick: props.onDelete,
       },
       [makeMenuIcon('trash'), 'Remove User']
     ),
@@ -77,56 +90,127 @@ const UserMenuContent = ({ onEdit, onDelete }) => {
 
 const menuCardSize = 20;
 
-export const MemberCardHeaders = memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
-  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
-    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'email'), style: { flex: 1 } }, [h(HeaderRenderer, { sort, onSort, name: 'email' })]),
-    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'roles'), style: { flex: 1 } }, [h(HeaderRenderer, { sort, onSort, name: 'roles' })]),
-    // Width is the same as the menu icon.
-    div({ role: 'columnheader', style: { width: menuCardSize } }, [div({ className: 'sr-only' }, ['Actions'])]),
-  ]);
-});
+export interface Sort {
+  field: string;
+  direction: string;
+}
 
-export const MemberCard = memoWithName(
-  'MemberCard',
-  ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel, isOwner }) => {
-    const canEdit = adminCanEdit || !_.includes(adminLabel, roles);
-    const tooltip = !canEdit && `This user is the only ${adminLabel}`;
+interface MemberCardHeadersProps {
+  sort: Sort;
+  onSort: (v: Sort) => void;
+}
 
+export const MemberCardHeaders: React.FC<MemberCardHeadersProps> = memoWithName(
+  'MemberCardHeaders',
+  (props: MemberCardHeadersProps) => {
+    const { sort, onSort } = props;
     return div(
       {
         role: 'row',
-        style: Style.cardList.longCardShadowless,
+        style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' },
       },
       [
-        div({ role: 'rowheader', style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
-        div({ role: 'cell', style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [
-          _.includes(adminLabel, roles) ? adminLabel : userLabel,
+        div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'email'), style: { flex: 1 } }, [
+          h(HeaderRenderer, { sort, onSort, name: 'email' }),
         ]),
-        isOwner &&
-          div({ role: 'cell', style: { flex: 'none' } }, [
-            h(
-              MenuTrigger,
-              {
-                side: 'left',
-                style: { height: menuCardSize, width: menuCardSize },
-                closeOnClick: true,
-                content: h(UserMenuContent, { onEdit, onDelete }),
-              },
-              [
-                h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit, tooltip, tooltipSide: 'left' }, [
-                  icon('cardMenuIcon', { size: menuCardSize }),
-                ]),
-              ]
-            ),
-          ]),
+        div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'roles'), style: { flex: 1 } }, [
+          h(HeaderRenderer, { sort, onSort, name: 'roles' }),
+        ]),
+        // Width is the same as the menu icon.
+        div({ role: 'columnheader', style: { width: menuCardSize } }, [div({ className: 'sr-only' }, ['Actions'])]),
       ]
     );
   }
 );
 
-export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLabel, userLabel, title, onSuccess, onDismiss, footer }) => {
+export interface User {
+  email: string;
+  roles: string[];
+}
+
+interface MemberCardProps {
+  member: User;
+  adminCanEdit: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  adminLabel: string;
+  userLabel: string;
+  isOwner: boolean;
+}
+
+export const MemberCard: React.FC<MemberCardProps> = memoWithName('MemberCard', (props: MemberCardProps) => {
+  const {
+    member: { email, roles },
+    adminCanEdit,
+    onEdit,
+    onDelete,
+    adminLabel,
+    userLabel,
+    isOwner,
+  } = props;
+  const canEdit = adminCanEdit || !_.includes(adminLabel, roles);
+  const tooltip = !canEdit && `This user is the only ${adminLabel}`;
+
+  return div(
+    {
+      role: 'row',
+      style: Style.cardList.longCardShadowless,
+    },
+    [
+      div(
+        {
+          role: 'rowheader',
+          style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' },
+        },
+        [email]
+      ),
+      div({ role: 'cell', style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [
+        _.includes(adminLabel, roles) ? adminLabel : userLabel,
+      ]),
+      isOwner &&
+        div({ role: 'cell', style: { flex: 'none' } }, [
+          h(
+            MenuTrigger,
+            {
+              side: 'left',
+              style: { height: menuCardSize, width: menuCardSize },
+              closeOnClick: true,
+              content: h(UserMenuContent, { onEdit, onDelete }),
+            },
+            [
+              h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit, tooltip, tooltipSide: 'left' }, [
+                icon('cardMenuIcon', { size: menuCardSize }),
+              ]),
+            ]
+          ),
+        ]),
+    ]
+  );
+});
+
+interface NewUserModalProps {
+  addFunction: (roles: string[], email: string) => Promise<void>;
+  addUnregisteredUser?: boolean;
+  adminLabel: string;
+  userLabel: string;
+  title: string;
+  onSuccess: () => void;
+  onDismiss: () => void;
+  footer?: React.ReactNode[];
+}
+export const NewUserModal = (props: NewUserModalProps) => {
+  const {
+    addFunction,
+    addUnregisteredUser = false,
+    adminLabel,
+    userLabel,
+    title,
+    onSuccess,
+    onDismiss,
+    footer,
+  } = props;
   const [userEmail, setUserEmail] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [confirmAddUser, setConfirmAddUser] = useState(false);
   const [roles, setRoles] = useState([userLabel]);
   const [submitError, setSubmitError] = useState(undefined);
@@ -136,7 +220,10 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
 
   useOnMount(() => {
     const loadData = withErrorReporting('Error looking up collaborators')(async () => {
-      const [shareSuggestions, groups] = await Promise.all([Ajax(signal).Workspaces.getShareLog(), Ajax(signal).Groups.list()]);
+      const [shareSuggestions, groups] = await Promise.all([
+        Ajax(signal).Workspaces.getShareLog(),
+        Ajax(signal).Groups.list(),
+      ]);
 
       const suggestions = _.flow(_.map('groupEmail'), _.concat(shareSuggestions), _.uniq)(groups);
 
@@ -151,8 +238,8 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
     try {
       await addFunction(roles, userEmail);
       onSuccess();
-    } catch (error) {
-      if (error.status >= 400 && error.status <= 499) {
+    } catch (error: any) {
+      if ('status' in error && error.status >= 400 && error.status <= 499) {
         setSubmitError((await error.json()).message);
       } else {
         throw error;
@@ -172,7 +259,9 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
     withErrorReporting('Error adding user'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    addUnregisteredUser && !(await Ajax(signal).User.isUserRegistered(userEmail)) ? setConfirmAddUser(true) : await submit();
+    addUnregisteredUser && !(await Ajax(signal).User.isUserRegistered(userEmail))
+      ? setConfirmAddUser(true)
+      : await submit();
   });
 
   const errors = validate({ userEmail }, { userEmail: { email: true } });
@@ -192,7 +281,7 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
             cancelText: 'No',
             onDismiss: () => setConfirmAddUser(false),
           },
-          ['Add ', b(userEmail), ' to the group anyway?', busy && spinnerOverlay]
+          ['Add ', b([userEmail]), ' to the group anyway?', busy && spinnerOverlay]
         ),
     ],
     () =>
@@ -236,7 +325,10 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
                         suggestion,
                       ]),
                     ]),
-                  suggestions: [...(!!userEmail && !suggestions.includes(userEmail) ? [userEmail] : []), ...suggestions],
+                  suggestions: [
+                    ...(!!userEmail && !suggestions.includes(userEmail) ? [userEmail] : []),
+                    ...suggestions,
+                  ],
                   style: { fontSize: 16 },
                   type: undefined,
                 }),
@@ -252,14 +344,31 @@ export const NewUserModal = ({ addFunction, addUnregisteredUser = false, adminLa
             [label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])]
           ),
           footer && div({ style: { marginTop: '1rem' } }, [footer]),
-          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
+          submitError &&
+            div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
           busy && spinnerOverlay,
         ]
       )
   );
 };
 
-export const EditUserModal = ({ adminLabel, userLabel, user: { email, roles }, onSuccess, onDismiss, saveFunction }) => {
+interface EditUserModalProps {
+  adminLabel: string;
+  userLabel: string;
+  user: User;
+  onSuccess: () => void;
+  onDismiss: () => void;
+  saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void>;
+}
+export const EditUserModal = (props: EditUserModalProps) => {
+  const {
+    adminLabel,
+    userLabel,
+    user: { email, roles },
+    onSuccess,
+    onDismiss,
+    saveFunction,
+  } = props;
   const [isAdmin, setIsAdmin] = useState(_.includes(adminLabel, roles));
   const [submitting, setSubmitting] = useState(false);
 
@@ -267,7 +376,10 @@ export const EditUserModal = ({ adminLabel, userLabel, user: { email, roles }, o
     Utils.withBusyState(setSubmitting),
     withErrorReporting('Error updating user')
   )(async () => {
-    const applyAdminChange = _.flow(_.without([isAdmin ? userLabel : adminLabel]), _.union([isAdmin ? adminLabel : userLabel]));
+    const applyAdminChange = _.flow(
+      _.without([isAdmin ? userLabel : adminLabel]),
+      _.union([isAdmin ? adminLabel : userLabel])
+    );
 
     await saveFunction(email, roles, applyAdminChange(roles));
     onSuccess();
@@ -301,7 +413,13 @@ export const EditUserModal = ({ adminLabel, userLabel, user: { email, roles }, o
   );
 };
 
-export const DeleteUserModal = ({ onDismiss, onSubmit, userEmail }) => {
+interface DeleteUserModalProps {
+  onDismiss: () => void;
+  onSubmit: () => void;
+  userEmail: string;
+}
+export const DeleteUserModal = (props: DeleteUserModalProps) => {
+  const { onDismiss, onSubmit, userEmail } = props;
   return h(
     Modal,
     {
@@ -315,6 +433,6 @@ export const DeleteUserModal = ({ onDismiss, onSubmit, userEmail }) => {
         ['Remove']
       ),
     },
-    [div(['Are you sure you want to remove']), b(`${userEmail}?`)]
+    [div(['Are you sure you want to remove']), b([`${userEmail}?`])]
   );
 };

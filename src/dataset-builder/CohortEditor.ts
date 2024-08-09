@@ -12,6 +12,7 @@ import {
   Cohort,
   createSnapshotBuilderCountRequest,
   CriteriaGroup,
+  debounceAsync,
   formatCount,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
@@ -58,9 +59,9 @@ export const CriteriaView = (props: CriteriaViewProps) => {
   const [criteriaCount, setCriteriaCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateCriteriaCount = useRef(
-    _.debounce(250, (snapshotId, criteria) => {
+    debounceAsync((snapshotId: string, criteria: AnyCriteria) =>
       setCriteriaCount(
-        withErrorReporting('Error fetching count for criteria')(
+        withErrorReporting('Error getting criteria group count')(
           async () =>
             await DataRepo()
               .snapshot(snapshotId)
@@ -74,8 +75,8 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                 ])
               )
         )
-      );
-    })
+      )
+    )
   );
 
   useEffect(() => {
@@ -337,12 +338,15 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
   const updateGroupParticipantCount = useRef(
-    _.debounce(250, (snapshotId: string, criteriaGroup: CriteriaGroup) =>
+    debounceAsync((snapshotId: string, criteriaGroup: CriteriaGroup) =>
       setGroupParticipantCount(
-        withErrorReporting('Error getting criteria group count')(async () =>
-          DataRepo()
-            .snapshot(snapshotId)
-            .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
+        withErrorReporting('Error getting criteria group count')(
+          async () =>
+            await DataRepo()
+              .snapshot(snapshotId)
+              .getSnapshotBuilderCount(
+                createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }])
+              )
         )
       )
     )
