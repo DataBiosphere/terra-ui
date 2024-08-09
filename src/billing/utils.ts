@@ -26,12 +26,28 @@ export const isErrored = (project: BillingProject) => project.status === 'Error'
 
 export const billingAccountIconSize = 16;
 
-const billingAccountIconProps: Record<string, IconProps> = {
-  updating: { icon: 'sync', color: colors.warning(), size: billingAccountIconSize },
-  done: { icon: 'check', color: colors.accent(), size: billingAccountIconSize },
-  error: { icon: 'warning-standard', color: colors.danger(), size: billingAccountIconSize },
+export type BillingAccountStatus = 'updating' | 'done' | 'error';
+const billingAccountIconProps: Record<BillingAccountStatus, IconProps> = {
+  updating: {
+    icon: 'sync',
+    color: colors.warning(),
+    size: billingAccountIconSize,
+    'aria-label': 'billing account updating',
+  },
+  done: {
+    icon: 'check',
+    color: colors.accent(),
+    size: billingAccountIconSize,
+    'aria-label': 'billing account up-to-date',
+  },
+  error: {
+    icon: 'warning-standard',
+    color: colors.danger(),
+    size: billingAccountIconSize,
+    'aria-label': 'billing account in error state',
+  },
 };
 
-export const getBillingAccountIconProps = (status: string): IconProps => {
+export const getBillingAccountIconProps = (status: BillingAccountStatus): IconProps => {
   return billingAccountIconProps[status];
 };

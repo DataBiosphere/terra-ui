@@ -1,8 +1,8 @@
-import { Icon, icon, Link } from '@terra-ui-packages/components';
+import { icon, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
-import { billingAccountIconSize, getBillingAccountIconProps } from 'src/billing/utils';
+import { billingAccountIconSize, BillingAccountStatus, getBillingAccountIconProps } from 'src/billing/utils';
 import { IdContainer } from 'src/components/common';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
@@ -93,7 +93,7 @@ interface WorkspaceCardProps {
   workspace: WorkspaceInfo;
   billingAccountDisplayName: string | undefined;
   billingProject: BillingProject;
-  billingAccountStatus: string;
+  billingAccountStatus: false | BillingAccountStatus;
   isExpanded: boolean;
   onExpand: () => void;
 }
@@ -113,12 +113,15 @@ const WorkspaceCard = memoWithName('WorkspaceCard', (props: WorkspaceCardProps) 
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties,
   };
 
+  // Still need to figure out how to handle the conditional logic better.
+  const iconProps = !billingAccountStatus ? { icon: 'check' } : getBillingAccountIconProps(billingAccountStatus);
+
   return div({ role: 'row', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     h(IdContainer, [
       (id) =>
         h(Fragment, [
           div({ style: workspaceCardStyles.row }, [
-            billingAccountStatus && Icon(getBillingAccountIconProps(billingAccountStatus)),
+            billingAccountStatus && icon(iconProps.icon, { ...iconProps }),
             div(
               {
                 role: 'rowheader',
