@@ -185,17 +185,18 @@ export const addSelectableObjectToGroup = <T extends DatasetBuilderType>(
 };
 
 // Debounce next calls until result's promise resolve
-// Code from stackoverflow answer: https://stackoverflow.com/questions/74800112/debounce-async-function-and-ensure-sequentiality
-export const debounceAsync = (fn: any) => {
-  let activePromise: any = null;
-  let cancel: any = null;
+export const debounceAsync = <T>(fn: (...args: any[]) => T) => {
+  let activePromise: Promise<T> | undefined;
+  let cancel: () => void | undefined;
   const debouncedFn = (...args: any) => {
     cancel?.();
     if (activePromise) {
       const abortController = new AbortController();
       cancel = abortController.abort.bind(abortController);
       activePromise.then(() => {
-        if (abortController.signal.aborted) return;
+        if (abortController.signal.aborted) {
+          return;
+        }
         debouncedFn(...args);
       });
       return;
@@ -203,7 +204,7 @@ export const debounceAsync = (fn: any) => {
 
     activePromise = Promise.resolve(fn(...args));
     activePromise.finally(() => {
-      activePromise = null;
+      activePromise = undefined;
     });
   };
   return debouncedFn;
