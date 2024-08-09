@@ -1,4 +1,5 @@
 import { Spinner, useLoadedData } from '@terra-ui-packages/components';
+import debouncePromise from 'debounce-promise';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
@@ -29,6 +30,7 @@ import {
 } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
+import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
@@ -52,43 +54,18 @@ type CriteriaViewProps = {
 
 const addCriteriaText = 'Add criteria';
 
-// Debounce next calls until result's promise resolve
-// Code from stackoverflow answer: https://stackoverflow.com/questions/74800112/debounce-async-function-and-ensure-sequentiality
-const debounceAsync = (fn: any) => {
-  let activePromise: any = null;
-  let cancel: any = null;
-  const debouncedFn = (...args: any) => {
-    cancel?.();
-    if (activePromise) {
-      const abortController = new AbortController();
-      cancel = abortController.abort.bind(abortController);
-      activePromise.then(() => {
-        if (abortController.signal.aborted) return;
-        debouncedFn(...args);
-      });
-      return;
-    }
-
-    activePromise = Promise.resolve(fn(...args));
-    activePromise.finally(() => {
-      activePromise = null;
-    });
-  };
-  return debouncedFn;
-};
-
 export const CriteriaView = (props: CriteriaViewProps) => {
   const { snapshotId, criteria, deleteCriteria, updateCriteria } = props;
 
   const [criteriaCount, setCriteriaCount] = useLoadedData<SnapshotBuilderCountResponse>();
 
+  const signal = useCancellation();
   const updateCriteriaCount = useRef(
-    _.debounce(
-      250,
-      debounceAsync((snapshotId: string, criteria: AnyCriteria) =>
+    debouncePromise(
+      (snapshotId: string, criteria: AnyCriteria) =>
         setCriteriaCount(
           withErrorReporting('Error getting criteria group count')(async () =>
-            DataRepo()
+            DataRepo(signal)
               .snapshot(snapshotId)
               .getSnapshotBuilderCount(
                 createSnapshotBuilderCountRequest([
@@ -100,8 +77,8 @@ export const CriteriaView = (props: CriteriaViewProps) => {
                 ])
               )
           )
-        )
-      )
+        ),
+      250
     )
   );
 
@@ -362,21 +339,20 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   };
 
   const [groupParticipantCount, setGroupParticipantCount] = useLoadedData<SnapshotBuilderCountResponse>();
-
+  const signal = useCancellation();
   const updateGroupParticipantCount = useRef(
-    _.debounce(
-      250,
-      debounceAsync((snapshotId: string, criteriaGroup: CriteriaGroup) =>
+    debouncePromise(
+      (snapshotId: string, criteriaGroup: CriteriaGroup) =>
         setGroupParticipantCount(
           withErrorReporting('Error getting criteria group count')(async () =>
-            DataRepo()
+            DataRepo(signal)
               .snapshot(snapshotId)
               .getSnapshotBuilderCount(
                 createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }])
               )
           )
-        )
-      )
+        ),
+      250
     )
   );
 
