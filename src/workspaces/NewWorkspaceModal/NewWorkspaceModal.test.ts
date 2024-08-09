@@ -1208,6 +1208,10 @@ describe('NewWorkspaceModal', () => {
         // Assert
         expect(listApps).toHaveBeenCalledTimes(2);
         expect(listWdsCollections).toHaveBeenCalledTimes(1);
+        expect(listWdsCollections).toHaveBeenCalledWith(
+          'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-aaaabbbb-cccc-dddd-0000-111122223333-aaaabbbb-cccc-dddd-0000-111122223333/',
+          'aaaabbbb-cccc-dddd-0000-111122223333'
+        );
         expect(onSuccess).not.toHaveBeenCalled();
 
         // Act
@@ -1216,6 +1220,10 @@ describe('NewWorkspaceModal', () => {
         // Assert
         expect(listApps).toHaveBeenCalledTimes(2);
         expect(listWdsCollections).toHaveBeenCalledTimes(2);
+        expect(listWdsCollections).toHaveBeenCalledWith(
+          'https://lz34dd00bf3fdaa72f755eeea8f928bab7cd135043043d59d5.servicebus.windows.net/wds-aaaabbbb-cccc-dddd-0000-111122223333-aaaabbbb-cccc-dddd-0000-111122223333/',
+          'aaaabbbb-cccc-dddd-0000-111122223333'
+        );
 
         expect(onSuccess).toHaveBeenCalled();
       })
