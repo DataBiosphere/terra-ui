@@ -178,6 +178,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsPointCorrection: false,
       supportsFiltering: false,
       supportsRowSelection: false,
+      supportsPerColumnDatatype: true,
     };
   }
 
