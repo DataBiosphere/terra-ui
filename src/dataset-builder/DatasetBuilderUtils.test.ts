@@ -7,6 +7,7 @@ import {
   convertOutputTable,
   createSnapshotAccessRequest,
   CriteriaGroup,
+  debounceAsync,
   formatCount,
   HighlightConceptName,
   OutputTable,
@@ -283,5 +284,24 @@ describe('test formatCount', () => {
 
   test('count is 20', () => {
     expect(formatCount(20)).toStrictEqual('20');
+  });
+});
+
+describe('test debounceAsync', () => {
+  test('debounce should mean that the example function is only called once', () => {
+    const exampleFunction = jest.fn();
+    const exampleCall = debounceAsync(
+      (param1: string) =>
+        new Promise((resolve) => {
+          exampleFunction();
+          setTimeout(() => {
+            resolve(param1);
+          }, 0);
+        })
+    );
+    exampleCall('first');
+    exampleCall('second');
+    exampleCall('third');
+    expect(exampleFunction).toHaveBeenCalledTimes(1);
   });
 });
