@@ -211,7 +211,7 @@ interface WorkspacesProps {
   workspacesInProject: WorkspaceInfo[];
   billingAccounts: Record<string, GoogleBillingAccount>;
   billingAccountsOutOfDate: boolean;
-  groups: Record<BillingAccountStatus, Set<WorkspaceInfo>>;
+  groups: Partial<Record<BillingAccountStatus, Set<WorkspaceInfo>>>;
 }
 
 export const Workspaces = (props: WorkspacesProps): ReactNode => {
