@@ -162,7 +162,7 @@ export const WorkspaceData = (signal) => ({
     try {
       const response = await fetchWDS(root)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
       const data = await response.json();
-      return data.map((instance) => instance.id);
+      return data.map((collection) => collection.id);
     } catch (error) {
       if (error instanceof Response && error.status === 404) {
         return await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal })).then((response) =>

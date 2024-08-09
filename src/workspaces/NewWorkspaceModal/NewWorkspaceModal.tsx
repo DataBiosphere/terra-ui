@@ -209,15 +209,15 @@ export const NewWorkspaceModal = withDisplayName(
             true
           );
 
-          // Wait for the default WDS instance to exist.
+          // Wait for the default WDS collection to exist.
           const proxyUrl = wds!.proxyUrls.wds;
           await Utils.poll(
             async () => {
-              const instances: string[] = await Ajax().WorkspaceData.listCollections(
+              const collections: string[] = await Ajax().WorkspaceData.listCollections(
                 proxyUrl,
                 createdWorkspace.workspaceId
               );
-              if (instances.includes(createdWorkspace.workspaceId)) {
+              if (collections.includes(createdWorkspace.workspaceId)) {
                 return { shouldContinue: false, result: true };
               }
               return { shouldContinue: true, result: false };
