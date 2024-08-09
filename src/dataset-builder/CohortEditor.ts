@@ -61,18 +61,19 @@ export const CriteriaView = (props: CriteriaViewProps) => {
   const updateCriteriaCount = useRef(
     debounceAsync((snapshotId: string, criteria: AnyCriteria) =>
       setCriteriaCount(
-        withErrorReporting('Error getting criteria group count')(async () =>
-          DataRepo()
-            .snapshot(snapshotId)
-            .getSnapshotBuilderCount(
-              createSnapshotBuilderCountRequest([
-                {
-                  // Create a "cohort" to get the count of participants for these criteria on its own.
-                  criteriaGroups: [{ id: 0, criteria: [criteria], meetAll: true, mustMeet: true }],
-                  name: '',
-                },
-              ])
-            )
+        withErrorReporting('Error getting criteria group count')(
+          async () =>
+            await DataRepo()
+              .snapshot(snapshotId)
+              .getSnapshotBuilderCount(
+                createSnapshotBuilderCountRequest([
+                  {
+                    // Create a "cohort" to get the count of participants for these criteria on its own.
+                    criteriaGroups: [{ id: 0, criteria: [criteria], meetAll: true, mustMeet: true }],
+                    name: '',
+                  },
+                ])
+              )
         )
       )
     )
@@ -339,10 +340,13 @@ export const CriteriaGroupView: React.FC<CriteriaGroupViewProps> = (props) => {
   const updateGroupParticipantCount = useRef(
     debounceAsync((snapshotId: string, criteriaGroup: CriteriaGroup) =>
       setGroupParticipantCount(
-        withErrorReporting('Error getting criteria group count')(async () =>
-          DataRepo()
-            .snapshot(snapshotId)
-            .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }]))
+        withErrorReporting('Error getting criteria group count')(
+          async () =>
+            await DataRepo()
+              .snapshot(snapshotId)
+              .getSnapshotBuilderCount(
+                createSnapshotBuilderCountRequest([{ criteriaGroups: [criteriaGroup], name: '' }])
+              )
         )
       )
     )
