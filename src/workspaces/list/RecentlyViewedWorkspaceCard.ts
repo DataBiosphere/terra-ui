@@ -7,9 +7,15 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { getCloudProviderFromWorkspace } from 'src/workspaces/utils';
+import { getCloudProviderFromWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-export const RecentlyViewedWorkspaceCard = ({ workspace, timestamp }) => {
+interface RecentlyViewedWorkspaceCardProps {
+  workspace: Workspace;
+  timestamp: string;
+}
+
+export const RecentlyViewedWorkspaceCard = (props: RecentlyViewedWorkspaceCardProps): React.ReactNode => {
+  const { workspace, timestamp } = props;
   const {
     workspace: { namespace, name },
   } = workspace;
@@ -28,14 +34,19 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, timestamp }) => {
       },
       href: Nav.getLink('workspace-dashboard', { namespace, name }),
       onClick: () => {
-        Ajax().Metrics.captureEvent(Events.workspaceOpenFromRecentlyViewed, extractWorkspaceDetails(workspace.workspace));
+        Ajax().Metrics.captureEvent(
+          Events.workspaceOpenFromRecentlyViewed,
+          extractWorkspaceDetails(workspace.workspace)
+        );
       },
     },
     [
       div({ style: { flex: 'none' } }, [
-        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
+        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, [name]),
         div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, [`Viewed ${dateViewed}`]),
+          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, [
+            `Viewed ${dateViewed}`,
+          ]),
           div({ style: { display: 'flex', alignItems: 'center' } }, [
             h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace), style: { marginLeft: 5 } }),
           ]),
