@@ -2,7 +2,12 @@ import { Link } from '@terra-ui-packages/components';
 import { div, h } from 'react-hyperscript-helpers';
 import * as Utils from 'src/libs/utils';
 
-export const NoWorkspacesMessage = ({ onClick }) => {
+interface NoWorkspacesMessageProps {
+  onClick: () => void;
+}
+
+export const NoWorkspacesMessage = (props: NoWorkspacesMessageProps): React.ReactNode => {
+  const { onClick } = props;
   return div({ style: { fontSize: 20, margin: '1rem' } }, [
     div([
       'To get started, ',
