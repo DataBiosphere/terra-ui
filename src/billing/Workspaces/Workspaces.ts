@@ -1,4 +1,4 @@
-import { icon, Link } from '@terra-ui-packages/components';
+import { icon, IconProps, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, Fragment, ReactNode, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
@@ -114,7 +114,9 @@ const WorkspaceCard = memoWithName('WorkspaceCard', (props: WorkspaceCardProps) 
   };
 
   // Still need to figure out how to handle the conditional logic better.
-  const iconProps = !billingAccountStatus ? { icon: 'check' } : getBillingAccountIconProps(billingAccountStatus);
+  const iconProps: IconProps = !billingAccountStatus
+    ? { icon: 'check' }
+    : getBillingAccountIconProps(billingAccountStatus);
 
   return div({ role: 'row', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     h(IdContainer, [
