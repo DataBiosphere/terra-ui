@@ -1,5 +1,5 @@
 import { delay } from '@terra-ui-packages/core-utils';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import React from 'react';
@@ -133,7 +133,7 @@ const ganonPrivateMethod: MethodDefinition = {
 };
 
 describe('workflows table', () => {
-  it('renders key elements', async () => {
+  it('renders the search bar and tabs', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => mockAjax([]) as AjaxContract);
 
@@ -146,16 +146,11 @@ describe('workflows table', () => {
     expect(screen.getByPlaceholderText('SEARCH WORKFLOWS')).toBeInTheDocument();
     expect(screen.getByText('My Workflows')).toBeInTheDocument();
     expect(screen.getByText('Public Workflows')).toBeInTheDocument();
-    expect(screen.getByText('Workflow')).toBeInTheDocument();
-    expect(screen.getByText('Synopsis')).toBeInTheDocument();
-    expect(screen.getByText('Owners')).toBeInTheDocument();
-    expect(screen.getByText('Snapshots')).toBeInTheDocument();
-    expect(screen.getByText('Configurations')).toBeInTheDocument();
 
     expect(screen.queryByText('Featured Workflows')).not.toBeInTheDocument();
   });
 
-  it('displays all method information', async () => {
+  it('renders the workflows table with method information', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => mockAjax([revaliMethod2]) as AjaxContract);
 
@@ -164,13 +159,31 @@ describe('workflows table', () => {
       render(<WorkflowList queryParams={{ tab: 'public' }} />);
     });
 
+    const table: HTMLElement = await screen.findByRole('table');
+
     // Assert
-    expect(screen.getByText('revali bird namespace')).toBeInTheDocument();
-    expect(screen.getByText('revali method 2')).toBeInTheDocument();
-    expect(screen.getAllByText('another revali description')).not.toHaveLength(0);
-    expect(screen.getAllByText('revali@gale.com, revali@champions.com')).not.toHaveLength(0);
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(table).toHaveAttribute('aria-colcount', '5');
+    expect(table).toHaveAttribute('aria-rowcount', '2');
+
+    const headers: HTMLElement[] = within(table).getAllByRole('columnheader');
+    expect(headers).toHaveLength(5);
+    expect(headers[0]).toHaveTextContent('Workflow');
+    expect(headers[1]).toHaveTextContent('Synopsis');
+    expect(headers[2]).toHaveTextContent('Owners');
+    expect(headers[3]).toHaveTextContent('Snapshots');
+    expect(headers[4]).toHaveTextContent('Configurations');
+
+    const rows: HTMLElement[] = within(table).getAllByRole('row');
+    expect(rows).toHaveLength(2);
+
+    const methodCells: HTMLElement[] = within(rows[1]).getAllByRole('cell');
+    expect(methodCells).toHaveLength(5);
+    within(methodCells[0]).getByText('revali bird namespace');
+    within(methodCells[0]).getByText('revali method 2');
+    expect(methodCells[1]).toHaveTextContent('another revali description');
+    expect(methodCells[2]).toHaveTextContent('revali@gale.com, revali@champions.com');
+    expect(methodCells[3]).toHaveTextContent('1');
+    expect(methodCells[4]).toHaveTextContent('2');
   });
 
   it('displays a message with no my workflows', async () => {
