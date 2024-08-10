@@ -88,10 +88,16 @@ describe('Workspaces', () => {
     expect(users[2]).toHaveTextContent(/test-azure-ws-namejustin@gmail.comMar 15, 2023/);
   });
 
-  it('renders Google workspaces', async () => {
+  it('renders Google workspaces, including errorMessage', async () => {
     // Arrange
+    const errorMessage = 'billing error message'; // only displayed for Google workspaces
     const secondWorkspace = makeGoogleWorkspace({
-      workspace: { name: 'secondWorkspace', billingAccount: 'second-billing-account', workspaceId: 'secondId' },
+      workspace: {
+        name: 'secondWorkspace',
+        billingAccount: 'second-billing-account',
+        workspaceId: 'secondId',
+        errorMessage,
+      },
     });
     const user = userEvent.setup();
     const testBillingAccount: GoogleBillingAccount = {
@@ -100,7 +106,7 @@ describe('Workspaces', () => {
     };
     const billingAccounts: Record<string, GoogleBillingAccount> = {};
     billingAccounts[`${secondWorkspace.workspace.billingAccount}`] = testBillingAccount;
-    const secondWorkspaceInfo = `secondWorkspacegroot@gmail.comMar 15, 2023Google Project${secondWorkspace.workspace.googleProject}Billing Account${testBillingAccount.displayName}`;
+    const secondWorkspaceInfo = `secondWorkspacegroot@gmail.comMar 15, 2023Google Project${secondWorkspace.workspace.googleProject}Billing Account${testBillingAccount.displayName}${errorMessage}`;
 
     // Act
     renderWithAppContexts(
