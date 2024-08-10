@@ -498,7 +498,7 @@ const ProjectDetail = ({
               margin: '1rem 1rem 0',
               padding: '1rem',
               border: `1px solid ${colors.warning()}`,
-              backgroundColor: colors.warning(0.15),
+              backgroundColor: colors.warning(0.1), // needs to be sufficient contrast with link color
             },
           },
           [

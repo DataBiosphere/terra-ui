@@ -43,7 +43,7 @@ const WorkspaceCardHeaders: React.FC<WorkspaceCardHeadersProps> = memoWithName(
         }}
       >
         {needsStatusColumn && (
-          <div style={{ width: billingAccountIconSize }}>
+          <div role='columnheader' style={{ width: billingAccountIconSize }}>
             <div className='sr-only'>Status</div>
           </div>
         )}
@@ -64,7 +64,7 @@ const WorkspaceCardHeaders: React.FC<WorkspaceCardHeadersProps> = memoWithName(
         >
           <HeaderRenderer sort={sort} onSort={onSort} name='lastModified' />
         </div>
-        <div style={{ flex: `0 0 ${workspaceExpandIconSize}px` }}>
+        <div role='columnheader' style={{ flex: `0 0 ${workspaceExpandIconSize}px` }}>
           <div className='sr-only'>Expand</div>
         </div>
       </div>
@@ -129,7 +129,11 @@ const WorkspaceCard: React.FC<WorkspaceCardProps> = memoWithName('WorkspaceCard'
   return (
     <div role='row' style={{ ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' }}>
       <div style={workspaceCardStyles.row}>
-        {billingAccountStatus && <Icon {...getBillingAccountIconProps(billingAccountStatus)} />}
+        {billingAccountStatus && (
+          <div role='cell'>
+            <Icon {...getBillingAccountIconProps(billingAccountStatus)} />
+          </div>
+        )}
         <div
           role='rowheader'
           style={{
@@ -158,7 +162,7 @@ const WorkspaceCard: React.FC<WorkspaceCardProps> = memoWithName('WorkspaceCard'
         <div role='cell' style={{ height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` }}>
           {Utils.makeStandardDate(lastModified)}
         </div>
-        <div style={{ flex: `0 0 ${workspaceExpandIconSize}px` }}>
+        <div role='cell' style={{ flex: `0 0 ${workspaceExpandIconSize}px` }}>
           <Clickable
             aria-label={`expand workspace ${name}`}
             aria-expanded={isExpanded}

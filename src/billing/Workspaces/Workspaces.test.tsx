@@ -1,5 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import React from 'react';
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
 import { GoogleBillingAccount } from 'src/libs/ajax/Billing';
@@ -152,13 +153,13 @@ describe('Workspaces', () => {
     expect(users[2]).toHaveTextContent(/secondWorkspacezoo@gmail.comMar 15, 2023/);
   });
 
-  it('renders icons if billing accounts are synchronizing', async () => {
+  it('renders icons if billing accounts are synchronizing with no accessibility errors', async () => {
     // Arrange
     const secondWorkspace = makeGoogleWorkspace({ workspace: { name: 'secondWorkspace', workspaceId: 'secondId' } });
     const thirdWorkspace = makeGoogleWorkspace({ workspace: { name: 'thirdWorkspace', workspaceId: 'thirdId' } });
 
     // Act
-    renderWithAppContexts(
+    const { container } = renderWithAppContexts(
       <Workspaces
         billingProject={gcpBillingProject}
         workspacesInProject={[defaultGoogleWorkspace.workspace, secondWorkspace.workspace, thirdWorkspace.workspace]}
@@ -183,5 +184,7 @@ describe('Workspaces', () => {
     within(users[2]).getByLabelText('billing account updating');
     expect(users[3]).toHaveTextContent('thirdWorkspacegroot@gmail.comMar 15, 2023');
     within(users[3]).getByLabelText('billing account up-to-date');
+    // Verify accessibility
+    expect(await axe(container)).toHaveNoViolations();
   });
 });
