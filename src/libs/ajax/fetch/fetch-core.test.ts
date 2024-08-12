@@ -14,15 +14,15 @@ describe('withMaybeRetry', () => {
   it('fails after max retries', async () => {
     // Arrange
     const fetchFunction: FetchFn = jest.fn(async () => {
-      await delay(51);
+      await delay(26);
       throw Error('BOOM!');
     });
 
-    // use faster version of withMaybeRetry so that test completes before default 5000ms timout
+    // use faster version of withMaybeRetry so that test completes well before default 5000ms timout
     const fasterWithMaybeRetry = makeWithMaybeRetry({
-      maxTimeout: 2500,
-      maxAttemptDelay: 500,
-      minAttemptDelay: 250,
+      maxTimeout: 1250,
+      maxAttemptDelay: 250,
+      minAttemptDelay: 125,
     });
 
     let thrownError;
@@ -50,7 +50,7 @@ describe('withMaybeRetry', () => {
         new Promise((resolve, reject) => {
           if (callCount === 0) {
             callCount++;
-            setTimeout(() => reject(new Error('BOOM!')), 100);
+            setTimeout(() => reject(new Error('BOOM!')), 26);
           } else {
             resolve(new Response(JSON.stringify({ success: true }), { status: 200 }));
           }
