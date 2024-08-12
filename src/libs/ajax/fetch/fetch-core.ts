@@ -1,6 +1,6 @@
 import { abandonedPromise, delay } from '@terra-ui-packages/core-utils';
+import { FetchFn, FetchWrapper } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { FetchFn, FetchWrapper } from 'src/libs/ajax/data-client-common';
 import { ajaxOverridesStore } from 'src/libs/state';
 
 // Allows use of ajaxOverrideStore to stub responses for testing

@@ -1,8 +1,8 @@
-import { delay } from '@terra-ui-packages/core-utils';
+import { FetchFn } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import { withRetryAfterReloadingExpiredAuthToken } from 'src/auth/auth-fetch';
 import { getConfig } from 'src/libs/config';
-import { FetchFn } from './data-client-common';
+
 import { fetchOk, withCancellation, withInstrumentation, withUrlPrefix } from './fetch/fetch-core';
 
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
