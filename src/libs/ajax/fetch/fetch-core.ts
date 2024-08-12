@@ -63,11 +63,11 @@ export interface MakeWithRetryOnErrorArgs {
 }
 
 /**
- * Factory method for withRetryOnError.  Most consumers will likely use pre-made withRetryOnError function
+ * Factory method for withMaybeRetry.  Most consumers will likely use pre-made withMaybeRetry function
  * @param makeArgs
  */
-export const makeWithRetryOnError = (makeArgs: MakeWithRetryOnErrorArgs) => {
-  const withRetryOnErrorWrapper =
+export const makeWithMaybeRetry = (makeArgs: MakeWithRetryOnErrorArgs) => {
+  const withMaybeRetryAugmenter =
     (shouldNotRetryFn: (error: unknown) => boolean) =>
     (wrappedFetch: FetchFn) =>
     async (...args: Parameters<FetchFn>) => {
@@ -89,7 +89,7 @@ export const makeWithRetryOnError = (makeArgs: MakeWithRetryOnErrorArgs) => {
       }
       return wrappedFetch(...args);
     };
-  return withRetryOnErrorWrapper;
+  return withMaybeRetryAugmenter;
 };
 
 /**
@@ -101,7 +101,7 @@ export const makeWithRetryOnError = (makeArgs: MakeWithRetryOnErrorArgs) => {
  *
  * @return - FetchWrapper function augmenter
  */
-export const withRetryOnError = makeWithRetryOnError({
+export const withMaybeRetry = makeWithMaybeRetry({
   maxTimeout: 5000,
   maxAttemptDelay: 1500,
   minAttemptDelay: 500,

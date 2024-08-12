@@ -1,7 +1,7 @@
 import { delay } from '@terra-ui-packages/core-utils';
 import { FetchFn } from '@terra-ui-packages/data-client-core';
 
-import { makeWithRetryOnError, withErrorRejection, withRetry, withRetryOnError } from './fetch-core';
+import { makeWithMaybeRetry, withErrorRejection, withMaybeRetry, withRetry } from './fetch-core';
 
 describe('withRetryOnError', () => {
   // These tests avoid withFakeTimers or useFakeTimers since that setup cause lots of headaches with
@@ -17,8 +17,8 @@ describe('withRetryOnError', () => {
       throw Error('BOOM!');
     });
 
-    // use faster version of withRetryOnError so that test completes before default 5000ms timout
-    const fasterWithRetryOnError = makeWithRetryOnError({
+    // use faster version of withMaybeRetry so that test completes before default 5000ms timout
+    const fasterWithRetryOnError = makeWithMaybeRetry({
       maxTimeout: 2500,
       maxAttemptDelay: 500,
       minAttemptDelay: 250,
@@ -54,7 +54,7 @@ describe('withRetryOnError', () => {
     );
 
     // Act
-    const myFetch = withRetryOnError(alwaysRetryError)(fetchFunction);
+    const myFetch = withMaybeRetry(alwaysRetryError)(fetchFunction);
     const response = await myFetch('some.place.nice');
     const result = await response.json();
 
