@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
+import { FlexTable, Paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -537,7 +537,7 @@ const FilterableWorkflowTable = ({
       !_.isEmpty(sortedPreviousRuns) &&
         div({ style: { marginBottom: '1.5rem', right: '4rem' } }, [
           // @ts-expect-error
-          paginator({
+          Paginator({
             filteredDataLength: sortedPreviousRuns.length,
             unfilteredDataLength: sortedPreviousRuns.length,
             pageNumber,
