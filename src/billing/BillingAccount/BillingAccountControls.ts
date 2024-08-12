@@ -9,22 +9,34 @@ import { TextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/Billing';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
-export const BillingAccountControls = ({
-  authorizeAndLoadAccounts,
-  billingAccounts,
-  billingProject,
-  isOwner,
-  getShowBillingModal,
-  setShowBillingModal,
-  reloadBillingProject,
-  setUpdating,
-}) => {
+interface BillingAccountControlsProps {
+  authorizeAndLoadAccounts: any;
+  billingAccounts: Record<string, GoogleBillingAccount>;
+  billingProject: GCPBillingProject;
+  isOwner: boolean;
+  getShowBillingModal: () => boolean;
+  setShowBillingModal: (v: boolean) => void;
+  reloadBillingProject: () => void;
+  setUpdating: (v: boolean) => void;
+}
+export const BillingAccountControls = (props: BillingAccountControlsProps) => {
+  const {
+    authorizeAndLoadAccounts,
+    billingAccounts,
+    billingProject,
+    isOwner,
+    getShowBillingModal,
+    setShowBillingModal,
+    reloadBillingProject,
+    setUpdating,
+  } = props;
   const [showBillingRemovalModal, setShowBillingRemovalModal] = useState(false);
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false);
   const [selectedBilling, setSelectedBilling] = useState();
@@ -71,20 +83,26 @@ export const BillingAccountControls = ({
   );
 
   // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
-  const billingProjectHasBillingAccount = !(billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount));
-  const billingAccount = billingProjectHasBillingAccount ? _.find({ accountName: billingProject.billingAccount }, billingAccounts) : undefined;
+  const billingProjectHasBillingAccount = !(
+    billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount)
+  );
+  const billingAccount = billingProjectHasBillingAccount
+    ? _.find({ accountName: billingProject.billingAccount }, billingAccounts)
+    : undefined;
 
   const billingAccountDisplayText = Utils.cond(
     [!billingProjectHasBillingAccount, () => 'No linked billing account'],
     [!billingAccount, () => 'No access to linked billing account'],
-    () => billingAccount.displayName || billingAccount.accountName
+    () => billingAccount!.displayName || billingAccount!.accountName
   );
 
   return h(Fragment, [
     Auth.hasBillingScope() &&
       div({ style: accountLinkStyle }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
-        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText),
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, [
+          'Billing Account:',
+        ]),
+        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, [billingAccountDisplayText]),
         isOwner &&
           h(
             MenuTrigger,
@@ -157,7 +175,10 @@ export const BillingAccountControls = ({
                       id,
                       value: selectedBilling || billingProject.billingAccount,
                       isClearable: false,
-                      options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
+                      options: _.map(
+                        ({ displayName, accountName }) => ({ label: displayName, value: accountName }),
+                        billingAccounts
+                      ),
                       onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName),
                     }),
                     div({ style: { marginTop: '1rem' } }, [
@@ -184,14 +205,20 @@ export const BillingAccountControls = ({
                 ['Ok']
               ),
             },
-            [div({ style: { marginTop: '1rem' } }, ["Are you sure you want to remove this billing project's billing account?"])]
+            [
+              div({ style: { marginTop: '1rem' } }, [
+                "Are you sure you want to remove this billing project's billing account?",
+              ]),
+            ]
           ),
       ]),
     Auth.hasBillingScope() &&
       isOwner &&
       div({ style: accountLinkStyle }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Spend Report Configuration:'),
-        span({ style: { flexShrink: 0 } }, 'Edit'),
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, [
+          'Spend Report Configuration:',
+        ]),
+        span({ style: { flexShrink: 0 } }, ['Edit']),
         h(
           Link,
           {
@@ -220,7 +247,11 @@ export const BillingAccountControls = ({
                   disabled: !selectedDatasetProjectName || !selectedDatasetName,
                   onClick: async () => {
                     setShowSpendReportConfigurationModal(false);
-                    await updateSpendConfiguration(billingProject.projectName, selectedDatasetProjectName, selectedDatasetName);
+                    await updateSpendConfiguration(
+                      billingProject.projectName,
+                      selectedDatasetProjectName,
+                      selectedDatasetName
+                    );
                   },
                 },
                 ['Ok']
@@ -247,7 +278,11 @@ export const BillingAccountControls = ({
                     }),
                     div({ style: { marginTop: '1rem' } }, [
                       ['See '],
-                      h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
+                      h(
+                        Link,
+                        { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps },
+                        ['our documentation']
+                      ),
                       [' for details on configuring spend reporting for billing projects.'],
                     ]),
                   ]),
