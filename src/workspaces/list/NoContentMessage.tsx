@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React, { ReactNode, useContext } from 'react';
 import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
@@ -17,7 +18,7 @@ export const NoContentMessage = (props: NoContentMessageProps): ReactNode => {
   if (loadingWorkspaces) {
     return <> Loading... </>;
   }
-  if (workspaces.myWorkspaces.length === 0 && filters.tab === 'myWorkspaces') {
+  if (_.isEmpty(workspaces.myWorkspaces) && filters.tab === 'myWorkspaces') {
     return <NoWorkspacesMessage onClick={() => setUserActions({ creatingNewWorkspace: true })} />;
   }
   return <div style={{ fontStyle: 'italic' }}> No matching workspaces</div>;
