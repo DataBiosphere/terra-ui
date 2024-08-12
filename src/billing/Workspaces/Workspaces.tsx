@@ -1,4 +1,4 @@
-import { Clickable, Icon, Link, useUniqueId } from '@terra-ui-packages/components';
+import { Icon, Link, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, ReactNode, useState } from 'react';
 import { billingAccountIconSize, BillingAccountStatus, getBillingAccountIconProps } from 'src/billing/utils';
@@ -163,7 +163,8 @@ const WorkspaceCard: React.FC<WorkspaceCardProps> = memoWithName('WorkspaceCard'
           {Utils.makeStandardDate(lastModified)}
         </div>
         <div role='cell' style={{ flex: `0 0 ${workspaceExpandIconSize}px` }}>
-          <Clickable
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <Link
             aria-label={`expand workspace ${name}`}
             aria-expanded={isExpanded}
             aria-controls={isExpanded ? billingDetailsId : undefined}
@@ -178,7 +179,7 @@ const WorkspaceCard: React.FC<WorkspaceCardProps> = memoWithName('WorkspaceCard'
             }}
           >
             <Icon icon={isExpanded ? 'angle-up' : 'angle-down'} size={workspaceExpandIconSize} />
-          </Clickable>
+          </Link>
         </div>
       </div>
       {isExpanded && (
