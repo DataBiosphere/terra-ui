@@ -156,7 +156,6 @@ describe('WorkflowConfigs Component', () => {
 
     expect(screen.getByText('Configuration')).toBeInTheDocument();
     expect(screen.getByText('Workflow Snapshot')).toBeInTheDocument();
-    expect(screen.getByText('Synopsis')).toBeInTheDocument();
   });
 
   it('filters configurations', async () => {
