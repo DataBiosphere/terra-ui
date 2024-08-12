@@ -63,7 +63,7 @@ export interface MakeWithRetryOnErrorArgs {
 }
 
 /**
- * factory method for withRetryOnError.  Most consumers will likely use pre-made withRetryOnError function
+ * Factory method for withRetryOnError.  Most consumers will likely use pre-made withRetryOnError function
  * @param makeArgs
  */
 export const makeWithRetryOnError = (makeArgs: MakeWithRetryOnErrorArgs) => {
@@ -93,8 +93,9 @@ export const makeWithRetryOnError = (makeArgs: MakeWithRetryOnErrorArgs) => {
 };
 
 /**
- * creates a fetch function augmenter with logic to keep retrying a request that throws an error.  A request will be
- * retried additional times until a maxTimeout is reached.  The attempt delay will be randomized between a min and max.
+ * Creates a fetch function augmenter that retries a failed request based on the return value of shouldNotRetryFn.
+ * A request will be retried additional times until a maxTimeout is reached.  The attempt delay will be randomized
+ * between a min and max.
  *
  * @param shouldNotRetryFn - function that returns true/false if an error response should result in retries stopping.
  *
@@ -110,7 +111,7 @@ export const DEFAULT_TIMEOUT_DURATION = 10000;
 export const DEFAULT_RETRY_COUNT = 5;
 
 /**
- * creates a fetch function augmenter that adds retry logic.  Each attempt will honor the max timeoutInMs arg.
+ * Creates a fetch function augmenter that adds retry logic.  Each attempt will honor the max timeoutInMs arg.
  * A timeout or an error will trigger a retry until retryCount is exhausted.
  * @param retryCount - the maximum times to retry the request
  * @param timeoutInMs - the timeout for each request attempt
