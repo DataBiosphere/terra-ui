@@ -217,6 +217,10 @@ export const NewWorkspaceModal = withDisplayName(
                 proxyUrl,
                 createdWorkspace.workspaceId
               );
+
+              // Explicitly check that a collection exists with the same ID as this workspace.
+              // Note the API itself isn't guaranteed to return a collection with the same ID as the workspace.
+              // We have to perform this check as long as this component relies on that convention.
               if (collections.includes(createdWorkspace.workspaceId)) {
                 return { shouldContinue: false, result: true };
               }
