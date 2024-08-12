@@ -1,39 +1,43 @@
 import { screen } from '@testing-library/react';
 import React from 'react';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { NoContentMessage } from 'src/workspaces/list/NoContentMessage';
 import { WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
 
-jest.mock('src/workspaces/common/NoWorkspacesMessage');
-
 describe('NoContentMessage', () => {
-  const workspaces: CategorizedWorkspaces = {
+  const defaultWorkspace: CategorizedWorkspaces = {
     myWorkspaces: [defaultGoogleWorkspace],
     newAndInteresting: [],
     featured: [],
     public: [],
   };
 
-  const emptyWorkspaces: CategorizedWorkspaces = {
+  const noWorkspaces: CategorizedWorkspaces = {
     myWorkspaces: [],
     newAndInteresting: [],
     featured: [],
     public: [],
   };
 
-  const filters: WorkspaceFilterValues = {
-    keywordFilter: '',
+  const keywordFilters: WorkspaceFilterValues = {
+    keywordFilter: 'nothingMatchesThis',
     accessLevels: [],
     tab: 'myWorkspaces',
     tags: [],
   };
 
+  const featuredFilters: WorkspaceFilterValues = {
+    keywordFilter: '',
+    accessLevels: [],
+    tab: 'featured',
+    tags: [],
+  };
+
   it('displays loading message if workspaces are loading', () => {
     // Arrange
-    const props = { loadingWorkspaces: true, workspaces, filters };
+    const props = { loadingWorkspaces: true, workspaces: defaultWorkspace, filters: keywordFilters };
 
     // Act
     render(<NoContentMessage {...props} />);
@@ -42,21 +46,34 @@ describe('NoContentMessage', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  it('displays no workspaces message if there are no workspaces', () => {
+  it('displays no workspaces message if there are no workspaces and filters tab is myWorkspaces', () => {
     // Arrange
-    const props = { loadingWorkspaces: false, workspaces: emptyWorkspaces, filters };
-    asMockedFn(NoWorkspacesMessage).mockReturnValue(<div>mockNoWorkspacesMessage</div>);
+    const props = { loadingWorkspaces: false, workspaces: noWorkspaces, filters: keywordFilters };
 
     // Act
     render(<NoContentMessage {...props} />);
 
     // Assert
-    expect(screen.getByText('mockNoWorkspacesMessage')).toBeInTheDocument();
+    const button = screen.getByRole('button');
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveTextContent('Create a New Workspace');
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 
-  it('displays no matching workspaces message otherwise', () => {
+  it('displays no matching workspaces message if filters tab is not myWorkspaces', () => {
     // Arrange
-    const props = { loadingWorkspaces: false, workspaces, filters };
+    const props = { loadingWorkspaces: false, workspaces: noWorkspaces, filters: featuredFilters };
+
+    // Act
+    render(<NoContentMessage {...props} />);
+
+    // Assert
+    expect(screen.getByText('No matching workspaces')).toBeInTheDocument();
+  });
+
+  it('displays no matching workspaces message if myWorkspaces is not empty', () => {
+    // Arrange
+    const props = { loadingWorkspaces: false, workspaces: defaultWorkspace, filters: keywordFilters };
 
     // Act
     render(<NoContentMessage {...props} />);
