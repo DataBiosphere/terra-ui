@@ -248,7 +248,7 @@ const getColumns = (
 
       return <div style={{ textAlign: 'end', flex: 1 }}>{numSnapshots}</div>;
     },
-    size: { basis: 108, grow: 0, shrink: 0 },
+    size: { basis: 115, grow: 0, shrink: 0 },
   },
   {
     field: 'numConfigurations',
