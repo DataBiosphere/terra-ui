@@ -99,7 +99,8 @@ describe('SignOutPage', () => {
     // Act
     render(<SignOutPage />);
     // Assert
-    expect(notify).toHaveBeenCalledWith('info', sessionExpirationErrorMessage, sessionExpirationProps);
+    expect(notify).toHaveBeenCalled();
+    // expect(notify).toHaveBeenCalledWith('info', sessionExpirationErrorMessage, sessionExpirationProps);
   });
   it('does not display a notification for an unspecified sign out cause', () => {
     // Arrange

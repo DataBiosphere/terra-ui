@@ -1,70 +1,47 @@
-import { Ajax } from 'src/libs/ajax';
-import { RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
+import { Cookies as CookiesClient } from 'src/libs/ajax/leonardo/Cookies';
+import { CookiesDataClientContract } from 'src/libs/ajax/leonardo/Cookies';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { leoCookieProvider } from './LeoCookieProvider';
 
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/leonardo/Cookies');
 
-/**
- * local test utility - mocks the Ajax super-object and the subset of needed multi-contracts it
- * returns with as much type-safety as possible.
- *
- * @return collection of key contract sub-objects for easy
- * mock overrides and/or method spying/assertions
- */
-type AjaxContract = ReturnType<typeof Ajax>;
-type RuntimesNeeds = Pick<RuntimesAjaxContract, 'invalidateCookie'>;
-interface AjaxMockNeeds {
-  Runtimes: RuntimesNeeds;
-}
-
-const mockAjaxNeeds = (): AjaxMockNeeds => {
-  const partialRuntimes: RuntimesNeeds = {
-    invalidateCookie: jest.fn(),
-  };
-  const mockRuntimes = partialRuntimes as RuntimesAjaxContract;
-
-  asMockedFn(Ajax).mockReturnValue({ Runtimes: mockRuntimes } as AjaxContract);
-
-  return {
-    Runtimes: partialRuntimes,
-  };
-};
 describe('CookieProvider', () => {
   it('calls the leo endpoint on invalidateCookie', async () => {
-    const ajaxMock = mockAjaxNeeds();
+    // Arrange
+    const unsetCookie = jest.fn().mockImplementation(async () => await Promise.resolve());
+    asMockedFn(CookiesClient).mockReturnValue({ unsetCookie } as CookiesDataClientContract);
 
     // Act
-    await leoCookieProvider.invalidateCookies();
+    await leoCookieProvider.unsetCookies();
 
     // Assert
-    expect(Ajax).toBeCalledTimes(1);
-    expect(ajaxMock.Runtimes.invalidateCookie).toBeCalledTimes(1);
+    expect(CookiesClient).toBeCalledTimes(1);
+    expect(unsetCookie).toBeCalledTimes(1);
   });
 
   it('does not error if api returns 401', async () => {
-    const ajaxMock = mockAjaxNeeds();
-    asMockedFn(ajaxMock.Runtimes.invalidateCookie).mockImplementation(() =>
-      Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 }))
-    );
+    const unsetCookie = jest
+      .fn()
+      .mockImplementation(() => Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 })));
+    asMockedFn(CookiesClient).mockReturnValue({ unsetCookie } as CookiesDataClientContract);
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
-    await leoCookieProvider.invalidateCookies();
+    await leoCookieProvider.unsetCookies();
 
-    expect(Ajax).toBeCalledTimes(1);
-    expect(ajaxMock.Runtimes.invalidateCookie).toBeCalledTimes(1);
+    expect(CookiesClient).toBeCalledTimes(1);
+    expect(unsetCookie).toBeCalledTimes(1);
     expect(errorSpy).toBeCalledTimes(1);
   });
 
   it('throws non 401 errors', async () => {
     // Arrange
-    const ajaxMock = mockAjaxNeeds();
-    asMockedFn(ajaxMock.Runtimes.invalidateCookie).mockImplementation(() => Promise.reject(new Error('test error')));
+    const unsetCookie = jest.fn().mockImplementation(() => Promise.reject(new Error('test error')));
+    asMockedFn(CookiesClient).mockReturnValue({ unsetCookie } as CookiesDataClientContract);
 
     // Act
-    const errorPromise = leoCookieProvider.invalidateCookies();
+    const errorPromise = leoCookieProvider.unsetCookies();
 
     // Assert
     await expect(errorPromise).rejects.toEqual(new Error('test error'));
