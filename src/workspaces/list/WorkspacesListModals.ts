@@ -48,7 +48,6 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       }),
     !!userActions.lockingWorkspaceId &&
       h(LockWorkspaceModal, {
-        // @ts-expect-error
         workspace: getWorkspace(userActions.lockingWorkspaceId),
         onDismiss: () => setUserActions({ lockingWorkspaceId: undefined }),
         onSuccess: refreshWorkspaces,
