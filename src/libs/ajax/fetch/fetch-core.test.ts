@@ -1,5 +1,5 @@
 import { delay } from '@terra-ui-packages/core-utils';
-import { FetchFn } from 'src/libs/ajax/data-client-common';
+import { FetchFn } from '@terra-ui-packages/data-client-core';
 
 import { makeWithRetryOnError, withErrorRejection, withRetry, withRetryOnError } from './fetch-core';
 
