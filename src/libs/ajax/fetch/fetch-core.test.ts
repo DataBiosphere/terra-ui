@@ -1,9 +1,10 @@
 import { delay } from '@terra-ui-packages/core-utils';
 import { FetchFn } from '@terra-ui-packages/data-client-core';
+import { asMockedFn } from '@terra-ui-packages/test-utils';
 
 import { makeWithMaybeRetry, withErrorRejection, withMaybeRetry, withRetry } from './fetch-core';
 
-describe('withRetryOnError', () => {
+describe('withMaybeRetry', () => {
   // These tests avoid withFakeTimers or useFakeTimers since that setup cause lots of headaches with
   // the layered promise mechanics under test.
 
@@ -18,7 +19,7 @@ describe('withRetryOnError', () => {
     });
 
     // use faster version of withMaybeRetry so that test completes before default 5000ms timout
-    const fasterWithRetryOnError = makeWithMaybeRetry({
+    const fasterWithMaybeRetry = makeWithMaybeRetry({
       maxTimeout: 2500,
       maxAttemptDelay: 500,
       minAttemptDelay: 250,
@@ -28,7 +29,7 @@ describe('withRetryOnError', () => {
 
     // Act
     try {
-      const myFetch = fasterWithRetryOnError(alwaysRetryError)(fetchFunction);
+      const myFetch = fasterWithMaybeRetry(alwaysRetryError)(fetchFunction);
       await myFetch('some.place.nice');
     } catch (error) {
       thrownError = error;
@@ -36,6 +37,9 @@ describe('withRetryOnError', () => {
 
     // Assert
     expect(thrownError).toEqual(new Error('BOOM!'));
+    const callCount = asMockedFn(fetchFunction).mock.calls.length;
+    expect(callCount).toBeGreaterThan(3);
+    expect(callCount).toBeLessThan(10);
   });
 
   it('succeeds after one fail', async () => {
@@ -61,6 +65,7 @@ describe('withRetryOnError', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(response.status).toBe(200);
+    expect(fetchFunction).toBeCalledTimes(2);
   });
 });
 
@@ -89,6 +94,7 @@ describe('withRetry', () => {
 
     // Assert
     expect(thrownError).toEqual(new Error('BOOM!'));
+    expect(fetchFunction).toBeCalledTimes(6);
   });
 
   it('succeeds after one fail', async () => {
@@ -114,5 +120,6 @@ describe('withRetry', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(response.status).toBe(200);
+    expect(fetchFunction).toBeCalledTimes(2);
   });
 });

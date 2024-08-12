@@ -51,7 +51,7 @@ export const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) =
   return wrappedFetch(prefix + path, ...args);
 });
 
-export interface MakeWithRetryOnErrorArgs {
+export interface MakeWithMaybeRetryArgs {
   /** i.e. 5000 - the maximum elapsed timeout (in milliseconds) for sum of all request attempts */
   maxTimeout: number;
 
@@ -66,7 +66,7 @@ export interface MakeWithRetryOnErrorArgs {
  * Factory method for withMaybeRetry.  Most consumers will likely use pre-made withMaybeRetry function
  * @param makeArgs
  */
-export const makeWithMaybeRetry = (makeArgs: MakeWithRetryOnErrorArgs) => {
+export const makeWithMaybeRetry = (makeArgs: MakeWithMaybeRetryArgs) => {
   const withMaybeRetryAugmenter =
     (shouldNotRetryFn: (error: unknown) => boolean) =>
     (wrappedFetch: FetchFn) =>
