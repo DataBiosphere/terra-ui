@@ -1,4 +1,4 @@
-import { withAuthSession } from 'src/auth/auth-options';
+import { withAuthSession } from 'src/auth/auth-session';
 import { fetchLeoOnce } from 'src/libs/ajax/fetch/fetchLeoOnce';
 
 import { LeoCookiesDataClient, makeLeoCookiesDataClient } from './LeoCookiesDataClient';
@@ -7,6 +7,9 @@ const makeCookiesHelper = (deps: CookiesHelperDeps) => (signal?: AbortSignal) =>
   const { api } = deps;
 
   const cookiesHelper = {
+    // TODO support all cookie actions through LeoCookies.
+    // Currently only unsetCookie is covered to avoid a circular dependency between signout and auth code.
+
     // setAzureCookie: async (proxyUrl: string): Promise<void> => {
     //   await api.setAzureCookie(proxyUrl);
     // },
@@ -25,11 +28,11 @@ type CookiesHelperDeps = {
   api: LeoCookiesDataClient;
 };
 
-export const Cookies = makeCookiesHelper({
+export const LeoCookies = makeCookiesHelper({
   api: makeLeoCookiesDataClient({
     // fetchAuthedLeo: withAuthSession(withAppIdentifier(fetchLeo)),
     fetchAuthedLeoWithoutRetry: withAuthSession(fetchLeoOnce),
   }),
 });
 
-export type CookiesDataClientContract = ReturnType<typeof Cookies>;
+export type LeoCookiesDataClientContract = ReturnType<typeof LeoCookies>;
