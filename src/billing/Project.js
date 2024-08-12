@@ -74,7 +74,7 @@ const ProjectDetail = ({
   );
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject);
-  const billingAccountsOutOfDate = true; //! (_.isEmpty(groups.error) && _.isEmpty(groups.updating));
+  const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating));
 
   const tabToTable = {
     workspaces: h(Workspaces, {
@@ -291,7 +291,7 @@ const ProjectDetail = ({
           removeUserFromBillingProject(deletingUser.roles, deletingUser.email).then(reloadBillingProject).then(reloadBillingProjectUsers);
         },
       }),
-    billingAccountsOutOfDate && h(BillingAccountSummary, { counts: _.mapValues(_.size, groups) }),
+    billingAccountsOutOfDate && h(BillingAccountSummary, _.mapValues(_.size, groups)),
     updating && h(SpinnerOverlay, { mode: 'FullScreen' }),
   ]);
 };

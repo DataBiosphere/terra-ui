@@ -1,18 +1,28 @@
 import { Icon, Link } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { getBillingAccountIconProps } from 'src/billing/utils';
+import { BillingAccountStatus, getBillingAccountIconProps } from 'src/billing/utils';
 import colors from 'src/libs/colors';
 import { contactUsActive } from 'src/libs/state';
 import { topBarHeight } from 'src/libs/style';
 
-export const BillingAccountSummary = ({ counts: { done, error, updating } }) => {
-  const StatusAndCount = ({ status, count }) =>
-    div({ style: { display: 'float' } }, [
-      div({ style: { float: 'left' } }, [Icon(getBillingAccountIconProps(status))]),
-      div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`]),
-    ]);
+interface BillingAccountSummaryProps {
+  done: number;
+  error: number;
+  updating: number;
+}
+export const BillingAccountSummary = (props: BillingAccountSummaryProps): ReactNode => {
+  const { done, error, updating } = props;
 
-  const maybeAddStatus = (status, count) => count > 0 && div({ style: { marginRight: '2rem' } }, [h(StatusAndCount, { status, count })]);
+  const maybeAddStatus = (status: BillingAccountStatus, count: number): ReactNode => {
+    return (
+      count > 0 &&
+      div({ style: { display: 'float', marginRight: '2rem' } }, [
+        div({ style: { float: 'left' } }, [Icon(getBillingAccountIconProps(status))]),
+        div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`]),
+      ])
+    );
+  };
 
   return div(
     {
@@ -27,7 +37,7 @@ export const BillingAccountSummary = ({ counts: { done, error, updating } }) => 
       },
     },
     [
-      div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
+      div({ style: { padding: '1rem 0' } }, ['Your billing account is updating...']),
       div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
         maybeAddStatus('updating', updating),
         maybeAddStatus('done', done),
