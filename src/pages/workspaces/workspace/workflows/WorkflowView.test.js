@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
@@ -20,6 +21,7 @@ jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
 }));
 jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
+jest.mock('src/libs/prefs');
 
 // Space for tables is rendered based on the available space. In unit tests, there is no available space, and so we must mock out the space needed to get the data table to render.
 jest.mock('react-virtualized', () => {
@@ -417,7 +419,148 @@ describe('Workflow View (GCP)', () => {
     expect(screen.getByText('Saved!'));
   });
 
-  it('renders run analysis modal', async () => {
+  it('saves workflow options to local storage', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    renderWorkflowView();
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Assert
+    // check that workflow options are initially unchecked
+    const refDisksCheckbox = screen.getByRole('checkbox', { name: 'Use reference disks' });
+    expect(refDisksCheckbox).not.toBeChecked();
+    const ignoreOutputsCheckbox = screen.getByRole('checkbox', { name: 'Ignore empty outputs' });
+    expect(ignoreOutputsCheckbox).not.toBeChecked();
+
+    // Act
+    await user.click(refDisksCheckbox);
+
+    // Assert
+    // check 'useReferenceDisks' was saved to local storage
+    expect(refDisksCheckbox).toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, { useReferenceDisks: true });
+
+    // Act
+    await user.click(ignoreOutputsCheckbox);
+
+    // Assert
+    // check both 'useReferenceDisks' and 'ignoreEmptyOutputs' were saved to local storage
+    expect(ignoreOutputsCheckbox).toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, { useReferenceDisks: true, ignoreEmptyOutputs: true });
+  });
+
+  it('reads workflow options from local storage', async () => {
+    // Arrange
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    renderWorkflowView();
+
+    getLocalPref.mockReturnValue({ useReferenceDisks: true, ignoreEmptyOutputs: true });
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    const refDisksCheckbox = screen.getByRole('checkbox', { name: 'Use reference disks' });
+    const ignoreOutputsCheckbox = screen.getByRole('checkbox', { name: 'Ignore empty outputs' });
+
+    // Assert
+    // check that both 'useReferenceDisks' and 'ignoreEmptyOutputs' are by default checked
+    expect(refDisksCheckbox).toBeChecked();
+    expect(ignoreOutputsCheckbox).toBeChecked();
+  });
+
+  it('removes workflow options from local storage', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    renderWorkflowView();
+
+    getLocalPref.mockReturnValue({ useReferenceDisks: true, ignoreEmptyOutputs: true });
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    const refDisksCheckbox = screen.getByRole('checkbox', { name: 'Use reference disks' });
+    const ignoreOutputsCheckbox = screen.getByRole('checkbox', { name: 'Ignore empty outputs' });
+
+    // Assert
+    // check that both 'useReferenceDisks' and 'ignoreEmptyOutputs' are by default checked
+    expect(refDisksCheckbox).toBeChecked();
+    expect(ignoreOutputsCheckbox).toBeChecked();
+
+    // Act
+    // user unchecks 'useReferenceDisks'
+    await user.click(refDisksCheckbox);
+
+    // Assert
+    // check 'useReferenceDisks' is removed from local storage
+    expect(refDisksCheckbox).not.toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, { ignoreEmptyOutputs: true });
+
+    // Act
+    // user unchecks 'ignoreEmptyOutputs'
+    await user.click(ignoreOutputsCheckbox);
+
+    // Assert
+    // check that 'undefined' was sent as value for workflow options in local storage (which removes it from local storage)
+    expect(ignoreOutputsCheckbox).not.toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, undefined);
+  });
+
+  it('stores call cache in local storage if it is disabled and removes it when enabled', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    getLocalPref.mockReturnValue(undefined);
+
+    renderWorkflowView();
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Assert
+    // check that call caching is initially checked
+    const useCallCacheCheckbox = screen.getByRole('checkbox', { name: 'Use call caching' });
+    expect(useCallCacheCheckbox).toBeChecked();
+
+    // Act
+    // user unchecks call caching
+    await user.click(useCallCacheCheckbox);
+
+    // Assert
+    // check 'useCallCache' was saved to local storage
+    expect(useCallCacheCheckbox).not.toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, { useCallCache: false });
+
+    // Act
+    // user checks call caching
+    await user.click(useCallCacheCheckbox);
+
+    // Assert
+    // check that 'undefined' was sent as value for workflow options in local storage (which removes it from local storage)
+    expect(useCallCacheCheckbox).toBeChecked();
+    expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, undefined);
+  });
+
+  it('renders run analysis modal and check workflow option expectations', async () => {
     // Arrange
     const user = userEvent.setup();
     const namespace = 'gatk';
@@ -472,15 +615,15 @@ describe('Workflow View (GCP)', () => {
           entitySelectionModel: { type: chooseRootType, selectedEntities, newSetName: 'newSetName' },
           mockValidate,
           config: { rootEntityType },
-          useCallCache: false,
+          useCallCache: true,
           deleteIntermediateOutputFiles: false,
           useReferenceDisks: false,
           retryWithMoreMemory: false,
           retryMemoryFactor: jest.fn(),
           ignoreEmptyOutputs: true,
-          monitoringScript: jest.fn(),
-          monitoringImage: jest.fn(),
-          monitoringImageScript: jest.fn(),
+          monitoringScript: 'some_script',
+          monitoringImage: '',
+          monitoringImageScript: '',
           onSuccess: jest.fn(),
         })
       );
@@ -491,5 +634,19 @@ describe('Workflow View (GCP)', () => {
 
     expect(mockLaunchResponse).toHaveBeenCalledTimes(1);
     expect(screen.getByText('Launching analysis...')).toBeInTheDocument;
+
+    // check various workflow options
+    expect(mockLaunchResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        useCallCache: true,
+        deleteIntermediateOutputFiles: false,
+        ignoreEmptyOutputs: true,
+        useReferenceDisks: false,
+        memoryRetryMultiplier: undefined,
+        monitoringScript: 'some_script',
+        monitoringImage: null,
+        monitoringImageScript: null,
+      })
+    );
   });
 });

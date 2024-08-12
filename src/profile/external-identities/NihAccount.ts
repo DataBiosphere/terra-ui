@@ -40,7 +40,7 @@ export const NihAccount = ({ nihToken }) => {
 
     if (nihToken) {
       // Clear the query string, but use replace so the back button doesn't take the user back to the token
-      Nav.history.replace({ search: '' });
+      Nav.history.replace({ search: 'tab=externalIdentities' });
       linkNihAccount();
     }
   });
@@ -70,7 +70,7 @@ export const NihAccount = ({ nihToken }) => {
       ]),
       Utils.cond(
         [!nihStatusLoaded, () => h(SpacedSpinner, ['Loading NIH account status...'])],
-        [isLinking, () => h(SpacedSpinner, ['Linking NIH account...'])],
+        [isLinking, () => h(SpacedSpinner, ['Linking NIH account... (This can take a minute or two)'])],
         [!linkedNihUsername, () => div([h(ShibbolethLink, { button: true }, ['Log in to NIH'])])],
         () =>
           h(Fragment, [

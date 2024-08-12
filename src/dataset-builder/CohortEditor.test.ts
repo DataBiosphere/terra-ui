@@ -469,6 +469,7 @@ describe('CohortEditor', () => {
   function showCohortEditor(originalCohort = newCohort('my cohort name')) {
     const onStateChange = jest.fn();
     const updateCohorts = jest.fn();
+    const addSelectedCohort = jest.fn();
 
     render(
       h(CohortEditor, {
@@ -477,10 +478,11 @@ describe('CohortEditor', () => {
         snapshotBuilderSettings,
         originalCohort,
         updateCohorts,
+        addSelectedCohort,
         getNextCriteriaIndex,
       })
     );
-    return { originalCohort, onStateChange, updateCohorts };
+    return { originalCohort, onStateChange, updateCohorts, addSelectedCohort };
   }
 
   it('renders a cohort', () => {
@@ -492,13 +494,14 @@ describe('CohortEditor', () => {
 
   it('saves a cohort', async () => {
     // Arrange
-    const { originalCohort, onStateChange, updateCohorts } = showCohortEditor();
+    const { originalCohort, onStateChange, updateCohorts, addSelectedCohort } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Save cohort'));
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
     expect(updateCohorts.mock.calls[0][0]([])).toStrictEqual([originalCohort]);
+    expect(addSelectedCohort).toBeCalledWith(originalCohort);
   });
 
   it('cancels editing a cohort', async () => {

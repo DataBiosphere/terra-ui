@@ -281,7 +281,7 @@ export const errorNotifiedApps = atom<string[]>([]);
 
 export const knownBucketRequesterPaysStatuses = atom({});
 
-export const requesterPaysProjectStore = atom<unknown>(undefined);
+export const requesterPaysProjectStore = atom<string | undefined>(undefined);
 
 export const workflowSelectionStore = atom({
   key: undefined,
