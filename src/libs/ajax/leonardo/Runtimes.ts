@@ -3,15 +3,8 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
 import { authOpts, withAuthSession } from 'src/auth/auth-fetch';
-import {
-  appIdentifier,
-  DEFAULT_RETRY_COUNT,
-  DEFAULT_TIMEOUT_DURATION,
-  fetchLeo,
-  makeRequestRetry,
-  withAppIdentifier,
-} from 'src/libs/ajax/ajax-common';
-import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
+import { appIdentifier, fetchLeo, withAppIdentifier } from 'src/libs/ajax/ajax-common';
+import { fetchOk, withRetry } from 'src/libs/ajax/fetch/fetch-core';
 import { LeoRuntimesV1DataClient, makeLeoRuntimesV1DataClient } from 'src/libs/ajax/leonardo/LeoRuntimesV1DataClient';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
 import {
@@ -198,24 +191,17 @@ export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal: AbortSi
           return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }));
         },
 
-        setStorageLinks: (localBaseDirectory, cloudStorageDirectory, pattern) => {
-          return makeRequestRetry(
-            () =>
-              fetchOk(
-                `${proxyUrl}/welder/storageLinks`,
-                _.mergeAll([
-                  authOpts(),
-                  jsonBody({
-                    localBaseDirectory,
-                    cloudStorageDirectory,
-                    pattern,
-                  }),
-                  { signal, method: 'POST' },
-                ])
-              ),
-            DEFAULT_RETRY_COUNT,
-            DEFAULT_TIMEOUT_DURATION
+        setStorageLinks: async (localBaseDirectory, cloudStorageDirectory, pattern) => {
+          const myFetch = withRetry()(fetchOk);
+          const response = await myFetch(
+            `${proxyUrl}/welder/storageLinks`,
+            _.mergeAll([
+              authOpts(),
+              jsonBody({ localBaseDirectory, cloudStorageDirectory, pattern }),
+              { signal, method: 'POST' },
+            ])
           );
+          return response.json();
         },
       };
     },

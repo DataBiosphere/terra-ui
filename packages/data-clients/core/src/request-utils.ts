@@ -8,3 +8,5 @@ export interface AbortOption {
 }
 
 export type FetchFn = typeof fetch;
+
+export type FetchWrapper = (fn: FetchFn) => FetchFn;
