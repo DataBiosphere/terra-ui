@@ -122,7 +122,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
       {
         'aria-label': 'workflow menu',
         activeTab: tabName,
-        tabNames: ['dashboard', 'wdl', 'configs'],
+        tabNames: ['dashboard', 'wdl' /* 'configs' */], // TODO: Either add, or completely remove this tab when we decide state of having configurations.
         displayNames: { configs: 'configurations' },
         getHref: (currentTab) =>
           Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
