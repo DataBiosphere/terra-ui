@@ -115,6 +115,20 @@ export const WorkflowList = (props: WorkflowListProps) => {
   const tabName: string = tab || 'mine';
   const tabs = { mine: 'My Workflows', public: 'Public Workflows' };
 
+  const getTabDisplayNames = (workflows: GroupedWorkflows | undefined) => {
+    const getCountString = (tab: keyof GroupedWorkflows): string => {
+      if (workflows === undefined) {
+        return '';
+      }
+      return ` (${workflows[tab].length})`;
+    };
+
+    return {
+      mine: `My Workflows${getCountString('mine')}`,
+      public: `Public Workflows${getCountString('public')}`,
+    };
+  };
+
   useOnMount(() => {
     const isMine = ({ public: isPublic, managers }: MethodDefinition): boolean =>
       !isPublic || _.includes(getTerraUser().email, managers);
@@ -168,7 +182,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         aria-label='workflows menu'
         activeTab={tabName}
         tabNames={Object.keys(tabs)}
-        displayNames={tabs}
+        displayNames={getTabDisplayNames(workflows)}
         getHref={(currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`}
         getOnClick={(currentTab) => (e) => {
           e.preventDefault();

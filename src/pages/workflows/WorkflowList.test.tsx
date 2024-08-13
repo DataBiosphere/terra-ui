@@ -144,8 +144,8 @@ describe('workflows table', () => {
 
     // Assert
     expect(screen.getByPlaceholderText('SEARCH WORKFLOWS')).toBeInTheDocument();
-    expect(screen.getByText('My Workflows')).toBeInTheDocument();
-    expect(screen.getByText('Public Workflows')).toBeInTheDocument();
+    expect(screen.getByText('My Workflows (0)')).toBeInTheDocument();
+    expect(screen.getByText('Public Workflows (0)')).toBeInTheDocument();
 
     expect(screen.queryByText('Featured Workflows')).not.toBeInTheDocument();
   });
@@ -323,8 +323,8 @@ describe('workflows table', () => {
       render(<WorkflowList />);
     });
 
-    await user.click(screen.getByText('Public Workflows'));
-    await user.click(screen.getByText('My Workflows'));
+    await user.click(screen.getByText('Public Workflows (2)'));
+    await user.click(screen.getByText('My Workflows (0)'));
 
     // Assert
     expect(navHistoryReplace).toHaveBeenCalledTimes(2);
