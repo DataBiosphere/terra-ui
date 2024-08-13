@@ -214,6 +214,7 @@ export const dashboard = {
   leftBox: {
     flex: 1,
     padding: '0 2rem 2rem 2rem',
+    overflow: 'hidden',
   },
   rightBox: {
     flex: 'none',

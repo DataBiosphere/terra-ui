@@ -6,6 +6,8 @@ export const anvilSources: UrlSource[] = [
   // production
   { type: 'http', host: 'service.prod.anvil.gi.ucsc.edu' },
   { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1' },
+  { type: 'http', host: 'redcaptest.vumc.org' },
+  { type: 'http', host: 'redcap.vumc.org' },
   // development
   { type: 'http', host: 'service.anvil.gi.ucsc.edu' },
   { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-dev-storage-anvildev.us-east-1' },

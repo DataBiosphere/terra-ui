@@ -70,6 +70,8 @@ interface SnapshotBuilderRootTable extends SnapshotBuilderTable {
 }
 
 export type SnapshotBuilderSettings = {
+  name: string;
+  description: string;
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
@@ -179,6 +181,7 @@ export interface SnapshotAccessRequestResponse {
   snapshotSpecification: SnapshotAccessRequest;
   createdBy: string;
   status: JobStatus;
+  summary: string;
 }
 
 export type SnapshotBuilderCountResponse = {

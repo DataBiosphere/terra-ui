@@ -47,7 +47,11 @@ export const Profile = (): ReactNode => {
     coalescedQuery = query;
   }
   const callbacks = ['fence-callback', 'ecm-callback', 'oauth-callback'];
-  const tab: string = query.tab || (callbacks.includes(name) ? 'externalIdentities' : 'personalInfo');
+  let tab: string = query.tab || (callbacks.includes(name) ? 'externalIdentities' : 'personalInfo');
+  const { 'nih-username-token': nihUsernameToken } = query;
+  if (nihUsernameToken !== undefined) {
+    tab = 'externalIdentities';
+  }
 
   const tabs = [
     { key: 'personalInfo', title: 'Personal Information' },

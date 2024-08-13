@@ -1,5 +1,5 @@
+import { FetchFn } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { FetchFn } from 'src/libs/ajax/data-client-common';
 
 import { AuthTokenState, getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, sendRetryMetric } from './auth';
 import { sessionExpirationErrorMessage } from './auth-errors';
