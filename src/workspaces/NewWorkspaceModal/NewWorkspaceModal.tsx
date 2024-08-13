@@ -209,12 +209,20 @@ export const NewWorkspaceModal = withDisplayName(
             true
           );
 
-          // Wait for the default WDS instance to exist.
+          // Wait for the default WDS collection to exist.
           const proxyUrl = wds!.proxyUrls.wds;
           await Utils.poll(
             async () => {
-              const instances: string[] = await Ajax().WorkspaceData.listInstances(proxyUrl);
-              if (instances.includes(createdWorkspace.workspaceId)) {
+              const collections: string[] = await Ajax().WorkspaceData.listCollections(
+                proxyUrl,
+                createdWorkspace.workspaceId
+              );
+
+              // Explicitly check that a collection exists with the same ID as this workspace.
+              // It is by convention only that the workspace's ID is the same as its collection ID.
+              // We have to perform this check as long as this component relies on that convention,
+              // because the API itself isn't guaranteed to return a collection with the same ID as the workspace.
+              if (collections.includes(createdWorkspace.workspaceId)) {
                 return { shouldContinue: false, result: true };
               }
               return { shouldContinue: true, result: false };
