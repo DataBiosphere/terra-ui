@@ -1,7 +1,6 @@
+import { LeoCookiesDataClient, makeLeoCookiesDataClient } from '@terra-ui-packages/leonardo-data-client';
 import { withAuthSession } from 'src/auth/auth-session';
 import { fetchLeoOnce } from 'src/libs/ajax/fetch/fetchLeoOnce';
-
-import { LeoCookiesDataClient, makeLeoCookiesDataClient } from './LeoCookiesDataClient';
 
 const makeCookiesHelper = (deps: CookiesHelperDeps) => (signal?: AbortSignal) => {
   const { api } = deps;
@@ -35,4 +34,4 @@ export const LeoCookies = makeCookiesHelper({
   }),
 });
 
-export type LeoCookiesDataClientContract = ReturnType<typeof LeoCookies>;
+export type LeoCookiesContract = ReturnType<typeof LeoCookies>;

@@ -1,6 +1,9 @@
 import { AbortOption, FetchFn } from '@terra-ui-packages/data-client-core';
 
 export interface LeoCookiesDataClient {
+  // TODO support all cookie actions through LeoCookies.
+  // Currently only unsetCookie is covered to avoid a circular dependency between signout and auth code.
+
   // setAzureCookie: (proxyUrl: string, options?: AbortOption) => Promise<void>;
   // setCookie: (options?: AbortOption) => Promise<void>;
   unsetCookie: (options?: AbortOption) => Promise<void>;
@@ -24,6 +27,9 @@ export const makeLeoCookiesDataClient = (deps: LeoCookiesDataClientDeps): LeoCoo
   const { fetchAuthedLeoWithoutRetry } = deps;
 
   return {
+    // TODO support all cookie actions through LeoCookies.
+    // Currently only unsetCookie is covered to avoid a circular dependency between signout and auth code.
+
     // setAzureCookie: (proxyUrl) => {
     //   return fetchAuthedLeo(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }));
     // },
