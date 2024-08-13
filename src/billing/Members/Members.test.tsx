@@ -1,11 +1,12 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import React from 'react';
 import { Members } from 'src/billing/Members/Members';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 
 describe('Members', () => {
-  it('renders a list of members in the billing project', () => {
+  it('renders a list of members in the billing project with no accessibility errors', async () => {
     // Arrange
     const projectUsers = [
       { email: 'x_owner@test.email.org', roles: ['Owner'] },
@@ -13,7 +14,7 @@ describe('Members', () => {
     ];
 
     // Act
-    renderWithAppContexts(
+    const { container } = renderWithAppContexts(
       <Members
         billingProjectName='test-project'
         isOwner
@@ -32,6 +33,8 @@ describe('Members', () => {
     // users sort initially by email
     expect(users[1]).toHaveTextContent(/user@test.email.orgUser/);
     expect(users[2]).toHaveTextContent(/x_owner@test.email.orgOwnerThis user is the only Owner/);
+    // Verify accessibility
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it('supports sorting members', async () => {
