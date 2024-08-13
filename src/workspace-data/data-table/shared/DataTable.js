@@ -18,7 +18,7 @@ import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { GridTable, HeaderCell, Paginator, Resizable, TooltipCell } from 'src/components/table';
+import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
@@ -700,7 +700,7 @@ const DataTable = (props) => {
         ]),
         !_.isEmpty(entities) &&
           div({ style: { flex: 'none', margin: '1rem' } }, [
-            Paginator({
+            paginator({
               filteredDataLength: filteredCount,
               unfilteredDataLength: totalRowCount,
               pageNumber,
