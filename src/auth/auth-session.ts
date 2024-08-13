@@ -1,5 +1,5 @@
+import { FetchFn } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { FetchFn } from 'src/libs/ajax/data-client-common';
 
 import { getAuthToken } from './auth';
 

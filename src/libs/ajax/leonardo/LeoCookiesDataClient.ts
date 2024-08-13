@@ -1,4 +1,4 @@
-import { AbortOption, FetchFn } from 'src/libs/ajax/data-client-common';
+import { AbortOption, FetchFn } from '@terra-ui-packages/data-client-core';
 
 export interface LeoCookiesDataClient {
   // setAzureCookie: (proxyUrl: string, options?: AbortOption) => Promise<void>;
