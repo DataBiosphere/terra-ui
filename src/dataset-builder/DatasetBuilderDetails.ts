@@ -93,9 +93,9 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
           h(DatasetBuilderBreadcrumbs, {
             breadcrumbs: [{ link: Nav.getLink('library-datasets'), title: 'Data Browser' }],
           }),
-          h1({ style: { marginTop: '0.75rem' } }, [snapshotBuilderSettings.state.name ?? 'Overview']),
+          h1({ style: { marginTop: '0.75rem' } }, [snapshotBuilderSettings.state.name]),
           div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            h(MarkdownViewer, [snapshotBuilderSettings.state.description ?? 'Description']),
+            h(MarkdownViewer, [snapshotBuilderSettings.state.description]),
             div({ style: { width: '22rem', backgroundColor: 'white', padding: '1rem', marginLeft: '1rem' } }, [
               div([
                 'Use the Data Explorer to create specific tailored data snapshots for analysis in a Terra Workspace',

@@ -42,7 +42,7 @@ describe('DatasetBuilderDetails', () => {
     mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
     render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
-    expect(await screen.findByText('Overview')).toBeTruthy();
+    expect(await screen.findByText(testSnapshotBuilderSettings().name)).toBeTruthy();
     expect(await screen.findByText('Create data snapshots')).toBeTruthy();
   });
 
@@ -51,7 +51,7 @@ describe('DatasetBuilderDetails', () => {
     mockWithValues(testSnapshotBuilderSettings(), ['snapshot_creator']);
     render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
     // Assert
-    expect(await screen.findByText('Overview')).toBeTruthy();
+    expect(await screen.findByText(testSnapshotBuilderSettings().name)).toBeTruthy();
     expect(await screen.findByText('Learn how to gain access')).toBeTruthy();
   });
 });
