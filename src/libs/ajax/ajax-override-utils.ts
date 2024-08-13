@@ -77,29 +77,6 @@ export const overrideAppsWithLocalWDS = async (workspaceId?: string) => {
     throw new Error('Must be signed in to use local WDS');
   }
 
-  // Get list of instances from local WDS.
-  // Using base fetch here to avoid an import cycle with ajax-common.ts.
-  const instancesResponse = await fetch(`${wdsUrl}/instances/v0.2`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-  const instanceIds: string[] = await instancesResponse.json();
-
-  // Create an instance for the given workspace if one does not already exist.
-  if (!instanceIds.includes(workspaceId)) {
-    const createInstanceResponse = await fetch(`${wdsUrl}/instances/v0.2/${workspaceId}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!createInstanceResponse.ok) {
-      throw new Error(`Failed to create instance for workspace ${workspaceId}`);
-    }
-  }
-
   // Override the Leo apps list for the given workspace to return the local
   // WDS' URL as the WDS proxy URL for that workspace.
   const ajaxOverrides: AjaxOverride[] = [
