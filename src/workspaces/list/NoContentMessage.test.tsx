@@ -10,13 +10,13 @@ describe('NoContentMessage', () => {
   it('displays loading message if workspaces are loading', () => {
     // Arrange
     const workspaces: CategorizedWorkspaces = {
-      myWorkspaces: [defaultGoogleWorkspace],
+      myWorkspaces: [],
       newAndInteresting: [],
       featured: [],
       public: [],
     };
     const filters: WorkspaceFilterValues = {
-      keywordFilter: 'nothingMatchesThis',
+      keywordFilter: '',
       accessLevels: [],
       tab: 'myWorkspaces',
       tags: [],
@@ -39,7 +39,7 @@ describe('NoContentMessage', () => {
       public: [],
     };
     const filters: WorkspaceFilterValues = {
-      keywordFilter: 'nothingMatchesThis',
+      keywordFilter: '',
       accessLevels: [],
       tab: 'myWorkspaces',
       tags: [],
