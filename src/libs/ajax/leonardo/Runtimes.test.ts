@@ -29,8 +29,8 @@ type AuthFetchExports = typeof import('src/auth/auth-fetch');
 jest.mock('src/auth/auth-fetch', (): AuthFetchExports => {
   const { asMockedFn } = jest.requireActual<TestUtilsExports>('src/testing/test-utils');
 
-  const mocks = {
-    ...jest.requireActual('src/auth/auth-fetch'),
+  const mocks: AuthFetchExports = {
+    ...jest.requireActual<AuthFetchExports>('src/auth/auth-fetch'),
     authOpts: jest.fn(),
     withAuthSession: jest.fn(),
   };
