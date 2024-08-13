@@ -1,14 +1,15 @@
-import { Modal, SpinnerOverlay } from '@terra-ui-packages/components';
+import { Icon, Modal, SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
-import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as Auth from 'src/auth/auth';
 import { Members } from 'src/billing/Members/Members';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { SpendReport } from 'src/billing/SpendReport/SpendReport';
 import { billingRoles } from 'src/billing/utils';
+import { getBillingAccountIconProps } from 'src/billing/utils';
+import { Workspaces } from 'src/billing/Workspaces/Workspaces';
 import { ButtonPrimary, IdContainer, Link, VirtualizedSelect } from 'src/components/common';
 import { DeleteUserModal, EditUserModal, NewUserModal } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
@@ -17,161 +18,25 @@ import { TextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { SimpleTabBar } from 'src/components/tabBars';
-import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { isAzureBillingProject, isGoogleBillingProject } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
-import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils';
+import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import { contactUsActive } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
-import * as Style from 'src/libs/style';
 import { topBarHeight } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
-const workspaceLastModifiedWidth = 150;
-const workspaceExpandIconSize = 20;
-const billingAccountIconSize = 16;
-
-const billingAccountIcons = {
-  updating: { shape: 'sync', color: colors.warning() },
-  done: { shape: 'check', color: colors.accent() },
-  error: { shape: 'warning-standard', color: colors.danger() },
-};
-
-const getBillingAccountIcon = (status) => {
-  const { shape, color } = billingAccountIcons[status];
-  return icon(shape, { size: billingAccountIconSize, color });
-};
-
 const accountLinkStyle = { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' };
-
-const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
-  return div(
-    { role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } },
-    [
-      needsStatusColumn && div({ style: { width: billingAccountIconSize } }, [div({ className: 'sr-only' }, ['Status'])]),
-      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: needsStatusColumn ? '1rem' : '2rem' } }, [
-        h(HeaderRenderer, { sort, onSort, name: 'name' }),
-      ]),
-      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
-        h(HeaderRenderer, { sort, onSort, name: 'createdBy' }),
-      ]),
-      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
-        h(HeaderRenderer, { sort, onSort, name: 'lastModified' }),
-      ]),
-      div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [div({ className: 'sr-only' }, ['Expand'])]),
-    ]
-  );
-});
-
-const ExpandedInfoRow = ({ title, details, errorMessage }) => {
-  const expandedInfoStyles = {
-    row: { display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' },
-    title: { fontWeight: 600, padding: '0.5rem 1rem 0 2rem', height: '1rem' },
-    details: { flexGrow: 1, marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
-    errorMessage: {
-      flexGrow: 2,
-      padding: '0.5rem',
-      backgroundColor: colors.light(0.3),
-      border: `solid 2px ${colors.danger(0.3)}`,
-      borderRadius: 5,
-    },
-  };
-
-  return div({ style: expandedInfoStyles.row }, [
-    div({ style: expandedInfoStyles.title }, [title]),
-    div({ style: expandedInfoStyles.details }, [details]),
-    errorMessage && div({ style: expandedInfoStyles.errorMessage }, [errorMessage]),
-  ]);
-};
-
-const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject, billingAccountStatus, isExpanded, onExpand }) => {
-  const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, errorMessage } = workspace;
-  const workspaceCardStyles = {
-    field: {
-      ...Style.noWrapEllipsis,
-      flex: 1,
-      height: '1.20rem',
-      width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`,
-      paddingRight: '1rem',
-    },
-    row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
-    expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' },
-  };
-
-  return div({ role: 'row', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
-    h(IdContainer, [
-      (id) =>
-        h(Fragment, [
-          div({ style: workspaceCardStyles.row }, [
-            billingAccountStatus && getBillingAccountIcon(billingAccountStatus),
-            div(
-              {
-                role: 'rowheader',
-                style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatus ? '1rem' : '2rem' },
-              },
-              [
-                h(
-                  Link,
-                  {
-                    style: Style.noWrapEllipsis,
-                    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-                    onClick: () => {
-                      Ajax().Metrics.captureEvent(Events.billingProjectGoToWorkspace, {
-                        workspaceName: name,
-                        ...extractBillingDetails(billingProject),
-                      });
-                    },
-                  },
-                  [name]
-                ),
-              ]
-            ),
-            div({ role: 'cell', style: workspaceCardStyles.field }, [createdBy]),
-            div({ role: 'cell', style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)]),
-            div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
-              h(
-                Link,
-                {
-                  'aria-label': `expand workspace ${name}`,
-                  'aria-expanded': isExpanded,
-                  'aria-controls': isExpanded ? id : undefined,
-                  'aria-owns': isExpanded ? id : undefined,
-                  style: { display: 'flex', alignItems: 'center' },
-                  onClick: () => {
-                    Ajax().Metrics.captureEvent(Events.billingProjectExpandWorkspace, {
-                      workspaceName: name,
-                      ...extractBillingDetails(billingProject),
-                    });
-                    onExpand();
-                  },
-                },
-                [icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize })]
-              ),
-            ]),
-          ]),
-          isExpanded &&
-            div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
-              div({ style: workspaceCardStyles.expandedInfoContainer }, [
-                billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-                billingProject.cloudPlatform === cloudProviders.gcp.label &&
-                  h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage }),
-                billingProject.cloudPlatform === cloudProviders.azure.label &&
-                  h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId }),
-              ]),
-            ]),
-        ]),
-    ]),
-  ]);
-});
 
 const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
   const StatusAndCount = ({ status, count }) =>
     div({ style: { display: 'float' } }, [
-      div({ style: { float: 'left' } }, [getBillingAccountIcon(status)]),
+      div({ style: { float: 'left' } }, [Icon(getBillingAccountIconProps(status))]),
       div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`]),
     ]);
 
@@ -499,8 +364,6 @@ const ProjectDetail = ({
   const [updating, setUpdating] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [tab, setTab] = useState(query.tab || 'workspaces');
-  const [expandedWorkspaceName, setExpandedWorkspaceName] = useState();
-  const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' });
 
   const signal = useCancellation();
 
@@ -511,51 +374,15 @@ const ProjectDetail = ({
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject);
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating));
-  const getBillingAccountStatus = (workspace) => _.findKey((g) => g.has(workspace), groups);
-
-  const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label;
-  const isAzureProject = billingProject.cloudPlatform === cloudProviders.azure.label;
 
   const tabToTable = {
-    workspaces: h(Fragment, [
-      !_.isUndefined(workspaces) && _.isEmpty(workspacesInProject)
-        ? div({ style: { ...Style.cardList.longCardShadowless, width: 'fit-content' } }, [
-            span({ 'aria-hidden': 'true' }, ['Use this Terra billing project to create']),
-            h(
-              Link,
-              {
-                'aria-label': 'Use this Terra billing project to create workspaces',
-                style: { marginLeft: '0.3em', textDecoration: 'underline' },
-                href: Nav.getLink('workspaces'),
-              },
-              ['Workspaces']
-            ),
-          ])
-        : !_.isEmpty(workspacesInProject) &&
-          div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
-            h(WorkspaceCardHeaders, {
-              needsStatusColumn: billingAccountsOutOfDate,
-              sort: workspaceSort,
-              onSort: setWorkspaceSort,
-            }),
-            div({}, [
-              _.flow(
-                _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-                _.map((workspace) => {
-                  const isExpanded = expandedWorkspaceName === workspace.name;
-                  return h(WorkspaceCard, {
-                    workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
-                    billingProject,
-                    billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
-                    key: workspace.workspaceId,
-                    isExpanded,
-                    onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name),
-                  });
-                })
-              )(workspacesInProject),
-            ]),
-          ]),
-    ]),
+    workspaces: h(Workspaces, {
+      billingProject,
+      workspacesInProject,
+      billingAccounts,
+      billingAccountsOutOfDate,
+      groups,
+    }),
     members: h(Members, {
       billingProjectName: billingProject.projectName,
       isOwner,
@@ -633,7 +460,7 @@ const ProjectDetail = ({
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
         billingProject.projectName,
       ]),
-      isGcpProject &&
+      isGoogleBillingProject(billingProject) &&
         h(GcpBillingAccountControls, {
           authorizeAndLoadAccounts,
           billingAccounts,
@@ -644,7 +471,7 @@ const ProjectDetail = ({
           reloadBillingProject,
           setUpdating,
         }),
-      isAzureProject &&
+      isAzureBillingProject(billingProject) &&
         div({ style: accountLinkStyle }, [
           h(ExternalLink, {
             url: `https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`,
@@ -671,7 +498,7 @@ const ProjectDetail = ({
               margin: '1rem 1rem 0',
               padding: '1rem',
               border: `1px solid ${colors.warning()}`,
-              backgroundColor: colors.warning(0.15),
+              backgroundColor: colors.warning(0.1), // needs to be sufficient contrast with link color
             },
           },
           [
