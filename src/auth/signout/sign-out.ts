@@ -47,7 +47,7 @@ export const doSignOut = async (signOutCause: SignOutCause = 'unspecified'): Pro
     const { name, query, params }: SignOutRedirect = Nav.getCurrentRoute();
     const signOutState: SignOutState = { signOutRedirect: { name, query, params }, signOutCause };
     const encodedState = btoa(JSON.stringify(signOutState));
-    userManager!.signOutRedirect({
+    userManager!.signoutRedirect({
       post_logout_redirect_uri: redirectUrl,
       extraQueryParams: { state: encodedState },
     });

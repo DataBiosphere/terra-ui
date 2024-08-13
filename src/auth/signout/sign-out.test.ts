@@ -50,7 +50,7 @@ jest.mock('src/libs/state', (): StateExports => {
       ...state.oidcStore,
       get: jest.fn().mockReturnValue({
         userManager: {
-          signOutRedirect: jest.fn(() => 'Default signOutRedirectFn'),
+          signoutRedirect: jest.fn(() => 'Default signOutRedirectFn'),
         },
       }),
     },
@@ -90,8 +90,8 @@ describe('sign-out', () => {
     const link = 'signout';
     const expectedState = btoa(JSON.stringify({ signOutRedirect: currentRoute, signOutCause: 'unspecified' }));
     asMockedFn(oidcStore.get).mockReturnValue({
-      userManager: { signOutRedirect: signOutRedirectFn },
-    });
+      userManager: { signoutRedirect: signOutRedirectFn },
+    } as unknown as OidcState);
     asMockedFn(Nav.getLink).mockReturnValue(link);
     asMockedFn(Nav.getWindowOrigin).mockReturnValue(hostname);
     asMockedFn(Nav.getCurrentRoute).mockReturnValue(currentRoute);
@@ -112,7 +112,7 @@ describe('sign-out', () => {
     const goToRootFn = jest.fn();
     asMockedFn(oidcStore.get).mockReturnValue({
       userManager: {
-        signOutRedirect: signOutRedirectFn,
+        signoutRedirect: signOutRedirectFn,
       },
     } as unknown as OidcState);
     asMockedFn(removeUserFromLocalState).mockImplementation(removeUserFromLocalStateFn);

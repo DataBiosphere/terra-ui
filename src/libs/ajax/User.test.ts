@@ -19,7 +19,7 @@ jest.mock(
 type SignOutExports = typeof import('src/auth/signout/sign-out');
 jest.mock(
   'src/auth/signout/sign-out',
-  (): SignOutExports => ({
+  (): Partial<SignOutExports> => ({
     signOut: jest.fn(),
     userSignedOut: jest.fn(),
   })
