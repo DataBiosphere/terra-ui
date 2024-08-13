@@ -131,12 +131,22 @@ export const WorkflowList = (props: WorkflowListProps) => {
     loadWorkflows();
   });
 
+  // Gets the sort key of a method definition based on the currently
+  // selected sort field such that numeric fields are sorted numerically
+  // and other fields are sorted as case-insensitive strings
+  const getSortKey = ({ [sort.field]: sortValue }: MethodDefinition): number | string => {
+    if (typeof sortValue === 'number') {
+      return sortValue;
+    }
+    if (sortValue == null) {
+      return '';
+    }
+    return _.lowerCase(sortValue.toString());
+  };
+
   const sortedWorkflows: MethodDefinition[] = _.flow<MethodDefinition[], MethodDefinition[], MethodDefinition[]>(
     _.filter(({ namespace, name }: MethodDefinition) => Utils.textMatch(filter, `${namespace}/${name}`)),
-    _.orderBy(
-      [({ [sort.field]: field }: MethodDefinition) => (field == null ? '' : _.lowerCase(field.toString()))],
-      [sort.direction]
-    )
+    _.orderBy([getSortKey], [sort.direction])
   )(workflows?.[tabName]);
 
   const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;

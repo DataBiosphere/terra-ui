@@ -463,7 +463,83 @@ describe('workflows table', () => {
     checkOrder('revali method 2', 'revali method', 'daruk method', 'sorting method');
   });
 
-  // TODO: add tests for sorting by snapshots and configurations once this behavior is fixed
+  it('sorts by snapshots ascending', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
+    );
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ tab: 'public' }} />);
+    });
+
+    await user.click(screen.getByText('Snapshots'));
+
+    // Assert
+    checkOrder('revali method 2', 'revali method', 'sorting method', 'daruk method');
+  });
+
+  it('sorts by snapshots descending', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
+    );
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ tab: 'public' }} />);
+    });
+
+    await user.click(screen.getByText('Snapshots'));
+    await user.click(screen.getByText('Snapshots'));
+
+    // Assert
+    checkOrder('daruk method', 'sorting method', 'revali method', 'revali method 2');
+  });
+
+  it('sorts by configurations ascending', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
+    );
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ tab: 'public' }} />);
+    });
+
+    await user.click(screen.getByText('Configurations'));
+
+    // Assert
+    checkOrder('sorting method', 'revali method 2', 'revali method', 'daruk method');
+  });
+
+  it('sorts by configurations descending', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
+    );
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ tab: 'public' }} />);
+    });
+
+    await user.click(screen.getByText('Configurations'));
+    await user.click(screen.getByText('Configurations'));
+
+    // Assert
+    checkOrder('daruk method', 'revali method', 'revali method 2', 'sorting method');
+  });
 
   it('displays a tooltip for namespace and method names', async () => {
     // Arrange
