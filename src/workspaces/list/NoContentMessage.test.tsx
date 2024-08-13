@@ -7,37 +7,21 @@ import { NoContentMessage } from 'src/workspaces/list/NoContentMessage';
 import { WorkspaceFilterValues } from 'src/workspaces/list/WorkspaceFilters';
 
 describe('NoContentMessage', () => {
-  const defaultWorkspace: CategorizedWorkspaces = {
-    myWorkspaces: [defaultGoogleWorkspace],
-    newAndInteresting: [],
-    featured: [],
-    public: [],
-  };
-
-  const noWorkspaces: CategorizedWorkspaces = {
-    myWorkspaces: [],
-    newAndInteresting: [],
-    featured: [],
-    public: [],
-  };
-
-  const keywordFilters: WorkspaceFilterValues = {
-    keywordFilter: 'nothingMatchesThis',
-    accessLevels: [],
-    tab: 'myWorkspaces',
-    tags: [],
-  };
-
-  const featuredFilters: WorkspaceFilterValues = {
-    keywordFilter: '',
-    accessLevels: [],
-    tab: 'featured',
-    tags: [],
-  };
-
   it('displays loading message if workspaces are loading', () => {
     // Arrange
-    const props = { loadingWorkspaces: true, workspaces: defaultWorkspace, filters: keywordFilters };
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultGoogleWorkspace],
+      newAndInteresting: [],
+      featured: [],
+      public: [],
+    };
+    const filters: WorkspaceFilterValues = {
+      keywordFilter: 'nothingMatchesThis',
+      accessLevels: [],
+      tab: 'myWorkspaces',
+      tags: [],
+    };
+    const props = { loadingWorkspaces: true, workspaces, filters };
 
     // Act
     render(<NoContentMessage {...props} />);
@@ -48,7 +32,19 @@ describe('NoContentMessage', () => {
 
   it('displays no workspaces message if there are no workspaces and filters tab is myWorkspaces', () => {
     // Arrange
-    const props = { loadingWorkspaces: false, workspaces: noWorkspaces, filters: keywordFilters };
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [],
+      newAndInteresting: [],
+      featured: [],
+      public: [],
+    };
+    const filters: WorkspaceFilterValues = {
+      keywordFilter: 'nothingMatchesThis',
+      accessLevels: [],
+      tab: 'myWorkspaces',
+      tags: [],
+    };
+    const props = { loadingWorkspaces: false, workspaces, filters };
 
     // Act
     render(<NoContentMessage {...props} />);
@@ -62,7 +58,19 @@ describe('NoContentMessage', () => {
 
   it('displays no matching workspaces message if filters tab is not myWorkspaces', () => {
     // Arrange
-    const props = { loadingWorkspaces: false, workspaces: noWorkspaces, filters: featuredFilters };
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [],
+      newAndInteresting: [],
+      featured: [],
+      public: [],
+    };
+    const filters: WorkspaceFilterValues = {
+      keywordFilter: '',
+      accessLevels: [],
+      tab: 'featured',
+      tags: [],
+    };
+    const props = { loadingWorkspaces: false, workspaces, filters };
 
     // Act
     render(<NoContentMessage {...props} />);
@@ -73,7 +81,19 @@ describe('NoContentMessage', () => {
 
   it('displays no matching workspaces message if myWorkspaces is not empty', () => {
     // Arrange
-    const props = { loadingWorkspaces: false, workspaces: defaultWorkspace, filters: keywordFilters };
+    const workspaces: CategorizedWorkspaces = {
+      myWorkspaces: [defaultGoogleWorkspace],
+      newAndInteresting: [],
+      featured: [],
+      public: [],
+    };
+    const filters: WorkspaceFilterValues = {
+      keywordFilter: 'nothingMatchesThis',
+      accessLevels: [],
+      tab: 'myWorkspaces',
+      tags: [],
+    };
+    const props = { loadingWorkspaces: false, workspaces, filters };
 
     // Act
     render(<NoContentMessage {...props} />);
