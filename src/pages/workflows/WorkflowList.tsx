@@ -6,7 +6,7 @@ import { Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { DelayedSearchInput } from 'src/components/input';
 import { TabBar } from 'src/components/tabBars';
-import { FlexTable, HeaderCell, Sortable, TooltipCell } from 'src/components/table';
+import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
@@ -41,7 +41,7 @@ interface NewQueryParams {
 interface WorkflowTableHeaderProps {
   sort: SortProperties;
   field: string;
-  onSort: React.Dispatch<React.SetStateAction<SortProperties>>;
+  onSort: (newSort: SortProperties) => void;
   children: string;
 }
 
@@ -50,9 +50,8 @@ interface WorkflowTableHeaderProps {
  * @param {SortProperties} props.sort - the current sort properties of the table
  * @param {string} props.field - the field identifier of the header's column
  * (should match the sort field if this column is being sorted)
- * @param {React.Dispatch<React.SetStateAction<SortProperties>>} props.onSort -
- * called to update the sort properties if the header's column is selected for
- * sorting
+ * @param {(newSort: SortProperties) => void} props.onSort - called to update
+ * the sort properties when the header's column is selected for sorting
  * @param {string} props.children - the text to display in the header cell
  */
 const WorkflowTableHeader = (props: WorkflowTableHeaderProps) => {
@@ -86,6 +85,9 @@ export const WorkflowList = (props: WorkflowListProps) => {
   // component)
   const [sort, setSort] = useState<SortProperties>({ field: 'name', direction: 'asc' });
 
+  const [pageNumber, setPageNumber] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   const getTabQueryName = (newTab: string | undefined): string | undefined => (newTab === 'mine' ? undefined : newTab);
 
   const getUpdatedQuery = ({ newTab = tab, newFilter = filter }: NewQueryParams): string => {
@@ -100,8 +102,14 @@ export const WorkflowList = (props: WorkflowListProps) => {
     const newSearch: string = getUpdatedQuery(newParams);
 
     if (newSearch !== Nav.history.location.search) {
+      setPageNumber(1);
       Nav.history.replace({ search: newSearch });
     }
+  };
+
+  const onSort = (newSort: SortProperties): void => {
+    setPageNumber(1);
+    setSort(newSort);
   };
 
   const tabName: string = tab || 'mine';
@@ -131,6 +139,10 @@ export const WorkflowList = (props: WorkflowListProps) => {
     )
   )(workflows?.[tabName]);
 
+  const firstPageIndex: number = (pageNumber - 1) * itemsPerPage;
+  const lastPageIndex: number = firstPageIndex + itemsPerPage;
+  const paginatedWorkflows: MethodDefinition[] = sortedWorkflows.slice(firstPageIndex, lastPageIndex);
+
   return (
     <FooterWrapper>
       <TopBar title='Workflows' href=''>
@@ -155,7 +167,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
       >
         {null /* nothing to display at the end of the tab bar */}
       </TabBar>
-      <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', rowGap: '1rem' }}>
         <div style={{ flex: 1 }}>
           {workflows && (
             <AutoSizer>
@@ -165,8 +177,8 @@ export const WorkflowList = (props: WorkflowListProps) => {
                   width={width}
                   height={height}
                   sort={sort as any /* necessary until FlexTable is converted to TS */}
-                  rowCount={sortedWorkflows.length}
-                  columns={getColumns(sort, setSort, sortedWorkflows)}
+                  rowCount={paginatedWorkflows.length}
+                  columns={getColumns(sort, onSort, paginatedWorkflows)}
                   variant={null}
                   noContentMessage={null /* default message */}
                   tabIndex={-1}
@@ -175,6 +187,24 @@ export const WorkflowList = (props: WorkflowListProps) => {
             </AutoSizer>
           )}
         </div>
+        {!_.isEmpty(sortedWorkflows) && (
+          <div style={{ marginBottom: '0.5rem' }}>
+            {
+              // @ts-expect-error
+              <Paginator
+                filteredDataLength={sortedWorkflows.length}
+                unfilteredDataLength={workflows![tabName].length}
+                pageNumber={pageNumber}
+                setPageNumber={setPageNumber}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={(v) => {
+                  setPageNumber(1);
+                  setItemsPerPage(v);
+                }}
+              />
+            }
+          </div>
+        )}
       </div>
     </FooterWrapper>
   );
@@ -182,20 +212,20 @@ export const WorkflowList = (props: WorkflowListProps) => {
 
 const getColumns = (
   sort: SortProperties,
-  setSort: React.Dispatch<React.SetStateAction<SortProperties>>,
-  sortedWorkflows: MethodDefinition[]
+  onSort: (newSort: SortProperties) => void,
+  paginatedWorkflows: MethodDefinition[]
 ) => [
   // Note: 'field' values should be MethodDefinition property names for sorting
   // to work properly
   {
     field: 'name',
     headerRenderer: () => (
-      <WorkflowTableHeader sort={sort} field='name' onSort={setSort}>
+      <WorkflowTableHeader sort={sort} field='name' onSort={onSort}>
         Workflow
       </WorkflowTableHeader>
     ),
     cellRenderer: ({ rowIndex }) => {
-      const { namespace, name } = sortedWorkflows[rowIndex];
+      const { namespace, name } = paginatedWorkflows[rowIndex];
 
       return (
         <TooltipCell tooltip={`${namespace}/${name}`}>
@@ -211,12 +241,12 @@ const getColumns = (
   {
     field: 'synopsis',
     headerRenderer: () => (
-      <WorkflowTableHeader sort={sort} field='synopsis' onSort={setSort}>
+      <WorkflowTableHeader sort={sort} field='synopsis' onSort={onSort}>
         Synopsis
       </WorkflowTableHeader>
     ),
     cellRenderer: ({ rowIndex }) => {
-      const { synopsis } = sortedWorkflows[rowIndex];
+      const { synopsis } = paginatedWorkflows[rowIndex];
 
       return <TooltipCell tooltip={null}>{synopsis}</TooltipCell>;
     },
@@ -225,12 +255,12 @@ const getColumns = (
   {
     field: 'managers',
     headerRenderer: () => (
-      <WorkflowTableHeader sort={sort} field='managers' onSort={setSort}>
+      <WorkflowTableHeader sort={sort} field='managers' onSort={onSort}>
         Owners
       </WorkflowTableHeader>
     ),
     cellRenderer: ({ rowIndex }) => {
-      const { managers } = sortedWorkflows[rowIndex];
+      const { managers } = paginatedWorkflows[rowIndex];
 
       return <TooltipCell tooltip={null}>{managers?.join(', ')}</TooltipCell>;
     },
@@ -239,12 +269,12 @@ const getColumns = (
   {
     field: 'numSnapshots',
     headerRenderer: () => (
-      <WorkflowTableHeader sort={sort} field='numSnapshots' onSort={setSort}>
+      <WorkflowTableHeader sort={sort} field='numSnapshots' onSort={onSort}>
         Snapshots
       </WorkflowTableHeader>
     ),
     cellRenderer: ({ rowIndex }) => {
-      const { numSnapshots } = sortedWorkflows[rowIndex];
+      const { numSnapshots } = paginatedWorkflows[rowIndex];
 
       return <div style={{ textAlign: 'end', flex: 1 }}>{numSnapshots}</div>;
     },
@@ -253,12 +283,12 @@ const getColumns = (
   {
     field: 'numConfigurations',
     headerRenderer: () => (
-      <WorkflowTableHeader sort={sort} field='numConfigurations' onSort={setSort}>
+      <WorkflowTableHeader sort={sort} field='numConfigurations' onSort={onSort}>
         Configurations
       </WorkflowTableHeader>
     ),
     cellRenderer: ({ rowIndex }) => {
-      const { numConfigurations } = sortedWorkflows[rowIndex];
+      const { numConfigurations } = paginatedWorkflows[rowIndex];
 
       return <div style={{ textAlign: 'end', flex: 1 }}>{numConfigurations}</div>;
     },
