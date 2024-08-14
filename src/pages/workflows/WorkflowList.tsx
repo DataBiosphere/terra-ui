@@ -86,7 +86,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
   const [sort, setSort] = useState<SortProperties>({ field: 'name', direction: 'asc' });
 
   const [pageNumber, setPageNumber] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
   const getTabQueryName = (newTab: string | undefined): string | undefined => (newTab === 'mine' ? undefined : newTab);
 
@@ -170,13 +170,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
   return (
     <FooterWrapper>
       <TopBar title='Workflows' href=''>
-        <DelayedSearchInput
-          style={{ marginLeft: '2rem', width: 500 }}
-          placeholder='SEARCH WORKFLOWS'
-          aria-label='Search workflows'
-          onChange={(val) => updateQuery({ newFilter: val })}
-          value={filter}
-        />
+        {null /* no additional content to display in the top bar */}
       </TopBar>
       <TabBar
         aria-label='workflows menu'
@@ -192,6 +186,13 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {null /* nothing to display at the end of the tab bar */}
       </TabBar>
       <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', rowGap: '1rem' }}>
+        <DelayedSearchInput
+          style={{ width: 500 }}
+          placeholder='SEARCH WORKFLOWS'
+          aria-label='Search workflows'
+          onChange={(val) => updateQuery({ newFilter: val })}
+          value={filter}
+        />
         <div style={{ flex: 1 }}>
           {workflows && (
             <AutoSizer>
