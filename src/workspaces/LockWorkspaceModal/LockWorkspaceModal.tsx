@@ -2,7 +2,8 @@ import { Modal } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
-import { withErrorReportingInModal } from 'src/libs/error';
+import { reportError } from 'src/libs/error';
+import { withBusyState } from 'src/libs/utils';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface LockWorkspaceModalProps {
@@ -23,21 +24,17 @@ const LockWorkspaceModal = (props: LockWorkspaceModalProps) => {
   const [togglingLock, setTogglingLock] = useState(false);
   const helpText = isLocked ? 'Unlock Workspace' : 'Lock Workspace';
 
-  const onFailureDismiss = () => {
-    setTogglingLock(false);
-    onDismiss();
-  };
-
-  const toggleWorkspaceLock = withErrorReportingInModal(
-    'Error toggling workspace lock',
-    onFailureDismiss
-  )(async () => {
-    setTogglingLock(true);
-    isLocked
-      ? await Ajax().Workspaces.workspace(namespace, name).unlock()
-      : await Ajax().Workspaces.workspace(namespace, name).lock();
-    onDismiss();
-    onSuccess();
+  const toggleWorkspaceLock = withBusyState(setTogglingLock)(async () => {
+    try {
+      isLocked
+        ? await Ajax().Workspaces.workspace(namespace, name).unlock()
+        : await Ajax().Workspaces.workspace(namespace, name).lock();
+      onDismiss();
+      onSuccess();
+    } catch (error) {
+      reportError('Error toggling workspace lock', error);
+      onDismiss();
+    }
   });
 
   return (

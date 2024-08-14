@@ -10,11 +10,18 @@ import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxExports = typeof import('src/libs/ajax');
-
 jest.mock('src/libs/ajax', (): AjaxExports => {
   return {
     ...jest.requireActual('src/libs/ajax'),
     Ajax: jest.fn(),
+  };
+});
+
+type ErrorExports = typeof import('src/libs/error');
+jest.mock('src/libs/error', (): ErrorExports => {
+  return {
+    ...jest.requireActual('src/libs/error'),
+    reportError: jest.fn(),
   };
 });
 
@@ -148,5 +155,34 @@ describe('LockWorkspaceModal', () => {
     expect(onDismiss).toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
     expect(mockLock).not.toHaveBeenCalled();
+  });
+
+  it('calls only onDismiss if the lock toggle causes an error', async () => {
+    // Arrange
+    const onDismiss = jest.fn();
+    const onSuccess = jest.fn();
+    const workspace: Workspace = {
+      ...defaultGoogleWorkspace,
+      workspace: { ...defaultGoogleWorkspace.workspace, isLocked: true },
+    };
+    const props = { workspace, onDismiss, onSuccess };
+    asMockedFn(Ajax).mockReturnValue({
+      Workspaces: {
+        workspace: () => {
+          throw new Error();
+        },
+      },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
+    render(<LockWorkspaceModal {...props} />);
+    const unlockButton = screen.getByRole('button', { name: 'Unlock Workspace' });
+    await act(async () => {
+      fireEvent.click(unlockButton);
+    });
+
+    // Assert
+    expect(onDismiss).toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
   });
 });
