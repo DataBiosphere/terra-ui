@@ -10,6 +10,7 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { BillingRole } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
@@ -125,7 +126,7 @@ export const MemberCardHeaders: React.FC<MemberCardHeadersProps> = memoWithName(
 
 export interface User {
   email: string;
-  roles: string[];
+  roles: BillingRole[];
 }
 
 interface MemberCardProps {
@@ -189,7 +190,7 @@ export const MemberCard: React.FC<MemberCardProps> = memoWithName('MemberCard', 
 });
 
 interface NewUserModalProps {
-  addFunction: (roles: string[], email: string) => Promise<void>;
+  addFunction: (roles: BillingRole[], email: string) => Promise<void>;
   addUnregisteredUser?: boolean;
   adminLabel: string;
   userLabel: string;
@@ -358,7 +359,7 @@ interface EditUserModalProps {
   user: User;
   onSuccess: () => void;
   onDismiss: () => void;
-  saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void>;
+  saveFunction: (email: string, roles: BillingRole[], newRoles: BillingRole[]) => void;
 }
 export const EditUserModal = (props: EditUserModalProps) => {
   const {
