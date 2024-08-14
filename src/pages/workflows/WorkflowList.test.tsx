@@ -132,6 +132,20 @@ const ganonPrivateMethod: MethodDefinition = {
   entityType: 'Workflow',
 };
 
+// Note: For these test cases, the user is assumed to be Revali
+const tabMethodCountsTestCases: { methods: MethodDefinition[]; myMethodsCount: number; publicMethodsCount: number }[] =
+  [
+    { methods: [], myMethodsCount: 0, publicMethodsCount: 0 },
+    { methods: [revaliPrivateMethod], myMethodsCount: 1, publicMethodsCount: 0 },
+    { methods: [revaliMethod], myMethodsCount: 1, publicMethodsCount: 1 },
+    { methods: [revaliMethod, darukMethod, revaliMethod2], myMethodsCount: 2, publicMethodsCount: 3 },
+    {
+      methods: [revaliMethod, darukMethod, revaliMethod2, revaliPrivateMethod],
+      myMethodsCount: 3,
+      publicMethodsCount: 3,
+    },
+  ];
+
 describe('workflows table', () => {
   it('renders the search bar and tabs', async () => {
     // Arrange
@@ -262,6 +276,26 @@ describe('workflows table', () => {
     expect(screen.getByText('revali method')).toBeInTheDocument();
   });
 
+  it.each(tabMethodCountsTestCases)(
+    'provides accurate method counts in the tab display names',
+    async ({ methods, myMethodsCount, publicMethodsCount }) => {
+      // Arrange
+      asMockedFn(Ajax).mockImplementation(() => mockAjax(methods) as AjaxContract);
+
+      // set the user's email
+      jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('revali@gale.com')));
+
+      // Act
+      await act(async () => {
+        render(<WorkflowList />);
+      });
+
+      // Assert
+      expect(screen.getByText(`My Workflows (${myMethodsCount})`)).toBeInTheDocument();
+      expect(screen.getByText(`Public Workflows (${publicMethodsCount})`)).toBeInTheDocument();
+    }
+  );
+
   it('filters workflows by namespace', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => mockAjax([darukMethod, revaliMethod]) as AjaxContract);
@@ -312,6 +346,9 @@ describe('workflows table', () => {
   it('updates the query parameters when you click a tab', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => mockAjax([darukMethod, revaliMethod]) as AjaxContract);
+
+    // set the user's email to ensure there are no my workflows
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('test@test.com')));
 
     // should be called to switch tabs
     const navHistoryReplace = jest.spyOn(Nav.history, 'replace');
