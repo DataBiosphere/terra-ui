@@ -1,10 +1,10 @@
-import { ButtonPrimary, icon, Link, Modal } from '@terra-ui-packages/components';
+import { ButtonPrimary, icon, Link, Modal, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import * as Auth from 'src/auth/auth';
 import { accountLinkStyle } from 'src/billing/utils';
-import { IdContainer, VirtualizedSelect } from 'src/components/common';
+import { VirtualizedSelect } from 'src/components/common';
 import { TextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
@@ -101,6 +101,9 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
     () => billingAccount!.displayName || billingAccount!.accountName
   );
 
+  const billingAccountSelectId = useUniqueId('account-select-');
+  const datasetProjectId = useUniqueId('dataset-project-');
+  const datasetNameId = useUniqueId('dataset-name-');
   return h(Fragment, [
     Auth.hasBillingScope() &&
       div({ style: accountLinkStyle }, [
@@ -172,24 +175,21 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
               ),
             },
             [
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
-                    h(VirtualizedSelect, {
-                      id,
-                      value: selectedBilling || billingProject.billingAccount,
-                      isClearable: false,
-                      options: _.map(
-                        ({ displayName, accountName }) => ({ label: displayName, value: accountName }),
-                        billingAccounts
-                      ),
-                      onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName),
-                    }),
-                    div({ style: { marginTop: '1rem' } }, [
-                      'Note: Changing the billing account for this billing project will clear the spend report configuration.',
-                    ]),
-                  ]),
+              h(Fragment, [
+                h(FormLabel, { htmlFor: billingAccountSelectId, required: true }, ['Select billing account']),
+                h(VirtualizedSelect, {
+                  id: billingAccountSelectId,
+                  value: selectedBilling || billingProject.billingAccount,
+                  isClearable: false,
+                  options: _.map(
+                    ({ displayName, accountName }) => ({ label: displayName, value: accountName }),
+                    billingAccounts
+                  ),
+                  onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName),
+                }),
+                div({ style: { marginTop: '1rem' } }, [
+                  'Note: Changing the billing account for this billing project will clear the spend report configuration.',
+                ]),
               ]),
             ]
           ),
@@ -263,34 +263,28 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
               ),
             },
             [
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project ID']),
-                    h(TextInput, {
-                      id,
-                      onChange: setSelectedDatasetProjectName,
-                    }),
-                  ]),
+              h(Fragment, [
+                h(FormLabel, { htmlFor: datasetProjectId, required: true }, ['Dataset Project ID']),
+                h(TextInput, {
+                  id: datasetProjectId,
+                  onChange: setSelectedDatasetProjectName,
+                }),
               ]),
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
-                    h(TextInput, {
-                      id,
-                      onChange: setSelectedDatasetName,
-                    }),
-                    div({ style: { marginTop: '1rem' } }, [
-                      ['See '],
-                      h(
-                        Link,
-                        { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps },
-                        ['our documentation']
-                      ),
-                      [' for details on configuring spend reporting for billing projects.'],
-                    ]),
-                  ]),
+              h(Fragment, [
+                h(FormLabel, { htmlFor: datasetNameId, required: true }, ['Dataset Name']),
+                h(TextInput, {
+                  id: datasetNameId,
+                  onChange: setSelectedDatasetName,
+                }),
+                div({ style: { marginTop: '1rem' } }, [
+                  ['See '],
+                  h(
+                    Link,
+                    { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps },
+                    ['our documentation']
+                  ),
+                  [' for details on configuring spend reporting for billing projects.'],
+                ]),
               ]),
             ]
           ),
