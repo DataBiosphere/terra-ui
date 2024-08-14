@@ -54,9 +54,7 @@ const mockProfile: TerraUserProfile = {
   programLocationCountry: '',
 
   researchArea: '',
-  interestInTerra: '',
-
-  starredWorkspaces: undefined,
+  interestInTerra: undefined,
 };
 
 describe('useUserProfile', () => {
@@ -192,7 +190,7 @@ describe('useUserProfile', () => {
 
       // Assert
       // Not all profile fields are updated via this request.
-      expect(updateProfile).toHaveBeenCalledWith(_.omit(['email', 'starredWorkspaces'], updatedProfile));
+      expect(updateProfile).toHaveBeenCalledWith(_.omit(['email', 'interestInTerra'], updatedProfile));
     });
 
     it('returns loading status while profile is updating', async () => {

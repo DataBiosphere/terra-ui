@@ -80,6 +80,7 @@ const setupMockAjax = async (
     terraUserAttributes: { marketingConsent: false },
     termsOfService,
     enterpriseFeatures: [],
+    favoriteResources: [],
   };
   const getTermsOfServiceText = jest.fn().mockResolvedValue('some text');
   const getUserTermsOfServiceDetails = jest

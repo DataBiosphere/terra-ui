@@ -35,7 +35,6 @@ const completeUserProfile: TerraUserProfile = {
   programLocationCity: 'testCity',
   programLocationCountry: 'testCountry',
   programLocationState: 'testState',
-  starredWorkspaces: 'testStarredWorkspaces',
   title: 'testTitle',
   researchArea: 'testResearchArea',
 } as const satisfies TerraUserProfile;

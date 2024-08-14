@@ -21,6 +21,7 @@ import {
   canRead,
   getCloudProviderFromWorkspace,
   isGoogleWorkspace,
+  starredWorkspacesFromFavoriteResources,
   workspaceAccessLevels,
   WorkspaceInfo,
   WorkspacePolicy,
@@ -105,10 +106,8 @@ const getColumns = (
 
 export const RenderedWorkspaces = (props: RenderedWorkspacesProps): ReactNode => {
   const { workspaces } = props;
-  const {
-    profile: { starredWorkspaces },
-  } = useStore<TerraUserState>(userStore);
-  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
+  const { favoriteResources } = useStore<TerraUserState>(userStore);
+  const starredWorkspaceIds = starredWorkspacesFromFavoriteResources(favoriteResources);
 
   const [sort, setSort] = useState<WorkspaceSort>({ field: 'lastModified', direction: 'desc' });
 

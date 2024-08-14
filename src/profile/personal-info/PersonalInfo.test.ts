@@ -44,8 +44,6 @@ describe('PersonalInfo', () => {
 
     researchArea: '',
     interestInTerra: '',
-
-    starredWorkspaces: undefined,
   };
 
   it('renders the initial profile', () => {

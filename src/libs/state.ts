@@ -6,6 +6,7 @@ import { OidcUser } from 'src/auth/oidc-broker';
 import { Dataset } from 'src/libs/ajax/Catalog';
 import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
+import { FullyQualifiedResourceId } from 'src/libs/ajax/SamResources';
 import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
 import { NihDatasetPermission, SamUserAllowances, SamUserAttributes, SamUserResponse } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
@@ -109,7 +110,7 @@ export interface TerraUser {
 export interface TerraUserProfile {
   // TODO: anonymousGroup is here from getProfile from orch
   // TODO: for future ticket, separate items updated via register/profile (personal info)
-  //  from things that are updated via api/profile/preferences (starred workspaces, notification settings)
+  //  from things that are updated via api/profile/preferences (notification settings)
   firstName: string | undefined;
   lastName: string | undefined;
   institute: string | undefined;
@@ -121,7 +122,6 @@ export interface TerraUserProfile {
   programLocationState?: string;
   programLocationCountry?: string;
   researchArea?: string;
-  starredWorkspaces?: string;
 }
 
 export interface TerraUserState {
@@ -130,6 +130,7 @@ export interface TerraUserState {
   terraUserAttributes: SamUserAttributes;
   enterpriseFeatures: string[];
   samUser: SamUserResponse;
+  favoriteResources: FullyQualifiedResourceId[];
 }
 
 /**
@@ -147,7 +148,6 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
     programLocationState: undefined,
     programLocationCountry: undefined,
     interestInTerra: undefined,
-    starredWorkspaces: undefined,
   },
   terraUser: {
     token: undefined,
@@ -174,6 +174,7 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
     registeredAt: undefined,
     updatedAt: undefined,
   },
+  favoriteResources: [],
 });
 
 export const getTerraUser = (): TerraUser => userStore.get().terraUser;
