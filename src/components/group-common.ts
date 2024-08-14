@@ -10,7 +10,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
-import { BillingRole } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
@@ -126,7 +125,7 @@ export const MemberCardHeaders: React.FC<MemberCardHeadersProps> = memoWithName(
 
 export interface User {
   email: string;
-  roles: BillingRole[];
+  roles: string[]; // In practice will be BillingRole or GroupRole
 }
 
 interface MemberCardProps {
@@ -190,7 +189,7 @@ export const MemberCard: React.FC<MemberCardProps> = memoWithName('MemberCard', 
 });
 
 interface NewUserModalProps {
-  addFunction: (roles: BillingRole[], email: string) => Promise<void>;
+  addFunction: (roles: string[], email: string) => Promise<void>;
   addUnregisteredUser?: boolean;
   adminLabel: string;
   userLabel: string;
@@ -213,7 +212,7 @@ export const NewUserModal = (props: NewUserModalProps) => {
   const [userEmail, setUserEmail] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [confirmAddUser, setConfirmAddUser] = useState(false);
-  const [roles, setRoles] = useState([userLabel]);
+  const [roles, setRoles] = useState<string[]>([userLabel]);
   const [submitError, setSubmitError] = useState(undefined);
   const [busy, setBusy] = useState(false);
 
@@ -359,7 +358,7 @@ interface EditUserModalProps {
   user: User;
   onSuccess: () => void;
   onDismiss: () => void;
-  saveFunction: (email: string, roles: BillingRole[], newRoles: BillingRole[]) => void;
+  saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void | void[]>;
 }
 export const EditUserModal = (props: EditUserModalProps) => {
   const {

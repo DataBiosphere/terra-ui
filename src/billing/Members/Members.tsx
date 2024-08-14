@@ -66,8 +66,8 @@ export const Members = (props: MembersProps): ReactNode => {
           footer={[
             'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
           ]}
-          addFunction={(roles: BillingRole[], email: string) =>
-            Ajax().Billing.addProjectUser(billingProjectName, roles, email)
+          addFunction={(roles: string[], email: string) =>
+            Ajax().Billing.addProjectUser(billingProjectName, roles as BillingRole[], email)
           }
           onDismiss={() => setAddingUser(false)}
           onSuccess={() => {
@@ -81,8 +81,8 @@ export const Members = (props: MembersProps): ReactNode => {
           adminLabel={billingRoles.owner}
           userLabel={billingRoles.user}
           user={editingUser}
-          saveFunction={(email: string, roles: BillingRole[], newRoles: BillingRole[]) =>
-            Ajax().Billing.changeUserRoles(billingProjectName, email, roles, newRoles)
+          saveFunction={(email: string, roles: string[], newRoles: string[]) =>
+            Ajax().Billing.changeUserRoles(billingProjectName, email, roles as BillingRole[], newRoles as BillingRole[])
           }
           onDismiss={() => setEditingUser(false)}
           onSuccess={() => {
