@@ -32,6 +32,7 @@ describe('BillingAccountControls', () => {
     const user = userEvent.setup();
     asMockedFn(hasBillingScope).mockReturnValue(false);
     const mockAuthorizeAndLoadAccounts = jest.fn();
+
     // Act
     renderWithAppContexts(
       <BillingAccountControls
@@ -47,6 +48,10 @@ describe('BillingAccountControls', () => {
     );
 
     // Assert
+    // No options to edit things because user does not have billing scope.
+    expect(screen.queryByLabelText('Billing account menu')).toBeNull();
+    expect(screen.queryByLabelText('Configure Spend Reporting')).toBeNull();
+    // Click option to view billing account information, which will require account elevation.
     const addUserButton = screen.getByText('View billing account');
     await user.click(addUserButton);
     expect(mockAuthorizeAndLoadAccounts).toHaveBeenCalled();
@@ -110,6 +115,7 @@ describe('BillingAccountControls', () => {
     };
     const billingAccounts: Record<string, GoogleBillingAccount> = {};
     billingAccounts[`${gcpBillingProject.billingAccount}`] = testBillingAccount;
+
     // Act
     renderWithAppContexts(
       <BillingAccountControls
@@ -128,6 +134,8 @@ describe('BillingAccountControls', () => {
     screen.getByText('Test Billing Account');
     // No menu because owner is false
     expect(screen.queryByLabelText('Billing account menu')).toBeNull();
+    // No edit spend reporting because owner is false
+    expect(screen.queryByLabelText('Configure Spend Reporting')).toBeNull();
   });
 
   it('shows a modal to change billing account if user has billing scope, access, and isOwner', async () => {
@@ -144,6 +152,9 @@ describe('BillingAccountControls', () => {
       displayName: 'Second Billing Account',
     };
     billingAccounts['billing-account-two'] = secondBillingAccount;
+    // The parent class maintains the `showBillingModal` state because it is involved in periodically polling
+    // to update the state of billing accounts. For the test to be able to react to the state changes, we have
+    // to create a test component that can store the state.
     const BillingAccountControlsWithState = ({
       billingAccounts,
       billingProject,
@@ -178,6 +189,7 @@ describe('BillingAccountControls', () => {
         } as Partial<AjaxContract> as AjaxContract)
     );
     const reloadBillingProject = jest.fn();
+
     // Act
     renderWithAppContexts(
       <BillingAccountControlsWithState
@@ -232,6 +244,7 @@ describe('BillingAccountControls', () => {
     );
     const reloadBillingProject = jest.fn();
     const setUpdating = jest.fn();
+
     // Act
     renderWithAppContexts(
       <BillingAccountControls
@@ -283,6 +296,7 @@ describe('BillingAccountControls', () => {
         } as Partial<AjaxContract> as AjaxContract)
     );
     const setUpdating = jest.fn();
+
     // Act
     renderWithAppContexts(
       <BillingAccountControls
