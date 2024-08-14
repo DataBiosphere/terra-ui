@@ -74,13 +74,18 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
   const updateSpendConfiguration = _.flow(
     reportErrorAndRethrow('Error updating spend report configuration'),
     Utils.withBusyState(setUpdating)
-  )(() =>
-    Ajax(signal).Billing.updateSpendConfiguration({
+  )(() => {
+    Ajax().Metrics.captureEvent(Events.billingSpendConfigurationUpdated, {
+      datasetGoogleProject: selectedDatasetProjectName,
+      datasetName: selectedDatasetName,
+      ...extractBillingDetails(billingProject),
+    });
+    return Ajax(signal).Billing.updateSpendConfiguration({
       billingProjectName: billingProject.projectName,
       datasetGoogleProject: selectedDatasetProjectName,
       datasetName: selectedDatasetName,
-    })
-  );
+    });
+  });
 
   // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
   const billingProjectHasBillingAccount = !(

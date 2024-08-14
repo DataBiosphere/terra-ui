@@ -258,9 +258,7 @@ describe('BillingAccountControls', () => {
 
     // Assert
     expect(removeBillingAccount).toHaveBeenCalledWith({ billingProjectName: gcpBillingProject.projectName });
-    expect(captureEvent).toHaveBeenCalledWith(Events.billingRemoveAccount, {
-      ...extractBillingDetails(gcpBillingProject),
-    });
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingRemoveAccount, extractBillingDetails(gcpBillingProject));
     expect(reloadBillingProject).toHaveBeenCalled();
     expect(setUpdating).toHaveBeenNthCalledWith(1, true);
     expect(setUpdating).toHaveBeenNthCalledWith(2, false);
@@ -317,9 +315,11 @@ describe('BillingAccountControls', () => {
       datasetGoogleProject: 'test-dataset-id',
       datasetName: 'test-dataset-name',
     });
-    // expect(captureEvent).toHaveBeenCalledWith(Events.billingRemoveAccount, {
-    //   ...extractBillingDetails(gcpBillingProject),
-    // });
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingSpendConfigurationUpdated, {
+      datasetGoogleProject: 'test-dataset-id',
+      datasetName: 'test-dataset-name',
+      ...extractBillingDetails(gcpBillingProject),
+    });
     expect(setUpdating).toHaveBeenNthCalledWith(1, true);
     expect(setUpdating).toHaveBeenNthCalledWith(2, false);
   });
