@@ -17,7 +17,7 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 interface BillingAccountControlsProps {
-  authorizeAndLoadAccounts: () => void;
+  authorizeAndLoadAccounts: () => Promise<void>;
   billingAccounts: Record<string, GoogleBillingAccount>;
   billingProject: GCPBillingProject;
   isOwner: boolean;
