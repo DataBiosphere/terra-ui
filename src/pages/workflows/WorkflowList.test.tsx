@@ -357,7 +357,7 @@ describe('workflows table', () => {
 
     // Act
     await act(async () => {
-      render(<WorkflowList />);
+      render(<WorkflowList queryParams={{ filter: 'test' }} />);
     });
 
     await user.click(screen.getByText('Public Workflows (2)'));
@@ -365,6 +365,8 @@ describe('workflows table', () => {
 
     // Assert
     expect(navHistoryReplace).toHaveBeenCalledTimes(2);
+
+    // clicking a tab clears the search filter
     expect(navHistoryReplace).toHaveBeenCalledWith({ search: '?tab=public' });
   });
 
