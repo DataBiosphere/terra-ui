@@ -3,12 +3,19 @@ import _ from 'lodash/fp';
 
 import { AuthTokenState, getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, sendRetryMetric } from './auth';
 import { sessionExpirationErrorMessage } from './auth-errors';
-import { authOpts as _authOpts, withAuthSession as _withAuthSession } from './auth-session';
 import { signOut, SignOutCause } from './signout/sign-out';
 
 //
 // Auth mechanics for use on typical auth-session scoped application data requests.
 //
+
+export const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } });
+
+export const withAuthSession =
+  (wrappedFetch: FetchFn): FetchFn =>
+  (url, options) => {
+    return wrappedFetch(url, _.merge(options, authOpts()));
+  };
 
 const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Response && error.status === 401;
 
@@ -63,6 +70,3 @@ export const withRetryAfterReloadingExpiredAuthToken =
       }
     }
   };
-
-export const authOpts = _authOpts;
-export const withAuthSession = _withAuthSession;
