@@ -296,6 +296,29 @@ describe('workflows table', () => {
     }
   );
 
+  it("updates only the current tab's method count based on the filter", async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () => mockAjax([revaliMethod, darukMethod, revaliMethod2, revaliPrivateMethod]) as AjaxContract
+    );
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('revali@gale.com')));
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ filter: '2' }} />);
+    });
+
+    // Assert
+
+    // currently selected tab - count based on filter
+    expect(screen.getByText('My Workflows (1)')).toBeInTheDocument();
+
+    // other tab - count not based on filter
+    expect(screen.getByText('Public Workflows (3)')).toBeInTheDocument();
+  });
+
   it('filters workflows by namespace', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => mockAjax([darukMethod, revaliMethod]) as AjaxContract);

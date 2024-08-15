@@ -120,12 +120,15 @@ export const WorkflowList = (props: WorkflowListProps) => {
   const tabName: string = tab || 'mine';
   const tabs = { mine: 'My Workflows', public: 'Public Workflows' };
 
-  const getTabDisplayNames = (workflows: GroupedWorkflows | null | undefined) => {
-    const getCountString = (tab: keyof GroupedWorkflows): string => {
+  const getTabDisplayNames = (workflows: GroupedWorkflows | null | undefined, currentTabName: string) => {
+    const getCountString = (tabName: keyof GroupedWorkflows): string => {
       if (workflows == null) {
         return '';
       }
-      return ` (${workflows[tab].length})`;
+      if (tabName === currentTabName) {
+        return ` (${sortedWorkflows.length})`;
+      }
+      return ` (${workflows[tabName].length})`;
     };
 
     return {
@@ -186,7 +189,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         aria-label='workflows menu'
         activeTab={tabName}
         tabNames={Object.keys(tabs)}
-        displayNames={getTabDisplayNames(workflows)}
+        displayNames={getTabDisplayNames(workflows, tabName)}
         getHref={(currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`}
         getOnClick={(currentTab) => (e) => {
           e.preventDefault();
