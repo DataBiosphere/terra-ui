@@ -390,6 +390,19 @@ describe('workflows table', () => {
     expect(navHistoryReplace).toHaveBeenCalledWith({ search: '?filter=mysearch' });
   });
 
+  it('displays the search filter in the search bar', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax([darukMethod]) as AjaxContract);
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ filter: 'testfilter' }} />);
+    });
+
+    // Assert
+    expect(screen.getByRole('searchbox')).toHaveProperty('value', 'testfilter');
+  });
+
   it('sorts by workflow ascending by default', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
