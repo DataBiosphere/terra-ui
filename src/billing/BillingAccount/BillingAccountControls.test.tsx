@@ -162,7 +162,7 @@ describe('BillingAccountControls', () => {
     }: {
       billingAccounts: Record<string, GoogleBillingAccount>;
       billingProject: GCPBillingProject;
-      reloadBillingProject: () => void;
+      reloadBillingProject: () => Promise<void>;
     }): ReactNode => {
       const [showBillingModal, setShowBillingModal] = useState<boolean>(false);
 

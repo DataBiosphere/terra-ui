@@ -1,21 +1,27 @@
 import { SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { BillingAccountControls } from 'src/billing/BillingAccount/BillingAccountControls';
-import { BillingAccountSummary } from 'src/billing/BillingAccount/BillingAccountSummary';
+import { BillingAccountSummary, BillingAccountSummaryProps } from 'src/billing/BillingAccount/BillingAccountSummary';
 import { Members } from 'src/billing/Members/Members';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { SpendReport } from 'src/billing/SpendReport/SpendReport';
-import { accountLinkStyle, billingRoles } from 'src/billing/utils';
+import { accountLinkStyle, BillingAccountStatus, billingRoles } from 'src/billing/utils';
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
 import { Link } from 'src/components/common';
+import { User } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { Ajax } from 'src/libs/ajax';
-import { isAzureBillingProject, isGoogleBillingProject } from 'src/libs/ajax/Billing';
+import {
+  BillingProject,
+  GoogleBillingAccount,
+  isAzureBillingProject,
+  isGoogleBillingProject,
+} from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';
@@ -23,11 +29,21 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Utils from 'src/libs/utils';
+import { isGoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
-const groupByBillingAccountStatus = (billingProject, workspaces) => {
-  const group = (workspace) =>
+export const groupByBillingAccountStatus = (
+  billingProject: BillingProject,
+  workspaces: WorkspaceInfo[]
+): Record<BillingAccountStatus, Set<WorkspaceInfo>> => {
+  const group = (workspace: WorkspaceInfo): BillingAccountStatus =>
     Utils.cond(
-      [billingProject.billingAccount === workspace.billingAccount, () => 'done'],
+      [isAzureBillingProject(billingProject), () => 'done'],
+      [
+        isGoogleBillingProject(billingProject) &&
+          isGoogleWorkspaceInfo(workspace) &&
+          billingProject.billingAccount === workspace.billingAccount,
+        () => 'done',
+      ],
       [!!workspace.errorMessage, () => 'error'],
       [Utils.DEFAULT, () => 'updating']
     );
@@ -38,32 +54,47 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   //   W is the number of workspaces in a billing project (can be very large for GP).
   // Note we need to perform this search W times for each billing project; using a set reduces time
   // complexity by an order of magnitude.
-  return _.mapValues((ws) => new Set(ws), _.groupBy(group, workspaces));
+  return _.mapValues(
+    (workspacesInGroup) => new Set<WorkspaceInfo>(workspacesInGroup),
+    _.groupBy(group, workspaces) as Record<BillingAccountStatus, WorkspaceInfo[]>
+  ) as Record<BillingAccountStatus, Set<WorkspaceInfo>>;
 };
 
 const spendReportKey = 'spend report';
 
-const ProjectDetail = ({
-  authorizeAndLoadAccounts,
-  billingAccounts,
-  billingProject,
-  isOwner,
-  reloadBillingProject,
-  workspaces,
-  refreshWorkspaces,
-}) => {
+interface ProjectDetailProps {
+  authorizeAndLoadAccounts: () => Promise<void>;
+  billingAccounts: Record<string, GoogleBillingAccount>;
+  billingProject: BillingProject;
+  isOwner: boolean;
+  reloadBillingProject: () => Promise<unknown>;
+  workspaces: WorkspaceWrapper[];
+  refreshWorkspaces: () => Promise<void>;
+}
+
+const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
+  const {
+    authorizeAndLoadAccounts,
+    billingAccounts,
+    billingProject,
+    isOwner,
+    reloadBillingProject,
+    workspaces,
+    refreshWorkspaces,
+  } = props;
+
   // State
   const { query } = Nav.useRoute();
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || []);
-  const projectOwners = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers);
+  const projectOwners: User[] = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers);
 
   const [updating, setUpdating] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [tab, setTab] = useState(query.tab || 'workspaces');
 
-  const workspacesInProject = useMemo(
+  const workspacesInProject: WorkspaceInfo[] = useMemo(
     () => _.filter({ namespace: billingProject.projectName }, _.map('workspace', workspaces)),
     [billingProject, workspaces]
   );
@@ -83,7 +114,9 @@ const ProjectDetail = ({
   const reloadBillingProjectUsers = _.flow(
     reportErrorAndRethrow('Error loading billing project users list'),
     Utils.withBusyState(setUpdating)
-  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName).then(collectUserRoles).then(setProjectUsers));
+  )(() =>
+    Ajax(signal).Billing.listProjectUsers(billingProject.projectName).then(collectUserRoles).then(setProjectUsers)
+  );
 
   const removeUserFromBillingProject = _.flow(
     reportErrorAndRethrow('Error removing member from billing project'),
@@ -118,14 +151,14 @@ const ProjectDetail = ({
   };
 
   const tabs = _.map(
-    (key) => ({
+    (key: string) => ({
       key,
       title: span({ style: { padding: '0 0.5rem' } }, [
         _.capitalize(key === 'members' && !isOwner ? 'owners' : key), // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
       ]),
       tableName: _.lowerCase(key),
     }),
-    _.filter((key) => key !== spendReportKey || isOwner, _.keys(tabToTable))
+    _.filter((key: string) => key !== spendReportKey || isOwner, _.keys(tabToTable))
   );
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
@@ -155,13 +188,30 @@ const ProjectDetail = ({
   // As such, we need a layer of indirection to get current values.
   const getShowBillingModal = useGetter(showBillingModal);
   const getBillingAccountsOutOfDate = useGetter(billingAccountsOutOfDate);
-  usePollingEffect(() => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(), { ms: 5000 });
+  usePollingEffect(async () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(), {
+    ms: 5000,
+    leading: true,
+  });
+
+  // If the user is not an owner, projectUsers will only contain owners. If the user is not an owner, the project
+  // is automatically "shared".
+  const oneOwnerForSharedWorkspace = _.size(projectOwners) === 1 && (!isOwner || _.size(projectUsers) > 1);
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
-        billingProject.projectName,
-      ]),
+      div(
+        {
+          style: {
+            color: colors.dark(),
+            fontSize: 18,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            marginLeft: '1rem',
+          },
+        },
+        [billingProject.projectName]
+      ),
       isGoogleBillingProject(billingProject) &&
         h(BillingAccountControls, {
           authorizeAndLoadAccounts,
@@ -190,8 +240,7 @@ const ProjectDetail = ({
             ]),
           ]),
         ]),
-      _.size(projectUsers) > 1 &&
-        _.size(projectOwners) === 1 &&
+      oneOwnerForSharedWorkspace &&
         div(
           {
             style: {
@@ -220,7 +269,7 @@ const ProjectDetail = ({
                   ]
                 : [
                     'This shared billing project has only one owner. Consider requesting ',
-                    h(Link, { mailto: projectOwners[0].email }, [projectOwners[0].email]),
+                    h(Link, { href: `mailto:${projectOwners[0].email}` }, [projectOwners[0].email]),
                     ' to add another owner to ensure someone is able to manage the billing project in case they lose access to their account.',
                   ]
             ),
@@ -258,7 +307,8 @@ const ProjectDetail = ({
         ]
       ),
     ]),
-    billingAccountsOutOfDate && h(BillingAccountSummary, _.mapValues(_.size, groups)),
+    billingAccountsOutOfDate &&
+      h(BillingAccountSummary, _.mapValues(_.size, groups) as unknown as BillingAccountSummaryProps),
     updating && h(SpinnerOverlay, { mode: 'FullScreen' }),
   ]);
 };
