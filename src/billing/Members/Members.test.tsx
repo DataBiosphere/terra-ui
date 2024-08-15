@@ -11,10 +11,6 @@ import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 describe('Members', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('renders a list of members in the billing project with no accessibility errors', async () => {
     // Arrange
     const projectUsers: User[] = [
@@ -85,6 +81,7 @@ describe('Members', () => {
     const addProjectUser = jest.fn();
     const mockAjax: DeepPartial<AjaxContract> = {
       Billing: { addProjectUser } as Partial<AjaxContract['Billing']>,
+      // Next 2 mocks are needed for suggestions in the NewUserModal.
       Workspaces: { getShareLog: jest.fn(() => Promise.resolve([])) },
       Groups: { list: jest.fn(() => Promise.resolve([])) },
     };
@@ -109,7 +106,7 @@ describe('Members', () => {
     // so we need to select the second one.
     const emailInput = screen.getAllByLabelText('User email *')[1];
     await user.type(emailInput, 'test-user@company.com');
-    // Save button within the dialog, as opposed to the one that opened the dailog.
+    // Save button ("Add User") within the dialog, as opposed to the one that opened the dialog.
     const saveButton = within(screen.getByRole('dialog')).getByText('Add User');
     await user.click(saveButton);
 
