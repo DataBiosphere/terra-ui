@@ -195,7 +195,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
       >
         {null /* nothing to display at the end of the tab bar */}
       </TabBar>
-      <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', rowGap: '1rem' }}>
+      <main style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', rowGap: '1rem' }}>
         <DelayedSearchInput
           style={{ width: 500 }}
           placeholder='SEARCH WORKFLOWS'
@@ -239,7 +239,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
             }
           </div>
         )}
-      </div>
+      </main>
     </FooterWrapper>
   );
 };
