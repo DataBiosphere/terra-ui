@@ -1,5 +1,5 @@
 import { FetchFn } from '@terra-ui-packages/data-client-core';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { fetchLeo } from 'src/libs/ajax/ajax-common';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn } from 'src/testing/test-utils';
@@ -25,12 +25,12 @@ jest.mock('src/libs/ajax/ajax-common', (): Partial<AjaxCommonExports> => {
   return mocks;
 });
 
-type AuthFetchExports = typeof import('src/auth/auth-fetch');
-jest.mock('src/auth/auth-fetch', (): AuthFetchExports => {
+type AuthSessionExports = typeof import('src/auth/auth-session');
+jest.mock('src/auth/auth-session', (): AuthSessionExports => {
   const { asMockedFn } = jest.requireActual<TestUtilsExports>('src/testing/test-utils');
 
-  const mocks: AuthFetchExports = {
-    ...jest.requireActual<AuthFetchExports>('src/auth/auth-fetch'),
+  const mocks: AuthSessionExports = {
+    ...jest.requireActual<AuthSessionExports>('src/auth/auth-session'),
     authOpts: jest.fn(),
     withAuthSession: jest.fn(),
   };

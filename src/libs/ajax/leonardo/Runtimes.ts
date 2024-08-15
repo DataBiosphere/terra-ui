@@ -2,7 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
-import { authOpts, withAuthSession } from 'src/auth/auth-fetch';
+import { authOpts, withAuthSession } from 'src/auth/auth-session';
 import { appIdentifier, fetchLeo, withAppIdentifier } from 'src/libs/ajax/ajax-common';
 import { fetchOk, withRetry } from 'src/libs/ajax/fetch/fetch-core';
 import { LeoRuntimesV1DataClient, makeLeoRuntimesV1DataClient } from 'src/libs/ajax/leonardo/LeoRuntimesV1DataClient';
