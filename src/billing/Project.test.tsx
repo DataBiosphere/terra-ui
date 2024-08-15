@@ -1,7 +1,26 @@
-import { groupByBillingAccountStatus } from 'src/billing/Project';
+import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { act, screen } from '@testing-library/react';
+import React from 'react';
+import Project, { groupByBillingAccountStatus } from 'src/billing/Project';
+import { Ajax } from 'src/libs/ajax';
 import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/Billing';
 import { azureBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
+import { renderWithAppContexts } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+
+type AjaxContract = ReturnType<typeof Ajax>;
+jest.mock('src/libs/ajax');
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual<NavExports>('src/libs/nav'),
+    getLink: jest.fn(() => '/'),
+    goToPath: jest.fn(),
+    useRoute: jest.fn().mockReturnValue({ query: {} }),
+    updateSearch: jest.fn(),
+  })
+);
 
 describe('groupByBillingAccountStatus', () => {
   it('returns an empty mapping if there are no workspaces', () => {
@@ -107,5 +126,287 @@ describe('groupByBillingAccountStatus', () => {
       error: new Set([firstWorkspace, secondWorkspace]),
       updating: new Set([updatingWorkspace, secondUpdatingWorkspace]),
     });
+  });
+});
+
+// interface ProjectDetailProps {
+//   authorizeAndLoadAccounts: () => Promise<void>;
+//   billingAccounts: Record<string, GoogleBillingAccount>;
+//   billingProject: BillingProject;
+//   isOwner: boolean;
+//   reloadBillingProject: () => Promise<void>;
+//   workspaces: WorkspaceInfo[];
+//   refreshWorkspaces: () => void;
+// }
+
+describe('Project', () => {
+  it('shows all tabs if the user is an owner', async () => {
+    // Arrange
+    const listProjectUsers = jest.fn().mockResolvedValue([
+      {
+        email: 'testuser1@example.com',
+        role: 'Owner',
+      },
+      {
+        email: 'testuser3@example.com',
+        role: 'User',
+      },
+    ]);
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: { listProjectUsers, removeProjectUser: jest.fn() } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    await act(async () =>
+      renderWithAppContexts(
+        <Project
+          authorizeAndLoadAccounts={jest.fn()}
+          billingAccounts={{}}
+          billingProject={azureBillingProject}
+          isOwner
+          reloadBillingProject={jest.fn()}
+          workspaces={[]}
+          refreshWorkspaces={jest.fn()}
+        />
+      )
+    );
+
+    // Assert
+    // Verify that the tab has the correct name ("Members" since user is owner);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.length).toEqual(3);
+    expect(tabs[0]).toHaveTextContent('Workspaces');
+    expect(tabs[1]).toHaveTextContent('Members');
+    expect(tabs[2]).toHaveTextContent('Spend report');
+  });
+
+  it('shows only the workspaces and owners tab is the user is not an owner', async () => {
+    // Arrange
+    // Returns only owners if the user is not an owner.
+    const listProjectUsers = jest.fn().mockResolvedValue([
+      {
+        email: 'testuser1@example.com',
+        role: 'Owner',
+      },
+      {
+        email: 'testuser2@example.com',
+        role: 'Owner',
+      },
+    ]);
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: { listProjectUsers, removeProjectUser: jest.fn() } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+    // Act
+    await act(async () =>
+      renderWithAppContexts(
+        <Project
+          authorizeAndLoadAccounts={jest.fn()}
+          billingAccounts={{}}
+          billingProject={azureBillingProject}
+          isOwner={false}
+          reloadBillingProject={jest.fn()}
+          workspaces={[]}
+          refreshWorkspaces={jest.fn()}
+        />
+      )
+    );
+
+    // Assert
+    // Verify that the tab has the correct name ("Owners");
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.length).toEqual(2);
+    expect(tabs[0]).toHaveTextContent('Workspaces');
+    expect(tabs[1]).toHaveTextContent('Owners');
+    // Verify warning about a single owner is not shown.
+    expect(screen.queryByText(/This shared billing project has only one owner/)).toBeNull();
+  });
+
+  it('does not show a warning if the user is the only owner of a billing project with no other users', async () => {
+    // Arrange
+    const listProjectUsers = jest.fn().mockResolvedValue([
+      {
+        email: 'testuser1@example.com',
+        role: 'Owner',
+      },
+    ]);
+
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: { listProjectUsers, removeProjectUser: jest.fn() } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    await act(async () =>
+      renderWithAppContexts(
+        <Project
+          authorizeAndLoadAccounts={jest.fn()}
+          billingAccounts={{}}
+          billingProject={azureBillingProject}
+          isOwner
+          reloadBillingProject={jest.fn()}
+          workspaces={[]}
+          refreshWorkspaces={jest.fn()}
+        />
+      )
+    );
+
+    // Assert
+    expect(screen.queryByText(/You are the only owner of this shared billing project/)).toBeNull();
+  });
+
+  it('shows a warning if the user is the only owner of a billing project that has other users', async () => {
+    // Arrange
+    const listProjectUsers = jest.fn().mockResolvedValue([
+      {
+        email: 'testuser1@example.com',
+        role: 'Owner',
+      },
+      {
+        email: 'testuser2@example.com',
+        role: 'User',
+      },
+    ]);
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: { listProjectUsers, removeProjectUser: jest.fn() } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    await act(async () =>
+      renderWithAppContexts(
+        <Project
+          authorizeAndLoadAccounts={jest.fn()}
+          billingAccounts={{}}
+          billingProject={azureBillingProject}
+          isOwner
+          reloadBillingProject={jest.fn()}
+          workspaces={[]}
+          refreshWorkspaces={jest.fn()}
+        />
+      )
+    );
+
+    // Assert
+    screen.getByText(/You are the only owner of this shared billing project/);
+  });
+
+  it('shows a warning if the billing project has only one owner, and the user is not an owner', async () => {
+    // Arrange
+    // This method only returns owners if the user is not an owner.
+    const listProjectUsers = jest.fn().mockResolvedValue([
+      {
+        email: 'testuser1@example.com',
+        role: 'Owner',
+      },
+    ]);
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: { listProjectUsers, removeProjectUser: jest.fn() } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    await act(async () =>
+      renderWithAppContexts(
+        <Project
+          authorizeAndLoadAccounts={jest.fn()}
+          billingAccounts={{}}
+          billingProject={azureBillingProject}
+          isOwner={false}
+          reloadBillingProject={jest.fn()}
+          workspaces={[]}
+          refreshWorkspaces={jest.fn()}
+        />
+      )
+    );
+
+    // Assert
+    screen.getByText(/This shared billing project has only one owner/);
+  });
+
+  it('shows a link to the Azure portal for Azure billing projects', async () => {
+    // Arrange
+    const listProjectUsers = jest.fn().mockResolvedValue([
+      {
+        email: 'testuser1@example.com',
+        role: 'Owner',
+      },
+    ]);
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: { listProjectUsers, removeProjectUser: jest.fn() } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    await act(async () =>
+      renderWithAppContexts(
+        <Project
+          authorizeAndLoadAccounts={jest.fn()}
+          billingAccounts={{}}
+          billingProject={azureBillingProject}
+          isOwner
+          reloadBillingProject={jest.fn()}
+          workspaces={[]}
+          refreshWorkspaces={jest.fn()}
+        />
+      )
+    );
+
+    // Assert
+    screen.getByText(/View project resources in Azure Portal/);
+  });
+
+  it('does not show a link to the Azure portal for GCP billing projects', async () => {
+    // Arrange
+    const listProjectUsers = jest.fn().mockResolvedValue([
+      {
+        email: 'testuser1@example.com',
+        role: 'Owner',
+      },
+    ]);
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Billing: { listProjectUsers, removeProjectUser: jest.fn() } as Partial<AjaxContract['Billing']>,
+          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    await act(async () =>
+      renderWithAppContexts(
+        <Project
+          authorizeAndLoadAccounts={jest.fn()}
+          billingAccounts={{}}
+          billingProject={gcpBillingProject}
+          isOwner
+          reloadBillingProject={jest.fn()}
+          workspaces={[]}
+          refreshWorkspaces={jest.fn()}
+        />
+      )
+    );
+
+    // Assert
+    expect(screen.queryByText(/View project resources in Azure Portal/)).toBeNull();
   });
 });

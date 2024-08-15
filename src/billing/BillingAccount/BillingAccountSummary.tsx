@@ -5,7 +5,7 @@ import colors from 'src/libs/colors';
 import { contactUsActive } from 'src/libs/state';
 import { topBarHeight } from 'src/libs/style';
 
-interface BillingAccountSummaryProps {
+export interface BillingAccountSummaryProps {
   done: number;
   error: number;
   updating: number;
