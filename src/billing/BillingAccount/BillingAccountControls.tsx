@@ -23,7 +23,7 @@ interface BillingAccountControlsProps {
   isOwner: boolean;
   getShowBillingModal: () => boolean;
   setShowBillingModal: (v: boolean) => void;
-  reloadBillingProject: () => void;
+  reloadBillingProject: () => Promise<void>;
   setUpdating: (v: boolean) => void;
 }
 export const BillingAccountControls = (props: BillingAccountControlsProps) => {
