@@ -1,3 +1,4 @@
+import { CenteredSpinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import React, { useState } from 'react';
@@ -10,6 +11,7 @@ import { FlexTable, HeaderCell, paginator as Paginator, Sortable, TooltipCell } 
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -72,17 +74,20 @@ interface WorkflowListProps {
   };
 }
 
-// TODO: add error handling, consider wrapping query updates in useEffect
+// TODO: consider wrapping query updates in useEffect
 export const WorkflowList = (props: WorkflowListProps) => {
   const { queryParams = {} } = props;
   const { tab = 'mine', filter = '', ...query } = queryParams;
 
   const signal: AbortSignal = useCancellation();
-  const [workflows, setWorkflows] = useState<GroupedWorkflows>();
+
+  // workflows is undefined while the method definitions are still loading;
+  // it is null if there is an error while loading
+  const [workflows, setWorkflows] = useState<GroupedWorkflows | null>();
 
   // Valid direction values are 'asc' and 'desc' (based on expected
   // function signatures from the Sortable component used in this
-  // component)
+  // component and from Lodash/fp's orderBy function)
   const [sort, setSort] = useState<SortProperties>({ field: 'name', direction: 'asc' });
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -115,9 +120,9 @@ export const WorkflowList = (props: WorkflowListProps) => {
   const tabName: string = tab || 'mine';
   const tabs = { mine: 'My Workflows', public: 'Public Workflows' };
 
-  const getTabDisplayNames = (workflows: GroupedWorkflows | undefined) => {
+  const getTabDisplayNames = (workflows: GroupedWorkflows | null | undefined) => {
     const getCountString = (tab: keyof GroupedWorkflows): string => {
-      if (workflows === undefined) {
+      if (workflows == null) {
         return '';
       }
       return ` (${workflows[tab].length})`;
@@ -134,12 +139,17 @@ export const WorkflowList = (props: WorkflowListProps) => {
       !isPublic || _.includes(getTerraUser().email, managers);
 
     const loadWorkflows = async () => {
-      const allWorkflows = await Ajax(signal).Methods.definitions();
+      try {
+        const allWorkflows: MethodDefinition[] = await Ajax(signal).Methods.definitions();
 
-      setWorkflows({
-        mine: _.filter(isMine, allWorkflows),
-        public: _.filter('public', allWorkflows),
-      });
+        setWorkflows({
+          mine: _.filter(isMine, allWorkflows),
+          public: _.filter('public', allWorkflows),
+        });
+      } catch (error) {
+        setWorkflows(null);
+        notify('error', 'Error loading workflows', { detail: error instanceof Response ? await error.text() : error });
+      }
     };
 
     loadWorkflows();
@@ -194,23 +204,22 @@ export const WorkflowList = (props: WorkflowListProps) => {
           value={filter}
         />
         <div style={{ flex: 1 }}>
-          {workflows && (
-            <AutoSizer>
-              {({ width, height }) => (
-                <FlexTable
-                  aria-label={tabs[tabName]}
-                  width={width}
-                  height={height}
-                  sort={sort as any /* necessary until FlexTable is converted to TS */}
-                  rowCount={paginatedWorkflows.length}
-                  columns={getColumns(sort, onSort, paginatedWorkflows)}
-                  variant={null}
-                  noContentMessage={null /* default message */}
-                  tabIndex={-1}
-                />
-              )}
-            </AutoSizer>
-          )}
+          <AutoSizer>
+            {({ width, height }) => (
+              <FlexTable
+                aria-label={tabs[tabName]}
+                width={width}
+                height={height}
+                sort={sort as any /* necessary until FlexTable is converted to TS */}
+                rowCount={paginatedWorkflows.length}
+                columns={getColumns(sort, onSort, paginatedWorkflows)}
+                variant={null}
+                noContentMessage={workflows === undefined ? ' ' : 'Nothing to display'}
+                tabIndex={-1}
+              />
+            )}
+          </AutoSizer>
+          {workflows === undefined && <CenteredSpinner />}
         </div>
         {!_.isEmpty(sortedWorkflows) && (
           <div style={{ marginBottom: '0.5rem' }}>
