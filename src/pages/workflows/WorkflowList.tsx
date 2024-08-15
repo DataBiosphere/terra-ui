@@ -190,7 +190,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         getHref={(currentTab) => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`}
         getOnClick={(currentTab) => (e) => {
           e.preventDefault();
-          updateQuery({ newTab: currentTab, newFilter: null });
+          updateQuery({ newTab: currentTab, newFilter: '' });
         }}
       >
         {null /* nothing to display at the end of the tab bar */}
