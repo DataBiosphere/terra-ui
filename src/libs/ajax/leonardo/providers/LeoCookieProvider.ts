@@ -12,10 +12,11 @@ export const leoCookieProvider: LeoCookieProvider = {
     await LeoCookies()
       .unsetCookie()
       .catch((error) => {
+        // Suppress errors thrown by unsetCookie; if the call fails for auth or CORS reasons signout logic should proceed
         if (error instanceof Response && error.status === 401) {
-          console.error('Invalid cookie. This is expected if the token is expired', error);
+          // Ignore: user already logged out
         } else {
-          throw error;
+          console.error('Unexpected error unsetting user cookie', error);
         }
       });
 
