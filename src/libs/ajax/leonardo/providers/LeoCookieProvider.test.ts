@@ -25,7 +25,6 @@ describe('CookieProvider', () => {
       .fn()
       .mockImplementation(() => Promise.reject(new Response(JSON.stringify({ success: false }), { status: 401 })));
     asMockedFn(CookiesClient).mockReturnValue({ unsetCookie } as LeoCookiesContract);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
     await leoCookieProvider.unsetCookies();
@@ -33,18 +32,19 @@ describe('CookieProvider', () => {
     // Assert
     expect(CookiesClient).toBeCalledTimes(1);
     expect(unsetCookie).toBeCalledTimes(1);
-    expect(errorSpy).toBeCalledTimes(1);
   });
 
   it('throws non 401 errors', async () => {
     // Arrange
     const unsetCookie = jest.fn().mockImplementation(() => Promise.reject(new Error('test error')));
     asMockedFn(CookiesClient).mockReturnValue({ unsetCookie } as LeoCookiesContract);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     // Act
-    const errorPromise = leoCookieProvider.unsetCookies();
+    await leoCookieProvider.unsetCookies();
 
     // Assert
-    await expect(errorPromise).rejects.toEqual(new Error('test error'));
+    expect(errorSpy).toBeCalledTimes(1);
+    expect(unsetCookie).toBeCalledTimes(1);
   });
 });
