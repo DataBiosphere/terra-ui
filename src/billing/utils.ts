@@ -51,3 +51,12 @@ const billingAccountIconProps: Record<BillingAccountStatus, IconProps> = {
 export const getBillingAccountIconProps = (status: BillingAccountStatus): IconProps => {
   return billingAccountIconProps[status];
 };
+
+export const accountLinkStyle = {
+  color: colors.dark(),
+  fontSize: 14,
+  display: 'flex',
+  alignItems: 'center',
+  marginTop: '0.5rem',
+  marginLeft: '1rem',
+};
