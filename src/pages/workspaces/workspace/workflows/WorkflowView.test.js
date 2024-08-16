@@ -621,6 +621,7 @@ describe('Workflow View (GCP)', () => {
           retryWithMoreMemory: false,
           retryMemoryFactor: jest.fn(),
           ignoreEmptyOutputs: true,
+          enableResourceMonitoring: true,
           monitoringScript: 'some_script',
           monitoringImage: '',
           monitoringImageScript: '',
