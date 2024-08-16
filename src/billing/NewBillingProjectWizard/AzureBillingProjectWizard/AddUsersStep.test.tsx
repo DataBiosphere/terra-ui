@@ -62,6 +62,7 @@ describe('AddUsersStep', () => {
       );
     });
     const renderResult = render(<AddUsersStep {...defaultProps} onAddUsersOrOwners={mockAddUsersOrOwners} />);
+
     // Act
     await user.click(getAddUsersRadio());
 
@@ -97,6 +98,7 @@ describe('AddUsersStep', () => {
 
     // Arrange
     render(<AddUsersStep {...defaultProps} addUsersOrOwners />);
+
     // Act
     fireEvent.change(getUsersInput(), { target: { value: 'bademail, secondbademail' } });
 
@@ -114,6 +116,7 @@ describe('AddUsersStep', () => {
     // For some reason, passing this as text with fireEvent.change does not work.
     const goodEmails = 'first@example.com, second@example.com';
     render(<AddUsersStep {...defaultProps} addUsersOrOwners ownerEmails={goodEmails} />);
+
     // Assert
     await screen.findByText('2 emails entered');
     expect(screen.queryByText('First@example.com is not a valid email')).toBeNull();

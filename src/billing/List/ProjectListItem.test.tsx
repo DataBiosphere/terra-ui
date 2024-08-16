@@ -79,6 +79,7 @@ describe('ProjectListItem', () => {
     const result = render(<ProjectListItem {...projectListItemProps} />, {
       container: document.body.appendChild(listRoot),
     });
+
     // Assert
     screen.getByLabelText(`Delete billing project ${billingProject.projectName}`);
     screen.getByTitle('Microsoft Azure');
