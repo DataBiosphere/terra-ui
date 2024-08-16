@@ -7,31 +7,35 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
+export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, runningSubmissionsCount }) => {
   const [additionalDeletions, setAdditionalDeletions] = useState([]);
   const [deleting, setDeleting] = useState(false);
 
   const selectedKeys = _.keys(selectedEntities);
 
   const doDelete = async () => {
-    const entitiesToDelete = _.flow(
-      _.map(({ name: entityName, entityType }) => ({ entityName, entityType })),
-      (entities) => _.concat(entities, additionalDeletions)
-    )(selectedEntities);
-
+    const entitiesToDelete = _.map(({ entityType, name: entityName }) => ({ entityType, entityName }), selectedEntities);
     setDeleting(true);
 
     try {
+      if (additionalDeletions.length > 0) {
+        await Ajax().Workspaces.workspace(namespace, name).deleteEntities(additionalDeletions);
+      }
       await Ajax().Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete);
       onSuccess();
     } catch (error) {
       switch (error.status) {
         case 409:
-          setAdditionalDeletions(_.filter((entity) => entity.entityType !== selectedDataType, await error.json()));
+          const errorResponse = await error.json();
+          const requiredAdditionalDeletions = errorResponse.filter(
+            ({ entityType, entityName }) =>
+              !entitiesToDelete.some((selectedEntity) => selectedEntity.entityType === entityType && selectedEntity.entityName === entityName)
+          );
+          setAdditionalDeletions(requiredAdditionalDeletions);
           setDeleting(false);
           break;
         default:
-          reportError('Error deleting data entries', error);
+          await reportError('Error deleting data entries', error);
           onDismiss();
       }
     }
