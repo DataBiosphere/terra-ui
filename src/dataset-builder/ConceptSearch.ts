@@ -65,10 +65,21 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
     : 'Loading data table';
 
   const conceptTableText = () => {
-    return div({ style: { display: 'flex', alignItems: 'center', padding: '2rem 0 0 2rem', fontWeight: 800 } }, [
-      searchText.length > 2 ? conceptTableTextForSearch : conceptTableTextForNoSearch,
-      ...(conceptsReady ? [] : [h(Spinner, { size: 20, style: { marginLeft: '1rem' } })]),
-    ]);
+    return div(
+      {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          padding: '2rem 0 0 2rem',
+          fontWeight: 800,
+          height: '3.5rem',
+        },
+      },
+      [
+        searchText.length > 2 ? conceptTableTextForSearch : conceptTableTextForNoSearch,
+        ...(conceptsReady ? [] : [h(Spinner, { size: 20, style: { marginLeft: '1rem' } })]),
+      ]
+    );
   };
 
   return h(Fragment, [
@@ -108,67 +119,66 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         }),
       ]),
       conceptTableText(),
-      conceptsReady &&
-        h(SimpleTable, {
-          'aria-label': 'concept search results',
-          underRowKey: 'underRow',
-          rowStyle: {
-            backgroundColor: 'white',
-            ...tableLeftPadding,
-            paddingRight: '2rem',
-          },
-          headerRowStyle: {
-            ...tableHeaderStyle,
-            ...tableLeftPadding,
-            paddingRight: '2rem',
-            marginTop: '1rem',
-          },
-          cellStyle: {
-            paddingTop: 13,
-            paddingBottom: 13,
-          },
-          columns: [
-            { header: strong(['Concept name']), key: 'name', size: { grow: 2.3 } },
-            { header: strong(['Concept ID']), key: 'id', size: { grow: 0.5 } },
-            { header: strong(['Code']), key: 'code', size: { grow: 0.75 } },
-            { header: strong(['# Participants']), key: 'count', size: { grow: 0.5 } },
-            { key: 'hierarchy', size: { grow: 0.4 } },
-          ],
-          rows: _.map((concept) => {
-            return {
-              name: div({ style: { display: 'flex' } }, [
-                h(
-                  LabeledCheckbox,
-                  {
-                    style: { paddingRight: 22, marginTop: 1 },
-                    checked: _.contains(concept, cart),
-                    onChange: () => setCart(_.xor(cart, [concept])),
-                  },
-                  [
-                    h(HighlightConceptName, {
-                      conceptName: concept.name,
-                      searchFilter: searchText,
-                    }),
-                  ]
-                ),
-              ]),
-              id: concept.id,
-              code: concept.code,
-              count: formatCount(concept.count),
-              hierarchy: div({ style: { display: 'flex' } }, [
-                h(
-                  Link,
-                  {
-                    'aria-label': `open hierarchy ${concept.id}`,
-                    onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
-                  },
-                  [icon('view-list')]
-                ),
-                div({ style: { marginLeft: 5 } }, ['Hierarchy']),
-              ]),
-            };
-          }, concepts.state.result),
-        }),
+      h(SimpleTable, {
+        'aria-label': 'concept search results',
+        underRowKey: 'underRow',
+        rowStyle: {
+          backgroundColor: 'white',
+          ...tableLeftPadding,
+          paddingRight: '2rem',
+        },
+        headerRowStyle: {
+          ...tableHeaderStyle,
+          ...tableLeftPadding,
+          paddingRight: '2rem',
+          marginTop: '1rem',
+        },
+        cellStyle: {
+          paddingTop: 13,
+          paddingBottom: 13,
+        },
+        columns: [
+          { header: strong(['Concept name']), key: 'name', size: { grow: 2.3 } },
+          { header: strong(['Concept ID']), key: 'id', size: { grow: 0.5 } },
+          { header: strong(['Code']), key: 'code', size: { grow: 0.75 } },
+          { header: strong(['# Participants']), key: 'count', size: { grow: 0.5 } },
+          { key: 'hierarchy', size: { grow: 0.4 } },
+        ],
+        rows: _.map((concept) => {
+          return {
+            name: div({ style: { display: 'flex' } }, [
+              h(
+                LabeledCheckbox,
+                {
+                  style: { paddingRight: 22, marginTop: 1 },
+                  checked: _.contains(concept, cart),
+                  onChange: () => setCart(_.xor(cart, [concept])),
+                },
+                [
+                  h(HighlightConceptName, {
+                    conceptName: concept.name,
+                    searchFilter: searchText,
+                  }),
+                ]
+              ),
+            ]),
+            id: concept.id,
+            code: concept.code,
+            count: formatCount(concept.count),
+            hierarchy: div({ style: { display: 'flex' } }, [
+              h(
+                Link,
+                {
+                  'aria-label': `open hierarchy ${concept.id}`,
+                  onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
+                },
+                [icon('view-list')]
+              ),
+              div({ style: { marginLeft: 5 } }, ['Hierarchy']),
+            ]),
+          };
+        }, concepts.state?.result || []),
+      }),
     ]),
     h(ConceptCart, { actionText, cart, onCommit }),
   ]);
