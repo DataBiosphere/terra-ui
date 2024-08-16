@@ -6,12 +6,14 @@ import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
 import { getLink } from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import { TerraUser, TerraUserState, userStore } from 'src/libs/state';
 import { MethodDefinition } from 'src/pages/workflows/workflow-utils';
 import { WorkflowList } from 'src/pages/workflows/WorkflowList';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
+jest.mock('src/libs/notifications');
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn(() => '#workflows'),
@@ -131,6 +133,34 @@ const ganonPrivateMethod: MethodDefinition = {
   numSnapshots: 5,
   entityType: 'Workflow',
 };
+
+const paginationMethods: MethodDefinition[] = _.flatMap(
+  (suffix: string) => {
+    return [
+      {
+        namespace: 'test namespace',
+        name: `method ${suffix}`,
+        synopsis: 'test synopsis',
+        managers: ['test@test.com'],
+        public: true,
+        numConfigurations: 0,
+        numSnapshots: 1,
+        entityType: 'Workflow',
+      },
+      {
+        namespace: 'test namespace',
+        name: `method ${suffix}`,
+        synopsis: 'test synopsis',
+        managers: ['me@me.com'],
+        public: false,
+        numConfigurations: 0,
+        numSnapshots: 1,
+        entityType: 'Workflow',
+      },
+    ];
+  },
+  ['az', 'bz', 'cz', 'dz', 'ez', 'fz', 'gz', 'hz', 'iz', 'jz', 'kz', 'lz', 'm']
+);
 
 // Note: For these test cases, the user is assumed to be Revali
 const tabMethodCountsTestCases: { methods: MethodDefinition[]; myMethodsCount: number; publicMethodsCount: number }[] =
@@ -616,6 +646,142 @@ describe('workflows table', () => {
     checkOrder('daruk method', 'revali method', 'revali method 2', 'sorting method');
   });
 
+  it('displays a paginator with at least one displayed workflow', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax([darukMethod]) as AjaxContract);
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ tab: 'public' }} />);
+    });
+
+    // Assert
+    expect(screen.getByLabelText('Items per page:')).toBeInTheDocument();
+  });
+
+  it('correctly uses the paginator to paginate workflows', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax(paginationMethods) as AjaxContract);
+
+    const user: UserEvent = userEvent.setup();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('me@me.com')));
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ tab: 'public', filter: 'z' }} />);
+    });
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /items per page:/i }), '10');
+
+    // Assert
+    expect(screen.getByText('1 - 10 of 12 (filtered from 13 total)')).toBeInTheDocument();
+    expect(screen.getByText('method az')).toBeInTheDocument();
+    expect(screen.getByText('method jz')).toBeInTheDocument();
+    expect(screen.queryByText('method kz')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /next page/i }));
+
+    // Assert
+    expect(screen.getByText('11 - 12 of 12 (filtered from 13 total)')).toBeInTheDocument();
+    expect(screen.queryByText('method az')).not.toBeInTheDocument();
+    expect(screen.queryByText('method jz')).not.toBeInTheDocument();
+    expect(screen.getByText('method kz')).toBeInTheDocument();
+    expect(screen.getByText('method lz')).toBeInTheDocument();
+    expect(screen.queryByText('method m')).not.toBeInTheDocument();
+  });
+
+  it('resets the table page when sorting', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax(paginationMethods) as AjaxContract);
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList queryParams={{ tab: 'public' }} />);
+    });
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /items per page:/i }), '10');
+    await user.click(screen.getByRole('button', { name: /next page/i }));
+
+    // Assert
+    expect(screen.getByText('11 - 13 of 13')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByText('Synopsis'));
+
+    // Assert
+    expect(screen.getByText('1 - 10 of 13')).toBeInTheDocument();
+  });
+
+  it('resets the table page when switching tabs', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax(paginationMethods) as AjaxContract);
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('me@me.com')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /items per page:/i }), '10');
+    await user.click(screen.getByRole('button', { name: /next page/i }));
+
+    // Assert
+    expect(screen.getByText('11 - 13 of 13')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByText('Public Workflows (13)'));
+
+    // Assert
+
+    // Note: the total workflow count (13) is actually still from
+    // the previous tab just in the test because Nav cannot be
+    // mocked properly to actually switch tabs when the public
+    // workflows tab is clicked
+    expect(screen.getByText('1 - 10 of 13')).toBeInTheDocument();
+  });
+
+  it('resets the table page when typing in the search bar', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax(paginationMethods) as AjaxContract);
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('me@me.com')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /items per page:/i }), '10');
+    await user.click(screen.getByRole('button', { name: /next page/i }));
+
+    // Assert
+    expect(screen.getByText('11 - 13 of 13')).toBeInTheDocument();
+
+    // Act
+    fireEvent.change(screen.getByPlaceholderText('SEARCH WORKFLOWS'), { target: { value: 'method' } });
+    await act(() => delay(300)); // debounced search
+
+    // Assert
+
+    // Note: just in the test, this would be the text displayed
+    // even if the search should filter out some of the workflows,
+    // because Nav cannot be mocked properly to actually update
+    // the filter when the value in the search bar changes
+    expect(screen.getByText('1 - 10 of 13')).toBeInTheDocument();
+  });
+
   it('displays a tooltip for namespace and method names', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => mockAjax([revaliMethod]) as AjaxContract);
@@ -706,6 +872,34 @@ describe('workflows table', () => {
     // the mock), but is sufficient to verify that getLink is being called
     // with the correct parameters based on the method namespace and name
     expect(screen.getByText('method-name')).toHaveAttribute('href', '/workflow-dashboard/test-namespace/method-name');
+  });
+
+  it('handles errors loading workflows', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => {
+      return {
+        Methods: {
+          definitions: jest.fn(() => {
+            throw new Error('BOOM');
+          }) as Partial<AjaxMethodsContract>,
+        } as AjaxMethodsContract,
+      } as AjaxContract;
+    });
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    // Assert
+
+    // tabs should not display method counts because their
+    // true values are not known
+    expect(screen.getByText('My Workflows')).toBeInTheDocument();
+    expect(screen.getByText('Public Workflows')).toBeInTheDocument();
+
+    expect(screen.getByText('Nothing to display')).toBeInTheDocument();
+    expect(notify).toHaveBeenCalledWith('error', 'Error loading workflows', expect.anything());
   });
 });
 
