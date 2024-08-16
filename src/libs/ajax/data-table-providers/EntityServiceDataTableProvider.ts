@@ -44,6 +44,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     supportsPointCorrection: true,
     supportsFiltering: true,
     supportsRowSelection: true,
+    supportsPerColumnDatatype: false,
   };
 
   tsvFeatures: TSVFeatures = {

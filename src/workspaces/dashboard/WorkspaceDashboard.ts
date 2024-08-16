@@ -43,7 +43,7 @@ export const WorkspaceDashboard = forwardRef(
     // @ts-expect-error
     const { value: canEdit } = canEditWorkspace(workspace);
 
-    return div({ style: { flex: 1, display: 'flex' } }, [
+    return div({ style: { gridTemplateColumns: 'auto min-content', gridTemplateRows: '1fr 2fr', display: 'grid' } }, [
       div({ style: Style.dashboard.leftBox }, [
         h(WorkspaceDescription, { workspace, refreshWorkspace }),
         h(DatasetAttributes, { attributes }),
@@ -106,6 +106,9 @@ export const WorkspaceDashboard = forwardRef(
           [h(WorkspaceNotifications, { workspace })]
         ),
       ]),
+      // "dummy" div to make background color below the right box sections the same if they do not
+      // fill the full height of the dashboard
+      div({ style: { ...Style.dashboard.rightBox, gridRow: '2', gridColumn: '2' } }, []),
     ]);
   }
 );
