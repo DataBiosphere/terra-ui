@@ -43,7 +43,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
   const moreToDelete = !!additionalDeletions.length;
 
-  const total = selectedKeys.length + additionalDeletions.length;
+  const total = additionalDeletions.length > 0 ? additionalDeletions.length : selectedKeys.length;
   return h(
     DeleteConfirmationModal,
     {
