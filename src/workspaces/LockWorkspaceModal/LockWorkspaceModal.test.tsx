@@ -1,6 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -17,11 +18,12 @@ jest.mock('src/libs/ajax', (): AjaxExports => {
   };
 });
 
+const mockReportError = jest.fn();
 type ErrorExports = typeof import('src/libs/error');
 jest.mock('src/libs/error', (): ErrorExports => {
   return {
     ...jest.requireActual('src/libs/error'),
-    reportError: jest.fn(),
+    reportError: (...args) => mockReportError(...args),
   };
 });
 
@@ -66,6 +68,7 @@ describe('LockWorkspaceModal', () => {
 
   it('calls onDismiss, onSuccess, and locks unlocked workspace if the lock is toggled', async () => {
     // Arrange
+    const user = userEvent.setup();
     const onDismiss = jest.fn();
     const onSuccess = jest.fn();
     const mockLock = jest.fn();
@@ -85,9 +88,7 @@ describe('LockWorkspaceModal', () => {
     // Act
     render(<LockWorkspaceModal {...props} />);
     const lockButton = screen.getByRole('button', { name: 'Lock Workspace' });
-    await act(async () => {
-      fireEvent.click(lockButton);
-    });
+    await user.click(lockButton);
 
     // Assert
     expect(onDismiss).toHaveBeenCalled();
@@ -97,6 +98,7 @@ describe('LockWorkspaceModal', () => {
 
   it('calls onDismiss, onSuccess, and unlocks locked workspace if the lock is toggled', async () => {
     // Arrange
+    const user = userEvent.setup();
     const onDismiss = jest.fn();
     const onSuccess = jest.fn();
     const mockUnlock = jest.fn();
@@ -116,9 +118,7 @@ describe('LockWorkspaceModal', () => {
     // Act
     render(<LockWorkspaceModal {...props} />);
     const unlockButton = screen.getByRole('button', { name: 'Unlock Workspace' });
-    await act(async () => {
-      fireEvent.click(unlockButton);
-    });
+    await user.click(unlockButton);
 
     // Assert
     expect(onDismiss).toHaveBeenCalled();
@@ -128,6 +128,7 @@ describe('LockWorkspaceModal', () => {
 
   it('calls only onDismiss if the lock toggle is canceled', async () => {
     // Arrange
+    const user = userEvent.setup();
     const onDismiss = jest.fn();
     const onSuccess = jest.fn();
     const mockLock = jest.fn();
@@ -147,9 +148,7 @@ describe('LockWorkspaceModal', () => {
     // Act
     render(<LockWorkspaceModal {...props} />);
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
-    await act(async () => {
-      fireEvent.click(cancelButton);
-    });
+    await user.click(cancelButton);
 
     // Assert
     expect(onDismiss).toHaveBeenCalled();
@@ -159,6 +158,7 @@ describe('LockWorkspaceModal', () => {
 
   it('calls only onDismiss if the lock toggle causes an error', async () => {
     // Arrange
+    const user = userEvent.setup();
     const onDismiss = jest.fn();
     const onSuccess = jest.fn();
     const workspace: Workspace = {
@@ -177,12 +177,11 @@ describe('LockWorkspaceModal', () => {
     // Act
     render(<LockWorkspaceModal {...props} />);
     const unlockButton = screen.getByRole('button', { name: 'Unlock Workspace' });
-    await act(async () => {
-      fireEvent.click(unlockButton);
-    });
+    await user.click(unlockButton);
 
     // Assert
     expect(onDismiss).toHaveBeenCalled();
+    expect(mockReportError).toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 });
