@@ -34,6 +34,7 @@ const LaunchAnalysisModal = ({
   retryWithMoreMemory,
   retryMemoryFactor,
   ignoreEmptyOutputs,
+  enableResourceMonitoring,
   monitoringScript,
   monitoringImage,
   monitoringImageScript,
@@ -91,9 +92,9 @@ const LaunchAnalysisModal = ({
         memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined,
         userComment: _.trim(userComment),
         ignoreEmptyOutputs,
-        monitoringScript: monitoringScript || null,
-        monitoringImage: monitoringImage || null,
-        monitoringImageScript: monitoringImageScript || null,
+        monitoringScript: enableResourceMonitoring ? monitoringScript : undefined,
+        monitoringImage: enableResourceMonitoring ? monitoringImage : undefined,
+        monitoringImageScript: enableResourceMonitoring ? monitoringImageScript : undefined,
         onProgress: (stage) => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },
