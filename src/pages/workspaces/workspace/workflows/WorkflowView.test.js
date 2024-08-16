@@ -645,8 +645,8 @@ describe('Workflow View (GCP)', () => {
         useReferenceDisks: false,
         memoryRetryMultiplier: undefined,
         monitoringScript: 'some_script',
-        monitoringImage: null,
-        monitoringImageScript: null,
+        monitoringImage: undefined,
+        monitoringImageScript: undefined,
       })
     );
   });
