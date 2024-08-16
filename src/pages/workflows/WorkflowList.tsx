@@ -125,6 +125,9 @@ export const WorkflowList = (props: WorkflowListProps) => {
       if (workflows == null) {
         return '';
       }
+
+      // Only the current tab's workflow count reflects the search
+      // filter (since the filter is cleared when switching tabs)
       if (tabName === currentTabName) {
         return ` (${sortedWorkflows.length})`;
       }
