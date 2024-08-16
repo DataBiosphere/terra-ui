@@ -1,14 +1,19 @@
+import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
 import { Members } from 'src/billing/Members/Members';
-import { renderWithAppContexts } from 'src/testing/test-utils';
+import { User } from 'src/components/group-common';
+import { Ajax } from 'src/libs/ajax';
+import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
+type AjaxContract = ReturnType<typeof Ajax>;
+jest.mock('src/libs/ajax');
 describe('Members', () => {
   it('renders a list of members in the billing project with no accessibility errors', async () => {
     // Arrange
-    const projectUsers = [
+    const projectUsers: User[] = [
       { email: 'x_owner@test.email.org', roles: ['Owner'] },
       { email: 'user@test.email.org', roles: ['User'] },
     ];
@@ -19,9 +24,9 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={jest.fn()}
-        setDeletingUser={jest.fn()}
+        userAdded={jest.fn()}
+        userEdited={jest.fn()}
+        deleteUser={jest.fn()}
       />
     );
 
@@ -39,7 +44,7 @@ describe('Members', () => {
 
   it('supports sorting members', async () => {
     // Arrange
-    const projectUsers = [
+    const projectUsers: User[] = [
       { email: 'x_owner@test.email.org', roles: ['Owner'] },
       { email: 'user@test.email.org', roles: ['User'] },
     ];
@@ -51,9 +56,9 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={jest.fn()}
-        setDeletingUser={jest.fn()}
+        userAdded={jest.fn()}
+        userEdited={jest.fn()}
+        deleteUser={jest.fn()}
       />
     );
 
@@ -70,9 +75,18 @@ describe('Members', () => {
 
   it('supports adding a member for owners', async () => {
     // Arrange
-    const projectUsers = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
+    const projectUsers: User[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
     const user = userEvent.setup();
-    const addUserCallback = jest.fn();
+
+    const addProjectUser = jest.fn();
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Billing: { addProjectUser } as Partial<AjaxContract['Billing']>,
+      // Next 2 mocks are needed for suggestions in the NewUserModal.
+      Workspaces: { getShareLog: jest.fn(() => Promise.resolve([])) },
+      Groups: { list: jest.fn(() => Promise.resolve([])) },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    const userAddedCallback = jest.fn();
 
     // Act
     renderWithAppContexts(
@@ -80,22 +94,32 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={addUserCallback}
-        setEditingUser={jest.fn()}
-        setDeletingUser={jest.fn()}
+        userAdded={userAddedCallback}
+        userEdited={jest.fn()}
+        deleteUser={jest.fn()}
       />
     );
+    // Open add user dialog
     const addUserButton = screen.getByText('Add User');
     await user.click(addUserButton);
+    // Both the combobox and the input field have the same label (which is not ideal, but already existing),
+    // so we need to select the second one.
+    const emailInput = screen.getAllByLabelText('User email *')[1];
+    await user.type(emailInput, 'test-user@company.com');
+    // Save button ("Add User") within the dialog, as opposed to the one that opened the dialog.
+    const saveButton = within(screen.getByRole('dialog')).getByText('Add User');
+    await user.click(saveButton);
 
     // Assert
-    expect(addUserCallback).toHaveBeenCalledWith(true);
+    expect(userAddedCallback).toHaveBeenCalled();
+    expect(addProjectUser).toHaveBeenCalledWith('test-project', ['User'], 'test-user@company.com');
+
     // The actual display of the dialog to add a user is done in the parent file.
   });
 
   it('does not show the Add User button for non-owners', async () => {
     // Arrange
-    const projectUsers = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
+    const projectUsers: User[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
 
     // Act
     renderWithAppContexts(
@@ -103,9 +127,9 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner={false}
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={jest.fn()}
-        setDeletingUser={jest.fn()}
+        userAdded={jest.fn()}
+        userEdited={jest.fn()}
+        deleteUser={jest.fn()}
       />
     );
 
@@ -116,7 +140,7 @@ describe('Members', () => {
   it('disables the action menu for an owner if there are not multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers = [{ email: ownerEmail, roles: ['Owner'] }];
+    const projectUsers: User[] = [{ email: ownerEmail, roles: ['Owner'] }];
 
     // Act
     renderWithAppContexts(
@@ -124,9 +148,9 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={jest.fn()}
-        setDeletingUser={jest.fn()}
+        userAdded={jest.fn()}
+        userEdited={jest.fn()}
+        deleteUser={jest.fn()}
       />
     );
 
@@ -137,9 +161,9 @@ describe('Members', () => {
   it('does not show an action menu if the user is not an owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers = [
+    const projectUsers: User[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
-      { email: userEmail, roles: ['user'] },
+      { email: userEmail, roles: ['User'] },
     ];
 
     // Act
@@ -148,9 +172,9 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner={false}
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={jest.fn()}
-        setDeletingUser={jest.fn()}
+        userAdded={jest.fn()}
+        userEdited={jest.fn()}
+        deleteUser={jest.fn()}
       />
     );
 
@@ -161,12 +185,12 @@ describe('Members', () => {
   it('supports deleting an owner if there are multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers = [
+    const projectUsers: User[] = [
       { email: ownerEmail, roles: ['Owner'] },
       { email: 'owner2@test.email.org', roles: ['Owner'] },
     ];
     const user = userEvent.setup();
-    const deletingUserCallback = jest.fn();
+    const deleteUserCallback = jest.fn();
 
     // Act
     renderWithAppContexts(
@@ -174,9 +198,9 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={jest.fn()}
-        setDeletingUser={deletingUserCallback}
+        userAdded={jest.fn()}
+        userEdited={jest.fn()}
+        deleteUser={deleteUserCallback}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${ownerEmail}`);
@@ -184,20 +208,22 @@ describe('Members', () => {
     await user.click(menu);
     const removeButton = screen.getByText('Remove User');
     await user.click(removeButton);
+    // Confirm the remove
+    await user.click(screen.getByText('Remove'));
 
     // Assert
-    expect(deletingUserCallback).toHaveBeenCalledWith({ email: ownerEmail, roles: ['Owner'] });
+    expect(deleteUserCallback).toHaveBeenCalledWith({ email: ownerEmail, roles: ['Owner'] });
   });
 
   it('supports deleting a non-owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers = [
+    const projectUsers: User[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
-      { email: userEmail, roles: ['user'] },
+      { email: userEmail, roles: ['User'] },
     ];
     const user = userEvent.setup();
-    const deletingUserCallback = jest.fn();
+    const deleteUserCallback = jest.fn();
 
     // Act
     renderWithAppContexts(
@@ -205,28 +231,35 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={jest.fn()}
-        setDeletingUser={deletingUserCallback}
+        userAdded={jest.fn()}
+        userEdited={jest.fn()}
+        deleteUser={deleteUserCallback}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${userEmail}`);
     await user.click(menu);
     const removeButton = screen.getByText('Remove User');
     await user.click(removeButton);
+    // Confirm the remove
+    await user.click(screen.getByText('Remove'));
 
     // Assert
-    expect(deletingUserCallback).toHaveBeenCalledWith({ email: userEmail, roles: ['user'] });
+    expect(deleteUserCallback).toHaveBeenCalledWith({ email: userEmail, roles: ['User'] });
   });
 
   it('supports editing a non-owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers = [
+    const projectUsers: User[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
-      { email: userEmail, roles: ['user'] },
+      { email: userEmail, roles: ['User'] },
     ];
     const user = userEvent.setup();
+    const changeUserRoles = jest.fn();
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Billing: { changeUserRoles } as Partial<AjaxContract['Billing']>,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
     const editingUserCallback = jest.fn();
 
     // Act
@@ -235,29 +268,40 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={editingUserCallback}
-        setDeletingUser={jest.fn()}
+        userAdded={jest.fn()}
+        userEdited={editingUserCallback}
+        deleteUser={jest.fn()}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${userEmail}`);
     await user.click(menu);
     const editButton = screen.getByText('Edit Role');
     await user.click(editButton);
+    // Toggle the checkbox
+    const changeRoleButton = screen.getByLabelText('Can manage users (Owner)');
+    await user.click(changeRoleButton);
+    // Save the change.
+    await user.click(screen.getByText('Change Role'));
 
     // Assert
-    expect(editingUserCallback).toHaveBeenCalledWith({ email: userEmail, roles: ['user'] });
+    expect(editingUserCallback).toHaveBeenCalled();
+    expect(changeUserRoles).toHaveBeenCalledWith('test-project', userEmail, ['User'], ['Owner']);
   });
 
   it('supports editing an owner if there are multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers = [
+    const projectUsers: User[] = [
       { email: ownerEmail, roles: ['Owner'] },
       { email: 'owner2@test.email.org', roles: ['Owner'] },
     ];
     const user = userEvent.setup();
-    const editingUserCallback = jest.fn();
+    const changeUserRoles = jest.fn();
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Billing: { changeUserRoles } as Partial<AjaxContract['Billing']>,
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    const userEditedCallback = jest.fn();
 
     // Act
     renderWithAppContexts(
@@ -265,17 +309,23 @@ describe('Members', () => {
         billingProjectName='test-project'
         isOwner
         projectUsers={projectUsers}
-        setAddingUser={jest.fn()}
-        setEditingUser={editingUserCallback}
-        setDeletingUser={jest.fn()}
+        userAdded={jest.fn()}
+        userEdited={userEditedCallback}
+        deleteUser={jest.fn()}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${ownerEmail}`);
     await user.click(menu);
     const editButton = screen.getByText('Edit Role');
     await user.click(editButton);
+    // Toggle the checkbox
+    const changeRoleButton = screen.getByLabelText('Can manage users (Owner)');
+    await user.click(changeRoleButton);
+    // Save the change.
+    await user.click(screen.getByText('Change Role'));
 
     // Assert
-    expect(editingUserCallback).toHaveBeenCalledWith({ email: ownerEmail, roles: ['Owner'] });
+    expect(userEditedCallback).toHaveBeenCalled();
+    expect(changeUserRoles).toHaveBeenCalledWith('test-project', ownerEmail, ['Owner'], ['User']);
   });
 });
