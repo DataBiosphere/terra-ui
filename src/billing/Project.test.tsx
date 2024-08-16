@@ -129,16 +129,6 @@ describe('groupByBillingAccountStatus', () => {
   });
 });
 
-// interface ProjectDetailProps {
-//   authorizeAndLoadAccounts: () => Promise<void>;
-//   billingAccounts: Record<string, GoogleBillingAccount>;
-//   billingProject: BillingProject;
-//   isOwner: boolean;
-//   reloadBillingProject: () => Promise<void>;
-//   workspaces: WorkspaceInfo[];
-//   refreshWorkspaces: () => void;
-// }
-
 describe('Project', () => {
   it('shows all tabs if the user is an owner', async () => {
     // Arrange

@@ -161,6 +161,7 @@ const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
     (key: string) => ({
       key,
       title: (
+        // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
         <span style={{ padding: '0 0.5rem' }}>{_.capitalize(key === 'members' && !isOwner ? 'owners' : key)}</span>
       ),
       tableName: _.lowerCase(key),
