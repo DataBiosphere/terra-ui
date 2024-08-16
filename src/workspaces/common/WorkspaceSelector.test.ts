@@ -20,9 +20,10 @@ describe('WorkspaceSelector', () => {
 
     // Act
     render(
-      // @ts-expect-error
       h(WorkspaceSelector, {
         workspaces,
+        value: undefined,
+        onChange: (_) => {},
       })
     );
 
@@ -49,9 +50,9 @@ describe('WorkspaceSelector', () => {
 
     const onChange = jest.fn();
     render(
-      // @ts-expect-error
       h(WorkspaceSelector, {
         workspaces,
+        value: undefined,
         onChange,
       })
     );
