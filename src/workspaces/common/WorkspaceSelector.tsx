@@ -1,4 +1,5 @@
 import _ from 'lodash/fp';
+import React from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { SelectProps, VirtualizedSelect } from 'src/components/common';
@@ -35,25 +36,28 @@ export const WorkspaceSelector = (props: WorkspaceSelectorProps) => {
       workspace: { workspace: { cloudPlatform, bucketName } },
     }))
   )(workspaces);
-  return h(VirtualizedSelect, {
-    id,
-    'aria-label': ariaLabel || 'Select a workspace',
-    placeholder: 'Select a workspace',
-    disabled: !workspaces,
-    value,
-    onChange: ({ value }) => onChange(value),
-    options,
-    formatOptionLabel: (opt: WorkspaceSelectorOption) => {
-      const { label, workspace } = opt;
-      return div({ style: { display: 'flex', alignItems: 'center' } }, [
-        h(CloudProviderIcon, {
-          // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
-          cloudProvider: getCloudProviderFromWorkspace(workspace),
-          style: { marginRight: '0.5rem' },
-        }),
-        label,
-      ]);
-    },
-    ...otherProps,
-  });
+
+  return (
+    <VirtualizedSelect
+      id={id}
+      aria-label={ariaLabel || 'Select a workspace'}
+      placeholder='Select a workspace'
+      disabled={!workspaces}
+      value={value}
+      onChange={({ value }) => onChange(value)}
+      options={options}
+      formatOptionLabel={(opt: WorkspaceSelectorOption) => {
+        const { label, workspace } = opt;
+        return div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(CloudProviderIcon, {
+            // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
+            cloudProvider: getCloudProviderFromWorkspace(workspace),
+            style: { marginRight: '0.5rem' },
+          }),
+          label,
+        ]);
+      }}
+      {...otherProps}
+    />
+  );
 };
