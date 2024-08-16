@@ -4,6 +4,8 @@ import { SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/
 export const testSnapshotId = '0';
 
 export const testSnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
+  name: 'name',
+  description: 'description',
   programDataOptions: [
     {
       id: 0,

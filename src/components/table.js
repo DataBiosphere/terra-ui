@@ -44,7 +44,7 @@ const paginatorButton = (props, label) =>
  * @param {number} props.itemsPerPage
  * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
  */
-export const paginator = ({
+export const Paginator = ({
   filteredDataLength,
   unfilteredDataLength,
   pageNumber,

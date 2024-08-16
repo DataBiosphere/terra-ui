@@ -59,6 +59,15 @@ export interface GCPBillingProject extends BaseBillingProject {
   servicePerimeter?: string;
 }
 
+export const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
+  isCloudProviderBillingProject(project, 'AZURE');
+
+export const isGoogleBillingProject = (project?: BillingProject): project is GCPBillingProject =>
+  isCloudProviderBillingProject(project, 'GCP');
+
+const isCloudProviderBillingProject = (project: BillingProject | undefined, cloudProvider: CloudPlatform): boolean =>
+  project?.cloudPlatform === cloudProvider;
+
 export interface UnknownBillingProject extends BaseBillingProject {
   cloudPlatform: 'UNKNOWN';
 }

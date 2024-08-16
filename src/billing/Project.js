@@ -1,210 +1,28 @@
-import { Modal, SpinnerOverlay } from '@terra-ui-packages/components';
+import { SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
-import { cloudProviders } from 'src/analysis/utils/runtime-utils';
-import * as Auth from 'src/auth/auth';
+import { BillingAccountControls } from 'src/billing/BillingAccount/BillingAccountControls';
+import { BillingAccountSummary } from 'src/billing/BillingAccount/BillingAccountSummary';
 import { Members } from 'src/billing/Members/Members';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { SpendReport } from 'src/billing/SpendReport/SpendReport';
-import { billingRoles } from 'src/billing/utils';
-import { ButtonPrimary, IdContainer, Link, VirtualizedSelect } from 'src/components/common';
-import { DeleteUserModal, EditUserModal, NewUserModal } from 'src/components/group-common';
+import { accountLinkStyle, billingRoles } from 'src/billing/utils';
+import { Workspaces } from 'src/billing/Workspaces/Workspaces';
+import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
-import { TextInput } from 'src/components/input';
-import { MenuButton } from 'src/components/MenuButton';
-import { MenuTrigger } from 'src/components/PopupTrigger';
 import { SimpleTabBar } from 'src/components/tabBars';
-import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
+import { isAzureBillingProject, isGoogleBillingProject } from 'src/libs/ajax/Billing';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';
-import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
-import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils';
-import { contactUsActive } from 'src/libs/state';
+import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
-import * as Style from 'src/libs/style';
-import { topBarHeight } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-
-const workspaceLastModifiedWidth = 150;
-const workspaceExpandIconSize = 20;
-const billingAccountIconSize = 16;
-
-const billingAccountIcons = {
-  updating: { shape: 'sync', color: colors.warning() },
-  done: { shape: 'check', color: colors.accent() },
-  error: { shape: 'warning-standard', color: colors.danger() },
-};
-
-const getBillingAccountIcon = (status) => {
-  const { shape, color } = billingAccountIcons[status];
-  return icon(shape, { size: billingAccountIconSize, color });
-};
-
-const accountLinkStyle = { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' };
-
-const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
-  return div(
-    { role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } },
-    [
-      needsStatusColumn && div({ style: { width: billingAccountIconSize } }, [div({ className: 'sr-only' }, ['Status'])]),
-      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: needsStatusColumn ? '1rem' : '2rem' } }, [
-        h(HeaderRenderer, { sort, onSort, name: 'name' }),
-      ]),
-      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
-        h(HeaderRenderer, { sort, onSort, name: 'createdBy' }),
-      ]),
-      div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
-        h(HeaderRenderer, { sort, onSort, name: 'lastModified' }),
-      ]),
-      div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [div({ className: 'sr-only' }, ['Expand'])]),
-    ]
-  );
-});
-
-const ExpandedInfoRow = ({ title, details, errorMessage }) => {
-  const expandedInfoStyles = {
-    row: { display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' },
-    title: { fontWeight: 600, padding: '0.5rem 1rem 0 2rem', height: '1rem' },
-    details: { flexGrow: 1, marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
-    errorMessage: {
-      flexGrow: 2,
-      padding: '0.5rem',
-      backgroundColor: colors.light(0.3),
-      border: `solid 2px ${colors.danger(0.3)}`,
-      borderRadius: 5,
-    },
-  };
-
-  return div({ style: expandedInfoStyles.row }, [
-    div({ style: expandedInfoStyles.title }, [title]),
-    div({ style: expandedInfoStyles.details }, [details]),
-    errorMessage && div({ style: expandedInfoStyles.errorMessage }, [errorMessage]),
-  ]);
-};
-
-const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject, billingAccountStatus, isExpanded, onExpand }) => {
-  const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, errorMessage } = workspace;
-  const workspaceCardStyles = {
-    field: {
-      ...Style.noWrapEllipsis,
-      flex: 1,
-      height: '1.20rem',
-      width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`,
-      paddingRight: '1rem',
-    },
-    row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
-    expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' },
-  };
-
-  return div({ role: 'row', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
-    h(IdContainer, [
-      (id) =>
-        h(Fragment, [
-          div({ style: workspaceCardStyles.row }, [
-            billingAccountStatus && getBillingAccountIcon(billingAccountStatus),
-            div(
-              {
-                role: 'rowheader',
-                style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatus ? '1rem' : '2rem' },
-              },
-              [
-                h(
-                  Link,
-                  {
-                    style: Style.noWrapEllipsis,
-                    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-                    onClick: () => {
-                      Ajax().Metrics.captureEvent(Events.billingProjectGoToWorkspace, {
-                        workspaceName: name,
-                        ...extractBillingDetails(billingProject),
-                      });
-                    },
-                  },
-                  [name]
-                ),
-              ]
-            ),
-            div({ role: 'cell', style: workspaceCardStyles.field }, [createdBy]),
-            div({ role: 'cell', style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)]),
-            div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
-              h(
-                Link,
-                {
-                  'aria-label': `expand workspace ${name}`,
-                  'aria-expanded': isExpanded,
-                  'aria-controls': isExpanded ? id : undefined,
-                  'aria-owns': isExpanded ? id : undefined,
-                  style: { display: 'flex', alignItems: 'center' },
-                  onClick: () => {
-                    Ajax().Metrics.captureEvent(Events.billingProjectExpandWorkspace, {
-                      workspaceName: name,
-                      ...extractBillingDetails(billingProject),
-                    });
-                    onExpand();
-                  },
-                },
-                [icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize })]
-              ),
-            ]),
-          ]),
-          isExpanded &&
-            div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
-              div({ style: workspaceCardStyles.expandedInfoContainer }, [
-                billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-                billingProject.cloudPlatform === cloudProviders.gcp.label &&
-                  h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage }),
-                billingProject.cloudPlatform === cloudProviders.azure.label &&
-                  h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId }),
-              ]),
-            ]),
-        ]),
-    ]),
-  ]);
-});
-
-const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
-  const StatusAndCount = ({ status, count }) =>
-    div({ style: { display: 'float' } }, [
-      div({ style: { float: 'left' } }, [getBillingAccountIcon(status)]),
-      div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`]),
-    ]);
-
-  const maybeAddStatus = (status, count) => count > 0 && div({ style: { marginRight: '2rem' } }, [h(StatusAndCount, { status, count })]);
-
-  return div(
-    {
-      style: {
-        padding: '0.5rem 2rem 1rem',
-        position: 'absolute',
-        top: topBarHeight,
-        right: '3rem',
-        width: '30rem',
-        backgroundColor: colors.light(0.5),
-        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
-      },
-    },
-    [
-      div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
-      div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
-        maybeAddStatus('updating', updating),
-        maybeAddStatus('done', done),
-        maybeAddStatus('error', error),
-      ]),
-      error > 0 &&
-        div({ style: { padding: '1rem 0 0' } }, [
-          'Try again or ',
-          h(Link, { onClick: () => contactUsActive.set(true) }, ['contact us regarding unresolved errors']),
-          '.',
-        ]),
-    ]
-  );
-};
 
 const groupByBillingAccountStatus = (billingProject, workspaces) => {
   const group = (workspace) =>
@@ -225,259 +43,6 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
 
 const spendReportKey = 'spend report';
 
-const GcpBillingAccountControls = ({
-  authorizeAndLoadAccounts,
-  billingAccounts,
-  billingProject,
-  isOwner,
-  getShowBillingModal,
-  setShowBillingModal,
-  reloadBillingProject,
-  setUpdating,
-}) => {
-  const [showBillingRemovalModal, setShowBillingRemovalModal] = useState(false);
-  const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false);
-  const [selectedBilling, setSelectedBilling] = useState();
-  const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null);
-  const [selectedDatasetName, setSelectedDatasetName] = useState(null);
-
-  const signal = useCancellation();
-
-  // Helpers
-  const setBillingAccount = _.flow(
-    reportErrorAndRethrow('Error updating billing account'),
-    Utils.withBusyState(setUpdating)
-  )((newAccountName) => {
-    Ajax().Metrics.captureEvent(Events.billingChangeAccount, {
-      oldName: billingProject.billingAccount,
-      newName: newAccountName,
-      ...extractBillingDetails(billingProject),
-    });
-    return Ajax(signal).Billing.changeBillingAccount({
-      billingProjectName: billingProject.projectName,
-      newBillingAccountName: newAccountName,
-    });
-  });
-
-  const removeBillingAccount = _.flow(
-    reportErrorAndRethrow('Error removing billing account'),
-    Utils.withBusyState(setUpdating)
-  )(() => {
-    Ajax().Metrics.captureEvent(Events.billingRemoveAccount, extractBillingDetails(billingProject));
-    return Ajax(signal).Billing.removeBillingAccount({
-      billingProjectName: billingProject.projectName,
-    });
-  });
-
-  const updateSpendConfiguration = _.flow(
-    reportErrorAndRethrow('Error updating spend report configuration'),
-    Utils.withBusyState(setUpdating)
-  )(() =>
-    Ajax(signal).Billing.updateSpendConfiguration({
-      billingProjectName: billingProject.projectName,
-      datasetGoogleProject: selectedDatasetProjectName,
-      datasetName: selectedDatasetName,
-    })
-  );
-
-  // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
-  const billingProjectHasBillingAccount = !(billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount));
-  const billingAccount = billingProjectHasBillingAccount ? _.find({ accountName: billingProject.billingAccount }, billingAccounts) : undefined;
-
-  const billingAccountDisplayText = Utils.cond(
-    [!billingProjectHasBillingAccount, () => 'No linked billing account'],
-    [!billingAccount, () => 'No access to linked billing account'],
-    () => billingAccount.displayName || billingAccount.accountName
-  );
-
-  return h(Fragment, [
-    Auth.hasBillingScope() &&
-      div({ style: accountLinkStyle }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
-        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText),
-        isOwner &&
-          h(
-            MenuTrigger,
-            {
-              closeOnClick: true,
-              side: 'bottom',
-              style: { marginLeft: '0.5rem' },
-              content: h(Fragment, [
-                h(
-                  MenuButton,
-                  {
-                    onClick: async () => {
-                      if (Auth.hasBillingScope()) {
-                        setShowBillingModal(true);
-                      } else {
-                        await authorizeAndLoadAccounts();
-                        setShowBillingModal(Auth.hasBillingScope());
-                      }
-                    },
-                  },
-                  ['Change Billing Account']
-                ),
-                h(
-                  MenuButton,
-                  {
-                    onClick: async () => {
-                      if (Auth.hasBillingScope()) {
-                        setShowBillingRemovalModal(true);
-                      } else {
-                        await authorizeAndLoadAccounts();
-                        setShowBillingRemovalModal(Auth.hasBillingScope());
-                      }
-                    },
-                    disabled: !billingProjectHasBillingAccount,
-                  },
-                  ['Remove Billing Account']
-                ),
-              ]),
-            },
-            [
-              h(Link, { 'aria-label': 'Billing account menu', style: { display: 'flex', alignItems: 'center' } }, [
-                icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' }),
-              ]),
-            ]
-          ),
-        getShowBillingModal() &&
-          h(
-            Modal,
-            {
-              title: 'Change Billing Account',
-              onDismiss: () => setShowBillingModal(false),
-              okButton: h(
-                ButtonPrimary,
-                {
-                  disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
-                  onClick: () => {
-                    setShowBillingModal(false);
-                    setBillingAccount(selectedBilling).then(reloadBillingProject);
-                  },
-                },
-                ['Ok']
-              ),
-            },
-            [
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
-                    h(VirtualizedSelect, {
-                      id,
-                      value: selectedBilling || billingProject.billingAccount,
-                      isClearable: false,
-                      options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-                      onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName),
-                    }),
-                    div({ style: { marginTop: '1rem' } }, [
-                      'Note: Changing the billing account for this billing project will clear the spend report configuration.',
-                    ]),
-                  ]),
-              ]),
-            ]
-          ),
-        showBillingRemovalModal &&
-          h(
-            Modal,
-            {
-              title: 'Remove Billing Account',
-              onDismiss: () => setShowBillingRemovalModal(false),
-              okButton: h(
-                ButtonPrimary,
-                {
-                  onClick: () => {
-                    setShowBillingRemovalModal(false);
-                    removeBillingAccount(selectedBilling).then(reloadBillingProject);
-                  },
-                },
-                ['Ok']
-              ),
-            },
-            [div({ style: { marginTop: '1rem' } }, ["Are you sure you want to remove this billing project's billing account?"])]
-          ),
-      ]),
-    Auth.hasBillingScope() &&
-      isOwner &&
-      div({ style: accountLinkStyle }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Spend Report Configuration:'),
-        span({ style: { flexShrink: 0 } }, 'Edit'),
-        h(
-          Link,
-          {
-            tooltip: 'Configure Spend Reporting',
-            style: { marginLeft: '0.5rem' },
-            onClick: async () => {
-              if (Auth.hasBillingScope()) {
-                setShowSpendReportConfigurationModal(true);
-              } else {
-                await authorizeAndLoadAccounts();
-                setShowSpendReportConfigurationModal(Auth.hasBillingScope());
-              }
-            },
-          },
-          [icon('edit', { size: 12 })]
-        ),
-        showSpendReportConfigurationModal &&
-          h(
-            Modal,
-            {
-              title: 'Configure Spend Reporting',
-              onDismiss: () => setShowSpendReportConfigurationModal(false),
-              okButton: h(
-                ButtonPrimary,
-                {
-                  disabled: !selectedDatasetProjectName || !selectedDatasetName,
-                  onClick: async () => {
-                    setShowSpendReportConfigurationModal(false);
-                    await updateSpendConfiguration(billingProject.projectName, selectedDatasetProjectName, selectedDatasetName);
-                  },
-                },
-                ['Ok']
-              ),
-            },
-            [
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project ID']),
-                    h(TextInput, {
-                      id,
-                      onChange: setSelectedDatasetProjectName,
-                    }),
-                  ]),
-              ]),
-              h(IdContainer, [
-                (id) =>
-                  h(Fragment, [
-                    h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
-                    h(TextInput, {
-                      id,
-                      onChange: setSelectedDatasetName,
-                    }),
-                    div({ style: { marginTop: '1rem' } }, [
-                      ['See '],
-                      h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
-                      [' for details on configuring spend reporting for billing projects.'],
-                    ]),
-                  ]),
-              ]),
-            ]
-          ),
-      ]),
-    !Auth.hasBillingScope() &&
-      div({ style: accountLinkStyle }, [
-        h(
-          Link,
-          {
-            onClick: authorizeAndLoadAccounts,
-          },
-          ['View billing account']
-        ),
-      ]),
-  ]);
-};
-
 const ProjectDetail = ({
   authorizeAndLoadAccounts,
   billingAccounts,
@@ -493,16 +58,10 @@ const ProjectDetail = ({
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || []);
   const projectOwners = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers);
-  const [addingUser, setAddingUser] = useState(false);
-  const [editingUser, setEditingUser] = useState(false);
-  const [deletingUser, setDeletingUser] = useState(false);
+
   const [updating, setUpdating] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [tab, setTab] = useState(query.tab || 'workspaces');
-  const [expandedWorkspaceName, setExpandedWorkspaceName] = useState();
-  const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' });
-
-  const signal = useCancellation();
 
   const workspacesInProject = useMemo(
     () => _.filter({ namespace: billingProject.projectName }, _.map('workspace', workspaces)),
@@ -511,58 +70,45 @@ const ProjectDetail = ({
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject);
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating));
-  const getBillingAccountStatus = (workspace) => _.findKey((g) => g.has(workspace), groups);
 
-  const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label;
-  const isAzureProject = billingProject.cloudPlatform === cloudProviders.azure.label;
+  const signal = useCancellation();
+
+  const collectUserRoles = _.flow(
+    _.groupBy('email'),
+    _.entries,
+    _.map(([email, members]) => ({ email, roles: _.map('role', members) })),
+    _.sortBy('email')
+  );
+
+  const reloadBillingProjectUsers = _.flow(
+    reportErrorAndRethrow('Error loading billing project users list'),
+    Utils.withBusyState(setUpdating)
+  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName).then(collectUserRoles).then(setProjectUsers));
+
+  const removeUserFromBillingProject = _.flow(
+    reportErrorAndRethrow('Error removing member from billing project'),
+    Utils.withBusyState(setUpdating)
+  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]));
 
   const tabToTable = {
-    workspaces: h(Fragment, [
-      !_.isUndefined(workspaces) && _.isEmpty(workspacesInProject)
-        ? div({ style: { ...Style.cardList.longCardShadowless, width: 'fit-content' } }, [
-            span({ 'aria-hidden': 'true' }, ['Use this Terra billing project to create']),
-            h(
-              Link,
-              {
-                'aria-label': 'Use this Terra billing project to create workspaces',
-                style: { marginLeft: '0.3em', textDecoration: 'underline' },
-                href: Nav.getLink('workspaces'),
-              },
-              ['Workspaces']
-            ),
-          ])
-        : !_.isEmpty(workspacesInProject) &&
-          div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
-            h(WorkspaceCardHeaders, {
-              needsStatusColumn: billingAccountsOutOfDate,
-              sort: workspaceSort,
-              onSort: setWorkspaceSort,
-            }),
-            div({}, [
-              _.flow(
-                _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-                _.map((workspace) => {
-                  const isExpanded = expandedWorkspaceName === workspace.name;
-                  return h(WorkspaceCard, {
-                    workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
-                    billingProject,
-                    billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
-                    key: workspace.workspaceId,
-                    isExpanded,
-                    onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name),
-                  });
-                })
-              )(workspacesInProject),
-            ]),
-          ]),
-    ]),
+    workspaces: h(Workspaces, {
+      billingProject,
+      workspacesInProject,
+      billingAccounts,
+      billingAccountsOutOfDate,
+      groups,
+    }),
     members: h(Members, {
       billingProjectName: billingProject.projectName,
       isOwner,
       projectUsers,
-      setAddingUser,
-      setEditingUser,
-      setDeletingUser,
+      userAdded: () => reloadBillingProjectUsers(),
+      userEdited: () => {
+        reloadBillingProject().then(reloadBillingProjectUsers);
+      },
+      deleteUser: (user) => {
+        removeUserFromBillingProject(user.roles, user.email).then(reloadBillingProject).then(reloadBillingProjectUsers);
+      },
     }),
     [spendReportKey]: h(SpendReport, {
       billingProjectName: billingProject.projectName,
@@ -596,23 +142,6 @@ const ProjectDetail = ({
     }
   });
 
-  const collectUserRoles = _.flow(
-    _.groupBy('email'),
-    _.entries,
-    _.map(([email, members]) => ({ email, roles: _.map('role', members) })),
-    _.sortBy('email')
-  );
-
-  const reloadBillingProjectUsers = _.flow(
-    reportErrorAndRethrow('Error loading billing project users list'),
-    Utils.withBusyState(setUpdating)
-  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName).then(collectUserRoles).then(setProjectUsers));
-
-  const removeUserFromBillingProject = _.flow(
-    reportErrorAndRethrow('Error removing member from billing project'),
-    Utils.withBusyState(setUpdating)
-  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]));
-
   // Lifecycle
   useOnMount(() => {
     reloadBillingProjectUsers();
@@ -633,8 +162,8 @@ const ProjectDetail = ({
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
         billingProject.projectName,
       ]),
-      isGcpProject &&
-        h(GcpBillingAccountControls, {
+      isGoogleBillingProject(billingProject) &&
+        h(BillingAccountControls, {
           authorizeAndLoadAccounts,
           billingAccounts,
           billingProject,
@@ -644,7 +173,7 @@ const ProjectDetail = ({
           reloadBillingProject,
           setUpdating,
         }),
-      isAzureProject &&
+      isAzureBillingProject(billingProject) &&
         div({ style: accountLinkStyle }, [
           h(ExternalLink, {
             url: `https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`,
@@ -671,7 +200,7 @@ const ProjectDetail = ({
               margin: '1rem 1rem 0',
               padding: '1rem',
               border: `1px solid ${colors.warning()}`,
-              backgroundColor: colors.warning(0.15),
+              backgroundColor: colors.warning(0.1), // needs to be sufficient contrast with link color
             },
           },
           [
@@ -729,41 +258,7 @@ const ProjectDetail = ({
         ]
       ),
     ]),
-    addingUser &&
-      h(NewUserModal, {
-        adminLabel: billingRoles.owner,
-        userLabel: billingRoles.user,
-        title: 'Add user to Billing Project',
-        footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-        addFunction: _.partial(Ajax().Billing.addProjectUser, [billingProject.projectName]),
-        onDismiss: () => setAddingUser(false),
-        onSuccess: () => {
-          setAddingUser(false);
-          reloadBillingProjectUsers();
-        },
-      }),
-    editingUser &&
-      h(EditUserModal, {
-        adminLabel: billingRoles.owner,
-        userLabel: billingRoles.user,
-        user: editingUser,
-        saveFunction: _.partial(Ajax().Billing.changeUserRoles, [billingProject.projectName]),
-        onDismiss: () => setEditingUser(false),
-        onSuccess: () => {
-          setEditingUser(false);
-          reloadBillingProject().then(reloadBillingProjectUsers);
-        },
-      }),
-    !!deletingUser &&
-      h(DeleteUserModal, {
-        userEmail: deletingUser.email,
-        onDismiss: () => setDeletingUser(false),
-        onSubmit: () => {
-          setDeletingUser(false);
-          removeUserFromBillingProject(deletingUser.roles, deletingUser.email).then(reloadBillingProject).then(reloadBillingProjectUsers);
-        },
-      }),
-    billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
+    billingAccountsOutOfDate && h(BillingAccountSummary, _.mapValues(_.size, groups)),
     updating && h(SpinnerOverlay, { mode: 'FullScreen' }),
   ]);
 };
