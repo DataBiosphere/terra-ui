@@ -23,8 +23,8 @@ jest.mock('src/libs/ajax/fetch/fetch-core', () => ({
   fetchOk: jest.fn(),
 }));
 
-jest.mock('src/auth/auth-fetch', () => ({
-  ...jest.requireActual('src/auth/auth-fetch'),
+jest.mock('src/auth/auth-session', () => ({
+  ...jest.requireActual('src/auth/auth-session'),
   authOpts: jest.fn(),
 }));
 

@@ -3,7 +3,7 @@ import { LeoResourceLabels } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { AppAccessScope, AppToolLabel } from 'src/analysis/utils/tool-utils';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { appIdentifier, fetchLeo } from 'src/libs/ajax/ajax-common';
 import { CreateAppV1Request, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 
