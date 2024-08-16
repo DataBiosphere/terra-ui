@@ -322,13 +322,14 @@ const FilterableWorkflowTable = ({
                     'aria-label': 'previous runs',
                     width,
                     height,
-                    // @ts-expect-error
-                    sort,
+                    sort: sort as any, // necessary until FlexTable is converted to TS
                     rowCount: paginatedPreviousRuns.length,
                     noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
                     hoverHighlight: true,
                     rowHeight,
                     rowWidth,
+                    variant: null,
+                    tabIndex: -1,
                     columns: [
                       {
                         size: { basis: 350 },

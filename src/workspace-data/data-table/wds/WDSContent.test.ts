@@ -77,6 +77,7 @@ const defaultFeatures: DataTableFeatures = {
   supportsPointCorrection: false,
   supportsFiltering: false,
   supportsRowSelection: false,
+  supportsPerColumnDatatype: true,
 };
 
 const defaultSetupOptions: SetupOptions = {

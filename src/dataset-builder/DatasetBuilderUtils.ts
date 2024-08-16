@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
+import { HeaderAndValues } from 'src/dataset-builder/DatasetBuilder';
 import {
   AnySnapshotBuilderCriteria,
   DatasetBuilderType,
@@ -164,4 +165,48 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 
 export const formatCount = (count: number): string => {
   return count === 19 ? 'Less than 20' : count.toString();
+};
+
+export const addSelectableObjectToGroup = <T extends DatasetBuilderType>(
+  selectableObject: T,
+  header: string,
+  group: HeaderAndValues<T>[],
+  setGroup: (groups: HeaderAndValues<T>[]) => void
+) => {
+  const index = _.findIndex((selectedObject: HeaderAndValues<T>) => selectedObject.header === header, group);
+  setGroup(
+    index === -1
+      ? group.concat({
+          header,
+          values: [selectableObject],
+        })
+      : _.set(`[${index}].values`, _.xorWith(_.isEqual, group[index].values, [selectableObject]), group)
+  );
+};
+
+// Debounce next calls until result's promise resolve
+// Code from stackoverflow answer: https://stackoverflow.com/questions/74800112/debounce-async-function-and-ensure-sequentiality
+export const debounceAsync = <T>(fn: (...args: any[]) => T) => {
+  let activePromise: Promise<T> | undefined;
+  let cancel: () => void | undefined;
+  const debouncedFn = (...args: any) => {
+    cancel?.();
+    if (activePromise) {
+      const abortController = new AbortController();
+      cancel = abortController.abort.bind(abortController);
+      activePromise.then(() => {
+        if (abortController.signal.aborted) {
+          return;
+        }
+        debouncedFn(...args);
+      });
+      return;
+    }
+
+    activePromise = Promise.resolve(fn(...args));
+    activePromise.finally(() => {
+      activePromise = undefined;
+    });
+  };
+  return debouncedFn;
 };

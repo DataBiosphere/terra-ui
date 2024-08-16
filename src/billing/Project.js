@@ -5,11 +5,12 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { cloudProviders } from 'src/analysis/utils/runtime-utils';
 import * as Auth from 'src/auth/auth';
+import { Members } from 'src/billing/Members/Members';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { SpendReport } from 'src/billing/SpendReport/SpendReport';
 import { billingRoles } from 'src/billing/utils';
 import { ButtonPrimary, IdContainer, Link, VirtualizedSelect } from 'src/components/common';
-import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common';
+import { DeleteUserModal, EditUserModal, NewUserModal } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextInput } from 'src/components/input';
@@ -499,12 +500,9 @@ const ProjectDetail = ({
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [tab, setTab] = useState(query.tab || 'workspaces');
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState();
-  const [sort, setSort] = useState({ field: 'email', direction: 'asc' });
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' });
 
   const signal = useCancellation();
-
-  const projectHasMultipleOwners = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1;
 
   const workspacesInProject = useMemo(
     () => _.filter({ namespace: billingProject.projectName }, _.map('workspace', workspaces)),
@@ -558,33 +556,14 @@ const ProjectDetail = ({
             ]),
           ]),
     ]),
-    members: h(Fragment, [
-      isOwner &&
-        h(
-          NewUserCard,
-          {
-            onClick: () => setAddingUser(true),
-          },
-          [icon('plus-circle', { size: 14 }), div({ style: { marginLeft: '0.5rem' } }, ['Add User'])]
-        ),
-      div({ role: 'table', 'aria-label': `users in billing project ${billingProject.projectName}` }, [
-        h(MemberCardHeaders, { sort, onSort: setSort }),
-        div(
-          _.map((member) => {
-            return h(MemberCard, {
-              key: member.email,
-              adminLabel: billingRoles.owner,
-              userLabel: billingRoles.user,
-              member,
-              adminCanEdit: projectHasMultipleOwners && isOwner,
-              onEdit: () => setEditingUser(member),
-              onDelete: () => setDeletingUser(member),
-              isOwner,
-            });
-          }, _.orderBy([sort.field], [sort.direction], projectUsers))
-        ),
-      ]),
-    ]),
+    members: h(Members, {
+      billingProjectName: billingProject.projectName,
+      isOwner,
+      projectUsers,
+      setAddingUser,
+      setEditingUser,
+      setDeletingUser,
+    }),
     [spendReportKey]: h(SpendReport, {
       billingProjectName: billingProject.projectName,
       cloudPlatform: billingProject.cloudPlatform,

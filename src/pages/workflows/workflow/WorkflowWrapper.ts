@@ -21,13 +21,13 @@ export interface WrapWorkflowOptions {
 interface WorkflowWrapperProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: number;
+  snapshotId: string;
 }
 
 interface WorkflowContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: number;
+  snapshotId: string;
   tabName: string | undefined;
 }
 
@@ -135,7 +135,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
             value: selectedSnapshot,
             isSearchable: false,
             options: _.map('snapshotId', cachedSnapshotsList),
-            onChange: (value) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
+            onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
           }),
         ]),
       ]

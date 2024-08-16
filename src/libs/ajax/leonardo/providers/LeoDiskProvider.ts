@@ -1,4 +1,5 @@
 import { Mutate } from '@terra-ui-packages/core-utils';
+import { AbortOption } from '@terra-ui-packages/data-client-core';
 import {
   AzureDiskType,
   GoogleDiskType,
@@ -7,7 +8,6 @@ import {
 } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
 import { isGcpContext } from 'src/analysis/utils/runtime-utils';
-import { AbortOption } from 'src/libs/ajax/data-client-common';
 import * as Utils from 'src/libs/utils';
 
 import { Disks } from '../Disks';
