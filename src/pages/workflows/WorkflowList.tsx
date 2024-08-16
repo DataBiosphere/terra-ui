@@ -7,7 +7,7 @@ import { Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { DelayedSearchInput } from 'src/components/input';
 import { TabBar } from 'src/components/tabBars';
-import { FlexTable, HeaderCell, paginator as Paginator, Sortable, TooltipCell } from 'src/components/table';
+import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
