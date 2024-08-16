@@ -1,8 +1,8 @@
-import { SpinnerOverlay } from '@terra-ui-packages/components';
+import { Icon, SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react';
-import { div, h, p, span } from 'react-hyperscript-helpers';
+import React from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { BillingAccountControls } from 'src/billing/BillingAccount/BillingAccountControls';
 import { BillingAccountSummary, BillingAccountSummaryProps } from 'src/billing/BillingAccount/BillingAccountSummary';
 import { Members } from 'src/billing/Members/Members';
@@ -12,7 +12,6 @@ import { accountLinkStyle, BillingAccountStatus, billingRoles } from 'src/billin
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
 import { Link } from 'src/components/common';
 import { User } from 'src/components/group-common';
-import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { Ajax } from 'src/libs/ajax';
@@ -124,38 +123,46 @@ const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
   )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]));
 
   const tabToTable = {
-    workspaces: h(Workspaces, {
-      billingProject,
-      workspacesInProject,
-      billingAccounts,
-      billingAccountsOutOfDate,
-      groups,
-    }),
-    members: h(Members, {
-      billingProjectName: billingProject.projectName,
-      isOwner,
-      projectUsers,
-      userAdded: () => reloadBillingProjectUsers(),
-      userEdited: () => {
-        reloadBillingProject().then(reloadBillingProjectUsers);
-      },
-      deleteUser: (user) => {
-        removeUserFromBillingProject(user.roles, user.email).then(reloadBillingProject).then(reloadBillingProjectUsers);
-      },
-    }),
-    [spendReportKey]: h(SpendReport, {
-      billingProjectName: billingProject.projectName,
-      cloudPlatform: billingProject.cloudPlatform,
-      viewSelected: tab === spendReportKey,
-    }),
+    workspaces: (
+      <Workspaces
+        billingProject={billingProject}
+        workspacesInProject={workspacesInProject}
+        billingAccounts={billingAccounts}
+        billingAccountsOutOfDate={billingAccountsOutOfDate}
+        groups={groups}
+      />
+    ),
+    members: (
+      <Members
+        billingProjectName={billingProject.projectName}
+        isOwner={isOwner}
+        projectUsers={projectUsers}
+        userAdded={() => reloadBillingProjectUsers()}
+        userEdited={() => {
+          reloadBillingProject().then(reloadBillingProjectUsers);
+        }}
+        deleteUser={(user) => {
+          removeUserFromBillingProject(user.roles, user.email)
+            .then(reloadBillingProject)
+            .then(reloadBillingProjectUsers);
+        }}
+      />
+    ),
+    [spendReportKey]: (
+      <SpendReport
+        billingProjectName={billingProject.projectName}
+        cloudPlatform={billingProject.cloudPlatform}
+        viewSelected={tab === spendReportKey}
+      />
+    ),
   };
 
   const tabs = _.map(
     (key: string) => ({
       key,
-      title: span({ style: { padding: '0 0.5rem' } }, [
-        _.capitalize(key === 'members' && !isOwner ? 'owners' : key), // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
-      ]),
+      title: (
+        <span style={{ padding: '0 0.5rem' }}>{_.capitalize(key === 'members' && !isOwner ? 'owners' : key)}</span>
+      ),
       tableName: _.lowerCase(key),
     }),
     _.filter((key: string) => key !== spendReportKey || isOwner, _.keys(tabToTable))
@@ -197,120 +204,122 @@ const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
   // is automatically "shared".
   const oneOwnerForSharedWorkspace = _.size(projectOwners) === 1 && (!isOwner || _.size(projectUsers) > 1);
 
-  return h(Fragment, [
-    div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div(
-        {
-          style: {
+  return (
+    <>
+      <div style={{ padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
             color: colors.dark(),
             fontSize: 18,
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
             marginLeft: '1rem',
-          },
-        },
-        [billingProject.projectName]
-      ),
-      isGoogleBillingProject(billingProject) &&
-        h(BillingAccountControls, {
-          authorizeAndLoadAccounts,
-          billingAccounts,
-          billingProject,
-          isOwner,
-          getShowBillingModal,
-          setShowBillingModal,
-          reloadBillingProject,
-          setUpdating,
-        }),
-      isAzureBillingProject(billingProject) &&
-        div({ style: accountLinkStyle }, [
-          h(ExternalLink, {
-            url: `https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`,
-            text: 'View project resources in Azure Portal',
-            popoutSize: 14,
-          }),
-          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-            "Project resources can only be viewed when you are logged into the same tenant as the project's Azure subscription.",
-            p({ style: { marginBlockEnd: 0 } }, [
-              h(ExternalLink, {
-                url: `https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/overview`,
-                text: 'View subscription in Azure Portal',
-              }),
-            ]),
-          ]),
-        ]),
-      oneOwnerForSharedWorkspace &&
-        div(
-          {
-            style: {
+          }}
+        >
+          {billingProject.projectName}
+        </div>
+        {isGoogleBillingProject(billingProject) && (
+          <BillingAccountControls
+            authorizeAndLoadAccounts={authorizeAndLoadAccounts}
+            billingAccounts={billingAccounts}
+            billingProject={billingProject}
+            isOwner={isOwner}
+            getShowBillingModal={getShowBillingModal}
+            setShowBillingModal={setShowBillingModal}
+            reloadBillingProject={reloadBillingProject}
+            setUpdating={setUpdating}
+          />
+        )}
+        {isAzureBillingProject(billingProject) && (
+          <div style={accountLinkStyle}>
+            <ExternalLink
+              url={`https://portal.azure.com/#view/HubsExtension/BrowseResourcesWithTag/tagName/WLZ-ID/tagValue/${billingProject.landingZoneId}`}
+              text='View project resources in Azure Portal'
+              popoutSize={14}
+            />
+            <InfoBox style={{ marginLeft: '0.25rem' }}>
+              Project resources can only be viewed when you are logged into the same tenant as the project&apos;s Azure
+              subscription.
+              <p style={{ marginBlockEnd: 0 }}>
+                <ExternalLink
+                  url={`https://portal.azure.com/#@${billingProject.managedAppCoordinates.tenantId}/resource/subscriptions/${billingProject.managedAppCoordinates.subscriptionId}/overview`}
+                  text='View subscription in Azure Portal'
+                />
+              </p>
+            </InfoBox>
+          </div>
+        )}
+        {oneOwnerForSharedWorkspace && (
+          <div
+            style={{
               display: 'flex',
               alignItems: 'center',
               margin: '1rem 1rem 0',
               padding: '1rem',
               border: `1px solid ${colors.warning()}`,
               backgroundColor: colors.warning(0.1), // needs to be sufficient contrast with link color
-            },
-          },
-          [
-            icon('warning-standard', { style: { color: colors.warning(), marginRight: '1ch' } }),
-            span(
-              isOwner
-                ? [
-                    'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account. ',
-                    h(
-                      Link,
-                      {
-                        href: 'https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK',
-                        ...Utils.newTabLinkProps,
-                      },
-                      ['More information about managing shared billing projects.']
-                    ),
-                  ]
-                : [
-                    'This shared billing project has only one owner. Consider requesting ',
-                    h(Link, { href: `mailto:${projectOwners[0].email}` }, [projectOwners[0].email]),
-                    ' to add another owner to ensure someone is able to manage the billing project in case they lose access to their account.',
-                  ]
-            ),
-          ]
-        ),
-      h(
-        SimpleTabBar,
-        {
-          'aria-label': 'project details',
-          metricsPrefix: Events.billingProjectSelectTab,
-          metricsData: extractBillingDetails(billingProject),
-          style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
-          tabStyle: { borderBottomWidth: 4 },
-          value: tab,
-          onChange: (newTab) => {
+            }}
+          >
+            <Icon style={{ color: colors.warning(), marginRight: '1ch' }} icon='warning-standard' />
+            <span>
+              {isOwner ? (
+                <>
+                  {
+                    'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account. '
+                  }
+                  <Link
+                    href='https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK'
+                    {...Utils.newTabLinkProps}
+                  >
+                    More information about managing shared billing projects.
+                  </Link>
+                </>
+              ) : (
+                <>
+                  {'This shared billing project has only one owner. Consider requesting '}
+                  <Link href={`mailto:${projectOwners[0].email}`}>{projectOwners[0].email}</Link>
+                  {
+                    ' to add another owner to ensure someone is able to manage the billing project in case they lose access to their account.'
+                  }
+                </>
+              )}
+            </span>
+          </div>
+        )}
+        <SimpleTabBar
+          aria-label='project details'
+          metricsPrefix={Events.billingProjectSelectTab}
+          metricsData={extractBillingDetails(billingProject)}
+          style={{ marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' }}
+          tabStyle={{ borderBottomWidth: 4 }}
+          value={tab}
+          onChange={(newTab) => {
             if (newTab === tab) {
               reloadBillingProjectUsers();
             } else {
               setTab(newTab);
             }
-          },
-          tabs,
-        },
-        [
-          div(
-            {
-              style: {
-                padding: '1rem 1rem 0',
-                backgroundColor: colors.light(),
-                flexGrow: 1,
-              },
-            },
-            [tabToTable[tab]]
-          ),
-        ]
-      ),
-    ]),
-    billingAccountsOutOfDate &&
-      h(BillingAccountSummary, _.mapValues(_.size, groups) as unknown as BillingAccountSummaryProps),
-    updating && h(SpinnerOverlay, { mode: 'FullScreen' }),
-  ]);
+          }}
+          tabs={tabs}
+        >
+          <div
+            style={{
+              padding: '1rem 1rem 0',
+              backgroundColor: colors.light(),
+              flexGrow: 1,
+            }}
+          >
+            {tabToTable[tab]}
+          </div>
+        </SimpleTabBar>
+      </div>
+      {billingAccountsOutOfDate && (
+        <BillingAccountSummary {...(_.mapValues(_.size, groups) as unknown as BillingAccountSummaryProps)} />
+      )}
+      {updating && <SpinnerOverlay mode='FullScreen' />}
+    </>
+  );
 };
 
 export default ProjectDetail;
