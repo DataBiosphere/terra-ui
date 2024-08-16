@@ -3,7 +3,8 @@ import { asMockedFn } from 'src/testing/test-utils';
 
 import { getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken } from './auth';
 import { sessionExpirationErrorMessage } from './auth-errors';
-import { authOpts, withRetryAfterReloadingExpiredAuthToken } from './auth-fetch';
+import { withRetryAfterReloadingExpiredAuthToken } from './auth-fetch';
+import { authOpts } from './auth-session';
 import { signOut } from './signout/sign-out';
 
 let mockOidcUser: OidcUser;
