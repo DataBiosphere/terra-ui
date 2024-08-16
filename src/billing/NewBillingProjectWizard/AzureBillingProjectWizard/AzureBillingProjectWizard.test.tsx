@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import {
   addUserAndOwner,
   getAddUsersRadio,
@@ -85,11 +85,7 @@ describe('AzureBillingProjectWizard', () => {
         } as Partial<AjaxContract> as AjaxContract)
     );
 
-    renderResult = render(
-      h(AzureBillingProjectWizard, {
-        onSuccess,
-      })
-    );
+    renderResult = render(<AzureBillingProjectWizard onSuccess={onSuccess} />);
   };
 
   it('should not fail any accessibility tests in initial state', async () => {

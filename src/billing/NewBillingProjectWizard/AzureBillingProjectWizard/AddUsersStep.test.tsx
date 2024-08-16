@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { AddUsersStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep';
 
 const onSetUserEmails = jest.fn();
@@ -43,7 +43,7 @@ describe('AddUsersStep', () => {
 
   it('has the correct initial state', () => {
     // Arrange
-    render(h(AddUsersStep, defaultProps));
+    render(<AddUsersStep {...defaultProps} />);
 
     // Assert
     verifyCheckedState(getNoUsersRadio(), false);
@@ -58,15 +58,10 @@ describe('AddUsersStep', () => {
 
     const mockAddUsersOrOwners = jest.fn((addUsers) => {
       renderResult.rerender(
-        h(AddUsersStep, {
-          ...defaultProps,
-          onAddUsersOrOwners: mockAddUsersOrOwners,
-          addUsersOrOwners: addUsers,
-        })
+        <AddUsersStep {...defaultProps} onAddUsersOrOwners={mockAddUsersOrOwners} addUsersOrOwners={addUsers} />
       );
     });
-    const renderResult = render(h(AddUsersStep, { ...defaultProps, onAddUsersOrOwners: mockAddUsersOrOwners }));
-
+    const renderResult = render(<AddUsersStep {...defaultProps} onAddUsersOrOwners={mockAddUsersOrOwners} />);
     // Act
     await user.click(getAddUsersRadio());
 
@@ -101,8 +96,7 @@ describe('AddUsersStep', () => {
     // Testing only 1 input field because it is the same component for both
 
     // Arrange
-    render(h(AddUsersStep, { ...defaultProps, addUsersOrOwners: true }));
-
+    render(<AddUsersStep {...defaultProps} addUsersOrOwners />);
     // Act
     fireEvent.change(getUsersInput(), { target: { value: 'bademail, secondbademail' } });
 
@@ -119,8 +113,7 @@ describe('AddUsersStep', () => {
     // Arrange
     // For some reason, passing this as text with fireEvent.change does not work.
     const goodEmails = 'first@example.com, second@example.com';
-    render(h(AddUsersStep, { ...defaultProps, addUsersOrOwners: true, ownerEmails: goodEmails }));
-
+    render(<AddUsersStep {...defaultProps} addUsersOrOwners ownerEmails={goodEmails} />);
     // Assert
     await screen.findByText('2 emails entered');
     expect(screen.queryByText('First@example.com is not a valid email')).toBeNull();

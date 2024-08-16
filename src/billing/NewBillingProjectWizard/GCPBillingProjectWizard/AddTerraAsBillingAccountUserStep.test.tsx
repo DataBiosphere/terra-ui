@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import {
   AddTerraAsBillingAccountUserStep,
   AddTerraAsBillingAccountUserStepProps,
@@ -50,11 +50,7 @@ describe('AddTerraAsBillingAccountUserStep', () => {
   describe('The initial state when the step is active', () => {
     beforeEach(() => {
       render(
-        h(AddTerraAsBillingAccountUserStep, {
-          isActive: true,
-          setAccessToAddBillingAccountUser: jest.fn,
-          isFinished: false,
-        })
+        <AddTerraAsBillingAccountUserStep isActive setAccessToAddBillingAccountUser={jest.fn()} isFinished={false} />
       );
     });
 
@@ -87,12 +83,7 @@ describe('AddTerraAsBillingAccountUserStep', () => {
     };
 
     const renderStep = (overrides: Partial<AddTerraAsBillingAccountUserStepProps>) =>
-      render(
-        h(AddTerraAsBillingAccountUserStep, {
-          ...defaultProps,
-          ...overrides,
-        })
-      );
+      render(<AddTerraAsBillingAccountUserStep {...defaultProps} {...overrides} />);
 
     beforeEach(() => {});
 

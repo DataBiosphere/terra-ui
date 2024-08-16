@@ -1,15 +1,21 @@
 import { render } from '@testing-library/react';
 import { sum } from 'lodash/fp';
-import { div, h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { Step } from 'src/billing/NewBillingProjectWizard/StepWizard/Step';
 
 describe('Step', () => {
   it('renders all child props in order', () => {
-    const d1 = div({ id: 'd1' }, ['d1Text']);
-    const d2 = div({ id: 'd2' });
-    const d3 = div({ id: 'd3' });
+    const d1 = <div id='d1'>d1Text</div>;
+    const d2 = <div id='d2' />;
+    const d3 = <div id='d3' />;
 
-    const renderResult = render(h(Step, { isActive: false }, [d1, d2, d3]));
+    const renderResult = render(
+      <Step isActive={false}>
+        {d1}
+        {d2}
+        {d3}
+      </Step>
+    );
 
     const stepElem = renderResult.getByText('d1Text')?.parentElement;
     expect(stepElem?.children.length).toBe(3);
@@ -20,10 +26,14 @@ describe('Step', () => {
 
   it('sets aria-current to step when active', () => {
     const renderResult = render(
-      div([
-        h(Step, { isActive: true }, [div(['activeStepChild'])]),
-        h(Step, { isActive: false }, [div(['inactiveStepChild'])]),
-      ])
+      <div>
+        <Step isActive>
+          <div>activeStepChild</div>
+        </Step>
+        <Step isActive={false}>
+          <div>inactiveStepChild</div>
+        </Step>
+      </div>
     );
 
     const activeStep = renderResult.getByText('activeStepChild')!.parentElement!;
@@ -35,10 +45,14 @@ describe('Step', () => {
 
   it('has a more intense border and lighter background when active', () => {
     const renderResult = render(
-      div([
-        h(Step, { isActive: true }, [div(['activeStepChild'])]),
-        h(Step, { isActive: false }, [div(['inactiveStepChild'])]),
-      ])
+      <div>
+        <Step isActive>
+          <div>activeStepChild</div>
+        </Step>
+        <Step isActive={false}>
+          <div>inactiveStepChild</div>
+        </Step>
+      </div>
     );
     const activeStyle = getComputedStyle(renderResult.getByText('activeStepChild').parentElement!);
     const inactiveStyle = getComputedStyle(renderResult.getByText('inactiveStepChild').parentElement!);
