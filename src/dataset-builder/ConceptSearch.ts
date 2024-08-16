@@ -177,7 +177,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
               div({ style: { marginLeft: 5 } }, ['Hierarchy']),
             ]),
           };
-        }, concepts.state?.result || []),
+        }, concepts?.state?.result || []),
       }),
     ]),
     h(ConceptCart, { actionText, cart, onCommit }),
