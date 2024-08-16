@@ -289,6 +289,7 @@ const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
         )}
         <SimpleTabBar
           aria-label='project details'
+          // @ts-ignore
           metricsPrefix={Events.billingProjectSelectTab}
           metricsData={extractBillingDetails(billingProject)}
           style={{ marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' }}
