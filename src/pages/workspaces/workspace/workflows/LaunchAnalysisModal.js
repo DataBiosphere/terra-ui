@@ -93,9 +93,9 @@ const LaunchAnalysisModal = ({
         userComment: _.trim(userComment),
         ignoreEmptyOutputs,
         // Send monitoring options if monitoring is enabled and the option value is truthy (nonempty string)
-        monitoringScript: ( enableResourceMonitoring && monitoringScript ) ? monitoringScript : undefined,
-        monitoringImage: ( enableResourceMonitoring && monitoringImage ) ? monitoringImage : undefined,
-        monitoringImageScript: ( enableResourceMonitoring && monitoringImageScript ) ? monitoringImageScript : undefined,
+        monitoringScript: enableResourceMonitoring && monitoringScript ? monitoringScript : undefined,
+        monitoringImage: enableResourceMonitoring && monitoringImage ? monitoringImage : undefined,
+        monitoringImageScript: enableResourceMonitoring && monitoringImageScript ? monitoringImageScript : undefined,
         onProgress: (stage) => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },
