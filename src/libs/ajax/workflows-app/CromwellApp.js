@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import qs from 'qs';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { fetchFromProxy } from 'src/libs/ajax/ajax-common';
 
 export const CromwellApp = (signal) => ({

@@ -1,6 +1,6 @@
 import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
