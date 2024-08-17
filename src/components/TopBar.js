@@ -14,7 +14,7 @@ import { TextArea } from 'src/components/input';
 import ProfilePicture from 'src/components/ProfilePicture';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';
-import headerLeftHexes from 'src/images/brands/terra/header-left-hexes.svg';
+import headerRightHexes from 'src/images/brands/terra/header-right-hexes.svg';
 import { Ajax } from 'src/libs/ajax';
 import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
@@ -542,8 +542,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           div(
             {
               style: {
-                // background: isTerra() ? `0px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat` : undefined,
-                backgroundImage: isTerra() ? `url(${headerLeftHexes})` : undefined,
+                background: isTerra() ? `right url(${headerRightHexes})` : undefined,
                 backgroundRepeat: 'no-repeat',
                 flex: '1 1 auto',
                 display: 'flex',
