@@ -14,24 +14,29 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   const selectedKeys = _.keys(selectedEntities);
 
   const doDelete = async () => {
-    const entitiesToDelete = _.map(({ entityType, name: entityName }) => ({ entityType, entityName }), selectedEntities);
+    const entitiesToDelete = _.flow(
+      _.map(({ name: entityName, entityType }) => ({ entityName, entityType })),
+      (entities) => _.concat(additionalDeletions, entities)
+    )(selectedEntities);
+
     setDeleting(true);
 
     try {
-      if (additionalDeletions.length > 0) {
-        await Ajax().Workspaces.workspace(namespace, name).deleteEntities(additionalDeletions);
-      }
       await Ajax().Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete);
       onSuccess();
     } catch (error) {
       switch (error.status) {
         case 409:
-          const errorResponse = await error.json();
-          const requiredAdditionalDeletions = errorResponse.filter(
-            ({ entityType, entityName }) =>
-              !entitiesToDelete.some((selectedEntity) => selectedEntity.entityType === entityType && selectedEntity.entityName === entityName)
+          setAdditionalDeletions(
+            _.filter(
+              (errorEntity) =>
+                !_.some(
+                  (selectedEntity) => selectedEntity.entityType === errorEntity.entityType && selectedEntity.entityName === errorEntity.entityName,
+                  entitiesToDelete
+                ),
+              await error.json()
+            )
           );
-          setAdditionalDeletions(requiredAdditionalDeletions);
           setDeleting(false);
           break;
         default:
@@ -43,7 +48,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
   const moreToDelete = !!additionalDeletions.length;
 
-  const total = additionalDeletions.length > 0 ? additionalDeletions.length : selectedKeys.length;
+  const total = selectedKeys.length + additionalDeletions.length;
   return h(
     DeleteConfirmationModal,
     {
