@@ -543,7 +543,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
             {
               style: {
                 // background: isTerra() ? `0px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat` : undefined,
-                backgroundImage: `url(${headerRightHexes})`,
+                backgroundImage: isTerra() ? `url(${headerRightHexes})` : undefined,
                 backgroundRepeat: 'no-repeat',
                 flex: '1 1 auto',
                 display: 'flex',
