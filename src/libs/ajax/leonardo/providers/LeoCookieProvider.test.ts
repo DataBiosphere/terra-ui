@@ -34,7 +34,7 @@ describe('CookieProvider', () => {
     expect(unsetCookie).toBeCalledTimes(1);
   });
 
-  it('throws non 401 errors', async () => {
+  it('logs console error for non-401 failures, but does not throw', async () => {
     // Arrange
     const unsetCookie = jest.fn().mockImplementation(() => Promise.reject(new Error('test error')));
     asMockedFn(CookiesClient).mockReturnValue({ unsetCookie } as LeoCookiesContract);
