@@ -6,10 +6,6 @@ import { sessionExpirationErrorMessage } from './auth-errors';
 import { authOpts as _authOpts, withAuthSession as _withAuthSession } from './auth-session';
 import { signOut, SignOutCause } from './signout/sign-out';
 
-//
-// Auth mechanics for use on typical auth-session scoped application data requests.
-//
-
 const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Response && error.status === 401;
 
 const createRequestWithStoredAuthToken = async (

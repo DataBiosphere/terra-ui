@@ -125,7 +125,7 @@ export const MemberCardHeaders: React.FC<MemberCardHeadersProps> = memoWithName(
 
 export interface User {
   email: string;
-  roles: string[];
+  roles: string[]; // In practice will be BillingRole or GroupRole
 }
 
 interface MemberCardProps {
@@ -212,7 +212,7 @@ export const NewUserModal = (props: NewUserModalProps) => {
   const [userEmail, setUserEmail] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [confirmAddUser, setConfirmAddUser] = useState(false);
-  const [roles, setRoles] = useState([userLabel]);
+  const [roles, setRoles] = useState<string[]>([userLabel]);
   const [submitError, setSubmitError] = useState(undefined);
   const [busy, setBusy] = useState(false);
 
@@ -358,7 +358,7 @@ interface EditUserModalProps {
   user: User;
   onSuccess: () => void;
   onDismiss: () => void;
-  saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void>;
+  saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void | void[]>;
 }
 export const EditUserModal = (props: EditUserModalProps) => {
   const {

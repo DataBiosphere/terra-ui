@@ -11,7 +11,6 @@ import { SpendReport } from 'src/billing/SpendReport/SpendReport';
 import { accountLinkStyle, billingRoles } from 'src/billing/utils';
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
 import { Link } from 'src/components/common';
-import { DeleteUserModal, EditUserModal, NewUserModal } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { SimpleTabBar } from 'src/components/tabBars';
@@ -59,14 +58,10 @@ const ProjectDetail = ({
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || []);
   const projectOwners = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers);
-  const [addingUser, setAddingUser] = useState(false);
-  const [editingUser, setEditingUser] = useState(false);
-  const [deletingUser, setDeletingUser] = useState(false);
+
   const [updating, setUpdating] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [tab, setTab] = useState(query.tab || 'workspaces');
-
-  const signal = useCancellation();
 
   const workspacesInProject = useMemo(
     () => _.filter({ namespace: billingProject.projectName }, _.map('workspace', workspaces)),
@@ -75,6 +70,25 @@ const ProjectDetail = ({
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject);
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating));
+
+  const signal = useCancellation();
+
+  const collectUserRoles = _.flow(
+    _.groupBy('email'),
+    _.entries,
+    _.map(([email, members]) => ({ email, roles: _.map('role', members) })),
+    _.sortBy('email')
+  );
+
+  const reloadBillingProjectUsers = _.flow(
+    reportErrorAndRethrow('Error loading billing project users list'),
+    Utils.withBusyState(setUpdating)
+  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName).then(collectUserRoles).then(setProjectUsers));
+
+  const removeUserFromBillingProject = _.flow(
+    reportErrorAndRethrow('Error removing member from billing project'),
+    Utils.withBusyState(setUpdating)
+  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]));
 
   const tabToTable = {
     workspaces: h(Workspaces, {
@@ -88,9 +102,13 @@ const ProjectDetail = ({
       billingProjectName: billingProject.projectName,
       isOwner,
       projectUsers,
-      setAddingUser,
-      setEditingUser,
-      setDeletingUser,
+      userAdded: () => reloadBillingProjectUsers(),
+      userEdited: () => {
+        reloadBillingProject().then(reloadBillingProjectUsers);
+      },
+      deleteUser: (user) => {
+        removeUserFromBillingProject(user.roles, user.email).then(reloadBillingProject).then(reloadBillingProjectUsers);
+      },
     }),
     [spendReportKey]: h(SpendReport, {
       billingProjectName: billingProject.projectName,
@@ -123,23 +141,6 @@ const ProjectDetail = ({
       Nav.history.replace({ search: newSearch });
     }
   });
-
-  const collectUserRoles = _.flow(
-    _.groupBy('email'),
-    _.entries,
-    _.map(([email, members]) => ({ email, roles: _.map('role', members) })),
-    _.sortBy('email')
-  );
-
-  const reloadBillingProjectUsers = _.flow(
-    reportErrorAndRethrow('Error loading billing project users list'),
-    Utils.withBusyState(setUpdating)
-  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName).then(collectUserRoles).then(setProjectUsers));
-
-  const removeUserFromBillingProject = _.flow(
-    reportErrorAndRethrow('Error removing member from billing project'),
-    Utils.withBusyState(setUpdating)
-  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]));
 
   // Lifecycle
   useOnMount(() => {
@@ -257,40 +258,6 @@ const ProjectDetail = ({
         ]
       ),
     ]),
-    addingUser &&
-      h(NewUserModal, {
-        adminLabel: billingRoles.owner,
-        userLabel: billingRoles.user,
-        title: 'Add user to Billing Project',
-        footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-        addFunction: _.partial(Ajax().Billing.addProjectUser, [billingProject.projectName]),
-        onDismiss: () => setAddingUser(false),
-        onSuccess: () => {
-          setAddingUser(false);
-          reloadBillingProjectUsers();
-        },
-      }),
-    editingUser &&
-      h(EditUserModal, {
-        adminLabel: billingRoles.owner,
-        userLabel: billingRoles.user,
-        user: editingUser,
-        saveFunction: _.partial(Ajax().Billing.changeUserRoles, [billingProject.projectName]),
-        onDismiss: () => setEditingUser(false),
-        onSuccess: () => {
-          setEditingUser(false);
-          reloadBillingProject().then(reloadBillingProjectUsers);
-        },
-      }),
-    !!deletingUser &&
-      h(DeleteUserModal, {
-        userEmail: deletingUser.email,
-        onDismiss: () => setDeletingUser(false),
-        onSubmit: () => {
-          setDeletingUser(false);
-          removeUserFromBillingProject(deletingUser.roles, deletingUser.email).then(reloadBillingProject).then(reloadBillingProjectUsers);
-        },
-      }),
     billingAccountsOutOfDate && h(BillingAccountSummary, _.mapValues(_.size, groups)),
     updating && h(SpinnerOverlay, { mode: 'FullScreen' }),
   ]);

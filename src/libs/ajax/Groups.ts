@@ -1,6 +1,6 @@
 import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { fetchSam } from 'src/libs/ajax/ajax-common';
 import { SupportSummary } from 'src/support/SupportResourceType';
 

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 
 export const WorkspaceManagerResources = (signal) => ({
