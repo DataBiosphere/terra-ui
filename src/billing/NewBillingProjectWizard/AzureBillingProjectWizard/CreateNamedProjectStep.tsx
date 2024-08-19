@@ -33,8 +33,9 @@ const AzureCostWarnings = () => {
       <div style={rowEntry}>
         <Icon icon='warning-standard' size={16} style={{ marginRight: '0.5rem', color: colors.warning() }} />
         <div>
-          A Terra on Azure Billing Project has a starting cost of $10-15/day, depending on the region you select, and
-          increases with usage.
+          {
+            'A Terra on Azure Billing Project has a starting cost of $10-15/day, depending on the region you select, and increases with usage. '
+          }
           <ExternalLink
             url='https://support.terra.bio/hc/en-us/articles/12029087819291'
             text='Learn more and follow changes'

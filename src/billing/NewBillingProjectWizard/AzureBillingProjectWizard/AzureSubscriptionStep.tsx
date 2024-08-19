@@ -96,8 +96,9 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
       <StepHeader title='STEP 1' />
       <StepFields style={{ flexDirection: 'column' }}>
         <StepFieldLegend>
-          Link Terra to an unassigned managed application in your Azure subscription. A managed application instance can
-          only be assigned to a single Terra billing project.
+          {
+            'Link Terra to an unassigned managed application in your Azure subscription. A managed application instance can only be assigned to a single Terra billing project. '
+          }
           <ExternalLink
             url='https://support.terra.bio/hc/en-us/articles/12029032057371'
             text='See documentation with detailed instructions'
@@ -105,7 +106,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
           />
         </StepFieldLegend>
         <p style={legendDetailsStyle}>
-          Need to access your Azure Subscription ID, or to find or create your managed application?
+          {'Need to access your Azure Subscription ID, or to find or create your managed application? '}
           <ExternalLink text='Go to the Azure Portal' url='https://portal.azure.com/' />
         </p>
         <div style={rowStyle}>
@@ -154,13 +155,13 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
 
 const NoManagedApps = () => (
   <div key='message'>
-    No Terra Managed Applications exist for that subscription.
+    {'No Terra Managed Applications exist for that subscription. '}
     <Link
       href='https://portal.azure.com/#view/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/home'
       {...Utils.newTabLinkProps}
     >
       Go to the Azure Marketplace
     </Link>
-    to create a Terra Managed Application.
+    {' to create a Terra Managed Application.'}
   </div>
 );
