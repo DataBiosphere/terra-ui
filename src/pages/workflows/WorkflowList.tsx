@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import React, { useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
-import { Link } from 'src/components/common';
+import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { DelayedSearchInput } from 'src/components/input';
 import { TabBar } from 'src/components/tabBars';
@@ -13,6 +13,7 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { WorkflowModal } from 'src/pages/workflows/workflow/common/WorkflowModal';
 import { MethodDefinition } from 'src/pages/workflows/workflow-utils';
 
 /**
@@ -85,6 +86,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
   // function signatures from the Sortable component used in this
   // component)
   const [sort, setSort] = useState<SortProperties>({ field: 'name', direction: 'asc' });
+  const [createWorkflowModalOpen, setCreateWorkflowModalOpen] = useState<boolean>(false);
 
   const getTabQueryName = (newTab: string | undefined): string | undefined => (newTab === 'mine' ? undefined : newTab);
 
@@ -156,6 +158,13 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {null /* nothing to display at the end of the tab bar */}
       </TabBar>
       <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <ButtonPrimary
+          onClick={() => {
+            setCreateWorkflowModalOpen(true);
+          }}
+        >
+          OK
+        </ButtonPrimary>
         <div style={{ flex: 1 }}>
           {workflows && (
             <AutoSizer>
@@ -175,6 +184,9 @@ export const WorkflowList = (props: WorkflowListProps) => {
             </AutoSizer>
           )}
         </div>
+        {createWorkflowModalOpen && (
+          <WorkflowModal setCreateWorkflowModalOpen={setCreateWorkflowModalOpen} title='Create New Workflow' />
+        )}
       </div>
     </FooterWrapper>
   );
