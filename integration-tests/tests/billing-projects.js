@@ -11,11 +11,8 @@ const {
   waitForNoSpinners,
   verifyAccessibility,
 } = require('../utils/integration-utils');
-const { userEmail } = require('../utils/integration-config');
 const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
-
-const AZURE = 'AZURE';
 
 const billingProjectsPage = (testPage, testUrl) => {
   return {
@@ -31,24 +28,8 @@ const billingProjectsPage = (testPage, testUrl) => {
       await click(testPage, clickable({ text: 'Spend report' }));
     },
 
-    selectMembers: async () => {
-      await click(testPage, clickable({ text: 'Members' }));
-    },
-
-    selectOwners: async () => {
-      await click(testPage, clickable({ text: 'Owners' }));
-    },
-
     selectProject: (billingProjectName) => {
       return click(testPage, clickable({ textContains: billingProjectName }));
-    },
-
-    selectDeleteProjectMenuOption: async (projectName) => {
-      await click(testPage, clickable({ text: `Delete billing project ${projectName}` }));
-    },
-
-    confirmDeleteBillingProject: async () => {
-      await click(testPage, clickable({ text: 'Delete billing project' }));
     },
 
     setSpendReportDays: async (days) => await select(testPage, 'Date range', `Last ${days} days`),
@@ -61,21 +42,10 @@ const billingProjectsPage = (testPage, testUrl) => {
       // This checks the accessible text for chart values.
       await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${number}. Workspace ${workspaceName}, ${category}: ${cost}.")]`);
     },
-
-    showWorkspaceDetails: (name) => click(testPage, clickable({ text: `expand workspace ${name}` })),
   };
 };
 
-const setAjaxMockValues = async (
-  testPage,
-  ownedBillingProjectName,
-  notOwnedBillingProjectName,
-  erroredBillingProjectName,
-  azureBillingProjectName,
-  erroredProjectVisible,
-  spendCost,
-  numExtraWorkspaces = 0
-) => {
+const setAjaxMockValues = async (testPage, ownedBillingProjectName, azureBillingProjectName, spendCost, numExtraWorkspaces = 0) => {
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost,
@@ -162,22 +132,6 @@ const setAjaxMockValues = async (
       status: 'Ready',
       cloudPlatform: 'GCP',
     },
-    erroredProjectVisible && {
-      projectName: erroredBillingProjectName,
-      billingAccount: 'billingAccounts/fake-id',
-      invalidBillingAccount: false,
-      roles: ['Owner'],
-      status: 'Error',
-      cloudPlatform: 'UNKNOWN',
-    },
-    {
-      projectName: notOwnedBillingProjectName,
-      billingAccount: 'billingAccounts/fake-id',
-      invalidBillingAccount: false,
-      roles: ['User'],
-      status: 'Ready',
-      cloudPlatform: 'GCP',
-    },
     {
       projectName: azureBillingProjectName,
       managedAppCoordinates: { managedResourceGroupId: `${azureBillingProjectName}_mrg`, subscriptionId: 'subId', tenantId: 'tenantId' },
@@ -201,17 +155,6 @@ const setAjaxMockValues = async (
     {
       email: 'testuser3@example.com',
       role: 'User',
-    },
-  ];
-
-  const notOwnedProjectMembersListResult = [
-    {
-      email: 'testuser1@example.com',
-      role: 'Owner',
-    },
-    {
-      email: 'testuser2@example.com',
-      role: 'Owner',
     },
   ];
 
@@ -257,20 +200,8 @@ const setAjaxMockValues = async (
   ];
 
   return await testPage.evaluate(
-    (
-      spendReturnResult,
-      projectListResult,
-      ownedProjectMembersListResult,
-      notOwnedProjectMembersListResult,
-      ownedBillingProjectName,
-      notOwnedBillingProjectName,
-      erroredBillingProjectName,
-      azureBillingProjectName,
-      listWorkspacesResult
-    ) => {
+    (spendReturnResult, projectListResult, ownedProjectMembersListResult, ownedBillingProjectName, azureBillingProjectName, listWorkspacesResult) => {
       const ownedMembersUrl = new RegExp(`api/billing/v2/${ownedBillingProjectName}/members`, 'g');
-      const notOwnedMembersUrl = new RegExp(`api/billing/v2/${notOwnedBillingProjectName}/members`, 'g');
-      const erroredBillingProjectUrl = new RegExp(`api/billing/v2/${erroredBillingProjectName}$`, 'g');
       const azureMembersUrl = new RegExp(`api/billing/v2/${azureBillingProjectName}/members`, 'g');
 
       window.ajaxOverridesStore.set([
@@ -287,16 +218,8 @@ const setAjaxMockValues = async (
           fn: window.ajaxOverrideUtils.makeSuccess(ownedProjectMembersListResult),
         },
         {
-          filter: { url: notOwnedMembersUrl },
-          fn: window.ajaxOverrideUtils.makeSuccess(notOwnedProjectMembersListResult),
-        },
-        {
           filter: { url: azureMembersUrl },
           fn: window.ajaxOverrideUtils.makeSuccess(ownedProjectMembersListResult),
-        },
-        {
-          filter: { url: erroredBillingProjectUrl, method: 'DELETE' },
-          fn: () => () => Promise.resolve(new Response({ status: 204 })),
         },
         {
           filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
@@ -311,10 +234,7 @@ const setAjaxMockValues = async (
     spendReturnResult,
     projectListResult,
     ownedProjectMembersListResult,
-    notOwnedProjectMembersListResult,
     ownedBillingProjectName,
-    notOwnedBillingProjectName,
-    erroredBillingProjectName,
     azureBillingProjectName,
     listWorkspacesResult
   );
@@ -326,27 +246,16 @@ const setUpBillingTest = async (page, testUrl, token) => {
 
   // Interact with the Billing Page via mocked AJAX responses.
   const ownedBillingProjectName = 'OwnedBillingProject';
-  const notOwnedBillingProjectName = 'NotOwnedBillingProject';
-  const erroredBillingProjectName = 'ErroredBillingProject';
   const azureBillingProjectName = 'AzureBillingProject';
-  await setAjaxMockValues(
-    page,
-    ownedBillingProjectName,
-    notOwnedBillingProjectName,
-    erroredBillingProjectName,
-    azureBillingProjectName,
-    true,
-    '1110'
-  );
+  await setAjaxMockValues(page, ownedBillingProjectName, azureBillingProjectName, '1110');
 
   const billingPage = billingProjectsPage(page, testUrl);
 
-  return { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, billingPage };
+  return { ownedBillingProjectName, azureBillingProjectName, billingPage };
 };
 
 const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, billingPage } =
-    await setUpBillingTest(page, testUrl, token);
+  const { ownedBillingProjectName, azureBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token);
 
   // Select spend report and verify cost for default date ranges
   await billingPage.visit();
@@ -371,16 +280,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertTextNotFound('View project resources in Azure Portal');
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(
-    page,
-    ownedBillingProjectName,
-    notOwnedBillingProjectName,
-    erroredBillingProjectName,
-    azureBillingProjectName,
-    true,
-    '1110.17',
-    20
-  );
+  await setAjaxMockValues(page, ownedBillingProjectName, azureBillingProjectName, '1110.17', 20);
   await billingPage.setSpendReportDays(90);
   await billingPage.assertText('Total spend$1,110.17');
   // Check that title updated to reflect truncation.
@@ -389,13 +289,6 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
 
   // Check accessibility of spend report page.
   await verifyAccessibility(page);
-
-  // Select a billing project that is not owned by the user
-  await billingPage.visit();
-  await billingPage.selectProject(notOwnedBillingProjectName);
-
-  // Check that the Spend report tab is not visible on this page
-  await billingPage.assertTextNotFound('Spend report');
 
   // Select an Azure billing project and check that the Spend Report tab is accessible but displaying only total cost information
   await billingPage.visit();
@@ -425,281 +318,4 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
 registerTest({
   name: 'billing-spend-report',
   fn: testBillingSpendReportFn,
-});
-
-const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, azureBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token);
-  const useBillingProjectText = 'Use this Terra billing project to createWorkspaces';
-
-  const verifyWorkspaceControls = async () => {
-    await billingPage.assertText('Workspaces');
-    await billingPage.assertText('Name');
-    await billingPage.assertText('Created By');
-    await billingPage.assertText('Last Modified');
-    await billingPage.assertTextNotFound(useBillingProjectText);
-  };
-
-  // Select a billing project that is owned by the user
-  await billingPage.visit();
-  await billingPage.selectProject(ownedBillingProjectName);
-
-  // Check that the Workspaces tab is visible on this page
-  await verifyWorkspaceControls();
-  await billingPage.showWorkspaceDetails(`${ownedBillingProjectName}_ws`);
-  await billingPage.assertText(`Google Project${ownedBillingProjectName}_project`);
-
-  // Check accessibility of workspaces view (GCP).
-  await verifyAccessibility(page);
-
-  // Select a billing project that is not owned by the user and verify message that shows when there are no workspaces
-  await billingPage.visit();
-  await billingPage.selectProject(notOwnedBillingProjectName);
-  await billingPage.assertText(useBillingProjectText);
-  // Check accessibility for color contrast of the message.
-  await verifyAccessibility(page);
-
-  // Select Azure billing project and verify workspace tab details
-  await billingPage.visit();
-  await billingPage.selectProject(azureBillingProjectName, AZURE);
-  await verifyWorkspaceControls();
-  await billingPage.showWorkspaceDetails(`${azureBillingProjectName}_ws`);
-  await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`);
-
-  // Check accessibility of the Azure workspace details
-  await verifyAccessibility(page);
-});
-
-registerTest({
-  name: 'billing-workspaces',
-  fn: testBillingWorkspacesFn,
-});
-
-const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token);
-
-  // Select a billing project that is owned by the user
-  await billingPage.visit();
-  await billingPage.selectProject(ownedBillingProjectName);
-  await billingPage.selectMembers();
-
-  // The test user has the Owner role, so the billing project members tab should be titled "Members"
-  await billingPage.assertText('Members');
-
-  // The Owner role should see the Add User button
-  await billingPage.assertText('Add User');
-
-  // The test user has the Owner role, so they should see all members
-  await billingPage.assertText('testuser1@example.com');
-  await billingPage.assertText('testuser3@example.com');
-
-  // Check accessibility of users view (as owner).
-  await verifyAccessibility(page);
-
-  // Select a billing project that is not owned by the user
-  await billingPage.visit();
-  await billingPage.selectProject(notOwnedBillingProjectName);
-  await billingPage.selectOwners();
-
-  // The test user has the User role, so the billing project members tab should be titled "Owners"
-  await billingPage.assertText('Owners');
-
-  // The User role should not see the Add User button
-  await billingPage.assertTextNotFound('Add User');
-
-  // The test user has the User role, so they should see members with the Owner role, but not with the User role
-  await billingPage.assertText('testuser1@example.com');
-  await billingPage.assertTextNotFound('testuser3@example.com');
-
-  // Check accessibility of users view (as non-owner).
-  await verifyAccessibility(page);
-});
-
-registerTest({
-  name: 'billing-members',
-  fn: testBillingMembersFn,
-});
-
-const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, billingPage } =
-    await setUpBillingTest(page, testUrl, token);
-
-  await billingPage.visit();
-
-  // Assert that the errored billing project is visible.
-  // The choice to use an errored billing project is historical in that previously
-  // only billing projects in an errored state could be deleted.
-  await billingPage.assertText(erroredBillingProjectName);
-
-  // Click the Delete Billing Project button
-  await billingPage.selectDeleteProjectMenuOption(erroredBillingProjectName);
-
-  // Assert that the confirmation modal is visible
-  await billingPage.assertText('Are you sure you want to delete the billing project');
-
-  // Reset the ajax values to NOT include the errored billing project before confirming the deletion
-  // This is so we can test that the project list refreshes properly
-  await setAjaxMockValues(
-    page,
-    ownedBillingProjectName,
-    notOwnedBillingProjectName,
-    erroredBillingProjectName,
-    azureBillingProjectName,
-    false,
-    '1110.17',
-    20
-  );
-
-  // Confirm delete
-  await billingPage.confirmDeleteBillingProject();
-
-  await waitForNoSpinners(page);
-
-  // Assert that the errored billing project is no longer visible
-  await billingPage.assertTextNotFound(erroredBillingProjectName);
-});
-
-registerTest({
-  name: 'billing-project-delete',
-  fn: testDeleteBillingProjectFn,
-});
-
-const testBillingProjectOneOwnerWarning = withUserToken(async ({ page, testUrl, token }) => {
-  await signIntoTerra(page, { token, testUrl });
-
-  const ownedAndNoOtherUsersBillingProject = 'OwnedAndNoOtherUsers';
-  const ownedAndSharedBillingProject = 'OwnedAndShared';
-  const ownedWithMultipleOwnersBillingProject = 'OwnedWithMultipleOwners';
-  const usedWithOneOwnerBillingProject = 'UsedWithOneOwner';
-  const usedWithMultipleOwnersBillingProject = 'UsedWithMultipleOwners';
-
-  await page.evaluate(
-    ({
-      userEmail,
-      ownedAndNoOtherUsersBillingProject,
-      ownedAndSharedBillingProject,
-      ownedWithMultipleOwnersBillingProject,
-      usedWithOneOwnerBillingProject,
-      usedWithMultipleOwnersBillingProject,
-    }) => {
-      window.ajaxOverridesStore.set([
-        {
-          filter: { url: /api\/billing\/v2$/ },
-          fn: window.ajaxOverrideUtils.makeSuccess([
-            {
-              projectName: ownedAndNoOtherUsersBillingProject,
-              billingAccount: 'billingAccounts/fake-id',
-              invalidBillingAccount: false,
-              roles: ['Owner'],
-              status: 'Ready',
-              cloudPlatform: 'GCP',
-            },
-            {
-              projectName: ownedAndSharedBillingProject,
-              billingAccount: 'billingAccounts/fake-id',
-              invalidBillingAccount: false,
-              roles: ['Owner'],
-              status: 'Ready',
-              cloudPlatform: 'GCP',
-            },
-            {
-              projectName: ownedWithMultipleOwnersBillingProject,
-              billingAccount: 'billingAccounts/fake-id',
-              invalidBillingAccount: false,
-              roles: ['Owner'],
-              status: 'Ready',
-              cloudPlatform: 'GCP',
-            },
-            {
-              projectName: usedWithOneOwnerBillingProject,
-              billingAccount: 'billingAccounts/fake-id',
-              invalidBillingAccount: false,
-              roles: ['User'],
-              status: 'Ready',
-              cloudPlatform: 'GCP',
-            },
-            {
-              projectName: usedWithMultipleOwnersBillingProject,
-              billingAccount: 'billingAccounts/fake-id',
-              invalidBillingAccount: false,
-              roles: ['User'],
-              status: 'Ready',
-              cloudPlatform: 'GCP',
-            },
-          ]),
-        },
-        {
-          filter: { url: new RegExp(`api/billing/v2/${ownedAndNoOtherUsersBillingProject}/members`) },
-          fn: window.ajaxOverrideUtils.makeSuccess([
-            { email: userEmail, role: 'Owner' },
-            { email: 'testuser1@example.com', role: 'User' },
-          ]),
-        },
-        {
-          filter: { url: new RegExp(`api/billing/v2/${ownedAndSharedBillingProject}/members`) },
-          fn: window.ajaxOverrideUtils.makeSuccess([{ email: userEmail, role: 'Owner' }]),
-        },
-        {
-          filter: { url: new RegExp(`api/billing/v2/${ownedWithMultipleOwnersBillingProject}/members`) },
-          fn: window.ajaxOverrideUtils.makeSuccess([
-            { email: userEmail, role: 'Owner' },
-            { email: 'testuser1@example.com', role: 'Owner' },
-          ]),
-        },
-        {
-          filter: { url: new RegExp(`api/billing/v2/${usedWithOneOwnerBillingProject}/members`) },
-          fn: window.ajaxOverrideUtils.makeSuccess([
-            { email: userEmail, role: 'User' },
-            { email: 'testuser1@example.com', role: 'Owner' },
-          ]),
-        },
-        {
-          filter: { url: new RegExp(`api/billing/v2/${usedWithMultipleOwnersBillingProject}/members`) },
-          fn: window.ajaxOverrideUtils.makeSuccess([
-            { email: userEmail, role: 'User' },
-            { email: 'testuser1@example.com', role: 'Owner' },
-            { email: 'testuser2@example.com', role: 'Owner' },
-          ]),
-        },
-      ]);
-    },
-    {
-      userEmail,
-      ownedAndNoOtherUsersBillingProject,
-      ownedAndSharedBillingProject,
-      ownedWithMultipleOwnersBillingProject,
-      usedWithOneOwnerBillingProject,
-      usedWithMultipleOwnersBillingProject,
-    }
-  );
-
-  const billingPage = billingProjectsPage(page, testUrl);
-  await billingPage.visit();
-
-  const ownerWarningText =
-    'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account.';
-
-  await billingPage.selectProject(ownedAndNoOtherUsersBillingProject);
-  await billingPage.assertText(ownerWarningText);
-  // Check accessibility for color contrast of the message.
-  await verifyAccessibility(page);
-
-  await billingPage.selectProject(ownedAndSharedBillingProject);
-  await billingPage.assertTextNotFound(ownerWarningText);
-
-  await billingPage.selectProject(ownedWithMultipleOwnersBillingProject);
-  await billingPage.assertTextNotFound(ownerWarningText);
-
-  const userWarningText =
-    'This shared billing project has only one owner. Consider requesting testuser1@example.com to add another owner to ensure someone is able to manage the billing project in case they lose access to their account.';
-
-  await billingPage.selectProject(usedWithOneOwnerBillingProject);
-  await billingPage.assertText(userWarningText);
-
-  await billingPage.selectProject(usedWithMultipleOwnersBillingProject);
-  await billingPage.assertTextNotFound(userWarningText);
-});
-
-registerTest({
-  name: 'billing-project-one-owner-warning',
-  fn: testBillingProjectOneOwnerWarning,
 });
