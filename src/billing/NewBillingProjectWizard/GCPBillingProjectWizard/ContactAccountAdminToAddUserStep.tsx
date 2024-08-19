@@ -34,6 +34,12 @@ export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: Contact
             props.setVerifiedUsersAdded(!props.verifiedUsersAdded);
           }}
         >
+          {/*
+          this negative margin here is hideous but necessary:
+          giving the div that contains the checkbox {display: flex, flexDirection: row} gives the label the correct layout
+          but it also breaks the checkbox, because it's implemented as layered svg icons, making it very sensitive to layout changes
+          if the component is changed to use an input element with checkbox, we should be able to just use flexbox and be done with all the tweaks
+          */}
           <span style={{ float: 'right', ...styles.radioButtonLabel, marginLeft: '2rem', marginTop: '-1.3rem' }}>
             I have verified the user has been added to my account (requires reauthentication)
           </span>
