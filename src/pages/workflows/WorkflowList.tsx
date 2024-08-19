@@ -87,6 +87,9 @@ export const WorkflowList = (props: WorkflowListProps) => {
   // component)
   const [sort, setSort] = useState<SortProperties>({ field: 'name', direction: 'asc' });
   const [createWorkflowModalOpen, setCreateWorkflowModalOpen] = useState<boolean>(false);
+  const [workflowNamespace, setWorkflowNamespace] = useState<string>('');
+  const [workflowName, setWorkflowName] = useState<string>('');
+  const [workflowSynopsis, setWorkflowSynopsis] = useState<string>('');
 
   const getTabQueryName = (newTab: string | undefined): string | undefined => (newTab === 'mine' ? undefined : newTab);
 
@@ -158,13 +161,15 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {null /* nothing to display at the end of the tab bar */}
       </TabBar>
       <div role='main' style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <ButtonPrimary
-          onClick={() => {
-            setCreateWorkflowModalOpen(true);
-          }}
-        >
-          OK
-        </ButtonPrimary>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '1rem' }}>
+          <ButtonPrimary
+            onClick={() => {
+              setCreateWorkflowModalOpen(true);
+            }}
+          >
+            Create New Method...
+          </ButtonPrimary>
+        </div>
         <div style={{ flex: 1 }}>
           {workflows && (
             <AutoSizer>
@@ -185,7 +190,17 @@ export const WorkflowList = (props: WorkflowListProps) => {
           )}
         </div>
         {createWorkflowModalOpen && (
-          <WorkflowModal setCreateWorkflowModalOpen={setCreateWorkflowModalOpen} title='Create New Workflow' />
+          <WorkflowModal
+            setCreateWorkflowModalOpen={setCreateWorkflowModalOpen}
+            title='Create New Workflow'
+            namespace={workflowNamespace}
+            name={workflowName}
+            buttonAction='Upload'
+            synopsis={workflowSynopsis}
+            setWorkflowNamespace={setWorkflowNamespace}
+            setWorkflowName={setWorkflowName}
+            setWorkflowSynopsis={setWorkflowSynopsis}
+          />
         )}
       </div>
     </FooterWrapper>
