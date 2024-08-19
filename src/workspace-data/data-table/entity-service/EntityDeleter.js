@@ -7,7 +7,7 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
+export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, runningSubmissionsCount }) => {
   const [additionalDeletions, setAdditionalDeletions] = useState([]);
   const [deleting, setDeleting] = useState(false);
 
@@ -16,7 +16,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   const doDelete = async () => {
     const entitiesToDelete = _.flow(
       _.map(({ name: entityName, entityType }) => ({ entityName, entityType })),
-      (entities) => _.concat(entities, additionalDeletions)
+      (entities) => _.concat(additionalDeletions, entities)
     )(selectedEntities);
 
     setDeleting(true);
@@ -27,11 +27,20 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     } catch (error) {
       switch (error.status) {
         case 409:
-          setAdditionalDeletions(_.filter((entity) => entity.entityType !== selectedDataType, await error.json()));
+          setAdditionalDeletions(
+            _.filter(
+              (errorEntity) =>
+                !_.some(
+                  (selectedEntity) => selectedEntity.entityType === errorEntity.entityType && selectedEntity.entityName === errorEntity.entityName,
+                  entitiesToDelete
+                ),
+              await error.json()
+            )
+          );
           setDeleting(false);
           break;
         default:
-          reportError('Error deleting data entries', error);
+          await reportError('Error deleting data entries', error);
           onDismiss();
       }
     }
