@@ -241,6 +241,11 @@ export class WdsDataTableProvider implements DataTableProvider {
     );
   };
 
+  protected transformQuery = (query: string): string => {
+    const specialCharactersRegex = /([+\-&|!(){}[\]^"~*?:\\])/g;
+    return query.replace(specialCharactersRegex, '\\$1').replace('=', ':');
+  };
+
   protected queryOptionsToSearchRequest = (queryOptions: EntityQueryOptions): SearchRequest => {
     const baseRequest: SearchRequest = {
       offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
@@ -248,7 +253,8 @@ export class WdsDataTableProvider implements DataTableProvider {
       sort: queryOptions.sortDirection,
     };
     if (queryOptions.sortField !== 'name') baseRequest.sortAttribute = queryOptions.sortField;
-    if (queryOptions.columnFilter !== '') baseRequest.filter = { query: queryOptions.columnFilter.replace('=', ':') };
+    if (queryOptions.columnFilter !== '')
+      baseRequest.filter = { query: this.transformQuery(queryOptions.columnFilter) };
     return baseRequest;
   };
 
