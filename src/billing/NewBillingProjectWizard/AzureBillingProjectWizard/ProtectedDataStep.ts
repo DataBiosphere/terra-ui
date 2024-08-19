@@ -1,3 +1,4 @@
+import React from 'react';
 import { div, h, p, span } from 'react-hyperscript-helpers';
 import { columnStyle } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/styles';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
@@ -44,14 +45,14 @@ export const ProtectedDataStep = (props: ProtectedDataStepProps) => {
             text: 'Yes, set up my environment with additional security monitoring',
             name: 'protected-data',
             checked: !!props.protectedData,
-            onChange: (changed) => {
+            onChange: (changed: React.ChangeEvent<HTMLInputElement>) => {
               props.onSetProtectedData(changed.target.checked);
             },
           }),
           LabeledRadioButton({
             text: 'No',
             name: 'protected-data',
-            onChange: (changed) => {
+            onChange: (changed: React.ChangeEvent<HTMLInputElement>) => {
               props.onSetProtectedData(!changed.target.checked);
             },
           }),

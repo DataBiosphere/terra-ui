@@ -121,7 +121,7 @@ export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUs
             text: "I don't have additional owners or users to add at this time",
             name: 'add-users',
             checked: props.addUsersOrOwners === false,
-            onChange: (changed) => {
+            onChange: (changed: React.ChangeEvent<HTMLInputElement>) => {
               props.onAddUsersOrOwners(!changed.target.checked);
 
               // clear any emails that they previously supplied.
@@ -136,7 +136,7 @@ export const AddUsersStep = ({ isActive, inputDebounce = 1000, ...props }: AddUs
           LabeledRadioButton({
             text: 'Add the following owners and/or users',
             name: 'add-users',
-            onChange: (changed) => {
+            onChange: (changed: React.ChangeEvent<HTMLInputElement>) => {
               props.onAddUsersOrOwners(changed.target.checked);
             },
           }),
