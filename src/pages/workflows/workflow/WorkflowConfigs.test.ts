@@ -1,9 +1,10 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { act, screen } from '@testing-library/react';
+import { delay } from '@terra-ui-packages/core-utils';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { snapshotStore } from 'src/libs/state';
-import { WorkflowConfigs } from 'src/pages/workflows/workflow/WorkflowDetails';
+import { BaseWorkflowConfigs } from 'src/pages/workflows/workflow/WorkflowConfigs';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 type AjaxContract = ReturnType<typeof Ajax>;
@@ -11,6 +12,16 @@ type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 
 jest.mock('src/libs/notifications');
+
+type NavExports = typeof import('src/libs/nav');
+jest.mock(
+  'src/libs/nav',
+  (): NavExports => ({
+    ...jest.requireActual('src/libs/nav'),
+    getLink: jest.fn(),
+    goToPath: jest.fn(),
+  })
+);
 
 jest.mock('react-virtualized', () => {
   const actual = jest.requireActual('react-virtualized');
@@ -32,7 +43,7 @@ jest.mock('react-virtualized', () => {
   };
 });
 
-describe('WorkflowDetails Component', () => {
+describe('WorkflowConfigs Component', () => {
   const mockConfigurations = [
     {
       name: 'cnv_somatic_pair_workflow',
@@ -141,7 +152,7 @@ describe('WorkflowDetails Component', () => {
 
   it('Renders configurations as expected', async () => {
     // ** ACT **
-    await act(async () => render(h(WorkflowConfigs, { searchFilter: '' })));
+    await act(async () => render(h(BaseWorkflowConfigs, { searchFilter: '' })));
 
     expect(screen.getByText('Configuration')).toBeInTheDocument();
     expect(screen.getByText('Workflow Snapshot')).toBeInTheDocument();
@@ -151,7 +162,7 @@ describe('WorkflowDetails Component', () => {
   it('filters configurations', async () => {
     // ** ACT **
     // Render configurations without a filter
-    const { rerender } = await act(async () => render(h(WorkflowConfigs, { searchFilter: '' })));
+    const { rerender } = await act(async () => render(h(BaseWorkflowConfigs, { searchFilter: '' })));
 
     const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
 
@@ -159,10 +170,13 @@ describe('WorkflowDetails Component', () => {
 
     // Rerender configurations with a filter
     await act(async () => {
-      rerender(h(WorkflowConfigs, { searchFilter: '3' }));
+      rerender(h(BaseWorkflowConfigs));
     });
 
-    const tableRows2: HTMLElement[] = screen.getAllByRole('row').slice(1);
-    expect(tableRows2.length).toBe(1);
+    fireEvent.change(screen.getByPlaceholderText('Search Configurations'), { target: { value: '3' } });
+    await act(() => delay(300)); // debounced search
+
+    expect(screen.queryByText('nameFoo/cnv_somatic_pair_workflow Snapshot ID: 2')).not.toBeInTheDocument();
+    expect(screen.queryByText('nameFoo/cnv_somatic_pair_workflow Snapshot ID: 3')).toBeInTheDocument();
   });
 });
