@@ -1,5 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import * as Utils from 'src/libs/utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -37,7 +37,7 @@ describe('Alerts', () => {
 
   it('renders number of alerts', () => {
     // Act
-    render(h(AlertsIndicator));
+    render(<AlertsIndicator />);
 
     // Assert
     expect(screen.getByRole('button')).toHaveTextContent(`${testAlerts.length}`);
@@ -45,7 +45,7 @@ describe('Alerts', () => {
 
   it('renders popup with alerts', () => {
     // Act
-    render(h(AlertsIndicator));
+    render(<AlertsIndicator />);
     fireEvent.click(screen.getByRole('button'));
 
     // Assert
@@ -60,7 +60,7 @@ describe('Alerts', () => {
 
   it('renders alerts for screen readers', () => {
     // Act
-    render(h(AlertsIndicator));
+    render(<AlertsIndicator />);
 
     // Assert
     const screenReaderAlerts = screen.getAllByRole('alert');
@@ -79,7 +79,7 @@ describe('Alerts', () => {
     asMockedFn(useServiceAlerts).mockReturnValue([]);
 
     // Act
-    render(h(AlertsIndicator));
+    render(<AlertsIndicator />);
     fireEvent.click(screen.getByRole('button'));
 
     // Assert

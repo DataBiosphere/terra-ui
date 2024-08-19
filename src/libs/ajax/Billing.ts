@@ -1,7 +1,7 @@
 import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { fetchBillingProfileManager, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { WorkspacePolicy } from 'src/workspaces/utils';
 
@@ -58,6 +58,15 @@ export interface GCPBillingProject extends BaseBillingProject {
   billingAccount: string;
   servicePerimeter?: string;
 }
+
+export const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
+  isCloudProviderBillingProject(project, 'AZURE');
+
+export const isGoogleBillingProject = (project?: BillingProject): project is GCPBillingProject =>
+  isCloudProviderBillingProject(project, 'GCP');
+
+const isCloudProviderBillingProject = (project: BillingProject | undefined, cloudProvider: CloudPlatform): boolean =>
+  project?.cloudPlatform === cloudProvider;
 
 export interface UnknownBillingProject extends BaseBillingProject {
   cloudPlatform: 'UNKNOWN';

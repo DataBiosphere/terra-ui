@@ -3,7 +3,7 @@ import {
   makeLeoDisksV1DataClient,
   makeLeoDisksV2DataClient,
 } from '@terra-ui-packages/leonardo-data-client';
-import { withAuthSession } from 'src/auth/auth-fetch';
+import { withAuthSession } from 'src/auth/auth-session';
 import { fetchLeo, withAppIdentifier } from 'src/libs/ajax/ajax-common';
 
 export const Disks = makeDisksHelper({

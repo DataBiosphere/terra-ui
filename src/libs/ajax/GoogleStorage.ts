@@ -10,10 +10,10 @@ import {
   ToolLabel,
 } from 'src/analysis/utils/tool-utils';
 import { getAuthToken } from 'src/auth/auth';
-import { authOpts } from 'src/auth/auth-fetch';
-import { checkRequesterPaysError, fetchSam, withRetryOnError } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-session';
+import { checkRequesterPaysError, fetchSam } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
-import { fetchOk, withUrlPrefix } from 'src/libs/ajax/fetch/fetch-core';
+import { fetchOk, withMaybeRetry, withUrlPrefix } from 'src/libs/ajax/fetch/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -66,7 +66,8 @@ const withRequesterPays =
 // are not transient and the request should not be retried.
 const fetchBuckets = _.flow(
   withRequesterPays,
-  withRetryOnError((error) => Boolean(error.requesterPaysError)),
+  // TODO: implement RequesterPaysError Error type/class so we can check this more reliably
+  withMaybeRetry((error) => Boolean((error as any).requesterPaysError)),
   withUrlPrefix('https://storage.googleapis.com/')
 )(fetchOk);
 

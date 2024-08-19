@@ -148,7 +148,7 @@ describe('useWdsStatus', () => {
         WorkspaceData: {
           getVersion: jest.fn().mockReturnValue(abandonedPromise()),
           getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-          listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+          listCollections: jest.fn().mockReturnValue(abandonedPromise()),
           getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
         },
       };
@@ -184,7 +184,7 @@ describe('useWdsStatus', () => {
       // Arrange
       const getVersion = jest.fn().mockReturnValue(abandonedPromise());
       const getStatus = jest.fn().mockReturnValue(abandonedPromise());
-      const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+      const listCollections = jest.fn().mockReturnValue(abandonedPromise());
       const getCloneStatus = jest.fn().mockReturnValue(abandonedPromise());
 
       const mockAjax: DeepPartial<AjaxContract> = {
@@ -194,7 +194,7 @@ describe('useWdsStatus', () => {
         WorkspaceData: {
           getVersion,
           getStatus,
-          listInstances,
+          listCollections,
           getCloneStatus,
         },
       };
@@ -206,7 +206,7 @@ describe('useWdsStatus', () => {
       // Assert
       expect(getVersion).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
       expect(getStatus).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
-      expect(listInstances).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
+      expect(listCollections).toHaveBeenCalledWith(wdsApp.proxyUrls.wds, workspaceId);
       expect(getCloneStatus).toHaveBeenCalledWith(wdsApp.proxyUrls.wds);
     });
 
@@ -214,7 +214,7 @@ describe('useWdsStatus', () => {
       // Arrange
       const getVersion = jest.fn().mockReturnValue(abandonedPromise());
       const getStatus = jest.fn().mockReturnValue(abandonedPromise());
-      const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+      const listCollections = jest.fn().mockReturnValue(abandonedPromise());
       const getCloneStatus = jest.fn().mockReturnValue(abandonedPromise());
 
       const mockAjax: DeepPartial<AjaxContract> = {
@@ -224,7 +224,7 @@ describe('useWdsStatus', () => {
         WorkspaceData: {
           getVersion,
           getStatus,
-          listInstances,
+          listCollections,
           getCloneStatus,
         },
       };
@@ -236,7 +236,7 @@ describe('useWdsStatus', () => {
       // Assert
       expect(getVersion).not.toHaveBeenCalled();
       expect(getStatus).not.toHaveBeenCalled();
-      expect(listInstances).not.toHaveBeenCalled();
+      expect(listCollections).not.toHaveBeenCalled();
       expect(getCloneStatus).not.toHaveBeenCalled();
 
       expect(hookReturnRef.current.status).toEqual({
@@ -265,7 +265,7 @@ describe('useWdsStatus', () => {
       // Arrange
       const getVersion = jest.fn().mockReturnValue(abandonedPromise());
       const getStatus = jest.fn().mockReturnValue(abandonedPromise());
-      const listInstances = jest.fn().mockReturnValue(abandonedPromise());
+      const listCollections = jest.fn().mockReturnValue(abandonedPromise());
       const getCloneStatus = jest.fn().mockReturnValue(abandonedPromise());
 
       const mockAjax: DeepPartial<AjaxContract> = {
@@ -290,7 +290,7 @@ describe('useWdsStatus', () => {
         WorkspaceData: {
           getVersion,
           getStatus,
-          listInstances,
+          listCollections,
           getCloneStatus,
         },
       };
@@ -302,7 +302,7 @@ describe('useWdsStatus', () => {
       // Assert
       expect(getVersion).not.toHaveBeenCalled();
       expect(getStatus).not.toHaveBeenCalled();
-      expect(listInstances).not.toHaveBeenCalled();
+      expect(listCollections).not.toHaveBeenCalled();
       expect(getCloneStatus).not.toHaveBeenCalled();
 
       expect(hookReturnRef.current.status).toEqual({
@@ -337,7 +337,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockRejectedValue(new Error('Something went wrong')),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -381,7 +381,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockResolvedValue(mockVersion),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -419,7 +419,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockResolvedValue(mockVersion),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -451,7 +451,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockRejectedValue(new Error('Something went wrong')),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -502,7 +502,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockResolvedValue(mockStatus),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -550,7 +550,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockResolvedValue(mockStatus),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -582,7 +582,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockRejectedValue(new Error('Something went wrong')),
+              listCollections: jest.fn().mockRejectedValue(new Error('Something went wrong')),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -610,7 +610,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockResolvedValue(mockInstances),
+              listCollections: jest.fn().mockResolvedValue(mockInstances),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -639,7 +639,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockRejectedValue(new Response('', { status: 404 })),
             },
           };
@@ -665,7 +665,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockRejectedValue(new Error('Something went wrong')),
+              listCollections: jest.fn().mockRejectedValue(new Error('Something went wrong')),
               getCloneStatus: jest.fn().mockReturnValue(abandonedPromise()),
             },
           };
@@ -699,7 +699,7 @@ describe('useWdsStatus', () => {
             WorkspaceData: {
               getVersion: jest.fn().mockReturnValue(abandonedPromise()),
               getStatus: jest.fn().mockReturnValue(abandonedPromise()),
-              listInstances: jest.fn().mockReturnValue(abandonedPromise()),
+              listCollections: jest.fn().mockReturnValue(abandonedPromise()),
               getCloneStatus: jest.fn().mockResolvedValue(mockCloneStatus),
             },
           };
