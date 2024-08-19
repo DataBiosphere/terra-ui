@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { CreateNamedProjectStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -44,7 +44,7 @@ describe('CreateNamedProjectStep', () => {
 
   it('has the correct initial state', () => {
     // Arrange
-    render(h(CreateNamedProjectStep, defaultProps));
+    render(<CreateNamedProjectStep {...defaultProps} />);
 
     // Assert
     verifyEnabled(getBillingProjectInput());
@@ -61,12 +61,7 @@ describe('CreateNamedProjectStep', () => {
 
   it('shows errors about the billing project name', () => {
     // Arrange
-    render(
-      h(CreateNamedProjectStep, {
-        ...defaultProps,
-        projectNameErrors: 'Bad project name',
-      })
-    );
+    render(<CreateNamedProjectStep {...defaultProps} projectNameErrors='Bad project name' />);
 
     // Assert
     verifyEnabled(getBillingProjectInput());
@@ -78,7 +73,7 @@ describe('CreateNamedProjectStep', () => {
     // Arrange
     const user = userEvent.setup();
 
-    render(h(CreateNamedProjectStep, defaultProps));
+    render(<CreateNamedProjectStep {...defaultProps} />);
 
     // Act
     await user.click(getBillingProjectInput());
@@ -90,7 +85,7 @@ describe('CreateNamedProjectStep', () => {
 
   it('fires an event when the billing project name changes', async () => {
     // Arrange
-    render(h(CreateNamedProjectStep, defaultProps));
+    render(<CreateNamedProjectStep {...defaultProps} />);
 
     // Act
     await nameBillingProject('NewName');
@@ -101,12 +96,7 @@ describe('CreateNamedProjectStep', () => {
 
   it('enables the create button and fires when it is clicked', async () => {
     // Arrange
-    render(
-      h(CreateNamedProjectStep, {
-        ...defaultProps,
-        createReady: true,
-      })
-    );
+    render(<CreateNamedProjectStep {...defaultProps} createReady />);
 
     // Act - Click Create
     await clickCreateBillingProject();

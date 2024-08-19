@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import {
   AggregatedCategorySpendData,
   AggregatedWorkspaceSpendData,
@@ -150,7 +150,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      render(h(SpendReport, { viewSelected: false, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
+      render(<SpendReport viewSelected={false} billingProjectName='thrifty' cloudPlatform='GCP' />);
     });
 
     // Assert
@@ -171,7 +171,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
+      render(<SpendReport viewSelected billingProjectName='thrifty' cloudPlatform='GCP' />);
     });
 
     // Assert
@@ -202,7 +202,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'AZURE' }));
+      render(<SpendReport viewSelected billingProjectName='thrifty' cloudPlatform='AZURE' />);
     });
 
     // Assert
@@ -236,7 +236,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      await render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
+      render(<SpendReport viewSelected billingProjectName='thrifty' cloudPlatform='GCP' />);
     });
     await select90Days();
 
@@ -274,7 +274,7 @@ describe('SpendReport', () => {
 
     // Act
     await act(async () => {
-      render(h(SpendReport, { viewSelected: true, billingProjectName: 'thrifty', cloudPlatform: 'GCP' }));
+      render(<SpendReport viewSelected billingProjectName='thrifty' cloudPlatform='GCP' />);
     });
 
     // Assert

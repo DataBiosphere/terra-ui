@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { AzureSubscriptionStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep';
 import { Ajax } from 'src/libs/ajax';
 import { getRegionLabel } from 'src/libs/azure-utils';
@@ -77,13 +77,13 @@ describe('AzureSubscriptionStep', () => {
       onManagedAppSelected: onManagedAppSelectedEvent,
     };
     renderResult = render(
-      h(AzureSubscriptionStep, {
-        ...defaultProps,
-        onSubscriptionIdChanged: (newId) => {
-          renderResult.rerender(h(AzureSubscriptionStep, { ...defaultProps, subscriptionId: newId }));
-        },
-        ...props,
-      })
+      <AzureSubscriptionStep
+        {...defaultProps}
+        onSubscriptionIdChanged={(newId) => {
+          renderResult.rerender(<AzureSubscriptionStep {...defaultProps} subscriptionId={newId} />);
+        }}
+        {...props}
+      />
     );
   };
 
@@ -155,7 +155,7 @@ describe('AzureSubscriptionStep', () => {
 
   it('shows the spinner overlay while the call to list managed apps is in progress', async () => {
     renderAzureSubscriptionStep({});
-    const queryLoadingSpinner = () => document.querySelector('[data-icon="loadingSpinner]');
+    const queryLoadingSpinner = () => document.querySelector('[data-icon="loadingSpinner"]');
 
     expect(queryLoadingSpinner()).toBeNull();
     const listAzureManagedApplications = jest.fn(() => {

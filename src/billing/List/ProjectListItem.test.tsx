@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { ProjectListItem, ProjectListItemProps } from 'src/billing/List/ProjectListItem';
 import { BillingProject } from 'src/billing-core/models';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -55,7 +55,9 @@ describe('ProjectListItem', () => {
 
   it('renders Delete button and link for active Ready Google workspace', async () => {
     // Act
-    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) });
+    const result = render(<ProjectListItem {...projectListItemProps} />, {
+      container: document.body.appendChild(listRoot),
+    });
 
     // Assert
     screen.getByLabelText(`Delete billing project ${billingProject.projectName}`);
@@ -74,7 +76,9 @@ describe('ProjectListItem', () => {
     projectListItemProps.project.cloudPlatform = 'AZURE';
 
     // Act
-    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) });
+    const result = render(<ProjectListItem {...projectListItemProps} />, {
+      container: document.body.appendChild(listRoot),
+    });
 
     // Assert
     screen.getByLabelText(`Delete billing project ${billingProject.projectName}`);
@@ -93,7 +97,9 @@ describe('ProjectListItem', () => {
     projectListItemProps.project.cloudPlatform = 'UNKNOWN';
 
     // Act
-    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) });
+    const result = render(<ProjectListItem {...projectListItemProps} />, {
+      container: document.body.appendChild(listRoot),
+    });
 
     // Assert
     screen.getByLabelText(`Delete billing project ${billingProject.projectName}`);
@@ -111,7 +117,9 @@ describe('ProjectListItem', () => {
     projectListItemProps.isActive = false;
 
     // Act
-    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) });
+    const result = render(<ProjectListItem {...projectListItemProps} />, {
+      container: document.body.appendChild(listRoot),
+    });
 
     // Assert
     screen.getByTitle('Google Cloud Platform');
@@ -130,7 +138,9 @@ describe('ProjectListItem', () => {
     projectListItemProps.isActive = false;
 
     // Act
-    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) });
+    const result = render(<ProjectListItem {...projectListItemProps} />, {
+      container: document.body.appendChild(listRoot),
+    });
 
     // Assert
     screen.getByTitle('Google Cloud Platform');
@@ -150,7 +160,9 @@ describe('ProjectListItem', () => {
     projectListItemProps.isActive = false;
 
     // Act
-    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) });
+    const result = render(<ProjectListItem {...projectListItemProps} />, {
+      container: document.body.appendChild(listRoot),
+    });
 
     // Assert
     screen.getByLabelText(`Delete billing project ${billingProject.projectName}`);
@@ -172,7 +184,9 @@ describe('ProjectListItem', () => {
     projectListItemProps.isActive = false;
 
     // Act
-    const result = render(h(ProjectListItem, projectListItemProps), { container: document.body.appendChild(listRoot) });
+    const result = render(<ProjectListItem {...projectListItemProps} />, {
+      container: document.body.appendChild(listRoot),
+    });
 
     // Assert
     screen.getByLabelText(`Delete billing project ${billingProject.projectName}`);

@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { BillingProjectActions } from 'src/billing/List/BillingProjectActions';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
@@ -71,7 +71,7 @@ describe('BillingProjectActions', () => {
     };
 
     // Act
-    render(h(BillingProjectActions, props));
+    render(<BillingProjectActions {...props} />);
 
     // Assert
     const deleteButton = screen.getByLabelText('Cannot delete billing project while workspaces are loading');
@@ -97,7 +97,7 @@ describe('BillingProjectActions', () => {
     };
 
     // Act
-    render(h(BillingProjectActions, props));
+    render(<BillingProjectActions {...props} />);
 
     // Assert
     const deleteButton = screen.getByLabelText('Cannot delete billing project because it contains workspaces');
@@ -108,7 +108,7 @@ describe('BillingProjectActions', () => {
     // Arrange -- common setup implements mock with no workspaces for project
 
     // Act
-    render(h(BillingProjectActions, propsWithNoWorkspacesInProject));
+    render(<BillingProjectActions {...propsWithNoWorkspacesInProject} />);
 
     // Assert
     const deleteButton = screen.getByLabelText(`Delete billing project ${projectName}`);
@@ -121,7 +121,7 @@ describe('BillingProjectActions', () => {
     propsWithNoWorkspacesInProject.loadProjects = loadProjects;
 
     // Act
-    render(h(BillingProjectActions, propsWithNoWorkspacesInProject));
+    render(<BillingProjectActions {...propsWithNoWorkspacesInProject} />);
     const deleteButton = screen.getByLabelText(`Delete billing project ${projectName}`);
     await userEvent.click(deleteButton);
     const confirmDeleteButton = screen.getByTestId('confirm-delete');
@@ -139,7 +139,7 @@ describe('BillingProjectActions', () => {
     propsWithNoWorkspacesInProject.loadProjects = loadProjects;
 
     // Act
-    render(h(BillingProjectActions, propsWithNoWorkspacesInProject));
+    render(<BillingProjectActions {...propsWithNoWorkspacesInProject} />);
     const deleteButton = screen.getByLabelText(`Delete billing project ${projectName}`);
     await userEvent.click(deleteButton);
     const cancelButton = screen.getByText('Cancel');
@@ -163,7 +163,7 @@ describe('BillingProjectActions', () => {
     propsWithNoWorkspacesInProject.loadProjects = loadProjects;
 
     // Act
-    render(h(BillingProjectActions, propsWithNoWorkspacesInProject));
+    render(<BillingProjectActions {...propsWithNoWorkspacesInProject} />);
     const deleteButton = screen.getByLabelText(`Delete billing project ${projectName}`);
     await userEvent.click(deleteButton);
     const confirmDeleteButton = screen.getByTestId('confirm-delete');
