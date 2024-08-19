@@ -122,6 +122,9 @@ const NoBillingAccounts = (props: {
         marginTop: '0.25rem',
       }}
     />
+    {/* TODO: can we get away without the refreshed prop, and just rely on whether or not we've gotten to this step?
+        maybe instead of 'refresh step 3', it's just refreshing the login, or something - so we aren't explicitly going back to step 3
+     */}
     {!props.refreshed ? (
       <div style={{ paddingInline: '0.5rem', lineHeight: '24px', fontWeight: 500 }}>
         You do not have access to any Google Billing Accounts. Please verify that a billing account has been created in
