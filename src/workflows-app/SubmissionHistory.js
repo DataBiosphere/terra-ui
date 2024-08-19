@@ -6,7 +6,7 @@ import { Clickable, Link } from 'src/components/common';
 import { centeredSpinner, icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
+import { FlexTable, Paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -443,7 +443,7 @@ export const BaseSubmissionHistory = ({ namespace, workspace }, _ref) => {
               ]),
             !_.isEmpty(sortedRunSets) &&
               div({ style: { bottom: 0, position: 'absolute', marginBottom: '1.5rem', right: '4rem' } }, [
-                paginator({
+                Paginator({
                   filteredDataLength: sortedRunSets.length,
                   unfilteredDataLength: sortedRunSets.length,
                   pageNumber,

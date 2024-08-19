@@ -1,6 +1,6 @@
 import { jsonBody } from '@terra-ui-packages/data-client-core';
 import * as _ from 'lodash/fp';
-import { authOpts } from 'src/auth/auth-fetch';
+import { authOpts } from 'src/auth/auth-session';
 import { fetchDataRepo } from 'src/libs/ajax/ajax-common';
 
 /** API types represent the data of UI types in the format expected by the backend.
@@ -70,8 +70,8 @@ interface SnapshotBuilderRootTable extends SnapshotBuilderTable {
 }
 
 export type SnapshotBuilderSettings = {
-  name?: string;
-  description?: string;
+  name: string;
+  description: string;
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
   datasetConceptSets: SnapshotBuilderDatasetConceptSet[];

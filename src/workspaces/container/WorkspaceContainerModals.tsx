@@ -63,7 +63,6 @@ export const WorkspaceContainerModals = (props: WorkspaceContainerModalsProps): 
       )}
       {showLockWorkspaceModal && (
         <LockWorkspaceModal
-          // @ts-expect-error
           workspace={workspace}
           onDismiss={() => setShowLockWorkspaceModal(false)}
           onSuccess={() => refreshWorkspace()}

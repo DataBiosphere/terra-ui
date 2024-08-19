@@ -9,6 +9,7 @@ import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
 import { NihDatasetPermission, SamUserAllowances, SamUserAttributes, SamUserResponse } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
+import { Snapshot } from 'src/snapshots/Snapshot';
 import type { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export const routeHandlersStore = atom<unknown[]>([]);
@@ -311,7 +312,19 @@ export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 
 export const snapshotsListStore = atom<unknown>(undefined);
 
-export const snapshotStore = atom<unknown>(undefined);
+export const snapshotStore = atom<Snapshot>({
+  createDate: '',
+  entityType: '',
+  managers: [],
+  name: '',
+  namespace: '',
+  payload: '',
+  public: undefined,
+  snapshotComment: '',
+  snapshotId: '',
+  synopsis: '',
+  url: '',
+});
 
 export const dataCatalogStore = atom<Dataset[]>([]);
 
