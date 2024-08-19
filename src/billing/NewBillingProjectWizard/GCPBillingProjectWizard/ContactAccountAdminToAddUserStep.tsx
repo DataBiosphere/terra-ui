@@ -20,10 +20,10 @@ export const ContactAccountAdminToAddUserStep = ({ isActive, ...props }: Contact
     <StepHeader title='STEP 3' />
     <StepFields>
       <StepFieldLegend style={{ width: '50%' }}>
-        Contact your billing account administrator and have them add you and
+        {'Contact your billing account administrator and have them add you and '}
         <span style={{ fontWeight: 'bold' }}>terra-billing@terra.bio</span>
-        as a Billing Account User
-        <span style={{ fontWeight: 'bold' }}> to your organization&apos;s billing account.</span>
+        {' as a Billing Account User '}
+        <span style={{ fontWeight: 'bold' }}>to your organization&apos;s billing account.</span>
       </StepFieldLegend>
       <div style={{ width: '30%' }}>
         <LabeledCheckbox
