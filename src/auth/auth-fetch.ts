@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 
 import { AuthTokenState, getAuthToken, getAuthTokenFromLocalStorage, loadAuthToken, sendRetryMetric } from './auth';
 import { sessionExpirationErrorMessage } from './auth-errors';
-import { authOpts as _authOpts, withAuthSession as _withAuthSession } from './auth-session';
+import { authOpts } from './auth-session';
 import { signOut, SignOutCause } from './signout/sign-out';
 
 const isUnauthorizedResponse = (error: unknown): boolean => error instanceof Response && error.status === 401;
@@ -59,6 +59,3 @@ export const withRetryAfterReloadingExpiredAuthToken =
       }
     }
   };
-
-export const authOpts = _authOpts;
-export const withAuthSession = _withAuthSession;

@@ -1,6 +1,5 @@
 import { removeUserFromLocalState } from 'src/auth/oidc-broker';
-import { doSignOut, signOut } from 'src/auth/signout/sign-out';
-import { leoCookieProvider } from 'src/libs/ajax/leonardo/providers/LeoCookieProvider';
+import { signOut } from 'src/auth/signout/sign-out';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -13,17 +12,6 @@ jest.mock('src/auth/oidc-broker');
 jest.mock('react-oidc-context');
 
 jest.mock('src/libs/ajax/Metrics');
-
-type LeoCookieProviderExports = typeof import('src/libs/ajax/leonardo/providers/LeoCookieProvider');
-jest.mock(
-  'src/libs/ajax/leonardo/providers/LeoCookieProvider',
-  (): LeoCookieProviderExports => ({
-    ...jest.requireActual('src/libs/ajax/leonardo/providers/LeoCookieProvider'),
-    leoCookieProvider: {
-      unsetCookies: jest.fn(async () => {}),
-    },
-  })
-);
 
 const currentRoute = {
   name: 'routeName',
@@ -42,17 +30,15 @@ jest.mock('src/libs/nav', (): NavExports => {
   };
 });
 
-type StateExports = typeof import('src/libs/state');
-jest.mock('src/libs/state', (): StateExports => {
-  const state = jest.requireActual<StateExports>('src/libs/state');
+jest.mock('src/libs/state', () => {
+  const state = jest.requireActual('src/libs/state');
   return {
     ...state,
     oidcStore: {
       ...state.oidcStore,
       get: jest.fn().mockReturnValue({
-        userManager: {
-          signoutRedirect: jest.fn(() => 'Default signOutRedirectFn'),
-        },
+        ...state.oidcStore.get,
+        userManager: { signoutRedirect: jest.fn() },
       }),
     },
   };
@@ -83,46 +69,46 @@ describe('sign-out', () => {
     // Assert
     expect(captureEventFn).toHaveBeenCalledWith(Events.user.signOut.idleStatusMonitor, expect.any(Object));
   });
-  it('redirects to the signout callback page', async () => {
+
+  it('redirects to the signout callback page', () => {
     // Arrange
-    const unsetCookiesFn = jest.fn();
-    const signOutRedirectFn = jest.fn();
+    const signoutRedirectFn = jest.fn();
     const hostname = 'https://mycoolhost.horse';
     const link = 'signout';
     const expectedState = btoa(JSON.stringify({ signOutRedirect: currentRoute, signOutCause: 'unspecified' }));
     asMockedFn(oidcStore.get).mockReturnValue({
-      userManager: { signoutRedirect: signOutRedirectFn },
+      userManager: {
+        signoutRedirect: signoutRedirectFn,
+      },
     } as unknown as OidcState);
-    asMockedFn(leoCookieProvider.unsetCookies).mockImplementation(unsetCookiesFn);
     asMockedFn(Nav.getLink).mockReturnValue(link);
     asMockedFn(Nav.getWindowOrigin).mockReturnValue(hostname);
     asMockedFn(Nav.getCurrentRoute).mockReturnValue(currentRoute);
     // Act
-    await doSignOut();
+    signOut();
     // Assert
-    expect(unsetCookiesFn).toHaveBeenCalled();
-    expect(signOutRedirectFn).toHaveBeenCalledWith({
+    expect(signoutRedirectFn).toHaveBeenCalledWith({
       post_logout_redirect_uri: `${hostname}/${link}`,
       extraQueryParams: { state: expectedState },
     });
   });
-  it('logs an error and calls userSignedOut if signOutRedirect throws', async () => {
+  it('logs an error and calls userSignedOut if signoutRedirect throws', () => {
     // Arrange
-    const signOutRedirectFn = jest.fn(() => {
+    const signoutRedirectFn = jest.fn(() => {
       throw new Error('test error');
     });
     const removeUserFromLocalStateFn = jest.fn();
     const goToRootFn = jest.fn();
     asMockedFn(oidcStore.get).mockReturnValue({
       userManager: {
-        signoutRedirect: signOutRedirectFn,
+        signoutRedirect: signoutRedirectFn,
       },
     } as unknown as OidcState);
     asMockedFn(removeUserFromLocalState).mockImplementation(removeUserFromLocalStateFn);
     asMockedFn(goToPath).mockImplementation(goToRootFn);
     const consoleErrorFn = jest.spyOn(console, 'error').mockImplementation(() => {});
     // Act
-    await doSignOut();
+    signOut();
     // Assert
     expect(consoleErrorFn).toHaveBeenCalledWith(
       'Signing out with B2C failed. Falling back on local signout',
