@@ -13,7 +13,6 @@ interface CostCardProps {
 export const CostCard = (props: CostCardProps) => {
   return (
     <div
-      key={props.type}
       style={{
         ...Style.elements.card.container,
         backgroundColor: 'white',

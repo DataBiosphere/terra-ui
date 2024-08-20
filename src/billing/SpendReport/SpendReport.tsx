@@ -361,6 +361,7 @@ export const SpendReport = (props: SpendReportProps) => {
           {_.map(
             (name) => (
               <CostCard
+                key={name}
                 type={name}
                 title={`Total ${getReportCategoryCardCaption(name, props.cloudPlatform)}`}
                 amount={!isProjectCostReady ? '...' : projectCost[name]}
