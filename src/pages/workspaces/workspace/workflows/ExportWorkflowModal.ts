@@ -135,7 +135,13 @@ const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuc
           ['Go to exported workflow']
         ),
       },
-      ['Successfully exported ', b([workflowName]), ' to ', b([selectedWorkspace.name]), '. Do you want to view the exported workflow?']
+      [
+        'Successfully exported ',
+        b([workflowName]),
+        ' to ',
+        b([selectedWorkspace.name]),
+        '. Do you want to view the exported workflow?',
+      ]
     );
   };
 
