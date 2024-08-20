@@ -1,4 +1,4 @@
-import { CenteredSpinner } from '@terra-ui-packages/components';
+import { CenteredSpinner, Icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import React, { useState } from 'react';
@@ -207,22 +207,26 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {null /* nothing to display at the end of the tab bar */}
       </TabBar>
       <main style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', rowGap: '1rem' }}>
-        <DelayedSearchInput
-          style={{ width: 500 }}
-          placeholder='SEARCH WORKFLOWS'
-          aria-label='Search workflows'
-          onChange={(val) => updateQuery({ newFilter: val })}
-          value={filter}
-        />
-        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '1rem' }}>
-          <ButtonPrimary
-            onClick={() => {
-              setCreateWorkflowModalOpen(true);
-            }}
-          >
-            Create New Method...
-          </ButtonPrimary>
+        <div style={{ display: 'flex' }}>
+          <DelayedSearchInput
+            style={{ width: 500, display: 'flex', justifyContent: 'flex-start' }}
+            placeholder='SEARCH WORKFLOWS'
+            aria-label='Search workflows'
+            onChange={(val) => updateQuery({ newFilter: val })}
+            value={filter}
+          />
+          <div style={{ width: 500, display: 'flex', flex: 3, justifyContent: 'flex-end' }}>
+            <ButtonPrimary
+              onClick={() => {
+                setCreateWorkflowModalOpen(true);
+              }}
+            >
+              Create New Method...
+              <Icon icon='plus' size={17} style={{ flexShrink: 0, paddingLeft: '0.3rem' }} />
+            </ButtonPrimary>
+          </div>
         </div>
+
         <div style={{ flex: 1 }}>
           <AutoSizer>
             {({ width, height }) => (
@@ -241,7 +245,6 @@ export const WorkflowList = (props: WorkflowListProps) => {
           </AutoSizer>
           {workflows === undefined && <CenteredSpinner />}
         </div>
-      </div>
         {!_.isEmpty(sortedWorkflows) && (
           <div style={{ marginBottom: '0.5rem' }}>
             {
