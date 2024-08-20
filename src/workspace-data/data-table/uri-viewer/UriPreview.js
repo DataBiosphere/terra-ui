@@ -22,23 +22,23 @@ const styles = {
   },
 };
 
-const isImage = ({ contentType, name }) => {
-  return /^image/.test(contentType) || /\.(?:(jpe?g|png|svg|bmp))$/.test(name);
+export const isImage = ({ contentType, name }) => {
+  return /^image/.test(contentType) || /\.(jpe?g|png|svg|bmp)$/.test(name);
 };
 
-const isText = ({ contentType, name }) => {
+export const isText = ({ contentType, name }) => {
   return /(^text|application\/json)/.test(contentType) || /\.(txt|[ct]sv|log|json|fastq|fasta|fa|vcf|sam|bed|interval_list|gtf|md|html)$/.test(name);
 };
 
-const isBinary = ({ contentType, name }) => {
+export const isBinary = ({ contentType, name }) => {
   return /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(\.(ba[mi]|cra[mi]|bcf|h5ad|pdf|gz)$|\.gz\.)/.test(name);
 };
 
-const canRender = ({ contentType, name }) => {
+export const canRender = ({ contentType, name }) => {
   return /(^text\/html|application\/pdf)/.test(contentType) || /\.(html|pdf)$/.test(name);
 };
 
-const isFilePreviewable = ({ size, ...metadata }) => {
+export const isFilePreviewable = ({ size, ...metadata }) => {
   return isBinary(metadata) || isText(metadata) || (isImage(metadata) && size <= 1e9);
 };
 
