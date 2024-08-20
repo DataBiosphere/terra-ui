@@ -306,15 +306,6 @@ export class WdsDataTableProvider implements DataTableProvider {
       this.workspaceId,
       entityType,
       this.queryOptionsToSearchRequest(queryOptions)
-      // _.merge(
-      //   {
-      //     offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
-      //     limit: queryOptions.itemsPerPage,
-      //     sort: queryOptions.sortDirection,
-      //   },
-      //   queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField },
-      //   filter: queryOptions.columnFilter === '' ? {} : { query: queryOptions.columnFilter },
-      // )
     );
     return this.transformPage(wdsPage, entityType, queryOptions, metadata);
   };
