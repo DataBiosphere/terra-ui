@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import GCPBillingProjectWizard from 'src/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import { Ajax } from 'src/libs/ajax';
 import Events from 'src/libs/events';
@@ -166,11 +166,11 @@ describe('GCPBillingProjectWizard Steps', () => {
     );
 
     wizardComponent = render(
-      h(GCPBillingProjectWizard, {
-        onSuccess: jest.fn(),
-        billingAccounts: { accountName: { accountName, displayName } },
-        authorizeAndLoadAccounts: jest.fn(),
-      })
+      <GCPBillingProjectWizard
+        onSuccess={jest.fn()}
+        billingAccounts={{ accountName: { accountName, displayName } }}
+        authorizeAndLoadAccounts={jest.fn()}
+      />
     );
   });
 
@@ -410,13 +410,7 @@ describe('Step 4 Warning Message', () => {
         } as Partial<AjaxContract> as AjaxContract)
     );
 
-    render(
-      h(GCPBillingProjectWizard, {
-        onSuccess: jest.fn(),
-        billingAccounts: {},
-        authorizeAndLoadAccounts: jest.fn(),
-      })
-    );
+    render(<GCPBillingProjectWizard onSuccess={jest.fn()} billingAccounts={{}} authorizeAndLoadAccounts={jest.fn()} />);
 
     const user = userEvent.setup();
     await user.click(getStep2BillingAccountNoAccessButton());
@@ -457,11 +451,11 @@ describe('Changing prior answers', () => {
         } as Partial<AjaxContract> as AjaxContract)
     );
     render(
-      h(GCPBillingProjectWizard, {
-        onSuccess: jest.fn(),
-        billingAccounts: { accountName: { accountName, displayName } },
-        authorizeAndLoadAccounts: jest.fn(),
-      })
+      <GCPBillingProjectWizard
+        onSuccess={jest.fn()}
+        billingAccounts={{ accountName: { accountName, displayName } }}
+        authorizeAndLoadAccounts={jest.fn()}
+      />
     );
   });
 

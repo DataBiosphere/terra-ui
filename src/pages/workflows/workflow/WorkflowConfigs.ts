@@ -1,5 +1,5 @@
 import { icon, TooltipTrigger, useStore } from '@terra-ui-packages/components';
-import _ from 'lodash';
+import _ from 'lodash/fp';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
@@ -14,10 +14,38 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import { snapshotStore } from 'src/libs/state';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 
+type MethodRepoMethod = {
+  methodName: string;
+  methodNamespace: string;
+  methodVersion: number;
+};
+
+type Config = {
+  createDate: string;
+  entityType: string;
+  name: string;
+  namespace: string;
+  payloadObject: {
+    deleted: boolean;
+    inputs: {};
+    methodConfigVersion: number;
+    methodRepoMethod: MethodRepoMethod;
+    name: string;
+    namespace: string;
+    outputs: {};
+    prerequisites: {};
+    rootEntityType: string;
+  };
+  snapshotId: number;
+  url: string;
+};
+
 const getFilteredConfigs = ({ allConfigs, filterWord }) => {
   const lowerCaseFilter = filterWord.toLocaleLowerCase();
   const keys = ['name', 'namespace', 'snapshotId'];
-  return allConfigs?.filter((config) => keys.some((key) => config[key].toString().toLowerCase().includes(lowerCaseFilter)));
+  return allConfigs?.filter((config) =>
+    keys.some((key) => config[key].toString().toLowerCase().includes(lowerCaseFilter))
+  );
 };
 
 const Filter = ({ searchFilter, setSearchFilter }) => {
@@ -33,7 +61,7 @@ const Filter = ({ searchFilter, setSearchFilter }) => {
 export const BaseWorkflowConfigs = () => {
   const signal = useCancellation();
   const { namespace, name, snapshotId } = useStore(snapshotStore);
-  const [allConfigs, setAllConfigs] = useState();
+  const [allConfigs, setAllConfigs] = useState<Config[]>([]);
   const [snapshotConfigs, setSnapshotConfigs] = useState();
   const [configTableColumnWidths, setConfigTableColumnWidths] = useState({});
   const [searchFilter, setSearchFilter] = useState('');
@@ -41,7 +69,7 @@ export const BaseWorkflowConfigs = () => {
     setConfigTableColumnWidths(_.set(columnKey, currentWidth + delta));
   };
   const withConfigTableName = (columnName) => `${columnName}`;
-  const configTableRef = useRef(null);
+  const configTableRef = useRef<{ recomputeColumnSizes: () => void }>(null);
 
   useOnMount(() => {
     const loadConfigs = async () => {
@@ -58,7 +86,6 @@ export const BaseWorkflowConfigs = () => {
   });
 
   const filteredConfigs = getFilteredConfigs({ allConfigs, filterWord: searchFilter });
-
   useEffect(() => {
     configTableRef.current?.recomputeColumnSizes();
   }, [configTableColumnWidths]);
@@ -75,7 +102,7 @@ export const BaseWorkflowConfigs = () => {
                 width,
                 height: (1 + allConfigs.length) * 48,
                 'aria-label': 'workflow configuration',
-                rowCount: filteredConfigs.length,
+                rowCount: filteredConfigs?.length,
                 numFixedColumns: 1,
                 columns: [
                   {
@@ -99,14 +126,15 @@ export const BaseWorkflowConfigs = () => {
                   },
                   {
                     field: 'configurations',
-                    width: configTableColumnWidths[withConfigTableName('configurations')] || 500,
+                    width: configTableColumnWidths[withConfigTableName('configurations')] || 600,
                     headerRenderer: () => {
-                      const columnWidth = configTableColumnWidths[withConfigTableName('configurations')] || 500;
+                      const columnWidth = configTableColumnWidths[withConfigTableName('configurations')] || 600;
                       return h(
                         Resizable,
                         {
                           width: columnWidth,
-                          onWidthChange: (delta) => resizeColumn(columnWidth, delta, withConfigTableName('configurations')),
+                          onWidthChange: (delta) =>
+                            resizeColumn(columnWidth, delta, withConfigTableName('configurations')),
                         },
                         [h(HeaderCell, ['Configuration'])]
                       );
@@ -118,14 +146,15 @@ export const BaseWorkflowConfigs = () => {
                   },
                   {
                     field: 'workflow_snapshot',
-                    width: configTableColumnWidths[withConfigTableName('workflow_snapshot')] || 300,
+                    width: configTableColumnWidths[withConfigTableName('workflow_snapshot')] || 600,
                     headerRenderer: () => {
-                      const columnWidth = configTableColumnWidths[withConfigTableName('workflow_snapshot')] || 300;
+                      const columnWidth = configTableColumnWidths[withConfigTableName('workflow_snapshot')] || 600;
                       return h(
                         Resizable,
                         {
                           width: columnWidth,
-                          onWidthChange: (delta) => resizeColumn(columnWidth, delta, withConfigTableName('workflow_snapshot')),
+                          onWidthChange: (delta) =>
+                            resizeColumn(columnWidth, delta, withConfigTableName('workflow_snapshot')),
                         },
                         [h(HeaderCell, ['Workflow Snapshot'])]
                       );
@@ -139,27 +168,6 @@ export const BaseWorkflowConfigs = () => {
 
                       return methodVersion;
                     },
-                  },
-                  {
-                    field: 'synopsis',
-                    width: configTableColumnWidths[withConfigTableName('synopsis')] || 500,
-                    headerRenderer: () => {
-                      const columnWidth = configTableColumnWidths[withConfigTableName('synopsis')] || 500;
-                      return h(
-                        Resizable,
-                        {
-                          width: columnWidth,
-                          onWidthChange: (delta) => resizeColumn(columnWidth, delta, 'synopsis'),
-                        },
-                        [h(HeaderCell, ['Synopsis'])]
-                      );
-                    },
-                    cellRenderer: ({ rowIndex }) => {
-                      const { synopsis } = allConfigs[rowIndex];
-
-                      return synopsis;
-                    },
-                    size: { grow: 2 },
                   },
                 ],
               }),

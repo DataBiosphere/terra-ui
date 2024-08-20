@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
 import { withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { withWorkspaces } from 'src/workspaces/common/state/withWorkspaces';
+import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { canWrite, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
@@ -16,40 +16,30 @@ type WorkspaceImporterProps = {
   onImport: (workspace: WorkspaceInfo) => void;
 };
 
-type WorkspaceImporterInnerProps = WorkspaceImporterProps & {
-  workspaces: WorkspaceWrapper[];
-  loadingWorkspaces: boolean;
-  refreshWorkspaces: () => void;
-};
-
 // Type WorkspaceImporter because types don't carry through flow.
-export const WorkspaceImporter: (props: WorkspaceImporterInnerProps) => ReactElement<any, any> = _.flow(
-  withDisplayName('WorkspaceImporter'),
-  withWorkspaces
+export const WorkspaceImporter: (props: WorkspaceImporterProps) => ReactElement<any, any> = _.flow(
+  withDisplayName('WorkspaceImporter')
 )(
   ({
-    workspaces,
-    loadingWorkspaces,
-    refreshWorkspaces,
     onImport,
     authorizationDomain: ad,
     selectedWorkspaceId: initialWs,
     additionalErrors,
     ...props
-  }: WorkspaceImporterInnerProps) => {
+  }: WorkspaceImporterProps) => {
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs);
     const [creatingWorkspace, setCreatingWorkspace] = useState(false);
+    const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces();
 
     const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces);
+    const filteredWorkspaces: WorkspaceWrapper[] = _.filter((ws: WorkspaceWrapper) => {
+      return canWrite(ws.accessLevel) && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain));
+    }, workspaces);
 
     return h(Fragment, [
       // @ts-expect-error
       h(WorkspaceSelector, {
-        workspaces: _.filter((ws) => {
-          return (
-            canWrite(ws.accessLevel) && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
-          );
-        }, workspaces),
+        workspaces: filteredWorkspaces,
         noOptionsMessage: loadingWorkspaces ? _.constant('Loading workspaces') : undefined,
         value: selectedWorkspaceId,
         onChange: setSelectedWorkspaceId,

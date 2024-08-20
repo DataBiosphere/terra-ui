@@ -9,6 +9,6 @@ export interface Snapshot {
   namespace: string;
   payload: string;
   url: string;
-  public: boolean;
+  public: boolean | undefined;
   synopsis: string;
 }

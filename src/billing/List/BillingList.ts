@@ -286,11 +286,13 @@ export const BillingList = (props: BillingListProps) => {
               const billingProject = _.find({ projectName: selectedName }, billingProjects);
               return h(ProjectDetail, {
                 key: selectedName,
+                // We know from the condition that the billingProject does exist.
+                // @ts-ignore
                 billingProject,
                 billingAccounts,
                 authorizeAndLoadAccounts,
                 reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
-                isOwner: _.find({ projectName: selectedName }, projectsOwned),
+                isOwner: _.some({ projectName: selectedName }, projectsOwned),
                 workspaces: allWorkspaces,
                 refreshWorkspaces,
               });
