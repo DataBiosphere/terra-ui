@@ -177,7 +177,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsAttributeClearing: false,
       supportsExport: false,
       supportsPointCorrection: false,
-      supportsFiltering: this.isCapabilityEnabled('search.filter.query.column.exact'), // TODO: check if we care about search.filter.query and/or search.filter.ids instead/as well
+      supportsFiltering: this.isCapabilityEnabled('search.filter.query.column.exact'),
       supportsRowSelection: false,
       supportsPerColumnDatatype: true,
     };
@@ -242,7 +242,7 @@ export class WdsDataTableProvider implements DataTableProvider {
   };
 
   protected transformQuery = (query: string): string => {
-    const specialCharactersRegex = /([+\-&|!(){}[\]^"~*?:\\])/g;
+    const specialCharactersRegex = /([+\-&|!(){}[\]^"~*?:\\/\s])/g;
     return query.replace(specialCharactersRegex, '\\$1').replace('=', ':');
   };
 
