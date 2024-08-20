@@ -12,6 +12,7 @@ import { withErrorReporting } from 'src/libs/error';
 import { forwardRefWithName, useStore } from 'src/libs/react-utils';
 import { snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import { WorkflowRightBoxSection } from 'src/pages/workflows/components/WorkflowRightBoxSection';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 
 type InfoTileProps = {
@@ -57,12 +58,13 @@ export const BaseWorkflowSummary = () => {
         : div({ style: { fontStyle: 'italic' } }, ['No documentation provided']),
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      h2({ style: Style.dashboard.header }, ['Snapshot information']),
+      h(WorkflowRightBoxSection, { title: 'hi', info: 'hello', panelOpen: true }, []),
+      h2({ style: Style.dashboard.header }, ['Snapshot ']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
         h(InfoTile, { title: 'Creation date' }, [new Date(createDate).toLocaleDateString()]),
         h(InfoTile, { title: 'Public' }, [_.startCase(isPublic as unknown as string)]),
       ]),
-      h2({ style: Style.dashboard.header }, ['Owners']),
+      h2({ style: Style.dashboard.header }, ['Ownerskjhygtfr']),
       _.map((email) => {
         return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
           h(Link, { href: `mailto:${email}` }, [email]),
