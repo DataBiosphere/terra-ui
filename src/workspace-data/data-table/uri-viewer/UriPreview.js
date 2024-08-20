@@ -34,6 +34,10 @@ const isBinary = ({ contentType, name }) => {
   return /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(\.(ba[mi]|cra[mi]|bcf|h5ad|pdf|gz)$|\.gz\.)/.test(name);
 };
 
+const canRender = ({ contentType, name }) => {
+  return /(^text\/html|application\/pdf)/.test(contentType) || /\.(html|pdf)$/.test(name);
+};
+
 const isFilePreviewable = ({ size, ...metadata }) => {
   return isBinary(metadata) || isText(metadata) || (isImage(metadata) && size <= 1e9);
 };
@@ -46,8 +50,9 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
       if (isAzureUri(uri)) {
         setPreview(metadata.textContent); // NB: For now, we only support text previews for Azure URIs.
       } else {
-        const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata));
-        if (isImage(metadata)) {
+        const canPreviewFull = isImage(metadata) || canRender(metadata);
+        const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, canPreviewFull);
+        if (isImage(metadata) || canRender(metadata)) {
           setPreview(URL.createObjectURL(await res.blob()));
         } else {
           setPreview(await res.text());
@@ -73,6 +78,7 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
               [preview === null, () => 'Unable to load preview.'],
               [preview === undefined, () => 'Loading preview...'],
               [isImage(metadata), () => img({ src: preview, width: 400 })],
+              [canRender(metadata), () => h('object', { data: preview, type: metadata.contentType, width: 400, height: 400 })],
               () =>
                 div(
                   {
