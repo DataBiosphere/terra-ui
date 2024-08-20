@@ -1,13 +1,13 @@
-import { SpinnerOverlay } from '@terra-ui-packages/components';
+import { SpinnerOverlay, useUniqueId } from '@terra-ui-packages/components';
 import { subDays } from 'date-fns/fp';
 import _ from 'lodash/fp';
-import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
-import { div, h, span } from 'react-hyperscript-helpers';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import React from 'react';
 import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { CostCard } from 'src/billing/SpendReport/CostCard';
 import { CloudPlatform } from 'src/billing-core/models';
-import { IdContainer, Select } from 'src/components/common';
+import { Select } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
@@ -22,18 +22,19 @@ const OtherMessaging = ({ cost, cloudPlatform }) => {
     cost !== null
       ? `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.`
       : 'Total spend includes infrastructure or query costs related to the general operations of Terra.';
-  return div({ 'aria-live': cost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
-    span({ 'aria-hidden': true }, ['*']),
-    '',
-    msg,
-    cloudPlatform !== 'AZURE'
-      ? ''
-      : ExternalLink({
-          url: 'https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure',
-          text: ' See our documentation to learn more about Azure costs.',
-          style: { color: colors.accent(1.1) }, // needed to pass color contrast accessibility requirement
-        }),
-  ]);
+  return (
+    <div aria-live={cost !== null ? 'polite' : 'off'} aria-atomic>
+      <span aria-hidden>*</span>
+      {msg}
+      {cloudPlatform !== 'AZURE' ? null : (
+        <ExternalLink
+          url='https://support.terra.bio/hc/en-us/articles/12029087819291-Overview-Costs-and-billing-in-Terra-on-Azure'
+          text=' See our documentation to learn more about Azure costs.'
+          style={{ color: colors.accent(1.1) }} // needed to pass color contrast accessibility requirement
+        />
+      )}
+    </div>
+  );
 };
 
 // Interfaces for internal storage of data
@@ -144,13 +145,17 @@ export const SpendReport = (props: SpendReportProps) => {
       shared: true,
       headerFormat: '{point.key}',
       pointFormatter() {
-        // eslint-disable-line object-shorthand
         // @ts-ignore
+        // eslint-disable-next-line react/no-this-in-sfc
         return `<br/><span style="color:${this.color}">\u25CF</span> ${
           // @ts-ignore
+          // eslint-disable-next-line react/no-this-in-sfc
           this.series.name
+        }: ${
           // @ts-ignore
-        }: ${costPerWorkspace.costFormatter.format(this.y)}`;
+          // eslint-disable-next-line react/no-this-in-sfc
+          costPerWorkspace.costFormatter.format(this.y)
+        }`;
       },
     },
     xAxis: {
@@ -159,6 +164,7 @@ export const SpendReport = (props: SpendReportProps) => {
       labels: {
         formatter() {
           // @ts-ignore
+          // eslint-disable-next-line react/no-this-in-sfc
           return WorkspaceLink(props.billingProjectName, this.value);
         },
         style: { xfontSize: '12px' },
@@ -170,8 +176,9 @@ export const SpendReport = (props: SpendReportProps) => {
       labels: {
         formatter() {
           // @ts-ignore
+          // eslint-disable-next-line react/no-this-in-sfc
           return costPerWorkspace.costFormatter.format(this.value);
-        }, // eslint-disable-line object-shorthand
+        },
         style: { fontSize: '12px' },
       },
       title: { enabled: false },
@@ -315,77 +322,68 @@ export const SpendReport = (props: SpendReportProps) => {
     includePerWorkspaceCosts,
   ]);
 
-  return h(Fragment, [
-    div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
-      !!errorMessage && h(ErrorAlert, { errorValue: errorMessage }),
-      div(
-        {
-          style: {
+  const selectId = useUniqueId('select');
+
+  return (
+    <>
+      <div style={{ display: 'grid', rowGap: '0.5rem' }}>
+        {!!errorMessage && <ErrorAlert errorValue={errorMessage} />}
+        <div
+          style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${reportCategories.length}, minmax(max-content, 1fr))`,
             rowGap: '1.66rem',
             columnGap: '1.25rem',
-          },
-        },
-        [
-          div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
-            h(IdContainer, [
-              (id) =>
-                h(Fragment, [
-                  h(FormLabel, { htmlFor: id }, ['Date range']),
-                  h(Select<number>, {
-                    id,
-                    value: spendReportLengthInDays,
-                    options: _.map(
-                      (days) => ({
-                        label: `Last ${days} days`,
-                        value: days,
-                      }),
-                      [7, 30, 90]
-                    ),
-                    onChange: (selectedOption) => {
-                      const selectedDays = selectedOption!.value;
-                      if (selectedDays !== spendReportLengthInDays) {
-                        setSpendReportLengthInDays(selectedDays);
-                        setProjectCost(null);
-                        setErrorMessage(undefined);
-                      }
-                    },
-                  }),
-                ]),
-            ]),
-          ]),
-          ..._.map(
-            (name) =>
-              h(CostCard, {
-                type: name,
-                title: `Total ${getReportCategoryCardCaption(name, props.cloudPlatform)}`,
-                amount: !isProjectCostReady ? '...' : projectCost[name],
-                isProjectCostReady,
-                showAsterisk: name === 'spend',
-              }),
+          }}
+        >
+          <div style={{ gridRowStart: 1, gridColumnStart: 1 }}>
+            <FormLabel htmlFor={selectId}>Date range</FormLabel>
+            <Select<number>
+              id={selectId}
+              value={spendReportLengthInDays}
+              options={_.map(
+                (days) => ({
+                  label: `Last ${days} days`,
+                  value: days,
+                }),
+                [7, 30, 90]
+              )}
+              onChange={(selectedOption) => {
+                const selectedDays = selectedOption!.value;
+                if (selectedDays !== spendReportLengthInDays) {
+                  setSpendReportLengthInDays(selectedDays);
+                  setProjectCost(null);
+                  setErrorMessage(undefined);
+                }
+              }}
+            />
+          </div>
+          {_.map(
+            (name) => (
+              <CostCard
+                type={name}
+                title={`Total ${getReportCategoryCardCaption(name, props.cloudPlatform)}`}
+                amount={!isProjectCostReady ? '...' : projectCost[name]}
+                isProjectCostReady={isProjectCostReady}
+                showAsterisk={name === 'spend'}
+              />
+            ),
             reportCategories
-          ),
-        ]
-      ),
-      h(OtherMessaging, {
-        cost: isProjectCostReady ? projectCost.other : null,
-        cloudPlatform: props.cloudPlatform,
-      }),
-      includePerWorkspaceCosts &&
-        costPerWorkspace.numWorkspaces > 0 &&
-        div(
-          {
-            style: { minWidth: 500, marginTop: '1rem' },
-          },
-          [
-            // Set minWidth so chart will shrink on resize
-            h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })]),
-          ]
-        ),
-    ]),
-    updatingProjectCost && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
-  ]);
+          )}
+        </div>
+        <OtherMessaging cost={isProjectCostReady ? projectCost.other : null} cloudPlatform={props.cloudPlatform} />
+        {includePerWorkspaceCosts && costPerWorkspace.numWorkspaces > 0 && (
+          // Set minWidth so chart will shrink on resize
+          <div style={{ minWidth: 500, marginTop: '1rem' }}>
+            <Suspense fallback={null}>
+              <LazyChart options={spendChartOptions} />
+            </Suspense>
+          </div>
+        )}
+      </div>
+      {updatingProjectCost && <SpinnerOverlay mode='FullScreen' />}
+    </>
+  );
 };
 
 export const WorkspaceLink = (billingProject, workspace) => {
