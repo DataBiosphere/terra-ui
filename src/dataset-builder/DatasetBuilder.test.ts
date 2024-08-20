@@ -196,7 +196,7 @@ describe('DatasetBuilder', () => {
     await user.click(screen.getByText('Create cohort'));
     // Assert
     const cohort = newCohort(cohortName);
-    const expected = _.set('criteriaGroups[0].id', cohort.criteriaGroups[0].id - 1, newCohort(cohortName));
+    const expected = _.set('criteriaGroups[0].id', cohort.criteriaGroups[0].id - 1, cohort);
     expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(expected));
   });
 
