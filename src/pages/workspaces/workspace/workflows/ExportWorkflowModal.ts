@@ -25,7 +25,7 @@ export interface ExportWorkflowModalProps {
   //  Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).get();
   methodConfig: any;
 
-  // TODO: if sameWorkspace is true, onSuccess is required
+  // now called regardless of the value of sameWorkspace, and only if defined
   onSuccess?: () => void;
 
   onDismiss: (event: React.MouseEvent | React.KeyboardEvent) => void;
@@ -65,9 +65,8 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
             name: selectedWorkspace.name,
           },
         });
-      if (sameWorkspace) {
-        onSuccess();
-      } else {
+      onSuccess?.();
+      if (!sameWorkspace) {
         setExported(true);
       }
     } catch (error) {
