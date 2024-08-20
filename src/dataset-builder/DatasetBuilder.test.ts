@@ -195,7 +195,9 @@ describe('DatasetBuilder', () => {
     fireEvent.change(await screen.findByLabelText('Cohort name *'), { target: { value: cohortName } });
     await user.click(screen.getByText('Create cohort'));
     // Assert
-    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(newCohort(cohortName)));
+    const cohort = newCohort(cohortName);
+    const expected = _.set('criteriaGroups[0].id', cohort.criteriaGroups[0].id - 1, newCohort(cohortName));
+    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(expected));
   });
 
   it('renders concept sets', () => {

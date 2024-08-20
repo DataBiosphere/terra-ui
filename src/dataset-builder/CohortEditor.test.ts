@@ -307,7 +307,7 @@ describe('CohortEditor', () => {
       ...args,
     };
     const cohort = newCohort('cohort');
-    const criteriaGroup = newCriteriaGroup();
+    const criteriaGroup = cohort.criteriaGroups[0];
     if (initializeGroup) {
       initializeGroup(criteriaGroup);
     }
@@ -358,7 +358,7 @@ describe('CohortEditor', () => {
     await user.click(screen.getByLabelText('delete group 1'));
     // Assert
     expect(updateCohort).toHaveBeenCalled();
-    expect(updateCohort.mock.calls[0][0](cohort)).toStrictEqual(newCohort('cohort'));
+    expect(updateCohort.mock.calls[0][0](cohort)).toStrictEqual({ name: 'cohort', criteriaGroups: [] });
   });
 
   it('can modify criteria group', async () => {
@@ -440,11 +440,7 @@ describe('CohortEditor', () => {
     showCohortEditor();
     const user = userEvent.setup();
     // Assert
-    expect(screen.queryByText('Group 1')).toBeFalsy();
-    // Act
-    await user.click(screen.getByText('Add group'));
-    // Assert
-    expect(screen.getByText('Group 1')).toBeTruthy();
+    expect(screen.queryByText('Group 1')).toBeTruthy();
     // Act
     await user.click(screen.getByText('Add group'));
     // Assert
@@ -526,7 +522,7 @@ describe('CohortEditor', () => {
     // Don't compare id since it's generated.
     const { id: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
     expect(updateCohorts.mock.calls[0][0]([])).toMatchObject([
-      { ...originalCohort, criteriaGroups: [expectedCriteriaGroup] },
+      { ...originalCohort, criteriaGroups: [expectedCriteriaGroup, expectedCriteriaGroup] },
     ]);
   });
 
@@ -535,7 +531,6 @@ describe('CohortEditor', () => {
     const { onStateChange } = showCohortEditor();
     const user = userEvent.setup();
     // Act
-    await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
     const domainMenuItem = screen.getByText(snapshotBuilderSettings.domainOptions[0].name);
     await user.click(domainMenuItem);
