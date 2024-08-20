@@ -136,22 +136,23 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         cellStyle: {
           paddingTop: 13,
           paddingBottom: 13,
+          lineHeight: '22px',
         },
         columns: [
-          { header: strong(['Concept name']), key: 'name', size: { grow: 2.3 } },
-          { header: strong(['Concept ID']), key: 'id', size: { grow: 0.5 } },
+          { header: strong(['Concept name']), key: 'name', size: { grow: 2.5 } },
+          { header: strong(['Concept ID']), key: 'id', size: { grow: 0.75 } },
           { header: strong(['Code']), key: 'code', size: { grow: 0.75 } },
-          { header: strong(['# Participants']), key: 'count', size: { grow: 0.5 } },
-          { key: 'hierarchy', size: { grow: 0.4 } },
+          { header: strong(['# Participants']), key: 'count', size: { grow: 0.75 } },
+          { key: 'hierarchy', size: { grow: 0.75 } },
         ],
         rows: _.map(
           (concept) => {
             return {
-              name: div({ style: { display: 'flex' } }, [
+              name: div({ style: { display: 'flex', paddingRight: 14 } }, [
                 h(
                   LabeledCheckbox,
                   {
-                    style: { paddingRight: 22, marginTop: 1 },
+                    style: { paddingRight: 24, marginTop: 4 },
                     checked: _.contains(concept, cart),
                     onChange: () => setCart(_.xor(cart, [concept])),
                   },
@@ -164,7 +165,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                 ),
               ]),
               id: concept.id,
-              code: concept.code,
+              code: div({ style: { overflowX: 'hidden', textOverflow: 'ellipsis', paddingRight: 14 } }, [concept.code]),
               count: formatCount(concept.count),
               hierarchy: div({ style: { display: 'flex' } }, [
                 h(
@@ -172,6 +173,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   {
                     'aria-label': `open hierarchy ${concept.id}`,
                     onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
+                    style: { marginTop: 1.5 },
                   },
                   [icon('view-list')]
                 ),
