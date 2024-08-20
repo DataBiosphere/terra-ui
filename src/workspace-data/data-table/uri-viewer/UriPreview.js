@@ -27,18 +27,15 @@ const isImage = ({ contentType, name }) => {
 };
 
 const isText = ({ contentType, name }) => {
-  return /(?:(^text|application\/json))/.test(contentType) || /\.(?:(txt|[ct]sv|log|json))$/.test(name);
+  return /(^text|application\/json)/.test(contentType) || /\.(txt|[ct]sv|log|json|fastq|fasta|fa|vcf|sam|bed|interval_list|gtf|md|html)$/.test(name);
 };
 
 const isBinary = ({ contentType, name }) => {
-  // excluding json and google's default types (i.e. wasn't set to anything else)
-  return (
-    /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(?:(\.(?:(ba[mi]|cra[mi]|pac|sa|bwt|gz))$|\.gz\.))/.test(name)
-  );
+  return /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(\.(ba[mi]|cra[mi]|bcf|h5ad|pdf|gz)$|\.gz\.)/.test(name);
 };
 
 const isFilePreviewable = ({ size, ...metadata }) => {
-  return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9));
+  return isBinary(metadata) || isText(metadata) || (isImage(metadata) && size <= 1e9);
 };
 
 export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googleProject }) => {
