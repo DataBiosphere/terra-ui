@@ -58,11 +58,11 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
         .Workspaces.workspace(thisWorkspace.namespace, thisWorkspace.name)
         .methodConfig(methodConfig.namespace, methodConfig.name)
         .copyTo({
-          destConfigNamespace: selectedWorkspace.namespace,
+          destConfigNamespace: selectedWorkspace!.namespace,
           destConfigName: workflowName,
           workspaceName: {
-            namespace: selectedWorkspace.namespace,
-            name: selectedWorkspace.name,
+            namespace: selectedWorkspace!.namespace,
+            name: selectedWorkspace!.name,
           },
         });
       onSuccess?.();
