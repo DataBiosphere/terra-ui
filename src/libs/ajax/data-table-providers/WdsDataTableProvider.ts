@@ -247,7 +247,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     return `\\${char}`;
   };
 
-  protected escape = (s: string): string => {
+  escape = (s: string): string => {
     return s.replace(/[+\-!(){}[\]^"?:\\&|'/\s*~]/g, this.prefixCharWithBackslashes);
   };
 

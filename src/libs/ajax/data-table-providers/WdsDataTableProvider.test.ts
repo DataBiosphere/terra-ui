@@ -799,6 +799,29 @@ describe('WdsDataTableProvider', () => {
       });
     });
   });
+  describe('escape', () => {
+    // Arrange
+    const provider = new TestableWdsProvider();
+
+    // Assert
+    it('must not escape when not necessary', () => {
+      expect(provider.escape('foo')).to.equal('foo');
+      expect(provider.escape('>32')).to.equal('>32');
+    });
+
+    it('must escape typical reserved characters', () => {
+      expect(provider.escape('[32]')).to.equal('\\[32\\]');
+      expect(provider.escape('foo:bar')).to.equal('foo\\:bar');
+    });
+
+    it('must escape phrases', () => {
+      expect(provider.escape('foo"bar')).to.equal('foo\\"bar');
+    });
+
+    it('must escape line breaks', () => {
+      expect(provider.escape('a\nb')).to.equal('a\\\nb');
+    });
+  });
   describe('deleteTable', () => {
     it('restructures a WDS response', () => {
       // Arrange
