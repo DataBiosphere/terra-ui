@@ -241,9 +241,18 @@ export class WdsDataTableProvider implements DataTableProvider {
     );
   };
 
+  // Copying from https://github.com/bripkens/lucene/blob/master/lib/escaping.js
+  // This library is not maintained, but we want the same functionality
+  protected prefixCharWithBackslashes = (char: string): string => {
+    return `\\${char}`;
+  };
+
+  protected escape = (s: string): string => {
+    return s.replace(/[+\-!(){}[\]^"?:\\&|'/\s*~]/g, this.prefixCharWithBackslashes);
+  };
+
   protected transformQuery = (query: string): string => {
-    const specialCharactersRegex = /([+\-&|!(){}[\]^"~*?:\\/\s])/g;
-    return query.replace(specialCharactersRegex, '\\$1').replace('=', ':');
+    return this.escape(query).replace('=', ':');
   };
 
   protected queryOptionsToSearchRequest = (queryOptions: EntityQueryOptions): SearchRequest => {
