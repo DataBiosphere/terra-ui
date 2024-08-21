@@ -39,7 +39,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
     sameWorkspace ? thisWorkspace.workspaceId : undefined
   );
   const [workflowName, setWorkflowName] = useState<string>(`${methodConfig.name}${sameWorkspace ? '_copy' : ''}`);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<any>(undefined); // undefined/falsy = no error
   const [exporting, setExporting] = useState<boolean>(false);
   const [exported, setExported] = useState<boolean>(false);
 
@@ -70,9 +70,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
         setExported(true);
       }
     } catch (error) {
-      // TODO: this will fail for errors from withCancellation (see fetch-core.ts) - assumes Response type
-      //  (such as if selectedWorkspace is undefined)
-      setError(await error.text());
+      setError(error instanceof Response ? await error.text() : error);
       setExporting(false);
     }
   };
