@@ -1,13 +1,8 @@
 import _ from 'lodash/fp';
 import React from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { SelectProps, VirtualizedSelect } from 'src/components/common';
-import {
-  cloudProviderLabels,
-  getCloudProviderFromWorkspace,
-  WorkspaceWrapper as Workspace,
-} from 'src/workspaces/utils';
+import { getCloudProviderFromWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface WorkspaceSelectorProps
   extends Omit<SelectProps<string, false, { value: string; label: string }>, 'value' | 'options'> {
@@ -25,12 +20,25 @@ interface WorkspaceSelectorOption {
   workspace: Workspace;
 }
 
+const formatOptionLabel = (opt: WorkspaceSelectorOption) => {
+  const { label, workspace } = opt;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <CloudProviderIcon
+        // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
+        cloudProvider={getCloudProviderFromWorkspace(workspace)}
+        style={{ marginRight: '0.5rem' }}
+      />
+      {label}
+    </div>
+  );
+};
+
 export const WorkspaceSelector = (props: WorkspaceSelectorProps) => {
   const { workspaces, value, onChange, id, 'aria-label': ariaLabel, ...otherProps } = props;
   const options = _.flow(
     _.sortBy((ws: Workspace) => ws.workspace.name.toLowerCase()),
     _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName } }) => ({
-      'aria-label': `${cloudProviderLabels[cloudPlatform]} ${name}`,
       value: workspaceId,
       label: name,
       workspace: { workspace: { cloudPlatform, bucketName } },
@@ -46,17 +54,7 @@ export const WorkspaceSelector = (props: WorkspaceSelectorProps) => {
       value={value}
       onChange={({ value }) => onChange(value)}
       options={options}
-      formatOptionLabel={(opt: WorkspaceSelectorOption) => {
-        const { label, workspace } = opt;
-        return div({ style: { display: 'flex', alignItems: 'center' } }, [
-          h(CloudProviderIcon, {
-            // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
-            cloudProvider: getCloudProviderFromWorkspace(workspace),
-            style: { marginRight: '0.5rem' },
-          }),
-          label,
-        ]);
-      }}
+      formatOptionLabel={formatOptionLabel}
       {...otherProps}
     />
   );
