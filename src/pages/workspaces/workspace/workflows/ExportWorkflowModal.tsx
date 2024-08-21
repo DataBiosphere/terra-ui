@@ -1,7 +1,6 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, ReactNode, useState } from 'react';
-import { b, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { ValidatedInput } from 'src/components/input';
@@ -134,33 +133,29 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   };
 
   const renderPostExport = () => {
-    return h(
-      Modal,
-      {
-        title: 'Copy to Workspace',
-        onDismiss,
-        cancelText: 'Stay Here',
-        okButton: h(
-          ButtonPrimary,
-          {
-            onClick: () =>
+    return (
+      <Modal
+        title='Copy to Workspace'
+        onDismiss={onDismiss}
+        cancelText='Stay Here'
+        okButton={
+          <ButtonPrimary
+            onClick={() =>
               Nav.goToPath('workflow', {
                 namespace: selectedWorkspace.namespace,
                 name: selectedWorkspace.name,
                 workflowNamespace: selectedWorkspace.namespace,
                 workflowName,
-              }),
-          },
-          ['Go to exported workflow']
-        ),
-      },
-      [
-        'Successfully exported ',
-        b([workflowName]),
-        ' to ',
-        b([selectedWorkspace.name]),
-        '. Do you want to view the exported workflow?',
-      ]
+              })
+            }
+          >
+            Go to exported workflow
+          </ButtonPrimary>
+        }
+      >
+        Successfully exported <b>{workflowName}</b> to <b>{selectedWorkspace.name}</b>. Do you want to view the exported
+        workflow?
+      </Modal>
     );
   };
 
