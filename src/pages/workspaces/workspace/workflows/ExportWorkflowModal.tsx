@@ -1,7 +1,7 @@
-import { Modal } from '@terra-ui-packages/components';
+import { Modal, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, ReactNode, useState } from 'react';
-import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { ValidatedInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
@@ -43,6 +43,9 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   const [exported, setExported] = useState<boolean>(false);
 
   const { workspaces } = useWorkspaces();
+
+  const destinationWorkspaceSelectorId = useUniqueId();
+  const workflowNameInputId = useUniqueId();
 
   // Helpers
   const selectedWorkspace: WorkspaceInfo | undefined = _.find(
@@ -95,37 +98,27 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
         }
       >
         {!sameWorkspace && (
-          <IdContainer>
-            {(id) => (
-              <>
-                <FormLabel htmlFor={id} required>
-                  Destination
-                </FormLabel>
-                <WorkspaceSelector
-                  id={id}
-                  workspaces={_.filter(({ workspace: { workspaceId }, accessLevel }) => {
-                    return thisWorkspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
-                  }, workspaces)}
-                  value={selectedWorkspaceId}
-                  onChange={setSelectedWorkspaceId}
-                />
-              </>
-            )}
-          </IdContainer>
+          <>
+            <FormLabel htmlFor={destinationWorkspaceSelectorId} required>
+              Destination
+            </FormLabel>
+            <WorkspaceSelector
+              id={destinationWorkspaceSelectorId}
+              workspaces={_.filter(({ workspace: { workspaceId }, accessLevel }) => {
+                return thisWorkspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
+              }, workspaces)}
+              value={selectedWorkspaceId}
+              onChange={setSelectedWorkspaceId}
+            />
+          </>
         )}
-        <IdContainer>
-          {(id) => (
-            <>
-              <FormLabel htmlFor={id} required>
-                Name
-              </FormLabel>
-              <ValidatedInput
-                error={Utils.summarizeErrors(errors?.workflowName)}
-                inputProps={{ id, value: workflowName, onChange: setWorkflowName }}
-              />
-            </>
-          )}
-        </IdContainer>
+        <FormLabel htmlFor={workflowNameInputId} required>
+          Name
+        </FormLabel>
+        <ValidatedInput
+          error={Utils.summarizeErrors(errors?.workflowName)}
+          inputProps={{ id: workflowNameInputId, value: workflowName, onChange: setWorkflowName }}
+        />
         {exporting && spinnerOverlay}
         {error && <ErrorView error={error} />}
       </Modal>
