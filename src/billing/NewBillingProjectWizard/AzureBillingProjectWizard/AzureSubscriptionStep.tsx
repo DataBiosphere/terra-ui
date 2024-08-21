@@ -1,7 +1,6 @@
 import { SpinnerOverlay, useLoadedData, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { div, h, p } from 'react-hyperscript-helpers';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { columnEntryStyle, rowStyle } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/styles';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { Step } from 'src/billing/NewBillingProjectWizard/StepWizard/Step';
@@ -61,7 +60,7 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
       } else {
         console.error(state.error);
       }
-      setSubscriptionIdError(h(NoManagedApps));
+      setSubscriptionIdError(<NoManagedApps />);
     },
   });
   const subscriptionIdInput = useRef<HTMLInputElement>();
@@ -85,89 +84,84 @@ export const AzureSubscriptionStep = ({ isActive, subscriptionId, ...props }: Az
         const response = await Ajax(signal).Billing.listAzureManagedApplications(v, false);
         const managedApps = response.managedApps;
         if (managedApps.length === 0) {
-          setSubscriptionIdError(h(NoManagedApps));
+          setSubscriptionIdError(<NoManagedApps />);
         }
         return managedApps;
       });
     }
   };
 
-  return h(Step, { isActive, style: { minHeight: '18rem', paddingBottom: '0.5rem' } }, [
-    h(StepHeader, { title: 'STEP 1' }),
-    h(StepFields, { style: { flexDirection: 'column' } }, [
-      h(StepFieldLegend, [
-        'Link Terra to an unassigned managed application in your Azure subscription. A managed application instance can only be assigned to a single Terra billing project. ',
-        h(ExternalLink, {
-          url: 'https://support.terra.bio/hc/en-us/articles/12029032057371',
-          text: 'See documentation with detailed instructions',
-          popoutSize: 16,
-        }),
-      ]),
-      p({ style: legendDetailsStyle }, [
-        'Need to access your Azure Subscription ID, or to find or create your managed application? ',
-        ExternalLink({ text: 'Go to the Azure Portal', url: 'https://portal.azure.com/' }),
-      ]),
-      div({ style: rowStyle }, [
-        h(
-          LabeledField,
+  return (
+    <Step isActive={isActive} style={{ minHeight: '18rem', paddingBottom: '0.5rem' }}>
+      <StepHeader title='STEP 1' />
+      <StepFields style={{ flexDirection: 'column' }}>
+        <StepFieldLegend>
           {
-            style: columnEntryStyle(true),
-            label: 'Enter your Azure subscription ID',
-            formId: subscriptionInputId,
-            required: true,
-          },
-          [
-            h(ValidatedInputWithRef, {
-              inputProps: {
+            'Link Terra to an unassigned managed application in your Azure subscription. A managed application instance can only be assigned to a single Terra billing project. '
+          }
+          <ExternalLink
+            url='https://support.terra.bio/hc/en-us/articles/12029032057371'
+            text='See documentation with detailed instructions'
+            popoutSize={16}
+          />
+        </StepFieldLegend>
+        <p style={legendDetailsStyle}>
+          {'Need to access your Azure Subscription ID, or to find or create your managed application? '}
+          <ExternalLink text='Go to the Azure Portal' url='https://portal.azure.com/' />
+        </p>
+        <div style={rowStyle}>
+          <LabeledField
+            style={columnEntryStyle(true)}
+            label='Enter your Azure subscription ID'
+            formId={subscriptionInputId}
+            required
+          >
+            <ValidatedInputWithRef
+              inputProps={{
                 id: subscriptionInputId,
                 placeholder: 'Azure Subscription ID',
                 onChange: subscriptionIdChanged,
                 value: subscriptionId ?? '',
-              },
-              ref: subscriptionIdInput,
-              error: subscriptionIdError,
-            }),
-          ]
-        ),
+              }}
+              ref={subscriptionIdInput}
+              error={subscriptionIdError}
+            />
+          </LabeledField>
 
-        h(
-          LabeledField,
-          {
-            formId: appSelectId,
-            required: true,
-            style: columnEntryStyle(false),
-            label: ['Unassigned managed application'],
-          },
-          [
-            h(AzureManagedAppCoordinatesSelect, {
-              id: appSelectId,
-              placeholder: 'Select a managed application',
-              isMulti: false,
-              isDisabled: managedApps.status !== 'Ready' || !!subscriptionIdError,
-              value: props.managedApp || null,
-              onChange: (option) => {
+          <LabeledField
+            formId={appSelectId}
+            required
+            style={columnEntryStyle(false)}
+            label={['Unassigned managed application']}
+          >
+            <AzureManagedAppCoordinatesSelect
+              id={appSelectId}
+              placeholder='Select a managed application'
+              isMulti={false}
+              isDisabled={managedApps.status !== 'Ready' || !!subscriptionIdError}
+              value={props.managedApp || null}
+              onChange={(option) => {
                 props.onManagedAppSelected(option!.value);
-              },
-              options: managedApps.status === 'Ready' ? managedAppsToOptions(managedApps.state) : [],
-            }),
-          ]
-        ),
-      ]),
-    ]),
-    managedApps.status === 'Loading' && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
-  ]);
+              }}
+              options={managedApps.status === 'Ready' ? managedAppsToOptions(managedApps.state) : []}
+            />
+          </LabeledField>
+        </div>
+      </StepFields>
+      {managedApps.status === 'Loading' && <SpinnerOverlay mode='FullScreen' />}
+    </Step>
+  );
 };
 
-const NoManagedApps = () =>
-  div({ key: 'message' }, [
-    'No Terra Managed Applications exist for that subscription. ',
-    h(
-      Link,
-      {
-        href: 'https://portal.azure.com/#view/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/home',
-        ...Utils.newTabLinkProps,
-      },
-      ['Go to the Azure Marketplace']
-    ),
-    ' to create a Terra Managed Application.',
-  ]);
+const NoManagedApps = () => (
+  <div key='message'>
+    {'No Terra Managed Applications exist for that subscription. '}
+    <Link
+      href='https://portal.azure.com/#view/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/home'
+      {...Utils.newTabLinkProps}
+    >
+      Go to the Azure Marketplace
+    </Link>
+    {' to create a Terra Managed Application.'}
+  </div>
+);

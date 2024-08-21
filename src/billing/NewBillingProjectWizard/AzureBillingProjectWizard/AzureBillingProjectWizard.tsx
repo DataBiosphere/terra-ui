@@ -1,7 +1,6 @@
 import { Icon, SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { h, p } from 'react-hyperscript-helpers';
+import React, { Fragment, ReactNode, useEffect, useState } from 'react';
 import { AddUsersStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AddUsersStep';
 import { AzureSubscriptionStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureSubscriptionStep';
 import { CreateNamedProjectStep } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/CreateNamedProjectStep';
@@ -135,39 +134,42 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
       !userEmails.hasError &&
       (ownerEmails.emails.trim().length > 0 || userEmails.emails.trim().length > 0));
 
-  return h(Fragment, [
-    h(
-      StepWizard,
-      {
-        title: 'Link an Azure Subscription to Terra',
-        intro: h(Fragment, [
-          p([
-            'The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in a Terra workspace. ',
-            'Cloud costs are billed directly from Azure and passed through Terra billing projects with no markup.',
-          ]),
-          isAnvil() &&
-            p({ style: { fontWeight: 'bold' } }, [
-              h(Icon, { icon: 'info-circle', size: 14, style: { marginRight: '0.5rem' } }),
-              'Working with NHGRI data on Azure? Set up your Terra Managed Application in the South Central US region to reduce egress costs.',
-            ]),
-        ]),
-      },
-      [
-        h(AzureSubscriptionStep, {
-          isActive: activeStep === 1,
-          subscriptionId,
-          onSubscriptionIdChanged: (subscriptionId) => {
+  return (
+    <>
+      <StepWizard
+        title='Link an Azure Subscription to Terra'
+        intro={
+          <>
+            <p>
+              The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in
+              a Terra workspace. Cloud costs are billed directly from Azure and passed through Terra billing projects
+              with no markup.
+            </p>
+            {isAnvil() && (
+              <p style={{ fontWeight: 'bold' }}>
+                <Icon icon='info-circle' size={14} style={{ marginRight: '0.5rem' }} />
+                Working with NHGRI data on Azure? Set up your Terra Managed Application in the South Central US region
+                to reduce egress costs.
+              </p>
+            )}
+          </>
+        }
+      >
+        <AzureSubscriptionStep
+          isActive={activeStep === 1}
+          subscriptionId={subscriptionId}
+          onSubscriptionIdChanged={(subscriptionId) => {
             stepFinished(1, false);
             setSubscriptionId(subscriptionId);
             onManagedAppSelected(undefined);
-          },
-          managedApp,
-          onManagedAppSelected,
-        }),
-        h(ProtectedDataStep, {
-          isActive: activeStep === 2,
-          protectedData,
-          onSetProtectedData: (protectedData) => {
+          }}
+          managedApp={managedApp}
+          onManagedAppSelected={onManagedAppSelected}
+        />
+        <ProtectedDataStep
+          isActive={activeStep === 2}
+          protectedData={protectedData}
+          onSetProtectedData={(protectedData) => {
             stepFinished(2, true);
             setProtectedData(protectedData);
             Ajax().Metrics.captureEvent(
@@ -175,56 +177,57 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
                 ? Events.billingAzureCreationProtectedDataSelected
                 : Events.billingAzureCreationProtectedDataNotSelected
             );
-          },
-        }),
-        h(AddUsersStep, {
-          userEmails: userEmails.emails,
-          ownerEmails: ownerEmails.emails,
-          addUsersOrOwners,
-          onAddUsersOrOwners: (addUsersOrOwners) => {
+          }}
+        />
+        <AddUsersStep
+          userEmails={userEmails.emails}
+          ownerEmails={ownerEmails.emails}
+          addUsersOrOwners={addUsersOrOwners}
+          onAddUsersOrOwners={(addUsersOrOwners) => {
             stepFinished(3, !addUsersOrOwners);
             setAddUsersOrOwners(addUsersOrOwners);
             Ajax().Metrics.captureEvent(
               addUsersOrOwners ? Events.billingAzureCreationWillAddUsers : Events.billingAzureCreationNoUsersToAdd
             );
-          },
-          onSetUserEmails: (emails, hasError) => {
+          }}
+          onSetUserEmails={(emails, hasError) => {
             stepFinished(3, false);
             setUserEmails({ emails, hasError });
-          },
-          onSetOwnerEmails: (emails, hasError) => {
+          }}
+          onSetOwnerEmails={(emails, hasError) => {
             stepFinished(3, false);
             setOwnerEmails({ emails, hasError });
-          },
-          onOwnersOrUsersInputFocused: () => {
+          }}
+          onOwnersOrUsersInputFocused={() => {
             stepFinished(3, false);
-          },
-          isActive: activeStep === 3,
-        }),
-        h(CreateNamedProjectStep, {
-          billingProjectName: billingProjectName ?? '',
-          onBillingProjectNameChanged: (billingProjectName) => {
+          }}
+          isActive={activeStep === 3}
+        />
+        <CreateNamedProjectStep
+          billingProjectName={billingProjectName ?? ''}
+          onBillingProjectNameChanged={(billingProjectName) => {
             setBillingProjectName(billingProjectName);
-          },
-          onBillingProjectInputFocused: () => {
+          }}
+          onBillingProjectInputFocused={() => {
             if (step1HasNoErrors && step2HasNoErrors && step3HasNoErrors) {
               stepFinished(3, true);
               Ajax().Metrics.captureEvent(Events.billingAzureCreationProjectNameStep);
             }
-          },
-          createBillingProject,
-          projectNameErrors,
-          isActive: activeStep === 4,
-          createReady:
+          }}
+          createBillingProject={createBillingProject}
+          projectNameErrors={projectNameErrors}
+          isActive={activeStep === 4}
+          createReady={
             step1HasNoErrors &&
             step2HasNoErrors &&
             step3HasNoErrors &&
             !!billingProjectName &&
             !projectNameErrors &&
-            !isBusy,
-        }),
-      ]
-    ),
-    isBusy && h(SpinnerOverlay, { mode: 'FullScreen' } as const),
-  ]);
+            !isBusy
+          }
+        />
+      </StepWizard>
+      {isBusy && <SpinnerOverlay mode='FullScreen' />}
+    </>
+  );
 };
