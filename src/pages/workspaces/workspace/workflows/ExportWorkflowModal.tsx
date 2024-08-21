@@ -113,6 +113,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
               workspaces={filteredWorkspaces}
               value={selectedWorkspaceId}
               onChange={setSelectedWorkspaceId}
+              aria-label={undefined}
             />
           </>
         )}
