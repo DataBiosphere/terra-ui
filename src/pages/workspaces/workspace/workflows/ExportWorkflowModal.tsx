@@ -54,26 +54,30 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   )?.workspace;
 
   const doExport = async () => {
-    try {
-      setExporting(true);
-      await Ajax()
-        .Workspaces.workspace(thisWorkspace.namespace, thisWorkspace.name)
-        .methodConfig(methodConfig.namespace, methodConfig.name)
-        .copyTo({
-          destConfigNamespace: selectedWorkspace!.namespace,
-          destConfigName: workflowName,
-          workspaceName: {
-            namespace: selectedWorkspace!.namespace,
-            name: selectedWorkspace!.name,
-          },
-        });
-      onSuccess?.();
-      if (!sameWorkspace) {
-        setExported(true);
+    if (selectedWorkspace === undefined) {
+      setError('Cannot find destination workspace');
+    } else {
+      try {
+        setExporting(true);
+        await Ajax()
+          .Workspaces.workspace(thisWorkspace.namespace, thisWorkspace.name)
+          .methodConfig(methodConfig.namespace, methodConfig.name)
+          .copyTo({
+            destConfigNamespace: selectedWorkspace.namespace,
+            destConfigName: workflowName,
+            workspaceName: {
+              namespace: selectedWorkspace.namespace,
+              name: selectedWorkspace.name,
+            },
+          });
+        onSuccess?.();
+        if (!sameWorkspace) {
+          setExported(true);
+        }
+      } catch (error) {
+        setError(error instanceof Response ? await error.text() : error);
+        setExporting(false);
       }
-    } catch (error) {
-      setError(error instanceof Response ? await error.text() : error);
-      setExporting(false);
     }
   };
 
@@ -131,13 +135,16 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   };
 
   const renderPostExport = () => {
+    // Note: selectedWorkspace cannot be undefined because if it were, the
+    // export would have failed and this modal would not be able to appear
+
     const okButton = (
       <ButtonPrimary
         onClick={() =>
           Nav.goToPath('workflow', {
-            namespace: selectedWorkspace.namespace,
-            name: selectedWorkspace.name,
-            workflowNamespace: selectedWorkspace.namespace,
+            namespace: selectedWorkspace!.namespace,
+            name: selectedWorkspace!.name,
+            workflowNamespace: selectedWorkspace!.namespace,
             workflowName,
           })
         }
@@ -148,8 +155,8 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
 
     return (
       <Modal title='Copy to Workspace' onDismiss={onDismiss} cancelText='Stay Here' okButton={okButton}>
-        Successfully exported <b>{workflowName}</b> to <b>{selectedWorkspace.name}</b>. Do you want to view the exported
-        workflow?
+        Successfully exported <b>{workflowName}</b> to <b>{selectedWorkspace!.name}</b>. Do you want to view the
+        exported workflow?
       </Modal>
     );
   };
