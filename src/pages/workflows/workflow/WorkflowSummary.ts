@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
+import { div, h, h2, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -56,7 +56,20 @@ export const BaseWorkflowSummary = () => {
         },
         [
           h(InfoRow, { title: 'Creation Date' }, [new Date(createDate).toLocaleDateString()]),
-          isPublic && h(InfoRow, { title: 'Public' }, []),
+          isPublic &&
+            h(
+              InfoRow,
+              {
+                // @ts-ignore
+                title: span({ style: { display: 'flex', alignItems: 'center' } }, [
+                  div({ style: { paddingRight: '0.5rem' } }, ['Publicly Readable']),
+                  icon('users', { size: 20 }),
+                ]),
+              },
+              [
+                /* icon('users', { size: 20 }) */
+              ]
+            ),
           h(InfoRow, { title: 'Snapshot Comment' }, [
             h(TooltipCell, [
               'snapshotCommentsnapshothotCommenentsnapshotCommentsnapshotCommentsnapshotCommentsnapshotComment',
