@@ -42,7 +42,7 @@ describe('File Utilities', () => {
     });
 
     it('should return true for binary file extensions', () => {
-      expect(isBinary({ contentType: 'application/octet-stream', name: 'archive.tar.gz' })).toBe(true);
+      expect(isBinary({ contentType: 'application/octet-stream', name: 'archive.pac' })).toBe(true);
       expect(isBinary({ contentType: 'application/octet-stream', name: 'file.bam' })).toBe(true);
     });
 
