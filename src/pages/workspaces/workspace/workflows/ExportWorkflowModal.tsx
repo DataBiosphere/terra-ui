@@ -85,54 +85,51 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
       }
     );
 
-    return h(
-      Modal,
-      {
-        title: sameWorkspace ? 'Duplicate Workflow' : 'Copy to Workspace',
-        onDismiss,
-        okButton: h(
-          ButtonPrimary,
-          {
-            tooltip: Utils.summarizeErrors(errors),
-            disabled: !!errors,
-            onClick: doExport,
-          },
-          ['Copy']
-        ),
-      },
-      [
-        !sameWorkspace &&
-          h(IdContainer, [
-            (id) =>
-              h(Fragment, [
-                h(FormLabel, { htmlFor: id, required: true }, ['Destination']),
-                h(WorkspaceSelector, {
-                  id,
-                  workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
+    return (
+      <Modal
+        title={sameWorkspace ? 'Duplicate Workflow' : 'Copy to Workspace'}
+        onDismiss={onDismiss}
+        okButton={
+          <ButtonPrimary tooltip={Utils.summarizeErrors(errors)} disabled={!!errors} onClick={doExport}>
+            Copy
+          </ButtonPrimary>
+        }
+      >
+        {!sameWorkspace && (
+          <IdContainer>
+            {(id) => (
+              <>
+                <FormLabel htmlFor={id} required>
+                  Destination
+                </FormLabel>
+                <WorkspaceSelector
+                  id={id}
+                  workspaces={_.filter(({ workspace: { workspaceId }, accessLevel }) => {
                     return thisWorkspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
-                  }, workspaces),
-                  value: selectedWorkspaceId,
-                  onChange: setSelectedWorkspaceId,
-                }),
-              ]),
-          ]),
-        h(IdContainer, [
-          (id) =>
-            h(Fragment, [
-              h(FormLabel, { htmlFor: id, required: true }, ['Name']),
-              h(ValidatedInput, {
-                error: Utils.summarizeErrors(errors?.workflowName),
-                inputProps: {
-                  id,
-                  value: workflowName,
-                  onChange: setWorkflowName,
-                },
-              }),
-            ]),
-        ]),
-        exporting && spinnerOverlay,
-        error && h(ErrorView, { error }),
-      ]
+                  }, workspaces)}
+                  value={selectedWorkspaceId}
+                  onChange={setSelectedWorkspaceId}
+                />
+              </>
+            )}
+          </IdContainer>
+        )}
+        <IdContainer>
+          {(id) => (
+            <>
+              <FormLabel htmlFor={id} required>
+                Name
+              </FormLabel>
+              <ValidatedInput
+                error={Utils.summarizeErrors(errors?.workflowName)}
+                inputProps={{ id, value: workflowName, onChange: setWorkflowName }}
+              />
+            </>
+          )}
+        </IdContainer>
+        {exporting && spinnerOverlay}
+        {error && <ErrorView error={error} />}
+      </Modal>
     );
   };
 
