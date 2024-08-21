@@ -146,20 +146,20 @@ export const createSnapshotBuilderCountRequest = (cohort: Cohort[]): SnapshotBui
   return { cohorts: _.map(convertCohort, cohort) };
 };
 
-export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
-  const startIndex = conceptName.toLowerCase().indexOf(searchFilter.toLowerCase());
+export const HighlightSearchText = ({ columnItem, searchFilter, style = {} }): ReactElement => {
+  const startIndex = columnItem.toLowerCase().indexOf(searchFilter.toLowerCase());
 
   // searchFilter is empty or does not exist in conceptName
   if (startIndex < 0 || searchFilter.trim() === '') {
-    return div([conceptName]);
+    return div({ style: { ...style } }, [columnItem]);
   }
 
   const endIndex = startIndex + searchFilter.length;
 
-  return div({ style: { display: 'pre-wrap' } }, [
-    span([conceptName.substring(0, startIndex)]),
-    span({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
-    span([conceptName.substring(endIndex)]),
+  return div({ style: { ...style } }, [
+    span([columnItem.substring(0, startIndex)]),
+    span({ style: { fontWeight: 600 } }, [columnItem.substring(startIndex, endIndex)]),
+    span([columnItem.substring(endIndex)]),
   ]);
 };
 
