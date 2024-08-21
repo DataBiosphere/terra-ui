@@ -8,7 +8,7 @@ import RSelect, {
   PropsValue as RSelectPropsValue,
   SingleValue as RSelectSingleValue,
 } from 'react-select';
-import RAsyncCreatableSelect from 'react-select/async-creatable';
+import RAsyncCreatableSelect, { AsyncCreatableProps } from 'react-select/async-creatable';
 
 import { useUniqueId } from './hooks/useUniqueId';
 import { Icon } from './Icon';
@@ -259,7 +259,25 @@ export const GroupedSelect = <
   return <ParameterizedBaseSelect findValue={findValue} value={value} options={options} {...props} />;
 };
 
-export const AsyncCreatableSelect = (props: any) => {
+export type GroupBase<Option> = RSelectGroupBase<Option>;
+
+export type AsyncCreatableSelectProps<
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+> = AsyncCreatableProps<Option, IsMulti, Group>;
+
+export const AsyncCreatableSelect = <
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>(
+  props: AsyncCreatableSelectProps<Option, IsMulti, Group>
+) => {
   const theme = useThemeFromContext();
-  return <RAsyncCreatableSelect {..._.merge(getCommonSelectProps(theme), props)} />;
+  return (
+    <RAsyncCreatableSelect
+      {...(_.merge(getCommonSelectProps(theme), props) as AsyncCreatableSelectProps<Option, IsMulti, Group>)}
+    />
+  );
 };

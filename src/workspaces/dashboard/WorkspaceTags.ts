@@ -90,12 +90,12 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
         ]),
         canEdit &&
           div({ style: { marginBottom: '0.5rem' } }, [
-            h(WorkspaceTagSelect, {
+            h(WorkspaceTagSelect<false>, {
               menuShouldScrollIntoView: false,
               value: null,
               placeholder: 'Add a tag',
               'aria-label': 'Add a tag',
-              onChange: ({ value }) => addTag(value),
+              onChange: (opt) => addTag(opt?.value),
             }),
           ]),
         div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
