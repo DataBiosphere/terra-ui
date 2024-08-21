@@ -8,18 +8,24 @@ import * as Style from 'src/libs/style';
 import { useLocalPref } from 'src/libs/useLocalPref';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
-interface RightBoxSectionProps {
-  title: string;
+interface WorkspaceRightSectionProps {
   workspace: WorkspaceWrapper; // used for metrics eventing
-  info?: ReactNode;
-  afterTitle?: ReactNode;
-  persistenceId: string; // persists whether or not the panel is open in local storage
-  defaultPanelOpen?: boolean; // optional default for the panel state - false if not specifified
-  children?: ReactNode;
 }
 
+export type RightBoxSectionProps = {
+  workspaceProps?: WorkspaceRightSectionProps;
+  title: string;
+  info?: ReactNode;
+  afterTitle?: ReactNode;
+  children?: ReactNode;
+  persistenceId: string; // persists whether or not the panel is open in local storage
+  defaultPanelOpen?: boolean; // optional default for the panel state - false if not specified
+};
+
 export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
-  const { title, info, persistenceId, afterTitle, defaultPanelOpen = false, children, workspace } = props;
+  const workspace = props.workspaceProps ? props.workspaceProps.workspace : undefined;
+
+  const { title, children, defaultPanelOpen, persistenceId, afterTitle, info } = props;
   const [panelOpen, setPanelOpen] = useLocalPref<boolean>(persistenceId, defaultPanelOpen);
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
@@ -32,12 +38,14 @@ export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
           titleFirst: true,
           afterTitle,
           onOpenChanged: (panelOpen) => {
-            setPanelOpen(panelOpen);
-            Ajax().Metrics.captureEvent(Events.workspaceDashboardToggleSection, {
-              title,
-              opened: panelOpen,
-              ...extractWorkspaceDetails(workspace),
-            });
+            if (workspace) {
+              setPanelOpen(panelOpen);
+              Ajax().Metrics.captureEvent(Events.workspaceDashboardToggleSection, {
+                title,
+                opened: panelOpen,
+                ...extractWorkspaceDetails(workspace),
+              });
+            }
           },
         },
         [children]

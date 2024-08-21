@@ -28,7 +28,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     await act(async () => {
-      render(<RightBoxSection title='Test Title' persistenceId='testId' workspace={workspace} />);
+      render(<RightBoxSection title='Test Title' persistenceId='testId' workspaceProps={{ workspace }} />);
     });
     // Assert
     expect(screen.getByText('Test Title')).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     render(
-      <RightBoxSection title='Test Title' persistenceId='testId' workspace={workspace}>
+      <RightBoxSection title='Test Title' persistenceId='testId' workspaceProps={{ workspace }}>
         Panel Content
       </RightBoxSection>
     );
@@ -54,7 +54,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     render(
-      <RightBoxSection title='Test Title' persistenceId='metricsId' workspace={workspace}>
+      <RightBoxSection title='Test Title' persistenceId='metricsId' workspaceProps={{ workspace }}>
         Panel Content
       </RightBoxSection>
     );
