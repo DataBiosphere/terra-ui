@@ -34,7 +34,8 @@ export const isText = ({ contentType, name }) => {
 
 export const isBinary = ({ contentType, name }) => {
   return (
-    /application(?!\/(?:json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(?:\.(?:ba[mi]|cra[mi]|bcf|h5ad|pdf|gz)$|\.gz\.)/.test(name)
+    /application(?!\/(?:json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) ||
+    /(?:\.(?:ba[mi]|cra[mi]|pac|sa|bwt|bcf|h5ad|pdf|gz)$|\.gz\.)/.test(name)
   );
 };
 
