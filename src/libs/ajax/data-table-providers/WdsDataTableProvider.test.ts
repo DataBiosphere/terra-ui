@@ -805,21 +805,21 @@ describe('WdsDataTableProvider', () => {
 
     // Assert
     it('must not escape when not necessary', () => {
-      expect(provider.escape('foo')).to.equal('foo');
-      expect(provider.escape('>32')).to.equal('>32');
+      expect(provider.escape('foo')).toBe('foo');
+      expect(provider.escape('>32')).toBe('>32');
     });
 
     it('must escape typical reserved characters', () => {
-      expect(provider.escape('[32]')).to.equal('\\[32\\]');
-      expect(provider.escape('foo:bar')).to.equal('foo\\:bar');
+      expect(provider.escape('[32]')).toBe('\\[32\\]');
+      expect(provider.escape('foo:bar')).toBe('foo\\:bar');
     });
 
     it('must escape phrases', () => {
-      expect(provider.escape('foo"bar')).to.equal('foo\\"bar');
+      expect(provider.escape('foo"bar')).toBe('foo\\"bar');
     });
 
     it('must escape line breaks', () => {
-      expect(provider.escape('a\nb')).to.equal('a\\\nb');
+      expect(provider.escape('a\nb')).toBe('a\\\nb');
     });
   });
   describe('deleteTable', () => {
