@@ -27,9 +27,9 @@ const formatOptionLabel = (opt: WorkspaceSelectorOption) => {
       <CloudProviderIcon
         // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
         cloudProvider={getCloudProviderFromWorkspace(workspace)}
-        style={{ marginRight: '0.5rem' }}
+        style={{ marginRight: '0.5rem', flexShrink: 0 }}
       />
-      {label}
+      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
     </div>
   );
 };
