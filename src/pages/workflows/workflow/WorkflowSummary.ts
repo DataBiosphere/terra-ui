@@ -6,28 +6,15 @@ import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
-import colors from 'src/libs/colors';
+import { TooltipCell } from 'src/components/table';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import { forwardRefWithName, useStore } from 'src/libs/react-utils';
 import { snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
-import { WorkflowRightBoxSection } from 'src/pages/workflows/components/WorkflowRightBoxSection';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
-
-type InfoTileProps = {
-  title: string;
-  children: any;
-};
-
-// TODO: add error handling, dedupe
-const InfoTile = (props: InfoTileProps) => {
-  const { title, children } = props;
-  return div({ style: Style.dashboard.infoTile }, [
-    div({ style: Style.dashboard.tinyCaps }, [title]),
-    div({ style: { fontSize: 12 } }, [children]),
-  ]);
-};
+import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
+import { RightBoxSection } from 'src/workspaces/dashboard/RightBoxSection';
 
 export const BaseWorkflowSummary = () => {
   const {
@@ -39,7 +26,9 @@ export const BaseWorkflowSummary = () => {
     synopsis,
     documentation,
     public: isPublic,
+    // snapshotComment, // use this var when done with testing
   } = useStore(snapshotStore);
+  const persistenceId = `workflows/${namespace}/${name}/dashboard`;
   const [importUrlCopied, setImportUrlCopied] = useState<boolean>();
   const importUrl = `${
     getConfig().orchestrationUrlRoot
@@ -58,35 +47,51 @@ export const BaseWorkflowSummary = () => {
         : div({ style: { fontStyle: 'italic' } }, ['No documentation provided']),
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      h(WorkflowRightBoxSection, { title: 'hi', info: 'hello', panelOpen: true }, []),
-      h2({ style: Style.dashboard.header }, ['Snapshot ']),
-      div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
-        h(InfoTile, { title: 'Creation date' }, [new Date(createDate).toLocaleDateString()]),
-        h(InfoTile, { title: 'Public' }, [_.startCase(isPublic as unknown as string)]),
-      ]),
-      h2({ style: Style.dashboard.header }, ['Ownerskjhygtfr']),
-      _.map((email) => {
-        return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-          h(Link, { href: `mailto:${email}` }, [email]),
-        ]);
-      }, managers),
-      div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
-      h2({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, ['Import URL']),
-      div({ style: { display: 'flex' } }, [
-        div({ style: Style.noWrapEllipsis }, [importUrl]),
-        h(
-          Link,
-          {
-            style: { margin: '0 0.5rem', flexShrink: 0 },
-            tooltip: 'Copy import URL',
-            onClick: withErrorReporting('Error copying to clipboard')(async () => {
-              await clipboard.writeText(importUrl);
-              setImportUrlCopied(true);
-              setTimeout(() => setImportUrlCopied, 1500);
-            }),
-          },
-          [icon(importUrlCopied ? 'check' : 'copy-to-clipboard')]
+      h(
+        RightBoxSection,
+        {
+          title: 'Snapshot Information',
+          defaultPanelOpen: true,
+          persistenceId: `${persistenceId}/snapshotInfoPanelOpen`,
+        },
+        [
+          h(InfoRow, { title: 'Creation Date' }, [new Date(createDate).toLocaleDateString()]),
+          isPublic && h(InfoRow, { title: 'Public' }, []),
+          h(InfoRow, { title: 'Snapshot Comment' }, [
+            h(TooltipCell, [
+              'snapshotCommentsnapshothotCommenentsnapshotCommentsnapshotCommentsnapshotCommentsnapshotComment',
+            ]),
+          ]),
+        ]
+      ),
+      h(RightBoxSection, { title: 'Owners', persistenceId: `${persistenceId}/ownerPanelOpen` }, [
+        div(
+          { style: { margin: '0.5rem' } },
+          _.map((email) => {
+            return div(
+              { key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } },
+              [h(Link, { href: `mailto:${email}` }, [email])]
+            );
+          }, managers)
         ),
+      ]),
+      h(RightBoxSection, { title: 'Import URL', persistenceId: `${persistenceId}/importUrlPanelOpen` }, [
+        div({ style: { display: 'flex', marginLeft: '0.5rem' } }, [
+          div({ style: Style.noWrapEllipsis }, [importUrl]),
+          h(
+            Link,
+            {
+              style: { margin: '0 0.5rem', flexShrink: 0 },
+              tooltip: 'Copy import URL',
+              onClick: withErrorReporting('Error copying to clipboard')(async () => {
+                await clipboard.writeText(importUrl);
+                setImportUrlCopied(true);
+                setTimeout(() => setImportUrlCopied, 1500);
+              }),
+            },
+            [icon(importUrlCopied ? 'check' : 'copy-to-clipboard')]
+          ),
+        ]),
       ]),
     ]),
   ]);
