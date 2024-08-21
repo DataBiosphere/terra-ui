@@ -1,6 +1,6 @@
 import { Modal, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { Fragment, ReactNode, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { ValidatedInput } from 'src/components/input';
@@ -12,7 +12,7 @@ import { workflowNameValidation } from 'src/libs/workflow-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import * as WorkspaceUtils from 'src/workspaces/utils';
-import { WorkspaceInfo } from 'src/workspaces/utils';
+import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 export interface ExportWorkflowModalProps {
@@ -77,6 +77,10 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
     }
   };
 
+  const filteredWorkspaces: WorkspaceWrapper[] = _.filter(({ workspace: { workspaceId }, accessLevel }) => {
+    return thisWorkspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
+  }, workspaces);
+
   // Render helpers
   const renderExportForm = () => {
     const errors = validate(
@@ -87,15 +91,17 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
       }
     );
 
+    const okButton = (
+      <ButtonPrimary tooltip={Utils.summarizeErrors(errors)} disabled={!!errors} onClick={doExport}>
+        Copy
+      </ButtonPrimary>
+    );
+
     return (
       <Modal
         title={sameWorkspace ? 'Duplicate Workflow' : 'Copy to Workspace'}
         onDismiss={onDismiss}
-        okButton={
-          <ButtonPrimary tooltip={Utils.summarizeErrors(errors)} disabled={!!errors} onClick={doExport}>
-            Copy
-          </ButtonPrimary>
-        }
+        okButton={okButton}
       >
         {!sameWorkspace && (
           <>
@@ -104,9 +110,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
             </FormLabel>
             <WorkspaceSelector
               id={destinationWorkspaceSelectorId}
-              workspaces={_.filter(({ workspace: { workspaceId }, accessLevel }) => {
-                return thisWorkspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
-              }, workspaces)}
+              workspaces={filteredWorkspaces}
               value={selectedWorkspaceId}
               onChange={setSelectedWorkspaceId}
             />
@@ -126,26 +130,23 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   };
 
   const renderPostExport = () => {
-    return (
-      <Modal
-        title='Copy to Workspace'
-        onDismiss={onDismiss}
-        cancelText='Stay Here'
-        okButton={
-          <ButtonPrimary
-            onClick={() =>
-              Nav.goToPath('workflow', {
-                namespace: selectedWorkspace.namespace,
-                name: selectedWorkspace.name,
-                workflowNamespace: selectedWorkspace.namespace,
-                workflowName,
-              })
-            }
-          >
-            Go to exported workflow
-          </ButtonPrimary>
+    const okButton = (
+      <ButtonPrimary
+        onClick={() =>
+          Nav.goToPath('workflow', {
+            namespace: selectedWorkspace.namespace,
+            name: selectedWorkspace.name,
+            workflowNamespace: selectedWorkspace.namespace,
+            workflowName,
+          })
         }
       >
+        Go to exported workflow
+      </ButtonPrimary>
+    );
+
+    return (
+      <Modal title='Copy to Workspace' onDismiss={onDismiss} cancelText='Stay Here' okButton={okButton}>
         Successfully exported <b>{workflowName}</b> to <b>{selectedWorkspace.name}</b>. Do you want to view the exported
         workflow?
       </Modal>
