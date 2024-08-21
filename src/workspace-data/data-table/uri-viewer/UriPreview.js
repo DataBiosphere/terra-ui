@@ -23,19 +23,23 @@ const styles = {
 };
 
 export const isImage = ({ contentType, name }) => {
-  return /^image/.test(contentType) || /\.(jpe?g|png|svg|bmp)$/.test(name);
+  return /^(?:image)/.test(contentType) || /\.(?:jpe?g|png|svg|bmp)$/.test(name);
 };
 
 export const isText = ({ contentType, name }) => {
-  return /(^text|application\/json)/.test(contentType) || /\.(txt|[ct]sv|log|json|fastq|fasta|fa|vcf|sam|bed|interval_list|gtf|md|html)$/.test(name);
+  return (
+    /^(?:text|application\/json)/.test(contentType) || /\.(?:txt|[ct]sv|log|json|fastq|fasta|fa|vcf|sam|bed|interval_list|gtf|md|html)$/.test(name)
+  );
 };
 
 export const isBinary = ({ contentType, name }) => {
-  return /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(\.(ba[mi]|cra[mi]|bcf|h5ad|pdf|gz)$|\.gz\.)/.test(name);
+  return (
+    /application(?!\/(?:json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(?:\.(?:ba[mi]|cra[mi]|bcf|h5ad|pdf|gz)$|\.gz\.)/.test(name)
+  );
 };
 
 export const canRender = ({ contentType, name }) => {
-  return /(^text\/html|application\/pdf)/.test(contentType) || /\.(html|pdf)$/.test(name);
+  return /^(?:text\/html|application\/pdf)/.test(contentType) || /\.(?:html|pdf)$/.test(name);
 };
 
 export const isFilePreviewable = ({ size, ...metadata }) => {
