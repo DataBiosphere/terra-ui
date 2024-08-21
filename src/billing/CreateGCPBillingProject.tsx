@@ -43,7 +43,7 @@ const CreateGCPBillingProject = ({
       </FormLabel>
       <ValidatedInput
         inputProps={{
-          id: { billingProjectNameInputId },
+          id: billingProjectNameInputId,
           autoFocus: true,
           value: billingProjectName,
           placeholder: 'Enter a name',
