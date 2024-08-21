@@ -5,6 +5,7 @@ import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { ValidatedInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
+import { MethodConfiguration } from 'src/libs/ajax/workspaces/workspace-models';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
@@ -18,11 +19,7 @@ import validate from 'validate.js';
 export interface ExportWorkflowModalProps {
   thisWorkspace: WorkspaceInfo;
   sameWorkspace?: boolean;
-
-  // TODO: confirmed MethodConfiguration from Rawls, contingent on StateHistory issue, but some fields missing - see
-  //  Ajax(signal).Workspaces.workspace(namespace, name).listMethodConfigs(); and
-  //  Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).get();
-  methodConfig: any;
+  methodConfig: MethodConfiguration;
 
   // now called regardless of the value of sameWorkspace, and only if defined
   onSuccess?: () => void;
