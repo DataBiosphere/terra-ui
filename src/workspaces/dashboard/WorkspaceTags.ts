@@ -75,9 +75,11 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     RightBoxSection,
     {
       title: 'Tags',
-      info: span({}, [busy && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
       persistenceId,
-      workspace,
+      info: span({}, [busy && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
+      workspaceProps: {
+        workspace,
+      },
     },
     [
       div({ style: { margin: '0.5rem' } }, [
