@@ -51,7 +51,7 @@ export const canRender = ({ contentType, name }) => {
 };
 
 export const isFilePreviewable = ({ size, ...metadata }) => {
-  return (isBinary(metadata) || isText(metadata) || isImage(metadata) || canRender(metadata)) && size <= 1e9;
+  return (isText(metadata) || isImage(metadata) || canRender(metadata)) && size <= 1e9;
 };
 
 export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googleProject }) => {
