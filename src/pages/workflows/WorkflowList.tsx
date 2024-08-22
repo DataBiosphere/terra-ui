@@ -1,4 +1,4 @@
-import { CenteredSpinner, Icon } from '@terra-ui-packages/components';
+import { CenteredSpinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import React, { useState } from 'react';
@@ -221,8 +221,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
                 setCreateWorkflowModalOpen(true);
               }}
             >
-              Create New Method...
-              <Icon icon='plus' size={17} style={{ flexShrink: 0, paddingLeft: '0.3rem' }} />
+              Create New Workflow
             </ButtonPrimary>
           </div>
         </div>
