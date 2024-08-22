@@ -1,4 +1,4 @@
-import { canRender, isBinary, isFilePreviewable, isHtml, isImage, isPdf, isText } from './UriPreview';
+import { canRender, isFilePreviewable, isHtml, isImage, isPdf, isText } from './UriPreview';
 
 describe('File Utilities', () => {
   describe('isImage', () => {
@@ -35,24 +35,6 @@ describe('File Utilities', () => {
       expect(isText({ contentType: 'image/jpeg', name: 'photo.jpg' })).toBe(false);
       expect(isText({ contentType: 'application/pdf', name: 'document.pdf' })).toBe(false);
       expect(isText({ contentType: 'application/octet-stream', name: 'file.csv.gz' })).toBe(false);
-    });
-  });
-
-  describe('isBinary', () => {
-    it('should return true for binary content types', () => {
-      expect(isBinary({ contentType: 'application/pdf', name: 'file.pdf' })).toBe(true);
-      expect(isBinary({ contentType: 'application/vnd.ms-excel', name: 'sheet.xls' })).toBe(true);
-    });
-
-    it('should return true for binary file extensions', () => {
-      expect(isBinary({ contentType: 'application/octet-stream', name: 'archive.pac' })).toBe(true);
-      expect(isBinary({ contentType: 'application/octet-stream', name: 'file.bam' })).toBe(true);
-    });
-
-    it('should return false for non-binary types or names', () => {
-      expect(isBinary({ contentType: 'text/plain', name: 'readme.txt' })).toBe(false);
-      expect(isBinary({ contentType: 'image/jpeg', name: 'photo.jpg' })).toBe(false);
-      expect(isBinary({ contentType: 'application/octet-stream', name: 'archive.pac.gz' })).toBe(false);
     });
   });
 
