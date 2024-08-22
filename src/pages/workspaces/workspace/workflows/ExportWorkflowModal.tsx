@@ -4,7 +4,7 @@ import React, { ReactNode, useState } from 'react';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import ErrorView from 'src/components/ErrorView';
 import { ValidatedInput } from 'src/components/input';
-import { Ajax } from 'src/libs/ajax';
+import { ExportWorkflowToWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import { MethodConfiguration } from 'src/libs/ajax/workspaces/workspace-models';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -23,6 +23,8 @@ export interface ExportWorkflowModalProps {
   // required iff exporting to a different workspace
   destinationWorkspacesFilter?: (workspace: WorkspaceWrapper) => boolean;
 
+  exportProvider: ExportWorkflowToWorkspaceProvider;
+
   // now called regardless of the value of sameWorkspace, and only if defined
   onSuccess?: () => void;
 
@@ -35,6 +37,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
     sameWorkspace = false,
     methodConfig,
     destinationWorkspacesFilter,
+    exportProvider,
     onSuccess,
     onDismiss,
   } = props;
@@ -65,17 +68,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
     } else {
       try {
         setExporting(true);
-        await Ajax()
-          .Workspaces.workspace(thisWorkspace.namespace, thisWorkspace.name)
-          .methodConfig(methodConfig.namespace, methodConfig.name)
-          .copyTo({
-            destConfigNamespace: selectedWorkspace.namespace,
-            destConfigName: workflowName,
-            workspaceName: {
-              namespace: selectedWorkspace.namespace,
-              name: selectedWorkspace.name,
-            },
-          });
+        await exportProvider.export(selectedWorkspace, workflowName);
         onSuccess?.();
         if (!sameWorkspace) {
           setExported(true);

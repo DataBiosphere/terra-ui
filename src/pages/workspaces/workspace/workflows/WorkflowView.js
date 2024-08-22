@@ -27,6 +27,7 @@ import StepButtons from 'src/components/StepButtons';
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';
 import WDLViewer from 'src/components/WDLViewer';
 import { Ajax } from 'src/libs/ajax';
+import { makeExportWorkflowFromWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -1317,6 +1318,7 @@ export const WorkflowView = _.flow(
               destinationWorkspacesFilter: ({ workspace: { workspaceId }, accessLevel }) => {
                 return workspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
               },
+              exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
               onDismiss: () => this.setState({ exporting: false }),
             }),
           copying &&
@@ -1324,6 +1326,7 @@ export const WorkflowView = _.flow(
               thisWorkspace: workspace,
               methodConfig: savedConfig,
               sameWorkspace: true,
+              exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
               onDismiss: () => this.setState({ copying: false }),
               onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName }),
             }),
