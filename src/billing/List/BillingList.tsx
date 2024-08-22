@@ -24,7 +24,7 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
-import { CloudProvider, cloudProviderTypes } from 'src/workspaces/utils';
+import { CloudProvider, cloudProviderTypes, WorkspaceWrapper } from 'src/workspaces/utils';
 
 const BillingProjectSubheader: React.FC<{ title: string; children: ReactNode }> = ({ title, children }) => (
   <Collapse
@@ -36,6 +36,106 @@ const BillingProjectSubheader: React.FC<{ title: string; children: ReactNode }> 
     {children}
   </Collapse>
 );
+
+interface RightHandContentProps {
+  selectedName: string | undefined;
+  billingProjects: BillingProject[];
+  billingAccounts: Record<string, GoogleBillingAccount>;
+  isLoadingProjects: boolean;
+  showAzureBillingProjectWizard: boolean;
+  projectsOwned: BillingProject[];
+  allWorkspaces: WorkspaceWrapper[];
+  refreshWorkspaces: () => Promise<void>;
+  loadProjects: () => void;
+  authorizeAndLoadAccounts: () => Promise<void>;
+  setCreatingBillingProjectType: (type: CloudProvider | null) => void;
+  reloadBillingProject: (billingProject: BillingProject) => Promise<unknown>;
+}
+
+// This is the view of the Billing Project details, or the wizard to create a new billing project.
+const RightHandContent = (props: RightHandContentProps): ReactNode => {
+  const {
+    selectedName,
+    billingProjects,
+    billingAccounts,
+    isLoadingProjects,
+    showAzureBillingProjectWizard,
+    projectsOwned,
+    allWorkspaces,
+    refreshWorkspaces,
+    loadProjects,
+    authorizeAndLoadAccounts,
+    setCreatingBillingProjectType,
+    reloadBillingProject,
+  } = props;
+  if (!!selectedName && !_.some({ projectName: selectedName }, billingProjects)) {
+    return (
+      <div style={{ margin: '1rem auto 0 auto' }}>
+        <div>
+          <h2>Error loading selected billing project.</h2>
+          <p>It may not exist, or you may not have access to it.</p>
+        </div>
+      </div>
+    );
+  }
+  if (showAzureBillingProjectWizard) {
+    return (
+      <AzureBillingProjectWizard
+        onSuccess={(billingProjectName, protectedData) => {
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName,
+            cloudPlatform: cloudProviderTypes.AZURE,
+            protectedData,
+          });
+          setCreatingBillingProjectType(null);
+          loadProjects();
+        }}
+      />
+    );
+  }
+  if (!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser()) {
+    return (
+      <GCPBillingProjectWizard
+        billingAccounts={billingAccounts}
+        authorizeAndLoadAccounts={authorizeAndLoadAccounts}
+        onSuccess={(billingProjectName) => {
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName,
+            cloudPlatform: cloudProviderTypes.GCP,
+          });
+          setCreatingBillingProjectType(null);
+          loadProjects();
+          Nav.history.push({
+            pathname: Nav.getPath('billing'),
+            search: qs.stringify({ selectedName: billingProjectName, type: 'project' }),
+          });
+        }}
+      />
+    );
+  }
+  if (!!selectedName && _.some({ projectName: selectedName }, billingProjects)) {
+    const billingProject = billingProjects.find(({ projectName }) => projectName === selectedName);
+    return (
+      <ProjectDetail
+        key={selectedName}
+        // We know from the condition that the billingProject does exist.
+        // @ts-ignore
+        billingProject={billingProject}
+        billingAccounts={billingAccounts}
+        authorizeAndLoadAccounts={authorizeAndLoadAccounts}
+        // We know from the condition that the billingProject does exist.
+        // @ts-ignore
+        reloadBillingProject={() => reloadBillingProject(billingProject).catch(loadProjects)}
+        isOwner={projectsOwned.some(({ projectName }) => projectName === selectedName)}
+        workspaces={allWorkspaces}
+        refreshWorkspaces={refreshWorkspaces}
+      />
+    );
+  }
+  if (!_.isEmpty(projectsOwned) && !selectedName) {
+    return <div style={{ margin: '1rem auto 0 auto' } as CSSProperties}>Select a Billing Project</div>;
+  }
+};
 
 interface BillingListProps {
   queryParams: {
@@ -153,74 +253,6 @@ export const BillingList = (props: BillingListProps) => {
     };
   };
 
-  const renderContent = (): ReactNode => {
-    if (!!selectedName && !_.some({ projectName: selectedName }, billingProjects)) {
-      return (
-        <div style={{ margin: '1rem auto 0 auto' }}>
-          <div>
-            <h2>Error loading selected billing project.</h2>
-            <p>It may not exist, or you may not have access to it.</p>
-          </div>
-        </div>
-      );
-    }
-    if (azureUserWithNoBillingProjects || creatingAzureBillingProject) {
-      return (
-        <AzureBillingProjectWizard
-          onSuccess={(billingProjectName, protectedData) => {
-            Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-              billingProjectName,
-              cloudPlatform: cloudProviderTypes.AZURE,
-              protectedData,
-            });
-            setCreatingBillingProjectType(null);
-            loadProjects();
-          }}
-        />
-      );
-    }
-    if (!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser()) {
-      return (
-        <GCPBillingProjectWizard
-          billingAccounts={billingAccounts}
-          authorizeAndLoadAccounts={authorizeAndLoadAccounts}
-          onSuccess={(billingProjectName) => {
-            Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
-              billingProjectName,
-              cloudPlatform: cloudProviderTypes.GCP,
-            });
-            setCreatingBillingProjectType(null);
-            loadProjects();
-            Nav.history.push({
-              pathname: Nav.getPath('billing'),
-              search: qs.stringify({ selectedName: billingProjectName, type: 'project' }),
-            });
-          }}
-        />
-      );
-    }
-    if (!!selectedName && _.some({ projectName: selectedName }, billingProjects)) {
-      const billingProject = billingProjects.find(({ projectName }) => projectName === selectedName);
-      return (
-        <ProjectDetail
-          key={selectedName}
-          // We know from the condition that the billingProject does exist.
-          // @ts-ignore
-          billingProject={billingProject}
-          billingAccounts={billingAccounts}
-          authorizeAndLoadAccounts={authorizeAndLoadAccounts}
-          reloadBillingProject={() => reloadBillingProject(billingProject).catch(loadProjects)}
-          isOwner={projectsOwned.some(({ projectName }) => projectName === selectedName)}
-          workspaces={allWorkspaces}
-          refreshWorkspaces={refreshWorkspaces}
-        />
-      );
-    }
-    if (!_.isEmpty(projectsOwned) && !selectedName) {
-      return <div style={{ margin: '1rem auto 0 auto' } as CSSProperties}>Select a Billing Project</div>;
-    }
-  };
-
   return (
     <div role='main' style={{ display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` }}>
       <div
@@ -277,7 +309,22 @@ export const BillingList = (props: BillingListProps) => {
           />
         )}
       </div>
-      <div style={{ overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>{renderContent()}</div>
+      <div style={{ overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <RightHandContent
+          authorizeAndLoadAccounts={authorizeAndLoadAccounts}
+          billingAccounts={billingAccounts}
+          billingProjects={billingProjects}
+          isLoadingProjects={isLoadingProjects}
+          loadProjects={loadProjects}
+          projectsOwned={projectsOwned}
+          allWorkspaces={allWorkspaces}
+          refreshWorkspaces={refreshWorkspaces}
+          selectedName={selectedName}
+          showAzureBillingProjectWizard={azureUserWithNoBillingProjects || creatingAzureBillingProject}
+          setCreatingBillingProjectType={setCreatingBillingProjectType}
+          reloadBillingProject={reloadBillingProject}
+        />
+      </div>
       {(isLoadingProjects || isAuthorizing || isLoadingAccounts) && <SpinnerOverlay mode='FullScreen' />}
     </div>
   );
