@@ -26,7 +26,7 @@ export const BaseWorkflowSummary = () => {
     synopsis,
     documentation,
     public: isPublic,
-    // snapshotComment, // use this var when done with testing
+    snapshotComment,
   } = useStore(snapshotStore);
   const persistenceId = `workflows/${namespace}/${name}/dashboard`;
   const [importUrlCopied, setImportUrlCopied] = useState<boolean>();
@@ -56,25 +56,13 @@ export const BaseWorkflowSummary = () => {
         },
         [
           h(InfoRow, { title: 'Creation Date' }, [new Date(createDate).toLocaleDateString()]),
-          isPublic &&
-            h(
-              InfoRow,
-              {
-                // @ts-ignore
-                title: span({ style: { display: 'flex', alignItems: 'center' } }, [
-                  div({ style: { paddingRight: '0.5rem' } }, ['Publicly Readable']),
-                  icon('users', { size: 20 }),
-                ]),
-              },
-              [
-                /* icon('users', { size: 20 }) */
-              ]
-            ),
-          h(InfoRow, { title: 'Snapshot Comment' }, [
-            h(TooltipCell, [
-              'snapshotCommentsnapshothotCommenentsnapshotCommentsnapshotCommentsnapshotCommentsnapshotComment',
+          h(InfoRow, { title: 'Publicly Readable' }, [
+            span({ style: { display: 'flex', alignItems: 'center' } }, [
+              icon('users', { size: 20 }),
+              div({ style: { paddingLeft: '0.5rem' } }, [isPublic ? 'Public' : 'Private']),
             ]),
           ]),
+          h(InfoRow, { title: 'Snapshot Comment' }, [h(TooltipCell, [snapshotComment])]),
         ]
       ),
       h(RightBoxSection, { title: 'Owners', persistenceId: `${persistenceId}/ownerPanelOpen` }, [
