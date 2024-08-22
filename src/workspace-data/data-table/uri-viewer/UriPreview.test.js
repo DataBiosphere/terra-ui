@@ -15,6 +15,7 @@ describe('File Utilities', () => {
     it('should return false for non-image types or names', () => {
       expect(isImage({ contentType: 'text/plain', name: 'document.txt' })).toBe(false);
       expect(isImage({ contentType: 'application/json', name: 'data.json' })).toBe(false);
+      expect(isText({ contentType: 'application/octet-stream', name: 'icon.svg.gz' })).toBe(false);
     });
   });
 
@@ -22,6 +23,7 @@ describe('File Utilities', () => {
     it('should return true for text content types', () => {
       expect(isText({ contentType: 'text/plain', name: 'readme.txt' })).toBe(true);
       expect(isText({ contentType: 'application/json', name: 'config.json' })).toBe(true);
+      expect(isText({ contentType: 'text/x-vcard', name: 'file.vcf.gz' })).toBe(true);
     });
 
     it('should return true for text file extensions', () => {
@@ -32,6 +34,7 @@ describe('File Utilities', () => {
     it('should return false for non-text types or names', () => {
       expect(isText({ contentType: 'image/jpeg', name: 'photo.jpg' })).toBe(false);
       expect(isText({ contentType: 'application/pdf', name: 'document.pdf' })).toBe(false);
+      expect(isText({ contentType: 'application/octet-stream', name: 'file.csv.gz' })).toBe(false);
     });
   });
 
@@ -49,6 +52,7 @@ describe('File Utilities', () => {
     it('should return false for non-binary types or names', () => {
       expect(isBinary({ contentType: 'text/plain', name: 'readme.txt' })).toBe(false);
       expect(isBinary({ contentType: 'image/jpeg', name: 'photo.jpg' })).toBe(false);
+      expect(isBinary({ contentType: 'application/octet-stream', name: 'archive.pac.gz' })).toBe(false);
     });
   });
 
@@ -66,6 +70,7 @@ describe('File Utilities', () => {
     it('should return false for non-renderable types or names', () => {
       expect(canRender({ contentType: 'image/jpeg', name: 'photo.jpg' })).toBe(false);
       expect(canRender({ contentType: 'application/json', name: 'data.json' })).toBe(false);
+      expect(canRender({ contentType: 'application/octet-stream', name: 'manual.pdf.gz' })).toBe(false);
     });
   });
 
@@ -88,6 +93,7 @@ describe('File Utilities', () => {
 
     it('should return false for non-previewable files of other types', () => {
       expect(isFilePreviewable({ size: 500000000, contentType: 'video/mp4', name: 'video.mp4' })).toBe(false);
+      expect(isFilePreviewable({ size: 1000, contentType: 'application/octet-stream', name: 'file.vcf.gz' })).toBe(false);
     });
   });
 });
