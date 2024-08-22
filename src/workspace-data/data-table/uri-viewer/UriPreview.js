@@ -94,7 +94,7 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
               [preview === null, () => 'Unable to load preview.'],
               [preview === undefined, () => 'Loading preview...'],
               [isImage(metadata), () => img({ src: preview, width: 400 })],
-              [canRender(metadata), () => h('object', { data: preview, type: metadata.contentType, width: 400, height: 400 })],
+              [canRender(metadata), () => h('iframe', { src: preview, width: 400, height: 400 })],
               () =>
                 div(
                   {
