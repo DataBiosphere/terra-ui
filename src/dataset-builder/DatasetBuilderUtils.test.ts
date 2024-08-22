@@ -203,7 +203,7 @@ describe('test conversion of DatasetAccessRequest', () => {
 });
 
 describe('test HighlightSearchText', () => {
-  const createHighlightSearchText = (beforeHighlight: string, highlightWord: string, afterHighlight, style) => {
+  const createHighlightSearchText = (beforeHighlight: string, highlightWord: string, afterHighlight, style?) => {
     return div({ style: { ...style } }, [
       span([beforeHighlight]),
       span({ style: { fontWeight: 600 } }, [highlightWord]),

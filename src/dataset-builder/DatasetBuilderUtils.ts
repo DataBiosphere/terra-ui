@@ -149,7 +149,7 @@ export const createSnapshotBuilderCountRequest = (cohort: Cohort[]): SnapshotBui
 type HighlightSearchTextProps = {
   readonly columnItem: string;
   readonly searchFilter: string;
-  readonly style: {};
+  readonly style?: {};
 };
 
 export const HighlightSearchText = (props: HighlightSearchTextProps): ReactElement => {
