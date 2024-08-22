@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { Fragment, useState } from 'react';
 import { div, h, img } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -36,8 +37,16 @@ export const isBinary = ({ contentType, name }) => {
   );
 };
 
+export const isHtml = ({ contentType, name }) => {
+  return /^(?:text\/html)/.test(contentType) || /\.html$/.test(name);
+};
+
+export const isPdf = ({ contentType, name }) => {
+  return /^(?:application\/pdf)/.test(contentType) || /\.pdf$/.test(name);
+};
+
 export const canRender = ({ contentType, name }) => {
-  return /^(?:text\/html|application\/pdf)/.test(contentType) || /\.(?:html|pdf)$/.test(name);
+  return isHtml({ contentType, name }) || isPdf({ contentType, name });
 };
 
 export const isFilePreviewable = ({ size, ...metadata }) => {
@@ -54,8 +63,12 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
       } else {
         const canPreviewFull = isImage(metadata) || canRender(metadata);
         const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, canPreviewFull);
-        if (isImage(metadata) || canRender(metadata)) {
+        if (isImage(metadata) || isPdf(metadata)) {
           setPreview(URL.createObjectURL(await res.blob()));
+        } else if (isHtml(metadata)) {
+          const sanitizedHtml = DOMPurify.sanitize(await res.text());
+          const safeHtmlPreview = URL.createObjectURL(new Blob([sanitizedHtml], { type: 'text/html' }));
+          setPreview(safeHtmlPreview);
         } else {
           setPreview(await res.text());
         }

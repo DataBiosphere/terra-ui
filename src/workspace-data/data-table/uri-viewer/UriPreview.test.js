@@ -1,4 +1,4 @@
-import { canRender, isBinary, isFilePreviewable, isImage, isText } from './UriPreview';
+import { canRender, isBinary, isFilePreviewable, isHtml, isImage, isPdf, isText } from './UriPreview';
 
 describe('File Utilities', () => {
   describe('isImage', () => {
@@ -53,6 +53,34 @@ describe('File Utilities', () => {
       expect(isBinary({ contentType: 'text/plain', name: 'readme.txt' })).toBe(false);
       expect(isBinary({ contentType: 'image/jpeg', name: 'photo.jpg' })).toBe(false);
       expect(isBinary({ contentType: 'application/octet-stream', name: 'archive.pac.gz' })).toBe(false);
+    });
+  });
+
+  describe('isHtml', () => {
+    test('should return true for HTML content type', () => {
+      expect(isHtml({ contentType: 'text/html', name: 'example.html' })).toBe(true);
+    });
+
+    test('should return true for .html file extension', () => {
+      expect(isHtml({ contentType: '', name: 'example.html' })).toBe(true);
+    });
+
+    test('should return false for non-HTML content type and file extension', () => {
+      expect(isHtml({ contentType: 'application/json', name: 'example.json' })).toBe(false);
+    });
+  });
+
+  describe('isPdf', () => {
+    test('should return true for PDF content type', () => {
+      expect(isPdf({ contentType: 'application/pdf', name: 'example.pdf' })).toBe(true);
+    });
+
+    test('should return true for .pdf file extension', () => {
+      expect(isPdf({ contentType: '', name: 'example.pdf' })).toBe(true);
+    });
+
+    test('should return false for non-PDF content type and file extension', () => {
+      expect(isPdf({ contentType: 'text/plain', name: 'example.txt' })).toBe(false);
     });
   });
 
