@@ -1,7 +1,9 @@
 import { ButtonPrimary, Modal } from '@terra-ui-packages/components';
-import React from 'react';
-import { TextInput } from 'src/components/input';
+import React, { useState } from 'react';
+import { TextInput, ValidatedInput } from 'src/components/input';
 import { FormLabel } from 'src/libs/forms';
+import * as Utils from 'src/libs/utils';
+import validate from 'validate.js';
 
 interface WorkflowModalProps {
   setCreateWorkflowModalOpen: (x: boolean) => void;
@@ -20,52 +22,104 @@ interface NamespaceNameSectionProps {
   name: string | undefined;
   setWorkflowNamespace: (value: string) => void;
   setWorkflowName: (value: string) => void;
+  errors: any;
 }
 
 interface SynopsisSnapshotSectionProps {
   synopsis: string;
   setWorkflowSynopsis: (value: string) => void;
+  errors: any;
 }
 
+const constraints = {
+  namespace: {
+    length: { maximum: 254 },
+    presence: { allowEmpty: false },
+    format: {
+      pattern: /[\w- ]*/,
+      message: 'can only contain letters, numbers, dashes, underscores, and spaces',
+    },
+  },
+  name: {
+    presence: { allowEmpty: false },
+    format: {
+      pattern: /[\w- ]*/,
+      message: 'can only contain letters, numbers, dashes, underscores, and spaces',
+    },
+  },
+  synopsis: {
+    length: { maximum: 80 },
+  },
+};
+
 const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
-  const namingMessage = 'Only letters, numbers, underscores, dashes, and periods allowed';
-  const { namespace, name, setWorkflowNamespace, setWorkflowName } = props;
+  const { namespace, name, setWorkflowNamespace, setWorkflowName, errors } = props;
+  const [namespaceModified, setNamespaceModified] = useState<boolean>(false);
+  const [nameModified, setNameModified] = useState<boolean>(false);
 
   return (
     <>
       <div style={{ flexWrap: 'wrap', flexGrow: 1, flexBasis: '400px' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel>Namespace</FormLabel>
+          <FormLabel required>Namespace</FormLabel>
+          <ValidatedInput
+            inputProps={{
+              autoFocus: true,
+              value: namespace,
+              onChange: (v) => {
+                setWorkflowNamespace(v);
+                setNamespaceModified(true);
+              },
+            }}
+            error={Utils.summarizeErrors(namespaceModified && errors?.namespace)}
+          />
         </div>
-        <div>
-          <TextInput value={namespace} onChange={(value: string) => setWorkflowNamespace(value)} />
-        </div>
-        <div style={{ fontStyle: 'italic' }}>{namingMessage}</div>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', flexGrow: 1, flexBasis: '400px' }}>
+      <div style={{ flexWrap: 'wrap', flexGrow: 1, flexBasis: '400px' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel>Name</FormLabel>
+          <FormLabel required>Name</FormLabel>
+          <ValidatedInput
+            inputProps={{
+              autoFocus: true,
+              value: name,
+              onChange: (v) => {
+                setWorkflowName(v);
+                setNameModified(true);
+              },
+            }}
+            error={Utils.summarizeErrors(nameModified && errors?.name)}
+          />
         </div>
-        <TextInput value={name} onChange={(value: string) => setWorkflowName(value)} />
-        <div style={{ fontStyle: 'italic' }}>{namingMessage}</div>
       </div>
     </>
   );
 };
 
 const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
-  const { synopsis, setWorkflowSynopsis } = props;
+  const { synopsis, setWorkflowSynopsis, errors } = props;
+  const [synopsisModified, setSynopsisModified] = useState<boolean>(false);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ paddingTop: '1.5rem' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel>Synopsis (optional, 80 characters max)</FormLabel>
+          <FormLabel>Synopsis (80 characters max)</FormLabel>
+          <ValidatedInput
+            inputProps={{
+              autoFocus: true,
+              value: synopsis,
+              onChange: (v) => {
+                setWorkflowSynopsis(v);
+                setSynopsisModified(true);
+              },
+            }}
+            error={Utils.summarizeErrors(synopsisModified && errors?.synopsis)}
+          />
         </div>
-        <TextInput value={synopsis} onChange={(value) => setWorkflowSynopsis(value)} />
       </div>
       <div style={{ paddingTop: '1.5rem' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel>Snapshot Comment (optional)</FormLabel>
+          <FormLabel>Snapshot Comment</FormLabel>
         </div>
         <TextInput />
       </div>
@@ -86,13 +140,21 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     setWorkflowSynopsis,
   } = props;
 
+  const errors = validate({ namespace, name, synopsis }, constraints, {
+    prettify: (v) => ({ namespace: 'Namespace', name: 'Name', synopsis: 'Synopsis' }[v] || validate.prettify(v)),
+  });
+
   return (
     <Modal
       onDismiss={() => setCreateWorkflowModalOpen(false)}
       title={title}
-      width='65rem'
-      /* eslint-disable-next-line no-alert */
-      okButton={<ButtonPrimary onClick={() => alert('not yet implemented')}>{buttonAction}</ButtonPrimary>}
+      width='75rem'
+      okButton={
+        /* eslint-disable-next-line no-alert */
+        <ButtonPrimary disabled={errors} onClick={() => alert('not yet implemented')}>
+          {buttonAction}
+        </ButtonPrimary>
+      }
     >
       <div style={{ padding: '0.5rem 0' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
@@ -101,9 +163,10 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
             name={name}
             setWorkflowNamespace={setWorkflowNamespace}
             setWorkflowName={setWorkflowName}
+            errors={errors}
           />
         </div>
-        <SynopsisSnapshotSection synopsis={synopsis} setWorkflowSynopsis={setWorkflowSynopsis} />
+        <SynopsisSnapshotSection synopsis={synopsis} setWorkflowSynopsis={setWorkflowSynopsis} errors={errors} />
       </div>
     </Modal>
   );
