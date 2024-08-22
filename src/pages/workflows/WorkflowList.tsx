@@ -320,20 +320,6 @@ const getColumns = (
     },
     size: { basis: 115, grow: 0, shrink: 0 },
   },
-  {
-    field: 'numConfigurations',
-    headerRenderer: () => (
-      <WorkflowTableHeader sort={sort} field='numConfigurations' onSort={onSort}>
-        Configurations
-      </WorkflowTableHeader>
-    ),
-    cellRenderer: ({ rowIndex }) => {
-      const { numConfigurations } = paginatedWorkflows[rowIndex];
-
-      return <div style={{ textAlign: 'end', flex: 1 }}>{numConfigurations}</div>;
-    },
-    size: { basis: 145, grow: 0, shrink: 0 },
-  },
 ];
 
 export const navPaths = [
