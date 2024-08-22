@@ -203,8 +203,8 @@ describe('test conversion of DatasetAccessRequest', () => {
 });
 
 describe('test HighlightSearchText', () => {
-  const createHighlightSearchText = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
-    return div({ style: {} }, [
+  const createHighlightSearchText = (beforeHighlight: string, highlightWord: string, afterHighlight, style) => {
+    return div({ style: { ...style } }, [
       span([beforeHighlight]),
       span({ style: { fontWeight: 600 } }, [highlightWord]),
       span([afterHighlight]),
@@ -214,28 +214,32 @@ describe('test HighlightSearchText', () => {
   test('searching beginning of conceptName', () => {
     const searchFilter = 'Clinic';
     const columnItem = 'Clinical Finding';
-    const result = createHighlightSearchText('', 'Clinic', 'al Finding');
+    const afterHighlight = div({ style: { display: 'inline' } }, ['al Finding']);
+    const result = createHighlightSearchText('', 'Clinic', afterHighlight);
     expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 
   test("Testing to make sure capitalization doesn't change", () => {
     const searchFilter = 'clin';
     const columnItem = 'Clinical Finding';
-    const result = createHighlightSearchText('', 'Clin', 'ical Finding');
+    const afterHighlight = div({ style: { display: 'inline' } }, ['ical Finding']);
+    const result = createHighlightSearchText('', 'Clin', afterHighlight);
     expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord in the middle of conceptName', () => {
     const searchFilter = 'cal';
     const columnItem = 'Clinical Finding';
-    const result = createHighlightSearchText('Clini', 'cal', ' Finding');
+    const afterHighlight = div({ style: { display: 'inline' } }, [' Finding']);
+    const result = createHighlightSearchText('Clini', 'cal', afterHighlight);
     expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord in the end of conceptName', () => {
     const searchFilter = 'Finding';
     const columnItem = 'Clinical Finding';
-    const result = createHighlightSearchText('Clinical ', 'Finding', '');
+    const afterHighlight = div({ style: { display: 'inline' } }, ['']);
+    const result = createHighlightSearchText('Clinical ', 'Finding', afterHighlight);
     expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 
@@ -269,6 +273,17 @@ describe('test HighlightSearchText', () => {
     searchFilter = '   ';
     columnItem = 'Clinical Finding';
     result = div({ style: {} }, ['Clinical Finding']);
+    expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
+  });
+
+  test('multiple instances of searchedWord in columnItem', () => {
+    const searchFilter = '110';
+    const columnItem = '8598211000001100';
+    const afterHighlightSecondInstance = div({ style: { display: 'inline' } }, ['0']);
+    const afterHighlightFirstInstance = createHighlightSearchText('0000', '110', afterHighlightSecondInstance, {
+      display: 'inline',
+    });
+    const result = createHighlightSearchText('85982', '110', afterHighlightFirstInstance);
     expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 });

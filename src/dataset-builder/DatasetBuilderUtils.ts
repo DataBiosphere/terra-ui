@@ -146,10 +146,17 @@ export const createSnapshotBuilderCountRequest = (cohort: Cohort[]): SnapshotBui
   return { cohorts: _.map(convertCohort, cohort) };
 };
 
-export const HighlightSearchText = ({ columnItem, searchFilter, style = {} }): ReactElement => {
+type HighlightSearchTextProps = {
+  readonly columnItem: string;
+  readonly searchFilter: string;
+  readonly style: {};
+};
+
+export const HighlightSearchText = (props: HighlightSearchTextProps): ReactElement => {
+  const { columnItem, searchFilter, style } = props;
   const startIndex = columnItem.toLowerCase().indexOf(searchFilter.toLowerCase());
 
-  // searchFilter is empty or does not exist in conceptName
+  // searchFilter is empty or does not exist in columnItem
   if (startIndex < 0 || searchFilter.trim() === '') {
     return div({ style: { ...style } }, [columnItem]);
   }
@@ -159,7 +166,13 @@ export const HighlightSearchText = ({ columnItem, searchFilter, style = {} }): R
   return div({ style: { ...style } }, [
     span([columnItem.substring(0, startIndex)]),
     span({ style: { fontWeight: 600 } }, [columnItem.substring(startIndex, endIndex)]),
-    span([columnItem.substring(endIndex)]),
+    span([
+      HighlightSearchText({
+        columnItem: columnItem.substring(endIndex),
+        searchFilter,
+        style: { display: 'inline' },
+      }),
+    ]),
   ]);
 };
 
