@@ -100,16 +100,18 @@ describe('CohortEditor', () => {
   it('renders unknown criteria', async () => {
     // Arrange
     const criteria = { name: 'bogus', invalid: 'property' };
+    let consoleError = '';
     // This should error fetching the count because the conversion to API counts to generate counts should fail
-    jest
-      .spyOn(console, 'error')
-      .mockImplementation((error) => expect(error).toBe('Error getting criteria group count'));
+    jest.spyOn(console, 'error').mockImplementation((error) => {
+      consoleError = error;
+    });
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
     renderCriteriaView({ criteria: criteria as any });
     // Assert
     expect(await screen.findByText('Unknown criteria')).toBeTruthy();
     expect(screen.queryByText(criteria.name)).toBeFalsy();
+    expect(consoleError).toBe('Error getting criteria group count');
   });
 
   it('renders domain criteria', async () => {
