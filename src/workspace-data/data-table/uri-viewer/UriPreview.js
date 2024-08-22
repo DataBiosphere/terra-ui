@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify';
+import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, img } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -38,11 +39,11 @@ export const isBinary = ({ contentType, name }) => {
 };
 
 export const isHtml = ({ contentType, name }) => {
-  return /^(?:text\/html)/.test(contentType) || /\.html$/.test(name);
+  return /^(?:text\/html)/.test(contentType) || _.endsWith('html', name);
 };
 
 export const isPdf = ({ contentType, name }) => {
-  return /^(?:application\/pdf)/.test(contentType) || /\.pdf$/.test(name);
+  return /^(?:application\/pdf)/.test(contentType) || _.endsWith('pdf', name);
 };
 
 export const canRender = ({ contentType, name }) => {
