@@ -417,6 +417,9 @@ export const Workflows = _.flow(
         h(ExportWorkflowModal, {
           thisWorkspace: workspace,
           methodConfig: getConfig(workflowToExport),
+          destinationWorkspacesFilter: ({ workspace: { workspaceId }, accessLevel }) => {
+            return workspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
+          },
           onDismiss: () => setWorkflowToExport(undefined),
         }),
       workflowToCopy &&

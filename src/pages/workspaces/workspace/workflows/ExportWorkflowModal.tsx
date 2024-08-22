@@ -12,7 +12,6 @@ import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
-import * as WorkspaceUtils from 'src/workspaces/utils';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
@@ -21,6 +20,9 @@ export interface ExportWorkflowModalProps {
   sameWorkspace?: boolean;
   methodConfig: MethodConfiguration;
 
+  // required iff exporting to a different workspace
+  destinationWorkspacesFilter?: (workspace: WorkspaceWrapper) => boolean;
+
   // now called regardless of the value of sameWorkspace, and only if defined
   onSuccess?: () => void;
 
@@ -28,7 +30,14 @@ export interface ExportWorkflowModalProps {
 }
 
 const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
-  const { thisWorkspace, sameWorkspace = false, methodConfig, onSuccess, onDismiss } = props;
+  const {
+    thisWorkspace,
+    sameWorkspace = false,
+    methodConfig,
+    destinationWorkspacesFilter,
+    onSuccess,
+    onDismiss,
+  } = props;
 
   // State
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(
@@ -78,10 +87,6 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
     }
   };
 
-  const filteredWorkspaces: WorkspaceWrapper[] = _.filter(({ workspace: { workspaceId }, accessLevel }) => {
-    return thisWorkspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
-  }, workspaces);
-
   // Render helpers
   const renderExportForm = () => {
     const errors = validate(
@@ -111,7 +116,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
             </FormLabel>
             <WorkspaceSelector
               id={destinationWorkspaceSelectorId}
-              workspaces={filteredWorkspaces}
+              workspaces={_.filter(destinationWorkspacesFilter!, workspaces)}
               value={selectedWorkspaceId}
               onChange={setSelectedWorkspaceId}
               aria-label={undefined}
