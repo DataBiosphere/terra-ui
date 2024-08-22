@@ -77,8 +77,8 @@ describe('WorkflowSummary Component', () => {
     expect(screen.getByText('Publicly Readable'));
     expect(screen.getByText('Public'));
     expect(screen.getByText('Snapshot Comment'));
-    // Using queryBy here because of the comment and tooltip containing the same text
-    expect(screen.queryByText('a fake snapshot'));
+    // Using queryAllBy here because of the comment and tooltip containing the same text
+    expect(screen.queryAllByText('a fake snapshot'));
   });
 
   it('shows Private for private workflows', () => {
