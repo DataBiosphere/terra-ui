@@ -58,7 +58,7 @@ export const BaseWorkflowSummary = () => {
           h(InfoRow, { title: 'Creation Date' }, [new Date(createDate).toLocaleDateString()]),
           h(InfoRow, { title: 'Publicly Readable' }, [
             span({ style: { display: 'flex', alignItems: 'center' } }, [
-              icon('users', { size: 20 }),
+              isPublic ? icon('users', { size: 20 }) : icon('lock', { size: 15 }),
               div({ style: { paddingLeft: '0.5rem' } }, [isPublic ? 'Public' : 'Private']),
             ]),
           ]),
