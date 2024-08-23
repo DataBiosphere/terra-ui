@@ -69,4 +69,25 @@ describe('WorkflowModal', () => {
     const uploadButton = screen.getByRole('button', { name: 'Upload' });
     expect(uploadButton).toHaveAttribute('aria-disabled', 'true');
   });
+
+  it('shows an error when namespace + name exceeds 250 chars', () => {
+    const longStringNamespace = 't'.repeat(125);
+    const longStringName = 's'.repeat(126);
+
+    renderWithAppContexts(
+      <WorkflowModal
+        setCreateWorkflowModalOpen={jest.fn}
+        title='Create New Workflow'
+        namespace={longStringNamespace}
+        name={longStringName}
+        buttonAction='Upload'
+        synopsis=''
+        setWorkflowNamespace={jest.fn}
+        setWorkflowName={jest.fn}
+        setWorkflowSynopsis={jest.fn}
+      />
+    );
+
+    expect(screen.getByText('The namespace/name configuration must be 250 characters or less.')).toBeInTheDocument();
+  });
 });

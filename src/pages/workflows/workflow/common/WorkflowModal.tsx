@@ -23,6 +23,8 @@ interface NamespaceNameSectionProps {
   setWorkflowNamespace: (value: string) => void;
   setWorkflowName: (value: string) => void;
   errors: any;
+  nameNamespaceLengthError: number;
+  setNameNamespaceLengthError: (value: number) => void;
 }
 
 interface SynopsisSnapshotSectionProps {
@@ -33,7 +35,6 @@ interface SynopsisSnapshotSectionProps {
 
 const constraints = {
   namespace: {
-    length: { maximum: 254 },
     presence: { allowEmpty: false },
     format: {
       pattern: /[\w- ]*/,
@@ -53,7 +54,15 @@ const constraints = {
 };
 
 const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
-  const { namespace, name, setWorkflowNamespace, setWorkflowName, errors } = props;
+  const {
+    namespace,
+    name,
+    setWorkflowNamespace,
+    setWorkflowName,
+    errors,
+    nameNamespaceLengthError,
+    setNameNamespaceLengthError,
+  } = props;
   const [namespaceModified, setNamespaceModified] = useState<boolean>(false);
   const [nameModified, setNameModified] = useState<boolean>(false);
 
@@ -69,6 +78,7 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
               onChange: (v) => {
                 setWorkflowNamespace(v);
                 setNamespaceModified(true);
+                setNameNamespaceLengthError(nameNamespaceLengthError + v.length);
               },
             }}
             error={Utils.summarizeErrors(namespaceModified && errors?.namespace)}
@@ -80,11 +90,11 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
           <FormLabel required>Name</FormLabel>
           <ValidatedInput
             inputProps={{
-              autoFocus: true,
               value: name,
               onChange: (v) => {
                 setWorkflowName(v);
                 setNameModified(true);
+                setNameNamespaceLengthError(nameNamespaceLengthError + v.length);
               },
             }}
             error={Utils.summarizeErrors(nameModified && errors?.name)}
@@ -106,7 +116,6 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
           <FormLabel>Synopsis (80 characters max)</FormLabel>
           <ValidatedInput
             inputProps={{
-              autoFocus: true,
               value: synopsis,
               onChange: (v) => {
                 setWorkflowSynopsis(v);
@@ -128,6 +137,7 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
 };
 
 export const WorkflowModal = (props: WorkflowModalProps) => {
+  const [nameNamespaceLengthError, setNameNamespaceLengthError] = useState<number>(0);
   const {
     setCreateWorkflowModalOpen,
     title,
@@ -146,7 +156,11 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
 
   return (
     <Modal
-      onDismiss={() => setCreateWorkflowModalOpen(false)}
+      onDismiss={() => {
+        setCreateWorkflowModalOpen(false);
+        setWorkflowNamespace('');
+        setWorkflowName('');
+      }}
       title={title}
       width='75rem'
       okButton={
@@ -164,9 +178,16 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
             setWorkflowNamespace={setWorkflowNamespace}
             setWorkflowName={setWorkflowName}
             errors={errors}
+            nameNamespaceLengthError={nameNamespaceLengthError}
+            setNameNamespaceLengthError={setNameNamespaceLengthError}
           />
         </div>
         <SynopsisSnapshotSection synopsis={synopsis} setWorkflowSynopsis={setWorkflowSynopsis} errors={errors} />
+        {(namespace + name).length > 250 && (
+          <div style={{ color: 'red', paddingTop: '1.5rem' }}>
+            The namespace/name configuration must be 250 characters or less.
+          </div>
+        )}
       </div>
     </Modal>
   );
