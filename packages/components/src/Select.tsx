@@ -8,7 +8,7 @@ import RSelect, {
   PropsValue as RSelectPropsValue,
   SingleValue as RSelectSingleValue,
 } from 'react-select';
-import RAsyncCreatableSelect, { AsyncCreatableProps } from 'react-select/async-creatable';
+import RAsyncCreatableSelect, { AsyncCreatableProps as RAsyncCreatableProps } from 'react-select/async-creatable';
 
 import { useUniqueId } from './hooks/useUniqueId';
 import { Icon } from './Icon';
@@ -259,25 +259,17 @@ export const GroupedSelect = <
   return <ParameterizedBaseSelect findValue={findValue} value={value} options={options} {...props} />;
 };
 
-export type GroupBase<Option> = RSelectGroupBase<Option>;
-
-export type AsyncCreatableSelectProps<
-  Option,
-  IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
-> = AsyncCreatableProps<Option, IsMulti, Group>;
-
 export const AsyncCreatableSelect = <
   Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends RSelectGroupBase<Option> = RSelectGroupBase<Option>
 >(
-  props: AsyncCreatableSelectProps<Option, IsMulti, Group>
+  props: RAsyncCreatableProps<Option, IsMulti, Group>
 ) => {
   const theme = useThemeFromContext();
   return (
     <RAsyncCreatableSelect
-      {...(_.merge(getCommonSelectProps(theme), props) as AsyncCreatableSelectProps<Option, IsMulti, Group>)}
+      {...(_.merge(getCommonSelectProps(theme), props) as RAsyncCreatableProps<Option, IsMulti, Group>)}
     />
   );
 };

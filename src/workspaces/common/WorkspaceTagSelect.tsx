@@ -1,4 +1,3 @@
-import { AsyncCreatableSelectProps } from '@terra-ui-packages/components';
 import debouncePromise from 'debounce-promise';
 import _ from 'lodash/fp';
 import React from 'react';
@@ -7,9 +6,8 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useInstance } from 'src/libs/react-utils';
 
-export type WorkspaceTagSelectProps<IsMulti extends boolean> = AsyncCreatableSelectProps<
-  { value: string; label?: string },
-  IsMulti
+export type WorkspaceTagSelectProps<IsMulti extends boolean> = React.ComponentProps<
+  typeof AsyncCreatableSelect<{ value: string; label?: string }, IsMulti>
 >;
 
 interface WorkspaceTagSelectOption {
