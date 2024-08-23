@@ -13,26 +13,10 @@ interface WorkspaceSelectorProps
   'aria-label'?: string | undefined;
 }
 
-interface WorkspaceSelectorOption {
-  'aria-label': string;
-  value: string;
+interface FormatOptionLabelProps {
   label: string;
   workspace: Workspace;
 }
-
-const formatOptionLabel = (opt: WorkspaceSelectorOption) => {
-  const { label, workspace } = opt;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      <CloudProviderIcon
-        // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
-        cloudProvider={getCloudProviderFromWorkspace(workspace)}
-        style={{ marginRight: '0.5rem', flexShrink: 0 }}
-      />
-      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
-    </div>
-  );
-};
 
 export const WorkspaceSelector = (props: WorkspaceSelectorProps) => {
   const { workspaces, value, onChange, id, 'aria-label': ariaLabel, ...otherProps } = props;
@@ -54,8 +38,22 @@ export const WorkspaceSelector = (props: WorkspaceSelectorProps) => {
       value={value}
       onChange={({ value }) => onChange(value)}
       options={options}
-      formatOptionLabel={formatOptionLabel}
+      formatOptionLabel={FormatOptionLabel}
       {...otherProps}
     />
+  );
+};
+
+const FormatOptionLabel = (props: FormatOptionLabelProps) => {
+  const { label, workspace } = props;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      <CloudProviderIcon
+        // Convert workspace cloudPlatform (Azure, Gcp) to CloudProvider (AZURE, GCP).
+        cloudProvider={getCloudProviderFromWorkspace(workspace)}
+        style={{ marginRight: '0.5rem', flexShrink: 0 }}
+      />
+      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+    </div>
   );
 };
