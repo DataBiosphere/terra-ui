@@ -1,6 +1,6 @@
 import { getAllByRole, getByRole, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
@@ -19,12 +19,7 @@ describe('WorkspaceSelector', () => {
     const user = userEvent.setup();
 
     // Act
-    render(
-      // @ts-expect-error
-      h(WorkspaceSelector, {
-        workspaces,
-      })
-    );
+    render(<WorkspaceSelector workspaces={workspaces} value={undefined} onChange={(_) => {}} />);
 
     // Assert
     const selectInput = screen.getByLabelText('Select a workspace');
@@ -48,13 +43,7 @@ describe('WorkspaceSelector', () => {
     const user = userEvent.setup();
 
     const onChange = jest.fn();
-    render(
-      // @ts-expect-error
-      h(WorkspaceSelector, {
-        workspaces,
-        onChange,
-      })
-    );
+    render(<WorkspaceSelector workspaces={workspaces} value={undefined} onChange={onChange} />);
 
     // Act
     const selectInput = screen.getByLabelText('Select a workspace');
