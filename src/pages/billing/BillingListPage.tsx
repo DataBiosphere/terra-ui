@@ -1,4 +1,4 @@
-import { div, h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { BillingList } from 'src/billing/List/BillingList';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TopBar from 'src/components/TopBar';
@@ -15,16 +15,19 @@ const BillingListPage = (props: BillingListPageProps) => {
   const selectedName = props.queryParams.selectedName;
   const breadcrumbs = 'Billing > Billing Project';
 
-  return h(FooterWrapper, { fixedHeight: true }, [
-    h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
-      !!selectedName &&
-        div({ style: Style.breadcrumb.breadcrumb }, [
-          div({ style: Style.noWrapEllipsis }, [breadcrumbs]),
-          div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName]),
-        ]),
-    ]),
-    h(BillingList, { queryParams: { selectedName } }),
-  ]);
+  return (
+    <FooterWrapper fixedHeight>
+      <TopBar title='Billing' href={Nav.getLink('billing')}>
+        {!!selectedName && (
+          <div style={Style.breadcrumb.breadcrumb}>
+            <div style={Style.noWrapEllipsis}>{breadcrumbs}</div>
+            <div style={Style.breadcrumb.textUnderBreadcrumb}>{selectedName}</div>
+          </div>
+        )}
+      </TopBar>
+      <BillingList queryParams={{ selectedName }} />
+    </FooterWrapper>
+  );
 };
 
 export const navPaths = [
