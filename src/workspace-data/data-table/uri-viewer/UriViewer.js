@@ -106,7 +106,7 @@ export const UriViewer = _.flow(
     return h(Fragment, [
       p({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Terminal download command']),
       p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Download to:']),
-      div({ marginbottom: '0.5rem' }, [
+      div({ marginBottom: '0.5rem' }, [
         h(LabeledRadioGroup, { style: { marginTop: 0, marginBottom: 0 } }, [
           LabeledRadioButton({
             text: 'Current Directory',
