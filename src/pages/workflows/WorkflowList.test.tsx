@@ -206,28 +206,26 @@ describe('workflows table', () => {
     const table: HTMLElement = await screen.findByRole('table');
 
     // Assert
-    expect(table).toHaveAttribute('aria-colcount', '5');
+    expect(table).toHaveAttribute('aria-colcount', '4');
     expect(table).toHaveAttribute('aria-rowcount', '2');
 
     const headers: HTMLElement[] = within(table).getAllByRole('columnheader');
-    expect(headers).toHaveLength(5);
+    expect(headers).toHaveLength(4);
     expect(headers[0]).toHaveTextContent('Workflow');
     expect(headers[1]).toHaveTextContent('Synopsis');
     expect(headers[2]).toHaveTextContent('Owners');
     expect(headers[3]).toHaveTextContent('Snapshots');
-    expect(headers[4]).toHaveTextContent('Configurations');
 
     const rows: HTMLElement[] = within(table).getAllByRole('row');
     expect(rows).toHaveLength(2);
 
     const methodCells: HTMLElement[] = within(rows[1]).getAllByRole('cell');
-    expect(methodCells).toHaveLength(5);
+    expect(methodCells).toHaveLength(4);
     within(methodCells[0]).getByText('revali bird namespace');
     within(methodCells[0]).getByText('revali method 2');
     expect(methodCells[1]).toHaveTextContent('another revali description');
     expect(methodCells[2]).toHaveTextContent('revali@gale.com, revali@champions.com');
     expect(methodCells[3]).toHaveTextContent('1');
-    expect(methodCells[4]).toHaveTextContent('2');
   });
 
   it('displays a message with no my workflows', async () => {
@@ -605,45 +603,6 @@ describe('workflows table', () => {
 
     // Assert
     checkOrder('daruk method', 'sorting method', 'revali method', 'revali method 2');
-  });
-
-  it('sorts by configurations ascending', async () => {
-    // Arrange
-    asMockedFn(Ajax).mockImplementation(
-      () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
-    );
-
-    const user: UserEvent = userEvent.setup();
-
-    // Act
-    await act(async () => {
-      render(<WorkflowList queryParams={{ tab: 'public' }} />);
-    });
-
-    await user.click(screen.getByText('Configurations'));
-
-    // Assert
-    checkOrder('sorting method', 'revali method 2', 'revali method', 'daruk method');
-  });
-
-  it('sorts by configurations descending', async () => {
-    // Arrange
-    asMockedFn(Ajax).mockImplementation(
-      () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
-    );
-
-    const user: UserEvent = userEvent.setup();
-
-    // Act
-    await act(async () => {
-      render(<WorkflowList queryParams={{ tab: 'public' }} />);
-    });
-
-    await user.click(screen.getByText('Configurations'));
-    await user.click(screen.getByText('Configurations'));
-
-    // Assert
-    checkOrder('daruk method', 'revali method', 'revali method 2', 'sorting method');
   });
 
   it('displays a paginator with at least one displayed workflow', async () => {
