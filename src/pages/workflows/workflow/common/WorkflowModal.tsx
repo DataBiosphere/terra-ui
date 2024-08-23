@@ -23,8 +23,6 @@ interface NamespaceNameSectionProps {
   setWorkflowNamespace: (value: string) => void;
   setWorkflowName: (value: string) => void;
   errors: any;
-  nameNamespaceLengthError: number;
-  setNameNamespaceLengthError: (value: number) => void;
 }
 
 interface SynopsisSnapshotSectionProps {
@@ -54,15 +52,7 @@ const constraints = {
 };
 
 const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
-  const {
-    namespace,
-    name,
-    setWorkflowNamespace,
-    setWorkflowName,
-    errors,
-    nameNamespaceLengthError,
-    setNameNamespaceLengthError,
-  } = props;
+  const { namespace, name, setWorkflowNamespace, setWorkflowName, errors } = props;
   const [namespaceModified, setNamespaceModified] = useState<boolean>(false);
   const [nameModified, setNameModified] = useState<boolean>(false);
 
@@ -78,7 +68,6 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
               onChange: (v) => {
                 setWorkflowNamespace(v);
                 setNamespaceModified(true);
-                setNameNamespaceLengthError(nameNamespaceLengthError + v.length);
               },
             }}
             error={Utils.summarizeErrors(namespaceModified && errors?.namespace)}
@@ -94,7 +83,6 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
               onChange: (v) => {
                 setWorkflowName(v);
                 setNameModified(true);
-                setNameNamespaceLengthError(nameNamespaceLengthError + v.length);
               },
             }}
             error={Utils.summarizeErrors(nameModified && errors?.name)}
@@ -137,7 +125,6 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
 };
 
 export const WorkflowModal = (props: WorkflowModalProps) => {
-  const [nameNamespaceLengthError, setNameNamespaceLengthError] = useState<number>(0);
   const {
     setCreateWorkflowModalOpen,
     title,
@@ -178,8 +165,6 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
             setWorkflowNamespace={setWorkflowNamespace}
             setWorkflowName={setWorkflowName}
             errors={errors}
-            nameNamespaceLengthError={nameNamespaceLengthError}
-            setNameNamespaceLengthError={setNameNamespaceLengthError}
           />
         </div>
         <SynopsisSnapshotSection synopsis={synopsis} setWorkflowSynopsis={setWorkflowSynopsis} errors={errors} />
