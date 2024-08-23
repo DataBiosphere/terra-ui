@@ -11,13 +11,15 @@ import {
 } from 'src/analysis/utils/tool-utils';
 import { getAuthToken } from 'src/auth/auth';
 import { authOpts } from 'src/auth/auth-session';
-import { checkRequesterPaysError, fetchSam } from 'src/libs/ajax/ajax-common';
+import { fetchSam } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
 import { fetchOk, withMaybeRetry, withUrlPrefix } from 'src/libs/ajax/fetch/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { canWrite, cloudProviderTypes, GoogleWorkspace } from 'src/workspaces/utils';
+
+import { RequesterPaysErrorInfo } from './goggle-storage-models';
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
@@ -60,6 +62,22 @@ const withRequesterPays =
     };
     return tryRequest();
   };
+
+const checkRequesterPaysError = async (response): Promise<RequesterPaysErrorInfo> => {
+  if (response.status === 400) {
+    const data = await response.text();
+    const requesterPaysErrorInfo: RequesterPaysErrorInfo = {
+      requesterPaysError: responseContainsRequesterPaysError(data),
+    };
+    return Object.assign(new Response(new Blob([data]), response), requesterPaysErrorInfo);
+  }
+  const unrecognizedErrorInfo: RequesterPaysErrorInfo = { requesterPaysError: false };
+  return Object.assign(response, unrecognizedErrorInfo);
+};
+
+export const responseContainsRequesterPaysError = (responseText) => {
+  return _.includes('requester pays', responseText);
+};
 
 // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
 // requesterPaysError is true if the request requires a user project for billing the request to. Such errors

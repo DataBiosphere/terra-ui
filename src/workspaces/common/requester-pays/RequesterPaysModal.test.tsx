@@ -5,7 +5,7 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
-import RequesterPaysModal from './RequesterPaysModal';
+import { RequesterPaysModal } from './RequesterPaysModal';
 
 type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
 jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports => {

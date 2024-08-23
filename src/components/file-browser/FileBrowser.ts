@@ -7,7 +7,6 @@ import { basename, dirname } from 'src/components/file-browser/file-browser-util
 import { FileDetails } from 'src/components/file-browser/FileDetails';
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory';
 import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs';
-import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import FileBrowserProvider, {
   FileBrowserDirectory,
   FileBrowserFile,
@@ -16,6 +15,7 @@ import colors from 'src/libs/colors';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { dataTableVersionsPathRoot } from 'src/workspace-data/data-table/versioning/data-table-versioning-utils';
+import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
 interface FileBrowserProps {
