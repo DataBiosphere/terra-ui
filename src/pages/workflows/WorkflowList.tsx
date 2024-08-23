@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import React, { useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
-import { Link } from 'src/components/common';
+import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { DelayedSearchInput } from 'src/components/input';
 import { TabBar } from 'src/components/tabBars';
@@ -15,6 +15,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { WorkflowModal } from 'src/pages/workflows/workflow/common/WorkflowModal';
 import { MethodDefinition } from 'src/pages/workflows/workflow-utils';
 
 /**
@@ -89,6 +90,10 @@ export const WorkflowList = (props: WorkflowListProps) => {
   // function signatures from the Sortable component used in this
   // component and from Lodash/fp's orderBy function)
   const [sort, setSort] = useState<SortProperties>({ field: 'name', direction: 'asc' });
+  const [createWorkflowModalOpen, setCreateWorkflowModalOpen] = useState<boolean>(false);
+  const [workflowNamespace, setWorkflowNamespace] = useState<string>('');
+  const [workflowName, setWorkflowName] = useState<string>('');
+  const [workflowSynopsis, setWorkflowSynopsis] = useState<string>('');
 
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
@@ -202,13 +207,25 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {null /* nothing to display at the end of the tab bar */}
       </TabBar>
       <main style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', rowGap: '1rem' }}>
-        <DelayedSearchInput
-          style={{ width: 500 }}
-          placeholder='SEARCH WORKFLOWS'
-          aria-label='Search workflows'
-          onChange={(val) => updateQuery({ newFilter: val })}
-          value={filter}
-        />
+        <div style={{ display: 'flex' }}>
+          <DelayedSearchInput
+            style={{ width: 500, display: 'flex', justifyContent: 'flex-start' }}
+            placeholder='SEARCH WORKFLOWS'
+            aria-label='Search workflows'
+            onChange={(val) => updateQuery({ newFilter: val })}
+            value={filter}
+          />
+          <div style={{ width: 500, display: 'flex', flex: 3, justifyContent: 'flex-end' }}>
+            <ButtonPrimary
+              onClick={() => {
+                setCreateWorkflowModalOpen(true);
+              }}
+            >
+              Create New Workflow
+            </ButtonPrimary>
+          </div>
+        </div>
+
         <div style={{ flex: 1 }}>
           <AutoSizer>
             {({ width, height }) => (
@@ -244,6 +261,19 @@ export const WorkflowList = (props: WorkflowListProps) => {
               />
             }
           </div>
+        )}
+        {createWorkflowModalOpen && (
+          <WorkflowModal
+            setCreateWorkflowModalOpen={setCreateWorkflowModalOpen}
+            title='Create New Workflow'
+            namespace={workflowNamespace}
+            name={workflowName}
+            buttonAction='Upload'
+            synopsis={workflowSynopsis}
+            setWorkflowNamespace={setWorkflowNamespace}
+            setWorkflowName={setWorkflowName}
+            setWorkflowSynopsis={setWorkflowSynopsis}
+          />
         )}
       </main>
     </FooterWrapper>
