@@ -6,6 +6,7 @@ import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWork
 import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import { NewWorkspaceModal } from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { isGoogleWorkspace } from 'src/workspaces/utils';
 
@@ -22,6 +23,8 @@ export interface WorkspaceContainerModalsProps {
   setSharingWorkspace: (value: boolean) => void;
   showLockWorkspaceModal: boolean;
   setShowLockWorkspaceModal: (value: boolean) => void;
+  showSettingsModal: boolean;
+  setShowSettingsModal: (value: boolean) => void;
 }
 export const WorkspaceContainerModals = (props: WorkspaceContainerModalsProps): ReactNode => {
   const {
@@ -37,6 +40,8 @@ export const WorkspaceContainerModals = (props: WorkspaceContainerModalsProps): 
     setSharingWorkspace,
     showLockWorkspaceModal,
     setShowLockWorkspaceModal,
+    showSettingsModal,
+    setShowSettingsModal,
   } = props;
   return (
     <>
@@ -78,6 +83,7 @@ export const WorkspaceContainerModals = (props: WorkspaceContainerModalsProps): 
         />
       )}
       {sharingWorkspace && <ShareWorkspaceModal workspace={workspace} onDismiss={() => setSharingWorkspace(false)} />}
+      {showSettingsModal && <SettingsModal workspace={workspace} onDismiss={() => setShowSettingsModal(false)} />}
     </>
   );
 };

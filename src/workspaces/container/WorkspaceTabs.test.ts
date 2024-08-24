@@ -5,7 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
-import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import { cloudProviderTypes, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 // Mocking for Nav.getLink
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
@@ -50,6 +50,7 @@ describe('WorkspaceTabs', () => {
       setShowLockWorkspaceModal: () => {},
       setLeavingWorkspace: () => {},
       refresh: () => {},
+      setShowSettingsModal: () => {},
     };
 
     // Act
@@ -76,6 +77,7 @@ describe('WorkspaceTabs', () => {
       setShowLockWorkspaceModal: () => {},
       setLeavingWorkspace: () => {},
       refresh: () => {},
+      setShowSettingsModal: () => {},
     };
     // Act
     const { container } = render(h(WorkspaceTabs, props));
@@ -101,6 +103,7 @@ describe('WorkspaceTabs', () => {
       setShowLockWorkspaceModal: () => {},
       setLeavingWorkspace: () => {},
       refresh: () => {},
+      setShowSettingsModal: () => {},
     };
     // Act
     const { container } = render(h(WorkspaceTabs, props));
@@ -127,6 +130,7 @@ describe('WorkspaceTabs', () => {
       setShowLockWorkspaceModal: () => {},
       setLeavingWorkspace: () => {},
       refresh: () => {},
+      setShowSettingsModal: () => {},
     };
 
     // Act
@@ -135,7 +139,13 @@ describe('WorkspaceTabs', () => {
     // Assert
     expect(mockWorkspaceMenu).toHaveBeenCalledWith(
       expect.objectContaining({
-        workspaceInfo: { canShare: true, isLocked: false, isOwner: true, workspaceLoaded: true },
+        workspaceInfo: {
+          canShare: true,
+          isLocked: false,
+          isOwner: true,
+          workspaceLoaded: true,
+          cloudProvider: cloudProviderTypes.GCP,
+        },
       })
     );
   });
@@ -152,6 +162,7 @@ describe('WorkspaceTabs', () => {
       setShowLockWorkspaceModal: () => {},
       setLeavingWorkspace: () => {},
       refresh: () => {},
+      setShowSettingsModal: () => {},
     };
 
     // Act
@@ -159,7 +170,13 @@ describe('WorkspaceTabs', () => {
     // Assert
     expect(mockWorkspaceMenu).toHaveBeenCalledWith(
       expect.objectContaining({
-        workspaceInfo: { canShare: false, isLocked: false, isOwner: false, workspaceLoaded: false },
+        workspaceInfo: {
+          canShare: false,
+          isLocked: false,
+          isOwner: false,
+          workspaceLoaded: false,
+          cloudProvider: undefined,
+        },
       })
     );
   });
@@ -180,6 +197,7 @@ describe('WorkspaceTabs', () => {
       setShowLockWorkspaceModal: () => {},
       setLeavingWorkspace: () => {},
       refresh: () => {},
+      setShowSettingsModal: () => {},
     };
     // Act
     render(h(WorkspaceTabs, props));
@@ -206,6 +224,7 @@ describe('WorkspaceTabs', () => {
       setShowLockWorkspaceModal: () => {},
       setLeavingWorkspace: () => {},
       refresh: () => {},
+      setShowSettingsModal: () => {},
     };
     // Act
     render(h(WorkspaceTabs, props));

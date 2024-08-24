@@ -5,8 +5,13 @@ import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
 import {
+  CloudProvider,
+  cloudProviderTypes,
+  getCloudProviderFromWorkspace,
   isGoogleWorkspace,
   isOwner,
   WorkspacePolicy,
@@ -23,7 +28,9 @@ type LoadedWorkspaceInfo = {
   isLocked: boolean;
   isOwner: boolean;
   workspaceLoaded: boolean;
+  cloudProvider?: CloudProvider;
 };
+
 type DynamicWorkspaceInfo = { name: string; namespace: string };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
@@ -33,6 +40,7 @@ interface WorkspaceMenuCallbacks {
   onLock: () => void;
   onDelete: () => void;
   onLeave: () => void;
+  onShowSettings: () => void;
 }
 
 export interface WorkspaceMenuProps {
@@ -118,6 +126,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       isLocked: !!workspace?.workspace?.isLocked,
       isOwner: !!workspace && isOwner(workspace.accessLevel),
       workspaceLoaded: !!workspace,
+      cloudProvider: !workspace ? undefined : getCloudProviderFromWorkspace(workspace),
     },
     // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
     // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
@@ -136,6 +145,7 @@ export const tooltipText = {
   deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
   lockNoPermission: 'You have not been granted permission to lock this workspace',
   unlockNoPermission: 'You have not been granted permission to unlock this workspace',
+  azureWorkspaceNoSettings: 'Settings are not available for Azure workspaces',
 };
 
 interface LoadedWorkspaceMenuContentProps {
@@ -146,12 +156,13 @@ interface LoadedWorkspaceMenuContentProps {
     onLock: () => void;
     onDelete: () => void;
     onLeave: () => void;
+    onShowSettings: () => void;
   };
 }
 const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   const {
-    workspaceInfo: { state, canShare, isLocked, isOwner, workspaceLoaded },
-    callbacks: { onShare, onLock, onLeave, onClone, onDelete },
+    workspaceInfo: { state, canShare, isLocked, isOwner, workspaceLoaded, cloudProvider },
+    callbacks: { onShare, onLock, onLeave, onClone, onDelete, onShowSettings },
   } = props;
   const shareTooltip = cond([workspaceLoaded && !canShare, () => tooltipText.shareNoPermission], [DEFAULT, () => '']);
   const deleteTooltip = cond(
@@ -161,11 +172,27 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   );
 
   return h(Fragment, [
+    // Only thing currently in the settings dialog is GCP bucket lifecycle rules. When
+    // soft delete is added, remove this check.
+    isFeaturePreviewEnabled(GCP_BUCKET_LIFECYCLE_RULES) &&
+      h(
+        MenuButton,
+        {
+          disabled:
+            cloudProvider !== cloudProviderTypes.GCP ||
+            !workspaceLoaded ||
+            state === 'Deleting' ||
+            state === 'DeleteFailed',
+          onClick: onShowSettings,
+          tooltipSide: 'left',
+          tooltip: cloudProvider === cloudProviderTypes.AZURE ? tooltipText.azureWorkspaceNoSettings : '',
+        },
+        [makeMenuIcon('cog'), 'Settings']
+      ),
     h(
       MenuButton,
       {
         disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
-        tooltipSide: 'left',
         onClick: onClone,
       },
       [makeMenuIcon('copy'), 'Clone']

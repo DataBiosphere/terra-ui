@@ -7,6 +7,7 @@ import * as Nav from 'src/libs/nav';
 import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import { WorkspaceAttributeNotice } from 'src/workspaces/container/WorkspaceAttributeNotice';
 import {
+  getCloudProviderFromWorkspace,
   isAzureWorkspace,
   isGoogleWorkspace,
   isOwner,
@@ -27,6 +28,7 @@ export interface WorkspaceTabsProps {
   setSharingWorkspace: Dispatch<boolean>;
   setShowLockWorkspaceModal: Dispatch<boolean>;
   setLeavingWorkspace: Dispatch<boolean>;
+  setShowSettingsModal: Dispatch<boolean>;
 }
 
 export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
@@ -39,6 +41,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
     setSharingWorkspace,
     setShowLockWorkspaceModal,
     setLeavingWorkspace,
+    setShowSettingsModal,
   } = props;
   const { namespace, name } = props;
   const wsOwner = !!workspace && isOwner(workspace.accessLevel);
@@ -51,6 +54,9 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const onLock = () => setShowLockWorkspaceModal(true);
   const onShare = () => setSharingWorkspace(true);
   const onLeave = () => setLeavingWorkspace(true);
+  const onShowSettings = () => {
+    setShowSettingsModal(true);
+  };
 
   const tabs = getTabs(workspace);
 
@@ -74,13 +80,14 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
       h(WorkspaceMenu, {
         iconSize: 27,
         popupLocation: 'bottom',
-        callbacks: { onClone, onShare, onLock, onDelete, onLeave },
+        callbacks: { onClone, onShare, onLock, onDelete, onLeave, onShowSettings },
         workspaceInfo: {
           state: workspace?.workspace?.state,
           canShare: !!canShare,
           isLocked,
           isOwner: wsOwner,
           workspaceLoaded,
+          cloudProvider: !workspace ? undefined : getCloudProviderFromWorkspace(workspace),
         },
       }),
     ]
