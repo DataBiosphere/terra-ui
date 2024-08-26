@@ -621,6 +621,7 @@ describe('Workflow View (GCP)', () => {
           retryWithMoreMemory: false,
           retryMemoryFactor: jest.fn(),
           ignoreEmptyOutputs: true,
+          enableResourceMonitoring: true,
           monitoringScript: 'some_script',
           monitoringImage: '',
           monitoringImageScript: '',
@@ -644,8 +645,8 @@ describe('Workflow View (GCP)', () => {
         useReferenceDisks: false,
         memoryRetryMultiplier: undefined,
         monitoringScript: 'some_script',
-        monitoringImage: null,
-        monitoringImageScript: null,
+        monitoringImage: undefined,
+        monitoringImageScript: undefined,
       })
     );
   });
