@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
+import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -12,6 +14,10 @@ import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDet
 import { tooltipText, WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
+
+type AjaxContract = ReturnType<typeof Ajax>;
+
+jest.mock('src/libs/ajax');
 
 type UseWorkspaceDetailsExports = typeof import('src/workspaces/common/state/useWorkspaceDetails');
 jest.mock('src/workspaces/common/state/useWorkspaceDetails', (): UseWorkspaceDetailsExports => {
@@ -408,7 +414,53 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
         expect(screen.queryByRole('tooltip', { name: tooltipText.deleteNoPermission })).not.toBeNull();
       }
     }
-  );
+  });
+
+  it.each([
+    { menuText: 'Share' },
+    { menuText: 'Delete' },
+    { menuText: 'Delete' },
+    { menuText: 'Lock' },
+    { menuText: 'Settings' },
+  ])('events when the menu item $menuText is clicked', async ({ menuText }) => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      workspace: {
+        ...defaultGoogleWorkspace,
+        accessLevel: 'OWNER' as WorkspaceAccessLevel,
+        workspace: {
+          ...defaultGoogleWorkspace.workspace,
+          isLocked: false,
+        },
+      },
+      refresh: jest.fn(),
+      loading: false,
+    });
+    const captureEvent = jest.fn();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+    const menuItem = screen.getByText(menuText);
+    await user.click(menuItem);
+
+    // Assert
+    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceMenu, {
+      action: menuText,
+      origin: 'list',
+      ...extractWorkspaceDetails({
+        namespace: workspaceMenuProps.workspaceInfo.namespace,
+        name: workspaceMenuProps.workspaceInfo.name,
+        cloudPlatform: 'Gcp',
+      }),
+    });
+  });
 });
 
 describe('Settings menu item (GCP or Azure workspace)', () => {
@@ -521,6 +573,13 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       refresh: jest.fn(),
       loading: false,
     });
+    const captureEvent = jest.fn();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -529,6 +588,11 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
     expect(onClone).toBeCalledWith([], 'fc-bucketname', descriptionText, 'googleProjectName');
+    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceMenu, {
+      action: 'Clone',
+      origin: 'list',
+      ...extractWorkspaceDetails({ namespace, name, cloudPlatform: 'Gcp' }),
+    });
   });
 
   it('passes onClone the policies and description for an Azure workspace', async () => {
@@ -539,6 +603,13 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       refresh: jest.fn(),
       loading: false,
     });
+    const captureEvent = jest.fn();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -547,6 +618,11 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
     expect(onClone).toBeCalledWith([protectedDataPolicy], undefined, descriptionText, undefined);
+    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceMenu, {
+      action: 'Clone',
+      origin: 'list',
+      ...extractWorkspaceDetails({ namespace, name, cloudPlatform: 'Azure' }),
+    });
   });
 
   it('passes onShare the bucketName for a Google workspace', async () => {

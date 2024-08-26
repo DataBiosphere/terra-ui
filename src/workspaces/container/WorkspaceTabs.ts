@@ -88,6 +88,8 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
           isOwner: wsOwner,
           workspaceLoaded,
           cloudProvider: !workspace ? undefined : getCloudProviderFromWorkspace(workspace),
+          namespace,
+          name,
         },
       }),
     ]

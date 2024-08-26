@@ -166,6 +166,7 @@ const eventsList = {
   workspaceDataRenameEntity: 'workspace:data:renameEntity',
   workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceDataDeleteTable: 'workspace:data:deleteTable',
+  workspaceMenu: 'workspace:menu:selected',
   workspaceOpenFromList: 'workspace:open-from-list',
   workspaceOpenFromRecentlyViewed: 'workspace:open-from-recently-viewed',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
