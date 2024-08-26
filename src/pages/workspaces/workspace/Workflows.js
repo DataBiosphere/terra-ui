@@ -416,20 +416,24 @@ export const Workflows = _.flow(
       h(ViewToggleButtons, { listView, setListView }),
       workflowToExport &&
         h(ExportWorkflowModal, {
-          thisWorkspace: workspace,
-          methodConfig: getConfig(workflowToExport),
-          destinationWorkspacesFilter: ({ workspace: { workspaceId }, accessLevel }) => {
+          defaultWorkflowName: getConfig(workflowToExport).name,
+          destinationWorkspace: ({ workspace: { workspaceId }, accessLevel }) => {
             return workspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
           },
+          title: 'Copy to Workspace',
+          buttonText: 'Copy',
           exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, getConfig(workflowToExport)),
+          showPostExportModal: true,
           onDismiss: () => setWorkflowToExport(undefined),
         }),
       workflowToCopy &&
         h(ExportWorkflowModal, {
-          thisWorkspace: workspace,
-          methodConfig: getConfig(workflowToCopy),
-          sameWorkspace: true,
+          defaultWorkflowName: `${getConfig(workflowToCopy).name}_copy`,
+          destinationWorkspace: workspace,
+          title: 'Duplicate Workflow',
+          buttonText: 'Copy',
           exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, getConfig(workflowToCopy)),
+          showPostExportModal: false,
           onDismiss: () => setWorkflowToCopy(undefined),
           onSuccess: () => {
             refresh();
