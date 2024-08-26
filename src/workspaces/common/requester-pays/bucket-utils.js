@@ -2,7 +2,7 @@ import { abandonedPromise } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { isRequesterPaysErrorInfo } from 'src/libs/ajax/goggle-storage-models';
+import { isRequesterPaysErrorInfo } from 'src/libs/ajax/google-storage-models';
 import { forwardRefWithName } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';

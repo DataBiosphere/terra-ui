@@ -19,7 +19,7 @@ import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceS
 import * as Utils from 'src/libs/utils';
 import { canWrite, cloudProviderTypes, GoogleWorkspace } from 'src/workspaces/utils';
 
-import { RequesterPaysErrorInfo } from './goggle-storage-models';
+import { RequesterPaysErrorInfo } from './google-storage-models';
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
