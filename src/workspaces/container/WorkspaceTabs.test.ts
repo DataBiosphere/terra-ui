@@ -145,6 +145,8 @@ describe('WorkspaceTabs', () => {
           isOwner: true,
           workspaceLoaded: true,
           cloudProvider: cloudProviderTypes.GCP,
+          namespace: props.namespace,
+          name: props.name,
         },
       })
     );
@@ -176,6 +178,8 @@ describe('WorkspaceTabs', () => {
           isOwner: false,
           workspaceLoaded: false,
           cloudProvider: undefined,
+          namespace: props.namespace,
+          name: props.name,
         },
       })
     );
