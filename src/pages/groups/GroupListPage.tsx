@@ -88,7 +88,7 @@ const GroupListPage = (): React.ReactNode => {
           onClick: () => setCreatingNewGroup(true),
         }),
         Utils.cond(
-          [groups && _.isEmpty(groups), () => NoGroupsMessage],
+          [groups && _.isEmpty(groups), () => <NoGroupsMessage />],
           [
             !_.isEmpty(groups) && _.isEmpty(filteredGroups),
             () => {
