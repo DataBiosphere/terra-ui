@@ -149,3 +149,11 @@ export const withRetry =
     };
     return fetchFn;
   };
+
+export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
+
+export const withAppIdentifier =
+  (wrappedFetch: FetchFn): FetchFn =>
+  (url, options) => {
+    return wrappedFetch(url, _.merge(options, appIdentifier));
+  };
