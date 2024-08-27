@@ -1,27 +1,22 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useEffect, useState } from 'react';
-import { a, div, h, h2 } from 'react-hyperscript-helpers';
+import { Fragment, useState } from 'react';
+import { a, div, h } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { ButtonPrimary, DeleteConfirmationModal, IdContainer, Link, spinnerOverlay } from 'src/components/common';
-import FooterWrapper from 'src/components/FooterWrapper';
+import { ButtonPrimary, IdContainer, Link, spinnerOverlay } from 'src/components/common';
 import { AdminNotifierCheckbox } from 'src/components/group-common';
 import { icon } from 'src/components/icons';
-import { DelayedSearchInput, ValidatedInput } from 'src/components/input';
-import LeaveResourceModal from 'src/components/LeaveResourceModal';
-import { PageBox, PageBoxVariants } from 'src/components/PageBox';
+import { ValidatedInput } from 'src/components/input';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import { TopBar } from 'src/components/TopBar';
+import GroupMenu from 'src/groups/GroupMenu';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { formHint, FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
-import { memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
-import * as StateHistory from 'src/libs/state-history';
+import { memoWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import GroupMenu from 'src/pages/groups/GroupMenu';
 import { validate } from 'validate.js';
 
 const groupNameValidator = (existing) => ({
@@ -37,7 +32,7 @@ const groupNameValidator = (existing) => ({
   },
 });
 
-const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
+export const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
   const [groupName, setGroupName] = useState('');
   const [groupNameTouched, setGroupNameTouched] = useState(false);
   const [allowAccessRequests, setAllowAccessRequests] = useState(true);
@@ -100,7 +95,7 @@ const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
 
 const columnWidths = '1fr 30% 6rem 20px';
 
-const GroupCardHeaders = memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
+export const GroupCardHeaders = memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
   return div(
     {
       role: 'row',
@@ -120,7 +115,7 @@ const GroupCardHeaders = memoWithName('GroupCardHeaders', ({ sort, onSort }) => 
   );
 });
 
-const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete, onLeave }) => {
+export const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete, onLeave }) => {
   const isAdmin = !!_.includes('admin', role);
 
   return div(
@@ -166,7 +161,7 @@ const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, r
   );
 });
 
-const NewGroupCard = ({ onClick }) => {
+export const NewGroupCard = ({ onClick }) => {
   return h(
     ButtonPrimary,
     {
@@ -177,7 +172,7 @@ const NewGroupCard = ({ onClick }) => {
   );
 };
 
-const noGroupsMessage = div({ style: { fontSize: 20, margin: '1rem 1rem 0' } }, [
+export const NoGroupsMessage = div({ style: { fontSize: 20, margin: '1rem 1rem 0' } }, [
   div(['Create a group to share your workspaces with others.']),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(
@@ -190,132 +185,3 @@ const noGroupsMessage = div({ style: { fontSize: 20, margin: '1rem 1rem 0' } }, 
     ),
   ]),
 ]);
-
-const GroupList = () => {
-  // State
-  const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
-  const [groups, setGroups] = useState(() => StateHistory.get().groups || null);
-  const [creatingNewGroup, setCreatingNewGroup] = useState(false);
-  const [deletingGroup, setDeletingGroup] = useState(false);
-  const [leavingGroup, setLeavingGroup] = useState(false);
-  const [updating, setUpdating] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' });
-
-  const signal = useCancellation();
-
-  // Helpers
-  const refresh = _.flow(
-    Utils.withBusyState(setBusy),
-    withErrorReporting('Error loading group list')
-  )(async () => {
-    setCreatingNewGroup(false);
-    setDeletingGroup(false);
-    setUpdating(false);
-
-    const rawGroups = await Ajax(signal).Groups.list();
-    const groups = _.flow(
-      _.groupBy('groupName'),
-      _.map((gs) => ({ ...gs[0], role: _.map('role', gs) })),
-      _.sortBy('groupName')
-    )(rawGroups);
-    setGroups(groups);
-  });
-
-  // Lifecycle
-  useOnMount(() => {
-    refresh();
-  });
-
-  useEffect(() => {
-    StateHistory.update({ filter, groups });
-  }, [filter, groups]);
-
-  // Render
-  const filteredGroups = _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups);
-
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Groups' }, [
-      h(DelayedSearchInput, {
-        'aria-label': 'Search groups',
-        style: { marginLeft: '2rem', width: 500 },
-        placeholder: 'SEARCH GROUPS',
-        onChange: setFilter,
-        value: filter,
-      }),
-    ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
-      div({ style: Style.cardList.toolbarContainer }, [
-        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, ['Group Management']),
-      ]),
-      div({ style: { marginTop: '1rem' } }, [
-        h(NewGroupCard, {
-          onClick: () => setCreatingNewGroup(true),
-        }),
-        Utils.cond(
-          [groups && _.isEmpty(groups), () => noGroupsMessage],
-          [
-            !_.isEmpty(groups) && _.isEmpty(filteredGroups),
-            () => {
-              return div({ style: { fontStyle: 'italic', marginTop: '1rem' } }, ['No matching groups']);
-            },
-          ],
-          () => {
-            return div({ role: 'table', 'aria-label': 'groups list' }, [
-              h(GroupCardHeaders, { sort, onSort: setSort }),
-              div({ style: { flexGrow: 1, marginTop: '1rem', display: 'grid', rowGap: '0.5rem' } }, [
-                _.map((group) => {
-                  return h(GroupCard, {
-                    group,
-                    key: `${group.groupName}`,
-                    onDelete: () => setDeletingGroup(group),
-                    onLeave: () => setLeavingGroup(group),
-                  });
-                }, _.orderBy([sort.field], [sort.direction], filteredGroups)),
-              ]),
-            ]);
-          }
-        ),
-        busy && spinnerOverlay,
-      ]),
-      creatingNewGroup &&
-        h(NewGroupModal, {
-          existingGroups: _.map('groupName', groups),
-          onDismiss: () => setCreatingNewGroup(false),
-          onSuccess: refresh,
-        }),
-      deletingGroup &&
-        h(DeleteConfirmationModal, {
-          objectType: 'group',
-          objectName: deletingGroup.groupName,
-          onConfirm: _.flow(
-            Utils.withBusyState(setBusy),
-            withErrorReporting('Error deleting group.')
-          )(async () => {
-            setDeletingGroup(false);
-            await Ajax().Groups.group(deletingGroup.groupName).delete();
-            refresh();
-          }),
-          onDismiss: () => setDeletingGroup(false),
-        }),
-      leavingGroup &&
-        h(LeaveResourceModal, {
-          samResourceId: leavingGroup.groupName,
-          samResourceType: 'managed-group',
-          displayName: 'group',
-          onDismiss: () => setLeavingGroup(false),
-          onSuccess: () => refresh(),
-        }),
-      updating && spinnerOverlay,
-    ]),
-  ]);
-};
-
-export const navPaths = [
-  {
-    name: 'groups',
-    path: '/groups',
-    component: GroupList,
-    title: 'Group Management',
-  },
-];
