@@ -8,10 +8,10 @@ import { AuthDomainPanel } from 'src/workspaces/dashboard/AuthDomainPanel';
 import { CloudInformation } from 'src/workspaces/dashboard/CloudInformation';
 import { DatasetAttributes } from 'src/workspaces/dashboard/DatasetAttributes';
 import { OwnerNotice } from 'src/workspaces/dashboard/OwnerNotice';
-import { RightBoxSection } from 'src/workspaces/dashboard/RightBoxSection';
 import { WorkspaceDescription } from 'src/workspaces/dashboard/WorkspaceDescription';
 import { WorkspaceInformation } from 'src/workspaces/dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/workspaces/dashboard/WorkspaceNotifications';
+import { WorkspaceRightBoxSection } from 'src/workspaces/dashboard/WorkspaceRightBoxSection';
 import { WorkspaceTags } from 'src/workspaces/dashboard/WorkspaceTags';
 import { canEditWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
 
@@ -50,35 +50,34 @@ export const WorkspaceDashboard = forwardRef(
       ]),
       div({ style: Style.dashboard.rightBox }, [
         h(
-          RightBoxSection,
+          WorkspaceRightBoxSection,
           {
             title: 'Workspace information',
             defaultPanelOpen: true,
             persistenceId: `${persistenceId}/workspaceInfoPanelOpen`,
-            workspaceProps: {
-              workspace,
-            },
+            workspace,
+            setPanelOpen(_: boolean): void {},
           },
           [h(WorkspaceInformation, { workspace })]
         ),
         h(
-          RightBoxSection,
+          WorkspaceRightBoxSection,
           {
             title: 'Cloud information',
             persistenceId: `${persistenceId}/cloudInfoPanelOpen`,
-            workspaceProps: { workspace },
+            workspace,
+            setPanelOpen(_: boolean): void {},
           },
           [h(CloudInformation, { workspace, storageDetails })]
         ),
         h(
-          RightBoxSection,
+          WorkspaceRightBoxSection,
           {
             title: 'Owners',
             persistenceId: `${persistenceId}/ownersPanelOpen`,
             afterTitle: OwnerNotice({ workspace }),
-            workspaceProps: {
-              workspace,
-            },
+            workspace,
+            setPanelOpen(_: boolean): void {},
           },
           [
             div(
@@ -95,21 +94,23 @@ export const WorkspaceDashboard = forwardRef(
         isGoogleWorkspace(workspace) &&
           !_.isEmpty(authorizationDomain) &&
           h(
-            RightBoxSection,
+            WorkspaceRightBoxSection,
             {
               title: 'Authorization domain',
               persistenceId: `${persistenceId}/authDomainPanelOpen`,
-              workspaceProps: { workspace },
+              workspace,
+              setPanelOpen(_: boolean): void {},
             },
             [h(AuthDomainPanel, { workspace })]
           ),
         h(WorkspaceTags, { workspace, canEdit }),
         h(
-          RightBoxSection,
+          WorkspaceRightBoxSection,
           {
             title: 'Notifications',
             persistenceId: `${persistenceId}/notificationsPanelOpen`,
-            workspaceProps: { workspace },
+            workspace,
+            setPanelOpen(_: boolean): void {},
           },
           [h(WorkspaceNotifications, { workspace })]
         ),
