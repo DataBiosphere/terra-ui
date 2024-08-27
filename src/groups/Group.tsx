@@ -59,7 +59,10 @@ const GroupDetails = ({ groupName }) => {
       (a, b) => {
         if (_.isArray(a)) return a.concat(b);
       },
-      [_.fromPairs(_.map((email) => [email, ['admin']], adminsEmails)), _.fromPairs(_.map((email) => [email, ['member']], membersEmails))]
+      [
+        _.fromPairs(_.map((email) => [email, ['admin']], adminsEmails)),
+        _.fromPairs(_.map((email) => [email, ['member']], membersEmails)),
+      ]
     );
     const members = _.flow(
       _.toPairs,
@@ -93,7 +96,9 @@ const GroupDetails = ({ groupName }) => {
     ]),
     h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
       div({ style: Style.cardList.toolbarContainer }, [
-        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [`Group Management: ${groupName}`]),
+        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
+          `Group Management: ${groupName}`,
+        ]),
       ]),
       h(AdminNotifierCheckbox, {
         checked: allowAccessRequests,

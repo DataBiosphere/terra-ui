@@ -7,6 +7,7 @@ import { DelayedSearchInput } from 'src/components/input';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import TopBar from 'src/components/TopBar';
+import { GroupCard, GroupCardHeaders, NewGroupCard, NewGroupModal, NoGroupsMessage } from 'src/groups/List';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { withErrorReporting } from 'src/libs/error';
@@ -14,7 +15,6 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { GroupCard, GroupCardHeaders, NewGroupCard, NewGroupModal, NoGroupsMessage } from 'src/pages/groups/List';
 
 interface GroupSort {
   field: keyof CurrentUserGroupMembership;
