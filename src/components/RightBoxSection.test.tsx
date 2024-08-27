@@ -4,6 +4,7 @@ import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
+import { WorkspaceRightBoxSection } from 'src/workspaces/dashboard/WorkspaceRightBoxSection';
 
 import { RightBoxSection } from './RightBoxSection';
 
@@ -28,7 +29,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     await act(async () => {
-      render(<RightBoxSection title='Test Title' persistenceId='testId' workspaceProps={{ workspace }} />);
+      render(<RightBoxSection title='Test Title' persistenceId='testId' setPanelOpen={() => void {}} />);
     });
     // Assert
     expect(screen.getByText('Test Title')).toBeInTheDocument();
@@ -38,7 +39,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     render(
-      <RightBoxSection title='Test Title' persistenceId='testId' workspaceProps={{ workspace }}>
+      <RightBoxSection title='Test Title' persistenceId='testId' setPanelOpen={() => void {}}>
         Panel Content
       </RightBoxSection>
     );
@@ -54,13 +55,27 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     render(
-      <RightBoxSection title='Test Title' persistenceId='metricsId' workspaceProps={{ workspace }}>
-        Panel Content
-      </RightBoxSection>
+      <>
+        <WorkspaceRightBoxSection
+          title='Test Title'
+          persistenceId='metricsId'
+          setPanelOpen={() => false}
+          workspace={workspace}
+          defaultPanelOpen
+        />
+        <RightBoxSection
+          title='Test Title'
+          persistenceId='metricsId'
+          setPanelOpen={jest.fn()}
+          fnCallback={captureEvent}
+        >
+          Panel Content
+        </RightBoxSection>
+      </>
     );
-    const titleElement = screen.getByText('Test Title');
-    fireEvent.click(titleElement);
-    fireEvent.click(titleElement);
+    const titleElement = screen.getAllByText('Test Title');
+    fireEvent.click(titleElement[0]);
+    fireEvent.click(titleElement[0]);
 
     // Assert
     expect(captureEvent).toHaveBeenNthCalledWith(1, Events.workspaceDashboardToggleSection, {
