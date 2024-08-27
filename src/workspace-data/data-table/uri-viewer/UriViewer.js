@@ -5,7 +5,6 @@ import { Fragment, useState } from 'react';
 import { div, h, p, pre, span } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import { LabeledRadioButton, LabeledRadioGroup } from 'src/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton';
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
@@ -15,6 +14,7 @@ import colors from 'src/libs/colors';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
 
 import { FileProvenance } from '../../provenance/FileProvenance';
 import els from './uri-viewer-styles';

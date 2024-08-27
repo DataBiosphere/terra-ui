@@ -2,7 +2,7 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { locationTypes } from 'src/components/region-common';
-import { RequesterPaysErrorInfo } from 'src/libs/ajax/ajax-common';
+import { RequesterPaysErrorInfo } from 'src/libs/ajax/google-storage-models';
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
 import { AzureWorkspace, GoogleWorkspace, phiTrackingPolicy, WorkspacePolicy } from 'src/workspaces/utils';
 

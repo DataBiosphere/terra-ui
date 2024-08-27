@@ -1,17 +1,17 @@
 import _ from 'lodash/fp';
 import { Fragment, ReactNode, useCallback, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
-import { isBucketErrorRequesterPays, requesterPaysWrapper } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
-import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { requesterPaysProjectStore } from 'src/libs/state';
+import { isBucketErrorRequesterPays, requesterPaysWrapper } from 'src/workspaces/common/requester-pays/bucket-utils';
+import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { GoogleWorkspace } from 'src/workspaces/utils';
 

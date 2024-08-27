@@ -29,7 +29,6 @@ import {
   ToolLabel,
 } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { withViewToggle } from 'src/components/CardsListToggle';
 import {
   ButtonOutline,
@@ -66,6 +65,7 @@ import { userStore } from 'src/libs/state';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
 import { AppDetails } from 'src/workspaces/common/state/useAppPolling';
 import { CloudEnvironmentDetails } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { InitializedWorkspaceWrapper, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
