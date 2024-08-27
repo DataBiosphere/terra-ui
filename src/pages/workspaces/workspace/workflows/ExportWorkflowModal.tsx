@@ -6,7 +6,6 @@ import ErrorView from 'src/components/ErrorView';
 import { ValidatedInput } from 'src/components/input';
 import { ExportWorkflowToWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import { FormLabel } from 'src/libs/forms';
-import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 import { workflowNameValidation } from 'src/libs/workflow-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
@@ -20,7 +19,7 @@ export interface ExportWorkflowModalProps {
   title: string;
   buttonText: string;
   exportProvider: ExportWorkflowToWorkspaceProvider;
-  showPostExportModal?: boolean;
+  onGoToExportedWorkflow?: (selectedWorkspace: WorkspaceInfo, workflowName: string) => void;
 
   // now called regardless of the value of sameWorkspace, and only if defined
   onSuccess?: () => void;
@@ -35,7 +34,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
     title,
     buttonText,
     exportProvider,
-    showPostExportModal = false,
+    onGoToExportedWorkflow,
     onSuccess,
     onDismiss,
   } = props;
@@ -74,7 +73,9 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
         setExporting(true);
         await exportProvider.export(selectedWorkspace, workflowName);
         onSuccess?.();
-        if (showPostExportModal) {
+
+        // If the post-export modal should be shown
+        if (onGoToExportedWorkflow) {
           setExported(true);
         }
       } catch (error) {
@@ -131,19 +132,13 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
 
   const renderPostExport = () => {
     // Note: selectedWorkspace cannot be undefined because if it were, the
-    // export would have failed and this modal would not be able to appear
+    // export would have failed and this modal would not be able to appear;
+    // onGoToExportedWorkflow cannot be undefined because if it were,
+    // exported could not have been set to true and this modal would not be
+    // able to appear
 
     const okButton = (
-      <ButtonPrimary
-        onClick={() =>
-          Nav.goToPath('workflow', {
-            namespace: selectedWorkspace!.namespace,
-            name: selectedWorkspace!.name,
-            workflowNamespace: selectedWorkspace!.namespace,
-            workflowName,
-          })
-        }
-      >
+      <ButtonPrimary onClick={() => onGoToExportedWorkflow!(selectedWorkspace!, workflowName)}>
         Go to exported workflow
       </ButtonPrimary>
     );

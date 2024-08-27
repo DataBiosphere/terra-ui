@@ -1320,7 +1320,13 @@ export const WorkflowView = _.flow(
               title: 'Copy to Workspace',
               buttonText: 'Copy',
               exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
-              showPostExportModal: true,
+              onGoToExportedWorkflow: (selectedWorkspace, workflowName) =>
+                Nav.goToPath('workflow', {
+                  namespace: selectedWorkspace.namespace,
+                  name: selectedWorkspace.name,
+                  workflowNamespace: selectedWorkspace.namespace,
+                  workflowName,
+                }),
               onDismiss: () => this.setState({ exporting: false }),
             }),
           copying &&
@@ -1330,7 +1336,6 @@ export const WorkflowView = _.flow(
               title: 'Duplicate Workflow',
               buttonText: 'Copy',
               exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
-              showPostExportModal: false,
               onDismiss: () => this.setState({ copying: false }),
               onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName }),
             }),
