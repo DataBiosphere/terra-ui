@@ -1318,7 +1318,7 @@ export const WorkflowView = _.flow(
                 return workspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
               },
               title: 'Copy to Workspace',
-              buttonText: 'Copy',
+              exportButtonText: 'Copy',
               exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
               onGoToExportedWorkflow: (selectedWorkspace, workflowName) =>
                 Nav.goToPath('workflow', {
@@ -1334,7 +1334,7 @@ export const WorkflowView = _.flow(
               defaultWorkflowName: `${savedConfig.name}_copy`,
               destinationWorkspace: workspace,
               title: 'Duplicate Workflow',
-              buttonText: 'Copy',
+              exportButtonText: 'Copy',
               exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
               onDismiss: () => this.setState({ copying: false }),
               onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName }),

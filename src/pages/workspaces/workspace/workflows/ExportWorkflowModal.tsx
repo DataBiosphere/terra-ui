@@ -17,7 +17,7 @@ export interface ExportWorkflowModalProps {
   defaultWorkflowName: string;
   destinationWorkspace: WorkspaceInfo | ((workspace: WorkspaceWrapper) => boolean);
   title: string;
-  buttonText: string;
+  exportButtonText: string;
   exportProvider: ExportWorkflowToWorkspaceProvider;
   onGoToExportedWorkflow?: (selectedWorkspace: WorkspaceInfo, workflowName: string) => void;
 
@@ -32,7 +32,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
     defaultWorkflowName,
     destinationWorkspace,
     title,
-    buttonText,
+    exportButtonText,
     exportProvider,
     onGoToExportedWorkflow,
     onSuccess,
@@ -97,7 +97,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
 
     const okButton = (
       <ButtonPrimary tooltip={Utils.summarizeErrors(errors)} disabled={!!errors} onClick={doExport}>
-        {buttonText}
+        {exportButtonText}
       </ButtonPrimary>
     );
 
