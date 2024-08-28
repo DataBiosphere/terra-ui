@@ -141,9 +141,10 @@ export const AzureBillingProjectWizard = ({ onSuccess }: AzureBillingProjectWiza
         intro={
           <>
             <p>
-              The linked subscription is required to cover all Azure data storage, compute and egress costs incurred in
-              a Terra workspace. Cloud costs are billed directly from Azure and passed through Terra billing projects
-              with no markup.
+              To access the Terra managed application in the Azure Marketplace, please contact
+              terra-enterprise@broadinstitute.org and provide your Azure Subscription ID. The linked subscription is
+              required to cover all Azure data storage, compute and egress costs incurred in a Terra workspace. Cloud
+              costs are billed directly from Azure and passed through Terra billing projects with no markup.
             </p>
             {isAnvil() && (
               <p style={{ fontWeight: 'bold' }}>
