@@ -1,6 +1,7 @@
 import { ButtonPrimary, Modal } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
-import { TextInput, ValidatedInput } from 'src/components/input';
+import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
+import WDLViewer from 'src/components/WDLViewer';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 import { WDLEditor } from 'src/pages/workflows/common/WDLEditor';
@@ -125,7 +126,32 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
   );
 };
 
+const WdlBoxSection = (props: WdlBoxSectionProps) => {
+  const { wdlPayload, setWdlPayload } = props;
+  return (
+    <>
+      {/* <div style={{ display: 'flex', alignItems: 'center' }}> */}
+      <FormLabel>WDL</FormLabel>
+      {/* <Dropzone */}
+      {/*   accept='.wdl' */}
+      {/*   multiple={false} */}
+      {/*   // onDropAccepted={async (file) => setWdlPayload(await readFileAsText(file))} */}
+      {/* > */}
+      {/*   {({ openUploader }) => ( */}
+      {/* <Link href=''>Load from file...</Link> */}
+      {/*   )} */}
+      {/* </Dropzone> */}
+      {/* </div> */}
+
+      <WDLViewer wdl='hi' canedit='true' style={{ maxHeight: '300px' }}>
+        <TextArea style={{ height: '300px' }} value={wdlPayload} onChange={(v: string) => setWdlPayload(v)} />
+      </WDLViewer>
+    </>
+  );
+};
+
 export const WorkflowModal = (props: WorkflowModalProps) => {
+  const [wdlPayload, setWdlPayload] = useState<string>('');
   const {
     setCreateWorkflowModalOpen,
     title,
@@ -148,6 +174,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         setCreateWorkflowModalOpen(false);
         setWorkflowNamespace('');
         setWorkflowName('');
+        setWdlPayload('');
       }}
       title={title}
       width='75rem'
