@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { div, span } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { HeaderAndValues } from 'src/dataset-builder/DatasetBuilder';
 import {
   AnySnapshotBuilderCriteria,
@@ -167,7 +167,7 @@ export const HighlightSearchText = (props: HighlightSearchTextProps): ReactEleme
     span([columnItem.substring(0, startIndex)]),
     span({ style: { fontWeight: 600 } }, [columnItem.substring(startIndex, endIndex)]),
     span([
-      HighlightSearchText({
+      h(HighlightSearchText, {
         columnItem: columnItem.substring(endIndex),
         searchFilter,
         style: { display: 'inline' },
