@@ -97,9 +97,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   // should be shown
   const [exporting, setExporting] = useState<boolean>(false);
 
-  // whether the export was successfully completed and the post-export modal
-  // should be shown
-  const [exported, setExported] = useState<boolean>(false);
+  const [showingPostExportModal, setShowingPostExportModal] = useState<boolean>(false);
 
   const { workspaces } = useWorkspaces();
 
@@ -121,9 +119,8 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
         await exportProvider.export(selectedWorkspace, workflowName);
         onSuccess?.();
 
-        // If the post-export modal should be shown
         if (onGoToExportedWorkflow) {
-          setExported(true);
+          setShowingPostExportModal(true);
         }
       } catch (error) {
         setError(error instanceof Response ? await error.text() : error);
@@ -199,7 +196,7 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   };
 
   // Render
-  return exported ? renderPostExport() : renderExportForm();
+  return showingPostExportModal ? renderPostExport() : renderExportForm();
 };
 
 export default ExportWorkflowModal;
