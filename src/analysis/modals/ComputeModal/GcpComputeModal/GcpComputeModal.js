@@ -234,7 +234,7 @@ export const GcpComputeModalBase = ({
   const [isCustomSelectedImage, setIsCustomSelectedImage] = useState(false);
   const [customImageUrl, setCustomImageUrl] = useState('');
   const [timeoutInMinutes, setTimeoutInMinutes] = useState(null);
-  const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('');
+  const [jupyterStartUserScriptUri, setJupyterStartUserScriptUri] = useState('');
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm);
   const [computeConfig, setComputeConfig] = useState({
     bootDiskSize: defaultGceBootDiskSize,
@@ -403,7 +403,7 @@ export const GcpComputeModalBase = ({
               saturnWorkspaceName: name,
             },
             customEnvironmentVariables: customEnvVars,
-            ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {}),
+            ...(desiredRuntime.jupyterStartUserScriptUri ? { jupyterStartUserScriptUri: desiredRuntime.jupyterStartUserScriptUri } : {}),
           });
       }
     }
@@ -443,7 +443,7 @@ export const GcpComputeModalBase = ({
       !desiredRuntime ||
       desiredRuntime.cloudService !== existingRuntime.cloudService ||
       desiredRuntime.toolDockerImage !== existingRuntime.toolDockerImage ||
-      desiredRuntime.jupyterUserScriptUri !== existingRuntime.jupyterUserScriptUri ||
+      desiredRuntime.jupyterStartUserScriptUri !== existingRuntime.jupyterStartUserScriptUri ||
       (desiredRuntime.cloudService === cloudServices.GCE
         ? desiredRuntime.persistentDiskAttached !== existingRuntime.persistentDiskAttached ||
           desiredAutopauseThreshold !== existingAutopauseThreshold ||
@@ -487,7 +487,7 @@ export const GcpComputeModalBase = ({
               cloudService,
               toolDockerImage: isCustomSelectedImage ? customImageUrl : selectedImage?.url,
               tool: selectedImage?.toolLabel ?? getToolLabelFromCloudEnv(existingRuntime),
-              ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {}),
+              ...(jupyterStartUserScriptUri ? { jupyterStartUserScriptUri } : {}),
               ...(timeoutInMinutes ? { timeoutInMinutes } : {}),
               ...(cloudService === cloudServices.GCE
                 ? {
@@ -792,7 +792,7 @@ export const GcpComputeModalBase = ({
             }
           : null
       );
-      setJupyterUserScriptUri(runtimeDetails?.jupyterUserScriptUri ?? '');
+      setJupyterStartUserScriptUri(runtimeDetails?.jupyterStartUserScriptUri ?? '');
 
       const runtimeImageUrl = getImageUrlFromRuntime(runtimeDetails);
       const locationType = getLocationType(location);
@@ -1020,8 +1020,8 @@ export const GcpComputeModalBase = ({
               h(TextInput, {
                 id,
                 placeholder: 'URI',
-                value: jupyterUserScriptUri,
-                onChange: setJupyterUserScriptUri,
+                value: jupyterStartUserScriptUri,
+                onChange: setJupyterStartUserScriptUri,
               }),
             ]),
           ]),

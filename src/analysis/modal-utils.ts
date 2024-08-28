@@ -53,9 +53,9 @@ export const buildExistingEnvironmentConfig = (
           cloudService,
           toolDockerImage: getImageUrlFromRuntime(currentRuntimeDetails),
           tool: toolLabel,
-          ...(currentRuntimeDetails?.jupyterUserScriptUri
+          ...(currentRuntimeDetails?.jupyterStartUserScriptUri
             ? {
-                jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
+                jupyterStartUserScriptUri: currentRuntimeDetails?.jupyterStartUserScriptUri,
               }
             : {}),
           ...(currentRuntimeDetails?.timeoutInMinutes
