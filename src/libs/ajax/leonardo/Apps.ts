@@ -96,9 +96,6 @@ export const Apps = (signal: AbortSignal) => ({
     const body = {
       appType,
       accessScope,
-      labels: {
-        saturnAutoCreated: 'true',
-      },
     };
     const res = fetchLeo(
       `api/apps/v2/${workspaceId}/${appName}`,
