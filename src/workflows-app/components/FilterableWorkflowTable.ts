@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { FlexTable, paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
+import { FlexTable, Paginator, Sortable, tableHeight, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -322,13 +322,14 @@ const FilterableWorkflowTable = ({
                     'aria-label': 'previous runs',
                     width,
                     height,
-                    // @ts-expect-error
-                    sort,
+                    sort: sort as any, // necessary until FlexTable is converted to TS
                     rowCount: paginatedPreviousRuns.length,
                     noContentMessage: 'Nothing here yet! Your previously run workflows will be displayed here.',
                     hoverHighlight: true,
                     rowHeight,
                     rowWidth,
+                    variant: null,
+                    tabIndex: -1,
                     columns: [
                       {
                         size: { basis: 350 },
@@ -536,7 +537,7 @@ const FilterableWorkflowTable = ({
       !_.isEmpty(sortedPreviousRuns) &&
         div({ style: { marginBottom: '1.5rem', right: '4rem' } }, [
           // @ts-expect-error
-          paginator({
+          Paginator({
             filteredDataLength: sortedPreviousRuns.length,
             unfilteredDataLength: sortedPreviousRuns.length,
             pageNumber,

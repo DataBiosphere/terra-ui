@@ -1,5 +1,7 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
-import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-session';
+import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import {
   RecordQueryResponse,
   RecordResponseBody,
@@ -156,9 +158,19 @@ export const WorkspaceData = (signal) => ({
     const res = await fetchWDS(root)('status', _.merge(authOpts(), { signal }));
     return res.json();
   },
-  listInstances: async (root: string): Promise<any> => {
-    const res = await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal }));
-    return res.json();
+  listCollections: async (root: string, workspaceId: string): Promise<any> => {
+    try {
+      const response = await fetchWDS(root)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
+      const data = await response.json();
+      return data.map((collection) => collection.id);
+    } catch (error) {
+      if (error instanceof Response && error.status === 404) {
+        return await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal })).then((response) =>
+          response.json()
+        );
+      }
+      throw error;
+    }
   },
   getCloneStatus: async (root: string): Promise<WDSCloneStatusResponse> => {
     const res = await fetchWDS(root)('clone/v0.2', _.merge(authOpts(), { signal }));
@@ -175,8 +187,8 @@ export const WorkspaceData = (signal) => ({
     );
     return await res.json();
   },
-  queryRecords: async (root: string, instanceId: string, wdsType: string): Promise<any> => {
-    const searchPayload = { limit: 100 };
+  queryRecords: async (root: string, instanceId: string, wdsType: string, searchLimit: number): Promise<any> => {
+    const searchPayload = { limit: searchLimit };
     const res = await fetchWDS(root)(
       `${instanceId}/search/v0.2/${wdsType}`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody(searchPayload)])

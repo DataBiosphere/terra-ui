@@ -501,7 +501,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await signIntoTerra(page, { token });
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await dismissInfoNotifications(page);
-  await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName);
+  await fillIn(page, input({ placeholder: 'Search by name, project, or bucket' }), workspaceName);
   // Wait for workspace table to rerender filtered items
   await delay(Millis.ofSecond);
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) });

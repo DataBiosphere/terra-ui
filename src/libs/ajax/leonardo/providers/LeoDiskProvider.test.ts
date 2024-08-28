@@ -1,3 +1,4 @@
+import { RawGetDiskItem } from '@terra-ui-packages/leonardo-data-client';
 import { generateTestDisk, getPersistentDiskDetail, undecoratePd } from 'src/analysis/_testData/testData';
 import {
   Disks,
@@ -5,7 +6,6 @@ import {
   DisksContractV2,
   DisksDataClientContract,
   DiskWrapperContract,
-  RawGetDiskItem,
 } from 'src/libs/ajax/leonardo/Disks';
 import { asMockedFn } from 'src/testing/test-utils';
 

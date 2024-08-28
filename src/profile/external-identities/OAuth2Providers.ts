@@ -1,6 +1,6 @@
 import { getConfig } from 'src/libs/config';
 
-export type OAuth2ProviderKey = 'github' | 'ras' | 'fence' | 'dcf-fence' | 'kids-first' | 'anvil';
+export type OAuth2ProviderKey = 'github' | 'ras' | 'era-commons' | 'fence' | 'dcf-fence' | 'kids-first' | 'anvil';
 export type OAuth2Callback =
   | { name: 'oauth-callback'; link: 'oauth_callback' }
   | { name: 'ecm-callback'; link: 'ecm-callback' }
@@ -44,6 +44,19 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         short: 'RAS',
         queryParams: {
           scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+          redirectUri: createRedirectUri('ecm-callback'),
+        },
+        supportsAccessToken: false,
+        supportsIdToken: false, // turning off clipboard copying for now.
+        isFence: false,
+      };
+    case 'era-commons':
+      return {
+        key: providerKey,
+        name: 'eRA Commons',
+        short: 'eRA Commons',
+        queryParams: {
+          scopes: ['openid', 'email', 'profile'],
           redirectUri: createRedirectUri('ecm-callback'),
         },
         supportsAccessToken: false,

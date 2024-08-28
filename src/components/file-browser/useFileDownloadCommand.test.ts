@@ -36,12 +36,12 @@ describe('useFileDownloadCommand', () => {
     // Act
     const { result: hookReturnRef } = renderHook(() => useFileDownloadCommand({ file, provider: mockProvider }));
     await act(async () => {
-      getDownloadCommandForFileController.resolve('gsutil cp gs://test-bucket/path/to/example.txt .');
+      getDownloadCommandForFileController.resolve('gcloud storage cp gs://test-bucket/path/to/example.txt .');
     });
     const result = hookReturnRef.current;
 
     // Assert
-    expect(result).toEqual({ status: 'Ready', state: 'gsutil cp gs://test-bucket/path/to/example.txt .' });
+    expect(result).toEqual({ status: 'Ready', state: 'gcloud storage cp gs://test-bucket/path/to/example.txt .' });
   });
 
   it('handles errors', async () => {

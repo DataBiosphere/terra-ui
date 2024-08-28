@@ -1,7 +1,7 @@
 import { abandonedPromise } from '@terra-ui-packages/core-utils';
 import { act } from '@testing-library/react';
 import _ from 'lodash/fp';
-import { refreshTerraProfile } from 'src/auth/auth';
+import { refreshTerraProfile } from 'src/auth/user-profile/user';
 import { User } from 'src/libs/ajax/User';
 import { reportError } from 'src/libs/error';
 import { TerraUserProfile, userStore } from 'src/libs/state';
@@ -17,13 +17,12 @@ jest.mock('src/libs/ajax/User', (): UserExports => {
   };
 });
 
-// Mock the entire auth module to work around the auth/ajax-common import cycle.
-jest.mock('src/auth/auth');
+jest.mock('src/auth/user-profile/user');
 
 type SignOutExports = typeof import('src/auth/signout/sign-out');
 jest.mock(
   'src/auth/signout/sign-out',
-  (): SignOutExports => ({
+  (): Partial<SignOutExports> => ({
     signOut: jest.fn(),
     userSignedOut: jest.fn(),
   })

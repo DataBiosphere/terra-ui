@@ -44,7 +44,7 @@ const paginatorButton = (props, label) =>
  * @param {number} props.itemsPerPage
  * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
  */
-export const paginator = ({
+export const Paginator = ({
   filteredDataLength,
   unfilteredDataLength,
   pageNumber,
@@ -536,7 +536,9 @@ export const GridTable = forwardRefWithName(
       recomputeColumnSizes: () => {
         header.current.recomputeGridSize();
         body.current.recomputeGridSize();
-        body.current.measureAllCells();
+        if (rowCount > 0) {
+          body.current.measureAllCells();
+        }
       },
       scrollToTop: () => {
         body.current.scrollToPosition({ scrollTop: 0, scrollLeft: 0 });

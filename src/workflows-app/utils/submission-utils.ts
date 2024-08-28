@@ -24,6 +24,12 @@ export const AutoRefreshInterval = 1000 * 60; // 1 minute
 export const WdsPollInterval = 1000 * 30; // 30 seconds
 export const CbasPollInterval = 1000 * 30; // 30 seconds
 
+export const CbasDefaultSubmissionLimits = {
+  maxWorkflows: 100,
+  maxInputs: 200,
+  maxOutputs: 300,
+};
+
 export type InputTableData = {
   configurationIndex: number;
   inputTypeStr: string;

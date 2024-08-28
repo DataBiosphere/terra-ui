@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, p, pre, span } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
+import { LabeledRadioButton, LabeledRadioGroup } from 'src/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
 import { Link } from 'src/components/common';
@@ -14,6 +14,7 @@ import colors from 'src/libs/colors';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
 
 import { FileProvenance } from '../../provenance/FileProvenance';
 import els from './uri-viewer-styles';
@@ -32,6 +33,10 @@ export const UriViewer = _.flow(
   const signal = useCancellation();
   const [metadata, setMetadata] = useState();
   const [loadingError, setLoadingError] = useState(false);
+  const [useFileName, setUseFileName] = useState(true);
+  const toggleUseFileName = () => {
+    setUseFileName((prevUseFileName) => !prevUseFileName);
+  };
 
   const loadMetadata = async () => {
     try {
@@ -95,11 +100,30 @@ export const UriViewer = _.flow(
     const { bucket, name } = metadata;
     const gsUri = `gs://${bucket}/${name}`;
     const downloadCommand = isAzureUri(uri)
-      ? getDownloadCommand(metadata.name, getAzureStorageUrl(metadata), metadata.accessUrl)
-      : getDownloadCommand(metadata.name, gsUri, metadata.accessUrl);
+      ? getDownloadCommand(metadata.name, getAzureStorageUrl(metadata), useFileName, metadata.accessUrl)
+      : getDownloadCommand(metadata.name, gsUri, useFileName, metadata.accessUrl);
 
     return h(Fragment, [
-      p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Terminal download command']),
+      p({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Terminal download command']),
+      p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, ['Download to:']),
+      div({ marginBottom: '0.5rem' }, [
+        h(LabeledRadioGroup, { style: { marginTop: 0, marginBottom: 0 } }, [
+          LabeledRadioButton({
+            text: 'Current Directory',
+            name: 'current-directory',
+            checked: !useFileName,
+            onChange: toggleUseFileName,
+            labelStyle: { color: 'black', fontWeight: 250 },
+          }),
+          LabeledRadioButton({
+            text: 'New Subdirectory',
+            name: 'new-subdirectory',
+            checked: useFileName,
+            onChange: toggleUseFileName,
+            labelStyle: { color: 'black', fontWeight: 250 },
+          }),
+        ]),
+      ]),
       pre(
         {
           style: {
@@ -110,6 +134,7 @@ export const UriViewer = _.flow(
             background: colors.light(0.4),
           },
         },
+
         [
           span(
             {

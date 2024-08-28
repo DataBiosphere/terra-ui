@@ -182,4 +182,58 @@ describe('CloudInformation', () => {
     );
     expect(clipboard.writeText).toHaveBeenCalledWith(defaultGoogleWorkspace.workspace.bucketName);
   });
+
+  it('can use the info button to display additional information about cost', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mockBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 15, lastUpdated: '2024-07-15' });
+    const mockStorageCostEstimate = jest.fn().mockResolvedValue({
+      estimate: '2 dollars',
+      lastUpdated: '2024-07-15',
+    });
+    asMockedFn(Ajax).mockReturnValue({
+      Workspaces: {
+        workspace: jest.fn().mockReturnValue({
+          storageCostEstimate: mockStorageCostEstimate,
+          bucketUsage: mockBucketUsage,
+        }),
+      },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
+    render(
+      h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
+    );
+    await user.click(screen.getByLabelText('More info'));
+
+    // Assert
+    expect(
+      screen.getAllByText('Based on list price. Does not include savings from Autoclass or other discounts.')
+    ).not.toBeNull();
+  });
+
+  it('displays bucket size for users with reader access', async () => {
+    // Arrange
+    const mockBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 50, lastUpdated: '2024-07-26' });
+    asMockedFn(Ajax).mockReturnValue({
+      Workspaces: {
+        workspace: jest.fn().mockReturnValue({ bucketUsage: mockBucketUsage }),
+      },
+    } as DeepPartial<AjaxContract> as AjaxContract);
+
+    // Act
+    await act(() =>
+      render(
+        h(CloudInformation, {
+          workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true, accessLevel: 'READER' },
+          storageDetails,
+        })
+      )
+    );
+
+    // Assert
+    expect(screen.getByText('Updated on 7/26/2024')).not.toBeNull();
+    expect(screen.getByText('50 B')).not.toBeNull();
+    expect(mockBucketUsage).toHaveBeenCalled();
+  });
 });

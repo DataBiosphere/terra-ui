@@ -93,23 +93,29 @@ describe('CohortEditor', () => {
       })
     );
 
+  beforeEach(() => {
+    mockDataRepo([getSnapshotBuilderCountMock()]);
+  });
+
   it('renders unknown criteria', async () => {
     // Arrange
-    mockDataRepo([getSnapshotBuilderCountMock(0)]);
     const criteria = { name: 'bogus', invalid: 'property' };
+    let consoleError = '';
     // This should error fetching the count because the conversion to API counts to generate counts should fail
-    jest.spyOn(console, 'error').mockImplementation((error) => expect(error).toBe('Error fetching count for criteria'));
+    jest.spyOn(console, 'error').mockImplementation((error) => {
+      consoleError = error;
+    });
 
     // The 'as any' is required to create an invalid criteria for testing purposes.
     renderCriteriaView({ criteria: criteria as any });
     // Assert
     expect(await screen.findByText('Unknown criteria')).toBeTruthy();
     expect(screen.queryByText(criteria.name)).toBeFalsy();
+    expect(consoleError).toBe('Error getting criteria group count');
   });
 
   it('renders domain criteria', async () => {
     // Arrange
-    mockDataRepo([getSnapshotBuilderCountMock(0)]);
     const criteria: ProgramDomainCriteria = {
       kind: 'domain',
       conceptId: 0,
@@ -135,7 +141,6 @@ describe('CohortEditor', () => {
 
   it('renders list criteria', async () => {
     // Arrange
-    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -154,7 +159,6 @@ describe('CohortEditor', () => {
     // Arrange
     const user = userEvent.setup();
     const updateCriteria = jest.fn();
-    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       name: 'list',
@@ -214,7 +218,6 @@ describe('CohortEditor', () => {
 
   it('allows number inputs for range criteria', async () => {
     // Arrange
-    mockDataRepo([getSnapshotBuilderCountMock()]);
     const user = userEvent.setup();
     const criteria = criteriaFromOption(0, {
       id: 0,
@@ -242,7 +245,6 @@ describe('CohortEditor', () => {
 
   it('renders accessible slider handles', async () => {
     // Arrange
-    mockDataRepo([getSnapshotBuilderCountMock()]);
     const min = 55;
     const max = 99;
 
@@ -273,7 +275,6 @@ describe('CohortEditor', () => {
 
   it('can delete criteria', async () => {
     // Arrange
-    mockDataRepo([getSnapshotBuilderCountMock()]);
     const criteria = criteriaFromOption(0, {
       id: 0,
       tableName: 'person',
@@ -307,7 +308,7 @@ describe('CohortEditor', () => {
       ...args,
     };
     const cohort = newCohort('cohort');
-    const criteriaGroup = newCriteriaGroup();
+    const criteriaGroup = cohort.criteriaGroups[0];
     if (initializeGroup) {
       initializeGroup(criteriaGroup);
     }
@@ -337,7 +338,7 @@ describe('CohortEditor', () => {
     // Arrange
     const count = 12345;
     mockDataRepo([getSnapshotBuilderCountMock(count)]);
-    const { cohort } = showCriteriaGroup({
+    showCriteriaGroup({
       initializeGroup: (criteriaGroup) => {
         criteriaGroup.meetAll = false;
         criteriaGroup.mustMeet = false;
@@ -346,9 +347,8 @@ describe('CohortEditor', () => {
     // Assert
     expect(screen.getByText('Must not')).toBeTruthy();
     expect(screen.getByText('any')).toBeTruthy();
-    const criteriaGroup = cohort.criteriaGroups[0];
     expect(await screen.findByText(`${count}`, { exact: false })).toBeTruthy();
-    expect(screen.getByText(criteriaGroup.name)).toBeTruthy();
+    expect(screen.getByText('Group 1')).toBeTruthy();
   });
 
   it('can delete criteria group', async () => {
@@ -356,10 +356,10 @@ describe('CohortEditor', () => {
     const { cohort, updateCohort } = showCriteriaGroup();
     const user = userEvent.setup();
     // Act
-    await user.click(screen.getByLabelText('delete group'));
+    await user.click(screen.getByLabelText('delete group 1'));
     // Assert
     expect(updateCohort).toHaveBeenCalled();
-    expect(updateCohort.mock.calls[0][0](cohort)).toStrictEqual(newCohort('cohort'));
+    expect(updateCohort.mock.calls[0][0](cohort)).toStrictEqual({ name: 'cohort', criteriaGroups: [] });
   });
 
   it('can modify criteria group', async () => {
@@ -424,9 +424,49 @@ describe('CohortEditor', () => {
     expect(updatedCohort.criteriaGroups[0].criteria).toMatchObject([]);
   });
 
+  it('produces user understandable criteria group names after deletion', async () => {
+    // Arrange
+    showCohortEditor();
+    const user = userEvent.setup();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    await user.click(screen.getByLabelText('delete group 1'));
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+  });
+
+  it('can add/delete criteria groups and maintain user understandable names', async () => {
+    // Arrange
+    showCohortEditor();
+    const user = userEvent.setup();
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 2')).toBeTruthy();
+    // Act
+    await user.click(screen.getByLabelText('delete group 2'));
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+    expect(screen.getByText('Group 2')).toBeTruthy();
+    // Act
+    await user.click(screen.getByText('Add group'));
+    // Assert
+    expect(screen.getByText('Group 3')).toBeTruthy();
+    // Act
+    await user.click(screen.getByLabelText('delete group 2'));
+    // Assert
+    expect(screen.getByText('Group 1')).toBeTruthy();
+    expect(screen.getByText('Group 2')).toBeTruthy();
+  });
+
   function showCohortEditor(originalCohort = newCohort('my cohort name')) {
     const onStateChange = jest.fn();
     const updateCohorts = jest.fn();
+    const addSelectedCohort = jest.fn();
 
     render(
       h(CohortEditor, {
@@ -435,28 +475,30 @@ describe('CohortEditor', () => {
         snapshotBuilderSettings,
         originalCohort,
         updateCohorts,
+        addSelectedCohort,
         getNextCriteriaIndex,
       })
     );
-    return { originalCohort, onStateChange, updateCohorts };
+    return { originalCohort, onStateChange, updateCohorts, addSelectedCohort };
   }
 
-  it('renders a cohort', () => {
+  it('renders a cohort', async () => {
     // Arrange
     const { originalCohort } = showCohortEditor();
     // Assert
-    expect(screen.getByText(originalCohort.name)).toBeTruthy();
+    expect(await screen.findByText(originalCohort.name)).toBeTruthy();
   });
 
   it('saves a cohort', async () => {
     // Arrange
-    const { originalCohort, onStateChange, updateCohorts } = showCohortEditor();
+    const { originalCohort, onStateChange, updateCohorts, addSelectedCohort } = showCohortEditor();
     const user = userEvent.setup();
     // Act
     await user.click(screen.getByText('Save cohort'));
     // Assert
     expect(onStateChange).toBeCalledWith(homepageState.new());
     expect(updateCohorts.mock.calls[0][0]([])).toStrictEqual([originalCohort]);
+    expect(addSelectedCohort).toBeCalledWith(originalCohort);
   });
 
   it('cancels editing a cohort', async () => {
@@ -478,10 +520,10 @@ describe('CohortEditor', () => {
     await user.click(screen.getByText('Add group'));
     await user.click(screen.getByText('Save cohort'));
     // Assert
-    // Don't compare name since it's generated.
-    const { name: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
+    // Don't compare id since it's generated.
+    const { id: _unused, ...expectedCriteriaGroup } = newCriteriaGroup();
     expect(updateCohorts.mock.calls[0][0]([])).toMatchObject([
-      { ...originalCohort, criteriaGroups: [expectedCriteriaGroup] },
+      { ...originalCohort, criteriaGroups: [expectedCriteriaGroup, expectedCriteriaGroup] },
     ]);
   });
 
@@ -490,7 +532,6 @@ describe('CohortEditor', () => {
     const { onStateChange } = showCohortEditor();
     const user = userEvent.setup();
     // Act
-    await user.click(screen.getByText('Add group'));
     await user.click(screen.getByLabelText('Add criteria'));
     const domainMenuItem = screen.getByText(snapshotBuilderSettings.domainOptions[0].name);
     await user.click(domainMenuItem);

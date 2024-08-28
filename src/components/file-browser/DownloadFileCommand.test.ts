@@ -28,14 +28,14 @@ describe('DownloadFileComamnd', () => {
     // Arrange
     asMockedFn(useFileDownloadCommand).mockReturnValue({
       status: 'Ready',
-      state: 'gsutil cp gs://test-bucket/path/to/example.txt example.txt',
+      state: 'gcloud storage cp gs://test-bucket/path/to/example.txt example.txt',
     });
 
     // Act
     render(h(DownloadFileCommand, { file, provider: mockProvider }));
 
     // Assert
-    screen.getByText('gsutil cp gs://test-bucket/path/to/example.txt example.txt');
+    screen.getByText('gcloud storage cp gs://test-bucket/path/to/example.txt example.txt');
   });
 
   it('renders a spinner while loading command', () => {

@@ -18,7 +18,7 @@ import { icon } from 'src/components/icons';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { GridTable, HeaderCell, paginator, Resizable, TooltipCell } from 'src/components/table';
+import { GridTable, HeaderCell, Paginator, Resizable, TooltipCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
@@ -184,6 +184,11 @@ const DataTable = (props) => {
 
   const getColumnFilterQueryString = () => {
     return !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
+  };
+
+  const getColumnDatatype = (entityType, columnName) => {
+    const foundColumn = _.find({ name: columnName }, entityMetadata[entityType]?.attributes);
+    return foundColumn?.datatype;
   };
 
   // Helpers
@@ -507,6 +512,7 @@ const DataTable = (props) => {
                           {
                             sort,
                             field: 'name',
+                            datatype: dataProvider.features.supportsPerColumnDatatype ? 'STRING' : undefined, // primary keys are always strings.
                             onSort: setSort,
                             renderSearch: !!googleProject,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
@@ -559,6 +565,7 @@ const DataTable = (props) => {
                             {
                               sort,
                               field: attributeName,
+                              datatype: dataProvider.features.supportsPerColumnDatatype ? getColumnDatatype(entityType, attributeName) : undefined,
                               onSort: setSort,
                               renderSearch: !!googleProject,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
@@ -693,7 +700,7 @@ const DataTable = (props) => {
         ]),
         !_.isEmpty(entities) &&
           div({ style: { flex: 'none', margin: '1rem' } }, [
-            paginator({
+            Paginator({
               filteredDataLength: filteredCount,
               unfilteredDataLength: totalRowCount,
               pageNumber,

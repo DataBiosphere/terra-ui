@@ -1,5 +1,7 @@
+import { jsonBody } from '@terra-ui-packages/data-client-core';
 import * as _ from 'lodash/fp';
-import { authOpts, fetchDataRepo, jsonBody } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-session';
+import { fetchDataRepo } from 'src/libs/ajax/ajax-common';
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
@@ -53,14 +55,28 @@ export interface DatasetBuilderType {
 }
 
 export interface SnapshotBuilderDatasetConceptSet extends DatasetBuilderType {
-  featureValueGroupName: string;
+  table: SnapshotBuilderTable;
+}
+
+export type SnapshotBuilderTable = {
+  datasetTableName: string;
+  columns: string[];
+  primaryTableRelationship?: string;
+  secondaryTableRelationships?: string[];
+};
+
+interface SnapshotBuilderRootTable extends SnapshotBuilderTable {
+  rootColumn: string;
 }
 
 export type SnapshotBuilderSettings = {
+  name: string;
+  description: string;
   domainOptions: SnapshotBuilderDomainOption[];
   programDataOptions: (SnapshotBuilderProgramDataListOption | SnapshotBuilderProgramDataRangeOption)[];
-  featureValueGroups: SnapshotBuilderFeatureValueGroup[];
   datasetConceptSets: SnapshotBuilderDatasetConceptSet[];
+  rootTable: SnapshotBuilderRootTable;
+  dictionaryTable?: SnapshotBuilderTable;
 };
 
 /** Criteria */
@@ -92,7 +108,6 @@ export type AnySnapshotBuilderCriteria =
   | SnapshotBuilderProgramDataRangeCriteria
   | SnapshotBuilderProgramDataListCriteria;
 export interface SnapshotBuilderCriteriaGroup {
-  name: string;
   criteria: AnySnapshotBuilderCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
@@ -102,15 +117,14 @@ export interface SnapshotBuilderCohort extends DatasetBuilderType {
   criteriaGroups: SnapshotBuilderCriteriaGroup[];
 }
 
-export type SnapshotBuilderFeatureValueGroup = {
+export type SnapshotBuilderOutputTableApi = {
   name: string;
-  values: string[];
+  columns: string[];
 };
 
 export type SnapshotBuilderRequest = {
   cohorts: SnapshotBuilderCohort[];
-  conceptSets: SnapshotBuilderDatasetConceptSet[];
-  valueSets: SnapshotBuilderFeatureValueGroup[];
+  outputTables: SnapshotBuilderOutputTableApi[];
 };
 
 interface SnapshotDataset {
@@ -167,6 +181,7 @@ export interface SnapshotAccessRequestResponse {
   snapshotSpecification: SnapshotAccessRequest;
   createdBy: string;
   status: JobStatus;
+  summary: string;
 }
 
 export type SnapshotBuilderCountResponse = {

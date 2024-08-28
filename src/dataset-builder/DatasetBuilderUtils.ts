@@ -1,19 +1,18 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
 import { div, span } from 'react-hyperscript-helpers';
+import { HeaderAndValues } from 'src/dataset-builder/DatasetBuilder';
 import {
   AnySnapshotBuilderCriteria,
   DatasetBuilderType,
   SnapshotAccessRequest as SnapshotAccessRequestApi,
   SnapshotBuilderCohort,
-  SnapshotBuilderConcept,
   SnapshotBuilderCountRequest,
-  SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
-  SnapshotBuilderFeatureValueGroup,
   SnapshotBuilderOption,
   SnapshotBuilderOptionTypeNames,
+  SnapshotBuilderOutputTableApi,
   SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
@@ -31,9 +30,6 @@ export interface Criteria {
 }
 
 /** Below are the UI types */
-export interface DomainConceptSet extends SnapshotBuilderDatasetConceptSet {
-  concept: SnapshotBuilderConcept;
-}
 
 export interface ProgramDomainCriteria extends Criteria {
   kind: 'domain';
@@ -56,11 +52,9 @@ export interface ProgramDataListCriteria extends Criteria {
 
 export type AnyCriteria = ProgramDomainCriteria | ProgramDataRangeCriteria | ProgramDataListCriteria;
 
-export type PrepackagedConceptSet = SnapshotBuilderDatasetConceptSet;
-
 /** A group of criteria. */
 export interface CriteriaGroup {
-  name: string;
+  id: number;
   criteria: AnyCriteria[];
   mustMeet: boolean;
   meetAll: boolean;
@@ -72,15 +66,14 @@ export interface Cohort extends DatasetBuilderType {
 
 export type DatasetBuilderValue = DatasetBuilderType;
 
-export type ValueSet = {
+export type OutputTable = {
   domain: string;
-  values: DatasetBuilderValue[];
+  columns: DatasetBuilderValue[];
 };
 
 export type SnapshotBuilderRequest = {
   cohorts: Cohort[];
-  conceptSets: SnapshotBuilderDatasetConceptSet[];
-  valueSets: ValueSet[];
+  outputTables: OutputTable[];
 };
 
 export type SnapshotAccessRequest = {
@@ -89,19 +82,10 @@ export type SnapshotAccessRequest = {
   datasetRequest: SnapshotBuilderRequest;
 };
 
-export const convertDomainOptionToConceptSet = (
-  domainOption: SnapshotBuilderDomainOption
-): SnapshotBuilderDatasetConceptSet => {
+export const convertOutputTable = (outputTable: OutputTable): SnapshotBuilderOutputTableApi => {
   return {
-    name: domainOption.name,
-    featureValueGroupName: domainOption.name,
-  };
-};
-
-export const convertValueSet = (valueSet: ValueSet): SnapshotBuilderFeatureValueGroup => {
-  return {
-    name: valueSet.domain,
-    values: _.map('name', valueSet.values),
+    name: outputTable.domain,
+    columns: _.map('name', outputTable.columns),
   };
 };
 
@@ -110,7 +94,6 @@ export const convertCohort = (cohort: Cohort): SnapshotBuilderCohort => {
     name: cohort.name,
     criteriaGroups: _.map(
       (criteriaGroup) => ({
-        name: criteriaGroup.name,
         mustMeet: criteriaGroup.mustMeet,
         meetAll: criteriaGroup.meetAll,
         criteria: _.map((criteria: AnyCriteria) => convertCriteria(criteria), criteriaGroup.criteria),
@@ -146,8 +129,7 @@ export const createSnapshotAccessRequest = (
   researchPurposeStatement: string,
   snapshotId: string,
   cohorts: Cohort[],
-  conceptSets: SnapshotBuilderDatasetConceptSet[],
-  valueSets: ValueSet[]
+  valueSets: OutputTable[]
 ): SnapshotAccessRequestApi => {
   return {
     name,
@@ -155,8 +137,7 @@ export const createSnapshotAccessRequest = (
     researchPurposeStatement,
     snapshotBuilderRequest: {
       cohorts: _.map(convertCohort, cohorts),
-      conceptSets,
-      valueSets: _.map(convertValueSet, valueSets),
+      outputTables: _.map(convertOutputTable, valueSets),
     },
   };
 };
@@ -184,4 +165,48 @@ export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElemen
 
 export const formatCount = (count: number): string => {
   return count === 19 ? 'Less than 20' : count.toString();
+};
+
+export const addSelectableObjectToGroup = <T extends DatasetBuilderType>(
+  selectableObject: T,
+  header: string,
+  group: HeaderAndValues<T>[],
+  setGroup: (groups: HeaderAndValues<T>[]) => void
+) => {
+  const index = _.findIndex((selectedObject: HeaderAndValues<T>) => selectedObject.header === header, group);
+  setGroup(
+    index === -1
+      ? group.concat({
+          header,
+          values: [selectableObject],
+        })
+      : _.set(`[${index}].values`, _.xorWith(_.isEqual, group[index].values, [selectableObject]), group)
+  );
+};
+
+// Debounce next calls until result's promise resolve
+// Code from stackoverflow answer: https://stackoverflow.com/questions/74800112/debounce-async-function-and-ensure-sequentiality
+export const debounceAsync = <T>(fn: (...args: any[]) => T) => {
+  let activePromise: Promise<T> | undefined;
+  let cancel: () => void | undefined;
+  const debouncedFn = (...args: any) => {
+    cancel?.();
+    if (activePromise) {
+      const abortController = new AbortController();
+      cancel = abortController.abort.bind(abortController);
+      activePromise.then(() => {
+        if (abortController.signal.aborted) {
+          return;
+        }
+        debouncedFn(...args);
+      });
+      return;
+    }
+
+    activePromise = Promise.resolve(fn(...args));
+    activePromise.finally(() => {
+      activePromise = undefined;
+    });
+  };
+  return debouncedFn;
 };

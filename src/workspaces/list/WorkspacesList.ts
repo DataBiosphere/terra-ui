@@ -55,6 +55,7 @@ export const WorkspacesList = (): ReactNode => {
       'workspace.workspaceId',
       'workspace.state',
       'workspace.errorMessage',
+      'workspace.isLocked',
     ],
     250
   );

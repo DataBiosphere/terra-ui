@@ -2,8 +2,8 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
-import { loadTerraUser } from 'src/auth/auth';
 import { signOut } from 'src/auth/signout/sign-out';
+import { loadTerraUser } from 'src/auth/user-profile/user';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -17,8 +17,8 @@ jest.mock('src/auth/signout/sign-out', () => ({
   userSignedOut: jest.fn(),
 }));
 
-jest.mock('src/auth/auth', () => ({
-  ...jest.requireActual('src/auth/auth'),
+jest.mock('src/auth/user-profile/user', () => ({
+  ...jest.requireActual('src/auth/user-profile/user'),
   loadTerraUser: jest.fn(),
 }));
 

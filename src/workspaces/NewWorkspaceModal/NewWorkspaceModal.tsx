@@ -5,7 +5,6 @@ import React, { ReactNode, useState } from 'react';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { supportsPhiTracking } from 'src/billing-core/utils';
-import { isBucketErrorRequesterPays } from 'src/components/bucket-utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {
   ButtonPrimary,
@@ -121,7 +120,7 @@ export const NewWorkspaceModal = withDisplayName(
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
     const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
     const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
-    const [requesterPaysError, setRequesterPaysError] = useState(false);
+    const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const [phiTracking, setPhiTracking] = useState<boolean | undefined>(undefined);
     const signal = useCancellation();
@@ -210,12 +209,20 @@ export const NewWorkspaceModal = withDisplayName(
             true
           );
 
-          // Wait for the default WDS instance to exist.
+          // Wait for the default WDS collection to exist.
           const proxyUrl = wds!.proxyUrls.wds;
           await Utils.poll(
             async () => {
-              const instances: string[] = await Ajax().WorkspaceData.listInstances(proxyUrl);
-              if (instances.includes(createdWorkspace.workspaceId)) {
+              const collections: string[] = await Ajax().WorkspaceData.listCollections(
+                proxyUrl,
+                createdWorkspace.workspaceId
+              );
+
+              // Explicitly check that a collection exists with the same ID as this workspace.
+              // It is by convention only that the workspace's ID is the same as its collection ID.
+              // We have to perform this check as long as this component relies on that convention,
+              // because the API itself isn't guaranteed to return a collection with the same ID as the workspace.
+              if (collections.includes(createdWorkspace.workspaceId)) {
                 return { shouldContinue: false, result: true };
               }
               return { shouldContinue: true, result: false };
@@ -283,12 +290,14 @@ export const NewWorkspaceModal = withDisplayName(
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
               setSourceGcpWorkspaceRegion(location);
             })
-            .catch((error) => {
-              if (isBucketErrorRequesterPays(error)) {
-                setRequesterPaysError(true);
-              } else {
-                throw error;
-              }
+            .catch((_) => {
+              // We cannot get the bucket location in a couple of scenarios:
+              // 1. The bucket is requester pays.
+              // 2. The user permissions are still syncing.
+              // In either case, we will just show a generic egress warning message to prevent the
+              // user from being blocked from cloning the workspace.
+              setSourceGCPWorkspaceRegionError(true);
+              console.log('Error getting the source workspace bucket location'); // eslint-disable-line no-console
             }),
         !!cloneWorkspace &&
           isAzureWorkspace(cloneWorkspace) &&
@@ -584,9 +593,9 @@ export const NewWorkspaceModal = withDisplayName(
                     sourceWorkspace={cloneWorkspace}
                     sourceAzureWorkspaceRegion={sourceAzureWorkspaceRegion}
                     selectedBillingProject={selectedBillingProject}
-                    requesterPaysWorkspace={requesterPaysError}
                     selectedGcpBucketLocation={bucketLocation}
                     sourceGCPWorkspaceRegion={sourceGCPWorkspaceRegion}
+                    sourceGCPWorkspaceRegionError={sourceGCPWorkspaceRegionError}
                   />
                 )}
                 <IdContainer>

@@ -88,11 +88,11 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
               ]);
             },
           },
-          { name: 'Concept ID', width: 195, render: _.get('id') },
-          { name: 'Code', width: 195, render: _.get('code') },
+          { name: 'Concept ID', width: 205, render: _.get('id') },
+          { name: 'Code', width: 205, render: _.get('code') },
           {
-            name: 'Roll-up count',
-            width: 205,
+            name: '# Participants',
+            width: 185,
             render: (row) => formatCount(row.count),
           },
         ],

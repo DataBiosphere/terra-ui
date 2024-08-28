@@ -8,7 +8,7 @@ import {
 let groupCount = 1;
 export const newCriteriaGroup = (): CriteriaGroup => {
   return {
-    name: `Group ${groupCount++}`,
+    id: groupCount++,
     criteria: [],
     mustMeet: true,
     meetAll: false,
@@ -17,12 +17,12 @@ export const newCriteriaGroup = (): CriteriaGroup => {
 
 export const newCohort = (name: string): Cohort => ({
   name,
-  criteriaGroups: [],
+  criteriaGroups: [newCriteriaGroup()],
 });
 
 export const newConceptSet = (name: string): SnapshotBuilderDatasetConceptSet => ({
   name,
-  featureValueGroupName: '',
+  table: { datasetTableName: 'datasetTableName', columns: [] },
 });
 
 type DatasetBuilderMode =

@@ -1,4 +1,5 @@
 import { NominalType } from '@terra-ui-packages/core-utils';
+import { AzureDiskType, DiskType } from '@terra-ui-packages/leonardo-data-client';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
 
 export interface GpuConfig {
@@ -76,6 +77,9 @@ export const isGceConfig = (config: RuntimeConfig | RawRuntimeConfig): config is
 };
 
 export const isAzureConfig = (config: RuntimeConfig | RawRuntimeConfig): config is AzureConfig =>
+  config.cloudService === 'AZURE_VM';
+
+export const isAzureDiskType = (config: RuntimeConfig, diskType: DiskType): diskType is AzureDiskType =>
   config.cloudService === 'AZURE_VM';
 
 export type NormalizedComputeRegion = NominalType<string, 'ComputeRegion'>;

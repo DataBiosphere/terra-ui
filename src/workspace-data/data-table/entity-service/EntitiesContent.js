@@ -8,7 +8,6 @@ import { Fragment, useState } from 'react';
 import { div, h, p } from 'react-hyperscript-helpers';
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/utils/notebook-utils';
 import { tools } from 'src/analysis/utils/tool-utils';
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
@@ -35,6 +34,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import { DataTableColumnProvenance } from '../../provenance/DataTableColumnProvenance';

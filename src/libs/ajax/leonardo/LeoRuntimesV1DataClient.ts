@@ -1,4 +1,4 @@
-import { AbortOption, FetchFn } from 'src/libs/ajax/data-client-common';
+import { AbortOption, FetchFn } from '@terra-ui-packages/data-client-core';
 import { RawGetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 
 export interface LeoRuntimesV1DataClient {

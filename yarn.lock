@@ -3082,7 +3082,7 @@ __metadata:
   dependencies:
     "@pact-foundation/pact-core": ^14.0.1
     "@types/express": ^4.17.11
-    axios: ^1.6.1
+    axios: ^1.7.4
     body-parser: ^1.20.0
     cli-color: ^2.0.1
     express: ^4.18.1
@@ -4574,7 +4574,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/data-client-core@*, @terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
+"@terra-ui-packages/data-client-core@*, @terra-ui-packages/data-client-core@^0.0.1, @terra-ui-packages/data-client-core@workspace:packages/data-clients/core":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/data-client-core@workspace:packages/data-clients/core"
   dependencies:
@@ -4587,14 +4587,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo":
+"@terra-ui-packages/leonardo-data-client@*, @terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo":
   version: 0.0.0-use.local
   resolution: "@terra-ui-packages/leonardo-data-client@workspace:packages/data-clients/leonardo"
   dependencies:
     "@terra-ui-packages/build-utils": ^2.0.0
+    "@terra-ui-packages/data-client-core": ^0.0.1
     "@terra-ui-packages/test-utils": ^1.0.0
     "@types/jest": ^28.1.8
+    "@types/qs": ^6.9.15
     jest: ^27.4.3
+    qs: ^6.10.1
     typescript: ~5.1.6
     vite: ^5.2.11
   languageName: unknown
@@ -5184,6 +5187,13 @@ __metadata:
   version: 6.9.11
   resolution: "@types/qs@npm:6.9.11"
   checksum: 620ca1628bf3da65662c54ed6ebb120b18a3da477d0bfcc872b696685a9bb1893c3c92b53a1190a8f54d52eaddb6af8b2157755699ac83164604329935e8a7f2
+  languageName: node
+  linkType: hard
+
+"@types/qs@npm:^6.9.15":
+  version: 6.9.15
+  resolution: "@types/qs@npm:6.9.15"
+  checksum: 97d8208c2b82013b618e7a9fc14df6bd40a73e1385ac479b6896bafc7949a46201c15f42afd06e86a05e914f146f495f606b6fb65610cc60cf2e0ff743ec38a2
   languageName: node
   linkType: hard
 
@@ -6064,14 +6074,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.1":
-  version: 1.6.8
-  resolution: "axios@npm:1.6.8"
+"axios@npm:^1.7.4":
+  version: 1.7.4
+  resolution: "axios@npm:1.7.4"
   dependencies:
     follow-redirects: ^1.15.6
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: bf007fa4b207d102459300698620b3b0873503c6d47bf5a8f6e43c0c64c90035a4f698b55027ca1958f61ab43723df2781c38a99711848d232cad7accbcdfcdd
+  checksum: 0c17039a9acfe6a566fca8431ba5c1b455c83d30ea6157fec68a6722878fcd30f3bd32d172f6bee0c51fe75ca98e6414ddcd968a87b5606b573731629440bfaf
   languageName: node
   linkType: hard
 
@@ -10161,10 +10171,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highcharts@npm:^9.3.3":
-  version: 9.3.3
-  resolution: "highcharts@npm:9.3.3"
-  checksum: bd952eafcf7b1c136ab1e20d6b58172f9aeab9381c13e3d67f08b10eb6b2c1f96e62a8d276f29b1e92ef0a8cbc6d1696cd0e554691063a5183235e820b42404b
+"highcharts@npm:^10.3.3":
+  version: 10.3.3
+  resolution: "highcharts@npm:10.3.3"
+  checksum: f40690109486fdada407cdc94f257dd869ebbcdd0c7ac4c7b85021c087523b4c32ea88725dce5f1b490c9669573240e17622c4765366ed4c38ff2b2503f092e9
   languageName: node
   linkType: hard
 
@@ -16400,6 +16410,7 @@ __metadata:
     "@terra-ui-packages/components": "*"
     "@terra-ui-packages/core-utils": "*"
     "@terra-ui-packages/data-client-core": "*"
+    "@terra-ui-packages/leonardo-data-client": "*"
     "@terra-ui-packages/notifications": "*"
     "@terra-ui-packages/test-utils": 1.0.0
     "@testing-library/dom": ^9.3.1
@@ -16444,7 +16455,7 @@ __metadata:
     file-saver: ^2.0.5
     filesize: ^7.0.0
     github-markdown-css: ^4.0.0
-    highcharts: ^9.3.3
+    highcharts: ^10.3.3
     highcharts-react-official: ^3.1.0
     history: ^4.10.1
     husky: ^7.0.2

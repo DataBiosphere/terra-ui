@@ -4,18 +4,17 @@ import {
   Cohort,
   convertCohort,
   convertCriteria,
-  convertDomainOptionToConceptSet,
-  convertValueSet,
+  convertOutputTable,
   createSnapshotAccessRequest,
   CriteriaGroup,
-  DomainConceptSet,
+  debounceAsync,
   formatCount,
   HighlightConceptName,
+  OutputTable,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
   ProgramDomainCriteria,
   SnapshotAccessRequest,
-  ValueSet,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import { testSnapshotId } from 'src/dataset-builder/TestConstants';
 import {
@@ -24,10 +23,9 @@ import {
   SnapshotBuilderCohort,
   SnapshotBuilderConcept,
   SnapshotBuilderCriteriaGroup,
-  SnapshotBuilderDatasetConceptSet,
   SnapshotBuilderDomainCriteria,
   SnapshotBuilderDomainOption,
-  SnapshotBuilderFeatureValueGroup,
+  SnapshotBuilderOutputTableApi,
   SnapshotBuilderProgramDataListCriteria,
   SnapshotBuilderProgramDataListItem,
   SnapshotBuilderProgramDataListOption,
@@ -54,11 +52,6 @@ const domainOption: SnapshotBuilderDomainOption = {
   conceptCount: 10,
   participantCount: 20,
   root: concept,
-};
-
-const domainConceptSet: SnapshotBuilderDatasetConceptSet = {
-  name: domainOptionName,
-  featureValueGroupName: domainOptionName,
 };
 
 const domainCriteria: ProgramDomainCriteria = {
@@ -138,14 +131,13 @@ const anyCriteriaArray: AnyCriteria[] = [domainCriteria, rangeCriteria, listCrit
 const anyCriteriaArrayApi: AnySnapshotBuilderCriteria[] = [domainCriteriaApi, rangeCriteriaApi, listCriteriaApi];
 
 const criteriaGroup: CriteriaGroup = {
-  name: 'criteriaGroup',
+  id: 0,
   criteria: anyCriteriaArray,
   mustMeet: true,
   meetAll: false,
 };
 
 const criteriaGroupApi: SnapshotBuilderCriteriaGroup = {
-  name: 'criteriaGroup',
   criteria: anyCriteriaArrayApi,
   mustMeet: true,
   meetAll: false,
@@ -155,34 +147,22 @@ const cohort: Cohort = { name: 'cohort', criteriaGroups: [criteriaGroup] };
 
 const cohortApi: SnapshotBuilderCohort = { name: 'cohort', criteriaGroups: [criteriaGroupApi] };
 
-const valueSet: ValueSet = { domain: 'valueDomain', values: [{ name: 'valueName' }] };
+const outputTable: OutputTable = { domain: 'valueDomain', columns: [{ name: 'valueName' }] };
 
-const valueSetApi: SnapshotBuilderFeatureValueGroup = { name: 'valueDomain', values: ['valueName'] };
-
-const conceptSet: DomainConceptSet = {
-  name: 'conceptSetName',
-  concept,
-  featureValueGroupName: 'featureValueGroupName',
-};
+const outputTableApi: SnapshotBuilderOutputTableApi = { name: 'valueDomain', columns: ['valueName'] };
 
 const datasetAccessRequest: SnapshotAccessRequest = {
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
-  datasetRequest: { cohorts: [cohort], conceptSets: [conceptSet], valueSets: [valueSet] },
+  datasetRequest: { cohorts: [cohort], outputTables: [outputTable] },
 };
 
 const datasetAccessRequestApi: SnapshotAccessRequestApi = {
   sourceSnapshotId: testSnapshotId,
   name: 'RequestName',
   researchPurposeStatement: 'purpose',
-  snapshotBuilderRequest: { cohorts: [cohortApi], conceptSets: [conceptSet], valueSets: [valueSetApi] },
+  snapshotBuilderRequest: { cohorts: [cohortApi], outputTables: [outputTableApi] },
 };
-
-describe('test conversion of a domainOption to a domainConceptSet', () => {
-  test('domainOption converted to domainConceptSet', () => {
-    expect(convertDomainOptionToConceptSet(domainOption)).toStrictEqual(domainConceptSet);
-  });
-});
 
 describe('test conversion of criteria', () => {
   test('domainCriteria converted to domainCriteriaApi', () => {
@@ -203,8 +183,8 @@ describe('test conversion of a cohort', () => {
 });
 
 describe('test conversion of valueSets', () => {
-  test('valueSet converted to valueSetApi', () => {
-    expect(convertValueSet(valueSet)).toStrictEqual(valueSetApi);
+  test('outputTable converted to outputTableApi', () => {
+    expect(convertOutputTable(outputTable)).toStrictEqual(outputTableApi);
   });
 });
 
@@ -216,8 +196,7 @@ describe('test conversion of DatasetAccessRequest', () => {
         datasetAccessRequest.researchPurposeStatement,
         testSnapshotId,
         datasetAccessRequest.datasetRequest.cohorts,
-        datasetAccessRequest.datasetRequest.conceptSets,
-        datasetAccessRequest.datasetRequest.valueSets
+        datasetAccessRequest.datasetRequest.outputTables
       )
     ).toStrictEqual(datasetAccessRequestApi);
   });
@@ -305,5 +284,24 @@ describe('test formatCount', () => {
 
   test('count is 20', () => {
     expect(formatCount(20)).toStrictEqual('20');
+  });
+});
+
+describe('test debounceAsync', () => {
+  test('debounce should mean that the example function is only called once', () => {
+    const exampleFunction = jest.fn();
+    const exampleCall = debounceAsync(
+      (param1: string) =>
+        new Promise((resolve) => {
+          exampleFunction();
+          setTimeout(() => {
+            resolve(param1);
+          }, 0);
+        })
+    );
+    exampleCall('first');
+    exampleCall('second');
+    exampleCall('third');
+    expect(exampleFunction).toHaveBeenCalledTimes(1);
   });
 });

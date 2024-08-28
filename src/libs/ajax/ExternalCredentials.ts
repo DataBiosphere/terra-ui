@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts, fetchEcm } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-session';
+import { fetchEcm } from 'src/libs/ajax/ajax-common';
 import { OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 
 export interface EcmLinkAccountResponse {

@@ -34,6 +34,7 @@ const LaunchAnalysisModal = ({
   retryWithMoreMemory,
   retryMemoryFactor,
   ignoreEmptyOutputs,
+  enableResourceMonitoring,
   monitoringScript,
   monitoringImage,
   monitoringImageScript,
@@ -91,9 +92,10 @@ const LaunchAnalysisModal = ({
         memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined,
         userComment: _.trim(userComment),
         ignoreEmptyOutputs,
-        monitoringScript,
-        monitoringImage,
-        monitoringImageScript,
+        // Send monitoring options if monitoring is enabled and the option value is truthy (nonempty string)
+        monitoringScript: enableResourceMonitoring && monitoringScript ? monitoringScript : undefined,
+        monitoringImage: enableResourceMonitoring && monitoringImage ? monitoringImage : undefined,
+        monitoringImageScript: enableResourceMonitoring && monitoringImageScript ? monitoringImageScript : undefined,
         onProgress: (stage) => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },

@@ -4,6 +4,8 @@ import { SnapshotBuilderConcept as Concept, SnapshotBuilderSettings } from 'src/
 export const testSnapshotId = '0';
 
 export const testSnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
+  name: 'name',
+  description: 'description',
   programDataOptions: [
     {
       id: 0,
@@ -80,38 +82,57 @@ export const testSnapshotBuilderSettings = (): SnapshotBuilderSettings => ({
       root: dummyGetConceptForId(300),
     },
   ],
-  featureValueGroups: [
-    {
-      values: ['condition column 1', 'condition column 2'],
-      name: 'Condition',
-    },
-    {
-      values: ['observation column 1', 'observation column 2'],
-      name: 'Observation',
-    },
-    {
-      values: ['procedure column 1', 'procedure column 2'],
-      name: 'Procedure',
-    },
-    {
-      values: ['surveys column 1', 'surveys column 2'],
-      name: 'Surveys',
-    },
-    {
-      values: ['demographics column 1', 'demographics column 2'],
-      name: 'Person',
-    },
-  ],
   datasetConceptSets: [
     {
-      name: 'Demographics',
-      featureValueGroupName: 'Person',
+      name: 'Procedure',
+      table: {
+        datasetTableName: 'procedure_occurrence',
+        columns: [],
+        primaryTableRelationship: 'fpk_person_procedure',
+        secondaryTableRelationships: [
+          'fpk_procedure_concept',
+          'fpk_procedure_concept_s',
+          'fpk_procedure_type_concept',
+          'fpk_procedure_modifier',
+        ],
+      },
     },
     {
-      name: 'All surveys',
-      featureValueGroupName: 'Surveys',
+      name: 'Observation',
+      table: {
+        datasetTableName: 'observation',
+        columns: [],
+        primaryTableRelationship: 'fpk_person_observation',
+        secondaryTableRelationships: [
+          'fpk_observation_period_person',
+          'fpk_observation_concept',
+          'fpk_observation_concept_s',
+          'fpk_observation_unit',
+          'fpk_observation_qualifier',
+          'fpk_observation_type_concept',
+          'fpk_observation_period_concept',
+          'fpk_observation_value',
+        ],
+      },
+    },
+    {
+      name: 'Genomics',
+      table: {
+        datasetTableName: 'sample',
+        columns: [],
+        primaryTableRelationship: 'fpk_person_sample',
+      },
     },
   ],
+  rootTable: {
+    datasetTableName: 'person',
+    rootColumn: 'person_id',
+    columns: [],
+  },
+  dictionaryTable: {
+    datasetTableName: 'concept',
+    columns: [],
+  },
 });
 
 const dummyConcepts = [

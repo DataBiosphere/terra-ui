@@ -31,7 +31,7 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
         [
           'Yes',
           !!policyDescription.longDescription &&
-            h(InfoBox, { style: { marginLeft: '0.50rem' }, side: 'bottom' }, [policyDescription.longDescription]),
+            h(InfoBox, { style: { marginLeft: '1ch' }, side: 'bottom' }, [policyDescription.longDescription]),
         ]
       );
     }, policyDescriptions),

@@ -64,14 +64,26 @@ export const WorkspacesListTabs = (props: WorkspacesListTabsProps): ReactNode =>
   );
 };
 
-const filterWorkspaces = (workspaces: CategorizedWorkspaces, filters: WorkspaceFilterValues): CategorizedWorkspaces => {
+// exported for unit testing
+export const filterWorkspaces = (
+  workspaces: CategorizedWorkspaces,
+  filters: WorkspaceFilterValues
+): CategorizedWorkspaces => {
   const filterWorkspacesCategory = (workspaces: Workspace[], filters: WorkspaceFilterValues): Workspace[] => {
     const matches = (ws: Workspace): boolean => {
       const {
-        workspace: { namespace, name, attributes },
+        workspace: { namespace, name, attributes, state, googleProject, bucketName },
       } = ws;
+
+      const containsKeywordFilter = (textToMatchWithin: string | undefined): boolean => {
+        return textToMatchWithin === undefined ? false : textMatch(filters.keywordFilter, textToMatchWithin!);
+      };
+
       return !!(
-        textMatch(filters.nameFilter, `${namespace}/${name}`) &&
+        (containsKeywordFilter(`${namespace}/${name}`) ||
+          containsKeywordFilter(googleProject) ||
+          containsKeywordFilter(state) ||
+          containsKeywordFilter(bucketName)) &&
         (_.isEmpty(filters.accessLevels) || filters.accessLevels.includes(ws.accessLevel)) &&
         (_.isEmpty(filters.projects) || filters.projects === namespace) &&
         (_.isEmpty(filters.cloudPlatform) || getCloudProviderFromWorkspace(ws) === filters.cloudPlatform) &&

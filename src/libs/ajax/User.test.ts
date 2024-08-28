@@ -7,19 +7,18 @@ import {
 } from 'src/libs/ajax/User';
 import { TerraUserProfile } from 'src/libs/state';
 
-type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
+type AuthFetchExports = typeof import('src/auth/auth-fetch');
 jest.mock(
-  'src/auth/auth',
-  (): AjaxCommonExports => ({
-    ...jest.requireActual<AjaxCommonExports>('src/libs/ajax/ajax-common'),
-    authOpts: jest.fn().mockReturnValue({ headers: { Authorization: 'testToken' } }),
+  'src/auth/auth-fetch',
+  (): Partial<AuthFetchExports> => ({
+    withRetryAfterReloadingExpiredAuthToken: jest.fn().mockImplementation((fn) => fn),
   })
 );
 
 type SignOutExports = typeof import('src/auth/signout/sign-out');
 jest.mock(
   'src/auth/signout/sign-out',
-  (): SignOutExports => ({
+  (): Partial<SignOutExports> => ({
     signOut: jest.fn(),
     userSignedOut: jest.fn(),
   })

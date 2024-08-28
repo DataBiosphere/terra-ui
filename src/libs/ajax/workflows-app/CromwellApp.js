@@ -1,6 +1,7 @@
 import _ from 'lodash/fp';
 import qs from 'qs';
-import { authOpts, fetchFromProxy } from 'src/libs/ajax/ajax-common';
+import { authOpts } from 'src/auth/auth-session';
+import { fetchFromProxy } from 'src/libs/ajax/ajax-common';
 
 export const CromwellApp = (signal) => ({
   workflows: (workflowId) => {
