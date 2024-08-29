@@ -1,17 +1,10 @@
 import { FetchFn } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import { withRetryAfterReloadingExpiredAuthToken } from 'src/auth/auth-fetch';
+import { withAppIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 import { getConfig } from 'src/libs/config';
 
 import { fetchOk, withCancellation, withInstrumentation, withUrlPrefix } from './fetch/fetch-core';
-
-export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
-
-export const withAppIdentifier =
-  (wrappedFetch: FetchFn): FetchFn =>
-  (url, options) => {
-    return wrappedFetch(url, _.merge(options, appIdentifier));
-  };
 
 export const fetchLeo = _.flow(
   withUrlPrefix(`${getConfig().leoUrlRoot}/`),

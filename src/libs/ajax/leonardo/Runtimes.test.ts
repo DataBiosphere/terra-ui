@@ -8,16 +8,25 @@ const mockWatchWithAuth = jest.fn();
 const mockWatchWithAppId = jest.fn();
 
 type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
-type TestUtilsExports = typeof import('src/testing/test-utils');
 jest.mock('src/libs/ajax/ajax-common', (): Partial<AjaxCommonExports> => {
-  const { asMockedFn } = jest.requireActual<TestUtilsExports>('src/testing/test-utils');
-
   const mocks: Partial<AjaxCommonExports> = {
-    withAppIdentifier: jest.fn(),
     fetchLeo: jest.fn(),
   };
+  return mocks;
+});
+
+type FetchCoreExports = typeof import('src/libs/ajax/fetch/fetch-core');
+type TestUtilsExports = typeof import('src/testing/test-utils');
+jest.mock('src/libs/ajax/fetch/fetch-core', (): FetchCoreExports => {
+  const { asMockedFn } = jest.requireActual<TestUtilsExports>('src/testing/test-utils');
+
+  const mocks: FetchCoreExports = {
+    ...jest.requireActual('src/libs/ajax/fetch/fetch-core'),
+    withAppIdentifier: jest.fn(),
+  };
   // mock fetch augmentors to call watcher for test assertions below.
-  // (mock here so that it's baked in for module-load-time of Runtimes.ts)
+  // (mock here so that it's baked in for module-load-time of Disks.ts)
+
   asMockedFn(mocks.withAppIdentifier!).mockImplementation((fn: FetchFn) => (path, args) => {
     mockWatchWithAppId(path, args);
     return fn(path, args);
