@@ -414,7 +414,7 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
         expect(screen.queryByRole('tooltip', { name: tooltipText.deleteNoPermission })).not.toBeNull();
       }
     }
-  });
+  );
 
   it.each([
     { menuText: 'Share' },
@@ -466,7 +466,6 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 describe('Settings menu item (GCP or Azure workspace)', () => {
   it('does not show the settings menu item if the feature flag is disabled', () => {
     asMockedFn(useWorkspaceDetails).mockReturnValue({
-      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: googleWorkspace,
       refresh: jest.fn(),
       loading: false,
@@ -482,7 +481,6 @@ describe('Settings menu item (GCP or Azure workspace)', () => {
 
   it('Shows an enabled settings menu item for GCP workspaces if the feature flag is enabled', () => {
     asMockedFn(useWorkspaceDetails).mockReturnValue({
-      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: googleWorkspace,
       refresh: jest.fn(),
       loading: false,
@@ -499,7 +497,6 @@ describe('Settings menu item (GCP or Azure workspace)', () => {
 
   it('shows a disabled settings menu item with a tooltip for Azure workspaces if feature flag is enabled', () => {
     asMockedFn(useWorkspaceDetails).mockReturnValue({
-      // @ts-expect-error - the type checker thinks workspace is only of type undefined
       workspace: azureWorkspace,
       refresh: jest.fn(),
       loading: false,
