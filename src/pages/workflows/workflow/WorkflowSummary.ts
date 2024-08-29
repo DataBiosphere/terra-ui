@@ -50,7 +50,6 @@ export const BaseWorkflowSummary = () => {
       h(
         WorkflowRightBoxSection,
         {
-          setPanelOpen(_: boolean): void {},
           title: 'Snapshot Information',
           defaultPanelOpen: true,
           persistenceId: `${persistenceId}/snapshotInfoPanelOpen`,
@@ -69,7 +68,6 @@ export const BaseWorkflowSummary = () => {
       h(
         WorkflowRightBoxSection,
         {
-          setPanelOpen(_: boolean): void {},
           title: 'Owners',
           persistenceId: `${persistenceId}/ownerPanelOpen`,
         },
@@ -88,7 +86,6 @@ export const BaseWorkflowSummary = () => {
       h(
         WorkflowRightBoxSection,
         {
-          setPanelOpen(_: boolean): void {},
           title: 'Import URL',
           persistenceId: `${persistenceId}/importUrlPanelOpen`,
         },
