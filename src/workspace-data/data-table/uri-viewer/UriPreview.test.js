@@ -23,7 +23,7 @@ describe('File Utilities', () => {
     it('should return true for text content types', () => {
       expect(isText({ contentType: 'text/plain', name: 'readme.txt' })).toBe(true);
       expect(isText({ contentType: 'application/json', name: 'config.json' })).toBe(true);
-      expect(isText({ contentType: 'text/x-vcard', name: 'file.vcf.gz' })).toBe(true);
+      expect(isText({ contentType: 'text/x-vcard', name: 'file.vcf' })).toBe(true);
     });
 
     it('should return true for text file extensions', () => {
@@ -34,7 +34,7 @@ describe('File Utilities', () => {
     it('should return false for non-text types or names', () => {
       expect(isText({ contentType: 'image/jpeg', name: 'photo.jpg' })).toBe(false);
       expect(isText({ contentType: 'application/pdf', name: 'document.pdf' })).toBe(false);
-      expect(isText({ contentType: 'application/octet-stream', name: 'file.csv.gz' })).toBe(false);
+      expect(isText({ contentType: 'text/x-vcard', name: 'file.csv.gz' })).toBe(false);
     });
   });
 

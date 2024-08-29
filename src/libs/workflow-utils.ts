@@ -5,6 +5,7 @@ import * as Utils from 'src/libs/utils';
 export const workflowNameValidation = () => {
   return {
     presence: { allowEmpty: false },
+    length: { maximum: 254 },
     format: {
       pattern: /^[A-Za-z0-9_\-.]*$/,
       message: 'can only contain letters, numbers, underscores, dashes, and periods',
