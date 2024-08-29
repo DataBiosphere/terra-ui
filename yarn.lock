@@ -4493,8 +4493,8 @@ __metadata:
     "@types/testing-library__jest-dom": ^5.14.9
     jest: ^27.4.3
     lodash: ^4.17.21
-    react: 18.2.0
-    react-dom: 18.2.0
+    react: 18.3.1
+    react-dom: 18.3.1
     typescript: ~5.1.6
     vite: ^5.2.11
   peerDependencies:
@@ -4542,8 +4542,8 @@ __metadata:
     color: ^4.0.1
     jest: ^27.4.3
     lodash: ^4.17.21
-    react: 18.2.0
-    react-dom: 18.2.0
+    react: 18.3.1
+    react-dom: 18.3.1
     react-focus-lock: ^2.9.5
     react-modal: ^3.16.1
     react-onclickoutside: ^6.13.0
@@ -4620,8 +4620,8 @@ __metadata:
     "@types/testing-library__jest-dom": ^5.14.9
     jest: ^27.4.3
     lodash: ^4.17.21
-    react: 18.2.0
-    react-dom: 18.2.0
+    react: 18.3.1
+    react-dom: 18.3.1
     typescript: ~5.1.6
     vite: ^5.2.11
   peerDependencies:
@@ -14580,19 +14580,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.2.0":
-  version: 18.2.0
-  resolution: "react-dom@npm:18.2.0"
-  dependencies:
-    loose-envify: ^1.1.0
-    scheduler: ^0.23.0
-  peerDependencies:
-    react: ^18.2.0
-  checksum: 7d323310bea3a91be2965f9468d552f201b1c27891e45ddc2d6b8f717680c95a75ae0bc1e3f5cf41472446a2589a75aed4483aee8169287909fcd59ad149e8cc
-  languageName: node
-  linkType: hard
-
-"react-dom@npm:^16.8.0 || ^17.0.0 || ^18.0.0":
+"react-dom@npm:18.3.1, react-dom@npm:^16.8.0 || ^17.0.0 || ^18.0.0":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
   dependencies:
@@ -14904,16 +14892,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0":
-  version: 18.2.0
-  resolution: "react@npm:18.2.0"
-  dependencies:
-    loose-envify: ^1.1.0
-  checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
-  languageName: node
-  linkType: hard
-
-"react@npm:^16.8.0 || ^17.0.0 || ^18.0.0":
+"react@npm:18.3.1, react@npm:^16.8.0 || ^17.0.0 || ^18.0.0":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
   dependencies:
@@ -15506,7 +15485,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.23.0, scheduler@npm:^0.23.2":
+"scheduler@npm:^0.23.2":
   version: 0.23.2
   resolution: "scheduler@npm:0.23.2"
   dependencies:
@@ -16485,9 +16464,9 @@ __metadata:
     prop-types: ^15.7.2
     qs: ^6.10.1
     rc-slider: ^10.2.1
-    react: 18.2.0
+    react: 18.3.1
     react-collapse: ^5.1.0
-    react-dom: 18.2.0
+    react-dom: 18.3.1
     react-draggable: ^4.4.4
     react-dropzone: ^11.4.0
     react-favicon: ^2.0.3
