@@ -125,7 +125,7 @@ export const withRetry =
         try {
           const raceResponse = await Promise.race([
             async () => await request(...args),
-            // If the request takes longer than allowed, reject it so we try again.
+            // If the request takes longer than allowed, reject it, so we try again.
             async () => {
               await delay(timeoutInMs);
               throw new Error('Request timed out');
@@ -148,4 +148,12 @@ export const withRetry =
       throw Error('Request timed out');
     };
     return fetchFn;
+  };
+
+export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
+
+export const withAppIdentifier =
+  (wrappedFetch: FetchFn): FetchFn =>
+  (url, options) => {
+    return wrappedFetch(url, _.merge(options, appIdentifier));
   };
