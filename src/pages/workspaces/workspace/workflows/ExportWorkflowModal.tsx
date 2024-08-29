@@ -14,13 +14,50 @@ import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 export interface ExportWorkflowModalProps {
+  /** The string to be prefilled in the workflow name input. */
   defaultWorkflowName: string;
+
+  /**
+   * Either a predetermined destination workspace into which the workflow will
+   * be exported, in which case the destination workspace selector is not shown,
+   * or a filter function for the destination workspace options, in which case
+   * the selector is shown with options corresponding to all available
+   * workspaces satisfying the filter condition.
+   */
   destinationWorkspace: WorkspaceInfo | ((workspace: WorkspaceWrapper) => boolean);
+
+  /** The title of the main export modal and the post-export modal if shown. */
   title: string;
+
+  /** The text shown on the main export modal button. */
   exportButtonText: string;
+
+  /**
+   * Provides a function to make an API call to perform the export operation.
+   * The export function provided is called with the predetermined or selected
+   * destination workspace and the chosen workflow name when the user presses
+   * the main export modal button.
+   */
   exportProvider: ExportWorkflowToWorkspaceProvider;
+
+  /**
+   * The function to be called with the predetermined or selected destination
+   * workspace and the chosen workflow name when the user presses the button in
+   * the post-export modal to go to the exported workflow. Should navigate to
+   * the new workflow. If undefined, the post-export modal will not be shown.
+   */
   onGoToExportedWorkflow?: (selectedWorkspace: WorkspaceInfo, workflowName: string) => void;
+
+  /**
+   * If defined, called after the user presses the main export modal button and
+   * the call to the export provider's export function successfully resolves.
+   */
   onSuccess?: () => void;
+
+  /**
+   * Passed to the underlying Modal component for the main export modal and the
+   * post-export modal if shown.
+   */
   onDismiss: (event: React.MouseEvent | React.KeyboardEvent) => void;
 }
 
@@ -34,36 +71,6 @@ export interface ExportWorkflowModalProps {
  * export is successfully completed, the component can optionally show a
  * "post-export modal" that allows the user to choose whether to go to the
  * location of the new exported workflow.
- *
- * @param {ExportWorkflowModalProps} props
- * @param {string} props.defaultWorkflowName - the string to be prefilled in the
- * workflow name input.
- * @param {WorkspaceInfo | ((workspace: WorkspaceWrapper) => boolean)} props.destinationWorkspace -
- * either a predetermined destination workspace into which the workflow will be
- * exported, in which case the destination workspace selector is not shown, or
- * a filter function for the destination workspace options, in which case the
- * selector is shown with options corresponding to all available workspaces
- * satisfying the filter condition.
- * @param {string} props.title - the title of the main export modal and the
- * post-export modal if shown.
- * @param {string} props.exportButtonText - the text shown on the main export
- * modal button.
- * @param {ExportWorkflowToWorkspaceProvider} props.exportProvider - provides
- * a function to make an API call to perform the export operation. The export
- * function provided is called with the predetermined or selected destination
- * workspace and the chosen workflow name when the user presses the main export
- * modal button.
- * @param {((selectedWorkspace: WorkspaceInfo, workflowName: string) => void) | undefined} props.onGoToExportedWorkflow -
- * the function to be called with the predetermined or selected destination
- * workspace and the chosen workflow name when the user presses the button in
- * the post-export modal to go to the exported workflow. Should navigate to the
- * new workflow. If undefined, the post-export modal will not be shown.
- * @param {(() => void) | undefined} props.onSuccess - if defined, called after
- * the user presses the main export modal button and the call to the export
- * provider's export function successfully resolves.
- * @param {(event: React.MouseEvent | React.KeyboardEvent) => void} props.onDismiss -
- * passed to the underlying Modal component for the main export modal and the
- * post-export modal if shown.
  */
 const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   const {
