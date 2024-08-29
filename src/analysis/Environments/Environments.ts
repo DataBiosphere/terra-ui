@@ -136,8 +136,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
 
   const refreshData = withLoading(async () => {
-    await refreshWorkspaces();
-
     const workspaces = getWorkspaces();
 
     const startTimeForLeoCallsEpochMs = Date.now();
@@ -224,6 +222,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       console.error('Pause is not currently implemented for azure apps');
     });
     await wrappedPauseCompute();
+    await refreshWorkspaces();
     await loadData();
   });
 
@@ -478,6 +477,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined);
+        refreshWorkspaces();
         loadData();
       },
     });
@@ -825,6 +825,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           onDismiss: () => setDeleteRuntimeId(undefined),
           onSuccess: () => {
             setDeleteRuntimeId(undefined);
+            refreshWorkspaces();
             loadData();
           },
         }),
