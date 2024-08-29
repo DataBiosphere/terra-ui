@@ -445,6 +445,8 @@ describe('DatasetBuilder', () => {
     const user = userEvent.setup();
     initializeValidDatasetRequest();
     await user.click(await screen.findByText('Request this data snapshot'));
+    // Wait for the modal to open so we can verify all calls are finished
+    await screen.findByText('Access request created in Terra');
     // Assert
     expect(getSnapshotAccessRequestDetails).toBeCalledWith('');
   });
