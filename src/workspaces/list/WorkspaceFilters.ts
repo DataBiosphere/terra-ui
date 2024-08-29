@@ -56,11 +56,11 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
       }),
     ]),
     div({ style: styles.filter }, [
-      h(WorkspaceTagSelect, {
+      h(WorkspaceTagSelect<true>, {
         isClearable: true,
         isMulti: true,
         formatCreateLabel: _.identity,
-        value: _.map((tag) => ({ label: tag, value: tag }), filters.tags),
+        value: _.map((tag: string) => ({ label: tag, value: tag }), filters.tags),
         placeholder: 'Tags',
         'aria-label': 'Filter by tags',
         onChange: (data) => {

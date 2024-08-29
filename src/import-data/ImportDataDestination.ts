@@ -215,7 +215,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       h(IdContainer, [
         (id) =>
           h(Fragment, [
-            // @ts-expect-error
             h(WorkspaceSelector, {
               id,
               workspaces: availableDestinationWorkspaces,

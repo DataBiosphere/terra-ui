@@ -1,6 +1,5 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
 
 import { renderWithTheme } from './internal/test-utils';
 import { AsyncCreatableSelect, GroupedSelect, Select } from './Select';
@@ -104,7 +103,9 @@ describe('AsyncCreatableSelect Component', () => {
   it('renders', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderWithTheme(<AsyncCreatableSelect options={options} value='car' onChange={() => {}} />);
+    renderWithTheme(
+      <AsyncCreatableSelect<{ value: string; label?: string }> options={options} value={null} onChange={() => {}} />
+    );
 
     // Act
     const selectComponent = screen.getByText('Select...');

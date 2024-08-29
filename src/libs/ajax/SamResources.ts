@@ -2,7 +2,8 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import { authOpts } from 'src/auth/auth-session';
 import { Ajax } from 'src/libs/ajax';
-import { appIdentifier, fetchSam } from 'src/libs/ajax/ajax-common';
+import { fetchSam } from 'src/libs/ajax/ajax-common';
+import { appIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 
 type RequesterPaysProject = undefined | string;
 

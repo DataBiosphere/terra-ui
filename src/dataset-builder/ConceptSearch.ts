@@ -9,7 +9,7 @@ import { SimpleTable } from 'src/components/table';
 import { ConceptCart } from 'src/dataset-builder/ConceptCart';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import { formatCount, HighlightSearchText } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
@@ -136,35 +136,43 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         cellStyle: {
           paddingTop: 13,
           paddingBottom: 13,
+          lineHeight: '22px',
         },
         columns: [
-          { header: strong(['Concept name']), key: 'name', size: { grow: 2.3 } },
-          { header: strong(['Concept ID']), key: 'id', size: { grow: 0.5 } },
+          { header: strong(['Concept name']), key: 'name', size: { grow: 2.5 } },
+          { header: strong(['Concept ID']), key: 'id', size: { grow: 0.75 } },
           { header: strong(['Code']), key: 'code', size: { grow: 0.75 } },
-          { header: strong(['# Participants']), key: 'count', size: { grow: 0.5 } },
-          { key: 'hierarchy', size: { grow: 0.4 } },
+          { header: strong(['# Participants']), key: 'count', size: { grow: 0.75 } },
+          { key: 'hierarchy', size: { grow: 0.75 } },
         ],
         rows: _.map(
           (concept) => {
             return {
-              name: div({ style: { display: 'flex' } }, [
+              name: div({ style: { display: 'flex', paddingRight: 14 } }, [
                 h(
                   LabeledCheckbox,
                   {
-                    style: { paddingRight: 22, marginTop: 1 },
+                    style: { paddingRight: 24, marginTop: 4 },
                     checked: _.contains(concept, cart),
                     onChange: () => setCart(_.xor(cart, [concept])),
                   },
                   [
-                    h(HighlightConceptName, {
-                      conceptName: concept.name,
+                    h(HighlightSearchText, {
+                      columnItem: concept.name,
                       searchFilter: searchText,
                     }),
                   ]
                 ),
               ]),
-              id: concept.id,
-              code: concept.code,
+              id: h(HighlightSearchText, {
+                columnItem: concept.id.toString(),
+                searchFilter: searchText,
+              }),
+              code: h(HighlightSearchText, {
+                columnItem: concept.code,
+                searchFilter: searchText,
+                style: { overflowX: 'hidden', textOverflow: 'ellipsis', paddingRight: 14 },
+              }),
               count: formatCount(concept.count),
               hierarchy: div({ style: { display: 'flex' } }, [
                 h(
@@ -172,6 +180,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                   {
                     'aria-label': `open hierarchy ${concept.id}`,
                     onClick: () => onOpenHierarchy(domainOption, cart, searchText, concept),
+                    style: { marginTop: 1.5 },
                   },
                   [icon('view-list')]
                 ),

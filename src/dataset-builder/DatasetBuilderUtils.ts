@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { div, span } from 'react-hyperscript-helpers';
+import { div, h, span } from 'react-hyperscript-helpers';
 import { HeaderAndValues } from 'src/dataset-builder/DatasetBuilder';
 import {
   AnySnapshotBuilderCriteria,
@@ -146,20 +146,33 @@ export const createSnapshotBuilderCountRequest = (cohort: Cohort[]): SnapshotBui
   return { cohorts: _.map(convertCohort, cohort) };
 };
 
-export const HighlightConceptName = ({ conceptName, searchFilter }): ReactElement => {
-  const startIndex = conceptName.toLowerCase().indexOf(searchFilter.toLowerCase());
+type HighlightSearchTextProps = {
+  readonly columnItem: string;
+  readonly searchFilter: string;
+  readonly style?: {};
+};
 
-  // searchFilter is empty or does not exist in conceptName
+export const HighlightSearchText = (props: HighlightSearchTextProps): ReactElement => {
+  const { columnItem, searchFilter, style } = props;
+  const startIndex = columnItem.toLowerCase().indexOf(searchFilter.toLowerCase());
+
+  // searchFilter is empty or does not exist in columnItem
   if (startIndex < 0 || searchFilter.trim() === '') {
-    return div([conceptName]);
+    return div({ style: { ...style } }, [columnItem]);
   }
 
   const endIndex = startIndex + searchFilter.length;
 
-  return div({ style: { display: 'pre-wrap' } }, [
-    span([conceptName.substring(0, startIndex)]),
-    span({ style: { fontWeight: 600 } }, [conceptName.substring(startIndex, endIndex)]),
-    span([conceptName.substring(endIndex)]),
+  return div({ style: { ...style } }, [
+    span([columnItem.substring(0, startIndex)]),
+    span({ style: { fontWeight: 600 } }, [columnItem.substring(startIndex, endIndex)]),
+    span([
+      h(HighlightSearchText, {
+        columnItem: columnItem.substring(endIndex),
+        searchFilter,
+        style: { display: 'inline' },
+      }),
+    ]),
   ]);
 };
 

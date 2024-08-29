@@ -2,7 +2,7 @@ import { delay } from '@terra-ui-packages/core-utils';
 import { FetchFn } from '@terra-ui-packages/data-client-core';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
 
-import { makeWithMaybeRetry, withErrorRejection, withMaybeRetry, withRetry } from './fetch-core';
+import { makeWithMaybeRetry, withAppIdentifier, withErrorRejection, withMaybeRetry, withRetry } from './fetch-core';
 
 describe('withMaybeRetry', () => {
   // These tests avoid withFakeTimers or useFakeTimers since that setup cause lots of headaches with
@@ -121,5 +121,39 @@ describe('withRetry', () => {
     expect(result.success).toBe(true);
     expect(response.status).toBe(200);
     expect(fetchFunction).toBeCalledTimes(2);
+  });
+});
+
+describe('withAppIdentifier', () => {
+  it('adds expected app-id header info', () => {
+    // Arrange
+    const mockFetch = jest.fn();
+    const myFetch = withAppIdentifier(mockFetch);
+
+    // Act
+    myFetch('somewhere.nice.com');
+
+    // Assert
+    expect(mockFetch).toBeCalledTimes(1);
+    expect(mockFetch).toBeCalledWith('somewhere.nice.com', { headers: { 'X-App-ID': 'Saturn' } });
+  });
+
+  it('merges expected app-id header info', () => {
+    // Arrange
+    const mockFetch = jest.fn();
+    const myFetch = withAppIdentifier(mockFetch);
+
+    // Act
+    myFetch('somewhere.nice.com', { headers: { other: 'stuff' }, method: 'GET' });
+
+    // Assert
+    expect(mockFetch).toBeCalledTimes(1);
+    expect(mockFetch).toBeCalledWith('somewhere.nice.com', {
+      headers: {
+        'X-App-ID': 'Saturn',
+        other: 'stuff',
+      },
+      method: 'GET',
+    });
   });
 });
