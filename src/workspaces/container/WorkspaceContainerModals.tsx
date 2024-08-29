@@ -83,7 +83,7 @@ export const WorkspaceContainerModals = (props: WorkspaceContainerModalsProps): 
         />
       )}
       {sharingWorkspace && <ShareWorkspaceModal workspace={workspace} onDismiss={() => setSharingWorkspace(false)} />}
-      {showSettingsModal && <SettingsModal onDismiss={() => setShowSettingsModal(false)} />}
+      {showSettingsModal && <SettingsModal workspace={workspace} onDismiss={() => setShowSettingsModal(false)} />}
     </>
   );
 };

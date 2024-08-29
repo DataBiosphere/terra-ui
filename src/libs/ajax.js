@@ -138,6 +138,16 @@ const Workspaces = (signal) => ({
         const response = await fetchRawls(`${root}/bucketMigration`, _.merge(authOpts(), { signal, method: 'POST' }));
         return response.json();
       },
+
+      getSettings: async () => {
+        const response = await fetchRawls(`${root}/settings`, _.merge(authOpts(), { signal }));
+        return response.json();
+      },
+
+      updateSettings: async (body) => {
+        const response = await fetchRawls(`${root}/settings`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }]));
+        return response.json();
+      },
     };
   },
 
