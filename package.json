@@ -8,6 +8,7 @@
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.1",
     "@microlink/react-json-view": "^1.22.2",
+    "@monaco-editor/react": "^4.6.0",
     "@terra-ui-packages/analysis": "*",
     "@terra-ui-packages/components": "*",
     "@terra-ui-packages/core-utils": "*",
