@@ -56,7 +56,6 @@ export const WorkspaceDashboard = forwardRef(
             defaultPanelOpen: true,
             persistenceId: `${persistenceId}/workspaceInfoPanelOpen`,
             workspace,
-            setPanelOpen(_: boolean): void {},
           },
           [h(WorkspaceInformation, { workspace })]
         ),
@@ -66,7 +65,6 @@ export const WorkspaceDashboard = forwardRef(
             title: 'Cloud information',
             persistenceId: `${persistenceId}/cloudInfoPanelOpen`,
             workspace,
-            setPanelOpen(_: boolean): void {},
           },
           [h(CloudInformation, { workspace, storageDetails })]
         ),
@@ -77,7 +75,6 @@ export const WorkspaceDashboard = forwardRef(
             persistenceId: `${persistenceId}/ownersPanelOpen`,
             afterTitle: OwnerNotice({ workspace }),
             workspace,
-            setPanelOpen(_: boolean): void {},
           },
           [
             div(
@@ -99,7 +96,6 @@ export const WorkspaceDashboard = forwardRef(
               title: 'Authorization domain',
               persistenceId: `${persistenceId}/authDomainPanelOpen`,
               workspace,
-              setPanelOpen(_: boolean): void {},
             },
             [h(AuthDomainPanel, { workspace })]
           ),
@@ -110,7 +106,6 @@ export const WorkspaceDashboard = forwardRef(
             title: 'Notifications',
             persistenceId: `${persistenceId}/notificationsPanelOpen`,
             workspace,
-            setPanelOpen(_: boolean): void {},
           },
           [h(WorkspaceNotifications, { workspace })]
         ),

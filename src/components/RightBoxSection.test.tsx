@@ -29,7 +29,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     await act(async () => {
-      render(<RightBoxSection title='Test Title' persistenceId='testId' setPanelOpen={() => void {}} />);
+      render(<RightBoxSection title='Test Title' persistenceId='testId' />);
     });
     // Assert
     expect(screen.getByText('Test Title')).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     render(
-      <RightBoxSection title='Test Title' persistenceId='testId' setPanelOpen={() => void {}}>
+      <RightBoxSection title='Test Title' persistenceId='testId'>
         Panel Content
       </RightBoxSection>
     );
@@ -56,19 +56,8 @@ describe('RightBoxSection', () => {
     // Act
     render(
       <>
-        <WorkspaceRightBoxSection
-          title='Test Title'
-          persistenceId='metricsId'
-          setPanelOpen={() => false}
-          workspace={workspace}
-          defaultPanelOpen
-        />
-        <RightBoxSection
-          title='Test Title'
-          persistenceId='metricsId'
-          setPanelOpen={jest.fn()}
-          fnCallback={captureEvent}
-        >
+        <WorkspaceRightBoxSection title='Test Title' persistenceId='metricsId' workspace={workspace} />
+        <RightBoxSection title='Test Title' persistenceId='metricsId' onOpenChangedCallback={captureEvent}>
           Panel Content
         </RightBoxSection>
       </>

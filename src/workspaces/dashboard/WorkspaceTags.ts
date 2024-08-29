@@ -78,7 +78,6 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
       persistenceId,
       info: span({}, [busy && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
       workspace,
-      setPanelOpen(_: boolean): void {},
     },
     [
       div({ style: { margin: '0.5rem' } }, [

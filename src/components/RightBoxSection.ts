@@ -3,6 +3,7 @@ import { div, h, h3 } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
+import { useLocalPref } from 'src/libs/useLocalPref';
 
 export type RightBoxSectionProps = {
   title: string;
@@ -11,13 +12,12 @@ export type RightBoxSectionProps = {
   children?: ReactNode;
   persistenceId: string; // persists whether or not the panel is open in local storage
   defaultPanelOpen?: boolean; // optional default for the panel state - false if not specified
-  fnCallback?: () => void;
-  panelOpen?: boolean;
-  setPanelOpen: (b: boolean) => void;
+  onOpenChangedCallback?: (b: boolean) => void;
 };
 
 export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
-  const { title, children, afterTitle, info, fnCallback, panelOpen, setPanelOpen } = props;
+  const { title, children, afterTitle, info, onOpenChangedCallback, persistenceId, defaultPanelOpen } = props;
+  const [panelOpen, setPanelOpen] = useLocalPref<boolean>(persistenceId, defaultPanelOpen);
 
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
@@ -31,8 +31,8 @@ export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
           afterTitle,
           onOpenChanged: (panelOpen) => {
             setPanelOpen(panelOpen);
-            if (fnCallback) {
-              fnCallback();
+            if (onOpenChangedCallback) {
+              onOpenChangedCallback(panelOpen);
             }
           },
         },
