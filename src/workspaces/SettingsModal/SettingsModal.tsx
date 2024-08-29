@@ -128,16 +128,39 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     onDismiss();
   };
 
+  const getOkTooltip = () => {
+    if (lifecycleRulesEnabled) {
+      if (lifecycleAge === undefined) {
+        return 'Please specify a deletion age';
+      }
+      if (prefixes.length === 0) {
+        return 'Please choose "All Objects" or specify one or more prefixes';
+      }
+    }
+    return '';
+  };
+
   const loading = workspaceSettings === undefined;
   return (
     <Modal
       title='Configure Workspace Settings'
       onDismiss={onDismiss}
-      okButton={<ButtonPrimary onClick={persistSettings}>Ok</ButtonPrimary>}
+      okButton={
+        <ButtonPrimary
+          disabled={lifecycleRulesEnabled && (prefixes.length === 0 || lifecycleAge === undefined)}
+          onClick={persistSettings}
+          tooltip={getOkTooltip()}
+        >
+          Ok
+        </ButtonPrimary>
+      }
     >
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-        <FormLabel htmlFor={switchId} style={{ fontWeight: 'bold', whiteSpace: 'nowrap', marginRight: '5px' }}>
-          Lifecycle Rules:
+      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '6px' }}>
+        <FormLabel
+          htmlFor={switchId}
+          style={{ fontWeight: 'bold', whiteSpace: 'nowrap', marginRight: '5px', marginTop: '5px' }}
+        >
+          Bucket Lifecycle Rules:
         </FormLabel>
         <Switch
           onLabel=''
@@ -152,19 +175,20 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         />
       </div>
       <div style={{ marginTop: '5px', fontSize: '12px' }}>
-        This setting allows you to automatically delete objects in the bucket a certain number of days after they are
-        uploaded to the bucket. You can limit the deletion to objects that start with one or more prefixes.
+        This setting allows you to automatically delete objects a certain number of days after they are uploaded to the
+        bucket. You can limit the deletion to objects that start with one or more prefixes.
       </div>
       <div style={{ marginTop: '10px', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <FormLabel style={{ marginRight: '5px' }} htmlFor={daysId}>
+          {/* eslint-disable jsx-a11y/label-has-associated-control */}
+          <label style={{ marginRight: '5px' }} htmlFor={daysId}>
             Deletion age (in days):
-          </FormLabel>
+          </label>
           <NumberInput
             style={{ maxWidth: '100px' }}
             id={daysId}
             min={0}
-            isClearable={false}
+            isClearable
             onlyInteger
             value={lifecycleAge}
             disabled={!lifecycleRulesEnabled}
