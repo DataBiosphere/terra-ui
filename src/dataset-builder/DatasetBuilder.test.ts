@@ -165,6 +165,10 @@ describe('DatasetBuilder', () => {
     updatedDate: null,
   });
 
+  const mockGetSnapshotAccessRequestDetails = jest.fn().mockResolvedValue({
+    summary: 'Summary',
+  });
+
   it('renders cohorts', () => {
     // Arrange
     renderCohortSelector();
@@ -376,6 +380,7 @@ describe('DatasetBuilder', () => {
       snapshotAccessRequest: () =>
         ({
           createSnapshotAccessRequest: mockCreateSnapshotAccessRequest,
+          getSnapshotAccessRequestDetails: mockGetSnapshotAccessRequestDetails,
         } as Partial<DataRepoContract['snapshotAccessRequest']>),
     } as Partial<DataRepoContract> as DataRepoContract;
 
@@ -418,6 +423,30 @@ describe('DatasetBuilder', () => {
         outputTables: [],
       },
     });
+  });
+
+  it('Fetches detail information when snapshot request is created', async () => {
+    const getSnapshotAccessRequestDetails = jest.fn().mockResolvedValue(mockGetSnapshotAccessRequestDetails);
+    const mockDataRepoContract: Partial<DataRepoContract> = {
+      snapshot: (_snapshotId) =>
+        ({
+          getSnapshotBuilderCount: () => Promise.resolve({ result: { total: 19 }, sql: '' }),
+        } as Partial<DataRepoContract['snapshot']>),
+      snapshotAccessRequest: () =>
+        ({
+          createSnapshotAccessRequest: mockCreateSnapshotAccessRequest,
+          getSnapshotAccessRequestDetails,
+        } as Partial<DataRepoContract['snapshotAccessRequest']>),
+    } as Partial<DataRepoContract> as DataRepoContract;
+
+    asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
+
+    // Arrange
+    const user = userEvent.setup();
+    initializeValidDatasetRequest();
+    await user.click(await screen.findByText('Request this data snapshot'));
+    // Assert
+    expect(getSnapshotAccessRequestDetails).toBeCalledWith('');
   });
 
   it('enables editing cohorts', async () => {
