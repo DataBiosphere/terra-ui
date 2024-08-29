@@ -26,8 +26,19 @@ export const BaseWorkflowWdl = () => {
           [icon('download', { style: { marginRight: '0.5rem' } }), 'Download .wdl']
         ),
       ]),
-      div({ style: { flex: 1 } }, [
-        h(AutoSizer, [({ height, width }) => h(WDLViewer, { wdl: payload, style: { maxHeight: height, width } })]),
+      div({ style: { flex: 2 } }, [
+        h(AutoSizer, [
+          ({ height, width }) =>
+            h(WDLViewer, {
+              wdl: payload,
+              options: {
+                readOnly: true,
+              },
+              height,
+              width,
+              style: { height, width },
+            }),
+        ]),
       ]),
     ]
   );

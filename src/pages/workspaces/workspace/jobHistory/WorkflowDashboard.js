@@ -312,7 +312,14 @@ const WorkflowDashboard = _.flow(
               {
                 title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script']),
               },
-              [h(WDLViewer, { wdl })]
+              [
+                h(WDLViewer, {
+                  wdl,
+                  options: {
+                    readOnly: true,
+                  },
+                }),
+              ]
             ),
           showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) }),
         ])

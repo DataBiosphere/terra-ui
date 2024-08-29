@@ -1425,7 +1425,9 @@ export const WorkflowView = _.flow(
         wdl
           ? h(WDLViewer, {
               wdl,
-              readOnly: true,
+              options: {
+                readOnly: true,
+              },
               style: { maxHeight: 500 },
             })
           : centeredSpinner(),

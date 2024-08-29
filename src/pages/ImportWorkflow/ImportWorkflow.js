@@ -166,7 +166,14 @@ export const ImportWorkflow = ({ path, version, source }) => {
           'by this Workflow will not change. We advise you to review the WDL before future runs.',
         ]
       ),
-      wdl && h(WDLViewer, { wdl, style: { height: 500 } }),
+      wdl &&
+        h(WDLViewer, {
+          wdl,
+          options: {
+            readOnly: true,
+          },
+          style: { height: 500 },
+        }),
     ]),
     div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
       h(IdContainer, [
