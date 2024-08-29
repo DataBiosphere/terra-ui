@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _ from 'lodash/fp';
 import React, { ReactNode, useContext } from 'react';
 import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';

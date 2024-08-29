@@ -195,7 +195,9 @@ describe('DatasetBuilder', () => {
     fireEvent.change(await screen.findByLabelText('Cohort name *'), { target: { value: cohortName } });
     await user.click(screen.getByText('Create cohort'));
     // Assert
-    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(newCohort(cohortName)));
+    const cohort = newCohort(cohortName);
+    const expected = _.set('criteriaGroups[0].id', cohort.criteriaGroups[0].id - 1, cohort);
+    expect(onStateChange).toHaveBeenCalledWith(cohortEditorState.new(expected));
   });
 
   it('renders concept sets', () => {
@@ -273,6 +275,7 @@ describe('DatasetBuilder', () => {
     mockDataRepo([
       snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
       snapshotRolesMock(['aggregate_data_reader']),
+      getSnapshotBuilderCountMock(),
     ]);
     const initialState = cohortEditorState.new(newCohort('my test cohort'));
     render(h(DatasetBuilderView, { snapshotId: 'ignored', initialState }));
@@ -285,6 +288,7 @@ describe('DatasetBuilder', () => {
     mockDataRepo([
       snapshotBuilderSettingsMock(testSnapshotBuilderSettings()),
       snapshotRolesMock(['aggregate_data_reader']),
+      getSnapshotBuilderCountMock(),
     ]);
     const user = userEvent.setup();
     const initialState = cohortEditorState.new(newCohort('my test cohort'));
@@ -357,7 +361,7 @@ describe('DatasetBuilder', () => {
     } as Partial<DataRepoContract> as DataRepoContract;
     asMockedFn(DataRepo).mockImplementation(() => mockDataRepoContract as DataRepoContract);
     // Arrange
-    await initializeValidDatasetRequest();
+    initializeValidDatasetRequest();
     // Assert
     expect(await screen.findByText('Less than 20 participants in this dataset')).toBeTruthy();
     expect(await screen.findByText('Request this data snapshot')).toBeTruthy();
@@ -379,7 +383,7 @@ describe('DatasetBuilder', () => {
 
     // Arrange
     const user = userEvent.setup();
-    await initializeValidDatasetRequest();
+    initializeValidDatasetRequest();
     await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
     expect(await screen.findByText('Access request created in Terra')).toBeTruthy();
@@ -402,7 +406,7 @@ describe('DatasetBuilder', () => {
 
     // Arrange
     const user = userEvent.setup();
-    await initializeValidDatasetRequest();
+    initializeValidDatasetRequest();
     await user.click(await screen.findByText('Request this data snapshot'));
     // Assert
     expect(createSnapshotAccessRequest).toBeCalledWith({

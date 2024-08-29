@@ -394,7 +394,7 @@ export const WorkflowView = _.flow(
         retryWithMoreMemory: retryWithMoreMemoryPref?.enabled || false,
         retryMemoryFactor: retryWithMoreMemoryPref?.enabled ? retryWithMoreMemoryPref?.factor : 1.2,
         ignoreEmptyOutputs: workflowOptionsPref?.ignoreEmptyOutputs || false,
-        expandResourceMonitoring: resourceMonitoringEnabledPref || false,
+        enableResourceMonitoring: resourceMonitoringEnabledPref || false,
         monitoringScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.script : '',
         monitoringImage: resourceMonitoringEnabledPref ? resourceMonitoringPref?.image : '',
         monitoringImageScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.imageScript : '',
@@ -457,6 +457,7 @@ export const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
+        enableResourceMonitoring,
         monitoringScript,
         monitoringImage,
         monitoringImageScript,
@@ -495,6 +496,7 @@ export const WorkflowView = _.flow(
                 retryWithMoreMemory,
                 retryMemoryFactor,
                 ignoreEmptyOutputs,
+                enableResourceMonitoring,
                 monitoringScript,
                 monitoringImage,
                 monitoringImageScript,
@@ -660,7 +662,7 @@ export const WorkflowView = _.flow(
         deleteIntermediateOutputFiles,
         retryWithMoreMemory,
         retryMemoryFactor,
-        expandResourceMonitoring,
+        enableResourceMonitoring,
         monitoringScript,
         monitoringImage,
         monitoringImageScript,
@@ -680,9 +682,9 @@ export const WorkflowView = _.flow(
           enabled: retryWithMoreMemory,
           factor: retryMemoryFactor,
         };
-      if (expandResourceMonitoring)
+      if (enableResourceMonitoring)
         updatedWfOptionsPref.resourceMonitoring = {
-          enabled: expandResourceMonitoring,
+          enabled: enableResourceMonitoring,
           script: monitoringScript,
           image: monitoringImage,
           imageScript: monitoringImageScript,
@@ -818,7 +820,7 @@ export const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
-        expandResourceMonitoring,
+        enableResourceMonitoring,
         monitoringScript,
         monitoringImage,
         monitoringImageScript,
@@ -1209,8 +1211,8 @@ export const WorkflowView = _.flow(
                       h(
                         LabeledCheckbox,
                         {
-                          checked: expandResourceMonitoring,
-                          onChange: (v) => this.setState({ expandResourceMonitoring: v }),
+                          checked: enableResourceMonitoring,
+                          onChange: (v) => this.setState({ enableResourceMonitoring: v }),
                           style: styles.checkBoxLeftMargin,
                         },
                         [' Resource monitoring']
@@ -1220,7 +1222,7 @@ export const WorkflowView = _.flow(
                       'Specify user-provided tools to monitor task resources. ',
                       h(Link, { href: this.getSupportLink('27341964316699'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
-                    expandResourceMonitoring &&
+                    enableResourceMonitoring &&
                       div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
                         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {

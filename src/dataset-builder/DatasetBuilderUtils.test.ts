@@ -1,4 +1,5 @@
-import { div, span } from 'react-hyperscript-helpers';
+import { render, screen } from '@testing-library/react';
+import { div, h } from 'react-hyperscript-helpers';
 import {
   AnyCriteria,
   Cohort,
@@ -9,7 +10,7 @@ import {
   CriteriaGroup,
   debounceAsync,
   formatCount,
-  HighlightConceptName,
+  HighlightSearchText,
   OutputTable,
   ProgramDataListCriteria,
   ProgramDataRangeCriteria,
@@ -202,74 +203,94 @@ describe('test conversion of DatasetAccessRequest', () => {
   });
 });
 
-describe('test HighlightConceptName', () => {
-  const createHighlightConceptName = (beforeHighlight: string, highlightWord: string, afterHighlight: string) => {
-    return div({ style: { display: 'pre-wrap' } }, [
-      span([beforeHighlight]),
-      span({ style: { fontWeight: 600 } }, [highlightWord]),
-      span([afterHighlight]),
-    ]);
-  };
-
+describe('test HighlightSearchText', () => {
   test('searching beginning of conceptName', () => {
     const searchFilter = 'Clinic';
-    const conceptName = 'Clinical Finding';
-    const result = createHighlightConceptName('', 'Clinic', 'al Finding');
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    const unsearchedText = 'al Finding';
+    render(h(HighlightSearchText, { searchFilter, columnItem: searchFilter + unsearchedText }));
+    expect(screen.getByText(searchFilter)).toHaveStyle({ fontWeight: 600 });
+    expect(screen.getByText(unsearchedText)).not.toHaveStyle({ fontWeight: 600 });
   });
 
   test("Testing to make sure capitalization doesn't change", () => {
     const searchFilter = 'clin';
-    const conceptName = 'Clinical Finding';
-    const result = createHighlightConceptName('', 'Clin', 'ical Finding');
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    const unsearchedText = 'ical Finding';
+    render(h(HighlightSearchText, { searchFilter, columnItem: searchFilter + unsearchedText }));
+    expect(screen.getByText(searchFilter)).toHaveStyle({ fontWeight: 600 });
+    expect(screen.getByText(unsearchedText)).not.toHaveStyle({ fontWeight: 600 });
   });
 
   test('searchedWord in the middle of conceptName', () => {
     const searchFilter = 'cal';
-    const conceptName = 'Clinical Finding';
-    const result = createHighlightConceptName('Clini', 'cal', ' Finding');
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    const unsearchedTextStart = 'Clini';
+    const unsearchedTextEnd = 'Finding';
+    render(
+      h(HighlightSearchText, { searchFilter, columnItem: unsearchedTextStart + searchFilter + unsearchedTextEnd })
+    );
+    expect(screen.getByText(searchFilter)).toHaveStyle({ fontWeight: 600 });
+    expect(screen.getByText(unsearchedTextStart)).not.toHaveStyle({ fontWeight: 600 });
+    expect(screen.getByText(unsearchedTextEnd)).not.toHaveStyle({ fontWeight: 600 });
   });
 
   test('searchedWord in the end of conceptName', () => {
     const searchFilter = 'Finding';
-    const conceptName = 'Clinical Finding';
-    const result = createHighlightConceptName('Clinical ', 'Finding', '');
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    const unsearchedText = 'Clinical';
+    render(h(HighlightSearchText, { searchFilter, columnItem: unsearchedText + searchFilter }));
+    expect(screen.getByText(searchFilter)).toHaveStyle({ fontWeight: 600 });
+    expect(screen.getByText(unsearchedText)).not.toHaveStyle({ fontWeight: 600 });
   });
 
   test('searchedWord in the not in conceptName: "XXX" in "Clinical Finding"', () => {
     const searchFilter = 'XXX';
-    const conceptName = 'Clinical Finding';
-    const result = div(['Clinical Finding']);
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    const columnItem = 'Clinical Finding';
+    const result = div({ style: {} }, ['Clinical Finding']);
+    expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord in the not in conceptName: "Clinical" in "Clin"', () => {
     const searchFilter = 'Clinical';
-    const conceptName = 'Clin';
-    const result = div(['Clin']);
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    const columnItem = 'Clin';
+    const result = div({ style: {} }, ['Clin']);
+    expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 
   test('searchedWord is empty: "" ', () => {
     const searchFilter = '';
-    const conceptName = 'Condition';
-    const result = div(['Condition']);
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    const columnItem = 'Condition';
+    const result = div({ style: {} }, ['Condition']);
+    expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
   });
 
   test("doesn't bold whitespace", () => {
     let searchFilter = ' ';
-    let conceptName = 'Clinical Finding';
-    let result = div(['Clinical Finding']);
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    let columnItem = 'Clinical Finding';
+    let result = div({ style: {} }, ['Clinical Finding']);
+    expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
 
     searchFilter = '   ';
-    conceptName = 'Clinical Finding';
-    result = div(['Clinical Finding']);
-    expect(HighlightConceptName({ conceptName, searchFilter })).toStrictEqual(result);
+    columnItem = 'Clinical Finding';
+    result = div({ style: {} }, ['Clinical Finding']);
+    expect(HighlightSearchText({ columnItem, searchFilter })).toStrictEqual(result);
+  });
+
+  test('multiple instances of searchedWord in columnItem', () => {
+    const searchFilter = '110';
+    const unsearchedTextStart = '85982';
+    const unsearchedTextMiddle = '0000';
+    const unsearchedTextEnd = '0';
+    render(
+      h(HighlightSearchText, {
+        searchFilter,
+        columnItem: unsearchedTextStart + searchFilter + unsearchedTextMiddle + searchFilter + unsearchedTextEnd,
+      })
+    );
+    const searchFilterInstances = screen.getAllByText(searchFilter);
+    searchFilterInstances.forEach((instance) => {
+      expect(instance).toHaveStyle({ fontWeight: 600 });
+    });
+    expect(screen.getByText(unsearchedTextStart)).not.toHaveStyle({ fontWeight: 600 });
+    expect(screen.getByText(unsearchedTextMiddle)).not.toHaveStyle({ fontWeight: 600 });
+    expect(screen.getByText(unsearchedTextEnd)).not.toHaveStyle({ fontWeight: 600 });
   });
 });
 

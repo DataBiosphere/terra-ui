@@ -17,7 +17,7 @@ export const newCriteriaGroup = (): CriteriaGroup => {
 
 export const newCohort = (name: string): Cohort => ({
   name,
-  criteriaGroups: [],
+  criteriaGroups: [newCriteriaGroup()],
 });
 
 export const newConceptSet = (name: string): SnapshotBuilderDatasetConceptSet => ({

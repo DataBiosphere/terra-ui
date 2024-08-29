@@ -4,7 +4,8 @@ import {
   makeLeoDisksV2DataClient,
 } from '@terra-ui-packages/leonardo-data-client';
 import { withAuthSession } from 'src/auth/auth-session';
-import { fetchLeo, withAppIdentifier } from 'src/libs/ajax/ajax-common';
+import { fetchLeo } from 'src/libs/ajax/ajax-common';
+import { withAppIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 
 export const Disks = makeDisksHelper({
   v1Api: makeLeoDisksV1DataClient({
