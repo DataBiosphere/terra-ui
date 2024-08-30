@@ -37,6 +37,12 @@ const errorExportProvider: ExportWorkflowToWorkspaceProvider = {
   }),
 };
 
+const thrownResponseExportProvider: ExportWorkflowToWorkspaceProvider = {
+  export: jest.fn(() => {
+    throw new Response('This is an error');
+  }),
+};
+
 const successExportProvider: ExportWorkflowToWorkspaceProvider = {
   export: jest.fn(),
 };
@@ -454,6 +460,41 @@ describe('export workflow main modal', () => {
     // Assert
     expect(errorExportProvider.export).toHaveBeenCalledWith(mockWorkspaces[0].workspace, 'defaultname');
     expect(screen.getByText('You must obtain true power before you can make API calls.')).toBeInTheDocument();
+    expect(mockOnGoToExportedWorkflow).not.toHaveBeenCalled();
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+    expect(mockOnDismiss).not.toHaveBeenCalled();
+  });
+
+  it('handles thrown responses from the export provider', async () => {
+    // Arrange
+    mockUseWorkspaces(mockWorkspaces as WorkspaceWrapper[]);
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <ExportWorkflowModal
+          defaultWorkflowName='defaultname'
+          destinationWorkspace={mockWorkspaceFilter}
+          title='Custom Title'
+          exportButtonText='Export'
+          exportProvider={thrownResponseExportProvider}
+          onGoToExportedWorkflow={mockOnGoToExportedWorkflow}
+          onSuccess={mockOnSuccess}
+          onDismiss={mockOnDismiss}
+        />
+      );
+    });
+
+    const workspaceSelector = new SelectHelper(screen.getByRole('combobox', { name: 'Select a workspace' }), user);
+    await workspaceSelector.selectOption('cloud_azure_icon.svg name1');
+
+    await user.click(screen.getByRole('button', { name: 'Export' }));
+
+    // Assert
+    expect(thrownResponseExportProvider.export).toHaveBeenCalledWith(mockWorkspaces[0].workspace, 'defaultname');
+    expect(screen.getByText('This is an error')).toBeInTheDocument();
     expect(mockOnGoToExportedWorkflow).not.toHaveBeenCalled();
     expect(mockOnSuccess).not.toHaveBeenCalled();
     expect(mockOnDismiss).not.toHaveBeenCalled();
