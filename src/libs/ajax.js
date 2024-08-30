@@ -203,8 +203,8 @@ const Workspaces = (signal) => ({
         return res.json();
       },
 
-      importMethodConfigFromDocker: (payload) => {
-        return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]));
+      importMethodConfig: (config) => {
+        return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(config), { signal, method: 'POST' }]));
       },
 
       methodConfig: (configNamespace, configName) => {
