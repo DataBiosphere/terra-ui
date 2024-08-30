@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal, { suggestedPrefixes } from 'src/workspaces/SettingsModal/SettingsModal';
-import { BucketLifecycleSetting } from 'src/workspaces/SettingsModal/utils';
+import { BucketLifecycleSetting, WorkspaceSetting } from 'src/workspaces/SettingsModal/utils';
 
 jest.mock('src/libs/ajax');
 
@@ -90,7 +90,7 @@ describe('SettingsModal', () => {
 
     const noLifecycleRules: BucketLifecycleSetting = { settingType: 'GcpBucketLifecycle', config: { rules: [] } };
 
-    const setup = (currentSetting: BucketLifecycleSetting[], updateSettingsMock: jest.Mock<any, any>) => {
+    const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
       jest.resetAllMocks();
       jest.spyOn(console, 'log').mockImplementation(() => {});
       asMockedFn(Ajax).mockImplementation(
@@ -181,7 +181,7 @@ describe('SettingsModal', () => {
     it('uses the first GcpBucketLifecycle setting present', async () => {
       // Arrange
       const user = userEvent.setup();
-      const enabledForAllObjects: BucketLifecycleSetting[] = [fourDaysAllObjects, zeroDaysTwoPrefixes];
+      const enabledForAllObjects: WorkspaceSetting[] = [fourDaysAllObjects, zeroDaysTwoPrefixes];
       setup(enabledForAllObjects, jest.fn());
 
       // Act
