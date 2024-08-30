@@ -1,6 +1,7 @@
 import {
   ButtonPrimary,
   CreatableSelect,
+  ExternalLink,
   Modal,
   SpinnerOverlay,
   Switch,
@@ -13,22 +14,22 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation } from 'src/libs/react-utils';
+import {
+  BucketLifecycleSetting,
+  DeleteBucketLifecycleRule,
+  isBucketLifecycleSetting,
+  isDeleteBucketLifecycleRule,
+  modifyFirstBucketDeletionRule,
+  removeFirstBucketDeletionRule,
+  WorkspaceSetting,
+} from 'src/workspaces/SettingsModal/utils';
 import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-interface BucketLifecycleRule {
-  action: {
-    actionType: 'Delete';
-  };
-  conditions: {
-    age: number;
-    matchesPrefix: string[];
-  };
-}
-
-interface BucketLifecycleSetting {
-  settingType: 'GcpBucketLifecycle';
-  config: { rules: BucketLifecycleRule[] };
-}
+export const suggestedPrefixes = {
+  allObjects: 'All Objects',
+  submissions: 'submissions/',
+  submissionIntermediaries: 'submissions/intermediates/',
+};
 
 interface SettingsModalProps {
   workspace: Workspace;
@@ -39,36 +40,41 @@ interface SettingsModalProps {
  * This modal is assumed to only be displayed for Google workspaces.
  */
 const SettingsModal = (props: SettingsModalProps): ReactNode => {
-  const { onDismiss, workspace } = props;
+  const { namespace, name } = props.workspace.workspace;
 
-  const allObjects = 'All Objects';
   const [lifecycleRulesEnabled, setLifecycleRulesEnabled] = useState(false);
-  // In-progress lifecycle rules, will not be persisted (included in settings) unless lifecycleRulesEnabled is true
-  const [lifecycleRules, setLifecycleRules] = useState<BucketLifecycleSetting | undefined>(undefined);
-
-  const [workspaceSettings, setWorkspaceSettings] = useState<BucketLifecycleSetting[] | undefined>(undefined);
   const [prefixes, setPrefixes] = useState<string[]>([]);
-  const [lifecycleAge, setLifecycleAge] = useState<number>();
+  const [lifecycleAge, setLifecycleAge] = useState<number | null>(null);
+
+  // Original settings from server, may contain multiple types
+  const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSetting[] | undefined>(undefined);
 
   const switchId = useUniqueId('switch');
   const daysId = useUniqueId('days');
+
   const signal = useCancellation();
 
   useEffect(() => {
-    const { namespace, name } = workspace.workspace;
-    const loadSettings = withErrorReporting('Error loading Workspace Settings')(async () => {
-      const settings = await Ajax(signal).Workspaces.workspaceV2(namespace, name).getSettings();
+    const loadSettings = withErrorReporting('Error loading workspace settings')(async () => {
+      const settings = (await Ajax(signal)
+        .Workspaces.workspaceV2(namespace, name)
+        .getSettings()) satisfies WorkspaceSetting[];
       setWorkspaceSettings(settings);
-      // TODO: change to filtering for GcpBucketLifecycle settings. We can assume that there will be at most 1.
-      if (settings.length > 0 && settings[0].settingType === 'GcpBucketLifecycle') {
-        const lifecycleSetting = settings[0] satisfies BucketLifecycleSetting;
-        setLifecycleRules(lifecycleSetting);
-        const rule = getBucketLifecycleRule(lifecycleSetting);
+      const bucketLifecycleSettings: BucketLifecycleSetting[] = settings.filter((setting: WorkspaceSetting) =>
+        isBucketLifecycleSetting(setting)
+      );
+      if (bucketLifecycleSettings.length > 0) {
+        if (bucketLifecycleSettings.length > 1) {
+          // eslint-disable-next-line no-console
+          console.log('Multiple bucket lifecycle settings found, displaying only first');
+        }
+        const bucketLifecycleSetting = settings[0];
+        const rule = getDeleteLifecycleRule(bucketLifecycleSetting, true);
         if (rule) {
           setLifecycleRulesEnabled(true);
           const prefixes = rule.conditions.matchesPrefix;
           if (prefixes.length === 0) {
-            setPrefixes([allObjects]);
+            setPrefixes([suggestedPrefixes.allObjects]);
           } else {
             setPrefixes(prefixes);
           }
@@ -78,80 +84,54 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     });
 
     loadSettings();
-  }, [workspace, signal]);
+  }, [namespace, name, signal]);
 
-  const getBucketLifecycleRule = (
-    bucketLifecycleSetting: BucketLifecycleSetting | undefined
-  ): BucketLifecycleRule | undefined => {
+  const getDeleteLifecycleRule = (
+    bucketLifecycleSetting: BucketLifecycleSetting | undefined,
+    printMultipleWarning = false
+  ): DeleteBucketLifecycleRule | undefined => {
     const configRules = bucketLifecycleSetting?.config.rules;
-
-    return !!configRules && configRules.length >= 1 ? configRules[0] : undefined;
+    const deleteRules: DeleteBucketLifecycleRule[] = configRules?.filter((rule) =>
+      isDeleteBucketLifecycleRule(rule)
+    ) as DeleteBucketLifecycleRule[];
+    if (printMultipleWarning && !!deleteRules && deleteRules.length > 1) {
+      // eslint-disable-next-line no-console
+      console.log('Multiple delete bucket lifecycle rules found, displaying only first');
+    }
+    return !!deleteRules && deleteRules.length >= 1 ? deleteRules[0] : undefined;
   };
 
-  // TODOs: will need to disable controls if the feature as a whole is off.
-  // Although the API supports multiple rules, we only allow viewing and editing the first one.
-  // The others will be retained if they exist, but not displayed.
-
   const prefixOptions = () => {
-    // Append together suggested options, any options that were already get in GCP, plus anything the user
-    // has added in the modal.
-    const currentLifecycleRule = getBucketLifecycleRule(lifecycleRules);
-    const gcpPrefixes = currentLifecycleRule ? currentLifecycleRule.conditions.matchesPrefix : [];
-    const allOptions = _.uniq([allObjects, 'submissions/intermediates/', ...prefixes, ...gcpPrefixes]);
+    // Append together suggested options any options the user has added or are already selected.
+    const allOptions = _.uniq(_.concat(_.values(suggestedPrefixes), prefixes));
     return _.map((value) => ({ value, label: value }), allOptions);
   };
 
   const persistSettings = async () => {
-    const { namespace, name } = workspace.workspace;
-    // TODO: error handling, validing that the user entered values, and merge with existing settings.
+    let newSettings;
     if (lifecycleRulesEnabled) {
-      const newRules: BucketLifecycleRule = {
-        action: { actionType: 'Delete' },
-        conditions: { age: lifecycleAge!, matchesPrefix: prefixes },
-      };
-      const newSetting: BucketLifecycleSetting = {
-        settingType: 'GcpBucketLifecycle',
-        config: { rules: [newRules] },
-      };
-      await Ajax().Workspaces.workspaceV2(namespace, name).updateSettings([newSetting]);
+      const prefixesOrNone = _.without([suggestedPrefixes.allObjects], prefixes);
+      newSettings = modifyFirstBucketDeletionRule(workspaceSettings || [], lifecycleAge!, prefixesOrNone);
     } else {
-      // If we're disabling lifecycle rules, we should remove the setting.
-      await Ajax()
-        .Workspaces.workspaceV2(namespace, name)
-        .updateSettings([
-          {
-            settingType: 'GcpBucketLifecycle',
-            config: { rules: [] },
-          },
-        ]);
+      newSettings = removeFirstBucketDeletionRule(workspaceSettings || []);
     }
-    onDismiss();
+    await Ajax().Workspaces.workspaceV2(namespace, name).updateSettings(newSettings);
+    props.onDismiss();
+    // TODO: add eventing and error wrapping
+    // Test onDismiss being called.
   };
 
-  const getOkTooltip = () => {
-    if (lifecycleRulesEnabled) {
-      if (lifecycleAge === undefined) {
-        return 'Please specify a deletion age';
-      }
-      if (prefixes.length === 0) {
-        return 'Please choose "All Objects" or specify one or more prefixes';
-      }
-    }
-    return '';
-  };
-
-  const loading = workspaceSettings === undefined;
   return (
     <Modal
       title='Configure Workspace Settings'
-      onDismiss={onDismiss}
+      onDismiss={props.onDismiss}
       okButton={
         <ButtonPrimary
-          disabled={lifecycleRulesEnabled && (prefixes.length === 0 || lifecycleAge === undefined)}
+          disabled={lifecycleRulesEnabled && (prefixes.length === 0 || lifecycleAge === null)}
           onClick={persistSettings}
-          tooltip={getOkTooltip()}
+          tooltip={lifecycleRulesEnabled ? 'Please specify all lifecycle rule options' : ''}
         >
-          Ok
+          Save
         </ButtonPrimary>
       }
     >
@@ -160,13 +140,18 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           htmlFor={switchId}
           style={{ fontWeight: 'bold', whiteSpace: 'nowrap', marginRight: '5px', marginTop: '5px' }}
         >
-          Bucket Lifecycle Rules:
+          Lifecycle Rules:
         </FormLabel>
         <Switch
           onLabel=''
           offLabel=''
           onChange={(checked: boolean) => {
             setLifecycleRulesEnabled(checked);
+            if (!checked) {
+              // Clear out the values being display to reduce
+              setLifecycleAge(null);
+              setPrefixes([]);
+            }
           }}
           id={switchId}
           checked={lifecycleRulesEnabled}
@@ -174,42 +159,26 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           height={20}
         />
       </div>
-      <div style={{ marginTop: '5px', fontSize: '12px' }}>
-        This setting allows you to automatically delete objects a certain number of days after they are uploaded to the
-        bucket. You can limit the deletion to objects that start with one or more prefixes.
-      </div>
-      <div style={{ marginTop: '10px', marginBottom: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          {/* eslint-disable jsx-a11y/label-has-associated-control */}
-          <label style={{ marginRight: '5px' }} htmlFor={daysId}>
-            Deletion age (in days):
-          </label>
-          <NumberInput
-            style={{ maxWidth: '100px' }}
-            id={daysId}
-            min={0}
-            isClearable
-            onlyInteger
-            value={lifecycleAge}
-            disabled={!lifecycleRulesEnabled}
-            onChange={(value: number) => setLifecycleAge(value)}
-          />
-        </div>
-        <div style={{ marginTop: '5px', marginBottom: '5px' }}>Prefix scoping rules:</div>
+
+      <div style={{ marginTop: '20px', marginBottom: '10px' }}>
+        <div style={{ marginTop: '5px', marginBottom: '5px' }}>Delete objects in:</div>
         <CreatableSelect
           isClearable
           isMulti
           isSearchable
           placeholder='Choose "All Objects" or specify prefixes'
-          aria-label='Filter by access levels'
+          aria-label='Specify if all objects should be deleted, or objects with specific prefixes'
           value={_.map((value) => ({ value, label: value }), prefixes)}
           onChange={(data) => {
             const selectedPrefixes = _.map('value', data);
             // If added "All Objects", clear the others.
-            if (_.contains(allObjects, selectedPrefixes) && !_.contains(allObjects, prefixes)) {
-              setPrefixes([allObjects]);
+            if (
+              _.contains(suggestedPrefixes.allObjects, selectedPrefixes) &&
+              !_.contains(suggestedPrefixes.allObjects, prefixes)
+            ) {
+              setPrefixes([suggestedPrefixes.allObjects]);
             } else if (selectedPrefixes.length > 1) {
-              setPrefixes(_.without([allObjects], selectedPrefixes));
+              setPrefixes(_.without([suggestedPrefixes.allObjects], selectedPrefixes));
             } else {
               setPrefixes(selectedPrefixes);
             }
@@ -218,7 +187,32 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           isDisabled={!lifecycleRulesEnabled}
         />
       </div>
-      {loading && <SpinnerOverlay />}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* eslint-disable jsx-a11y/label-has-associated-control */}
+        <label style={{ marginRight: '5px' }} htmlFor={daysId}>
+          Days after upload:
+        </label>
+        <NumberInput
+          style={{ maxWidth: '100px' }}
+          id={daysId}
+          min={0}
+          isClearable
+          onlyInteger
+          value={lifecycleAge}
+          disabled={!lifecycleRulesEnabled}
+          onChange={(value: number) => {
+            setLifecycleAge(value);
+          }}
+        />
+      </div>
+      {/* TODO: add aria-described by to link to the setting. */}
+      <div style={{ marginTop: '10px', fontSize: '12px' }}>
+        This{' '}
+        <ExternalLink href='https://cloud.google.com/storage/docs/lifecycle'>bucket lifecycle setting</ExternalLink>{' '}
+        automatically deletes objects a certain number of days after they are uploaded.{' '}
+        <span style={{ fontWeight: 'bold' }}>Changes can take up to 24 hours to take effect.</span>
+      </div>
+      {workspaceSettings === undefined && <SpinnerOverlay />}
     </Modal>
   );
 };
