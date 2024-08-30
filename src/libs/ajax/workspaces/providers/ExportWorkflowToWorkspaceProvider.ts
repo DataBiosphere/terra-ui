@@ -1,9 +1,10 @@
+import { AbortOption } from '@terra-ui-packages/data-client-core';
 import { Ajax } from 'src/libs/ajax';
 import { MethodConfiguration } from 'src/libs/ajax/workspaces/workspace-models';
 import { WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface ExportWorkflowToWorkspaceProvider {
-  export: (destWorkspace: WorkspaceInfo, destWorkflowName: string) => Promise<void>;
+  export: (destWorkspace: WorkspaceInfo, destWorkflowName: string, options?: AbortOption) => Promise<void>;
 }
 
 /**
@@ -22,8 +23,10 @@ export const makeExportWorkflowFromWorkspaceProvider = (
   methodConfig: MethodConfiguration
 ): ExportWorkflowToWorkspaceProvider => {
   return {
-    export: (destWorkspace: WorkspaceInfo, destWorkflowName: string) =>
-      Ajax()
+    export: (destWorkspace: WorkspaceInfo, destWorkflowName: string, options: AbortOption = {}) => {
+      const { signal } = options;
+
+      return Ajax(signal)
         .Workspaces.workspace(currentWorkspace.namespace, currentWorkspace.name)
         .methodConfig(methodConfig.namespace, methodConfig.name)
         .copyTo({
@@ -33,6 +36,7 @@ export const makeExportWorkflowFromWorkspaceProvider = (
             namespace: destWorkspace.namespace,
             name: destWorkspace.name,
           },
-        }),
+        });
+    },
   };
 };
