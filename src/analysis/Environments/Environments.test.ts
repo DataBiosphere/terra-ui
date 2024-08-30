@@ -634,6 +634,8 @@ describe('Environments Component', () => {
       const buttons1 = getAllByRole(app1ButtonsCell, 'button');
 
       // Assert
+      // TODO: should be 2 once pause is supported for apps
+      // See https://broadworkbench.atlassian.net/browse/PROD-905
       expect(buttons1.length).toBe(1);
       expect(buttons1[0].textContent).toBe('Delete');
 
@@ -854,6 +856,38 @@ describe('Environments Component', () => {
       ]);
     });
   });
+
+  // TODO: Reenable once pause is re-enabled for apps
+  // See https://broadworkbench.atlassian.net/browse/PROD-905
+  // describe('PauseButton', () => {
+  //   it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
+  //     'should enable pause for azure and google',
+  //     async ({ app }) => {
+  //       // Arrange
+  //       const pauseComputeAndRefresh = jest.fn();
+  //
+  //       await act(async () => {
+  //         render(
+  //           h(PauseButton, {
+  //             cloudEnvironment: app,
+  //             permissions: {
+  //               canPauseResource: () => true,
+  //             },
+  //             pauseComputeAndRefresh,
+  //           })
+  //         );
+  //       });
+  //       // Act
+  //       const pauseButton = screen.getByText('Pause');
+  //       // Assert
+  //       expect(pauseButton).toBeEnabled();
+  //       // Act
+  //       await userEvent.click(pauseButton);
+  //       // Assert
+  //       expect(pauseComputeAndRefresh).toHaveBeenCalled();
+  //     }
+  //   );
+  // });
 
   describe('onEvent', () => {
     it('calls onEvent[dataRefesh] with a runtime', async () => {

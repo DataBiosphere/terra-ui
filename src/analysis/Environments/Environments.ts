@@ -475,10 +475,10 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       disk,
       deleteProvider: leoDiskData,
       onDismiss: () => setDeleteDiskId(undefined),
-      onSuccess: () => {
+      onSuccess: async () => {
         setDeleteDiskId(undefined);
-        refreshWorkspaces();
-        loadData();
+        await refreshWorkspaces();
+        await loadData();
       },
     });
   };
@@ -823,10 +823,10 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           runtime: runtimeToDelete,
           deleteProvider: leoRuntimeData,
           onDismiss: () => setDeleteRuntimeId(undefined),
-          onSuccess: () => {
+          onSuccess: async () => {
             setDeleteRuntimeId(undefined);
-            refreshWorkspaces();
-            loadData();
+            await refreshWorkspaces();
+            await loadData();
           },
         }),
       deleteDiskId && renderDeleteDiskModal(_.find({ id: deleteDiskId }, disks) as DiskWithWorkspace),
