@@ -182,11 +182,10 @@ const ExportWorkflowModal = (props: ExportWorkflowModalProps): ReactNode => {
   };
 
   const renderPostExport = () => {
-    // Note: selectedWorkspace cannot be undefined because if it were, the
-    // export would have failed and this modal would not be able to appear;
-    // onGoToExportedWorkflow cannot be undefined because if it were,
-    // exported could not have been set to true and this modal would not be
-    // able to appear
+    // Note: This modal only appears after a successful export, so
+    // selectedWorkspace must be defined (see doExport). Also, this modal only
+    // appears if showingPostExportModal is true, which requires that
+    // onGoToExportedWorkflow is defined.
 
     const okButton = (
       <ButtonPrimary onClick={() => onGoToExportedWorkflow!(selectedWorkspace!, workflowName)}>
