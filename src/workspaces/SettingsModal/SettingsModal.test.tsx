@@ -8,8 +8,8 @@ import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
-import SettingsModal, { suggestedPrefixes } from 'src/workspaces/SettingsModal/SettingsModal';
-import { BucketLifecycleSetting, WorkspaceSetting } from 'src/workspaces/SettingsModal/utils';
+import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
+import { BucketLifecycleSetting, suggestedPrefixes, WorkspaceSetting } from 'src/workspaces/SettingsModal/utils';
 
 jest.mock('src/libs/ajax');
 

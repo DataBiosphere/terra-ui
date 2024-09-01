@@ -1,5 +1,11 @@
 import _ from 'lodash/fp';
 
+export const suggestedPrefixes = {
+  allObjects: 'All Objects',
+  submissions: 'submissions/',
+  submissionIntermediaries: 'submissions/intermediates/',
+};
+
 interface BucketLifecycleRule {
   action: {
     actionType: string;
