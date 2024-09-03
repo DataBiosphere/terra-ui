@@ -6,6 +6,9 @@ import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
@@ -16,97 +19,166 @@ jest.mock('src/libs/ajax');
 type AjaxContract = ReturnType<typeof Ajax>;
 type AjaxWorkspacesContract = AjaxContract['Workspaces'];
 
-describe('SettingsModal', () => {
-  describe('Bucket Lifecycle Settings', () => {
-    const captureEvent = jest.fn();
+type FeaturePreviewsExports = typeof import('src/libs/feature-previews');
+jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
+  return {
+    ...jest.requireActual<FeaturePreviewsExports>('src/libs/feature-previews'),
+    isFeaturePreviewEnabled: jest.fn(),
+  };
+});
 
-    const getToggle = () => screen.getByRole('switch');
+describe('SettingsModal', () => {
+  const captureEvent = jest.fn();
+
+  const fourDaysAllObjects = {
+    config: {
+      rules: [
+        {
+          action: {
+            actionType: 'Delete',
+          },
+          conditions: {
+            age: 4,
+            matchesPrefix: [],
+          },
+        },
+      ],
+    },
+    settingType: 'GcpBucketLifecycle',
+  };
+
+  const zeroDaysTwoPrefixes = {
+    config: {
+      rules: [
+        {
+          action: {
+            actionType: 'Delete',
+          },
+          conditions: {
+            age: 0,
+            matchesPrefix: ['a/', 'b/'],
+          },
+        },
+      ],
+    },
+    settingType: 'GcpBucketLifecycle',
+  };
+
+  const twoRules = {
+    config: {
+      rules: [
+        {
+          action: {
+            actionType: 'Delete',
+          },
+          conditions: {
+            age: 1,
+            matchesPrefix: [],
+          },
+        },
+        {
+          action: {
+            actionType: 'Delete',
+          },
+          conditions: {
+            age: 2,
+            matchesPrefix: ['p/'],
+          },
+        },
+      ],
+    },
+    settingType: 'GcpBucketLifecycle',
+  };
+
+  const noLifecycleRules: BucketLifecycleSetting = { settingType: 'GcpBucketLifecycle', config: { rules: [] } };
+
+  const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
+    jest.resetAllMocks();
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent },
+          Workspaces: {
+            workspaceV2: () =>
+              ({
+                getSettings: jest.fn().mockResolvedValue(currentSetting),
+                updateSettings: updateSettingsMock,
+              } as DeepPartial<AjaxWorkspacesContract>),
+          },
+        } as DeepPartial<AjaxContract> as AjaxContract)
+    );
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === GCP_BUCKET_LIFECYCLE_RULES);
+  };
+
+  it('has no accessibility errors', async () => {
+    setup([twoRules], jest.fn());
+
+    // Act and Assert
+    await act(async () => {
+      const { container } = render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      expect(await axe(container)).toHaveNoViolations();
+    });
+  });
+
+  it('does not show bucket lifecycle settings if the feature flag is disabled', async () => {
+    // Arrange
+    setup([], jest.fn());
+    asMockedFn(isFeaturePreviewEnabled).mockImplementation((_id) => false);
+
+    // Act
+    await act(async () => {
+      render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+    });
+
+    // Assert
+    expect(screen.queryByText('Lifecycle Rules:')).toBeNull();
+  });
+
+  it('calls onDismiss on Save and does not event if there are no changes', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    setup([], jest.fn());
+    const onDismiss = jest.fn();
+
+    // Act
+    await act(async () => {
+      render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={onDismiss} />);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    // Assert
+    expect(onDismiss).toHaveBeenCalled();
+    expect(captureEvent).not.toHaveBeenCalled();
+  });
+
+  it('calls onDismiss on Cancel and does not event', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    setup([], jest.fn());
+    const onDismiss = jest.fn();
+
+    // Act
+    await act(async () => {
+      render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={onDismiss} />);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Assert
+    expect(onDismiss).toHaveBeenCalled();
+    expect(captureEvent).not.toHaveBeenCalled();
+  });
+
+  describe('Bucket Lifecycle Settings', () => {
+    const getToggle = () => screen.getByLabelText('Lifecycle Rules:');
     const getPrefixInput = (user): SelectHelper =>
       new SelectHelper(
         screen.getByLabelText('Specify if all objects should be deleted, or objects with specific prefixes'),
         user
       );
     const getDays = () => screen.getByLabelText('Days after upload:');
-
-    const fourDaysAllObjects = {
-      config: {
-        rules: [
-          {
-            action: {
-              actionType: 'Delete',
-            },
-            conditions: {
-              age: 4,
-              matchesPrefix: [], // TODO, I have a bug here on setting
-            },
-          },
-        ],
-      },
-      settingType: 'GcpBucketLifecycle',
-    };
-
-    const zeroDaysTwoPrefixes = {
-      config: {
-        rules: [
-          {
-            action: {
-              actionType: 'Delete',
-            },
-            conditions: {
-              age: 0,
-              matchesPrefix: ['a/', 'b/'],
-            },
-          },
-        ],
-      },
-      settingType: 'GcpBucketLifecycle',
-    };
-
-    const twoRules = {
-      config: {
-        rules: [
-          {
-            action: {
-              actionType: 'Delete',
-            },
-            conditions: {
-              age: 1,
-              matchesPrefix: [],
-            },
-          },
-          {
-            action: {
-              actionType: 'Delete',
-            },
-            conditions: {
-              age: 2,
-              matchesPrefix: ['p/'],
-            },
-          },
-        ],
-      },
-      settingType: 'GcpBucketLifecycle',
-    };
-
-    const noLifecycleRules: BucketLifecycleSetting = { settingType: 'GcpBucketLifecycle', config: { rules: [] } };
-
-    const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
-      jest.resetAllMocks();
-      jest.spyOn(console, 'log').mockImplementation(() => {});
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Metrics: { captureEvent },
-            Workspaces: {
-              workspaceV2: () =>
-                ({
-                  getSettings: jest.fn().mockResolvedValue(currentSetting),
-                  updateSettings: updateSettingsMock,
-                } as DeepPartial<AjaxWorkspacesContract>),
-            },
-          } as DeepPartial<AjaxContract> as AjaxContract)
-      );
-    };
 
     it('renders the option as disabled if no settings exist', async () => {
       // Arrange
@@ -238,6 +310,12 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([noLifecycleRules]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
+        enabled: false,
+        prefixes: null,
+        age: null,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
     });
 
     it('removes first lifecycle rule if user disables it', async () => {
@@ -282,6 +360,12 @@ describe('SettingsModal', () => {
           settingType: 'GcpBucketLifecycle',
         },
       ]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
+        enabled: false,
+        prefixes: null,
+        age: null,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
     });
 
     it('modifies only the first rule', async () => {
@@ -330,9 +414,15 @@ describe('SettingsModal', () => {
           settingType: 'GcpBucketLifecycle',
         },
       ]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
+        enabled: true,
+        prefixes: ['AllObjects'],
+        age: 7,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
     });
 
-    it('persists deleting all objects', async () => {
+    it('persists deleting all objects immediately', async () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
@@ -368,6 +458,12 @@ describe('SettingsModal', () => {
           settingType: 'GcpBucketLifecycle',
         },
       ]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
+        enabled: true,
+        prefixes: ['AllObjects'],
+        age: 0,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
     });
 
     it('persists changing prefixes and changing days', async () => {
@@ -417,6 +513,12 @@ describe('SettingsModal', () => {
           settingType: 'GcpBucketLifecycle',
         },
       ]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
+        enabled: true,
+        prefixes: ['Submissions', 'SubmissionsIntermediaries'],
+        age: 14,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
     });
 
     it('disables Save if there is no date value specified', async () => {
@@ -436,16 +538,6 @@ describe('SettingsModal', () => {
       // Assert
       const saveButton = screen.getByRole('button', { name: 'Save' });
       expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-    });
-
-    it('has no accessibility errors', async () => {
-      setup([twoRules], jest.fn());
-
-      // Act and Assert
-      await act(async () => {
-        const { container } = render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-        expect(await axe(container)).toHaveNoViolations();
-      });
     });
   });
 });

@@ -43,7 +43,8 @@ export const isDeleteBucketLifecycleRule = (rule: BucketLifecycleRule): rule is 
  * Pulled out for unit tests.
  */
 export const removeFirstBucketDeletionRule = (originalSettings: WorkspaceSetting[]): WorkspaceSetting[] => {
-  const workspaceSettings = _.cloneDeep(originalSettings); // cloning mostly for testing purposes
+  // Clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
 
   const bucketLifecycleSettings: BucketLifecycleSetting[] = workspaceSettings.filter((setting: WorkspaceSetting) =>
     isBucketLifecycleSetting(setting)
@@ -70,7 +71,8 @@ export const modifyFirstBucketDeletionRule = (
   days: number,
   prefixes: string[]
 ): WorkspaceSetting[] => {
-  const workspaceSettings = _.cloneDeep(originalSettings); // cloning mostly for testing purposes
+  // Clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
 
   const bucketLifecycleSettings: BucketLifecycleSetting[] = workspaceSettings.filter((setting: WorkspaceSetting) =>
     isBucketLifecycleSetting(setting)

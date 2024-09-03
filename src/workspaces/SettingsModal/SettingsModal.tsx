@@ -3,6 +3,9 @@ import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
 import {
@@ -37,21 +40,46 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
 
   const signal = useCancellation();
 
+  const getFirstBucketLifecycleSetting = (
+    settings: WorkspaceSetting[],
+    printMultipleWarning = false
+  ): BucketLifecycleSetting | undefined => {
+    const bucketLifecycleSettings: BucketLifecycleSetting[] = settings.filter((setting: WorkspaceSetting) =>
+      isBucketLifecycleSetting(setting)
+    ) as BucketLifecycleSetting[];
+    if (bucketLifecycleSettings.length > 0) {
+      if (printMultipleWarning && bucketLifecycleSettings.length > 1) {
+        // eslint-disable-next-line no-console
+        console.log('Multiple bucket lifecycle settings found, displaying only first');
+      }
+      return bucketLifecycleSettings[0];
+    }
+    return undefined;
+  };
+
+  const getDeleteLifecycleRule = (
+    bucketLifecycleSetting: BucketLifecycleSetting | undefined,
+    printMultipleWarning = false
+  ): DeleteBucketLifecycleRule | undefined => {
+    const configRules = bucketLifecycleSetting?.config.rules;
+    const deleteRules: DeleteBucketLifecycleRule[] = configRules?.filter((rule) =>
+      isDeleteBucketLifecycleRule(rule)
+    ) as DeleteBucketLifecycleRule[];
+    if (printMultipleWarning && !!deleteRules && deleteRules.length > 1) {
+      // eslint-disable-next-line no-console
+      console.log('Multiple delete bucket lifecycle rules found, displaying only first');
+    }
+    return !!deleteRules && deleteRules.length >= 1 ? deleteRules[0] : undefined;
+  };
+
   useEffect(() => {
     const loadSettings = withErrorReporting('Error loading workspace settings')(async () => {
       const settings = (await Ajax(signal)
         .Workspaces.workspaceV2(namespace, name)
         .getSettings()) satisfies WorkspaceSetting[];
       setWorkspaceSettings(settings);
-      const bucketLifecycleSettings: BucketLifecycleSetting[] = settings.filter((setting: WorkspaceSetting) =>
-        isBucketLifecycleSetting(setting)
-      );
-      if (bucketLifecycleSettings.length > 0) {
-        if (bucketLifecycleSettings.length > 1) {
-          // eslint-disable-next-line no-console
-          console.log('Multiple bucket lifecycle settings found, displaying only first');
-        }
-        const bucketLifecycleSetting = settings[0];
+      const bucketLifecycleSetting = getFirstBucketLifecycleSetting(settings);
+      if (bucketLifecycleSetting !== undefined) {
         const rule = getDeleteLifecycleRule(bucketLifecycleSetting, true);
         if (rule) {
           setLifecycleRulesEnabled(true);
@@ -69,22 +97,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     loadSettings();
   }, [namespace, name, signal]);
 
-  const getDeleteLifecycleRule = (
-    bucketLifecycleSetting: BucketLifecycleSetting | undefined,
-    printMultipleWarning = false
-  ): DeleteBucketLifecycleRule | undefined => {
-    const configRules = bucketLifecycleSetting?.config.rules;
-    const deleteRules: DeleteBucketLifecycleRule[] = configRules?.filter((rule) =>
-      isDeleteBucketLifecycleRule(rule)
-    ) as DeleteBucketLifecycleRule[];
-    if (printMultipleWarning && !!deleteRules && deleteRules.length > 1) {
-      // eslint-disable-next-line no-console
-      console.log('Multiple delete bucket lifecycle rules found, displaying only first');
-    }
-    return !!deleteRules && deleteRules.length >= 1 ? deleteRules[0] : undefined;
-  };
-
-  const persistSettings = async () => {
+  const persistSettings = withErrorReporting('Error saving workspace settings')(async () => {
     let newSettings: WorkspaceSetting[];
     if (lifecycleRulesEnabled) {
       const prefixesOrNone = _.without([suggestedPrefixes.allObjects], prefixes);
@@ -94,9 +107,33 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     }
     await Ajax().Workspaces.workspaceV2(namespace, name).updateSettings(newSettings);
     props.onDismiss();
-    // TODO: add eventing and error wrapping
-    // Test onDismiss being called.
-  };
+    const originalLifecycleSetting = getFirstBucketLifecycleSetting(workspaceSettings || []);
+    const newLifecycleSetting = getFirstBucketLifecycleSetting(newSettings);
+    if (!_.isEqual(originalLifecycleSetting, newLifecycleSetting)) {
+      const prefixesToEvent: string[] = [];
+      if (lifecycleRulesEnabled) {
+        if (_.contains(suggestedPrefixes.allObjects, prefixes)) {
+          prefixesToEvent.push('AllObjects');
+        } else {
+          if (_.contains(suggestedPrefixes.submissions, prefixes)) {
+            prefixesToEvent.push('Submissions');
+          }
+          if (_.contains(suggestedPrefixes.submissionIntermediaries, prefixes)) {
+            prefixesToEvent.push('SubmissionsIntermediaries');
+          }
+          if (_.without(_.values(suggestedPrefixes), prefixes).length > 0) {
+            prefixesToEvent.push('Custom');
+          }
+        }
+      }
+      Ajax().Metrics.captureEvent(Events.workspaceSettingsBucketLifecycle, {
+        enabled: lifecycleRulesEnabled,
+        prefixes: lifecycleRulesEnabled ? prefixesToEvent : null,
+        age: lifecycleAge, // will be null if lifecycleRulesEnabled is false
+        ...extractWorkspaceDetails(props.workspace),
+      });
+    }
+  });
 
   return (
     <Modal
@@ -112,14 +149,16 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         </ButtonPrimary>
       }
     >
-      <BucketLifecycleSettings
-        lifecycleRulesEnabled={lifecycleRulesEnabled}
-        setLifecycleRulesEnabled={setLifecycleRulesEnabled}
-        lifecycleAge={lifecycleAge}
-        setLifecycleAge={setLifecycleAge}
-        prefixes={prefixes}
-        setPrefixes={setPrefixes}
-      />
+      {isFeaturePreviewEnabled(GCP_BUCKET_LIFECYCLE_RULES) && (
+        <BucketLifecycleSettings
+          lifecycleRulesEnabled={lifecycleRulesEnabled}
+          setLifecycleRulesEnabled={setLifecycleRulesEnabled}
+          lifecycleAge={lifecycleAge}
+          setLifecycleAge={setLifecycleAge}
+          prefixes={prefixes}
+          setPrefixes={setPrefixes}
+        />
+      )}
       {workspaceSettings === undefined && <SpinnerOverlay />}
     </Modal>
   );

@@ -170,6 +170,7 @@ const eventsList = {
   workspaceOpenFromList: 'workspace:open-from-list',
   workspaceOpenFromRecentlyViewed: 'workspace:open-from-recently-viewed',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
+  workspaceSettingsBucketLifecycle: 'workspace:settings:bucketLifecycle',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
