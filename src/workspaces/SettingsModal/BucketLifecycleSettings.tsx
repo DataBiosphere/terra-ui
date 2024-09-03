@@ -64,6 +64,12 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
           disabled={!isOwner}
         />
       </div>
+      <div id={descriptionId} style={{ marginTop: '.5rem', fontSize: '12px' }}>
+        This{' '}
+        <ExternalLink href='https://cloud.google.com/storage/docs/lifecycle'>bucket lifecycle setting</ExternalLink>{' '}
+        automatically deletes objects a certain number of days after they are created.{' '}
+        <span style={{ fontWeight: 'bold' }}>Changes can take up to 24 hours to take effect.</span>
+      </div>
       <div style={{ marginTop: '.5rem', marginBottom: '.5rem' }}>
         <div style={{ marginTop: '.75rem', marginBottom: '.5rem' }}>Delete objects in:</div>
         <CreatableSelect
@@ -108,12 +114,6 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
             setLifecycleAge(value);
           }}
         />
-      </div>
-      <div id={descriptionId} style={{ marginTop: '.5rem', fontSize: '12px' }}>
-        This{' '}
-        <ExternalLink href='https://cloud.google.com/storage/docs/lifecycle'>bucket lifecycle setting</ExternalLink>{' '}
-        automatically deletes objects a certain number of days after they are created.{' '}
-        <span style={{ fontWeight: 'bold' }}>Changes can take up to 24 hours to take effect.</span>
       </div>
     </>
   );
