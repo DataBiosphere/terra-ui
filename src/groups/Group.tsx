@@ -1,7 +1,6 @@
+import { SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useEffect, useState } from 'react';
-import { div, h, h2 } from 'react-hyperscript-helpers';
-import { spinnerOverlay } from 'src/components/common';
+import React, { useEffect, useState } from 'react';
 import { DeleteUserModal } from 'src/components/DeleteUserModal';
 import { EditUserModal } from 'src/components/EditUserModal';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -20,23 +19,23 @@ import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
 import { withErrorReporting } from 'src/libs/error';
-import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { getLink } from 'src/libs/nav';
+import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
+import { textMatch, withBusyState } from 'src/libs/utils';
 
 const GroupDetails = ({ groupName }) => {
   // State
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
   const [members, setMembers] = useState(() => StateHistory.get().members || undefined);
-  const [creatingNewUser, setCreatingNewUser] = useState(false);
+  const [creatingNewUser, setCreatingNewUser] = useState<boolean>(false);
   const [editingUser, setEditingUser] = useState<User>();
   const [deletingUser, setDeletingUser] = useState<User>();
   const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [adminCanEdit, setAdminCanEdit] = useState(false);
-  const [allowAccessRequests, setAllowAccessRequests] = useState(false);
+  const [adminCanEdit, setAdminCanEdit] = useState<boolean>(false);
+  const [allowAccessRequests, setAllowAccessRequests] = useState<boolean>(false);
   const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
 
   const signal = useCancellation();
@@ -44,7 +43,7 @@ const GroupDetails = ({ groupName }) => {
   // Helpers
   const refresh = _.flow(
     withErrorReporting('Error loading group list'),
-    Utils.withBusyState(setLoading)
+    withBusyState(setLoading)
   )(async () => {
     setCreatingNewUser(false);
     setEditingUser(undefined);
@@ -78,7 +77,7 @@ const GroupDetails = ({ groupName }) => {
   });
 
   // Lifecycle
-  useOnMount(() => {
+  useEffect(() => {
     refresh();
   });
 
@@ -87,108 +86,114 @@ const GroupDetails = ({ groupName }) => {
   }, [filter, members]);
 
   // Render
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
-      h(DelayedSearchInput, {
-        'aria-label': 'Search group',
-        style: { marginLeft: '2rem', width: 500 },
-        placeholder: 'SEARCH GROUP',
-        onChange: setFilter,
-        value: filter,
-      }),
-    ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
-      div({ style: Style.cardList.toolbarContainer }, [
-        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
-          `Group Management: ${groupName}`,
-        ]),
-      ]),
-      h(AdminNotifierCheckbox, {
-        checked: allowAccessRequests,
-        onChange: _.flow(
-          withErrorReporting('Error changing access request permission'),
-          Utils.withBusyState(setUpdating)
-        )(async () => {
-          await Ajax().Groups.group(groupName).setPolicy('admin-notifier', !allowAccessRequests);
-          return refresh();
-        }),
-      }),
-      div({ style: { marginTop: '1rem' } }, [
-        h(NewUserCard, {
-          onClick: () => setCreatingNewUser(true),
-        }),
-        div({ role: 'table', 'aria-label': `users in group ${groupName}` }, [
-          h(MemberCardHeaders, { sort, onSort: setSort }),
-          div(
-            { style: { flexGrow: 1, marginTop: '1rem' } },
-            _.map(
-              (member: User) => {
-                return h(MemberCard, {
-                  adminLabel: 'admin',
-                  userLabel: 'member',
-                  member,
-                  adminCanEdit,
-                  onEdit: () => setEditingUser(member),
-                  onDelete: () => setDeletingUser(member),
-                  isOwner: true,
-                });
-              },
-              _.orderBy(
-                [sort.field],
-                [sort.direction],
-                _.filter(({ email }) => Utils.textMatch(filter, email), members)
-              )
-            )
-          ),
-        ]),
-        loading && spinnerOverlay,
-      ]),
-      creatingNewUser &&
-        h(NewUserModal, {
-          adminLabel: 'admin',
-          userLabel: 'member',
-          title: 'Add user to Terra Group',
-          addUnregisteredUser: true,
-          addFunction: (roles: string[], email: string) =>
-            Ajax()
-              .Groups.group(groupName)
-              .addUser(roles as GroupRole[], email)
-              // convert void[] to void
-              .then(() => {}),
-          onDismiss: () => setCreatingNewUser(false),
-          onSuccess: refresh,
-        }),
-      editingUser &&
-        h(EditUserModal, {
-          adminLabel: 'admin',
-          userLabel: 'member',
-          user: editingUser,
-          saveFunction: (email: string, roles: string[], newRoles: string[]) =>
-            Ajax()
-              .Groups.group(groupName)
-              .changeUserRoles(email, roles as GroupRole[], newRoles as GroupRole[]),
-          onDismiss: () => setEditingUser(undefined),
-          onSuccess: refresh,
-        }),
-      deletingUser &&
-        h(DeleteUserModal, {
-          userEmail: deletingUser.email,
-          onDismiss: () => setDeletingUser(undefined),
-          onSubmit: _.flow(
-            withErrorReporting('Error removing member from group'),
-            Utils.withBusyState(setUpdating)
+  return (
+    <FooterWrapper>
+      <TopBar title='Groups' href={getLink('groups')}>
+        <DelayedSearchInput
+          aria-label='Search group'
+          style={{ marginLeft: '2rem', width: 500 }}
+          placeholder='SEARCH GROUP'
+          onChange={setFilter}
+          value={filter}
+        />
+      </TopBar>
+      <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
+        <div style={Style.cardList.toolbarContainer}>
+          <h2 style={{ ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' }}>
+            Group Management: {groupName}
+          </h2>
+        </div>
+        <AdminNotifierCheckbox
+          checked={allowAccessRequests}
+          onChange={_.flow(
+            withErrorReporting('Error changing access request permission'),
+            withBusyState(setUpdating)
           )(async () => {
-            setDeletingUser(undefined);
-            // FIXME: filter for group roles? or verify? or change types
-            await Ajax()
-              .Groups.group(groupName)
-              .removeUser(deletingUser.roles as GroupRole[], deletingUser.email);
-            refresh();
-          }),
-        }),
-      updating && spinnerOverlay,
-    ]),
-  ]);
+            await Ajax().Groups.group(groupName).setPolicy('admin-notifier', !allowAccessRequests);
+            return refresh();
+          })}
+        />
+        <div style={{ marginTop: '1rem' }}>
+          <NewUserCard onClick={() => setCreatingNewUser(true)} />
+          <div role='table' aria-label={`users in group ${groupName}`}>
+            <MemberCardHeaders sort={sort} onSort={setSort} />
+            <div style={{ flexGrow: 1, marginTop: '1rem' }}>
+              {_.map(
+                (member: User) => {
+                  return (
+                    <MemberCard
+                      adminLabel='admin'
+                      userLabel='member'
+                      member={member}
+                      adminCanEdit={adminCanEdit}
+                      onEdit={() => setEditingUser(member)}
+                      onDelete={() => setDeletingUser(member)}
+                      isOwner
+                    />
+                  );
+                },
+                _.orderBy(
+                  [sort.field],
+                  [sort.direction],
+                  _.filter(({ email }) => textMatch(filter, email), members)
+                )
+              )}
+            </div>
+          </div>
+          {loading && <SpinnerOverlay />}
+        </div>
+        {creatingNewUser && (
+          <NewUserModal
+            adminLabel='admin'
+            userLabel='member'
+            title='Add user to Terra Group'
+            addUnregisteredUser
+            addFunction={(roles: string[], email: string) =>
+              Ajax()
+                .Groups.group(groupName)
+                .addUser(roles as GroupRole[], email)
+                // convert void[] to void
+                .then(() => {})
+            }
+            onDismiss={() => setCreatingNewUser(false)}
+            onSuccess={refresh}
+          />
+        )}
+        {editingUser && (
+          <EditUserModal
+            adminLabel='admin'
+            userLabel='member'
+            user={editingUser}
+            saveFunction={(email: string, roles: string[], newRoles: string[]) =>
+              Ajax()
+                .Groups.group(groupName)
+                .changeUserRoles(email, roles as GroupRole[], newRoles as GroupRole[])
+            }
+            onDismiss={() => setEditingUser(undefined)}
+            onSuccess={refresh}
+          />
+        )}
+        {deletingUser && (
+          <DeleteUserModal
+            userEmail={deletingUser.email}
+            onDismiss={() => setDeletingUser(undefined)}
+            onSubmit={_.flow(
+              withErrorReporting('Error removing member from group'),
+              withBusyState(setUpdating)
+            )(async () => {
+              setDeletingUser(undefined);
+              // FIXME: filter for group roles? or verify? or change types
+              await Ajax()
+                .Groups.group(groupName)
+                .removeUser(deletingUser.roles as GroupRole[], deletingUser.email);
+              refresh();
+            })}
+          />
+        )}
+        {updating && <SpinnerOverlay />}
+      </PageBox>
+    </FooterWrapper>
+  );
 };
 
 export const navPaths = [
