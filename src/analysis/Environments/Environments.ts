@@ -136,7 +136,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
 
   const refreshData = withLoading(async () => {
-    if (runtimes) {
+    // This has the behavior of not refreshing workspaces on initial page/component load,
+    // but refreshing on subsequent effects.
+    if (runtimes || disks || apps) {
       await refreshWorkspaces();
     }
 
