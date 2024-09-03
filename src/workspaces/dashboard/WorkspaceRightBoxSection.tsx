@@ -1,5 +1,5 @@
+import React from 'react';
 import { useCallback } from 'react';
-import { h } from 'react-hyperscript-helpers';
 import { RightBoxSection, RightBoxSectionProps } from 'src/components/RightBoxSection';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -23,16 +23,16 @@ export const WorkspaceRightBoxSection = (props: WorkspaceRightBoxSectionProps) =
     [title, workspace]
   );
 
-  return h(
-    RightBoxSection,
-    {
-      title,
-      persistenceId,
-      defaultPanelOpen,
-      onOpenChangedCallback: (panelOpen: boolean) => workspaceDashboardToggle(panelOpen),
-      afterTitle,
-      info,
-    },
-    [children]
+  return (
+    <RightBoxSection
+      title={title}
+      persistenceId={persistenceId}
+      defaultPanelOpen={defaultPanelOpen}
+      onOpenChangedCallback={(panelOpen: boolean) => workspaceDashboardToggle(panelOpen)}
+      afterTitle={afterTitle}
+      info={info}
+    >
+      {children}
+    </RightBoxSection>
   );
 };
