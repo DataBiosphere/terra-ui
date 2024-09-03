@@ -2,19 +2,19 @@ import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
+import { DeleteUserModal } from 'src/components/DeleteUserModal';
+import { EditUserModal } from 'src/components/EditUserModal';
 import FooterWrapper from 'src/components/FooterWrapper';
 import {
   AdminNotifierCheckbox,
-  DeleteUserModal,
-  EditUserModal,
   MemberCard,
   MemberCardHeaders,
   NewUserCard,
-  NewUserModal,
   Sort,
   User,
 } from 'src/components/group-common';
 import { DelayedSearchInput } from 'src/components/input';
+import { NewUserModal } from 'src/components/NewUserModal';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
