@@ -15,6 +15,7 @@ export interface WorkspaceDataProvider {
 export const workspaceProvider: WorkspaceDataProvider = {
   list: async (fieldsArgs: FieldsArg, options: WorkspaceListOptions): Promise<WorkspaceWrapper[]> => {
     const { signal, stringAttributeMaxLength } = options;
+
     const ws = await Ajax(signal).Workspaces.list(fieldsArgs, stringAttributeMaxLength);
     return ws;
   },

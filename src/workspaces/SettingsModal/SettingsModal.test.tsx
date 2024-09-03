@@ -10,7 +10,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
-import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import { BucketLifecycleSetting, suggestedPrefixes, WorkspaceSetting } from 'src/workspaces/SettingsModal/utils';
 
@@ -112,6 +112,7 @@ describe('SettingsModal', () => {
   };
 
   it('has no accessibility errors', async () => {
+    // Arrange
     setup([twoRules], jest.fn());
 
     // Act and Assert
@@ -171,6 +172,22 @@ describe('SettingsModal', () => {
     expect(captureEvent).not.toHaveBeenCalled();
   });
 
+  it('disables Save if the user is not an owner', async () => {
+    // Arrange
+    setup([], jest.fn());
+    const onDismiss = jest.fn();
+
+    // Act
+    await act(async () => {
+      render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={onDismiss} />);
+    });
+
+    // Assert
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    expect(saveButton).toHaveAttribute('aria-disabled', 'true');
+    screen.getByText('You do not have permissions to modify settings');
+  });
+
   describe('Bucket Lifecycle Settings', () => {
     const getToggle = () => screen.getByLabelText('Lifecycle Rules:');
     const getPrefixInput = (user): SelectHelper =>
@@ -180,7 +197,20 @@ describe('SettingsModal', () => {
       );
     const getDays = () => screen.getByLabelText('Days after creation:');
 
-    it('renders the option as disabled if no settings exist', async () => {
+    it('renders the option as disabled if the user is not an owner', async () => {
+      // Arrange
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getToggle()).toBeDisabled();
+    });
+
+    it('renders the option as off if no settings exist', async () => {
       // Arrange
       const user = userEvent.setup();
       setup([], jest.fn());
@@ -202,7 +232,7 @@ describe('SettingsModal', () => {
       expect(daysInput).toHaveAttribute('disabled');
     });
 
-    it('renders the option as enabled if all objects are being deleted', async () => {
+    it('renders the option as on if all objects are being deleted', async () => {
       // Arrange
       const user = userEvent.setup();
       setup([fourDaysAllObjects], jest.fn());
@@ -226,7 +256,7 @@ describe('SettingsModal', () => {
       expect(daysInput).not.toHaveAttribute('disabled');
     });
 
-    it('renders the option as enabled if certain prefixes are being disabled', async () => {
+    it('renders the option as on if certain prefixes are being disabled', async () => {
       // Arrange
       const user = userEvent.setup();
       setup([zeroDaysTwoPrefixes], jest.fn());
@@ -312,7 +342,7 @@ describe('SettingsModal', () => {
       expect(updateSettingsMock).toHaveBeenCalledWith([noLifecycleRules]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: false,
-        prefixes: null,
+        prefix: null,
         age: null,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
@@ -362,7 +392,7 @@ describe('SettingsModal', () => {
       ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: false,
-        prefixes: null,
+        prefix: null,
         age: null,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
@@ -416,13 +446,13 @@ describe('SettingsModal', () => {
       ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: true,
-        prefixes: 'AllObjects',
+        prefix: 'AllObjects',
         age: 7,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
     });
 
-    it('persists deleting all objects immediately', async () => {
+    it('persists deleting all objects after 0 days', async () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
@@ -460,7 +490,7 @@ describe('SettingsModal', () => {
       ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: true,
-        prefixes: 'AllObjects',
+        prefix: 'AllObjects',
         age: 0,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
@@ -492,6 +522,7 @@ describe('SettingsModal', () => {
 
       const saveButton = screen.getByRole('button', { name: 'Save' });
       expect(saveButton).toHaveAttribute('aria-disabled', 'false');
+      expect(screen.queryByText('Please specify all lifecycle rule options')).toBeNull();
       await user.click(saveButton);
 
       // Assert
@@ -515,7 +546,7 @@ describe('SettingsModal', () => {
       ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: true,
-        prefixes: 'AllSubmissionsAndSubmissionsIntermediaries',
+        prefix: 'AllSubmissionsAndSubmissionsIntermediaries',
         age: 14,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
@@ -538,6 +569,7 @@ describe('SettingsModal', () => {
       // Assert
       const saveButton = screen.getByRole('button', { name: 'Save' });
       expect(saveButton).toHaveAttribute('aria-disabled', 'true');
+      screen.getByText('Please specify all lifecycle rule options');
     });
   });
 });

@@ -18,7 +18,7 @@ import {
   suggestedPrefixes,
   WorkspaceSetting,
 } from 'src/workspaces/SettingsModal/utils';
-import { WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import { isOwner as isWorkspaceOwner, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface SettingsModalProps {
   workspace: Workspace;
@@ -30,6 +30,7 @@ interface SettingsModalProps {
  */
 const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const { namespace, name } = props.workspace.workspace;
+  const isOwner = isWorkspaceOwner(props.workspace.accessLevel);
 
   const [lifecycleRulesEnabled, setLifecycleRulesEnabled] = useState(false);
   const [prefixes, setPrefixes] = useState<string[]>([]);
@@ -78,7 +79,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         .Workspaces.workspaceV2(namespace, name)
         .getSettings()) satisfies WorkspaceSetting[];
       setWorkspaceSettings(settings);
-      const bucketLifecycleSetting = getFirstBucketLifecycleSetting(settings);
+      const bucketLifecycleSetting = getFirstBucketLifecycleSetting(settings, true);
       if (bucketLifecycleSetting !== undefined) {
         const rule = getDeleteLifecycleRule(bucketLifecycleSetting, true);
         if (rule) {
@@ -130,23 +131,28 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       }
       Ajax().Metrics.captureEvent(Events.workspaceSettingsBucketLifecycle, {
         enabled: lifecycleRulesEnabled,
-        prefixes: prefixesChoice,
+        prefix: prefixesChoice,
         age: lifecycleAge, // will be null if lifecycleRulesEnabled is false
         ...extractWorkspaceDetails(props.workspace),
       });
     }
   });
 
+  const getSaveTooltip = () => {
+    if (!isOwner) {
+      return 'You do not have permissions to modify settings';
+    }
+    if (lifecycleRulesEnabled && (prefixes.length === 0 || lifecycleAge === null)) {
+      return 'Please specify all lifecycle rule options';
+    }
+  };
+
   return (
     <Modal
       title='Configure Workspace Settings'
       onDismiss={props.onDismiss}
       okButton={
-        <ButtonPrimary
-          disabled={lifecycleRulesEnabled && (prefixes.length === 0 || lifecycleAge === null)}
-          onClick={persistSettings}
-          tooltip={lifecycleRulesEnabled ? 'Please specify all lifecycle rule options' : ''}
-        >
+        <ButtonPrimary disabled={!!getSaveTooltip()} onClick={persistSettings} tooltip={getSaveTooltip()}>
           Save
         </ButtonPrimary>
       }
@@ -159,6 +165,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           setLifecycleAge={setLifecycleAge}
           prefixes={prefixes}
           setPrefixes={setPrefixes}
+          isOwner={isOwner}
         />
       )}
       {workspaceSettings === undefined && <SpinnerOverlay />}

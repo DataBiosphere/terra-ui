@@ -12,6 +12,7 @@ interface BucketLifecycleSettingsProps {
   setLifecycleAge: (age: number | null) => void;
   prefixes: string[];
   setPrefixes: (prefixes: string[]) => void;
+  isOwner: boolean;
 }
 
 const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode => {
@@ -53,6 +54,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
           width={40}
           height={20}
           aria-describedby={descriptionId}
+          disabled={!props.isOwner}
         />
       </div>
       <div style={{ marginTop: '.5rem', marginBottom: '.5rem' }}>
