@@ -934,6 +934,7 @@ describe('Environments Component', () => {
 
       // Assert
       expect(pauseButton).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
 
       // Act
       await userEvent.click(pauseButton);
@@ -962,6 +963,7 @@ describe('Environments Component', () => {
 
       // Assert
       expect(deleteButton).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
 
       // Act
       await userEvent.click(deleteButton);
@@ -992,11 +994,39 @@ describe('Environments Component', () => {
 
       // Assert
       expect(deleteButton).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
 
       // Act
       await userEvent.click(deleteButton);
       const okButton = screen.getByText('OK');
       await userEvent.click(okButton);
+
+      // Assert
+      expect(refreshWorkspaces).toHaveBeenCalled();
+    });
+
+    it('refreshes workspaces when filtering by creator', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const refreshWorkspaces = jest.fn();
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        workspaces: [],
+        refresh: refreshWorkspaces,
+      });
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+      const checkbox = screen.getByLabelText('Hide resources you did not create');
+
+      // Assert
+      expect(checkbox).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
+
+      // Act
+      await userEvent.click(checkbox);
 
       // Assert
       expect(refreshWorkspaces).toHaveBeenCalled();
