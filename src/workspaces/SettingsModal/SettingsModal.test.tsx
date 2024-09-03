@@ -125,7 +125,7 @@ describe('SettingsModal', () => {
   it('does not show bucket lifecycle settings if the feature flag is disabled', async () => {
     // Arrange
     setup([], jest.fn());
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((_id) => false);
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
 
     // Act
     await act(async () => {

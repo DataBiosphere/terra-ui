@@ -16,15 +16,22 @@ interface BucketLifecycleSettingsProps {
 }
 
 const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode => {
-  const { lifecycleRulesEnabled, setLifecycleRulesEnabled, lifecycleAge, setLifecycleAge, prefixes, setPrefixes } =
-    props;
+  const {
+    lifecycleRulesEnabled,
+    setLifecycleRulesEnabled,
+    lifecycleAge,
+    setLifecycleAge,
+    prefixes,
+    setPrefixes,
+    isOwner,
+  } = props;
 
   const switchId = useUniqueId('switch');
   const daysId = useUniqueId('days');
   const descriptionId = useUniqueId('description');
 
   const prefixOptions = () => {
-    // Append together suggested options any options the user has added or are already selected.
+    // Append together suggested options and any options the user has already selected.
     const allOptions = _.uniq(_.concat(_.values(suggestedPrefixes), prefixes));
     return _.map((value) => ({ value, label: value }), allOptions);
   };
@@ -44,7 +51,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
           onChange={(checked: boolean) => {
             setLifecycleRulesEnabled(checked);
             if (!checked) {
-              // Clear out the values being display to reduce
+              // Clear out the values being display to reduce confusion
               setLifecycleAge(null);
               setPrefixes([]);
             }
@@ -54,7 +61,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
           width={40}
           height={20}
           aria-describedby={descriptionId}
-          disabled={!props.isOwner}
+          disabled={!isOwner}
         />
       </div>
       <div style={{ marginTop: '.5rem', marginBottom: '.5rem' }}>

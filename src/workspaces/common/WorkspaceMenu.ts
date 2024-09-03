@@ -245,7 +245,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
           !isOwner && [isLocked ? tooltipText.unlockNoPermission : tooltipText.lockNoPermission],
         tooltipSide: 'left',
         onClick: () => {
-          menuClicked('Lock');
+          menuClicked(isLocked ? 'Unlock' : 'Lock');
           onLock();
         },
       },

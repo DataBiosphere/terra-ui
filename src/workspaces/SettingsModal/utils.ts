@@ -40,7 +40,8 @@ export const isDeleteBucketLifecycleRule = (rule: BucketLifecycleRule): rule is 
 
 /**
  * Removes the first delete rule from the first bucketLifecycleSetting in the workspace settings.
- * Pulled out for unit tests.
+ *
+ * Note that any other settings will be preserved but moved to the end of the array.
  */
 export const removeFirstBucketDeletionRule = (originalSettings: WorkspaceSetting[]): WorkspaceSetting[] => {
   // Clone original for testing purposes and to allow eventing only if there was a change.
@@ -59,13 +60,19 @@ export const removeFirstBucketDeletionRule = (originalSettings: WorkspaceSetting
   // If multiple bucketLifecycleSettings, we will modify only the first one.
   const existingSetting = bucketLifecycleSettings[0];
   // Remove the first delete rule in this setting and leave the rest.
-  const deleteRules = existingSetting.config.rules.filter((rule) => rule.action.actionType === 'Delete');
-  const otherRules = existingSetting.config.rules.filter((rule) => rule.action.actionType !== 'Delete');
+  const deleteRules = existingSetting.config.rules.filter((rule) => isDeleteBucketLifecycleRule(rule));
+  const otherRules = existingSetting.config.rules.filter((rule) => !isDeleteBucketLifecycleRule(rule));
   bucketLifecycleSettings[0].config.rules = _.concat(deleteRules.slice(1), otherRules);
 
   return _.concat(bucketLifecycleSettings, otherSettings);
 };
 
+/**
+ * Modifies the first delete rule from the first bucketLifecycleSetting in the workspace settings.
+ * If no such rule/setting exists, it will be created.
+ *
+ * Note that any other settings will be preserved but moved to the end of the array.
+ */
 export const modifyFirstBucketDeletionRule = (
   originalSettings: WorkspaceSetting[],
   days: number,

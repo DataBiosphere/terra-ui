@@ -54,9 +54,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const onLock = () => setShowLockWorkspaceModal(true);
   const onShare = () => setSharingWorkspace(true);
   const onLeave = () => setLeavingWorkspace(true);
-  const onShowSettings = () => {
-    setShowSettingsModal(true);
-  };
+  const onShowSettings = () => setShowSettingsModal(true);
 
   const tabs = getTabs(workspace);
 
