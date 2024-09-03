@@ -74,7 +74,7 @@ const menuCardSize = 20;
 
 export interface Sort {
   field: string;
-  direction: string;
+  direction: 'asc' | 'desc';
 }
 
 interface MemberCardHeadersProps {

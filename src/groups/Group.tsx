@@ -11,11 +11,14 @@ import {
   MemberCardHeaders,
   NewUserCard,
   NewUserModal,
+  Sort,
+  User,
 } from 'src/components/group-common';
 import { DelayedSearchInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import TopBar from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
+import { GroupRole } from 'src/libs/ajax/Groups';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -26,15 +29,15 @@ import * as Utils from 'src/libs/utils';
 const GroupDetails = ({ groupName }) => {
   // State
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
-  const [members, setMembers] = useState(() => StateHistory.get().members || null);
+  const [members, setMembers] = useState(() => StateHistory.get().members || undefined);
   const [creatingNewUser, setCreatingNewUser] = useState(false);
-  const [editingUser, setEditingUser] = useState(false);
-  const [deletingUser, setDeletingUser] = useState(false);
+  const [editingUser, setEditingUser] = useState<User>();
+  const [deletingUser, setDeletingUser] = useState<User>();
   const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
   const [adminCanEdit, setAdminCanEdit] = useState(false);
   const [allowAccessRequests, setAllowAccessRequests] = useState(false);
-  const [sort, setSort] = useState({ field: 'email', direction: 'asc' });
+  const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
 
   const signal = useCancellation();
 
@@ -44,8 +47,8 @@ const GroupDetails = ({ groupName }) => {
     Utils.withBusyState(setLoading)
   )(async () => {
     setCreatingNewUser(false);
-    setEditingUser(false);
-    setDeletingUser(false);
+    setEditingUser(undefined);
+    setDeletingUser(undefined);
     setUpdating(false);
 
     const groupAjax = Ajax(signal).Groups.group(groupName);
@@ -119,7 +122,7 @@ const GroupDetails = ({ groupName }) => {
           div(
             { style: { flexGrow: 1, marginTop: '1rem' } },
             _.map(
-              (member) => {
+              (member: User) => {
                 return h(MemberCard, {
                   adminLabel: 'admin',
                   userLabel: 'member',
@@ -146,7 +149,12 @@ const GroupDetails = ({ groupName }) => {
           userLabel: 'member',
           title: 'Add user to Terra Group',
           addUnregisteredUser: true,
-          addFunction: Ajax().Groups.group(groupName).addUser,
+          addFunction: (roles: string[], email: string) =>
+            Ajax()
+              .Groups.group(groupName)
+              .addUser(roles as GroupRole[], email)
+              // convert void[] to void
+              .then(() => {}),
           onDismiss: () => setCreatingNewUser(false),
           onSuccess: refresh,
         }),
@@ -155,20 +163,26 @@ const GroupDetails = ({ groupName }) => {
           adminLabel: 'admin',
           userLabel: 'member',
           user: editingUser,
-          saveFunction: Ajax().Groups.group(groupName).changeUserRoles,
-          onDismiss: () => setEditingUser(false),
+          saveFunction: (email: string, roles: string[], newRoles: string[]) =>
+            Ajax()
+              .Groups.group(groupName)
+              .changeUserRoles(email, roles as GroupRole[], newRoles as GroupRole[]),
+          onDismiss: () => setEditingUser(undefined),
           onSuccess: refresh,
         }),
       deletingUser &&
         h(DeleteUserModal, {
           userEmail: deletingUser.email,
-          onDismiss: () => setDeletingUser(false),
+          onDismiss: () => setDeletingUser(undefined),
           onSubmit: _.flow(
             withErrorReporting('Error removing member from group'),
             Utils.withBusyState(setUpdating)
           )(async () => {
-            setDeletingUser(false);
-            await Ajax().Groups.group(groupName).removeUser(deletingUser.roles, deletingUser.email);
+            setDeletingUser(undefined);
+            // FIXME: filter for group roles? or verify? or change types
+            await Ajax()
+              .Groups.group(groupName)
+              .removeUser(deletingUser.roles as GroupRole[], deletingUser.email);
             refresh();
           }),
         }),

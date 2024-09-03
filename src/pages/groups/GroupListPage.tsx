@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { DeleteConfirmationModal, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
+import { Sort } from 'src/components/group-common';
 import { DelayedSearchInput } from 'src/components/input';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
@@ -20,11 +21,6 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
-interface GroupSort {
-  field: keyof CurrentUserGroupMembership;
-  direction: 'asc' | 'desc';
-}
-
 const GroupListPage = (): React.ReactNode => {
   // State
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
@@ -34,7 +30,7 @@ const GroupListPage = (): React.ReactNode => {
   const [leavingGroup, setLeavingGroup] = useState<CurrentUserGroupMembership>();
   const [updating, setUpdating] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
-  const [sort, setSort] = useState<GroupSort>({ field: 'groupName', direction: 'asc' });
+  const [sort, setSort] = useState<Sort>({ field: 'groupName', direction: 'asc' });
 
   const signal = useCancellation();
 
