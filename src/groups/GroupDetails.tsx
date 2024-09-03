@@ -25,7 +25,7 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import { textMatch, withBusyState } from 'src/libs/utils';
 
-const GroupDetails = ({ groupName }) => {
+export const GroupDetails = ({ groupName }) => {
   // State
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
   const [members, setMembers] = useState(() => StateHistory.get().members || undefined);
