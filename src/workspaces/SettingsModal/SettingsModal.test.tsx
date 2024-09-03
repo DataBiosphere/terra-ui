@@ -178,7 +178,7 @@ describe('SettingsModal', () => {
         screen.getByLabelText('Specify if all objects should be deleted, or objects with specific prefixes'),
         user
       );
-    const getDays = () => screen.getByLabelText('Days after upload:');
+    const getDays = () => screen.getByLabelText('Days after creation:');
 
     it('renders the option as disabled if no settings exist', async () => {
       // Arrange
@@ -416,7 +416,7 @@ describe('SettingsModal', () => {
       ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: true,
-        prefixes: ['AllObjects'],
+        prefixes: 'AllObjects',
         age: 7,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
@@ -460,7 +460,7 @@ describe('SettingsModal', () => {
       ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: true,
-        prefixes: ['AllObjects'],
+        prefixes: 'AllObjects',
         age: 0,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
@@ -515,7 +515,7 @@ describe('SettingsModal', () => {
       ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: true,
-        prefixes: ['Submissions', 'SubmissionsIntermediaries'],
+        prefixes: 'AllSubmissionsAndSubmissionsIntermediaries',
         age: 14,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });

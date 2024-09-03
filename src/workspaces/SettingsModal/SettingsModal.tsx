@@ -110,25 +110,27 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     const originalLifecycleSetting = getFirstBucketLifecycleSetting(workspaceSettings || []);
     const newLifecycleSetting = getFirstBucketLifecycleSetting(newSettings);
     if (!_.isEqual(originalLifecycleSetting, newLifecycleSetting)) {
-      const prefixesToEvent: string[] = [];
+      let prefixesChoice: string | null = null;
       if (lifecycleRulesEnabled) {
-        if (_.contains(suggestedPrefixes.allObjects, prefixes)) {
-          prefixesToEvent.push('AllObjects');
+        if (_.without(_.values(suggestedPrefixes), prefixes).length > 0) {
+          prefixesChoice = 'Custom';
+        } else if (_.contains(suggestedPrefixes.allObjects, prefixes)) {
+          prefixesChoice = 'AllObjects';
         } else {
-          if (_.contains(suggestedPrefixes.submissions, prefixes)) {
-            prefixesToEvent.push('Submissions');
-          }
-          if (_.contains(suggestedPrefixes.submissionIntermediaries, prefixes)) {
-            prefixesToEvent.push('SubmissionsIntermediaries');
-          }
-          if (_.without(_.values(suggestedPrefixes), prefixes).length > 0) {
-            prefixesToEvent.push('Custom');
+          const submissions = _.contains(suggestedPrefixes.submissions, prefixes);
+          const intermediaries = _.contains(suggestedPrefixes.submissionIntermediaries, prefixes);
+          if (submissions && intermediaries) {
+            prefixesChoice = 'AllSubmissionsAndSubmissionsIntermediaries';
+          } else if (submissions) {
+            prefixesChoice = 'AllSubmissions';
+          } else if (intermediaries) {
+            prefixesChoice = 'SubmissionsIntermediaries';
           }
         }
       }
       Ajax().Metrics.captureEvent(Events.workspaceSettingsBucketLifecycle, {
         enabled: lifecycleRulesEnabled,
-        prefixes: lifecycleRulesEnabled ? prefixesToEvent : null,
+        prefixes: prefixesChoice,
         age: lifecycleAge, // will be null if lifecycleRulesEnabled is false
         ...extractWorkspaceDetails(props.workspace),
       });

@@ -85,7 +85,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {/* eslint-disable jsx-a11y/label-has-associated-control */}
         <label style={{ marginRight: '.25rem' }} htmlFor={daysId}>
-          Days after upload:
+          Days after creation:
         </label>
         <NumberInput
           style={{ maxWidth: '100px' }}
