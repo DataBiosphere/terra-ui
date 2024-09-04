@@ -18,6 +18,7 @@ import {
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
   removeFirstBucketDeletionRule,
+  secondsInADay,
   SoftDeleteSetting,
   suggestedPrefixes,
   WorkspaceSetting,
@@ -118,7 +119,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         }
       }
       const softDelete = getFirstSoftDeleteSetting(settings, true);
-      const retentionDays = softDelete === undefined ? 7 : softDelete.config.retentionDurationInSeconds / 86400;
+      const retentionDays = softDelete === undefined ? 7 : softDelete.config.retentionDurationInSeconds / secondsInADay;
       setSoftDeleteEnabled(retentionDays !== 0);
       setSoftDeleteRetention(retentionDays);
     });

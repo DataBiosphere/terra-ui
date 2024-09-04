@@ -6,6 +6,8 @@ export const suggestedPrefixes = {
   submissionIntermediaries: 'submissions/intermediates/',
 };
 
+export const secondsInADay = 86400;
+
 interface BucketLifecycleRule {
   action: {
     actionType: string;
@@ -151,7 +153,7 @@ export const modifyFirstSoftDeleteSetting = (
   const softDeleteSettings: SoftDeleteSetting[] = workspaceSettings.filter((setting: WorkspaceSetting) =>
     isSoftDeleteSetting(setting)
   ) as SoftDeleteSetting[];
-  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isBucketLifecycleSetting(setting));
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isSoftDeleteSetting(setting));
 
   // If no bucketLifecycleSettings existed, create a new one.
   if (softDeleteSettings.length === 0) {
@@ -161,7 +163,7 @@ export const modifyFirstSoftDeleteSetting = (
         {
           settingType: 'GcpBucketSoftDelete',
           config: {
-            retentionDurationInSeconds: 86400 * days,
+            retentionDurationInSeconds: secondsInADay * days,
           },
         } as SoftDeleteSetting,
       ],
@@ -170,7 +172,7 @@ export const modifyFirstSoftDeleteSetting = (
   }
   // If multiple soft delete settings, we will modify only the first one.
   const existingSetting = softDeleteSettings[0];
-  existingSetting.config.retentionDurationInSeconds = 86400 * days;
+  existingSetting.config.retentionDurationInSeconds = secondsInADay * days;
 
   return _.concat(softDeleteSettings, otherSettings);
 };

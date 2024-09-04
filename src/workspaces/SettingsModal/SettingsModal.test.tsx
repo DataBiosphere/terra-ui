@@ -12,7 +12,13 @@ import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
-import { BucketLifecycleSetting, suggestedPrefixes, WorkspaceSetting } from 'src/workspaces/SettingsModal/utils';
+import {
+  BucketLifecycleSetting,
+  secondsInADay,
+  SoftDeleteSetting,
+  suggestedPrefixes,
+  WorkspaceSetting,
+} from 'src/workspaces/SettingsModal/utils';
 
 jest.mock('src/libs/ajax');
 
@@ -91,6 +97,10 @@ describe('SettingsModal', () => {
   };
 
   const noLifecycleRules: BucketLifecycleSetting = { settingType: 'GcpBucketLifecycle', config: { rules: [] } };
+  const defaultSoftDeleteSetting: SoftDeleteSetting = {
+    settingType: 'GcpBucketSoftDelete',
+    config: { retentionDurationInSeconds: 7 * secondsInADay },
+  };
 
   const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
     jest.resetAllMocks();
@@ -339,7 +349,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([noLifecycleRules]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting, noLifecycleRules]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: false,
         prefix: null,
@@ -373,6 +383,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -418,6 +429,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -471,6 +483,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -527,6 +540,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -570,6 +584,38 @@ describe('SettingsModal', () => {
       const saveButton = screen.getByRole('button', { name: 'Save' });
       expect(saveButton).toHaveAttribute('aria-disabled', 'true');
       screen.getByText('Please specify all lifecycle rule options');
+    });
+  });
+
+  describe('Soft Delete Settings', () => {
+    const getSoftDeleteToggle = () => screen.getByLabelText('Soft Delete:');
+    const getRetention = () => screen.getByLabelText('Days to retain:');
+
+    it('renders the option as disabled if the user is not an owner', async () => {
+      // Arrange
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getSoftDeleteToggle()).toBeDisabled();
+    });
+
+    it('renders the option as on with 7 day retention if no setting exists', async () => {
+      // Arrange
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getSoftDeleteToggle()).toBeChecked();
+      expect(getRetention()).toHaveValue(7);
     });
   });
 });
