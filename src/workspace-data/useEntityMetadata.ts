@@ -100,7 +100,6 @@ export const useEntityMetadata = (workspaceId: string): LoadedState<UseEntityMet
   }, [workspaceId, wdsCapabilities, wdsUrl]);
 
   const loadWdsTypes = useCallback(async () => {
-    console.log('loading wds types: ', wdsTypes, wdsUrl);
     if (!isInTerminalStatus(wdsTypes.status) && wdsUrl.status === 'Ready') {
       try {
         const typesResult = await Ajax(signal).WorkspaceData.getSchema(wdsUrl.state, workspaceId);
@@ -167,12 +166,10 @@ export const useEntityMetadata = (workspaceId: string): LoadedState<UseEntityMet
           setUseCwds(true);
           setWdsApp({ status: 'Ready', state: undefined }); // No app needed for CWDS
         } else {
-          console.log('collection does not exist in cwds; assuming wds app');
           setWdsUrl({ status: 'Loading', state: null });
           setUseCwds(false);
         }
       } catch (error) {
-        console.log('problem checking cwds; assuming app');
         console.error(error);
         setWdsUrl({ status: 'Loading', state: null });
         setUseCwds(false);

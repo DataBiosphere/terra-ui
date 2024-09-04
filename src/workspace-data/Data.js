@@ -568,7 +568,7 @@ export const WorkspaceData = _.flow(
     const [crossTableResultCounts, setCrossTableResultCounts] = useState({});
     const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false);
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
-    const pollWdsInterval = useRef();
+    // const pollWdsInterval = useRef();
     // const [loadWdsTypes, setLoadWdsTypes] = useState(() => () => {});
 
     const [wdsAppStatus, setWdsAppStatus] = useState('None');
@@ -730,8 +730,6 @@ export const WorkspaceData = _.flow(
         setWdsAppStatus(wdsAppStatusResult);
         setSnapshotMetadataError(snapshotMetadataErrorResult);
         // setLoadWdsTypes(loadWdsTypesResult);
-        console.log('useeffect loadedEntityMetadata', loadedEntityMetadata);
-        // loadWdsTypesResult();
       }
     }, [loadedEntityMetadata, setWdsDataTableProvider, getWdsDataTableProvider, isAzureWorkspace]);
 
@@ -763,6 +761,7 @@ export const WorkspaceData = _.flow(
     const wdsError = wdsAppStatus === 'Error' || wdsTypes.status === 'Error';
     const wdsLoading =
       !wdsReady && !wdsError && (wdsAppStatus === 'Loading' || wdsTypes.status === 'Loading' || getWdsDataTableProvider().status === 'Loading');
+    // const wdsAppState = wdsApp.state?.status; //TODO is it worth it to pass the app or its state around just for this?
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
     return div({ style: styles.tableContainer }, [
@@ -1311,12 +1310,7 @@ export const WorkspaceData = _.flow(
                             {
                               style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
                             },
-                            [
-                              icon('loadingSpinner')
-                              ` ${
-                                wdsAppState === appStatuses.updating.status ? 'Updating' : 'Preparing'
-                              } your data tables, this may take a few minutes. `,
-                            ]
+                            [icon('loadingSpinner')` 'Preparing your data tables, this may take a few minutes. `]
                           ),
                       ],
                       () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])
