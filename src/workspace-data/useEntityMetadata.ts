@@ -1,6 +1,6 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { authOpts } from 'src/auth/auth-session';
 import { Ajax } from 'src/libs/ajax';
 import { fetchWDS } from 'src/libs/ajax/ajax-common';
@@ -45,7 +45,7 @@ export const useEntityMetadata = (workspaceId: string): LoadedState<UseEntityMet
     isInTerminalStatus(wdsTypes.status) &&
     isInTerminalStatus(wdsDataTableProvider.status) &&
     isInTerminalStatus(wdsApp.status);
-  const pollWdsInterval = useRef<Timeout | undefined>(undefined);
+  //   const pollWdsInterval = useRef<Timeout | undefined>(undefined);
   const signal = useCancellation();
 
   const loadWdsApp = useCallback(async () => {
