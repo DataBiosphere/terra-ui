@@ -7,8 +7,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
 import {
   CloudProvider,
@@ -193,26 +191,23 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   };
 
   return h(Fragment, [
-    // Only thing currently in the settings dialog is GCP bucket lifecycle rules. When
-    // soft delete is added, remove this check.
-    isFeaturePreviewEnabled(GCP_BUCKET_LIFECYCLE_RULES) &&
-      h(
-        MenuButton,
-        {
-          disabled:
-            cloudProvider !== cloudProviderTypes.GCP ||
-            !workspaceLoaded ||
-            state === 'Deleting' ||
-            state === 'DeleteFailed',
-          onClick: () => {
-            menuClicked('Settings');
-            onShowSettings();
-          },
-          tooltipSide: 'left',
-          tooltip: cloudProvider === cloudProviderTypes.AZURE ? tooltipText.azureWorkspaceNoSettings : '',
+    h(
+      MenuButton,
+      {
+        disabled:
+          cloudProvider !== cloudProviderTypes.GCP ||
+          !workspaceLoaded ||
+          state === 'Deleting' ||
+          state === 'DeleteFailed',
+        onClick: () => {
+          menuClicked('Settings');
+          onShowSettings();
         },
-        [makeMenuIcon('cog'), 'Settings']
-      ),
+        tooltipSide: 'left',
+        tooltip: cloudProvider === cloudProviderTypes.AZURE ? tooltipText.azureWorkspaceNoSettings : '',
+      },
+      [makeMenuIcon('cog'), 'Settings']
+    ),
     h(
       MenuButton,
       {

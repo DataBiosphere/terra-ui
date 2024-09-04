@@ -8,13 +8,17 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
+import SoftDelete from 'src/workspaces/SettingsModal/SoftDelete';
 import {
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
   isBucketLifecycleSetting,
   isDeleteBucketLifecycleRule,
+  isSoftDeleteSetting,
   modifyFirstBucketDeletionRule,
+  modifyFirstSoftDeleteSetting,
   removeFirstBucketDeletionRule,
+  SoftDeleteSetting,
   suggestedPrefixes,
   WorkspaceSetting,
 } from 'src/workspaces/SettingsModal/utils';
@@ -35,6 +39,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [lifecycleRulesEnabled, setLifecycleRulesEnabled] = useState(false);
   const [prefixes, setPrefixes] = useState<string[]>([]);
   const [lifecycleAge, setLifecycleAge] = useState<number | null>(null);
+
+  const [softDeleteEnabled, setSoftDeleteEnabled] = useState(false);
+  const [softDeleteRetention, setSoftDeleteRetention] = useState<number | null>(null);
 
   // Original settings from server, may contain multiple types
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSetting[] | undefined>(undefined);
@@ -73,6 +80,23 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     return !!deleteRules && deleteRules.length >= 1 ? deleteRules[0] : undefined;
   };
 
+  const getFirstSoftDeleteSetting = (
+    settings: WorkspaceSetting[],
+    printMultipleWarning = false
+  ): SoftDeleteSetting | undefined => {
+    const softDeleteSettings: SoftDeleteSetting[] = settings.filter((setting: WorkspaceSetting) =>
+      isSoftDeleteSetting(setting)
+    ) as SoftDeleteSetting[];
+    if (softDeleteSettings.length > 0) {
+      if (printMultipleWarning && softDeleteSettings.length > 1) {
+        // eslint-disable-next-line no-console
+        console.log('Multiple soft delete settings found, using only first');
+      }
+      return softDeleteSettings[0];
+    }
+    return undefined;
+  };
+
   useEffect(() => {
     const loadSettings = withErrorReporting('Error loading workspace settings')(async () => {
       const settings = (await Ajax(signal)
@@ -93,6 +117,10 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           setLifecycleAge(rule.conditions.age);
         }
       }
+      const softDelete = getFirstSoftDeleteSetting(settings, true);
+      const retentionDays = softDelete === undefined ? 7 : softDelete.config.retentionDurationInSeconds / 86400;
+      setSoftDeleteEnabled(retentionDays !== 0);
+      setSoftDeleteRetention(retentionDays);
     });
 
     loadSettings();
@@ -106,6 +134,8 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     } else {
       newSettings = removeFirstBucketDeletionRule(workspaceSettings || []);
     }
+    const softDeleteInDays = softDeleteEnabled ? softDeleteRetention! : 0;
+    newSettings = modifyFirstSoftDeleteSetting(newSettings, softDeleteInDays);
     await Ajax().Workspaces.workspaceV2(namespace, name).updateSettings(newSettings);
     props.onDismiss();
     const originalLifecycleSetting = getFirstBucketLifecycleSetting(workspaceSettings || []);
@@ -151,6 +181,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     <Modal
       title='Configure Workspace Settings'
       onDismiss={props.onDismiss}
+      width={550}
       okButton={
         <ButtonPrimary disabled={!!getSaveTooltip()} onClick={persistSettings} tooltip={getSaveTooltip()}>
           Save
@@ -158,16 +189,26 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       }
     >
       {isFeaturePreviewEnabled(GCP_BUCKET_LIFECYCLE_RULES) && (
-        <BucketLifecycleSettings
-          lifecycleRulesEnabled={lifecycleRulesEnabled}
-          setLifecycleRulesEnabled={setLifecycleRulesEnabled}
-          lifecycleAge={lifecycleAge}
-          setLifecycleAge={setLifecycleAge}
-          prefixes={prefixes}
-          setPrefixes={setPrefixes}
-          isOwner={isOwner}
-        />
+        <div style={{ marginBottom: '.75rem' }}>
+          <BucketLifecycleSettings
+            lifecycleRulesEnabled={lifecycleRulesEnabled}
+            setLifecycleRulesEnabled={setLifecycleRulesEnabled}
+            lifecycleAge={lifecycleAge}
+            setLifecycleAge={setLifecycleAge}
+            prefixes={prefixes}
+            setPrefixes={setPrefixes}
+            isOwner={isOwner}
+          />
+        </div>
       )}
+      <SoftDelete
+        softDeleteEnabled={softDeleteEnabled}
+        setSoftDeleteEnabled={setSoftDeleteEnabled}
+        softDeleteRetention={softDeleteRetention}
+        setSoftDeleteRetention={setSoftDeleteRetention}
+        isOwner={isOwner}
+      />
+
       {workspaceSettings === undefined && <SpinnerOverlay />}
     </Modal>
   );
