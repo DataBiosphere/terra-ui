@@ -7,6 +7,7 @@ export const suggestedPrefixes = {
 };
 
 export const secondsInADay = 86400;
+export const softDeleteDefaultRetention = 7 * secondsInADay;
 
 interface BucketLifecycleRule {
   action: {

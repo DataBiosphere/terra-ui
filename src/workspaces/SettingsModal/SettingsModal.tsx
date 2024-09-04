@@ -19,6 +19,7 @@ import {
   modifyFirstSoftDeleteSetting,
   removeFirstBucketDeletionRule,
   secondsInADay,
+  softDeleteDefaultRetention,
   SoftDeleteSetting,
   suggestedPrefixes,
   WorkspaceSetting,
@@ -119,13 +120,14 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         }
       }
       const softDelete = getFirstSoftDeleteSetting(settings, true);
-      const retentionDays = softDelete === undefined ? 7 : softDelete.config.retentionDurationInSeconds / secondsInADay;
-      const settingEnabled = retentionDays !== 0;
+      const retentionSeconds =
+        softDelete === undefined ? softDeleteDefaultRetention : softDelete.config.retentionDurationInSeconds;
+      const settingEnabled = retentionSeconds !== 0;
       setSoftDeleteEnabled(settingEnabled);
       if (settingEnabled) {
         // If soft delete is not enabled, a retention of 0 is returned. However, the UI should not display the value
         // because it is confusing with the switch being disabled.
-        setSoftDeleteRetention(retentionDays);
+        setSoftDeleteRetention(retentionSeconds / secondsInADay);
       }
     });
 
@@ -144,6 +146,8 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     newSettings = modifyFirstSoftDeleteSetting(newSettings, softDeleteInDays);
     await Ajax().Workspaces.workspaceV2(namespace, name).updateSettings(newSettings);
     props.onDismiss();
+
+    // Event about bucket lifecycle setting only if something actually changed.
     const originalLifecycleSetting = getFirstBucketLifecycleSetting(workspaceSettings || []);
     const newLifecycleSetting = getFirstBucketLifecycleSetting(newSettings);
     if (!_.isEqual(originalLifecycleSetting, newLifecycleSetting)) {
@@ -169,6 +173,22 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         enabled: lifecycleRulesEnabled,
         prefix: prefixesChoice,
         age: lifecycleAge, // will be null if lifecycleRulesEnabled is false
+        ...extractWorkspaceDetails(props.workspace),
+      });
+    }
+
+    // Event about soft delete setting only if something actually changed.
+    const originalSoftDeleteSetting = getFirstSoftDeleteSetting(workspaceSettings || []);
+    const newSoftDeleteSetting = getFirstSoftDeleteSetting(newSettings);
+    if (
+      originalSoftDeleteSetting === undefined &&
+      newSoftDeleteSetting?.config.retentionDurationInSeconds === softDeleteDefaultRetention
+    ) {
+      // If the bucket had no soft delete setting before, and the current one is the default retention, don't log the event.
+    } else if (!_.isEqual(originalSoftDeleteSetting, newSoftDeleteSetting)) {
+      Ajax().Metrics.captureEvent(Events.workspaceSettingsSoftDelete, {
+        enabled: softDeleteEnabled,
+        retention: softDeleteRetention, // will be null if soft delete is disabled
         ...extractWorkspaceDetails(props.workspace),
       });
     }
