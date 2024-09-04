@@ -207,9 +207,10 @@ describe('SettingsModal', () => {
       );
     const getDays = () => screen.getByLabelText('Days after creation:');
 
-    it('renders the option as disabled if the user is not an owner', async () => {
+    it('renders all options as disabled if the user is not an owner', async () => {
       // Arrange
-      setup([], jest.fn());
+      const user = userEvent.setup();
+      setup([twoRules], jest.fn());
 
       // Act
       await act(async () => {
@@ -218,6 +219,8 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getToggle()).toBeDisabled();
+      expect(getDays()).toHaveAttribute('disabled');
+      expect(getPrefixInput(user).inputElement).toHaveAttribute('disabled');
     });
 
     it('renders the option as off if no settings exist', async () => {
@@ -591,7 +594,7 @@ describe('SettingsModal', () => {
     const getSoftDeleteToggle = () => screen.getByLabelText('Soft Delete:');
     const getRetention = () => screen.getByLabelText('Days to retain:');
 
-    it('renders the option as disabled if the user is not an owner', async () => {
+    it('renders all options as disabled if the user is not an owner', async () => {
       // Arrange
       setup([], jest.fn());
 
@@ -602,6 +605,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getSoftDeleteToggle()).toBeDisabled();
+      expect(getRetention()).toHaveAttribute('disabled');
     });
 
     it('renders the option as on with 7 day retention if no setting exists', async () => {
@@ -616,6 +620,26 @@ describe('SettingsModal', () => {
       // Assert
       expect(getSoftDeleteToggle()).toBeChecked();
       expect(getRetention()).toHaveValue(7);
+    });
+
+    it('disables Save if there is no retention value specified', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const daysInput = getRetention();
+      await user.clear(daysInput);
+      expect(daysInput).toHaveValue(null);
+
+      // Assert
+      const saveButton = screen.getByRole('button', { name: 'Save' });
+      expect(saveButton).toHaveAttribute('aria-disabled', 'true');
+      screen.getByText('Please specify a soft delete retention value');
     });
   });
 });

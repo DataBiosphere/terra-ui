@@ -63,7 +63,7 @@ const SoftDelete = (props: SoftDeleteProps): ReactNode => {
           isClearable
           onlyInteger
           value={softDeleteRetention}
-          disabled={!softDeleteEnabled}
+          disabled={!softDeleteEnabled || !isOwner}
           onChange={(value: number) => {
             setSoftDeleteRetention(value);
           }}

@@ -120,8 +120,13 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       }
       const softDelete = getFirstSoftDeleteSetting(settings, true);
       const retentionDays = softDelete === undefined ? 7 : softDelete.config.retentionDurationInSeconds / secondsInADay;
-      setSoftDeleteEnabled(retentionDays !== 0);
-      setSoftDeleteRetention(retentionDays);
+      const settingEnabled = retentionDays !== 0;
+      setSoftDeleteEnabled(settingEnabled);
+      if (settingEnabled) {
+        // If soft delete is not enabled, a retention of 0 is returned. However, the UI should not display the value
+        // because it is confusing with the switch being disabled.
+        setSoftDeleteRetention(retentionDays);
+      }
     });
 
     loadSettings();
@@ -175,6 +180,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     }
     if (lifecycleRulesEnabled && (prefixes.length === 0 || lifecycleAge === null)) {
       return 'Please specify all lifecycle rule options';
+    }
+    if (softDeleteEnabled && softDeleteRetention === null) {
+      return 'Please specify a soft delete retention value';
     }
   };
 

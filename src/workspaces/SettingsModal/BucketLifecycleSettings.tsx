@@ -94,7 +94,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
             }
           }}
           options={prefixOptions()}
-          isDisabled={!lifecycleRulesEnabled}
+          isDisabled={!lifecycleRulesEnabled || !isOwner}
         />
       </div>
       <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -109,7 +109,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
           isClearable
           onlyInteger
           value={lifecycleAge}
-          disabled={!lifecycleRulesEnabled}
+          disabled={!lifecycleRulesEnabled || !isOwner}
           onChange={(value: number) => {
             setLifecycleAge(value);
           }}
