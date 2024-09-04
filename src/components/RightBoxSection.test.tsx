@@ -1,9 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import { RightBoxSection } from './RightBoxSection';
 
@@ -11,7 +9,6 @@ type AjaxContract = ReturnType<typeof Ajax>;
 jest.mock('src/libs/ajax');
 
 describe('RightBoxSection', () => {
-  const workspace = defaultAzureWorkspace;
   const captureEvent = jest.fn();
 
   beforeEach(() => {
@@ -28,7 +25,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     await act(async () => {
-      render(<RightBoxSection title='Test Title' persistenceId='testId' workspace={workspace} />);
+      render(<RightBoxSection title='Test Title' persistenceId='testId' />);
     });
     // Assert
     expect(screen.getByText('Test Title')).toBeInTheDocument();
@@ -38,7 +35,7 @@ describe('RightBoxSection', () => {
     // Arrange
     // Act
     render(
-      <RightBoxSection title='Test Title' persistenceId='testId' workspace={workspace}>
+      <RightBoxSection title='Test Title' persistenceId='testId'>
         Panel Content
       </RightBoxSection>
     );
@@ -48,30 +45,5 @@ describe('RightBoxSection', () => {
 
     // Assert
     expect(screen.getByText('Panel Content')).toBeInTheDocument();
-  });
-
-  it('fires a metrics event when the panel is toggled', async () => {
-    // Arrange
-    // Act
-    render(
-      <RightBoxSection title='Test Title' persistenceId='metricsId' workspace={workspace}>
-        Panel Content
-      </RightBoxSection>
-    );
-    const titleElement = screen.getByText('Test Title');
-    fireEvent.click(titleElement);
-    fireEvent.click(titleElement);
-
-    // Assert
-    expect(captureEvent).toHaveBeenNthCalledWith(1, Events.workspaceDashboardToggleSection, {
-      opened: true,
-      title: 'Test Title',
-      ...extractWorkspaceDetails(workspace),
-    });
-    expect(captureEvent).toHaveBeenNthCalledWith(2, Events.workspaceDashboardToggleSection, {
-      opened: false,
-      title: 'Test Title',
-      ...extractWorkspaceDetails(workspace),
-    });
   });
 });

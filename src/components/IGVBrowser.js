@@ -5,7 +5,6 @@ import { ButtonOutline, Link } from 'src/components/common';
 import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils';
 import { centeredSpinner, icon } from 'src/components/icons';
 import IGVAddTrackModal from 'src/components/IGVAddTrackModal';
-import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { Ajax } from 'src/libs/ajax';
 import { saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
@@ -13,6 +12,7 @@ import { reportError, withErrorReporting } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {

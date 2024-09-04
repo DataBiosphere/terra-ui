@@ -17,7 +17,6 @@ import { findPotentialNotebookLockers } from 'src/analysis/utils/notebook-locker
 import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/analysis/utils/runtime-utils';
 import { getPatternFromRuntimeTool, getToolLabelFromCloudEnv, getToolLabelFromFileExtension, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils';
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
@@ -34,6 +33,7 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 

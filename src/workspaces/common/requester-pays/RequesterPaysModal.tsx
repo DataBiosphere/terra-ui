@@ -6,8 +6,7 @@ import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider'
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { requesterPaysProjectStore } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
-import { DEFAULT } from 'src/libs/utils';
+import { cond, DEFAULT } from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { isGoogleWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -24,7 +23,7 @@ interface RequesterPaysModalProps {
   onSuccess: (selectedGoogleProject: string) => void;
 }
 
-const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismiss, onSuccess }) => {
+export const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismiss, onSuccess }) => {
   const { workspaces, loading } = useWorkspaces(['accessLevel', 'canCompute', 'workspace'] satisfies FieldsArg);
 
   const billableWorkspaces = _.filter(
@@ -41,7 +40,7 @@ const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismiss, onSu
     requesterPaysProjectStore.get()
   );
 
-  return Utils.cond(
+  return cond(
     [
       loading,
       () => (
@@ -118,5 +117,3 @@ const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismiss, onSu
     ]
   );
 };
-
-export default RequesterPaysModal;

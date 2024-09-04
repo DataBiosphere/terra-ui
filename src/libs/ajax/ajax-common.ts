@@ -1,41 +1,10 @@
 import { FetchFn } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import { withRetryAfterReloadingExpiredAuthToken } from 'src/auth/auth-fetch';
+import { withAppIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 import { getConfig } from 'src/libs/config';
 
 import { fetchOk, withCancellation, withInstrumentation, withUrlPrefix } from './fetch/fetch-core';
-
-export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } };
-
-export const withAppIdentifier =
-  (wrappedFetch: FetchFn): FetchFn =>
-  (url, options) => {
-    return wrappedFetch(url, _.merge(options, appIdentifier));
-  };
-
-export type RequesterPaysErrorInfo = {
-  requesterPaysError: boolean;
-};
-
-export const isRequesterPaysErrorInfo = (error: any): error is RequesterPaysErrorInfo => {
-  return error != null && typeof error === 'object' && 'requesterPaysError' in error;
-};
-
-export const checkRequesterPaysError = async (response): Promise<RequesterPaysErrorInfo> => {
-  if (response.status === 400) {
-    const data = await response.text();
-    const requesterPaysErrorInfo: RequesterPaysErrorInfo = {
-      requesterPaysError: responseContainsRequesterPaysError(data),
-    };
-    return Object.assign(new Response(new Blob([data]), response), requesterPaysErrorInfo);
-  }
-  const unrecognizedErrorInfo: RequesterPaysErrorInfo = { requesterPaysError: false };
-  return Object.assign(response, unrecognizedErrorInfo);
-};
-
-export const responseContainsRequesterPaysError = (responseText) => {
-  return _.includes('requester pays', responseText);
-};
 
 export const fetchLeo = _.flow(
   withUrlPrefix(`${getConfig().leoUrlRoot}/`),
