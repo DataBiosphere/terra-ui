@@ -623,7 +623,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getSoftDeleteToggle()).toBeChecked();
-      expect(getRetention()).toHaveValue(softDeleteDefaultRetention);
+      expect(getRetention()).toHaveValue(softDeleteDefaultRetention / secondsInADay);
     });
 
     it('disables Save if there is no retention value specified', async () => {
