@@ -612,7 +612,7 @@ describe('SettingsModal', () => {
       expect(getRetention()).toHaveAttribute('disabled');
     });
 
-    it('renders the option as on with 7 day retention if no setting exists', async () => {
+    it('renders the option as "on" with default retention if no setting exists', async () => {
       // Arrange
       setup([], jest.fn());
 
@@ -623,7 +623,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getSoftDeleteToggle()).toBeChecked();
-      expect(getRetention()).toHaveValue(7);
+      expect(getRetention()).toHaveValue(softDeleteDefaultRetention);
     });
 
     it('disables Save if there is no retention value specified', async () => {
@@ -723,7 +723,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
       // An above case captures testing that there is no event if Save is pressed and the user initially
-      // had no soft delete setting.
+      // had no soft delete setting (although the default setting is then persisted).
       expect(captureEvent).not.toHaveBeenCalledWith();
     });
   });
