@@ -27,5 +27,5 @@
   "terraDockerImageBucket": "terra-docker-image-documentation-dev",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_dev",
   "terraDeploymentEnv": "dev",
-  "cwdsUrlRoot": "http://localhost:8080"
+  "cwdsUrlRoot": "https://cwds.dsde-dev.broadinstitute.org"
 }
