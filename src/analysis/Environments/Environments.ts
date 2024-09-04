@@ -134,15 +134,25 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' });
 
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
+  const [initialWorkspacesLoaded, setInitialWorkspacesLoaded] = useState(false);
 
+  const workspacesLoaded = (workspaces: WorkspaceWrapperLookup) => Object.keys(workspaces).length > 0;
+
+  // TODO: this function is a great candidate for breaking out into a separate hook.
   const refreshData = withLoading(async () => {
-    // This has the behavior of not refreshing workspaces on initial page/component load,
-    // but refreshing on subsequent effects.
+    // Only refresh workspaces if we have pre-existing runtime/disk/app state.
+    // This prevents a double-call to Rawls upon component load, but causes a refresh
+    // upon subsequent effects.
     if (runtimes || disks || apps) {
       await refreshWorkspaces();
     }
 
     const workspaces = getWorkspaces();
+
+    // Short circuit if the workspaces haven't loaded yet.
+    if (!workspacesLoaded(workspaces)) {
+      return;
+    }
 
     const startTimeForLeoCallsEpochMs = Date.now();
 
@@ -237,7 +247,14 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   useEffect(() => {
     loadData();
-  }, [shouldFilterByCreator]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shouldFilterByCreator, initialWorkspacesLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Set the initialWorkspacesLoaded state to true as soon as workspaces load to trigger fetch of Leo data.
+  useEffect(() => {
+    if (workspacesLoaded(workspaces)) {
+      setInitialWorkspacesLoaded(true);
+    }
+  }, [workspaces]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = (cloudEnvironment) =>
     cond<string | undefined>(
@@ -841,6 +858,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           appProvider: leoAppData,
         }),
     ]),
-    loading && h(SpinnerOverlay),
+    (!initialWorkspacesLoaded || loading) && h(SpinnerOverlay),
   ]);
 };
