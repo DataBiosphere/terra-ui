@@ -24,12 +24,12 @@ describe('importDockstoreWorkflow', () => {
   let workspaceAjax;
   let workspaceMethodConfigAjax;
   let methodConfigInputsOutputs;
-  let importMethodConfigFromDocker;
+  let importMethodConfig;
   let deleteMethodConfig;
 
   beforeEach(() => {
     // Arrange
-    importMethodConfigFromDocker = jest.fn().mockResolvedValue(undefined);
+    importMethodConfig = jest.fn().mockResolvedValue(undefined);
     deleteMethodConfig = jest.fn().mockResolvedValue(undefined);
 
     const mockWorkspaceMethodConfigAjax: Partial<ReturnType<AjaxContract['Workspaces']['workspace']>['methodConfig']> =
@@ -45,7 +45,7 @@ describe('importDockstoreWorkflow', () => {
           participant: { count: 1, idName: 'participant_id', attributeNames: [] },
           sample: { count: 1, idName: 'sample_id', attributeNames: [] },
         }),
-      importMethodConfigFromDocker,
+      importMethodConfig,
       methodConfig: workspaceMethodConfigAjax,
     };
 
@@ -71,7 +71,7 @@ describe('importDockstoreWorkflow', () => {
     await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' });
 
     // Assert
-    expect(importMethodConfigFromDocker).toHaveBeenCalledWith(
+    expect(importMethodConfig).toHaveBeenCalledWith(
       expect.objectContaining({
         namespace: testWorkspace.namespace,
         name: 'test-workflow',
@@ -91,9 +91,7 @@ describe('importDockstoreWorkflow', () => {
     await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' });
 
     // Assert
-    expect(importMethodConfigFromDocker).toHaveBeenCalledWith(
-      expect.objectContaining({ rootEntityType: 'participant' })
-    );
+    expect(importMethodConfig).toHaveBeenCalledWith(expect.objectContaining({ rootEntityType: 'participant' }));
   });
 
   it('configures default outputs', async () => {
@@ -101,7 +99,7 @@ describe('importDockstoreWorkflow', () => {
     await importDockstoreWorkflow({ workspace: testWorkspace, workflow: testWorkflow, workflowName: 'test-workflow' });
 
     // Assert
-    expect(importMethodConfigFromDocker).toHaveBeenCalledWith(
+    expect(importMethodConfig).toHaveBeenCalledWith(
       expect.objectContaining({
         outputs: {
           'taskA.output1': 'this.output1',

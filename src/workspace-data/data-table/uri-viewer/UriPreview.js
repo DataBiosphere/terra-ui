@@ -28,8 +28,8 @@ export const isImage = ({ contentType, name }) => {
   return /^(?:image)/.test(contentType) || /\.(?:jpe?g|png|svg|bmp)$/.test(name);
 };
 
-export const isText = ({ contentType, name }) => {
-  return /^(?:text|application\/json)/.test(contentType) || /\.(?:txt|[ct]sv|log|json|fastq|fasta|fa|vcf|sam|bed|interval_list|gtf|md)$/.test(name);
+export const isText = ({ name }) => {
+  return /\.(?:txt|[ct]sv|log|json|fastq|fasta|fa|vcf|sam|bed|interval_list|gtf|md)$/.test(name);
 };
 
 export const isHtml = ({ contentType, name }) => {

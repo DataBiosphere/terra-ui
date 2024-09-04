@@ -9,7 +9,7 @@ import { SimpleTable } from 'src/components/table';
 import { ConceptCart } from 'src/dataset-builder/ConceptCart';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
 import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
-import { formatCount, HighlightConceptName } from 'src/dataset-builder/DatasetBuilderUtils';
+import { formatCount, HighlightSearchText } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
   SnapshotBuilderConcept as Concept,
@@ -157,15 +157,22 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                     onChange: () => setCart(_.xor(cart, [concept])),
                   },
                   [
-                    h(HighlightConceptName, {
-                      conceptName: concept.name,
+                    h(HighlightSearchText, {
+                      columnItem: concept.name,
                       searchFilter: searchText,
                     }),
                   ]
                 ),
               ]),
-              id: concept.id,
-              code: div({ style: { overflowX: 'hidden', textOverflow: 'ellipsis', paddingRight: 14 } }, [concept.code]),
+              id: h(HighlightSearchText, {
+                columnItem: concept.id.toString(),
+                searchFilter: searchText,
+              }),
+              code: h(HighlightSearchText, {
+                columnItem: concept.code,
+                searchFilter: searchText,
+                style: { overflowX: 'hidden', textOverflow: 'ellipsis', paddingRight: 14 },
+              }),
               count: formatCount(concept.count),
               hierarchy: div({ style: { display: 'flex' } }, [
                 h(

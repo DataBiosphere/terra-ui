@@ -45,7 +45,6 @@ import { DataTableSaveVersionModal } from './data-table/versioning/DataTableSave
 import { DataTableVersion } from './data-table/versioning/DataTableVersion';
 import { DataTableVersions } from './data-table/versioning/DataTableVersions';
 import WDSContent from './data-table/wds/WDSContent';
-import { WdsTroubleshooter } from './data-table/wds/WdsTroubleshooter';
 import { useImportJobs } from './import-jobs';
 import { getReferenceData, getReferenceLabel } from './reference-data/reference-data-utils';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
@@ -559,7 +558,6 @@ export const WorkspaceData = _.flow(
     const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails);
     const [importingReference, setImportingReference] = useState(false);
     const [deletingReference, setDeletingReference] = useState(undefined);
-    const [troubleshootingWds, setTroubleshootingWds] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [uploadingWDSFile, setUploadingWDSFile] = useState(false);
     const [entityMetadataError, setEntityMetadataError] = useState();
@@ -989,12 +987,6 @@ export const WorkspaceData = _.flow(
                         }, sortedEntityPairs),
                       ]
                     ),
-                  troubleshootingWds &&
-                    h(WdsTroubleshooter, {
-                      onDismiss: () => setTroubleshootingWds(false),
-                      workspaceId,
-                      mrgId: workspace.azureContext.managedResourceGroupId,
-                    }),
                   isAzureWorkspace && (uploadingWDSFile || runningImportJobs.length > 0) && h(DataImportPlaceholder),
                   isAzureWorkspace &&
                     h(
@@ -1047,10 +1039,6 @@ export const WorkspaceData = _.flow(
                               }),
                             ]);
                           }, wdsTypes.state),
-                        h(NoDataPlaceholder, {
-                          buttonText: 'Data Table Status',
-                          onAdd: () => setTroubleshootingWds(true),
-                        }),
                       ]
                     ),
                   (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) &&
@@ -1365,9 +1353,7 @@ export const WorkspaceData = _.flow(
                             [
                               'An error occurred while preparing your data tables.',
                               div([
-                                'Please ',
-                                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
-                                ' of your data table service and share the details with ',
+                                'Please contact ',
                                 h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']),
                                 ' to troubleshoot the problem.',
                               ]),
@@ -1386,11 +1372,6 @@ export const WorkspaceData = _.flow(
                               ` ${
                                 wdsAppState === appStatuses.updating.status ? 'Updating' : 'Preparing'
                               } your data tables, this may take a few minutes. `,
-                              div([
-                                'You can ',
-                                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setTroubleshootingWds(true) }, ['check the status']),
-                                ' of your data table service.',
-                              ]),
                             ]
                           ),
                       ],

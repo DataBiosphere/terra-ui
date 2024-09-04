@@ -1,26 +1,24 @@
 import { CSSProperties, ReactNode } from 'react';
 import { div, h, h3 } from 'react-hyperscript-helpers';
 import Collapse from 'src/components/Collapse';
-import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
 import { useLocalPref } from 'src/libs/useLocalPref';
-import { WorkspaceWrapper } from 'src/workspaces/utils';
 
-interface RightBoxSectionProps {
+export type RightBoxSectionProps = {
   title: string;
-  workspace: WorkspaceWrapper; // used for metrics eventing
   info?: ReactNode;
   afterTitle?: ReactNode;
-  persistenceId: string; // persists whether or not the panel is open in local storage
-  defaultPanelOpen?: boolean; // optional default for the panel state - false if not specifified
   children?: ReactNode;
-}
+  persistenceId: string; // persists whether or not the panel is open in local storage
+  defaultPanelOpen?: boolean; // optional default for the panel state - false if not specified
+  onOpenChangedCallback?: (b: boolean) => void;
+};
 
 export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
-  const { title, info, persistenceId, afterTitle, defaultPanelOpen = false, children, workspace } = props;
+  const { title, children, afterTitle, info, onOpenChangedCallback, persistenceId, defaultPanelOpen } = props;
   const [panelOpen, setPanelOpen] = useLocalPref<boolean>(persistenceId, defaultPanelOpen);
+
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(
@@ -33,11 +31,9 @@ export const RightBoxSection = (props: RightBoxSectionProps): ReactNode => {
           afterTitle,
           onOpenChanged: (panelOpen) => {
             setPanelOpen(panelOpen);
-            Ajax().Metrics.captureEvent(Events.workspaceDashboardToggleSection, {
-              title,
-              opened: panelOpen,
-              ...extractWorkspaceDetails(workspace),
-            });
+            if (onOpenChangedCallback) {
+              onOpenChangedCallback(panelOpen);
+            }
           },
         },
         [children]
