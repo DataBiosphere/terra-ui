@@ -1047,10 +1047,6 @@ export const WorkspaceData = _.flow(
                               }),
                             ]);
                           }, wdsTypes.state),
-                        h(NoDataPlaceholder, {
-                          buttonText: 'Data Table Status',
-                          onAdd: () => setTroubleshootingWds(true),
-                        }),
                       ]
                     ),
                   (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) &&
