@@ -374,7 +374,7 @@ export const brands: Record<string, BrandConfiguration> = {
       {
         link: 'workspaces',
         title: 'My Workspaces',
-        body: 'Your Workspaces allow you to combine your own data and workflows with publicly available data and workflows to power your analyses in a secure environment that you control.',
+        body: 'Combine your own data and workflows with publicly available data and workflows to power your analyses in a secure environment.',
       },
       {
         link: 'workspaces',
