@@ -136,13 +136,13 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
   const [initialWorkspacesLoaded, setInitialWorkspacesLoaded] = useState(false);
 
-  const workspacesLoaded = (workspaces: WorkspaceWrapperLookup) => Object.keys(workspaces).length > 0;
+  const isWorkspacesLoaded = (workspaces: WorkspaceWrapperLookup) => Object.keys(workspaces).length > 0;
 
   // TODO: this function is a great candidate for breaking out into a separate hook.
   const refreshData = withLoading(async () => {
     // Only refresh workspaces if we have pre-existing runtime/disk/app state.
-    // This prevents a double-call to Rawls upon component load, but causes a refresh
-    // upon subsequent effects.
+    // This prevents a double-call to Rawls upon component load, but still triggers
+    // a refresh upon subsequent effects (like users changing filtering).
     if (runtimes || disks || apps) {
       await refreshWorkspaces();
     }
@@ -150,7 +150,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const workspaces = getWorkspaces();
 
     // Short circuit if the workspaces haven't loaded yet.
-    if (!workspacesLoaded(workspaces)) {
+    if (!isWorkspacesLoaded(workspaces)) {
       return;
     }
 
@@ -251,7 +251,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   // Set the initialWorkspacesLoaded state to true as soon as workspaces load to trigger fetch of Leo data.
   useEffect(() => {
-    if (workspacesLoaded(workspaces)) {
+    if (isWorkspacesLoaded(workspaces)) {
       setInitialWorkspacesLoaded(true);
     }
   }, [workspaces]); // eslint-disable-line react-hooks/exhaustive-deps
