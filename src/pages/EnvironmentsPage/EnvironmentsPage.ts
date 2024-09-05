@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { EnvironmentNavActions, Environments } from 'src/analysis/Environments/Environments';
 import FooterWrapper from 'src/components/FooterWrapper';
 import SupportRequestWrapper from 'src/components/SupportRequest';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { leoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';

@@ -7,11 +7,11 @@ export interface ZendeskCreateSupportRequestRequest {
   email: string;
   currUrl: string;
   subject: string;
-  type: 'question' | 'bug';
+  type: 'question' | 'bug' | 'survey';
   description: string;
   attachmentToken: string;
   emailAgreed: boolean;
-  clinicalUser: boolean;
+  clinicalUser?: boolean;
 }
 
 export interface ZendeskCreateSupportRequestResponse {
