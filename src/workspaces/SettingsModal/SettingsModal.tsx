@@ -2,11 +2,13 @@ import { ButtonPrimary, Modal, SpinnerOverlay } from '@terra-ui-packages/compone
 import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
 import SoftDelete from 'src/workspaces/SettingsModal/SoftDelete';
 import {
@@ -47,6 +49,8 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
 
   // Original settings from server, may contain multiple types
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSetting[] | undefined>(undefined);
+  // Used for both initial loading and saving settings.
+  const [busy, setBusy] = useState(true);
 
   const signal = useCancellation();
 
@@ -100,7 +104,10 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   };
 
   useEffect(() => {
-    const loadSettings = withErrorReporting('Error loading workspace settings')(async () => {
+    const loadSettings = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error loading workspace settings')
+    )(async () => {
       const settings = (await Ajax(signal)
         .Workspaces.workspaceV2(namespace, name)
         .getSettings()) satisfies WorkspaceSetting[];
@@ -134,7 +141,10 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     loadSettings();
   }, [namespace, name, signal]);
 
-  const persistSettings = withErrorReporting('Error saving workspace settings')(async () => {
+  const persistSettings = _.flow(
+    Utils.withBusyState(setBusy),
+    withErrorReporting('Error saving workspace settings')
+  )(async () => {
     let newSettings: WorkspaceSetting[];
     if (lifecycleRulesEnabled) {
       const prefixesOrNone = _.without([suggestedPrefixes.allObjects], prefixes);
@@ -219,7 +229,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       }
     >
       {isFeaturePreviewEnabled(GCP_BUCKET_LIFECYCLE_RULES) && (
-        <div style={{ marginBottom: '.75rem' }}>
+        <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
           <BucketLifecycleSettings
             lifecycleRulesEnabled={lifecycleRulesEnabled}
             setLifecycleRulesEnabled={setLifecycleRulesEnabled}
@@ -239,7 +249,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         isOwner={isOwner}
       />
 
-      {workspaceSettings === undefined && <SpinnerOverlay />}
+      {busy && <SpinnerOverlay />}
     </Modal>
   );
 };
