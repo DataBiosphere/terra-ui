@@ -98,7 +98,10 @@ export const Workspaces = (signal) => ({
       },
 
       updateSettings: async (body) => {
-        const response = await fetchRawls(`${root}/settings`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }]));
+        const response = await fetchRawls(
+          `${root}/settings`,
+          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }])
+        );
         return response.json();
       },
     };
