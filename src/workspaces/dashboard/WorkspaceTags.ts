@@ -12,7 +12,7 @@ import * as Style from 'src/libs/style';
 import { withBusyState } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
-import { RightBoxSection } from 'src/workspaces/dashboard/RightBoxSection';
+import { WorkspaceRightBoxSection } from 'src/workspaces/dashboard/WorkspaceRightBoxSection';
 
 const styles: Record<string, CSSProperties> = {
   authDomain: {
@@ -72,11 +72,11 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
   const brand = getEnabledBrand();
 
   return h(
-    RightBoxSection,
+    WorkspaceRightBoxSection,
     {
       title: 'Tags',
-      info: span({}, [busy && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
       persistenceId,
+      info: span({}, [busy && h(Spinner, { size: 1, style: { marginLeft: '0.5rem' } })]),
       workspace,
     },
     [

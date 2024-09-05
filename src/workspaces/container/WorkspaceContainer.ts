@@ -88,6 +88,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
   const [sharingWorkspace, setSharingWorkspace] = useState(false);
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false);
   const [leavingWorkspace, setLeavingWorkspace] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const isGoogleWorkspaceSyncing = isGoogleWorkspace(workspace) && workspace.workspaceInitialized === false;
 
   useCloningWorkspaceNotifications();
@@ -113,6 +114,7 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       setLeavingWorkspace,
       setSharingWorkspace,
       setShowLockWorkspaceModal,
+      setShowSettingsModal,
     }),
     h(WorkspaceDeletingBanner, { workspace }),
     isGoogleWorkspaceSyncing && h(GooglePermissionsSpinner),
@@ -147,6 +149,8 @@ export const WorkspaceContainer = (props: WorkspaceContainerProps) => {
       setSharingWorkspace,
       showLockWorkspaceModal,
       setShowLockWorkspaceModal,
+      showSettingsModal,
+      setShowSettingsModal,
     }),
   ]);
 };
