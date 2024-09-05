@@ -12,7 +12,14 @@ import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
-import { BucketLifecycleSetting, suggestedPrefixes, WorkspaceSetting } from 'src/workspaces/SettingsModal/utils';
+import {
+  BucketLifecycleSetting,
+  secondsInADay,
+  softDeleteDefaultRetention,
+  SoftDeleteSetting,
+  suggestedPrefixes,
+  WorkspaceSetting,
+} from 'src/workspaces/SettingsModal/utils';
 
 jest.mock('src/libs/ajax');
 
@@ -91,6 +98,10 @@ describe('SettingsModal', () => {
   };
 
   const noLifecycleRules: BucketLifecycleSetting = { settingType: 'GcpBucketLifecycle', config: { rules: [] } };
+  const defaultSoftDeleteSetting: SoftDeleteSetting = {
+    settingType: 'GcpBucketSoftDelete',
+    config: { retentionDurationInSeconds: softDeleteDefaultRetention },
+  };
 
   const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
     jest.resetAllMocks();
@@ -136,10 +147,11 @@ describe('SettingsModal', () => {
     expect(screen.queryByText('Lifecycle Rules:')).toBeNull();
   });
 
-  it('calls onDismiss on Save and does not event if there are no changes', async () => {
+  it('calls onDismiss on Save and does not event if there are no changes (no initial workspace settings)', async () => {
     // Arrange
     const user = userEvent.setup();
-    setup([], jest.fn());
+    const updateSettingsMock = jest.fn();
+    setup([], updateSettingsMock);
     const onDismiss = jest.fn();
 
     // Act
@@ -152,6 +164,8 @@ describe('SettingsModal', () => {
     // Assert
     expect(onDismiss).toHaveBeenCalled();
     expect(captureEvent).not.toHaveBeenCalled();
+    // On save we do persist the default soft delete setting so it now explicit.
+    expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
   });
 
   it('calls onDismiss on Cancel and does not event', async () => {
@@ -197,9 +211,10 @@ describe('SettingsModal', () => {
       );
     const getDays = () => screen.getByLabelText('Days after creation:');
 
-    it('renders the option as disabled if the user is not an owner', async () => {
+    it('renders all options as disabled if the user is not an owner', async () => {
       // Arrange
-      setup([], jest.fn());
+      const user = userEvent.setup();
+      setup([twoRules], jest.fn());
 
       // Act
       await act(async () => {
@@ -208,6 +223,8 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getToggle()).toBeDisabled();
+      expect(getDays()).toHaveAttribute('disabled');
+      expect(getPrefixInput(user).inputElement).toHaveAttribute('disabled');
     });
 
     it('renders the option as off if no settings exist', async () => {
@@ -339,7 +356,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([noLifecycleRules]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting, noLifecycleRules]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: false,
         prefix: null,
@@ -373,6 +390,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -418,6 +436,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -471,6 +490,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -527,6 +547,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
         {
           config: {
             rules: [
@@ -570,6 +591,140 @@ describe('SettingsModal', () => {
       const saveButton = screen.getByRole('button', { name: 'Save' });
       expect(saveButton).toHaveAttribute('aria-disabled', 'true');
       screen.getByText('Please specify all lifecycle rule options');
+    });
+  });
+
+  describe('Soft Delete Settings', () => {
+    const getSoftDeleteToggle = () => screen.getByLabelText('Soft Delete:');
+    const getRetention = () => screen.getByLabelText('Days to retain:');
+
+    it('renders all options as disabled if the user is not an owner', async () => {
+      // Arrange
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getSoftDeleteToggle()).toBeDisabled();
+      expect(getRetention()).toHaveAttribute('disabled');
+    });
+
+    it('renders the option as "on" with default retention if no setting exists', async () => {
+      // Arrange
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getSoftDeleteToggle()).toBeChecked();
+      expect(getRetention()).toHaveValue(softDeleteDefaultRetention / secondsInADay);
+    });
+
+    it('disables Save if there is no retention value specified', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const daysInput = getRetention();
+      await user.clear(daysInput);
+      expect(daysInput).toHaveValue(null);
+
+      // Assert
+      const saveButton = screen.getByRole('button', { name: 'Save' });
+      expect(saveButton).toHaveAttribute('aria-disabled', 'true');
+      screen.getByText('Please specify a soft delete retention value');
+    });
+
+    it('supports changing the retention period', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const daysInput = getRetention();
+      await user.clear(daysInput);
+      await user.type(daysInput, '80');
+      expect(daysInput).toHaveValue(80);
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([
+        {
+          settingType: 'GcpBucketSoftDelete',
+          config: { retentionDurationInSeconds: 80 * secondsInADay },
+        },
+      ]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsSoftDelete, {
+        enabled: true,
+        retention: 80,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
+    });
+
+    it('supports disabling soft delete', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      await user.click(getSoftDeleteToggle());
+      expect(getRetention()).toBeDisabled();
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([
+        {
+          settingType: 'GcpBucketSoftDelete',
+          config: { retentionDurationInSeconds: 0 },
+        },
+      ]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsSoftDelete, {
+        enabled: false,
+        retention: null,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
+    });
+
+    it('does not event if the retention time did not change', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
+      // An above case captures testing that there is no event if Save is pressed and the user initially
+      // had no soft delete setting (although the default setting is then persisted).
+      expect(captureEvent).not.toHaveBeenCalledWith();
     });
   });
 });

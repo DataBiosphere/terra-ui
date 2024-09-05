@@ -1,8 +1,8 @@
-import { CreatableSelect, ExternalLink, Switch, useUniqueId } from '@terra-ui-packages/components';
+import { CreatableSelect, ExternalLink, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode } from 'react';
 import { NumberInput } from 'src/components/input';
-import { FormLabel } from 'src/libs/forms';
+import Setting from 'src/workspaces/SettingsModal/Setting';
 import { suggestedPrefixes } from 'src/workspaces/SettingsModal/utils';
 
 interface BucketLifecycleSettingsProps {
@@ -26,9 +26,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
     isOwner,
   } = props;
 
-  const switchId = useUniqueId('switch');
   const daysId = useUniqueId('days');
-  const descriptionId = useUniqueId('description');
 
   const prefixOptions = () => {
     // Append together suggested options and any options the user has already selected.
@@ -36,40 +34,30 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
     return _.map((value) => ({ value, label: value }), allOptions);
   };
 
+  const settingToggled = (checked: boolean) => {
+    setLifecycleRulesEnabled(checked);
+    if (!checked) {
+      // Clear out the values being display to reduce confusion
+      setLifecycleAge(null);
+      setPrefixes([]);
+    }
+  };
+
   return (
-    <>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: '.75rem' }}>
-        <FormLabel
-          htmlFor={switchId}
-          style={{ fontWeight: 600, whiteSpace: 'nowrap', marginRight: '.5rem', marginTop: '.5rem' }}
-        >
-          Lifecycle Rules:
-        </FormLabel>
-        <Switch
-          onLabel=''
-          offLabel=''
-          onChange={(checked: boolean) => {
-            setLifecycleRulesEnabled(checked);
-            if (!checked) {
-              // Clear out the values being display to reduce confusion
-              setLifecycleAge(null);
-              setPrefixes([]);
-            }
-          }}
-          id={switchId}
-          checked={lifecycleRulesEnabled}
-          width={40}
-          height={20}
-          aria-describedby={descriptionId}
-          disabled={!isOwner}
-        />
-      </div>
-      <div id={descriptionId} style={{ marginTop: '.5rem', fontSize: '12px' }}>
-        This{' '}
-        <ExternalLink href='https://cloud.google.com/storage/docs/lifecycle'>bucket lifecycle setting</ExternalLink>{' '}
-        automatically deletes objects a certain number of days after they are created.{' '}
-        <span style={{ fontWeight: 'bold' }}>Changes can take up to 24 hours to take effect.</span>
-      </div>
+    <Setting
+      settingEnabled={lifecycleRulesEnabled}
+      setSettingEnabled={settingToggled}
+      label='Lifecycle Rules:'
+      isOwner={isOwner}
+      description={
+        <>
+          This{' '}
+          <ExternalLink href='https://cloud.google.com/storage/docs/lifecycle'>bucket lifecycle setting</ExternalLink>{' '}
+          automatically deletes objects a certain number of days after they are created.{' '}
+          <span style={{ fontWeight: 'bold' }}>Changes can take up to 24 hours to take effect.</span>
+        </>
+      }
+    >
       <div style={{ marginTop: '.5rem', marginBottom: '.5rem' }}>
         <div style={{ marginTop: '.75rem', marginBottom: '.5rem' }}>Delete objects in:</div>
         <CreatableSelect
@@ -94,7 +82,7 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
             }
           }}
           options={prefixOptions()}
-          isDisabled={!lifecycleRulesEnabled}
+          isDisabled={!lifecycleRulesEnabled || !isOwner}
         />
       </div>
       <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -109,13 +97,13 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
           isClearable
           onlyInteger
           value={lifecycleAge}
-          disabled={!lifecycleRulesEnabled}
+          disabled={!lifecycleRulesEnabled || !isOwner}
           onChange={(value: number) => {
             setLifecycleAge(value);
           }}
         />
       </div>
-    </>
+    </Setting>
   );
 };
 

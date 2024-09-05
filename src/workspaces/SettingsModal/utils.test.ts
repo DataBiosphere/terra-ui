@@ -1,7 +1,10 @@
 import {
   BucketLifecycleSetting,
   modifyFirstBucketDeletionRule,
+  modifyFirstSoftDeleteSetting,
   removeFirstBucketDeletionRule,
+  secondsInADay,
+  SoftDeleteSetting,
   WorkspaceSetting,
 } from 'src/workspaces/SettingsModal/utils';
 
@@ -372,6 +375,115 @@ describe('modifyFirstBucketDeletionRule', () => {
               },
             },
           ],
+        },
+      },
+      {
+        settingType: 'OtherSetting', // Algorithm concats other settings at the end
+      },
+    ]);
+  });
+});
+
+describe('modifyFirstSoftDeleteSetting', () => {
+  it('adds a new setting to an empty array', async () => {
+    // Arrange
+    const newSetting: SoftDeleteSetting = {
+      settingType: 'GcpBucketSoftDelete',
+      config: {
+        retentionDurationInSeconds: 0,
+      },
+    };
+    // Act
+    const result = modifyFirstSoftDeleteSetting([], 0);
+
+    // Assert
+    expect(result).toEqual([newSetting]);
+  });
+
+  it('adds a new setting in the case of no existing soft delete lifecycle', async () => {
+    // Arrange
+    const originalSettings = [
+      {
+        settingType: 'OtherSetting',
+      },
+      {
+        settingType: 'GcpBucketLifecycle',
+        config: {
+          rules: [
+            {
+              action: {
+                actionType: 'OtherAction',
+              },
+            },
+          ],
+        },
+      },
+    ];
+
+    // Act
+    const result = modifyFirstSoftDeleteSetting(originalSettings, 8);
+
+    // Assert
+    expect(result).toEqual([
+      {
+        settingType: 'GcpBucketSoftDelete',
+        config: {
+          retentionDurationInSeconds: 8 * secondsInADay,
+        },
+      },
+      {
+        settingType: 'OtherSetting',
+      },
+      {
+        settingType: 'GcpBucketLifecycle',
+        config: {
+          rules: [
+            {
+              action: {
+                actionType: 'OtherAction',
+              },
+            },
+          ],
+        },
+      },
+    ]);
+  });
+
+  it('modifies the first soft delete setting found', async () => {
+    // Arrange
+    const originalSettings = [
+      {
+        settingType: 'OtherSetting',
+      },
+      {
+        settingType: 'GcpBucketSoftDelete',
+        config: {
+          retentionDurationInSeconds: 0,
+        },
+      },
+      {
+        settingType: 'GcpBucketSoftDelete',
+        config: {
+          retentionDurationInSeconds: 10 * secondsInADay,
+        },
+      },
+    ];
+
+    // Act
+    const result = modifyFirstSoftDeleteSetting(originalSettings, 90);
+
+    // Assert
+    expect(result).toEqual([
+      {
+        settingType: 'GcpBucketSoftDelete',
+        config: {
+          retentionDurationInSeconds: 90 * secondsInADay,
+        },
+      },
+      {
+        settingType: 'GcpBucketSoftDelete',
+        config: {
+          retentionDurationInSeconds: 10 * secondsInADay,
         },
       },
       {
