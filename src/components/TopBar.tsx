@@ -1,6 +1,6 @@
 import { FocusTrap, Icon, IconId, Modal, SpinnerOverlay, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { CSSProperties, ReactNode, useRef, useState } from 'react';
+import React, { CSSProperties, PropsWithChildren, ReactNode, useRef, useState } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
 import { Transition } from 'react-transition-group';
 import { AlertsIndicator } from 'src/alerts/Alerts';
@@ -110,12 +110,11 @@ const DropDownSubItem = ({ children, ...props }): ReactNode => (
   </div>
 );
 
-interface DropDownSectionProps {
+interface DropDownSectionProps extends PropsWithChildren {
   titleIcon?: IconId;
   title: ReactNode;
   isOpened: boolean;
   onClick: () => void;
-  children: ReactNode;
 }
 
 const DropDownSection = (props: DropDownSectionProps): ReactNode => {
@@ -135,11 +134,10 @@ const DropDownSection = (props: DropDownSectionProps): ReactNode => {
   );
 };
 
-interface TopBarProps {
+interface TopBarProps extends PropsWithChildren {
   title: string;
   showMenu?: boolean;
   href?: string;
-  children?: ReactNode;
 }
 
 export const TopBar = (props: TopBarProps): ReactNode => {
