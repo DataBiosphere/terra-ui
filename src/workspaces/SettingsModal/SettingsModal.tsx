@@ -186,7 +186,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     ) {
       // If the bucket had no soft delete setting before, and the current one is the default retention, don't event.
     } else if (!_.isEqual(originalSoftDeleteSetting, newSoftDeleteSetting)) {
-      // If the soft delete setting previously existed and didn't actually change, don't event.
+      // Event if an explicit setting existed before and it changed.
       Ajax().Metrics.captureEvent(Events.workspaceSettingsSoftDelete, {
         enabled: softDeleteEnabled,
         retention: softDeleteRetention, // will be null if soft delete is disabled

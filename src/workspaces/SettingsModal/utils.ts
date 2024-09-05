@@ -99,7 +99,6 @@ export const modifyFirstBucketDeletionRule = (
 
   // If no bucketLifecycleSettings existed, create a new one.
   if (bucketLifecycleSettings.length === 0) {
-    // @ts-ignore
     return _.concat(
       [
         {
@@ -156,9 +155,8 @@ export const modifyFirstSoftDeleteSetting = (
   ) as SoftDeleteSetting[];
   const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isSoftDeleteSetting(setting));
 
-  // If no bucketLifecycleSettings existed, create a new one.
+  // If no SoftDeleteSetting existed, create a new one.
   if (softDeleteSettings.length === 0) {
-    // @ts-ignore
     return _.concat(
       [
         {
