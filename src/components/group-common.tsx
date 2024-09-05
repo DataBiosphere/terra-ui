@@ -18,7 +18,6 @@ export const AdminNotifierCheckbox = (props: AdminNotifierCheckboxProps) => (
     <LabeledCheckbox style={{ marginRight: '0.25rem' }} checked={props.checked} onChange={props.onChange}>
       Allow anyone to request access
     </LabeledCheckbox>
-    ,
     <InfoBox style={{ marginLeft: '0.3rem' }}>
       Any user will be able to request to become a member of this group. This will send an email to the group admins.
     </InfoBox>
