@@ -5,8 +5,13 @@ import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
+import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
 import {
+  CloudProvider,
+  cloudProviderTypes,
+  getCloudProviderFromWorkspace,
   isGoogleWorkspace,
   isOwner,
   WorkspacePolicy,
@@ -23,7 +28,11 @@ type LoadedWorkspaceInfo = {
   isLocked: boolean;
   isOwner: boolean;
   workspaceLoaded: boolean;
+  cloudProvider?: CloudProvider;
+  namespace: string;
+  name: string;
 };
+
 type DynamicWorkspaceInfo = { name: string; namespace: string };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
@@ -33,6 +42,7 @@ interface WorkspaceMenuCallbacks {
   onLock: () => void;
   onDelete: () => void;
   onLeave: () => void;
+  onShowSettings: () => void;
 }
 
 export interface WorkspaceMenuProps {
@@ -59,7 +69,7 @@ export const WorkspaceMenu = (props: WorkspaceMenuProps): ReactNode => {
       closeOnClick: true,
       content: isNameType(workspaceInfo)
         ? h(DynamicWorkspaceMenuContent, { callbacks, workspaceInfo })
-        : h(LoadedWorkspaceMenuContent, { callbacks, workspaceInfo }),
+        : h(LoadedWorkspaceMenuContent, { callbacks, workspaceInfo, origin: 'dashboard' }),
     },
     [
       h(
@@ -118,6 +128,9 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       isLocked: !!workspace?.workspace?.isLocked,
       isOwner: !!workspace && isOwner(workspace.accessLevel),
       workspaceLoaded: !!workspace,
+      cloudProvider: !workspace ? undefined : getCloudProviderFromWorkspace(workspace),
+      namespace,
+      name,
     },
     // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
     // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
@@ -127,6 +140,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       onShare: () => callbacks.onShare(workspace?.policies, bucketName),
       onClone: () => callbacks.onClone(workspace?.policies, bucketName, descriptionText, googleProject),
     },
+    origin: 'list',
   });
 };
 
@@ -136,6 +150,7 @@ export const tooltipText = {
   deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
   lockNoPermission: 'You have not been granted permission to lock this workspace',
   unlockNoPermission: 'You have not been granted permission to unlock this workspace',
+  azureWorkspaceNoSettings: 'Settings are not available for Azure workspaces',
 };
 
 interface LoadedWorkspaceMenuContentProps {
@@ -146,12 +161,15 @@ interface LoadedWorkspaceMenuContentProps {
     onLock: () => void;
     onDelete: () => void;
     onLeave: () => void;
+    onShowSettings: () => void;
   };
+  origin: 'dashboard' | 'list';
 }
 const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   const {
-    workspaceInfo: { state, canShare, isLocked, isOwner, workspaceLoaded },
-    callbacks: { onShare, onLock, onLeave, onClone, onDelete },
+    workspaceInfo: { state, canShare, isLocked, isOwner, workspaceLoaded, cloudProvider, namespace, name },
+    callbacks: { onShare, onLock, onLeave, onClone, onDelete, onShowSettings },
+    origin,
   } = props;
   const shareTooltip = cond([workspaceLoaded && !canShare, () => tooltipText.shareNoPermission], [DEFAULT, () => '']);
   const deleteTooltip = cond(
@@ -160,13 +178,44 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     [DEFAULT, () => '']
   );
 
+  const menuClicked = (action: string) => {
+    Ajax().Metrics.captureEvent(Events.workspaceMenu, {
+      action,
+      origin,
+      ...extractWorkspaceDetails({
+        namespace,
+        name,
+        cloudPlatform: cloudProvider === cloudProviderTypes.GCP ? 'Gcp' : 'Azure',
+      }),
+    });
+  };
+
   return h(Fragment, [
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
+        disabled:
+          cloudProvider !== cloudProviderTypes.GCP ||
+          !workspaceLoaded ||
+          state === 'Deleting' ||
+          state === 'DeleteFailed',
+        onClick: () => {
+          menuClicked('Settings');
+          onShowSettings();
+        },
         tooltipSide: 'left',
-        onClick: onClone,
+        tooltip: cloudProvider === cloudProviderTypes.AZURE ? tooltipText.azureWorkspaceNoSettings : '',
+      },
+      [makeMenuIcon('cog'), 'Settings']
+    ),
+    h(
+      MenuButton,
+      {
+        disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
+        onClick: () => {
+          menuClicked('Clone');
+          onClone();
+        },
       },
       [makeMenuIcon('copy'), 'Clone']
     ),
@@ -176,7 +225,10 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
         disabled: !workspaceLoaded || !canShare,
         tooltip: shareTooltip,
         tooltipSide: 'left',
-        onClick: onShare,
+        onClick: () => {
+          menuClicked('Share');
+          onShare();
+        },
       },
       [makeMenuIcon('share'), 'Share']
     ),
@@ -187,7 +239,10 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
         tooltip: workspaceLoaded &&
           !isOwner && [isLocked ? tooltipText.unlockNoPermission : tooltipText.lockNoPermission],
         tooltipSide: 'left',
-        onClick: onLock,
+        onClick: () => {
+          menuClicked(isLocked ? 'Unlock' : 'Lock');
+          onLock();
+        },
       },
       isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']
     ),
@@ -195,7 +250,10 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
       MenuButton,
       {
         disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
-        onClick: onLeave,
+        onClick: () => {
+          menuClicked('Leave');
+          onLeave();
+        },
       },
       [makeMenuIcon('arrowRight'), 'Leave']
     ),
@@ -205,7 +263,10 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
         disabled: !workspaceLoaded || !isOwner || isLocked || state === 'Deleting',
         tooltip: deleteTooltip,
         tooltipSide: 'left',
-        onClick: onDelete,
+        onClick: () => {
+          menuClicked('Delete');
+          onDelete();
+        },
       },
       [makeMenuIcon('trash'), 'Delete']
     ),

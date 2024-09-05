@@ -8,6 +8,7 @@ import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserAc
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import { NewWorkspaceModal } from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import { RequestAccessModal } from 'src/workspaces/RequestAccessModal/RequestAccessModal';
+import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
@@ -69,6 +70,11 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       h(RequestAccessModal, {
         workspace: getWorkspace(userActions.requestingAccessWorkspaceId),
         onDismiss: () => setUserActions({ requestingAccessWorkspaceId: undefined }),
+      }),
+    !!userActions.showSettingsWorkspaceId &&
+      h(SettingsModal, {
+        workspace: getWorkspace(userActions.showSettingsWorkspaceId),
+        onDismiss: () => setUserActions({ showSettingsWorkspaceId: undefined }),
       }),
   ]);
 };
