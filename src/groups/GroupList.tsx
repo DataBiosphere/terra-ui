@@ -8,7 +8,7 @@ import { Sort } from 'src/components/group-common';
 import { DelayedSearchInput } from 'src/components/input';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { GroupCard } from 'src/groups/GroupCard';
 import { GroupCardHeaders } from 'src/groups/GroupCardHeaders';
 import { NewGroupCard } from 'src/groups/NewGroupCard';
@@ -67,7 +67,6 @@ export const GroupList = (): React.ReactNode => {
 
   return (
     <FooterWrapper>
-      {/* @ts-expect-error */}
       <TopBar title='Groups'>
         <DelayedSearchInput
           aria-label='Search groups'
