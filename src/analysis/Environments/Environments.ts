@@ -247,12 +247,11 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     loadData();
   }, [shouldFilterByCreator, workspacesLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Set the workspacesLoaded state to true as soon as the useWorkspaces hook loads to trigger fetch of Leo data.
+  // Set the workspacesLoaded state to true when workspaces are loaded to trigger a fetch of Leo data.
   useEffect(() => {
-    if (Object.keys(workspaces).length > 0) {
-      setWorkspacesLoaded(true);
-    }
-  }, [workspaces]); // eslint-disable-line react-hooks/exhaustive-deps
+    const isLoaded = Object.keys(workspaces).length > 0;
+    setWorkspacesLoaded(isLoaded);
+  }, [workspaces]);
 
   const getCloudProvider = (cloudEnvironment) =>
     cond<string | undefined>(
