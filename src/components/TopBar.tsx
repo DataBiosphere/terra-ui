@@ -356,7 +356,7 @@ export const TopBar = (props: TopBarProps) => {
                 Use Classic FireCloud
               </NavSection>
             )}
-            <div style={{ borderTop: `1px solid ${colors.dark(0.55)}` }} />,
+            <div style={{ borderTop: `1px solid ${colors.dark(0.55)}` }} />
             <div style={{ flex: 'none', padding: 28, marginTop: 'auto' }}>
               {isBioDataCatalyst() && (
                 <>
