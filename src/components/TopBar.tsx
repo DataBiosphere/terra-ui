@@ -142,7 +142,7 @@ interface TopBarProps {
   children?: ReactNode;
 }
 
-export const TopBar = (props: TopBarProps) => {
+export const TopBar = (props: TopBarProps): ReactNode => {
   const { showMenu = true, title, href, children } = props;
   const [navShown, setNavShown] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
