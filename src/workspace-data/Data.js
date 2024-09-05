@@ -757,7 +757,8 @@ export const WorkspaceData = _.flow(
     const { value: canEditWorkspace, message: editWorkspaceErrorMessage } = WorkspaceUtils.canEditWorkspace(workspace);
 
     // convenience vars for WDS
-    const wdsReady = wdsAppStatus === 'Ready' && wdsTypes.status === 'Ready' && getWdsDataTableProvider().status === 'Ready';
+    const wdsReady =
+      (wdsAppStatus === 'Ready' || wdsAppStatus === 'RUNNING') && wdsTypes.status === 'Ready' && getWdsDataTableProvider().status === 'Ready';
     const wdsError = wdsAppStatus === 'Error' || wdsTypes.status === 'Error';
     const wdsLoading =
       !wdsReady && !wdsError && (wdsAppStatus === 'Loading' || wdsTypes.status === 'Loading' || getWdsDataTableProvider().status === 'Loading');
