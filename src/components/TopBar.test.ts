@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { authStore, SignInStatus } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 

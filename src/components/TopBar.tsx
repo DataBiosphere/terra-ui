@@ -135,7 +135,15 @@ const DropDownSection = (props: DropDownSectionProps): ReactNode => {
   );
 };
 
-const TopBar = ({ showMenu = true, title, href, children }) => {
+interface TopBarProps {
+  title: string;
+  showMenu?: boolean;
+  href?: string;
+  children?: ReactNode;
+}
+
+export const TopBar = (props: TopBarProps) => {
+  const { showMenu = true, title, href, children } = props;
   const [navShown, setNavShown] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
@@ -515,5 +523,3 @@ const PreferFirecloudModal = ({ onDismiss }) => {
     </Modal>
   );
 };
-
-export default TopBar;

@@ -8,7 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { ValidatedInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   addSelectableObjectToGroup,
