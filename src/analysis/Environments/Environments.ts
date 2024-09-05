@@ -106,8 +106,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     useWorkspaces,
     _.update('workspaces', _.flow(_.groupBy('workspace.namespace'), _.mapValues(_.keyBy('workspace.name'))))
   )() as Mutate<UseWorkspacesResult, 'workspaces', WorkspaceWrapperLookup>;
-
   const getWorkspaces = useGetter(workspaces);
+  const [workspacesLoaded, setWorkspacesLoaded] = useState(false);
+
   const [runtimes, setRuntimes] = useState<RuntimeWithWorkspace[]>();
   const [apps, setApps] = useState<AppWithWorkspace[]>();
   const [disks, setDisks] = useState<DiskWithWorkspace[]>();
@@ -134,15 +135,12 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' });
 
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
-  const [initialWorkspacesLoaded, setInitialWorkspacesLoaded] = useState(false);
-
-  const isWorkspacesLoaded = (workspaces: WorkspaceWrapperLookup) => Object.keys(workspaces).length > 0;
 
   // TODO: this function is a great candidate for breaking out into a separate hook.
   const refreshData = withLoading(async () => {
     // Only refresh workspaces if we have pre-existing runtime/disk/app state.
     // This prevents a double-call to Rawls upon component load, but still triggers
-    // a refresh upon subsequent effects (like users changing filtering).
+    // a refresh upon subsequent effects (like the user changing filtering).
     if (runtimes || disks || apps) {
       await refreshWorkspaces();
     }
@@ -150,7 +148,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     const workspaces = getWorkspaces();
 
     // Short circuit if the workspaces haven't loaded yet.
-    if (!isWorkspacesLoaded(workspaces)) {
+    if (!workspacesLoaded) {
       return;
     }
 
@@ -247,12 +245,12 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   useEffect(() => {
     loadData();
-  }, [shouldFilterByCreator, initialWorkspacesLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shouldFilterByCreator, workspacesLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Set the initialWorkspacesLoaded state to true as soon as workspaces load to trigger fetch of Leo data.
+  // Set the workspacesLoaded state to true as soon as the useWorkspaces hook loads to trigger fetch of Leo data.
   useEffect(() => {
-    if (isWorkspacesLoaded(workspaces)) {
-      setInitialWorkspacesLoaded(true);
+    if (Object.keys(workspaces).length > 0) {
+      setWorkspacesLoaded(true);
     }
   }, [workspaces]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -858,6 +856,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           appProvider: leoAppData,
         }),
     ]),
-    (!initialWorkspacesLoaded || loading) && h(SpinnerOverlay),
+    (!workspacesLoaded || loading) && h(SpinnerOverlay),
   ]);
 };

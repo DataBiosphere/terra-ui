@@ -114,10 +114,11 @@ describe('Environments Component', () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
+      const otherGoogleWorkspace = generateGoogleWorkspace();
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [],
+        workspaces: [otherGoogleWorkspace],
       });
 
       // Act
@@ -922,7 +923,6 @@ describe('Environments Component', () => {
       const refreshWorkspaces = jest.fn();
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [],
         refresh: refreshWorkspaces,
       });
 
@@ -951,7 +951,6 @@ describe('Environments Component', () => {
       const refreshWorkspaces = jest.fn();
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [],
         refresh: refreshWorkspaces,
       });
 
@@ -982,7 +981,6 @@ describe('Environments Component', () => {
       const refreshWorkspaces = jest.fn();
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [defaultGoogleWorkspace],
         refresh: refreshWorkspaces,
       });
 
@@ -1011,7 +1009,6 @@ describe('Environments Component', () => {
       const refreshWorkspaces = jest.fn();
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [],
         refresh: refreshWorkspaces,
       });
 
@@ -1038,7 +1035,6 @@ describe('Environments Component', () => {
       const refreshWorkspaces = jest.fn();
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [],
         refresh: refreshWorkspaces,
       });
 
