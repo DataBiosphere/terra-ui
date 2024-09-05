@@ -6,6 +6,8 @@ import { InfoBox } from 'src/components/InfoBox';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
+import { BillingRole } from 'src/libs/ajax/Billing';
+import { GroupRole } from 'src/libs/ajax/Groups';
 import { memoWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 
@@ -88,9 +90,11 @@ export const MemberCardHeaders: React.FC<MemberCardHeadersProps> = memoWithName(
   )
 );
 
+export type UserRole = BillingRole | GroupRole;
+
 export interface User {
   email: string;
-  roles: string[]; // In practice will be BillingRole or GroupRole
+  roles: UserRole[]; // In practice will be BillingRole or GroupRole
 }
 
 interface MemberCardProps {

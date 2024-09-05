@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import React, { ReactNode } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import GroupMenu from 'src/groups/GroupMenu';
+import { GroupMenu } from 'src/groups/GroupMenu';
 import { columnWidths } from 'src/groups/List';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';

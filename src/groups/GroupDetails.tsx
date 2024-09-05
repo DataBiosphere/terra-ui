@@ -25,7 +25,12 @@ import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
 import { textMatch, withBusyState } from 'src/libs/utils';
 
-export const GroupDetails = ({ groupName }) => {
+interface GroupDetailsProps {
+  groupName: string;
+}
+
+export const GroupDetails = (props: GroupDetailsProps) => {
+  const { groupName } = props;
   // State
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
   const [members, setMembers] = useState(() => StateHistory.get().members || undefined);
@@ -182,10 +187,7 @@ export const GroupDetails = ({ groupName }) => {
               withBusyState(setUpdating)
             )(async () => {
               setDeletingUser(undefined);
-              // FIXME: filter for group roles? or verify? or change types
-              await Ajax()
-                .Groups.group(groupName)
-                .removeUser(deletingUser.roles as GroupRole[], deletingUser.email);
+              await Ajax().Groups.group(groupName).removeUser(getGroupRoles(deletingUser), deletingUser.email);
               refresh();
             })}
           />
@@ -194,6 +196,13 @@ export const GroupDetails = ({ groupName }) => {
       </PageBox>
     </FooterWrapper>
   );
+};
+
+const groupRoleGuard = (value: string): value is GroupRole => {
+  return value === 'admin' || value === 'member';
+};
+const getGroupRoles = (user: User): GroupRole[] => {
+  return user.roles.filter(groupRoleGuard);
 };
 
 export const navPaths = [

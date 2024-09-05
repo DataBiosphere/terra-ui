@@ -64,5 +64,3 @@ const GroupMenuContent = ({ isAdmin, onLeave, onDelete }) => {
     </>
   );
 };
-
-export default GroupMenu;
