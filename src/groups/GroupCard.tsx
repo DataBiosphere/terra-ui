@@ -1,14 +1,26 @@
 import _ from 'lodash/fp';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import GroupMenu from 'src/groups/GroupMenu';
 import { columnWidths } from 'src/groups/List';
+import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { getLink } from 'src/libs/nav';
 import { memoWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 
-export const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete, onLeave }) => {
+interface GroupCardProps {
+  group: CurrentUserGroupMembership;
+  onDelete: () => void;
+  onLeave: () => void;
+}
+
+export const GroupCard = memoWithName('GroupCard', (props: GroupCardProps): ReactNode => {
+  const {
+    group: { groupName, groupEmail, role },
+    onDelete,
+    onLeave,
+  } = props;
   const isAdmin = !!_.includes('admin', role);
   return (
     <div
