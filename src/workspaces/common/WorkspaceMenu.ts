@@ -20,7 +20,11 @@ import {
 } from 'src/workspaces/utils';
 
 const isNameType = (o: WorkspaceInfo): o is DynamicWorkspaceInfo =>
-  'name' in o && typeof o.name === 'string' && 'namespace' in o && typeof o.namespace === 'string';
+  'name' in o &&
+  typeof o.name === 'string' &&
+  'namespace' in o &&
+  typeof o.namespace === 'string' &&
+  Object.keys(o).length === 2;
 
 type LoadedWorkspaceInfo = {
   state?: WorkspaceState;
