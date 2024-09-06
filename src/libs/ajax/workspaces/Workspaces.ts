@@ -33,7 +33,7 @@ const attributesUpdateOps = _.flow(
       : [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }];
   })
 );
-export const Workspaces = (signal) => ({
+export const Workspaces = (signal?: AbortSignal) => ({
   list: async (fields, stringAttributeMaxLength) => {
     const lenParam = _.isNil(stringAttributeMaxLength) ? '' : `stringAttributeMaxLength=${stringAttributeMaxLength}&`;
     const res = await fetchRawls(
