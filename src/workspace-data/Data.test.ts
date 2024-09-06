@@ -2,6 +2,7 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { getConfig } from 'src/libs/config';
 import { reportError } from 'src/libs/error';
@@ -43,7 +44,7 @@ type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
 jest.mock('src/libs/ajax/ajax-common', (): AjaxCommonExports => {
   return {
     ...jest.requireActual<AjaxCommonExports>('src/libs/ajax/ajax-common'),
-    fetchWDS: jest.fn(),
+    fetchWDS: jest.fn().mockImplementation((url) => jest.fn()),
   };
 });
 
@@ -469,12 +470,40 @@ describe('WorkspaceData', () => {
       status: 'RUNNING',
     });
 
+    const workspaceId = workspaceDataProps.workspace.workspace.workspaceId;
+
     // Act
     await act(async () => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 
-    // Assert
-    expect(getConfig).toHaveBeenCalledTimes(1);
+    // Fetch wds might be called for other purpose, we only care about the call to check for collections
+    const mockFetchWDS = fetchWDS as jest.Mock;
+    const mockInnerFunction = mockFetchWDS.mock.results[0].value;
+
+    // TODO make the mock function return something so there's no error in the test
+    // Now verify that we only called CWDS once
+    expect(mockInnerFunction).toHaveBeenCalledTimes(1);
+    expect(mockInnerFunction).toHaveBeenCalledWith(`collections/v1/${workspaceId}`, expect.anything());
   });
+
+  // it('should only instantiate WdsDataTableProvider once', async () => {
+  //   jest.mock('src/libs/ajax/data-table-providers/WdsDataTableProvider');
+  //   // Arrange
+  //   const { workspaceDataProps } = setup({
+  //     workspace: defaultAzureWorkspace,
+  //     status: 'RUNNING',
+  //   });
+
+  //   // Act
+  //   await act(async () => {
+  //     render(h(WorkspaceData, workspaceDataProps));
+  //     // rerender
+  //     // TODO how/what to update to trigger a rerender?
+  //     render(h(WorkspaceData, workspaceDataProps));
+  //   });
+
+  //   // Assert
+  //   expect(WdsDataTableProvider).toHaveBeenCalledTimes(1);
+  // });
 });

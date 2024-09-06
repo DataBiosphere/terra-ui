@@ -584,15 +584,18 @@ export const WorkspaceData = _.flow(
 
     const { runningJobs: runningImportJobs, refresh: refreshRunningImportJobs } = useImportJobs(workspace);
     const signal = useCancellation();
+    const cwdsURL = getConfig().cwdsUrlRoot;
 
     const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name);
     const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
 
-    const wdsDataTableProvider = useMemo(() => {
-      const app = wdsApp?.state;
-      const proxyUrl = app?.proxyUrls?.wds;
-      return new WdsDataTableProvider(workspaceId, proxyUrl, wdsCapabilities?.state);
-    }, [workspaceId, wdsApp, wdsCapabilities]);
+    const wdsDataTableProvider =
+      !useCwds &&
+      useMemo(() => {
+        const app = wdsApp?.state;
+        const proxyUrl = app?.proxyUrls?.wds;
+        return new WdsDataTableProvider(workspaceId, proxyUrl, wdsCapabilities?.state);
+      }, [workspaceId, wdsApp, wdsCapabilities]);
 
     const loadEntityMetadata = async () => {
       try {
@@ -640,7 +643,7 @@ export const WorkspaceData = _.flow(
 
     const loadMetadata = () =>
       isAzureWorkspace
-        ? Promise.all([refreshRunningImportJobs(), loadWdsSchema()])
+        ? Promise.all([refreshRunningImportJobs(), loadWdsData()])
         : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
 
     const loadSnapshotEntities = async (snapshotName) => {
@@ -653,13 +656,6 @@ export const WorkspaceData = _.flow(
       } catch (error) {
         reportError(`Error loading entities in snapshot ${snapshotName}`, error);
         setSnapshotDetails(_.set([snapshotName, 'error'], true));
-      }
-    };
-
-    const loadWdsSchema = async () => {
-      // Initial attempt to load WDS data when the user arrives on the data page
-      if (isAzureWorkspace) {
-        await loadWdsData();
       }
     };
 
@@ -742,6 +738,48 @@ export const WorkspaceData = _.flow(
       }
     }, [wdsApp, loadWdsApp, loadWdsTypes, loadWdsCapabilities, workspaceId]);
 
+    /// ////////////////// To be moved to a new file ///////////////////////
+
+    const loadCwdsTypes = useCallback(
+      (workspaceId) => {
+        setWdsTypes({ status: 'None', state: [] });
+        return Ajax(signal)
+          .WorkspaceData.getSchema(cwdsURL, workspaceId)
+          .then((typesResult) => {
+            setWdsTypes({ status: 'Ready', state: typesResult });
+          })
+          .catch((error) => {
+            setWdsTypes({ status: 'Error', state: 'Error loading WDS schema' });
+            reportError('Error loading WDS schema', error);
+          });
+      },
+      [signal, cwdsURL]
+    );
+
+    const loadCwdsCapabilities = useCallback(async () => {
+      try {
+        const capabilitiesResult = await Ajax(signal).WorkspaceData.getCapabilities(cwdsURL);
+        setWdsCapabilities({ status: 'Ready', state: capabilitiesResult });
+      } catch (error) {
+        setWdsCapabilities({ status: 'Error', state: 'Error loading WDS capabilities' });
+        reportError('Error loading WDS capabilities', error);
+      }
+    }, [signal, cwdsURL]);
+
+    const loadCwdsDataTableProvider =
+      useCwds &&
+      useMemo(() => {
+        return new WdsDataTableProvider(workspaceId, cwdsURL, wdsCapabilities?.state);
+      }, [workspaceId, cwdsURL, wdsCapabilities]);
+
+    const loadCwdsData = useCallback(async () => {
+      await loadCwdsTypes(workspaceId);
+      await loadCwdsCapabilities();
+      await loadCwdsDataTableProvider();
+    }, [loadCwdsDataTableProvider, loadCwdsTypes, loadCwdsCapabilities, workspaceId]);
+
+    /// ///////////////////////////////////////////////////////////////////
+
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
     const searchAcrossTables = async (typeNames, activeCrossTableTextFilter) => {
@@ -804,7 +842,6 @@ export const WorkspaceData = _.flow(
         setEntityMetadata({});
 
         const checkCWDS = async () => {
-          const cwdsURL = getConfig().cwdsUrlRoot;
           try {
             const response = await fetchWDS(cwdsURL)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
             const data = await response.json();
@@ -827,7 +864,6 @@ export const WorkspaceData = _.flow(
           checkCWDS();
         } else if (useCwds) {
           // Don't need to worry about WDS app
-          // } else if ((!wdsTypes || !['Ready', 'Error'].includes(wdsTypes.status)) && !pollWdsInterval.current) {
         } else if (!wdsReady && !wdsError && !pollWdsInterval.current) {
           // Start polling if we're missing WDS Types, and stop polling when we have them.
           pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
@@ -840,7 +876,7 @@ export const WorkspaceData = _.flow(
           pollWdsInterval.current = undefined;
         };
       }
-    }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace, signal, useCwds, wdsError, wdsReady]);
+    }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace, signal, useCwds, wdsError, wdsReady, cwdsURL]);
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
     return div({ style: styles.tableContainer }, [
