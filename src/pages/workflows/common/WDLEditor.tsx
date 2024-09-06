@@ -79,7 +79,7 @@ const wdlLanguage = {
       [/@\s*[a-zA-Z_$][\w$]*/, { token: 'annotation', log: 'annotation token: $0' }],
 
       // numbers
-      [/\d*\.\d+([eE][-+]?\d+)?/, 'number.float'],
+      [/^[+-]?(\d*\.\d+|\d+\.|\d+)$/, 'number.float'],
       [/0[xX][0-9a-fA-F]+/, 'number.hex'],
       [/\d+/, 'number'],
 
@@ -110,7 +110,7 @@ const wdlLanguage = {
     whitespace: [
       [/[ \t\r\n]+/, 'white'],
       [/\/\*/, 'comment', '@comment'],
-      [/\/\/.*$/, 'comment'],
+      // [/\/\/.*$/, 'comment'],
     ],
   },
 };
