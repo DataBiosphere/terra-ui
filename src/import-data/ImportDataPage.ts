@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { CSSProperties } from 'react';
 import { div, h, img } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import scienceBackground from 'src/images/science-background.jpg';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
@@ -32,7 +32,6 @@ const ImportDataPage = () => {
   );
 
   return h(FooterWrapper, [
-    // @ts-expect-error
     h(TopBar, { title }),
     div({ role: 'main', style: styles.container }, [
       img({

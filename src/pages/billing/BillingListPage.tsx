@@ -1,7 +1,7 @@
 import React from 'react';
 import { BillingList } from 'src/billing/List/BillingList';
 import FooterWrapper from 'src/components/FooterWrapper';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 

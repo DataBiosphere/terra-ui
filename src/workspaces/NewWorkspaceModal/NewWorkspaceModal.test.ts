@@ -5,9 +5,10 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import { BillingProject, CloudPlatform } from 'src/billing-core/models';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
+import { WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { getRegionLabel } from 'src/libs/azure-utils';
 import Events from 'src/libs/events';
 import { goToPath } from 'src/libs/nav';
@@ -43,8 +44,6 @@ jest.mock(
   })
 );
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
 interface SetupOptions {
   billingProjects?: BillingProject[];
   groups?: string[];
@@ -52,11 +51,11 @@ interface SetupOptions {
 
 interface SetupResult {
   captureEvent: jest.MockedFunction<AjaxContract['Metrics']['captureEvent']>;
-  checkBucketLocation: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['checkBucketLocation']>;
+  checkBucketLocation: jest.MockedFunction<ReturnType<WorkspacesAjaxContract['workspace']>['checkBucketLocation']>;
   containerInfo: jest.MockedFunction<AzureStorageContract['containerInfo']>;
-  cloneWorkspace: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['clone']>;
-  createWorkspace: jest.MockedFunction<AjaxContract['Workspaces']['create']>;
-  getWorkspaceDetails: jest.MockedFunction<ReturnType<AjaxContract['Workspaces']['workspace']>['details']>;
+  cloneWorkspace: jest.MockedFunction<ReturnType<WorkspacesAjaxContract['workspaceV2']>['clone']>;
+  createWorkspace: jest.MockedFunction<WorkspacesAjaxContract['create']>;
+  getWorkspaceDetails: jest.MockedFunction<ReturnType<WorkspacesAjaxContract['workspace']>['details']>;
   listApps: jest.MockedFunction<AjaxContract['Apps']['listAppsV2']>;
   listWdsCollections: jest.MockedFunction<AjaxContract['WorkspaceData']['listCollections']>;
 }

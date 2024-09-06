@@ -11,7 +11,7 @@ import { DelayedSearchInput, ValidatedInput } from 'src/components/input';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';

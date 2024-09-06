@@ -14,7 +14,7 @@ import {
 } from 'src/components/group-common';
 import { DelayedSearchInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';

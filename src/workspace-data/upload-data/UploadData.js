@@ -10,7 +10,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { NameModal } from 'src/components/NameModal';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';

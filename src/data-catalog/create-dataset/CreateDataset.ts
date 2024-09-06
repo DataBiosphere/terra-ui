@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import {
   DataCollection,
