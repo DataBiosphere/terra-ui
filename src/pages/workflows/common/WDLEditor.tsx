@@ -170,6 +170,7 @@ export const WDLEditor = ({ wdl, ...props }) => {
         value={wdl}
         theme='prismjs-likeTheme'
         beforeMount={handleEditorWillMount}
+        className='wdl-editor'
         {...props}
       />
     </div>
