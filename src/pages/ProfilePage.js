@@ -1,6 +1,6 @@
 import { h } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Profile } from 'src/profile/Profile';
 
 const ProfilePage = () => {

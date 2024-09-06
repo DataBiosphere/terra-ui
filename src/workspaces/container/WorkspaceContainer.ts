@@ -8,7 +8,7 @@ import { ContextBar } from 'src/analysis/ContextBar';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import TitleBar from 'src/components/TitleBar';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { withDisplayName } from 'src/libs/react-utils';

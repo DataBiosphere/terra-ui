@@ -8,7 +8,7 @@ import { fetchLeo } from 'src/libs/ajax/ajax-common';
 import { appIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 import { CreateAppV1Request, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 
-export const Apps = (signal: AbortSignal) => ({
+export const Apps = (signal?: AbortSignal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppItem[]> => {
     const res = await fetchLeo(
       `api/google/v1/apps/${project}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
