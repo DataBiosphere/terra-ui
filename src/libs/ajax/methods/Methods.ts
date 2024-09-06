@@ -81,3 +81,5 @@ export const Methods = (signal?: AbortSignal) => ({
     };
   },
 });
+
+export type MethodsAjaxContract = ReturnType<typeof Methods>;
