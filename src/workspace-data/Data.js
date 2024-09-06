@@ -6,6 +6,7 @@ import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useRef,
 import { DraggableCore } from 'react-draggable';
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers';
 import { cloudProviders } from 'src/analysis/utils/runtime-utils';
+import { authOpts } from 'src/auth/auth-session';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
@@ -15,6 +16,7 @@ import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { resolveWdsApp, WdsDataTableProvider, wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
@@ -572,6 +574,7 @@ export const WorkspaceData = _.flow(
     const [wdsApp, setWdsApp] = useState({ status: 'None', state: undefined });
     const [wdsTypes, setWdsTypes] = useState({ status: 'None', state: [] });
     const [wdsCapabilities, setWdsCapabilities] = useState({ status: 'None', state: undefined });
+    const [useCwds, setUseCwds] = useState(undefined);
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -609,11 +612,6 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const azureLoadEntityMetadata = async () => {
-      // This is not used for Azure Workspaces, but if left undefined the page will spin forever
-      setEntityMetadata({});
-    };
-
     const loadSnapshotMetadata = async () => {
       try {
         setSnapshotMetadataError(false);
@@ -640,13 +638,9 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const azureLoadSnapshotMetadata = async () => {
-      setSnapshotMetadataError(false);
-    };
-
     const loadMetadata = () =>
       isAzureWorkspace
-        ? Promise.all([azureLoadEntityMetadata(), azureLoadSnapshotMetadata(), refreshRunningImportJobs(), loadWdsSchema()])
+        ? Promise.all([refreshRunningImportJobs(), loadWdsSchema()])
         : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
 
     const loadSnapshotEntities = async (snapshotName) => {
@@ -748,23 +742,6 @@ export const WorkspaceData = _.flow(
       }
     }, [wdsApp, loadWdsApp, loadWdsTypes, loadWdsCapabilities, workspaceId]);
 
-    useEffect(() => {
-      if (isAzureWorkspace) {
-        // Start polling if we're missing WDS Types, and stop polling when we have them.
-        if ((!wdsTypes || !['Ready', 'Error'].includes(wdsTypes.status)) && !pollWdsInterval.current) {
-          pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
-        } else if (wdsTypes?.status === 'Ready' && pollWdsInterval.current) {
-          clearInterval(pollWdsInterval.current);
-          pollWdsInterval.current = undefined;
-        }
-      }
-
-      return () => {
-        clearInterval(pollWdsInterval.current);
-        pollWdsInterval.current = undefined;
-      };
-    }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace]);
-
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
     const searchAcrossTables = async (typeNames, activeCrossTableTextFilter) => {
@@ -819,6 +796,51 @@ export const WorkspaceData = _.flow(
     const wdsError = wdsApp.status === 'Error' || wdsTypes.status === 'Error';
     const wdsAppState = wdsApp.state?.status;
     const wdsLoading = !wdsReady && !wdsError && (wdsApp.status === 'Loading' || wdsTypes.status === 'Loading');
+
+    useEffect(() => {
+      if (isAzureWorkspace) {
+        // These aren't needed for Azure workspaces; just set them to empty objects
+        setSnapshotMetadataError(false);
+        setEntityMetadata({});
+
+        const checkCWDS = async () => {
+          const cwdsURL = getConfig().cwdsUrlRoot;
+          try {
+            const response = await fetchWDS(cwdsURL)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
+            const data = await response.json();
+            if (Object.keys(data).length !== 0) {
+              // setWdsUrl({ status: 'Ready', state: cwdsURL });
+              setUseCwds(true);
+              setWdsApp({ status: 'Ready', state: undefined }); // No app needed for CWDS
+            } else {
+              // setWdsUrl({ status: 'Loading', state: null });
+              setUseCwds(false);
+            }
+          } catch (error) {
+            console.error(error);
+            // setWdsUrl({ status: 'Loading', state: null });
+            setUseCwds(false);
+          }
+        };
+
+        if (useCwds === undefined) {
+          checkCWDS();
+        } else if (useCwds) {
+          // Don't need to worry about WDS app
+          // } else if ((!wdsTypes || !['Ready', 'Error'].includes(wdsTypes.status)) && !pollWdsInterval.current) {
+        } else if (!wdsReady && !wdsError && !pollWdsInterval.current) {
+          // Start polling if we're missing WDS Types, and stop polling when we have them.
+          pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
+        } else if (wdsReady && pollWdsInterval.current) {
+          clearInterval(pollWdsInterval.current);
+          pollWdsInterval.current = undefined;
+        }
+        return () => {
+          clearInterval(pollWdsInterval.current);
+          pollWdsInterval.current = undefined;
+        };
+      }
+    }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace, signal, useCwds, wdsError, wdsReady]);
 
     const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
     return div({ style: styles.tableContainer }, [
