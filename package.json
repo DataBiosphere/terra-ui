@@ -37,6 +37,7 @@
     "keycode-js": "^3.1.0",
     "lodash": "^4.17.21",
     "marked": "^4.0.10",
+    "monaco-editor": "^0.51.0",
     "oidc-client-ts": "^2.4.0",
     "outdated-browser-rework": "^3.0.1",
     "path-to-regexp": "^5.0.0",

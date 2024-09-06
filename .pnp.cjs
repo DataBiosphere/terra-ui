@@ -159,6 +159,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
+            ["monaco-editor", "npm:0.51.0"],\
             ["oidc-client-ts", "npm:2.4.0"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
@@ -5163,7 +5164,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@monaco-editor/loader", "virtual:4a0eac502ba51fdafc0838544399d053326c821ba1b027628f8afd1e7121c6d2c71f653d6fe7cc59633557d8aeed8a4e3af4365bd150452920495b8dd2cbceda#npm:1.4.0"],\
             ["@types/monaco-editor", null],\
-            ["monaco-editor", null],\
+            ["monaco-editor", "npm:0.51.0"],\
             ["state-local", "npm:1.0.7"]\
           ],\
           "packagePeers": [\
@@ -5189,7 +5190,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/monaco-editor", null],\
             ["@types/react", "npm:18.3.1"],\
             ["@types/react-dom", "npm:18.3.0"],\
-            ["monaco-editor", null],\
+            ["monaco-editor", "npm:0.51.0"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"]\
           ],\
@@ -17656,6 +17657,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["monaco-editor", [\
+        ["npm:0.51.0", {\
+          "packageLocation": "./.yarn/cache/monaco-editor-npm-0.51.0-04e21cf67f-86cd6e5a75.zip/node_modules/monaco-editor/",\
+          "packageDependencies": [\
+            ["monaco-editor", "npm:0.51.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["ms", [\
         ["npm:2.0.0", {\
           "packageLocation": "./.yarn/cache/ms-npm-2.0.0-9e1101a471-0e6a22b8b7.zip/node_modules/ms/",\
@@ -22366,6 +22376,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
+            ["monaco-editor", "npm:0.51.0"],\
             ["oidc-client-ts", "npm:2.4.0"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\

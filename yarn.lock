@@ -12824,6 +12824,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"monaco-editor@npm:^0.51.0":
+  version: 0.51.0
+  resolution: "monaco-editor@npm:0.51.0"
+  checksum: 86cd6e5a756407bc9564ae4c408cdaecbf3410b5bf88e22783e22e79e1e1d048c1cba7c26249e6b234731ffc1aad3660c27213ce1f3f441b3e04cf01a75b1f8c
+  languageName: node
+  linkType: hard
+
 "ms@npm:2.0.0":
   version: 2.0.0
   resolution: "ms@npm:2.0.0"
@@ -16504,6 +16511,7 @@ __metadata:
     lint-staged: ^13.0.3
     lodash: ^4.17.21
     marked: ^4.0.10
+    monaco-editor: ^0.51.0
     oidc-client-ts: ^2.4.0
     outdated-browser-rework: ^3.0.1
     path-to-regexp: ^5.0.0
