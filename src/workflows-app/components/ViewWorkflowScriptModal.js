@@ -16,13 +16,7 @@ const ViewWorkflowScriptModal = ({ workflowScript, onDismiss }) => {
     },
     [
       // we are specifying height here so that for long workflow scripts the Modal doesn't overflow the main screen
-      h(WDLViewer, {
-        wdl: workflowScript,
-        options: {
-          readOnly: true,
-        },
-        style: { height: 550 },
-      }),
+      h(WDLViewer, { wdl: workflowScript, style: { height: 550 } }),
     ]
   );
 };
