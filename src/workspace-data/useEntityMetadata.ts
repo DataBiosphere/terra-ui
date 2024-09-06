@@ -45,10 +45,8 @@ export const useEntityMetadata = (workspaceId: string): LoadedState<UseEntityMet
   // TODO clean this up
   const isInTerminalStatus = (status: string): boolean => ['Ready', 'Error', 'RUNNING', 'ERROR'].includes(status);
 
-  const isReady =
-    isInTerminalStatus(wdsTypes.status) &&
-    isInTerminalStatus(wdsDataTableProvider.status) &&
-    isInTerminalStatus(wdsApp.status);
+  const isReady = isInTerminalStatus(wdsTypes.status) && isInTerminalStatus(wdsDataTableProvider.status);
+  // isInTerminalStatus(wdsApp.status);
   //   const pollWdsInterval = useRef<Timeout | undefined>(undefined);
   const signal = useCancellation();
 
@@ -135,17 +133,21 @@ export const useEntityMetadata = (workspaceId: string): LoadedState<UseEntityMet
       setWdsTypes({ status: 'Error', state: null, error: 'wdsUrl in error' });
       setWdsCapabilities({ status: 'Error', state: null, error: 'wdsUrl in error' });
       setWdsDataTableProvider({ status: 'Error', state: null, error: 'wdsUrl in error' });
+
       setWdsApp({ status: 'Error', state: null, error: 'wdsUrl in error' });
     } else if (useCwds !== undefined && !useCwds && wdsUrl.status === 'Loading') {
-      if (!isInTerminalStatus(wdsApp.status)) {
+      if (wdsApp.status === 'None') {
         // TODO should I check for loading as well?
         // Try to load the proxy URL
-        const foundApp = await loadWdsApp();
-        if (foundApp) {
-          setWdsApp({ status: 'Ready', state: foundApp });
-        } else {
-          setWdsApp({ status: 'Error', state: null, error: 'No WDS app exists' });
-        }
+        await loadWdsApp();
+        // const foundApp = await loadWdsApp();
+        // if (foundApp) {
+        //   setWdsApp({ status: 'Ready', state: foundApp });
+        // }
+        // } else {
+        //   console.log('no app found, setting to error: ', foundApp);
+        //   setWdsApp({ status: 'Error', state: null, error: 'No WDS app exists' });
+        // }
       } else if (wdsApp.status === 'Ready') {
         const proxyUrl = wdsApp.state?.proxyUrls?.wds;
         if (proxyUrl) {
@@ -153,6 +155,8 @@ export const useEntityMetadata = (workspaceId: string): LoadedState<UseEntityMet
         } else {
           setWdsUrl({ status: 'Error', state: null, error: 'No proxyUrl for WDSApp' });
           // If we can't connect to the app, it's the same as being in error
+          //   console.log('no proxyurl found, setting to error: ', wdsApp);
+
           setWdsApp({ status: 'Error', state: null, error: 'No proxyUrl for WDSApp' });
         }
       } else if (wdsApp.status === 'Error') {
@@ -235,7 +239,7 @@ export const useEntityMetadata = (workspaceId: string): LoadedState<UseEntityMet
       wdsDataTableProviderResult: wdsDataTableProvider,
       entityMetadataResult: {},
       snapshotMetadataErrorResult: false,
-      wdsAppStatusResult: wdsApp.status === 'Ready' && wdsApp.state ? wdsApp.state.status : wdsApp.status, // If we have a WdsApp loaded, use its status; otherwise use the more general status
+      wdsAppStatusResult: wdsApp.status,
       //   loadWdsTypesResult: loadWdsTypes,
     },
   };

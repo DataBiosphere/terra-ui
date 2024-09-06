@@ -721,15 +721,18 @@ export const WorkspaceData = _.flow(
 
     useEffect(() => {
       // In future this won't apply only to Azure workspaces
-      if (isAzureWorkspace && loadedEntityMetadata.status === 'Ready' && getWdsDataTableProvider().status !== 'Ready') {
+      if (isAzureWorkspace) {
+        // console.log('loadedEntityMetadata', loadedEntityMetadata);
         const { wdsTypesResult, wdsDataTableProviderResult, entityMetadataResult, snapshotMetadataErrorResult, wdsAppStatusResult } =
           loadedEntityMetadata.state;
-        setEntityMetadata(entityMetadataResult);
-        setWdsTypes(wdsTypesResult);
-        setWdsDataTableProvider({ status: 'Ready', state: wdsDataTableProviderResult.state });
         setWdsAppStatus(wdsAppStatusResult);
+        setEntityMetadata(entityMetadataResult);
         setSnapshotMetadataError(snapshotMetadataErrorResult);
-        // setLoadWdsTypes(loadWdsTypesResult);
+        if (loadedEntityMetadata.status === 'Ready' && getWdsDataTableProvider().status !== 'Ready') {
+          setWdsTypes(wdsTypesResult);
+          setWdsDataTableProvider({ status: 'Ready', state: wdsDataTableProviderResult.state });
+          // setLoadWdsTypes(loadWdsTypesResult);
+        }
       }
     }, [loadedEntityMetadata, setWdsDataTableProvider, getWdsDataTableProvider, isAzureWorkspace]);
 
@@ -1311,7 +1314,7 @@ export const WorkspaceData = _.flow(
                             {
                               style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
                             },
-                            [icon('loadingSpinner')` 'Preparing your data tables, this may take a few minutes. `]
+                            [icon('loadingSpinner'), 'Updating your data tables, this may take a few minutes. ']
                           ),
                       ],
                       () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])

@@ -125,7 +125,7 @@ describe('WorkspaceData', () => {
       status,
     };
 
-    asMockedFn(fetchWDS).mockImplementation((wdsProxyUrlRoot: string) => {
+    asMockedFn(fetchWDS).mockImplementation(() => {
       return (path: RequestInfo | URL, _options: RequestInit | undefined) => {
         if (path === 'capabilities/v1') {
           return Promise.resolve(new Response('{"capabilities":true}'));
@@ -193,7 +193,7 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(screen.getByText(/Updating your data tables/)).toBeVisible();
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
     expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
   });
@@ -212,13 +212,13 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(screen.getByText(/Updating your data tables/)).toBeVisible();
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
     expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
   });
 
   it.each([
-    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Preparing your data tables/ },
+    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
     { status: 'UPDATING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
   ])(
     'displays a waiting message for an azure workspace with $status status',
@@ -255,7 +255,7 @@ describe('WorkspaceData', () => {
     // Assert
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
     expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
-    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(screen.queryByText(/Updating your data tables/)).toBeNull(); // no waiting message
   });
 
   it('displays an error message for an azure workspace that fails when resolving the app', async () => {
@@ -276,7 +276,7 @@ describe('WorkspaceData', () => {
     // Assert
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
     expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
-    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(screen.queryByText(/Updating your data tables/)).toBeNull(); // no waiting message
     expect(reportError).toHaveBeenCalledWith('Error resolving WDS app', mockedError);
   });
 
@@ -298,7 +298,7 @@ describe('WorkspaceData', () => {
     // Assert
     expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
     expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
-    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(screen.queryByText(/Updating your data tables/)).toBeNull(); // no waiting message
     expect(reportError).toHaveBeenCalledWith('Error loading WDS schema', mockedError);
   });
 
@@ -320,7 +320,7 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(mockListAppsV2).toHaveBeenCalledTimes(1); // initial call, provisioning
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(screen.getByText(/Updating your data tables/)).toBeVisible();
 
     // Act
     await act(async () => {
@@ -330,7 +330,7 @@ describe('WorkspaceData', () => {
     // Assert
     expect(mockListAppsV2).toHaveBeenCalledTimes(2); // second call, error
     expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
-    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
+    expect(screen.queryByText(/Updating your data tables/)).toBeNull(); // no waiting message
 
     // Act
     await act(async () => {
@@ -372,7 +372,7 @@ describe('WorkspaceData', () => {
   });
 
   it.each([
-    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Preparing your data tables/ },
+    { status: 'PROVISIONING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
     { status: 'UPDATING' as LeoAppStatus, expectedMessage: /Updating your data tables/ },
   ])('polls for schema until $status app is RUNNING', async ({ status, expectedMessage }: StatusParams) => {
     // Arrange
