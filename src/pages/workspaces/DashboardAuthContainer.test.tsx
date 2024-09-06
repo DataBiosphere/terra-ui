@@ -2,13 +2,11 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen } from '@testing-library/react';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
 import { AuthState, authStore } from 'src/libs/state';
 import { DashboardAuthContainer } from 'src/pages/workspaces/DashboardAuthContainer';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { WorkspaceDashboardPage, WorkspaceDashboardPageProps } from 'src/workspaces/dashboard/WorkspaceDashboardPage';
-
-type AjaxContract = ReturnType<typeof Ajax>;
 
 jest.mock('src/libs/ajax', () => ({
   Ajax: jest.fn(),
