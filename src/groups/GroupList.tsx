@@ -1,7 +1,6 @@
-import { SpinnerOverlay } from '@terra-ui-packages/components';
+import { SpinnerOverlay, useAutoLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useEffect, useState } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
 import { DeleteConfirmationModal } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { Sort } from 'src/components/group-common';
@@ -16,54 +15,74 @@ import { NewGroupModal } from 'src/groups/NewGroupModal';
 import { NoGroupsMessage } from 'src/groups/NoGroupsMessage';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
-import { withErrorReporting } from 'src/libs/error';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { reportError } from 'src/libs/error';
+import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
-import * as Utils from 'src/libs/utils';
+import { cond, textMatch } from 'src/libs/utils';
 
-export const GroupList = (): React.ReactNode => {
-  // State
-  const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
-  const [groups, setGroups] = useState<CurrentUserGroupMembership[]>(() => StateHistory.get().groups || []);
-  const [creatingNewGroup, setCreatingNewGroup] = useState(false);
-  const [deletingGroup, setDeletingGroup] = useState<CurrentUserGroupMembership>();
-  const [leavingGroup, setLeavingGroup] = useState<CurrentUserGroupMembership>();
-  const [updating, setUpdating] = useState<boolean>(false);
-  const [busy, setBusy] = useState<boolean>(false);
-  const [sort, setSort] = useState<Sort>({ field: 'groupName', direction: 'asc' });
-
+export const GroupList = (props: {}): React.ReactNode => {
   const signal = useCancellation();
 
-  // Helpers
-  const refresh = _.flow(
-    Utils.withBusyState(setBusy),
-    withErrorReporting('Error loading group list')
-  )(async () => {
-    setCreatingNewGroup(false);
-    setDeletingGroup(undefined);
-    setUpdating(false);
-
+  const fetchGroups = async (): Promise<CurrentUserGroupMembership[]> => {
     const rawGroups = await Ajax(signal).Groups.list();
-    const groups = _.flow(
+    const updatedGroups = _.flow(
       _.groupBy('groupName'),
       _.map((gs) => ({ ...gs[0], role: _.map('role', gs) })),
       _.sortBy('groupName')
     )(rawGroups);
-    setGroups(groups);
+    return updatedGroups;
+  };
+
+  // State
+  const [filter, setFilter] = useState(() => StateHistory.get()?.filter || '');
+  const [creatingNewGroup, setCreatingNewGroup] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState<CurrentUserGroupMembership>();
+  const [leavingGroup, setLeavingGroup] = useState<CurrentUserGroupMembership>();
+  const [sort, setSort] = useState<Sort>({ field: 'groupName', direction: 'asc' });
+  const [groups, updateGroups] = useAutoLoadedData<CurrentUserGroupMembership[]>(fetchGroups, [signal], {
+    onError: (state) => reportError('Error loading group list', state.error),
   });
 
-  // Lifecycle
-  useOnMount(() => {
-    refresh();
-  });
+  // Helpers
+  const refresh = async () => {
+    setCreatingNewGroup(false);
+    setDeletingGroup(undefined);
+    setLeavingGroup(undefined);
+    updateGroups(fetchGroups);
+  };
+
+  const doDelete = (groupName: string) =>
+    updateGroups(async () => {
+      setDeletingGroup(undefined);
+      try {
+        await Ajax().Groups.group(groupName).delete();
+      } catch (e) {
+        // this is in a separate try/catch on its own, so that a failure in deleting won't error the entire page
+        reportError('Error deleting group.', e);
+      }
+      const updatedGroups = await fetchGroups();
+      return updatedGroups;
+    });
 
   useEffect(() => {
-    StateHistory.update({ filter, groups });
-  }, [filter, groups]);
+    StateHistory.update({ filter });
+  }, [filter]);
 
   // Render
-  const filteredGroups = _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups);
+  const filteredGroups = _.filter(({ groupName }) => textMatch(filter, groupName), groups.state || []);
+  const orderedGroups = _.orderBy([sort.field], [sort.direction], filteredGroups);
+  const groupCards = _.map(
+    (group) => (
+      <GroupCard
+        group={group}
+        key={group.groupName}
+        onDelete={() => setDeletingGroup(group)}
+        onLeave={() => setLeavingGroup(group)}
+      />
+    ),
+    orderedGroups
+  );
 
   return (
     <FooterWrapper>
@@ -82,33 +101,24 @@ export const GroupList = (): React.ReactNode => {
         </div>
         <div style={{ marginTop: '1rem' }}>
           <NewGroupCard onClick={() => setCreatingNewGroup(true)} />
-          {Utils.cond(
-            [groups && _.isEmpty(groups), () => <NoGroupsMessage />],
+          {cond(
+            [groups.status === 'Ready' && _.isEmpty(groups.state), () => <NoGroupsMessage />],
             [
-              !_.isEmpty(groups) && _.isEmpty(filteredGroups),
+              groups.status === 'Ready' && _.isEmpty(filteredGroups),
               () => <div style={{ fontStyle: 'italic', marginTop: '1rem' }}>No matching groups</div>,
             ],
-            () => {
-              return div({ role: 'table', 'aria-label': 'groups list' }, [
-                h(GroupCardHeaders, { sort, onSort: setSort }),
-                <div style={{ flexGrow: 1, marginTop: '1rem', display: 'grid', rowGap: '0.5rem' }}>
-                  {_.map((group: CurrentUserGroupMembership) => {
-                    return h(GroupCard, {
-                      group,
-                      key: `${group.groupName}`,
-                      onDelete: () => setDeletingGroup(group),
-                      onLeave: () => setLeavingGroup(group),
-                    });
-                  }, _.orderBy([sort.field], [sort.direction], filteredGroups))}
-                </div>,
-              ]);
-            }
+            () => (
+              <div role='table' aria-label='groups list'>
+                <GroupCardHeaders sort={sort} onSort={setSort} />
+                <div style={{ flexGrow: 1, marginTop: '1rem', display: 'grid', rowGap: '0.5rem' }}>{groupCards}</div>
+              </div>
+            )
           )}
-          {busy && <SpinnerOverlay />}
+          {groups.status === 'Loading' && <SpinnerOverlay />}
         </div>
         {creatingNewGroup && (
           <NewGroupModal
-            existingGroups={_.map('groupName', groups)}
+            existingGroups={_.map('groupName', groups.state || [])}
             onDismiss={() => setCreatingNewGroup(false)}
             onSuccess={refresh}
           />
@@ -117,14 +127,7 @@ export const GroupList = (): React.ReactNode => {
           <DeleteConfirmationModal
             objectType='group'
             objectName={deletingGroup.groupName}
-            onConfirm={_.flow(
-              Utils.withBusyState(setBusy),
-              withErrorReporting('Error deleting group.')
-            )(async () => {
-              setDeletingGroup(undefined);
-              await Ajax().Groups.group(deletingGroup.groupName).delete();
-              refresh();
-            })}
+            onConfirm={() => doDelete(deletingGroup.groupName)}
             onDismiss={() => setDeletingGroup(undefined)}
           />
         )}
@@ -137,7 +140,6 @@ export const GroupList = (): React.ReactNode => {
             onSuccess={refresh}
           />
         )}
-        {updating && <SpinnerOverlay />}
       </PageBox>
     </FooterWrapper>
   );

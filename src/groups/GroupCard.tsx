@@ -2,12 +2,12 @@ import _ from 'lodash/fp';
 import React, { ReactNode } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { GroupMenu } from 'src/groups/GroupMenu';
-import { columnWidths } from 'src/groups/List';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import colors from 'src/libs/colors';
 import { getLink } from 'src/libs/nav';
-import { memoWithName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
+
+export const columnWidths = '1fr 30% 6rem 20px';
 
 interface GroupCardProps {
   group: CurrentUserGroupMembership;
@@ -15,7 +15,7 @@ interface GroupCardProps {
   onLeave: () => void;
 }
 
-export const GroupCard = memoWithName('GroupCard', (props: GroupCardProps): ReactNode => {
+export const GroupCard = (props: GroupCardProps): ReactNode => {
   const {
     group: { groupName, groupEmail, role },
     onDelete,
@@ -58,4 +58,4 @@ export const GroupCard = memoWithName('GroupCard', (props: GroupCardProps): Reac
       </div>
     </div>
   );
-});
+};

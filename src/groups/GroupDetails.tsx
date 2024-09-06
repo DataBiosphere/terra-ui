@@ -84,7 +84,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
   // Lifecycle
   useEffect(() => {
     refresh();
-  });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     StateHistory.update({ filter, members });

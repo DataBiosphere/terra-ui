@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
+import { Sort } from 'src/components/group-common';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import { columnWidths } from 'src/groups/List';
-import { memoWithName } from 'src/libs/react-utils';
+import { columnWidths } from 'src/groups/GroupCard';
 
-export const GroupCardHeaders = memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
+interface GroupCardHeadersProps {
+  sort: Sort;
+  onSort: React.Dispatch<React.SetStateAction<Sort>>;
+}
+
+export const GroupCardHeaders = (props: GroupCardHeadersProps): ReactNode => {
+  const { sort, onSort } = props;
   return (
     <div
       role='row'
@@ -30,4 +36,4 @@ export const GroupCardHeaders = memoWithName('GroupCardHeaders', ({ sort, onSort
       </div>
     </div>
   );
-});
+};

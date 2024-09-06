@@ -2,18 +2,31 @@ import { ButtonPrimary, Modal, SpinnerOverlay, useUniqueId } from '@terra-ui-pac
 import React, { ReactNode, useState } from 'react';
 import { AdminNotifierCheckbox } from 'src/components/group-common';
 import { ValidatedInput } from 'src/components/input';
-import { groupNameValidator } from 'src/groups/List';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { formHint, FormLabel } from 'src/libs/forms';
 import { summarizeErrors } from 'src/libs/utils';
 import { validate } from 'validate.js';
 
+const groupNameValidator = (existing) => ({
+  presence: { allowEmpty: false },
+  length: { maximum: 60 },
+  format: {
+    pattern: /[A-Za-z0-9_-]*$/,
+    message: 'can only contain letters, numbers, underscores, and dashes',
+  },
+  exclusion: {
+    within: existing,
+    message: 'already exists',
+  },
+});
+
 interface NewGroupModalProps {
   onSuccess: () => void;
   onDismiss: () => void;
   existingGroups: string[];
 }
+
 export const NewGroupModal = (props: NewGroupModalProps): ReactNode => {
   const [groupName, setGroupName] = useState('');
   const [groupNameTouched, setGroupNameTouched] = useState(false);
