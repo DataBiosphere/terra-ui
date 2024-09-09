@@ -27,6 +27,7 @@ import StepButtons from 'src/components/StepButtons';
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';
 import WDLViewer from 'src/components/WDLViewer';
 import { Ajax } from 'src/libs/ajax';
+import { makeExportWorkflowFromWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -1314,15 +1315,29 @@ export const WorkflowView = _.flow(
           ]),
           exporting &&
             h(ExportWorkflowModal, {
-              thisWorkspace: workspace,
-              methodConfig: savedConfig,
+              defaultWorkflowName: savedConfig.name,
+              destinationWorkspace: ({ workspace: { workspaceId }, accessLevel }) => {
+                return workspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
+              },
+              title: 'Copy to Workspace',
+              exportButtonText: 'Copy',
+              exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
+              onGoToExportedWorkflow: (selectedWorkspace, workflowName) =>
+                Nav.goToPath('workflow', {
+                  namespace: selectedWorkspace.namespace,
+                  name: selectedWorkspace.name,
+                  workflowNamespace: selectedWorkspace.namespace,
+                  workflowName,
+                }),
               onDismiss: () => this.setState({ exporting: false }),
             }),
           copying &&
             h(ExportWorkflowModal, {
-              thisWorkspace: workspace,
-              methodConfig: savedConfig,
-              sameWorkspace: true,
+              defaultWorkflowName: `${savedConfig.name}_copy`,
+              destinationWorkspace: workspace,
+              title: 'Duplicate Workflow',
+              exportButtonText: 'Copy',
+              exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
               onDismiss: () => this.setState({ copying: false }),
               onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName }),
             }),
