@@ -9,7 +9,8 @@ import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
-import { appIdentifier, fetchOk } from 'src/libs/ajax/fetch/fetch-core';
+import { appIdentifier } from 'src/libs/ajax/fetch/fetch-core';
+import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Groups } from 'src/libs/ajax/Groups';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -28,7 +29,6 @@ import { WorkflowScript } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
-import { getConfig } from 'src/libs/config';
 
 const CromIAM = (signal?: AbortSignal) => ({
   callCacheDiff: async (thisWorkflow, thatWorkflow) => {
@@ -56,38 +56,6 @@ const CromIAM = (signal?: AbortSignal) => ({
       _.merge(authOpts(), { signal })
     );
     return res.json();
-  },
-});
-
-const FirecloudBucket = (signal?: AbortSignal) => ({
-  getServiceAlerts: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal });
-    return res.json();
-  },
-
-  getFeaturedWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal });
-    return res.json();
-  },
-
-  getShowcaseWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal });
-    return res.json();
-  },
-
-  getFeaturedMethods: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal });
-    return res.json();
-  },
-
-  getTemplateWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal });
-    return res.json();
-  },
-
-  getBadVersions: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/bad-versions.txt`, { signal });
-    return res.text();
   },
 });
 
