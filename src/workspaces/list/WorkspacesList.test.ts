@@ -1,7 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
@@ -38,7 +38,6 @@ jest.mock('src/libs/notifications', (): NotificationExports => {
 });
 
 type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 jest.mock('src/libs/ajax', (): AjaxExports => {
   return {
