@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import React from 'react';
 import { DeleteConfirmationModal } from 'src/components/common';
 
-interface RedactSnapshotModalProps {
+interface DeleteSnapshotModalProps {
   namespace: string;
   name: string;
   snapshotId: string;
@@ -10,7 +10,7 @@ interface RedactSnapshotModalProps {
   onDismiss: () => void;
 }
 
-const RedactSnapshotModal = (props: RedactSnapshotModalProps): ReactNode => {
+const DeleteSnapshotModal = (props: DeleteSnapshotModalProps): ReactNode => {
   const { namespace, name, snapshotId, onConfirm, onDismiss } = props;
 
   return (
@@ -35,4 +35,4 @@ const RedactSnapshotModal = (props: RedactSnapshotModalProps): ReactNode => {
   );
 };
 
-export default RedactSnapshotModal;
+export default DeleteSnapshotModal;
