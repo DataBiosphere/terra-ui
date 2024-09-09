@@ -51,10 +51,10 @@ import {
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
-import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
 import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
+import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
