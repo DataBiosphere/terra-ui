@@ -1,12 +1,11 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
+import { GroupList } from 'src/groups/GroupList';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { get as getStateHistory, update as updateStateHistory } from 'src/libs/state-history';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
-
-import { GroupList } from './GroupList';
 
 jest.mock('src/libs/nav', (): typeof import('src/libs/nav') => ({
   ...jest.requireActual('src/libs/nav'),
@@ -45,7 +44,7 @@ describe('GroupList', () => {
     role: 'admin',
   };
 
-  it('renders the no groups message', () => {
+  it('renders the no groups message', async () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -55,10 +54,10 @@ describe('GroupList', () => {
         } as DeepPartial<AjaxContract> as AjaxContract)
     );
     const { getByText } = render(<GroupList />);
-    waitFor(() => expect(getByText('Create a group to share your workspaces with others.')).toBeDefined());
+    await waitFor(() => expect(getByText('Create a group to share your workspaces with others.')).toBeDefined());
   });
 
-  it('renders all groups in the list', () => {
+  it('renders all groups in the list', async () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -68,11 +67,11 @@ describe('GroupList', () => {
         } as DeepPartial<AjaxContract> as AjaxContract)
     );
     const { getByText } = render(<GroupList />);
-    waitFor(() => expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined());
-    waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
+    await waitFor(() => expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined());
+    await waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
   });
 
-  it('applies the filter from stored state history', () => {
+  it('applies the filter from stored state history', async () => {
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -83,11 +82,11 @@ describe('GroupList', () => {
     );
     asMockedFn(getStateHistory).mockReturnValue({ filter: testGroup2.groupName });
     const { getByText, queryByText } = render(<GroupList />);
-    waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
+    await waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
     expect(queryByText(testGroup1.groupName, { exact: false })).toBeFalsy();
   });
 
-  it('applies the filter when entered and stores it in state history', () => {
+  it('applies the filter when entered and stores it in state history', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
       () =>
@@ -97,14 +96,71 @@ describe('GroupList', () => {
           },
         } as DeepPartial<AjaxContract> as AjaxContract)
     );
+    asMockedFn(getStateHistory).mockReturnValue({});
     const { getByText, queryByText, getByLabelText } = render(<GroupList />);
-    waitFor(() => expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined());
-    waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
+    await waitFor(() => expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined());
+    await waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
     // Act
     fireEvent.change(getByLabelText('Search groups'), { target: { value: testGroup1.groupName } });
     // Assert
-    waitFor(() => expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined());
-    waitFor(() => expect(queryByText(testGroup2.groupName, { exact: false })).toBeFalsy());
-    waitFor(() => expect(asMockedFn(updateStateHistory)).toHaveBeenCalledWith({ filter: testGroup1.groupName }));
+    await waitFor(() => expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined());
+    await waitFor(() => expect(queryByText(testGroup2.groupName, { exact: false })).toBeFalsy());
+    await waitFor(() => expect(asMockedFn(updateStateHistory)).toHaveBeenCalledWith({ filter: testGroup1.groupName }));
+  });
+
+  it('sets the correct group to delete', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Groups: {
+            list: jest.fn().mockResolvedValue([testGroup1, testGroup2]),
+          },
+        } as DeepPartial<AjaxContract> as AjaxContract)
+    );
+    const { getByText, queryByText, getByRole } = render(<GroupList />);
+    await waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
+    const menuLabel = `Action Menu for Group: ${testGroup2.groupName}`;
+    const menu = getByRole('button', { name: menuLabel });
+    expect(menu).toBeDefined();
+
+    // Act
+    fireEvent.click(menu);
+    await waitFor(() => expect(getByText('Delete', { exact: false })).toBeDefined());
+    const deleteButton = getByText('Delete', { exact: false });
+    expect(deleteButton).toBeDefined();
+    fireEvent.click(deleteButton);
+
+    // Assert
+    // waiting for the modal to appear
+    waitFor(() => expect(queryByText('Delete group')).toBeDefined());
+  });
+
+  it('sets the correct group to leave', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Groups: {
+            list: jest.fn().mockResolvedValue([testGroup1, testGroup2]),
+          },
+        } as DeepPartial<AjaxContract> as AjaxContract)
+    );
+    const { getByText, queryByText, getByRole } = render(<GroupList />);
+    await waitFor(() => expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined());
+    const menuLabel = `Action Menu for Group: ${testGroup2.groupName}`;
+    const menu = getByRole('button', { name: menuLabel });
+    expect(menu).toBeDefined();
+
+    // Act
+    fireEvent.click(menu);
+    await waitFor(() => expect(getByText('Leave', { exact: false })).toBeDefined());
+    const leaveButton = getByText('Leave', { exact: false });
+    expect(leaveButton).toBeDefined();
+    fireEvent.click(leaveButton);
+
+    // Assert
+    // waiting for the modal to appear
+    waitFor(() => expect(queryByText('Leave group')).toBeDefined());
   });
 });

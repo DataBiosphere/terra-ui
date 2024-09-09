@@ -35,7 +35,7 @@ export const GroupList = (props: {}): React.ReactNode => {
   };
 
   // State
-  const [filter, setFilter] = useState(() => StateHistory.get()?.filter || '');
+  const [filter, setFilter] = useState<string>(() => StateHistory.get()?.filter || '');
   const [creatingNewGroup, setCreatingNewGroup] = useState(false);
   const [deletingGroup, setDeletingGroup] = useState<CurrentUserGroupMembership>();
   const [leavingGroup, setLeavingGroup] = useState<CurrentUserGroupMembership>();
