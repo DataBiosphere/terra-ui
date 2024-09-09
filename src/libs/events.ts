@@ -88,6 +88,7 @@ const eventsList = {
   pageView: 'page:view',
   permissionsSynchronizationDelay: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
+  uploaderCreateCollection: 'uploader:collection:create',
   user: {
     authToken: {
       load: {
