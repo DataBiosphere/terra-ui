@@ -30,7 +30,8 @@ interface NewUserCardProps {
 }
 export const NewUserCard = (props: NewUserCardProps) => (
   <ButtonPrimary style={{ textTransform: 'none' }} onClick={props.onClick}>
-    <Icon icon='plus' size={14} />,<div style={{ marginLeft: '0.5rem' }}>Add User</div>
+    <Icon icon='plus' size={14} />
+    <div style={{ marginLeft: '0.5rem' }}>Add User</div>
   </ButtonPrimary>
 );
 
