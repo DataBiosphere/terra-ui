@@ -3,8 +3,8 @@ import userEvent, { UserEvent } from '@testing-library/user-event';
 import _ from 'lodash';
 import React from 'react';
 import { ExportWorkflowToWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
-import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
