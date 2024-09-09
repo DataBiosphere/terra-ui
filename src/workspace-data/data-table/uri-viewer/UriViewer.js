@@ -1,4 +1,4 @@
-import { Modal, Spinner } from '@terra-ui-packages/components';
+import { ButtonOutline, icon, Modal, Spinner } from '@terra-ui-packages/components';
 import filesize from 'filesize';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
@@ -37,6 +37,7 @@ export const UriViewer = _.flow(
   const toggleUseFileName = () => {
     setUseFileName((prevUseFileName) => !prevUseFileName);
   };
+  const [isMaximized, setIsMaximized] = useState(false);
 
   const loadMetadata = async () => {
     try {
@@ -243,6 +244,7 @@ export const UriViewer = _.flow(
       showCancel: false,
       showX: true,
       okButton: 'Done',
+      width: '70%',
     },
     [
       Utils.cond(
@@ -251,28 +253,50 @@ export const UriViewer = _.flow(
           metadata,
           () =>
             h(Fragment, [
-              els.cell([
-                els.label('Filename'),
-                els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')), // allow line break on periods
-              ]),
-              h(UriPreview, { metadata, googleProject }),
-              els.cell([els.label('File size'), els.data(filesize(size))]),
-              !accessUrl &&
-                !!gsUri &&
-                els.cell([
+              div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+                div({ style: { width: isMaximized ? '25%' : '45%' } }, [
+                  // left div with file details
+                  els.cell([
+                    els.label('Filename'),
+                    els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')), // allow line break on periods
+                  ]),
+                  els.cell([els.label('File size'), els.data(filesize(size))]),
+                  !accessUrl &&
+                    !!gsUri &&
+                    els.cell([
+                      h(
+                        Link,
+                        {
+                          ...Utils.newTabLinkProps,
+                          href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1]),
+                        },
+                        ['View this file in the Google Cloud Storage Browser']
+                      ),
+                    ]),
+                  h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
+                  renderTerminalCommand(metadata),
+                  renderMoreInfo(metadata),
+                  div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
+                ]),
+                div({ style: { width: isMaximized ? '70%' : '50%' } }, [
+                  // right div with preview
                   h(
                     Link,
                     {
-                      ...Utils.newTabLinkProps,
-                      href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1]),
+                      onClick: () => {
+                        setIsMaximized(!isMaximized);
+                      },
                     },
-                    ['View this file in the Google Cloud Storage Browser']
+                    [
+                      // maximize/minimize toggle button
+                      h(ButtonOutline, { style: { float: 'right', margin: '0.5rem' } }, [
+                        isMaximized ? icon('compress-arrows-alt') : icon('expand-arrows-alt'),
+                      ]),
+                    ]
                   ),
+                  h(UriPreview, { metadata, googleProject }),
                 ]),
-              h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),
-              renderTerminalCommand(metadata),
-              renderMoreInfo(metadata),
-              div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
+              ]),
             ]),
         ],
         () => renderLoadingSymbol(uri)
