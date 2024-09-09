@@ -12,6 +12,7 @@ import { MenuButton } from 'src/components/MenuButton';
 import { PageBox } from 'src/components/PageBox';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
+import { makeExportWorkflowFromWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -415,15 +416,29 @@ export const Workflows = _.flow(
       h(ViewToggleButtons, { listView, setListView }),
       workflowToExport &&
         h(ExportWorkflowModal, {
-          thisWorkspace: workspace,
-          methodConfig: getConfig(workflowToExport),
+          defaultWorkflowName: getConfig(workflowToExport).name,
+          destinationWorkspace: ({ workspace: { workspaceId }, accessLevel }) => {
+            return workspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
+          },
+          title: 'Copy to Workspace',
+          exportButtonText: 'Copy',
+          exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, getConfig(workflowToExport)),
+          onGoToExportedWorkflow: (selectedWorkspace, workflowName) =>
+            Nav.goToPath('workflow', {
+              namespace: selectedWorkspace.namespace,
+              name: selectedWorkspace.name,
+              workflowNamespace: selectedWorkspace.namespace,
+              workflowName,
+            }),
           onDismiss: () => setWorkflowToExport(undefined),
         }),
       workflowToCopy &&
         h(ExportWorkflowModal, {
-          thisWorkspace: workspace,
-          methodConfig: getConfig(workflowToCopy),
-          sameWorkspace: true,
+          defaultWorkflowName: `${getConfig(workflowToCopy).name}_copy`,
+          destinationWorkspace: workspace,
+          title: 'Duplicate Workflow',
+          exportButtonText: 'Copy',
+          exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, getConfig(workflowToCopy)),
           onDismiss: () => setWorkflowToCopy(undefined),
           onSuccess: () => {
             refresh();
