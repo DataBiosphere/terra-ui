@@ -1379,6 +1379,7 @@ export const WorkspaceData = _.flow(
                 [
                   workspaceDataTypes.wds,
                   () =>
+                    wdsDataTableProvider &&
                     wdsReady &&
                     !_.isEmpty(wdsTypes.state) &&
                     h(WDSContent, {
