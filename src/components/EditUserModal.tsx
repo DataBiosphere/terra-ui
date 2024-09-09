@@ -51,7 +51,7 @@ export const EditUserModal = (props: EditUserModalProps): ReactNode => {
       </div>
       <LabeledCheckbox checked={isAdmin} onChange={() => setIsAdmin(!isAdmin)}>
         {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-        <label style={{ margin: '0 2rem 0 0.25rem' }}>Can manage users {adminLabel}</label>
+        <label style={{ margin: '0 2rem 0 0.25rem' }}>Can manage users ({adminLabel})</label>
       </LabeledCheckbox>
       {submitting && <SpinnerOverlay />}
     </Modal>
