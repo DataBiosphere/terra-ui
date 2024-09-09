@@ -15,9 +15,11 @@ import { useCancellation } from 'src/libs/react-utils';
  * Get a workspace data table provider.
  *
  * @param workspaceId - Workspace id
- * @param url - Url to WDS
- * @param wdsCapabilities capabilities dictionary for wds
- * @returns WdsDataTableProvider
+ * @returns WdsDataTableProvider - Workspace data table provider
+ * @returns LoadedState<ListAppItem, string> - WDS app state
+ * @returns LoadedState<RecordTypeSchema[], string> - WDS types state
+ * @returns Dispatch<SetStateAction<LoadedState<RecordTypeSchema[], string>>> - WDS types setter
+ *  @returns () => Promise<void> - Function to load WDS data
  */
 export const useDataTableProvider = (
   workspaceId: string
