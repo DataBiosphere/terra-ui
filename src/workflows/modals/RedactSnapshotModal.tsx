@@ -15,24 +15,19 @@ const RedactSnapshotModal = (props: RedactSnapshotModalProps): ReactNode => {
 
   return (
     <DeleteConfirmationModal
-      objectType='workflow snapshot'
+      objectType='snapshot'
       objectName={`${namespace}/${name}/${snapshotId}`}
-      title='Redact snapshot'
-      buttonText='Redact'
       onConfirm={onConfirm}
       onDismiss={onDismiss}
     >
       <p>
-        Are you sure you want to redact snapshot <b>{snapshotId}</b> of workflow{' '}
+        Are you sure you want to delete snapshot <b>{snapshotId}</b> of the workflow{' '}
         <b>
           {namespace}/{name}
         </b>
         ?
       </p>
-      <p>
-        Redacting this snapshot will remove it from the Method Repository. Configurations in workspaces will not be
-        affected.
-      </p>
+      <p>Workspaces into which this snapshot has been exported will not be affected.</p>
       <p>
         <strong>This cannot be undone.</strong>
       </p>
