@@ -1,6 +1,6 @@
 import { Select, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, PropsWithChildren, ReactNode } from 'react';
+import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner } from 'src/components/icons';
@@ -11,6 +11,8 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
+import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
 
 export interface WrapWorkflowOptions {
   breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
@@ -21,13 +23,13 @@ export interface WrapWorkflowOptions {
 interface WorkflowWrapperProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: string;
+  snapshotId: string | undefined;
 }
 
 interface WorkflowContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: string;
+  snapshotId: string | undefined;
   tabName: string | undefined;
 }
 
@@ -86,8 +88,10 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const cachedSnapshotsList: any = useStore(snapshotsListStore);
   const cachedSnapshot = useStore(snapshotStore);
   // @ts-ignore
-  const selectedSnapshot: number | undefined = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
+  const selectedSnapshot: number = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
+
+  const [deleting, setDeleting] = useState<boolean>(false);
 
   const snapshot =
     cachedSnapshot &&
@@ -138,8 +142,19 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
             onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
           }),
         ]),
+        h(SnapshotActionMenu, { onDelete: () => setDeleting(true) }),
       ]
     ),
+    deleting &&
+      h(DeleteSnapshotModal, {
+        namespace,
+        name,
+        snapshotId: `${selectedSnapshot}`,
+        onConfirm: () => {},
+        onDismiss: () => {
+          setDeleting(false);
+        },
+      }),
     snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
   ]);
 };
