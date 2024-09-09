@@ -23,8 +23,8 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
-import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
+import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
