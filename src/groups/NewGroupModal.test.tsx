@@ -67,6 +67,23 @@ describe('NewGroupModal', () => {
     );
   });
 
+  it.each<{ changedEmptyValue: string | null }>([{ changedEmptyValue: '' }, { changedEmptyValue: null }])(
+    'detects when the group name is empty but has been changed',
+    async ({ changedEmptyValue }) => {
+      // Arrange
+      const { getByText, getByLabelText } = render(
+        <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
+      );
+      // Act
+      const nameInput = getByLabelText('Enter a unique name *');
+      fireEvent.change(nameInput, { target: { value: 'Valid Name' } });
+      await waitFor(() => expect(nameInput).toHaveValue('Valid Name'));
+      fireEvent.change(nameInput, { target: { value: changedEmptyValue } });
+      // Assert
+      await waitFor(() => expect(getByText("Group name can't be blank")).toBeInTheDocument());
+    }
+  );
+
   it('does not allow a group name that already exists ', async () => {
     // Arrange
     const existingName = 'Existing name';

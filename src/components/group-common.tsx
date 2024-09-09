@@ -8,8 +8,7 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { BillingRole } from 'src/libs/ajax/Billing';
 import { GroupRole } from 'src/libs/ajax/Groups';
-import { memoWithName } from 'src/libs/react-utils';
-import * as Style from 'src/libs/style';
+import { cardList as cardListStyles } from 'src/libs/style';
 
 interface AdminNotifierCheckboxProps {
   checked: boolean;
@@ -88,7 +87,7 @@ export type UserRole = BillingRole | GroupRole;
 
 export interface User {
   email: string;
-  roles: UserRole[]; // In practice will be BillingRole or GroupRole
+  roles: UserRole[];
 }
 
 interface MemberCardProps {
@@ -101,7 +100,7 @@ interface MemberCardProps {
   isOwner: boolean;
 }
 
-export const MemberCard: React.FC<MemberCardProps> = memoWithName('MemberCard', (props: MemberCardProps) => {
+export const MemberCard = (props: MemberCardProps): ReactNode => {
   const {
     member: { email, roles },
     adminCanEdit,
@@ -115,7 +114,7 @@ export const MemberCard: React.FC<MemberCardProps> = memoWithName('MemberCard', 
   const tooltip = !canEdit && `This user is the only ${adminLabel}`;
 
   return (
-    <div role='row' style={Style.cardList.longCardShadowless}>
+    <div role='row' style={cardListStyles.longCardShadowless}>
       <div
         role='rowheader'
         style={{ flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' }}
@@ -142,4 +141,4 @@ export const MemberCard: React.FC<MemberCardProps> = memoWithName('MemberCard', 
       )}
     </div>
   );
-});
+};

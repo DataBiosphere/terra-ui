@@ -28,15 +28,14 @@ interface NewGroupModalProps {
 }
 
 export const NewGroupModal = (props: NewGroupModalProps): ReactNode => {
-  const [groupName, setGroupName] = useState('');
-  const [groupNameTouched, setGroupNameTouched] = useState(false);
+  const [groupName, setGroupName] = useState<string>();
   const [allowAccessRequests, setAllowAccessRequests] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async () => {
     setSubmitting(true);
     try {
-      const groupAjax = Ajax().Groups.group(groupName);
+      const groupAjax = Ajax().Groups.group(groupName ?? '');
       await groupAjax.create();
       await groupAjax.setPolicy('admin-notifier', allowAccessRequests);
       props.onSuccess();
@@ -67,15 +66,14 @@ export const NewGroupModal = (props: NewGroupModalProps): ReactNode => {
         inputProps={{
           id: nameInputId,
           autoFocus: true,
-          value: groupName,
+          value: groupName ?? '',
           onChange: (v) => {
             setGroupName(v);
-            setGroupNameTouched(true);
           },
         }}
-        error={groupNameTouched && summarizeErrors(errors?.groupName)}
+        error={groupName !== undefined && summarizeErrors(errors?.groupName)}
       />
-      {!(groupNameTouched && errors) && formHint('Only letters, numbers, underscores, and dashes allowed')}
+      {!(groupName !== undefined && errors) && formHint('Only letters, numbers, underscores, and dashes allowed')}
       <AdminNotifierCheckbox checked={allowAccessRequests} onChange={setAllowAccessRequests} />
       {submitting && <SpinnerOverlay />}
     </Modal>

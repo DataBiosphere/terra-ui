@@ -45,22 +45,26 @@ export const GroupMenu = (props: GroupMenuProps): ReactNode => {
   );
 };
 
-const GroupMenuContent = ({ isAdmin, onLeave, onDelete }) => {
-  return (
-    <>
-      <MenuButton onClick={onLeave}>
-        {makeMenuIcon('arrowRight')}
-        Leave
-      </MenuButton>
-      <MenuButton
-        disabled={!isAdmin}
-        tooltip={!isAdmin && 'You must be an admin of this group'}
-        tooltipSide='left'
-        onClick={onDelete}
-      >
-        {makeMenuIcon('trash')}
-        Delete
-      </MenuButton>
-    </>
-  );
-};
+interface GroupMenuContentProps {
+  isAdmin: boolean;
+  onLeave: () => void;
+  onDelete: () => void;
+}
+
+const GroupMenuContent = (props: GroupMenuContentProps): ReactNode => (
+  <>
+    <MenuButton onClick={props.onLeave}>
+      {makeMenuIcon('arrowRight')}
+      Leave
+    </MenuButton>
+    <MenuButton
+      disabled={!props.isAdmin}
+      tooltip={!props.isAdmin && 'You must be an admin of this group'}
+      tooltipSide='left'
+      onClick={props.onDelete}
+    >
+      {makeMenuIcon('trash')}
+      Delete
+    </MenuButton>
+  </>
+);
