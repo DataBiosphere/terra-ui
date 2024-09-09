@@ -1,5 +1,4 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
-import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import { Dispatch, SetStateAction, useCallback, useMemo, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
 import {
@@ -9,6 +8,7 @@ import {
 } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { appStatuses, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { Capabilities } from 'src/libs/ajax/WorkspaceDataService';
+import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 
 /**
@@ -28,7 +28,6 @@ export const useDataTableProvider = (
   Dispatch<SetStateAction<LoadedState<RecordTypeSchema[], string>>>,
   () => Promise<void>
 ] => {
-  const { reportError } = useNotificationsFromContext();
   const [wdsApp, setWdsApp] = useState<LoadedState<ListAppItem, string>>({ status: 'None' });
   const [wdsTypes, setWdsTypes] = useState<LoadedState<RecordTypeSchema[], string>>({ status: 'None' });
   const [wdsCapabilities, setWdsCapabilities] = useState<LoadedState<Capabilities, string>>({ status: 'None' });
@@ -74,7 +73,7 @@ export const useDataTableProvider = (
           reportError('Error resolving WDS app', error);
         });
     },
-    [reportError, setWdsApp]
+    [setWdsApp]
   );
 
   const loadWdsTypes = useCallback(
@@ -90,7 +89,7 @@ export const useDataTableProvider = (
           reportError('Error loading WDS schema', error);
         });
     },
-    [signal, reportError, setWdsTypes]
+    [signal, setWdsTypes]
   );
 
   const loadWdsCapabilities = useCallback(
@@ -103,7 +102,7 @@ export const useDataTableProvider = (
         reportError('Error loading WDS capabilities', error);
       }
     },
-    [signal, reportError, setWdsCapabilities]
+    [signal, setWdsCapabilities]
   );
 
   const loadWdsData = useCallback(async () => {
