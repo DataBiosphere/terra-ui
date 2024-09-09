@@ -4,7 +4,6 @@ import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } f
 import { authOpts } from 'src/auth/auth-session';
 import { Ajax } from 'src/libs/ajax';
 import { fetchWDS } from 'src/libs/ajax/ajax-common';
-import { Ajax } from 'src/libs/ajax';
 import {
   RecordTypeSchema,
   resolveWdsApp,
@@ -154,7 +153,6 @@ export const useDataTableProvider = (
       checkCWDS();
     }
   }, [signal, workspaceId, useCwds, wdsTypes, cwdsURL]);
-
 
   return [wdsDataTableProvider, wdsApp, wdsTypes, setWdsTypes, loadWdsData];
 };
