@@ -342,8 +342,7 @@ const DataTableActions = ({
             },
             [input({ type: 'hidden', name: 'FCtoken', value: getTerraUser().token }), input({ type: 'hidden', name: 'model', value: 'flexible' })]
           ),
-          dataProvider &&
-            (dataProvider.features.supportsTsvDownload || dataProvider.features.supportsTsvAjaxDownload) &&
+          (dataProvider?.features.supportsTsvDownload || dataProvider?.features.supportsTsvAjaxDownload) &&
             h(
               MenuButton,
               {
@@ -371,8 +370,7 @@ const DataTableActions = ({
               },
               'Download TSV'
             ),
-          dataProvider &&
-            dataProvider.features.supportsExport &&
+          dataProvider?.features.supportsExport &&
             h(
               MenuButton,
               {
@@ -389,8 +387,7 @@ const DataTableActions = ({
               },
               'Export to workspace'
             ),
-          dataProvider &&
-            dataProvider.features.supportsTypeRenaming &&
+          dataProvider?.features.supportsTypeRenaming &&
             h(
               MenuButton,
               {
@@ -401,8 +398,7 @@ const DataTableActions = ({
               },
               'Rename table'
             ),
-          dataProvider &&
-            dataProvider.features.supportsTypeDeletion &&
+          dataProvider?.features.supportsTypeDeletion &&
             h(
               MenuButton,
               {
