@@ -43,7 +43,7 @@ type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
 jest.mock('src/libs/ajax/ajax-common', (): AjaxCommonExports => {
   return {
     ...jest.requireActual<AjaxCommonExports>('src/libs/ajax/ajax-common'),
-    fetchWDS: jest.fn().mockImplementation((url) => {
+    fetchWDS: jest.fn().mockImplementation(() => {
       return jest.fn().mockResolvedValue({
         json: jest.fn().mockResolvedValue({}),
       });
