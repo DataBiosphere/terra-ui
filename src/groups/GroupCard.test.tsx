@@ -1,12 +1,18 @@
 import { fireEvent, waitFor } from '@testing-library/react';
+import { writeText } from 'clipboard-polyfill/text';
 import React from 'react';
 import { GroupCard } from 'src/groups/GroupCard';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
-import { renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/nav', (): typeof import('src/libs/nav') => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn((link) => link),
+}));
+
+jest.mock('clipboard-polyfill/text', () => ({
+  ...jest.requireActual('clipboard-polyfill/text'),
+  writeText: jest.fn().mockResolvedValue(true),
 }));
 
 describe('GroupCard', () => {
@@ -83,5 +89,18 @@ describe('GroupCard', () => {
     // Assert
     const deleteButton = getByText('Delete', { exact: false });
     expect(deleteButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('can copy the group name to the clipboard', async () => {
+    // Arrange
+    const { getByLabelText } = render(<GroupCard group={testGroup1} onDelete={jest.fn()} onLeave={jest.fn()} />);
+
+    // Act
+    const copyButton = getByLabelText('Copy group email to clipboard');
+    fireEvent.click(copyButton);
+
+    // Assert
+    const mockWriteText = asMockedFn(writeText);
+    await waitFor(() => expect(mockWriteText).toHaveBeenCalledWith(testGroup1.groupEmail));
   });
 });

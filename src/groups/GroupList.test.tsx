@@ -163,4 +163,24 @@ describe('GroupList', () => {
     // waiting for the modal to appear
     waitFor(() => expect(queryByText('Leave group')).toBeDefined());
   });
+
+  it('opens the modal to create a new group', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Groups: {
+            list: jest.fn().mockResolvedValue([]),
+          },
+        } as DeepPartial<AjaxContract> as AjaxContract)
+    );
+    const { getByText } = render(<GroupList />);
+
+    // Act
+    const createNewGroupButton = getByText('Create a New Group');
+    fireEvent.click(createNewGroupButton);
+
+    // Assert
+    waitFor(() => expect(getByText('Create New Group')).toBeDefined());
+  });
 });
