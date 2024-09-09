@@ -139,19 +139,18 @@ export const GroupDetails = (props: GroupDetailsProps) => {
             <MemberCardHeaders sort={sort} onSort={setSort} />
             <div style={{ flexGrow: 1, marginTop: '1rem' }}>
               {_.map(
-                (member: User) => {
-                  return (
-                    <MemberCard
-                      adminLabel='admin'
-                      userLabel='member'
-                      member={member}
-                      adminCanEdit={!!details.state?.adminCanEdit}
-                      onEdit={() => setEditingUser(member)}
-                      onDelete={() => setDeletingUser(member)}
-                      isOwner
-                    />
-                  );
-                },
+                (member: User) => (
+                  <MemberCard
+                    key={member.email}
+                    adminLabel='admin'
+                    userLabel='member'
+                    member={member}
+                    adminCanEdit={!!details.state?.adminCanEdit}
+                    onEdit={() => setEditingUser(member)}
+                    onDelete={() => setDeletingUser(member)}
+                    isOwner
+                  />
+                ),
                 _.orderBy(
                   [sort.field],
                   [sort.direction],
