@@ -1,6 +1,6 @@
 import { Icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { MenuButton } from 'src/components/MenuButton';
@@ -66,28 +66,22 @@ interface MemberCardHeadersProps {
   onSort: (v: Sort) => void;
 }
 
-export const MemberCardHeaders: React.FC<MemberCardHeadersProps> = memoWithName(
-  'MemberCardHeaders',
-  (props: MemberCardHeadersProps) => (
-    <div
-      role='row'
-      style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' }}
-    >
-      <div role='columnheader' aria-sort={ariaSort(props.sort, 'email')} style={{ flex: 1 }}>
-        <HeaderRenderer sort={props.sort} onSort={props.onSort} name='email' />
-      </div>
-      <div role='columnheader' aria-sort={ariaSort(props.sort, 'roles')} style={{ flex: 1 }}>
-        <HeaderRenderer sort={props.sort} onSort={props.onSort} name='roles' />
-      </div>
-      <div
-        role='columnheader'
-        // Width is the same as the menu icon.
-        style={{ width: menuCardSize }}
-      >
-        <div className='sr-only'>Actions</div>
-      </div>
+export const MemberCardHeaders = (props: MemberCardHeadersProps): ReactNode => (
+  <div role='row' style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' }}>
+    <div role='columnheader' aria-sort={ariaSort(props.sort, 'email')} style={{ flex: 1 }}>
+      <HeaderRenderer sort={props.sort} onSort={props.onSort} name='email' />
     </div>
-  )
+    <div role='columnheader' aria-sort={ariaSort(props.sort, 'roles')} style={{ flex: 1 }}>
+      <HeaderRenderer sort={props.sort} onSort={props.onSort} name='roles' />
+    </div>
+    <div
+      role='columnheader'
+      // Width is the same as the menu icon.
+      style={{ width: menuCardSize }}
+    >
+      <div className='sr-only'>Actions</div>
+    </div>
+  </div>
 );
 
 export type UserRole = BillingRole | GroupRole;

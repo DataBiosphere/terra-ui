@@ -1,4 +1,4 @@
-import { SpinnerOverlay } from '@terra-ui-packages/components';
+import { SpinnerOverlay, useAutoLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useEffect, useState } from 'react';
 import { DeleteUserModal } from 'src/components/DeleteUserModal';
@@ -18,51 +18,35 @@ import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
-import { withErrorReporting } from 'src/libs/error';
+import { reportError } from 'src/libs/error';
 import { getLink } from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
 import * as Style from 'src/libs/style';
-import { textMatch, withBusyState } from 'src/libs/utils';
+import { textMatch } from 'src/libs/utils';
 
 interface GroupDetailsProps {
   groupName: string;
 }
 
+interface GroupDetailsData {
+  members: User[];
+  allowAccessRequests: boolean;
+  adminCanEdit: boolean;
+}
+
 export const GroupDetails = (props: GroupDetailsProps) => {
   const { groupName } = props;
-  // State
-  const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
-  const [members, setMembers] = useState(() => StateHistory.get().members || undefined);
-  const [creatingNewUser, setCreatingNewUser] = useState<boolean>(false);
-  const [editingUser, setEditingUser] = useState<User>();
-  const [deletingUser, setDeletingUser] = useState<User>();
-  const [updating, setUpdating] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [adminCanEdit, setAdminCanEdit] = useState<boolean>(false);
-  const [allowAccessRequests, setAllowAccessRequests] = useState<boolean>(false);
-  const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
-
   const signal = useCancellation();
 
-  // Helpers
-  const refresh = _.flow(
-    withErrorReporting('Error loading group list'),
-    withBusyState(setLoading)
-  )(async () => {
-    setCreatingNewUser(false);
-    setEditingUser(undefined);
-    setDeletingUser(undefined);
-    setUpdating(false);
-
+  const loadDetails = async (): Promise<GroupDetailsData> => {
     const groupAjax = Ajax(signal).Groups.group(groupName);
     const [membersEmails, adminsEmails, allowAccessRequests] = await Promise.all([
       groupAjax.listMembers(),
       groupAjax.listAdmins(),
       groupAjax.getPolicy('admin-notifier'),
     ]);
-
-    const rolesByMember = _.mergeAllWith(
+    const rolesByMember: [string, GroupRole[]] = _.mergeAllWith(
       (a, b) => {
         if (_.isArray(a)) return a.concat(b);
       },
@@ -71,24 +55,61 @@ export const GroupDetails = (props: GroupDetailsProps) => {
         _.fromPairs(_.map((email) => [email, ['member']], membersEmails)),
       ]
     );
-    const members = _.flow(
+    const members: User[] = _.flow(
       _.toPairs,
       _.map(([email, roles]) => ({ email, roles })),
       _.sortBy((member) => member.email.toUpperCase())
     )(rolesByMember);
-    setMembers(members);
-    setAdminCanEdit(adminsEmails.length > 1);
-    setAllowAccessRequests(allowAccessRequests);
+    return {
+      allowAccessRequests,
+      members,
+      adminCanEdit: adminsEmails.length > 1,
+    };
+  };
+
+  // State
+  const [filter, setFilter] = useState(() => StateHistory.get().filter || '');
+  const [details, updateDetails] = useAutoLoadedData<GroupDetailsData>(loadDetails, [signal], {
+    onError: (state) => reportError('Error loading group details', state.error),
   });
+  const [creatingNewUser, setCreatingNewUser] = useState<boolean>(false);
+  const [editingUser, setEditingUser] = useState<User>();
+  const [deletingUser, setDeletingUser] = useState<User>();
+  const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
 
-  // Lifecycle
-  useEffect(() => {
-    refresh();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const updateAllowAccessRequests = (allowAccessRequests: boolean) =>
+    updateDetails(async () => {
+      try {
+        await Ajax().Groups.group(groupName).setPolicy('admin-notifier', allowAccessRequests);
+      } catch (e) {
+        reportError('Error changing access request permission', e);
+      }
+      const updatedDetails = await loadDetails();
+      return updatedDetails;
+    });
+
+  const deleteUser = (deletingUser: User) =>
+    updateDetails(async () => {
+      setDeletingUser(undefined);
+      try {
+        await Ajax().Groups.group(groupName).removeUser(getGroupRoles(deletingUser), deletingUser.email);
+      } catch (e) {
+        reportError('Error removing member from group', e);
+      }
+      const updatedDetails = await loadDetails();
+      return updatedDetails;
+    });
+
+  const refresh = async () => {
+    setCreatingNewUser(false);
+    setEditingUser(undefined);
+    setDeletingUser(undefined);
+    updateDetails(loadDetails);
+  };
 
   useEffect(() => {
-    StateHistory.update({ filter, members });
-  }, [filter, members]);
+    StateHistory.update({ filter });
+  }, [filter]);
 
   // Render
   return (
@@ -109,14 +130,8 @@ export const GroupDetails = (props: GroupDetailsProps) => {
           </h2>
         </div>
         <AdminNotifierCheckbox
-          checked={allowAccessRequests}
-          onChange={_.flow(
-            withErrorReporting('Error changing access request permission'),
-            withBusyState(setUpdating)
-          )(async () => {
-            await Ajax().Groups.group(groupName).setPolicy('admin-notifier', !allowAccessRequests);
-            return refresh();
-          })}
+          checked={!!details.state?.allowAccessRequests}
+          onChange={details.state ? updateAllowAccessRequests : () => {}}
         />
         <div style={{ marginTop: '1rem' }}>
           <NewUserCard onClick={() => setCreatingNewUser(true)} />
@@ -130,7 +145,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
                       adminLabel='admin'
                       userLabel='member'
                       member={member}
-                      adminCanEdit={adminCanEdit}
+                      adminCanEdit={!!details.state?.adminCanEdit}
                       onEdit={() => setEditingUser(member)}
                       onDelete={() => setDeletingUser(member)}
                       isOwner
@@ -140,12 +155,11 @@ export const GroupDetails = (props: GroupDetailsProps) => {
                 _.orderBy(
                   [sort.field],
                   [sort.direction],
-                  _.filter(({ email }) => textMatch(filter, email), members)
+                  _.filter(({ email }) => textMatch(filter, email), details.state?.members ?? [])
                 )
               )}
             </div>
           </div>
-          {loading && <SpinnerOverlay />}
         </div>
         {creatingNewUser && (
           <NewUserModal
@@ -182,17 +196,10 @@ export const GroupDetails = (props: GroupDetailsProps) => {
           <DeleteUserModal
             userEmail={deletingUser.email}
             onDismiss={() => setDeletingUser(undefined)}
-            onSubmit={_.flow(
-              withErrorReporting('Error removing member from group'),
-              withBusyState(setUpdating)
-            )(async () => {
-              setDeletingUser(undefined);
-              await Ajax().Groups.group(groupName).removeUser(getGroupRoles(deletingUser), deletingUser.email);
-              refresh();
-            })}
+            onSubmit={() => deleteUser(deletingUser)}
           />
         )}
-        {updating && <SpinnerOverlay />}
+        {details.status === 'Loading' && <SpinnerOverlay />}
       </PageBox>
     </FooterWrapper>
   );
@@ -204,12 +211,3 @@ const groupRoleGuard = (value: string): value is GroupRole => {
 const getGroupRoles = (user: User): GroupRole[] => {
   return user.roles.filter(groupRoleGuard);
 };
-
-export const navPaths = [
-  {
-    name: 'group',
-    path: '/groups/:groupName',
-    component: GroupDetails,
-    title: ({ groupName }) => `Group Management - ${groupName}`,
-  },
-];
