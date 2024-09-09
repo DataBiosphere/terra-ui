@@ -3,6 +3,7 @@ import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
+import { getConfig } from 'src/libs/config';
 import { reportError } from 'src/libs/error';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleBucketOptions } from 'src/testing/workspace-fixtures';
@@ -32,6 +33,26 @@ jest.mock('src/libs/error', () => ({
   reportError: jest.fn(),
 }));
 
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({}),
+}));
+
+type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
+
+jest.mock('src/libs/ajax/ajax-common', (): AjaxCommonExports => {
+  return {
+    ...jest.requireActual<AjaxCommonExports>('src/libs/ajax/ajax-common'),
+    fetchWDS: jest.fn().mockImplementation((url) => {
+      return jest.fn().mockResolvedValue({
+        json: jest.fn().mockResolvedValue({}),
+      });
+    }),
+  };
+});
+
+const cwdsUrlRoot = 'https://cwds.test.url';
+
 // When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
 // this type belongs there.
 interface WorkspaceDataProps {
@@ -42,6 +63,10 @@ interface WorkspaceDataProps {
   storageDetails: StorageDetails;
 }
 type AjaxContract = ReturnType<typeof Ajax>;
+
+beforeEach(() => {
+  asMockedFn(getConfig).mockReturnValue({ cwdsUrlRoot });
+});
 
 beforeAll(() => {
   jest.useFakeTimers();
