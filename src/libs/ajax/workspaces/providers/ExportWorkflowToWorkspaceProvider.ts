@@ -55,9 +55,9 @@ export const makeExportWorkflowFromMethodsRepoProvider = (
     export: async (destWorkspace: WorkspaceInfo, destWorkflowName: string, options: AbortOption = {}) => {
       const { signal } = options;
 
-      // TODO: make sure it is okay not to provide root entity type
+      // Remove placeholder root entity type from template before importing -
+      // the user can select their own on the workflow configuration page
       const { rootEntityType, ...template } = await Ajax(signal).Methods.template(sourceMethod);
-      // const template = await Ajax(signal).Methods.template(sourceMethod);
 
       return Ajax(signal)
         .Workspaces.workspace(destWorkspace.namespace, destWorkspace.name)
