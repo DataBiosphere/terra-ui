@@ -5,6 +5,7 @@ export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
 export const FIRECLOUD_UI_MIGRATION = 'firecloudUiMigration';
 export const AXIN_DATASET_CARD = 'axinDatasetCard';
+export const GCP_BUCKET_LIFECYCLE_RULES = 'gcpBucketLifecycleRules';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -115,6 +116,15 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description: 'Enabling this feature will show the card for AnalytiXIN in the Datasets tab in the Library.',
     feedbackUrl: `mailto:dsp-data-exploration@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Axin Dataset Card'
+    )}`,
+  },
+  {
+    id: GCP_BUCKET_LIFECYCLE_RULES,
+    title: 'GCP Workspace Bucket Lifecycle Rules',
+    description:
+      'Enabling this feature will allow GCP bucket lifecycle rules to be set via the Workspace Settings dialog.',
+    feedbackUrl: `mailto:dsp-workspaces@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on GCP Bucket Lifecycle Rules'
     )}`,
   },
 ];

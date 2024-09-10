@@ -4,12 +4,18 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
+import { Ajax } from 'src/libs/ajax';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
 import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
 import { tooltipText, WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
+
+type AjaxContract = ReturnType<typeof Ajax>;
+
+jest.mock('src/libs/ajax');
 
 type UseWorkspaceDetailsExports = typeof import('src/workspaces/common/state/useWorkspaceDetails');
 jest.mock('src/workspaces/common/state/useWorkspaceDetails', (): UseWorkspaceDetailsExports => {
@@ -38,8 +44,43 @@ const workspaceMenuProps = {
     onLock: () => {},
     onDelete: () => {},
     onLeave: () => {},
+    onShowSettings: () => {},
   },
   workspaceInfo: { name: 'example1', namespace: 'example-billing-project' },
+};
+
+const descriptionText =
+  'This description is longer then two hundred and fifty five characters, to ensure we can test that all two hundred and fifty five characters actually get copied over during a cloning event. If they are not copied over then it is indeed a bug that needs to fail the test. (280chars)';
+const googleWorkspace: GoogleWorkspace = {
+  // @ts-expect-error - Limit return values based on what is requested
+  workspace: {
+    cloudPlatform: 'Gcp',
+    googleProject: 'googleProjectName',
+    bucketName: 'fc-bucketname',
+    isLocked: false,
+    state: 'Ready',
+    attributes: {
+      description: descriptionText,
+    },
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  policies: [],
+};
+
+const azureWorkspace: AzureWorkspace = {
+  // @ts-expect-error - Limit return values based on what is requested
+  workspace: {
+    cloudPlatform: 'Azure',
+    isLocked: false,
+    state: 'Ready',
+    attributes: {
+      description: descriptionText,
+    },
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  policies: [protectedDataPolicy],
 };
 
 beforeEach(() => {
@@ -61,7 +102,7 @@ describe('WorkspaceMenu - undefined workspace', () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it.each(['Clone', 'Share', 'Lock', 'Leave', 'Delete'])('renders menu item %s as disabled', (menuText) => {
+  it.each(['Clone', 'Share', 'Lock', 'Leave', 'Delete', 'Settings'])('renders menu item %s as disabled', (menuText) => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
     const menuItem = screen.getByText(menuText);
@@ -74,6 +115,7 @@ describe('WorkspaceMenu - undefined workspace', () => {
     { menuText: 'Delete', tooltipText: tooltipText.deleteLocked },
     { menuText: 'Delete', tooltipText: tooltipText.deleteNoPermission },
     { menuText: 'Lock', tooltipText: tooltipText.lockNoPermission },
+    { menuText: 'Settings', tooltipText: tooltipText.azureWorkspaceNoSettings },
   ])('does not render tooltip text "$tooltipText" for menu item $menuText', ({ menuText, tooltipText }) => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -172,6 +214,9 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
     const deleteItem = screen.getByText('Delete');
     expect(deleteItem).toHaveAttribute('disabled');
+
+    const settingsItem = screen.getByText('Settings');
+    expect(settingsItem).toHaveAttribute('disabled');
   });
 
   it('disables all items except Share and Delete for a workspace in state DeleteFailed', () => {
@@ -205,6 +250,9 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 
     const leave = screen.getByText('Leave');
     expect(leave).toHaveAttribute('disabled');
+
+    const settingsItem = screen.getByText('Settings');
+    expect(settingsItem).toHaveAttribute('disabled');
   });
 
   it.each([true, false])('renders Share tooltip based on canShare: %s', (canShare) => {
@@ -350,43 +398,89 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
       }
     }
   );
+
+  it.each([
+    { menuText: 'Share' },
+    { menuText: 'Delete' },
+    { menuText: 'Delete' },
+    { menuText: 'Lock' },
+    { menuText: 'Settings' },
+  ])('events when the menu item $menuText is clicked', async ({ menuText }) => {
+    // Arrange
+    const user = userEvent.setup();
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      workspace: {
+        ...defaultGoogleWorkspace,
+        accessLevel: 'OWNER' as WorkspaceAccessLevel,
+        workspace: {
+          ...defaultGoogleWorkspace.workspace,
+          isLocked: false,
+        },
+      },
+      refresh: jest.fn(),
+      loading: false,
+    });
+    const captureEvent = jest.fn();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+    const menuItem = screen.getByText(menuText);
+    await user.click(menuItem);
+
+    // Assert
+    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceMenu, {
+      action: menuText,
+      origin: 'list',
+      ...extractWorkspaceDetails({
+        namespace: workspaceMenuProps.workspaceInfo.namespace,
+        name: workspaceMenuProps.workspaceInfo.name,
+        cloudPlatform: 'Gcp',
+      }),
+    });
+  });
+});
+
+describe('Settings menu item (GCP or Azure workspace)', () => {
+  it('Shows an enabled settings menu item for GCP workspaces', () => {
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      workspace: googleWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const menuItem = screen.getByText('Settings');
+    expect(menuItem).not.toHaveAttribute('disabled');
+  });
+
+  it('shows a disabled settings menu item with a tooltip for Azure workspaces', () => {
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
+      workspace: azureWorkspace,
+      refresh: jest.fn(),
+      loading: false,
+    });
+
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps));
+
+    // Assert
+    const menuItem = screen.getByText('Settings');
+    expect(menuItem).toHaveAttribute('disabled');
+    // Verify tooltip text
+    screen.getByText(tooltipText.azureWorkspaceNoSettings);
+  });
 });
 
 describe('DynamicWorkspaceMenuContent fetches specific workspace details', () => {
-  const descriptionText =
-    'This description is longer then two hundred and fifty five characters, to ensure we can test that all two hundred and fifty five characters actually get copied over during a cloning event. If they are not copied over then it is indeed a bug that needs to fail the test. (280chars)';
-  const googleWorkspace: GoogleWorkspace = {
-    // @ts-expect-error - Limit return values based on what is requested
-    workspace: {
-      cloudPlatform: 'Gcp',
-      googleProject: 'googleProjectName',
-      bucketName: 'fc-bucketname',
-      isLocked: false,
-      state: 'Ready',
-      attributes: {
-        description: descriptionText,
-      },
-    },
-    accessLevel: 'OWNER',
-    canShare: true,
-    policies: [],
-  };
-
-  const azureWorkspace: AzureWorkspace = {
-    // @ts-expect-error - Limit return values based on what is requested
-    workspace: {
-      cloudPlatform: 'Azure',
-      isLocked: false,
-      state: 'Ready',
-      attributes: {
-        description: descriptionText,
-      },
-    },
-    accessLevel: 'OWNER',
-    canShare: true,
-    policies: [protectedDataPolicy],
-  };
-
   const onClone = jest.fn((_policies, _bucketName, _description, _googleProject) => {});
   const onShare = jest.fn((_policies, _bucketName) => {});
   const namespace = 'test-namespace';
@@ -395,7 +489,14 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
   const workspaceMenuProps = {
     iconSize: 20,
     popupLocation: 'left',
-    callbacks: { onClone, onShare, onLock: jest.fn(), onDelete: jest.fn(), onLeave: jest.fn() },
+    callbacks: {
+      onClone,
+      onShare,
+      onLock: jest.fn(),
+      onDelete: jest.fn(),
+      onLeave: jest.fn(),
+      onShowSettings: jest.fn(),
+    },
     workspaceInfo: { namespace, name },
   };
 
@@ -435,6 +536,13 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       refresh: jest.fn(),
       loading: false,
     });
+    const captureEvent = jest.fn();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -443,6 +551,11 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
     expect(onClone).toBeCalledWith([], 'fc-bucketname', descriptionText, 'googleProjectName');
+    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceMenu, {
+      action: 'Clone',
+      origin: 'list',
+      ...extractWorkspaceDetails({ namespace, name, cloudPlatform: 'Gcp' }),
+    });
   });
 
   it('passes onClone the policies and description for an Azure workspace', async () => {
@@ -453,6 +566,13 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       refresh: jest.fn(),
       loading: false,
     });
+    const captureEvent = jest.fn();
+    asMockedFn(Ajax).mockImplementation(
+      () =>
+        ({
+          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
+        } as Partial<AjaxContract> as AjaxContract)
+    );
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -461,6 +581,11 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     const menuItem = screen.getByText('Clone');
     await user.click(menuItem);
     expect(onClone).toBeCalledWith([protectedDataPolicy], undefined, descriptionText, undefined);
+    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceMenu, {
+      action: 'Clone',
+      origin: 'list',
+      ...extractWorkspaceDetails({ namespace, name, cloudPlatform: 'Azure' }),
+    });
   });
 
   it('passes onShare the bucketName for a Google workspace', async () => {

@@ -25,6 +25,7 @@ import {
   faClock as faClockSolid,
   faCloud,
   faCog,
+  faCompressArrowsAlt,
   faCreditCard,
   faDownload,
   faEllipsisV,
@@ -94,6 +95,7 @@ import { ReactComponent as syncAlt } from './icons/sync-alt-regular.svg';
 import { ReactComponent as talkBubble } from './icons/talk-bubble.svg';
 import { ReactComponent as times } from './icons/times-light.svg';
 import { ReactComponent as trashCircleFilled } from './icons/trash-circle-filled.svg';
+import { ReactComponent as users } from './icons/users.svg';
 import { ReactComponent as warningInfo } from './icons/warning-info.svg';
 import { ReactComponent as wdl } from './icons/wdl.svg';
 
@@ -136,6 +138,7 @@ const iconLibrary = {
   cloudBolt: custom(faCloudBolt),
   cog: fa(faCog),
   columnGrabber: custom(columnGrabber),
+  'compress-arrows-alt': fa(faCompressArrowsAlt),
   copy: fa(faClone),
   copySolid: custom(copySolid),
   'copy-to-clipboard': fa(faClipboard),
@@ -202,6 +205,7 @@ const iconLibrary = {
   'trash-circle-filled': custom(trashCircleFilled),
   unlock: fa(faUnlock),
   'upload-cloud': custom(cloudUpload),
+  users: custom(users),
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
   virus: fa(faVirus),

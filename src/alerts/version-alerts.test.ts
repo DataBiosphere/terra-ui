@@ -1,14 +1,11 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn, withFakeTimers } from '@terra-ui-packages/test-utils';
 import { act, renderHook } from '@testing-library/react';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
 
 import { getBadVersions, useTimeUntilRequiredUpdate, useVersionAlerts, versionStore } from './version-alerts';
 
-type AjaxExports = typeof import('src/libs/ajax');
 jest.mock('src/libs/ajax');
-
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 describe('useVersionAlerts', () => {
   it('returns an empty list if current version and latest version match', () => {

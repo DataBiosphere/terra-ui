@@ -63,7 +63,7 @@ const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedCompute
 export type RuntimesHelperDeps = {
   v1Api: LeoRuntimesV1DataClient;
 };
-export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal: AbortSignal) => {
+export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal?: AbortSignal) => {
   const { v1Api } = deps;
   const v1Func = (project: string, name: string) => {
     const root = `api/google/v1/runtimes/${project}/${name}`;

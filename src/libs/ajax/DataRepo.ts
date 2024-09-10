@@ -181,6 +181,9 @@ export interface SnapshotAccessRequestResponse {
   snapshotSpecification: SnapshotAccessRequest;
   createdBy: string;
   status: JobStatus;
+}
+
+export interface SnapshotAccessRequestDetailsResponse {
   summary: string;
 }
 
@@ -206,6 +209,7 @@ export type SnapshotAccessRequest = {
 export interface DataRepoContract {
   snapshotAccessRequest: () => {
     createSnapshotAccessRequest: (request: SnapshotAccessRequest) => Promise<SnapshotAccessRequestResponse>;
+    getSnapshotAccessRequestDetails: (id: string) => Promise<SnapshotAccessRequestDetailsResponse>;
   };
   snapshot: (snapshotId: string) => {
     details: () => Promise<Snapshot>;
@@ -241,6 +245,8 @@ export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
     return {
       createSnapshotAccessRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>
         callDataRepoPost('repository/v1/snapshotAccessRequests', signal, request),
+      getSnapshotAccessRequestDetails: async (requestId: string): Promise<SnapshotAccessRequestDetailsResponse> =>
+        callDataRepo(`repository/v1/snapshotAccessRequests/${requestId}/details`, signal),
     };
   },
   snapshot: (snapshotId) => {

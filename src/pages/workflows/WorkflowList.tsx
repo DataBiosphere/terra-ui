@@ -8,7 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { DelayedSearchInput } from 'src/components/input';
 import { TabBar } from 'src/components/tabBars';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';

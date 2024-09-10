@@ -9,6 +9,7 @@ import RSelect, {
   SingleValue as RSelectSingleValue,
 } from 'react-select';
 import RAsyncCreatableSelect, { AsyncCreatableProps as RAsyncCreatableProps } from 'react-select/async-creatable';
+import RCreatableSelect from 'react-select/creatable';
 
 import { useUniqueId } from './hooks/useUniqueId';
 import { Icon } from './Icon';
@@ -272,4 +273,9 @@ export const AsyncCreatableSelect = <
       {...(_.merge(getCommonSelectProps(theme), props) as RAsyncCreatableProps<Option, IsMulti, Group>)}
     />
   );
+};
+
+export const CreatableSelect = (props: any) => {
+  const theme = useThemeFromContext();
+  return <RCreatableSelect {..._.merge(getCommonSelectProps(theme), props)} />;
 };

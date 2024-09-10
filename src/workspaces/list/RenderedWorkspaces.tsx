@@ -290,6 +290,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
   const onShare = (policies, bucketName) =>
     setUserActions({ sharingWorkspace: extendWorkspace(workspaceId, policies, bucketName) });
   const onLeave = () => setUserActions({ leavingWorkspaceId: workspaceId });
+  const onShowSettings = () => setUserActions({ showSettingsWorkspaceId: workspaceId });
 
   return (
     <div style={{ ...styles.tableCellContainer, paddingRight: 0 }}>
@@ -297,7 +298,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
         <WorkspaceMenu
           iconSize={20}
           popupLocation='left'
-          callbacks={{ onClone, onShare, onLock, onDelete, onLeave }}
+          callbacks={{ onClone, onShare, onLock, onDelete, onLeave, onShowSettings }}
           workspaceInfo={{ namespace, name }}
         />
       </div>

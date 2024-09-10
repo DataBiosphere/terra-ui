@@ -8,7 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { ValidatedInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { StringInput } from 'src/data-catalog/create-dataset/CreateDatasetInputs';
 import {
   addSelectableObjectToGroup,
@@ -23,6 +23,7 @@ import { RequestAccessModal } from 'src/dataset-builder/RequestAccessModal';
 import {
   DataRepo,
   DatasetBuilderType,
+  SnapshotAccessRequestDetailsResponse,
   SnapshotAccessRequestResponse,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDatasetConceptSet as ConceptSet,
@@ -410,6 +411,8 @@ export const DatasetBuilderContents = ({
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
   const [snapshotAccessRequest, setSnapshotAccessRequest] = useLoadedData<SnapshotAccessRequestResponse>();
+  const [snapshotAccessRequestDetails, setSnapshotAccessRequestDetails] =
+    useLoadedData<SnapshotAccessRequestDetailsResponse>();
   const [snapshotRequestNameTouched, setSnapshotRequestNameTouched] = useState(false);
 
   const allCohorts: Cohort[] = useMemo(() => _.flatMap('values', selectedCohorts), [selectedCohorts]);
@@ -425,6 +428,17 @@ export const DatasetBuilderContents = ({
         )
       );
   }, [snapshotId, selectedColumns, setSnapshotRequestParticipantCount, allCohorts, allConceptSets, requestValid]);
+
+  useEffect(() => {
+    if (snapshotAccessRequest.status === 'Ready') {
+      setSnapshotAccessRequestDetails(
+        withErrorReporting('Error creating dataset request')(
+          async () =>
+            await DataRepo().snapshotAccessRequest().getSnapshotAccessRequestDetails(snapshotAccessRequest.state.id)
+        )
+      );
+    }
+  }, [snapshotAccessRequest, setSnapshotAccessRequestDetails]);
 
   const getNewColumns = (includedColumns: string[]): string[] =>
     _.without(
@@ -543,9 +557,10 @@ export const DatasetBuilderContents = ({
           },
         }),
     ]),
-    snapshotAccessRequest.status === 'Loading'
+    snapshotAccessRequest.status === 'Loading' || snapshotAccessRequestDetails.status === 'Loading'
       ? spinnerOverlay
       : snapshotAccessRequest.status === 'Ready' &&
+        snapshotAccessRequestDetails.status === 'Ready' &&
         requestingAccess &&
         h(RequestAccessModal, {
           onDismiss: () => {
@@ -553,7 +568,7 @@ export const DatasetBuilderContents = ({
             Nav.goToPath('dataset-builder-details', { snapshotId });
           },
           requestId: snapshotAccessRequest.state.id,
-          summary: snapshotAccessRequest.state.summary,
+          summary: snapshotAccessRequestDetails.state.summary,
         }),
   ]);
 };
