@@ -134,7 +134,7 @@ export const useDataTableProvider = (
       try {
         const response = await fetchWDS(cwdsURL)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
         const data = await response.json();
-        if (Object.keys(data).length !== 0) {
+        if (response.status === 200 && Object.keys(data).length !== 0) {
           setWdsUrl({ status: 'Ready', state: cwdsURL });
           setUseCwds({ status: 'Ready', state: true });
           // setWdsApp({ status: 'Ready', state: undefined }); // No app needed for CWDS
