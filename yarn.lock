@@ -2997,7 +2997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@monaco-editor/react@npm:^4.6.0":
+"@monaco-editor/react@npm:4.6.0":
   version: 4.6.0
   resolution: "@monaco-editor/react@npm:4.6.0"
   dependencies:
@@ -12824,7 +12824,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-editor@npm:^0.51.0":
+"monaco-editor@npm:0.51.0":
   version: 0.51.0
   resolution: "monaco-editor@npm:0.51.0"
   checksum: 86cd6e5a756407bc9564ae4c408cdaecbf3410b5bf88e22783e22e79e1e1d048c1cba7c26249e6b234731ffc1aad3660c27213ce1f3f441b3e04cf01a75b1f8c
@@ -16431,7 +16431,7 @@ __metadata:
     "@dnd-kit/sortable": ^7.0.2
     "@dnd-kit/utilities": ^3.2.1
     "@microlink/react-json-view": ^1.22.2
-    "@monaco-editor/react": ^4.6.0
+    "@monaco-editor/react": 4.6.0
     "@pact-foundation/pact": 12.1.1
     "@storybook/addon-a11y": ^8.0.10
     "@storybook/addon-actions": ^8.0.0
@@ -16511,7 +16511,7 @@ __metadata:
     lint-staged: ^13.0.3
     lodash: ^4.17.21
     marked: ^4.0.10
-    monaco-editor: ^0.51.0
+    monaco-editor: 0.51.0
     oidc-client-ts: ^2.4.0
     outdated-browser-rework: ^3.0.1
     path-to-regexp: ^5.0.0
