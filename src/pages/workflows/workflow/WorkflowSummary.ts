@@ -3,7 +3,7 @@ import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { Link } from 'src/components/common';
+import { ButtonPrimary, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import { TooltipCell } from 'src/components/table';
@@ -13,6 +13,7 @@ import { forwardRefWithName, useStore } from 'src/libs/react-utils';
 import { snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { WorkflowRightBoxSection } from 'src/pages/workflows/components/WorkflowRightBoxSection';
+import { PermissionsModal } from 'src/pages/workflows/workflow/common/PermissionsModal';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
 
@@ -30,6 +31,7 @@ export const BaseWorkflowSummary = () => {
   } = useStore(snapshotStore);
   const persistenceId = `workflows/${namespace}/${name}/dashboard`;
   const [importUrlCopied, setImportUrlCopied] = useState<boolean>();
+  const [permissionsModalOpen, setPermissionsModalOpen] = useState<boolean>(false);
   const importUrl = `${
     getConfig().orchestrationUrlRoot
   }/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`;
@@ -42,6 +44,7 @@ export const BaseWorkflowSummary = () => {
           div({ style: { fontSize: 16 } }, [synopsis]),
         ]),
       h2({ style: Style.dashboard.header }, ['Documentation']),
+      h(ButtonPrimary, { onClick: () => setPermissionsModalOpen(true) }),
       documentation
         ? h(MarkdownViewer, { renderers: { link: newWindowLinkRenderer } }, [documentation])
         : div({ style: { fontStyle: 'italic' } }, ['No documentation provided']),
@@ -109,6 +112,7 @@ export const BaseWorkflowSummary = () => {
         ]
       ),
     ]),
+    permissionsModalOpen && h(PermissionsModal, { workflowOrNamespace: 'workflow', name: `${namespace}/${name}` }),
   ]);
 };
 
