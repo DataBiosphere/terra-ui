@@ -2,6 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchOrchestration, fetchSam } from 'src/libs/ajax/ajax-common';
+import { FullyQualifiedResourceId } from 'src/libs/ajax/SamResources';
 import { SamUserTermsOfServiceDetails } from 'src/libs/ajax/TermsOfService';
 import { TerraUserProfile } from 'src/libs/state';
 
@@ -22,8 +23,6 @@ export interface SamUserAllowances {
 }
 
 export type TerraUserPreferences = {
-  starredWorkspaces?: string;
-} & {
   // These are the key value pairs from the workspace notification settings in the form of:
   // 'notifications/SuccessfulSubmissionNotification/${workspace.workspace.namespace}/${workspace.workspace.name}' : true
   // TODO for a follow-up ticket:
@@ -171,6 +170,7 @@ export type SamUserCombinedStateResponse = {
   terraUserAttributes: SamUserAttributes;
   termsOfService: SamUserTermsOfServiceDetails;
   enterpriseFeatures: string[];
+  favoriteResources: FullyQualifiedResourceId[];
 };
 
 export type OrchestrationUserRegistrationRequest = object;
@@ -229,12 +229,15 @@ export const User = (signal?: AbortSignal) => {
         ? responseJson.additionalDetails.enterpriseFeatures.resources.map((resource) => resource.resourceId)
         : [];
 
+      const favoriteResources = responseJson.favoriteResources;
+
       return {
         samUser,
         terraUserAllowances,
         terraUserAttributes,
         termsOfService,
         enterpriseFeatures,
+        favoriteResources,
       };
     },
 
@@ -288,6 +291,35 @@ export const User = (signal?: AbortSignal) => {
 
       preferLegacyFirecloud: async (): Promise<OrchestrationUserPreferLegacyFireCloudResponse> => {
         return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
+      },
+    },
+
+    favorites: {
+      get: async (): Promise<FullyQualifiedResourceId[]> => {
+        const res = await fetchSam('api/users/v2/self/favoriteResources', _.merge(authOpts(), { signal }));
+        return res.json();
+      },
+
+      getResourceType: async (resourceTypeName: string): Promise<FullyQualifiedResourceId[]> => {
+        const res = await fetchSam(
+          `api/users/v2/self/favoriteResources/${resourceTypeName}`,
+          _.merge(authOpts(), { signal })
+        );
+        return res.json();
+      },
+
+      put: async (resource: FullyQualifiedResourceId): Promise<void> => {
+        await fetchSam(
+          `api/users/v2/self/favoriteResources/${resource.resourceTypeName}/${resource.resourceId}`,
+          _.merge(authOpts(), { signal, method: 'PUT' })
+        );
+      },
+
+      delete: async (resource: FullyQualifiedResourceId): Promise<void> => {
+        await fetchSam(
+          `api/users/v2/self/favoriteResources/${resource.resourceTypeName}/${resource.resourceId}`,
+          _.merge(authOpts(), { signal, method: 'DELETE' })
+        );
       },
     },
 

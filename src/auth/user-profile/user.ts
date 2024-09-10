@@ -18,7 +18,7 @@ export const loadTerraUser = async (): Promise<void> => {
     const getProfile = User().profile.get();
     const getCombinedState = User().getSamUserCombinedState();
     const [profile, terraUserCombinedState] = await Promise.all([getProfile, getCombinedState]);
-    const { terraUserAttributes, enterpriseFeatures, samUser, terraUserAllowances, termsOfService } =
+    const { terraUserAttributes, enterpriseFeatures, samUser, terraUserAllowances, termsOfService, favoriteResources } =
       terraUserCombinedState;
     clearNotification(sessionExpirationProps.id);
     userStore.update((state: TerraUserState) => ({
@@ -27,6 +27,7 @@ export const loadTerraUser = async (): Promise<void> => {
       terraUserAttributes,
       enterpriseFeatures,
       samUser,
+      favoriteResources,
     }));
     authStore.update((state: AuthState) => ({
       ...state,

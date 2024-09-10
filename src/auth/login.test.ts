@@ -60,7 +60,6 @@ const mockTerraUserProfile = {
   programLocationState: 'testProgramLocationState',
   programLocationCountry: 'testProgramLocationCountry',
   researchArea: 'testResearchArea',
-  starredWorkspaces: 'testStarredWorkspaces',
 };
 
 const testSamUserAllowancesDetails = {
@@ -79,6 +78,7 @@ const mockSamUserCombinedState: SamUserCombinedStateResponse = {
   terraUserAttributes: { marketingConsent: false },
   termsOfService: mockSamUserTermsOfServiceDetails,
   enterpriseFeatures: [],
+  favoriteResources: [],
 };
 
 const mockNihDatasetPermission = {

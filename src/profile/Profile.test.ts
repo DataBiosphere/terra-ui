@@ -63,8 +63,6 @@ describe('Profile', () => {
 
     researchArea: '',
     interestInTerra: '',
-
-    starredWorkspaces: undefined,
   };
 
   it('loads the user profile', () => {
