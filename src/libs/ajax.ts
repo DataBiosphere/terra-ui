@@ -1,15 +1,14 @@
-import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
-import { fetchDrsHub, fetchGoogleForms, fetchRawls } from 'src/libs/ajax/ajax-common';
+import { fetchGoogleForms, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
+import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
-import { appIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Groups } from 'src/libs/ajax/Groups';
@@ -34,30 +33,6 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 const Submissions = (signal?: AbortSignal) => ({
   queueStatus: async () => {
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-});
-
-const DrsUriResolver = (signal?: AbortSignal) => ({
-  // DRSHub now gets a signed URL instead of Martha
-  getSignedUrl: async ({ bucket, object, dataObjectUri, googleProject }) => {
-    const res = await fetchDrsHub(
-      '/api/v4/gcs/getSignedUrl',
-      _.mergeAll([
-        jsonBody({ bucket, object, dataObjectUri, googleProject }),
-        authOpts(),
-        appIdentifier,
-        { signal, method: 'POST' },
-      ])
-    );
-    return res.json();
-  },
-
-  getDataObjectMetadata: async (url, fields) => {
-    const res = await fetchDrsHub(
-      '/api/v4/drs/resolve',
-      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-    );
     return res.json();
   },
 });
