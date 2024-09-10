@@ -156,7 +156,6 @@ describe('GroupList', () => {
 
     // Act
     await user.click(menu);
-    await waitFor(() => expect(getByText('Leave', { exact: false })).toBeDefined());
     const leaveButton = getByText('Leave', { exact: false });
     expect(leaveButton).toBeDefined();
     await user.click(leaveButton);

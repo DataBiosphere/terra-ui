@@ -1,4 +1,3 @@
-import { waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { writeText } from 'clipboard-polyfill/text';
 import React from 'react';
@@ -50,12 +49,12 @@ describe('GroupCard', () => {
     // Act
     const menu = getByRole('button', { name: `Action Menu for Group: ${memberGroup.groupName}` });
     await user.click(menu);
-    await waitFor(() => expect(getByText('Leave', { exact: false })).toBeDefined());
+    expect(getByText('Leave', { exact: false })).toBeDefined();
     const leaveButton = getByText('Leave', { exact: false });
     await user.click(leaveButton);
 
     // Assert
-    await waitFor(() => expect(mockLeaveCallback).toHaveBeenCalled());
+    expect(mockLeaveCallback).toHaveBeenCalled();
   });
 
   it('calls the delete callback when delete button is clicked', async () => {
@@ -71,12 +70,12 @@ describe('GroupCard', () => {
     // Act
     const menu = getByRole('button', { name: `Action Menu for Group: ${adminGroup.groupName}` });
     await user.click(menu);
-    await waitFor(() => expect(getByText('Delete', { exact: false })).toBeDefined());
+    expect(getByText('Delete', { exact: false })).toBeDefined();
     const deleteButton = getByText('Delete', { exact: false });
     await user.click(deleteButton);
 
     // Assert
-    await waitFor(() => expect(mockDeleteCallback).toHaveBeenCalled());
+    expect(mockDeleteCallback).toHaveBeenCalled();
   });
 
   it('disables the delete button if the user is not an admin', async () => {
@@ -88,7 +87,7 @@ describe('GroupCard', () => {
     // Act
     const menu = getByRole('button', { name: `Action Menu for Group: ${memberGroup.groupName}` });
     await user.click(menu);
-    await waitFor(() => expect(getByText('Delete', { exact: false })).toBeDefined());
+    expect(getByText('Delete', { exact: false })).toBeDefined();
 
     // Assert
     const deleteButton = getByText('Delete', { exact: false });
@@ -106,6 +105,6 @@ describe('GroupCard', () => {
 
     // Assert
     const mockWriteText = asMockedFn(writeText);
-    await waitFor(() => expect(mockWriteText).toHaveBeenCalledWith(memberGroup.groupEmail));
+    expect(mockWriteText).toHaveBeenCalledWith(memberGroup.groupEmail);
   });
 });
