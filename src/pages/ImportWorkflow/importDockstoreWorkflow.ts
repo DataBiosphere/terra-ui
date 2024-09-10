@@ -58,7 +58,7 @@ export const importDockstoreWorkflow = async (
     _.fromPairs
   )(workflowOutputs);
 
-  await workspaceApi.importMethodConfigFromDocker({
+  await workspaceApi.importMethodConfig({
     namespace,
     name: workflowName,
     rootEntityType: _.head(_.keys(entityMetadata)),

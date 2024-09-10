@@ -90,7 +90,7 @@ export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Pro
   const options: MetadataOptions = {
     cromwellProxyUrl: fetchOptions.cromwellProxyUrl,
     excludeKeys: [],
-    includeKeys: ['calls', 'subWorkflowId', 'taskStartTime', 'taskEndTime', 'vmCostUsd'],
+    includeKeys: ['calls', 'subWorkflowId', 'vmStartTime', 'vmEndTime', 'vmCostPerHour'],
     signal: fetchOptions.signal,
     workflowId: fetchOptions.workflowId,
     expandSubWorkflows: true,
@@ -100,10 +100,10 @@ export const fetchCostMetadata = async (fetchOptions: FetchMetadataOptions): Pro
 
 // Returns the cost in USD of a given task.
 // Tasks are the leaf nodes of the metadata graph, and are the only things that actually cost money. The cost of a (sub)workflow is the sum of the costs of its tasks.
-export const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, taskEndTime?: string): number => {
-  const endTime = taskEndTime ? Date.parse(taskEndTime) : Date.now(); // Tasks with no end time are still running, so use now as the end time
-  const vmCostDouble = parseFloat(vmCostUsd);
-  const startTime = Date.parse(taskStartTime);
+export const calculateTaskCost = (vmStartTime: string, vmCostPerHour: string, vmEndTime?: string): number => {
+  const endTime = vmEndTime ? Date.parse(vmEndTime) : Date.now(); // Tasks with no end time are still running, so use now as the end time
+  const vmCostDouble = parseFloat(vmCostPerHour);
+  const startTime = Date.parse(vmStartTime);
   const elapsedTime = endTime - startTime;
   return parseFloat(((elapsedTime / 3600000) * vmCostDouble).toFixed(2)); // 1 hour = 3600000 ms
 };
@@ -112,11 +112,11 @@ export const calculateTaskCost = (taskStartTime: string, vmCostUsd: string, task
 // A 'call' is either a task or a subworkflow. Subworkflows contain their own 'calls' array, which can be recursively searched.
 export const calculateCostOfCallAttempt = (taskOrSubworkflow: any): number => {
   let totalCost = 0;
-  if (taskOrSubworkflow.taskStartTime && taskOrSubworkflow.vmCostUsd) {
+  if (taskOrSubworkflow.vmStartTime && taskOrSubworkflow.vmCostPerHour) {
     totalCost += calculateTaskCost(
-      taskOrSubworkflow.taskStartTime,
-      taskOrSubworkflow.vmCostUsd,
-      taskOrSubworkflow.taskEndTime
+      taskOrSubworkflow.vmStartTime,
+      taskOrSubworkflow.vmCostPerHour,
+      taskOrSubworkflow.vmEndTime
     );
   } else if (taskOrSubworkflow.subWorkflowMetadata) {
     totalCost += calculateCostOfCallsArray(taskOrSubworkflow.subWorkflowMetadata.calls);

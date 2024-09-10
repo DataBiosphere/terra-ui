@@ -88,6 +88,7 @@ const eventsList = {
   pageView: 'page:view',
   permissionsSynchronizationDelay: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
+  uploaderCreateCollection: 'uploader:collection:create',
   user: {
     authToken: {
       load: {
@@ -166,9 +167,12 @@ const eventsList = {
   workspaceDataRenameEntity: 'workspace:data:renameEntity',
   workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceDataDeleteTable: 'workspace:data:deleteTable',
+  workspaceMenu: 'workspace:menu:selected',
   workspaceOpenFromList: 'workspace:open-from-list',
   workspaceOpenFromRecentlyViewed: 'workspace:open-from-recently-viewed',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
+  workspaceSettingsBucketLifecycle: 'workspace:settings:bucketLifecycle',
+  workspaceSettingsSoftDelete: 'workspace:settings:softDelete',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',

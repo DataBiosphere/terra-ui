@@ -5,7 +5,7 @@ import { div, h, label } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner } from 'src/components/icons';
 import { TabBar } from 'src/components/tabBars';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';

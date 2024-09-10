@@ -59,8 +59,8 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
       setTemplateWorkspaces(templates);
       const projects = await Ajax().Billing.listProjects();
       setUserHasBillingProjects(projects.length > 0);
-    });
-    loadTemplateWorkspaces();
+    }) as () => Promise<void>;
+    void loadTemplateWorkspaces();
   });
 
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
@@ -178,13 +178,13 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     }
 
     const { namespace, name } = workspace;
-    Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
+    void Ajax().Metrics.captureEvent(Events.workspaceDataImport, {
       format,
       ...extractWorkspaceDetails(workspace),
       importSource: getImportSource(importRequest),
     });
     Nav.goToPath('workspace-data', { namespace, name });
-  });
+  }) as () => Promise<void>;
 
   return h(Fragment, [
     h(ImportDataOverview, {

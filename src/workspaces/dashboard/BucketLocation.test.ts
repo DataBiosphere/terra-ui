@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
+import { WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
@@ -15,8 +16,6 @@ import {
 } from 'src/testing/workspace-fixtures';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
 import { GoogleWorkspace } from 'src/workspaces/utils';
-
-type AjaxContract = ReturnType<typeof Ajax>;
 
 jest.mock('src/libs/ajax');
 
@@ -118,8 +117,8 @@ describe('BucketLocation', () => {
                   location: 'bermuda',
                   locationType: 'triangle',
                 }),
-              } as Partial<AjaxContract['Workspaces']['workspace']>),
-          } as Partial<AjaxContract['Workspaces']>,
+              } as Partial<ReturnType<WorkspacesAjaxContract['workspace']>>),
+          } as Partial<WorkspacesAjaxContract>,
         } as Partial<AjaxContract> as AjaxContract)
     );
 
@@ -151,8 +150,8 @@ describe('BucketLocation', () => {
             workspace: () =>
               ({
                 checkBucketLocation: () => Promise.reject(mockBucketRequesterPaysError),
-              } as Partial<AjaxContract['Workspaces']['workspace']>),
-          } as Partial<AjaxContract['Workspaces']>,
+              } as Partial<ReturnType<WorkspacesAjaxContract['workspace']>>),
+          } as Partial<WorkspacesAjaxContract>,
         } as Partial<AjaxContract> as AjaxContract)
     );
     // Act
