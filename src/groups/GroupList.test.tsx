@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { waitFor } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import React from 'react';
 import { GroupList } from 'src/groups/GroupList';
@@ -98,12 +98,12 @@ describe('GroupList', () => {
         } as DeepPartial<AjaxContract> as AjaxContract)
     );
     asMockedFn(getStateHistory).mockReturnValue({});
-    const user = userEvent.setup();
     const { getByText, queryByText, getByLabelText } = render(<GroupList />);
     await waitFor(() => expect(getByText(memberGroup.groupName, { exact: false })).toBeDefined());
     await waitFor(() => expect(getByText(adminGroup.groupName, { exact: false })).toBeDefined());
     // Act
-    await user.type(getByLabelText('Search groups'), memberGroup.groupName);
+    fireEvent.change(getByLabelText('Search groups'), { target: { value: memberGroup.groupName } });
+
     // Assert
     await waitFor(() => expect(getByText(memberGroup.groupName, { exact: false })).toBeDefined());
     await waitFor(() => expect(queryByText(adminGroup.groupName, { exact: false })).toBeFalsy());
@@ -129,7 +129,6 @@ describe('GroupList', () => {
 
     // Act
     await user.click(menu);
-    await waitFor(() => expect(getByText('Delete', { exact: false })).toBeDefined());
     const deleteButton = getByText('Delete', { exact: false });
     expect(deleteButton).toBeDefined();
     await user.click(deleteButton);

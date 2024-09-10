@@ -1,5 +1,5 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { waitFor } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import React from 'react';
 import { NewGroupModal } from 'src/groups/NewGroupModal';
@@ -45,29 +45,30 @@ describe('NewGroupModal', () => {
 
   it('enables the create button if the form is valid', async () => {
     // Arrange
-    const user = userEvent.setup();
     const { getByText, getByLabelText } = render(
       <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
     );
     // Act
     expect(getByText('Create Group')).toHaveAttribute('aria-disabled', 'true');
     const nameInput = getByLabelText('Enter a unique name *');
-    await user.type(nameInput, 'ValidName');
+    fireEvent.change(nameInput, { target: { value: 'ValidName' } });
     // Assert
-    expect(getByText('Create Group')).not.toBeDisabled();
+    await waitFor(() => expect(getByText('Create Group')).not.toBeDisabled());
   });
 
   it('displays an error for invalid input', async () => {
     // Arrange
-    const user = userEvent.setup();
     const { getByText, getByLabelText } = render(
       <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
     );
     // Act
     const nameInput = getByLabelText('Enter a unique name *');
-    await user.type(nameInput, 'Invalid Name&');
+    fireEvent.change(nameInput, { target: { value: 'Invalid Name&' } });
+
     // Assert
-    expect(getByText('Group name can only contain letters, numbers, underscores, and dashes')).toBeInTheDocument();
+    waitFor(() =>
+      expect(getByText('Group name can only contain letters, numbers, underscores, and dashes')).toBeInTheDocument()
+    );
   });
 
   it('detects when the group name is empty but has been changed', async () => {
@@ -78,8 +79,8 @@ describe('NewGroupModal', () => {
     );
     // Act
     const nameInput = getByLabelText('Enter a unique name *');
-    await user.type(nameInput, 'Valid Name');
-    expect(nameInput).toHaveValue('Valid Name');
+    fireEvent.change(nameInput, { target: { value: 'Valid Name' } });
+    await waitFor(() => expect(nameInput).toHaveValue('Valid Name'));
     await user.clear(nameInput);
     // Assert
     expect(getByText("Group name can't be blank")).toBeInTheDocument();
@@ -87,16 +88,15 @@ describe('NewGroupModal', () => {
 
   it('does not allow a group name that already exists ', async () => {
     // Arrange
-    const user = userEvent.setup();
     const existingName = 'Existing name';
     const { getByText, getByLabelText } = render(
       <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[existingName]} />
     );
     // Act
     const nameInput = getByLabelText('Enter a unique name *');
-    await user.type(nameInput, existingName);
+    fireEvent.change(nameInput, { target: { value: existingName } });
     // Assert
-    expect(getByText('Group name already exists')).toBeInTheDocument();
+    await waitFor(() => expect(getByText('Group name already exists')).toBeInTheDocument());
   });
 
   it('calls submit function on form submission with valid data', async () => {
@@ -120,8 +120,8 @@ describe('NewGroupModal', () => {
       <NewGroupModal onDismiss={jest.fn()} onSuccess={mockOnSuccessFn} existingGroups={[]} />
     );
     const nameInput = getByLabelText('Enter a unique name *');
-    await user.type(nameInput, 'ValidName');
-    expect(nameInput).toHaveValue('ValidName');
+    fireEvent.change(nameInput, { target: { value: 'ValidName' } });
+    await waitFor(() => expect(nameInput).toHaveValue('ValidName'));
     const submitButton = getByText('Create Group');
     expect(submitButton).toBeEnabled();
     // Act
