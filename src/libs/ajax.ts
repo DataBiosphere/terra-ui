@@ -1,15 +1,14 @@
-import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
-import { fetchDrsHub, fetchGoogleForms, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
+import { fetchGoogleForms, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
+import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
-import { appIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Groups } from 'src/libs/ajax/Groups';
@@ -24,68 +23,16 @@ import { Support } from 'src/libs/ajax/Support';
 import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import { User } from 'src/libs/ajax/User';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
+import { CromIAM } from 'src/libs/ajax/workflows-app/CromIAM';
 import { CromwellApp } from 'src/libs/ajax/workflows-app/CromwellApp';
 import { WorkflowScript } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 
-const CromIAM = (signal?: AbortSignal) => ({
-  callCacheDiff: async (thisWorkflow, thatWorkflow) => {
-    const { workflowId: thisWorkflowId, callFqn: thisCallFqn, index: thisIndex } = thisWorkflow;
-    const { workflowId: thatWorkflowId, callFqn: thatCallFqn, index: thatIndex } = thatWorkflow;
-
-    const params = {
-      workflowA: thisWorkflowId,
-      callA: thisCallFqn,
-      indexA: thisIndex !== -1 ? thisIndex : undefined,
-      workflowB: thatWorkflowId,
-      callB: thatCallFqn,
-      indexB: thatIndex !== -1 ? thatIndex : undefined,
-    };
-    const res = await fetchOrchestration(
-      `api/workflows/v1/callcaching/diff?${qs.stringify(params)}`,
-      _.merge(authOpts(), { signal })
-    );
-    return res.json();
-  },
-
-  workflowMetadata: async (workflowId, includeKey, excludeKey) => {
-    const res = await fetchOrchestration(
-      `api/workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`,
-      _.merge(authOpts(), { signal })
-    );
-    return res.json();
-  },
-});
-
 const Submissions = (signal?: AbortSignal) => ({
   queueStatus: async () => {
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-});
-
-const DrsUriResolver = (signal?: AbortSignal) => ({
-  // DRSHub now gets a signed URL instead of Martha
-  getSignedUrl: async ({ bucket, object, dataObjectUri, googleProject }) => {
-    const res = await fetchDrsHub(
-      '/api/v4/gcs/getSignedUrl',
-      _.mergeAll([
-        jsonBody({ bucket, object, dataObjectUri, googleProject }),
-        authOpts(),
-        appIdentifier,
-        { signal, method: 'POST' },
-      ])
-    );
-    return res.json();
-  },
-
-  getDataObjectMetadata: async (url, fields) => {
-    const res = await fetchDrsHub(
-      '/api/v4/drs/resolve',
-      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-    );
     return res.json();
   },
 });
