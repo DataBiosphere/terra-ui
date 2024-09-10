@@ -127,9 +127,8 @@ describe('NewGroupModal', () => {
     // Act
     await user.click(submitButton);
     // Assert
-    await waitFor(() => expect(mockCreateFn).toHaveBeenCalled());
-    await waitFor(() => expect(mockSetPolicyFn).toHaveBeenCalledWith('admin-notifier', true));
-    await waitFor(() => expect(mockCreateFn).toHaveBeenCalled());
-    await waitFor(() => expect(mockOnSuccessFn).toHaveBeenCalled());
+    expect(mockCreateFn).toHaveBeenCalled();
+    expect(mockSetPolicyFn).toHaveBeenCalledWith('admin-notifier', true);
+    expect(mockOnSuccessFn).toHaveBeenCalled();
   });
 });

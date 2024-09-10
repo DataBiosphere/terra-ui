@@ -135,34 +135,44 @@ describe('GroupList', () => {
     // Assert
     // waiting for the modal to appear
     waitFor(() => expect(queryByText('Delete group')).toBeDefined());
+    const deleteGroupText = `Are you sure you want to delete the group ${adminGroup.groupName}?`;
+    const deleteGroupMatch = queryByText((_, node) => {
+      const hasText = (node) => node.textContent === deleteGroupText;
+      const nodeHasText = hasText(node);
+      const childrenDontHaveText = Array.from(node?.children || []).every((child) => !hasText(child));
+      return nodeHasText && childrenDontHaveText;
+    });
+    expect(deleteGroupMatch).toBeDefined();
   });
 
   it('sets the correct group to leave', async () => {
     // Arrange
+    const mockLeaveResourceFn = jest.fn();
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
+          Metrics: {
+            captureEvent: jest.fn(),
+          },
+          SamResources: {
+            leave: mockLeaveResourceFn,
+          },
           Groups: {
             list: jest.fn().mockResolvedValue([memberGroup, adminGroup]),
           },
         } as DeepPartial<AjaxContract> as AjaxContract)
     );
     const user = userEvent.setup();
-    const { getByText, queryByText, getByRole } = render(<GroupList />);
-    await waitFor(() => expect(getByText(adminGroup.groupName, { exact: false })).toBeDefined());
-    const menuLabel = `Action Menu for Group: ${adminGroup.groupName}`;
-    const menu = getByRole('button', { name: menuLabel });
-    expect(menu).toBeDefined();
-
+    const { getByText, getByRole } = render(<GroupList />);
+    await waitFor(() => expect(getByText(memberGroup.groupName, { exact: false })).toBeDefined());
     // Act
-    await user.click(menu);
-    const leaveButton = getByText('Leave', { exact: false });
-    expect(leaveButton).toBeDefined();
-    await user.click(leaveButton);
-
-    // Assert
+    await user.click(getByRole('button', { name: `Action Menu for Group: ${memberGroup.groupName}` }));
+    await user.click(getByText('Leave', { exact: false }));
     // waiting for the modal to appear
-    waitFor(() => expect(queryByText('Leave group')).toBeDefined());
+    await waitFor(() => expect(getByRole('button', { name: 'Leave group' })).toBeDefined());
+    await user.click(getByRole('button', { name: 'Leave group' }));
+    // Assert
+    expect(mockLeaveResourceFn).toHaveBeenCalledWith('managed-group', memberGroup.groupName);
   });
 
   it('opens the modal to create a new group', async () => {
@@ -181,6 +191,7 @@ describe('GroupList', () => {
     const createNewGroupButton = getByText('Create a New Group');
     await user.click(createNewGroupButton);
     // Assert
+    // wait for modal delay
     waitFor(() => expect(getByText('Create New Group')).toBeDefined());
   });
 });
