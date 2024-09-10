@@ -46,7 +46,6 @@ const UserMenuContent = (props: UserMenuContentProps) => (
       {makeMenuIcon('edit')}
       Edit Role
     </MenuButton>
-    ,
     <MenuButton onClick={props.onDelete}>
       {makeMenuIcon('trash')}
       Remove User

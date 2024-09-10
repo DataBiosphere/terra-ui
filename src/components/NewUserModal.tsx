@@ -156,7 +156,7 @@ export const NewUserModal = (props: NewUserModalProps) => {
         <FormLabel>Role</FormLabel>
         <LabeledCheckbox checked={isAdmin} onChange={() => setRoles([isAdmin ? userLabel : adminLabel])}>
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-          <label style={{ margin: '0 2rem 0 0.25rem' }}>Can manage users {adminLabel}</label>
+          <label style={{ margin: '0 2rem 0 0.25rem' }}>Can manage users ({adminLabel})</label>
         </LabeledCheckbox>
         {footer && <div style={{ marginTop: '1rem' }}>{footer}</div>}
         {submitError && (

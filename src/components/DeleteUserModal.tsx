@@ -14,7 +14,7 @@ export const DeleteUserModal = (props: DeleteUserModalProps) => (
     okButton={<ButtonPrimary onClick={props.onSubmit}>Remove</ButtonPrimary>}
   >
     <div>
-      Are you sure you want to remove , <b>{props.userEmail}</b>?
+      Are you sure you want to remove <b>{props.userEmail}</b>?
     </div>
   </Modal>
 );
