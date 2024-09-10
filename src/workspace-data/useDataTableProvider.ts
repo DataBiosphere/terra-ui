@@ -34,10 +34,15 @@ export const useDataTableProvider = (
   Dispatch<SetStateAction<LoadedState<RecordTypeSchema[], string>>>,
   () => Promise<void>
 ] => {
+  // A ListAppItem containing all the data for a WDS app
   const [wdsApp, setWdsApp] = useState<LoadedState<ListAppItem, string>>({ status: 'None' });
+  // The schema of the data types in the data table
   const [wdsTypes, setWdsTypes] = useState<LoadedState<RecordTypeSchema[], string>>({ status: 'None' });
+  // Defines what capabilities the data tables app currently has
   const [wdsCapabilities, setWdsCapabilities] = useState<LoadedState<Capabilities, string>>({ status: 'None' });
+  // Identifies if the workspace is using CWDS instead of an in-workspace WDS app
   const [useCwds, setUseCwds] = useState<LoadedState<boolean>>({ status: 'None' });
+  // The URL to contact WDS - either the app or the central cWDS
   const [wdsUrl, setWdsUrl] = useState<LoadedState<string>>({ status: 'None' });
   const cwdsURL = getConfig().cwdsUrlRoot;
 
@@ -51,8 +56,6 @@ export const useDataTableProvider = (
     );
   }, [workspaceId, wdsCapabilities, wdsUrl]);
 
-  // returns the found app only if it is in a ready state,
-  // otherwise returns undefined
   const loadWdsApp = useCallback(() => {
     return Ajax()
       .Apps.listAppsV2(workspaceId)
@@ -68,7 +71,7 @@ export const useDataTableProvider = (
             setWdsUrl({ status: 'Ready', state: foundApp.proxyUrls?.wds });
             break;
           case appStatuses.error.status:
-            setWdsApp({ status: 'Error', state: foundApp, error: 'Error in WDS app' }); // todo get real error?
+            setWdsApp({ status: 'Error', state: foundApp, error: 'Error in WDS app' });
             break;
           default:
             if (foundApp?.status) {
@@ -84,7 +87,6 @@ export const useDataTableProvider = (
   }, [setWdsApp, workspaceId]);
 
   const loadWdsTypes = useCallback(() => {
-    // setWdsTypes({ status: 'None' }); //TODO I don't think we need this since we initialize it to None
     if (wdsUrl.status === 'Ready') {
       return Ajax(signal)
         .WorkspaceData.getSchema(wdsUrl.state, workspaceId)
@@ -137,7 +139,6 @@ export const useDataTableProvider = (
         if (response.status === 200 && Object.keys(data).length !== 0) {
           setWdsUrl({ status: 'Ready', state: cwdsURL });
           setUseCwds({ status: 'Ready', state: true });
-          // setWdsApp({ status: 'Ready', state: undefined }); // No app needed for CWDS
         } else {
           setWdsUrl({ status: 'Loading', state: null });
           setUseCwds({ status: 'Ready', state: false });
