@@ -1,5 +1,6 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { fireEvent, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import React from 'react';
 import { NewGroupModal } from 'src/groups/NewGroupModal';
 import { Ajax } from 'src/libs/ajax';
@@ -30,75 +31,77 @@ describe('NewGroupModal', () => {
 
   it('updates the admin notifier checkbox state correctly', async () => {
     // Arrange
+    const user = userEvent.setup();
     const { getByLabelText } = render(
       <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
     );
     const checkbox = getByLabelText('Allow anyone to request access');
     expect(checkbox).toBeChecked();
     // Act
-    fireEvent.click(checkbox);
+    await user.click(checkbox);
     // Assert
-    await waitFor(() => expect(checkbox).not.toBeChecked());
+    expect(checkbox).not.toBeChecked();
   });
 
   it('enables the create button if the form is valid', async () => {
     // Arrange
+    const user = userEvent.setup();
     const { getByText, getByLabelText } = render(
       <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
     );
     // Act
+    expect(getByText('Create Group')).toHaveAttribute('aria-disabled', 'true');
     const nameInput = getByLabelText('Enter a unique name *');
-    fireEvent.change(nameInput, { target: { value: 'ValidName' } });
+    await user.type(nameInput, 'ValidName');
     // Assert
-    await waitFor(() => expect(getByText('Create Group')).not.toBeDisabled());
+    expect(getByText('Create Group')).not.toBeDisabled();
   });
 
   it('displays an error for invalid input', async () => {
     // Arrange
+    const user = userEvent.setup();
     const { getByText, getByLabelText } = render(
       <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
     );
     // Act
     const nameInput = getByLabelText('Enter a unique name *');
-    fireEvent.change(nameInput, { target: { value: 'Invalid Name&' } });
+    await user.type(nameInput, 'Invalid Name&');
     // Assert
-    await waitFor(() =>
-      expect(getByText('Group name can only contain letters, numbers, underscores, and dashes')).toBeInTheDocument()
-    );
+    expect(getByText('Group name can only contain letters, numbers, underscores, and dashes')).toBeInTheDocument();
   });
 
-  it.each<{ changedEmptyValue: string | null }>([{ changedEmptyValue: '' }, { changedEmptyValue: null }])(
-    'detects when the group name is empty but has been changed',
-    async ({ changedEmptyValue }) => {
-      // Arrange
-      const { getByText, getByLabelText } = render(
-        <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
-      );
-      // Act
-      const nameInput = getByLabelText('Enter a unique name *');
-      fireEvent.change(nameInput, { target: { value: 'Valid Name' } });
-      await waitFor(() => expect(nameInput).toHaveValue('Valid Name'));
-      fireEvent.change(nameInput, { target: { value: changedEmptyValue } });
-      // Assert
-      await waitFor(() => expect(getByText("Group name can't be blank")).toBeInTheDocument());
-    }
-  );
+  it('detects when the group name is empty but has been changed', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { getByText, getByLabelText } = render(
+      <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[]} />
+    );
+    // Act
+    const nameInput = getByLabelText('Enter a unique name *');
+    await user.type(nameInput, 'Valid Name');
+    expect(nameInput).toHaveValue('Valid Name');
+    await user.clear(nameInput);
+    // Assert
+    expect(getByText("Group name can't be blank")).toBeInTheDocument();
+  });
 
   it('does not allow a group name that already exists ', async () => {
     // Arrange
+    const user = userEvent.setup();
     const existingName = 'Existing name';
     const { getByText, getByLabelText } = render(
       <NewGroupModal onDismiss={jest.fn()} onSuccess={jest.fn()} existingGroups={[existingName]} />
     );
     // Act
     const nameInput = getByLabelText('Enter a unique name *');
-    fireEvent.change(nameInput, { target: { value: existingName } });
+    await user.type(nameInput, existingName);
     // Assert
-    await waitFor(() => expect(getByText('Group name already exists')).toBeInTheDocument());
+    expect(getByText('Group name already exists')).toBeInTheDocument();
   });
 
   it('calls submit function on form submission with valid data', async () => {
     // Arrange
+    const user = userEvent.setup();
     const mockCreateFn = jest.fn().mockReturnValue(Promise.resolve());
     const mockSetPolicyFn = jest.fn().mockReturnValue(Promise.resolve());
     asMockedFn(Ajax).mockImplementation(
@@ -117,12 +120,12 @@ describe('NewGroupModal', () => {
       <NewGroupModal onDismiss={jest.fn()} onSuccess={mockOnSuccessFn} existingGroups={[]} />
     );
     const nameInput = getByLabelText('Enter a unique name *');
-    fireEvent.change(nameInput, { target: { value: 'ValidName' } });
-    await waitFor(() => expect(nameInput).toHaveValue('ValidName'));
+    await user.type(nameInput, 'ValidName');
+    expect(nameInput).toHaveValue('ValidName');
     const submitButton = getByText('Create Group');
     expect(submitButton).toBeEnabled();
     // Act
-    fireEvent.click(submitButton);
+    await user.click(submitButton);
     // Assert
     await waitFor(() => expect(mockCreateFn).toHaveBeenCalled());
     await waitFor(() => expect(mockSetPolicyFn).toHaveBeenCalledWith('admin-notifier', true));

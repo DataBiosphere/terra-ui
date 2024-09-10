@@ -1,4 +1,5 @@
-import { fireEvent, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { writeText } from 'clipboard-polyfill/text';
 import React from 'react';
 import { GroupCard } from 'src/groups/GroupCard';
@@ -16,12 +17,12 @@ jest.mock('clipboard-polyfill/text', () => ({
 }));
 
 describe('GroupCard', () => {
-  const testGroup1: CurrentUserGroupMembership = {
+  const memberGroup: CurrentUserGroupMembership = {
     groupEmail: 'group1@email.com',
     groupName: 'test-group1-name',
     role: 'member',
   };
-  const testGroup2: CurrentUserGroupMembership = {
+  const adminGroup: CurrentUserGroupMembership = {
     groupEmail: 'group2@email.com',
     groupName: 'test-group2-name',
     role: 'admin',
@@ -29,61 +30,64 @@ describe('GroupCard', () => {
 
   it('displays the group name, email, and role', async () => {
     // Arrange
-    const { getByText } = render(<GroupCard group={testGroup1} onDelete={jest.fn()} onLeave={jest.fn()} />);
+    const { getByText } = render(<GroupCard group={memberGroup} onDelete={jest.fn()} onLeave={jest.fn()} />);
     // Act
     // Assert
-    expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined();
-    expect(getByText(testGroup1.groupEmail, { exact: false })).toBeDefined();
-    expect(getByText(testGroup1.role, { exact: false })).toBeDefined();
+    expect(getByText(memberGroup.groupName, { exact: false })).toBeDefined();
+    expect(getByText(memberGroup.groupEmail, { exact: false })).toBeDefined();
+    expect(getByText(memberGroup.role, { exact: false })).toBeDefined();
   });
 
   it('calls the leave callback when button to leave the group is clicked', async () => {
     // Arrange
     const mockLeaveCallback = jest.fn();
+    const user = userEvent.setup();
     const { getByText, getByRole } = render(
-      <GroupCard group={testGroup1} onDelete={jest.fn()} onLeave={mockLeaveCallback} />
+      <GroupCard group={memberGroup} onDelete={jest.fn()} onLeave={mockLeaveCallback} />
     );
-    expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined();
+    expect(getByText(memberGroup.groupName, { exact: false })).toBeDefined();
 
     // Act
-    const menu = getByRole('button', { name: `Action Menu for Group: ${testGroup1.groupName}` });
-    fireEvent.click(menu);
+    const menu = getByRole('button', { name: `Action Menu for Group: ${memberGroup.groupName}` });
+    await user.click(menu);
     await waitFor(() => expect(getByText('Leave', { exact: false })).toBeDefined());
     const leaveButton = getByText('Leave', { exact: false });
-    fireEvent.click(leaveButton);
+    await user.click(leaveButton);
 
     // Assert
-    waitFor(() => expect(mockLeaveCallback).toHaveBeenCalled());
+    await waitFor(() => expect(mockLeaveCallback).toHaveBeenCalled());
   });
 
   it('calls the delete callback when delete button is clicked', async () => {
     // Arrange
+    const user = userEvent.setup();
     const mockDeleteCallback = jest.fn();
     const mockLeaveCallback = jest.fn();
     const { getByText, getByRole } = render(
-      <GroupCard group={testGroup2} onDelete={mockDeleteCallback} onLeave={mockLeaveCallback} />
+      <GroupCard group={adminGroup} onDelete={mockDeleteCallback} onLeave={mockLeaveCallback} />
     );
-    expect(getByText(testGroup2.groupName, { exact: false })).toBeDefined();
+    expect(getByText(adminGroup.groupName, { exact: false })).toBeDefined();
 
     // Act
-    const menu = getByRole('button', { name: `Action Menu for Group: ${testGroup2.groupName}` });
-    fireEvent.click(menu);
+    const menu = getByRole('button', { name: `Action Menu for Group: ${adminGroup.groupName}` });
+    await user.click(menu);
     await waitFor(() => expect(getByText('Delete', { exact: false })).toBeDefined());
-    const deleteButton = getByText('Delete', { exact: false }).parentNode;
-    fireEvent.click(deleteButton!);
+    const deleteButton = getByText('Delete', { exact: false });
+    await user.click(deleteButton);
 
     // Assert
-    waitFor(() => expect(mockDeleteCallback).toHaveBeenCalled());
+    await waitFor(() => expect(mockDeleteCallback).toHaveBeenCalled());
   });
 
   it('disables the delete button if the user is not an admin', async () => {
     // Arrange
-    const { getByText, getByRole } = render(<GroupCard group={testGroup1} onDelete={jest.fn()} onLeave={jest.fn()} />);
-    expect(getByText(testGroup1.groupName, { exact: false })).toBeDefined();
+    const user = userEvent.setup();
+    const { getByText, getByRole } = render(<GroupCard group={memberGroup} onDelete={jest.fn()} onLeave={jest.fn()} />);
+    expect(getByText(memberGroup.groupName, { exact: false })).toBeDefined();
 
     // Act
-    const menu = getByRole('button', { name: `Action Menu for Group: ${testGroup1.groupName}` });
-    fireEvent.click(menu);
+    const menu = getByRole('button', { name: `Action Menu for Group: ${memberGroup.groupName}` });
+    await user.click(menu);
     await waitFor(() => expect(getByText('Delete', { exact: false })).toBeDefined());
 
     // Assert
@@ -92,15 +96,16 @@ describe('GroupCard', () => {
   });
 
   it('can copy the group name to the clipboard', async () => {
+    const user = userEvent.setup();
     // Arrange
-    const { getByLabelText } = render(<GroupCard group={testGroup1} onDelete={jest.fn()} onLeave={jest.fn()} />);
+    const { getByLabelText } = render(<GroupCard group={memberGroup} onDelete={jest.fn()} onLeave={jest.fn()} />);
 
     // Act
     const copyButton = getByLabelText('Copy group email to clipboard');
-    fireEvent.click(copyButton);
+    await user.click(copyButton);
 
     // Assert
     const mockWriteText = asMockedFn(writeText);
-    await waitFor(() => expect(mockWriteText).toHaveBeenCalledWith(testGroup1.groupEmail));
+    await waitFor(() => expect(mockWriteText).toHaveBeenCalledWith(memberGroup.groupEmail));
   });
 });
