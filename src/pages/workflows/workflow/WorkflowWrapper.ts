@@ -2,15 +2,18 @@ import { Select, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner } from 'src/components/icons';
 import { TabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
+import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
 import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
 
@@ -92,6 +95,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const snapshotLabelId = useUniqueId();
 
   const [deleting, setDeleting] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
 
   const snapshot =
     cachedSnapshot &&
@@ -150,11 +154,19 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         namespace,
         name,
         snapshotId: `${selectedSnapshot}`,
-        onConfirm: () => {},
+        onConfirm: _.flow(
+          Utils.withBusyState(setBusy),
+          withErrorReporting('Error deleting snapshot')
+        )(async () => {
+          setDeleting(false);
+          await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).delete();
+          Nav.goToPath('workflows');
+        }),
         onDismiss: () => {
           setDeleting(false);
         },
       }),
+    busy && spinnerOverlay,
     snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
   ]);
 };
