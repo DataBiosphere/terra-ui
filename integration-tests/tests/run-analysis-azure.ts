@@ -126,6 +126,7 @@ const testRunAnalysisAzure = _.flowRight(
 registerTest({
   name: 'run-analysis-azure',
   fn: testRunAnalysisAzure,
-  targetEnvironments: ['dev', 'staging'],
+  // Test is disabled until we reprioritize Azure support
+  targetEnvironments: [],
   timeout: Millis.ofMinutes(30),
 });

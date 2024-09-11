@@ -106,8 +106,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     useWorkspaces,
     _.update('workspaces', _.flow(_.groupBy('workspace.namespace'), _.mapValues(_.keyBy('workspace.name'))))
   )() as Mutate<UseWorkspacesResult, 'workspaces', WorkspaceWrapperLookup>;
-
   const getWorkspaces = useGetter(workspaces);
+  const [workspacesLoaded, setWorkspacesLoaded] = useState(false);
+
   const [runtimes, setRuntimes] = useState<RuntimeWithWorkspace[]>();
   const [apps, setApps] = useState<AppWithWorkspace[]>();
   const [disks, setDisks] = useState<DiskWithWorkspace[]>();
@@ -135,10 +136,21 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true);
 
+  // TODO: this function is a great candidate for breaking out into a separate hook.
   const refreshData = withLoading(async () => {
-    await refreshWorkspaces();
+    // Only refresh workspaces if we have pre-existing runtime/disk/app state.
+    // This prevents a double-call to Rawls upon component load, but still triggers
+    // a refresh upon subsequent effects (like the user changing filtering).
+    if (runtimes || disks || apps) {
+      await refreshWorkspaces();
+    }
 
     const workspaces = getWorkspaces();
+
+    // Short circuit if the workspaces haven't loaded yet.
+    if (!workspacesLoaded) {
+      return;
+    }
 
     const startTimeForLeoCallsEpochMs = Date.now();
 
@@ -233,7 +245,13 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
   useEffect(() => {
     loadData();
-  }, [shouldFilterByCreator]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [shouldFilterByCreator, workspacesLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Set the workspacesLoaded state to true when workspaces are loaded to trigger a fetch of Leo data.
+  useEffect(() => {
+    const isLoaded = Object.keys(workspaces).length > 0;
+    setWorkspacesLoaded(isLoaded);
+  }, [workspaces]);
 
   const getCloudProvider = (cloudEnvironment) =>
     cond<string | undefined>(
@@ -837,6 +855,6 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
           appProvider: leoAppData,
         }),
     ]),
-    loading && h(SpinnerOverlay),
+    (!workspacesLoaded || loading) && h(SpinnerOverlay),
   ]);
 };

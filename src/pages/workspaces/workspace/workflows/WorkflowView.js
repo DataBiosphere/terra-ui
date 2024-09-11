@@ -27,6 +27,7 @@ import StepButtons from 'src/components/StepButtons';
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';
 import WDLViewer from 'src/components/WDLViewer';
 import { Ajax } from 'src/libs/ajax';
+import { makeExportWorkflowFromWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -50,10 +51,10 @@ import {
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
-import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
 import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
+import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
@@ -393,7 +394,7 @@ export const WorkflowView = _.flow(
         retryWithMoreMemory: retryWithMoreMemoryPref?.enabled || false,
         retryMemoryFactor: retryWithMoreMemoryPref?.enabled ? retryWithMoreMemoryPref?.factor : 1.2,
         ignoreEmptyOutputs: workflowOptionsPref?.ignoreEmptyOutputs || false,
-        expandResourceMonitoring: resourceMonitoringEnabledPref || false,
+        enableResourceMonitoring: resourceMonitoringEnabledPref || false,
         monitoringScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.script : '',
         monitoringImage: resourceMonitoringEnabledPref ? resourceMonitoringPref?.image : '',
         monitoringImageScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.imageScript : '',
@@ -456,6 +457,7 @@ export const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
+        enableResourceMonitoring,
         monitoringScript,
         monitoringImage,
         monitoringImageScript,
@@ -494,6 +496,7 @@ export const WorkflowView = _.flow(
                 retryWithMoreMemory,
                 retryMemoryFactor,
                 ignoreEmptyOutputs,
+                enableResourceMonitoring,
                 monitoringScript,
                 monitoringImage,
                 monitoringImageScript,
@@ -659,7 +662,7 @@ export const WorkflowView = _.flow(
         deleteIntermediateOutputFiles,
         retryWithMoreMemory,
         retryMemoryFactor,
-        expandResourceMonitoring,
+        enableResourceMonitoring,
         monitoringScript,
         monitoringImage,
         monitoringImageScript,
@@ -679,9 +682,9 @@ export const WorkflowView = _.flow(
           enabled: retryWithMoreMemory,
           factor: retryMemoryFactor,
         };
-      if (expandResourceMonitoring)
+      if (enableResourceMonitoring)
         updatedWfOptionsPref.resourceMonitoring = {
-          enabled: expandResourceMonitoring,
+          enabled: enableResourceMonitoring,
           script: monitoringScript,
           image: monitoringImage,
           imageScript: monitoringImageScript,
@@ -817,7 +820,7 @@ export const WorkflowView = _.flow(
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
-        expandResourceMonitoring,
+        enableResourceMonitoring,
         monitoringScript,
         monitoringImage,
         monitoringImageScript,
@@ -1208,8 +1211,8 @@ export const WorkflowView = _.flow(
                       h(
                         LabeledCheckbox,
                         {
-                          checked: expandResourceMonitoring,
-                          onChange: (v) => this.setState({ expandResourceMonitoring: v }),
+                          checked: enableResourceMonitoring,
+                          onChange: (v) => this.setState({ enableResourceMonitoring: v }),
                           style: styles.checkBoxLeftMargin,
                         },
                         [' Resource monitoring']
@@ -1219,7 +1222,7 @@ export const WorkflowView = _.flow(
                       'Specify user-provided tools to monitor task resources. ',
                       h(Link, { href: this.getSupportLink('27341964316699'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
-                    expandResourceMonitoring &&
+                    enableResourceMonitoring &&
                       div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '2.0rem', width: '20rem', key: 'textFieldsParent' } }, [
                         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
                           h(TextInput, {
@@ -1312,15 +1315,29 @@ export const WorkflowView = _.flow(
           ]),
           exporting &&
             h(ExportWorkflowModal, {
-              thisWorkspace: workspace,
-              methodConfig: savedConfig,
+              defaultWorkflowName: savedConfig.name,
+              destinationWorkspace: ({ workspace: { workspaceId }, accessLevel }) => {
+                return workspace.workspaceId !== workspaceId && WorkspaceUtils.canWrite(accessLevel);
+              },
+              title: 'Copy to Workspace',
+              exportButtonText: 'Copy',
+              exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
+              onGoToExportedWorkflow: (selectedWorkspace, workflowName) =>
+                Nav.goToPath('workflow', {
+                  namespace: selectedWorkspace.namespace,
+                  name: selectedWorkspace.name,
+                  workflowNamespace: selectedWorkspace.namespace,
+                  workflowName,
+                }),
               onDismiss: () => this.setState({ exporting: false }),
             }),
           copying &&
             h(ExportWorkflowModal, {
-              thisWorkspace: workspace,
-              methodConfig: savedConfig,
-              sameWorkspace: true,
+              defaultWorkflowName: `${savedConfig.name}_copy`,
+              destinationWorkspace: workspace,
+              title: 'Duplicate Workflow',
+              exportButtonText: 'Copy',
+              exportProvider: makeExportWorkflowFromWorkspaceProvider(workspace, savedConfig),
               onDismiss: () => this.setState({ copying: false }),
               onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName }),
             }),

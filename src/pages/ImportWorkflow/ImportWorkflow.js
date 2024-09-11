@@ -5,7 +5,7 @@ import { DeleteConfirmationModal, IdContainer, spinnerOverlay } from 'src/compon
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import WDLViewer from 'src/components/WDLViewer';
 import importBackground from 'src/images/hex-import-background.svg';
 import { Ajax } from 'src/libs/ajax';

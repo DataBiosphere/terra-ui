@@ -10,7 +10,6 @@ import Dropzone from 'src/components/Dropzone';
 import { icon } from 'src/components/icons';
 import { NameModal } from 'src/components/NameModal';
 import { UploadProgressModal } from 'src/components/ProgressBar';
-import RequesterPaysModal from 'src/components/RequesterPaysModal';
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
@@ -20,6 +19,7 @@ import { requesterPaysProjectStore } from 'src/libs/state';
 import { useUploader } from 'src/libs/uploads';
 import * as Utils from 'src/libs/utils';
 import { UriViewer } from 'src/workspace-data/data-table/uri-viewer/UriViewer';
+import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
 const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 }) => {

@@ -3,7 +3,7 @@ import { partial } from '@terra-ui-packages/test-utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -26,8 +26,6 @@ jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports 
   };
 });
 
-type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 jest.mock('src/libs/ajax');
 
 type DataRepoExports = typeof import('src/libs/ajax/DataRepo');
@@ -198,6 +196,7 @@ const setup = async (opts: SetupOptions) => {
 
   await waitFor(() => {
     expect(screen.queryByTestId('loading-spinner')).toBeNull();
+    expect(screen.queryByText('Loading...')).toBeNull();
   });
 
   return {

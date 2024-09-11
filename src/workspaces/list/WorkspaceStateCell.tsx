@@ -48,6 +48,8 @@ export const WorkspaceStateCell = (props: WorkspaceStateCellProps): ReactNode =>
       return <WorkspaceCloningCell />;
     case 'CloningFailed':
       return <WorkspaceFailedCell workspaceName={workspace.name} state={state} errorMessage={errorMessage} />;
+    case 'UpdateFailed':
+      return <WorkspaceFailedCell workspaceName={workspace.name} state={state} errorMessage={errorMessage} />;
     default:
       return <WorkspaceDescriptionCell description={description} />;
   }
@@ -103,19 +105,28 @@ const WorkspaceStatusPill = (props: WorkspaceStatusPillProps): ReactNode => {
 
 interface WorkspaceFailedCellProps {
   workspaceName: string;
-  state: 'DeleteFailed' | 'CloningFailed';
+  state: 'DeleteFailed' | 'CloningFailed' | 'UpdateFailed';
   errorMessage?: string;
 }
 
 const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
   const [showDetails, setShowDetails] = useState<boolean>(false);
 
-  const failureMsg = props.state === 'DeleteFailed' ? 'Error deleting workspace' : 'Workspace clone unsuccessful';
+  const failureMsg = () => {
+    switch (props.state) {
+      case 'DeleteFailed':
+        return 'Error deleting workspace';
+      case 'CloningFailed':
+        return 'Workspace clone unsuccessful';
+      default:
+        return 'Error updating billing account';
+    }
+  };
 
   return (
     <div style={{ flexDirection: 'row', display: 'flex', alignItems: 'baseline' }}>
       <WorkspaceStatusPill iconShape='warning-standard' color={colors.danger}>
-        {failureMsg}
+        {failureMsg()}
       </WorkspaceStatusPill>
       {props.errorMessage && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
@@ -131,7 +142,7 @@ const WorkspaceFailedCell = (props: WorkspaceFailedCellProps): ReactNode => {
         </Link>
       )}
       {showDetails && (
-        <Modal width={800} title={failureMsg} showCancel={false} showX onDismiss={() => setShowDetails(false)}>
+        <Modal width={800} title={failureMsg()} showCancel={false} showX onDismiss={() => setShowDetails(false)}>
           <ErrorView error={props.errorMessage ?? 'No error message available'} />
         </Modal>
       )}

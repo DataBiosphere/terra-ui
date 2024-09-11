@@ -114,10 +114,11 @@ describe('Environments Component', () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
+      const otherGoogleWorkspace = generateGoogleWorkspace();
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [],
+        workspaces: [otherGoogleWorkspace],
       });
 
       // Act
@@ -287,7 +288,6 @@ describe('Environments Component', () => {
       const buttons4 = getAllByRole(runtime4ButtonsCell, 'button');
       expect(buttons4.length).toBe(2);
       expect(buttons4[0].textContent).toBe('Pause');
-      // TODO: Back to true once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
       expect(buttons4[0].getAttribute('aria-disabled')).toBe('true');
       expect(buttons4[1].textContent).toBe('Delete');
       expect(buttons4[1].getAttribute('aria-disabled')).toBe('true');
@@ -635,7 +635,8 @@ describe('Environments Component', () => {
       const buttons1 = getAllByRole(app1ButtonsCell, 'button');
 
       // Assert
-      // TODO: Back to 2 / Pause once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
+      // TODO: should be 2 once pause is supported for apps
+      // See https://broadworkbench.atlassian.net/browse/PROD-905
       expect(buttons1.length).toBe(1);
       expect(buttons1[0].textContent).toBe('Delete');
 
@@ -856,14 +857,9 @@ describe('Environments Component', () => {
       ]);
     });
   });
-  // TODO: Reenable once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
-  //   describe('PauseButton', () => {
-  //     it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
-  //       'should enable pause for azure and google',
-  //       async ({ app }) => {
-  //         // Arrange
-  //         const pauseComputeAndRefresh = jest.fn();
 
+  // TODO: Reenable once pause is re-enabled for apps
+  // See https://broadworkbench.atlassian.net/browse/PROD-905
   // describe('PauseButton', () => {
   //   it.each([{ app: generateTestAppWithGoogleWorkspace() }, { app: generateTestAppWithAzureWorkspace() }])(
   //     'should enable pause for azure and google',
@@ -893,6 +889,7 @@ describe('Environments Component', () => {
   //     }
   //   );
   // });
+
   describe('onEvent', () => {
     it('calls onEvent[dataRefesh] with a runtime', async () => {
       // Arrange
@@ -914,6 +911,140 @@ describe('Environments Component', () => {
         leoCallTimeMs: expect.any(Number),
         totalCallTimeMs: expect.any(Number),
       } satisfies DataRefreshInfo);
+    });
+  });
+
+  describe('Workspaces - ', () => {
+    it('refreshes workspaces when pausing compute', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const runtime1 = generateTestListGoogleRuntime();
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
+      const refreshWorkspaces = jest.fn();
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        refresh: refreshWorkspaces,
+      });
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+      const pauseButton = screen.getByText('Pause');
+
+      // Assert
+      expect(pauseButton).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
+
+      // Act
+      await userEvent.click(pauseButton);
+
+      // Assert
+      expect(refreshWorkspaces).toHaveBeenCalled();
+    });
+
+    it('refreshes workspaces when deleting compute', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const runtime1 = generateTestListGoogleRuntime();
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
+      const refreshWorkspaces = jest.fn();
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        refresh: refreshWorkspaces,
+      });
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+      const deleteButton = screen.getByText('Delete');
+
+      // Assert
+      expect(deleteButton).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
+
+      // Act
+      await userEvent.click(deleteButton);
+      const okButton = screen.getByText('OK');
+      await userEvent.click(okButton);
+
+      // Assert
+      expect(refreshWorkspaces).toHaveBeenCalled();
+    });
+
+    it('refreshes workspaces when deleting disks', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const disk = generateTestDiskWithGoogleWorkspace();
+      asMockedFn(props.leoDiskData.list).mockResolvedValue([disk]);
+      const refreshWorkspaces = jest.fn();
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        refresh: refreshWorkspaces,
+      });
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+      const deleteButton = screen.getByText('Delete');
+
+      // Assert
+      expect(deleteButton).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
+
+      // Act
+      await userEvent.click(deleteButton);
+      const okButton = screen.getByText('OK');
+      await userEvent.click(okButton);
+
+      // Assert
+      expect(refreshWorkspaces).toHaveBeenCalled();
+    });
+
+    it('refreshes workspaces when filtering by creator', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const refreshWorkspaces = jest.fn();
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        refresh: refreshWorkspaces,
+      });
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+      const checkbox = screen.getByLabelText('Hide resources you did not create');
+
+      // Assert
+      expect(checkbox).toBeEnabled();
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
+
+      // Act
+      await userEvent.click(checkbox);
+
+      // Assert
+      expect(refreshWorkspaces).toHaveBeenCalled();
+    });
+
+    it('does not refresh workspaces when rendering the page', async () => {
+      // Arrange
+      const props = getEnvironmentsProps();
+      const refreshWorkspaces = jest.fn();
+      asMockedFn(props.useWorkspaces).mockReturnValue({
+        ...defaultUseWorkspacesProps,
+        refresh: refreshWorkspaces,
+      });
+
+      // Act
+      await act(async () => {
+        render(h(Environments, props));
+      });
+
+      // Assert
+      expect(refreshWorkspaces).not.toHaveBeenCalled();
     });
   });
 });

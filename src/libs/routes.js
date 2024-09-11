@@ -26,7 +26,6 @@ import * as NotFound from 'src/pages/NotFound';
 import * as Profile from 'src/pages/ProfilePage';
 import * as Support from 'src/pages/SupportPage';
 import * as UploadData from 'src/pages/UploadDataPage';
-import * as WorkflowConfigs from 'src/pages/workflows/workflow/WorkflowConfigs';
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowSummary';
 import * as WorkflowWdl from 'src/pages/workflows/workflow/WorkflowWdl';
 import * as WorkflowList from 'src/pages/workflows/WorkflowList';
@@ -90,7 +89,6 @@ const routes = _.flatten([
   SignOutPage.navPaths,
   Support.navPaths,
   WorkflowWdl.navPaths,
-  WorkflowConfigs.navPaths,
   NotFound.navPaths, // must be last
 ]);
 

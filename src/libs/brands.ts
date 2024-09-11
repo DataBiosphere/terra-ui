@@ -345,8 +345,12 @@ export const brands: Record<string, BrandConfiguration> = {
     hostName: 'publichealth.terra.bio',
     docLinks: [
       {
+        link: 'https://publichealth.terra.bio/#workspaces/malaria-featured-workspaces/Malaria_Resources_Overview',
+        text: 'Malaria Resources on Terra',
+      },
+      {
         link: 'https://dockstore.org/organizations/Theiagen',
-        text: 'Theiagen Workflow Repository',
+        text: 'Theiagen Workflow Repository (Dockstore)',
       },
       {
         link: 'https://docs.google.com/document/d/e/2PACX-1vTPQC-bYMRxXQ4Gz9ESH_Eo-E6UXD2qOL7_3iMxJaQF3pOyW3tUyu7G9Nvk-JTf8xDkOyhftvd9L-sa/pub',
@@ -370,12 +374,12 @@ export const brands: Record<string, BrandConfiguration> = {
       {
         link: 'workspaces',
         title: 'My Workspaces',
-        body: 'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.',
+        body: 'Combine your own data and workflows with publicly available data and workflows to power your analyses in a secure environment.',
       },
       {
         link: 'workspaces',
-        title: 'Examples',
-        body: 'Browse example pathogen genomic data and analysis tools together.',
+        title: 'Public Workspaces',
+        body: 'Curated example workspaces to help users understand common pathogen genomic datasets and workflows.',
         linkPathParams: {},
         linkQueryParams: { tab: 'public', 'tagsFilter[]': 'pathogen genomics' },
       },

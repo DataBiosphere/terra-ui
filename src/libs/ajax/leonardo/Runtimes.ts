@@ -3,8 +3,8 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { version } from 'src/analysis/utils/gce-machines';
 import { authOpts, withAuthSession } from 'src/auth/auth-session';
-import { appIdentifier, fetchLeo, withAppIdentifier } from 'src/libs/ajax/ajax-common';
-import { fetchOk, withRetry } from 'src/libs/ajax/fetch/fetch-core';
+import { fetchLeo } from 'src/libs/ajax/ajax-common';
+import { appIdentifier, fetchOk, withAppIdentifier, withRetry } from 'src/libs/ajax/fetch/fetch-core';
 import { LeoRuntimesV1DataClient, makeLeoRuntimesV1DataClient } from 'src/libs/ajax/leonardo/LeoRuntimesV1DataClient';
 import { RawRuntimeConfig } from 'src/libs/ajax/leonardo/models/api-runtime-config';
 import {
@@ -63,7 +63,7 @@ const getNormalizedComputeRegion = (config: RawRuntimeConfig): NormalizedCompute
 export type RuntimesHelperDeps = {
   v1Api: LeoRuntimesV1DataClient;
 };
-export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal: AbortSignal) => {
+export const makeRuntimesHelper = (deps: RuntimesHelperDeps) => (signal?: AbortSignal) => {
   const { v1Api } = deps;
   const v1Func = (project: string, name: string) => {
     const root = `api/google/v1/runtimes/${project}/${name}`;

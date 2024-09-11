@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify';
+import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, img } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
@@ -14,31 +16,36 @@ const styles = {
     fontFamily: 'Menlo, monospace',
     fontSize: 12,
     overflowY: 'auto',
-    maxHeight: 206,
+    maxHeight: 400,
     marginTop: '0.5rem',
     padding: '0.5rem',
-    background: colors.dark(0.25),
+    background: colors.light(0.2),
     borderRadius: '0.2rem',
   },
 };
 
-const isImage = ({ contentType, name }) => {
-  return /^image/.test(contentType) || /\.(?:(jpe?g|png|svg|bmp))$/.test(name);
+export const isImage = ({ contentType, name }) => {
+  return /^(?:image)/.test(contentType) || /\.(?:jpe?g|png|svg|bmp)$/.test(name);
 };
 
-const isText = ({ contentType, name }) => {
-  return /(?:(^text|application\/json))/.test(contentType) || /\.(?:(txt|[ct]sv|log|json))$/.test(name);
+export const isText = ({ name }) => {
+  return /\.(?:txt|[ct]sv|log|json|fastq|fasta|fa|vcf|sam|bed|interval_list|gtf|md)$/.test(name);
 };
 
-const isBinary = ({ contentType, name }) => {
-  // excluding json and google's default types (i.e. wasn't set to anything else)
-  return (
-    /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) || /(?:(\.(?:(ba[mi]|cra[mi]|pac|sa|bwt|gz))$|\.gz\.))/.test(name)
-  );
+export const isHtml = ({ contentType, name }) => {
+  return /^(?:text\/html)/.test(contentType) || _.endsWith('html', name);
 };
 
-const isFilePreviewable = ({ size, ...metadata }) => {
-  return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9));
+export const isPdf = ({ contentType, name }) => {
+  return /^(?:application\/pdf)/.test(contentType) || _.endsWith('pdf', name);
+};
+
+export const canRender = ({ contentType, name }) => {
+  return isHtml({ contentType, name }) || isPdf({ contentType, name });
+};
+
+export const isFilePreviewable = ({ size, ...metadata }) => {
+  return (isText(metadata) || isImage(metadata) || canRender(metadata)) && size <= 1e9;
 };
 
 export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googleProject }) => {
@@ -49,9 +56,14 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
       if (isAzureUri(uri)) {
         setPreview(metadata.textContent); // NB: For now, we only support text previews for Azure URIs.
       } else {
-        const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata));
-        if (isImage(metadata)) {
+        const canPreviewFull = isImage(metadata) || canRender(metadata);
+        const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, canPreviewFull);
+        if (isImage(metadata) || isPdf(metadata)) {
           setPreview(URL.createObjectURL(await res.blob()));
+        } else if (isHtml(metadata)) {
+          const sanitizedHtml = DOMPurify.sanitize(await res.text());
+          const safeHtmlPreview = URL.createObjectURL(new Blob([sanitizedHtml], { type: 'text/html' }));
+          setPreview(safeHtmlPreview);
         } else {
           setPreview(await res.text());
         }
@@ -66,16 +78,17 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
     }
   });
   return els.cell([
+    div({ style: { fontWeight: 'bold', padding: '1rem', backgroundColor: 'lightgray' } }, ['File Preview']),
     Utils.cond(
       [
         isFilePreviewable(metadata),
         () =>
           h(Fragment, [
-            els.label('Preview'),
             Utils.cond(
               [preview === null, () => 'Unable to load preview.'],
               [preview === undefined, () => 'Loading preview...'],
-              [isImage(metadata), () => img({ src: preview, width: 400 })],
+              [isImage(metadata), () => img({ src: preview })],
+              [canRender(metadata), () => h('iframe', { src: preview, width: '100%', height: 400 })],
               () =>
                 div(
                   {

@@ -1,6 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import _ from 'lodash';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -274,10 +275,8 @@ describe('ImportWorkflow', () => {
       expect(nameInput).toHaveValue('test-workflow');
     });
 
-    it('validates name', async () => {
-      // Arrange
-      const user = userEvent.setup();
-
+    it('validates name based on allowed symbols', async () => {
+      // Act
       render(
         h(ImportWorkflow, {
           path: 'github.com/DataBiosphere/test-workflows/test-workflow',
@@ -288,12 +287,28 @@ describe('ImportWorkflow', () => {
 
       const nameInput = screen.getByLabelText('Workflow Name');
 
-      // Act
-      await user.clear(nameInput);
-      await user.type(nameInput, 'a new workflow name');
+      fireEvent.change(nameInput, { target: { value: 'a new workflow name' } });
 
       // Assert
       screen.getByText('Workflow name can only contain letters, numbers, underscores, dashes, and periods');
+    });
+
+    it('validates name based on maximum length', async () => {
+      // Act
+      render(
+        h(ImportWorkflow, {
+          path: 'github.com/DataBiosphere/test-workflows/test-workflow',
+          version: 'v1.0.0',
+          source: 'dockstore',
+        })
+      );
+
+      const nameInput = screen.getByLabelText('Workflow Name');
+
+      fireEvent.change(nameInput, { target: { value: _.repeat('a', 255) } });
+
+      // Assert
+      screen.getByText('Workflow name is too long (maximum is 254 characters)');
     });
   });
 

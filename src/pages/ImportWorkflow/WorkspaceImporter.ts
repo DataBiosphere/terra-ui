@@ -37,7 +37,6 @@ export const WorkspaceImporter: (props: WorkspaceImporterProps) => ReactElement<
     }, workspaces);
 
     return h(Fragment, [
-      // @ts-expect-error
       h(WorkspaceSelector, {
         workspaces: filteredWorkspaces,
         noOptionsMessage: loadingWorkspaces ? _.constant('Loading workspaces') : undefined,

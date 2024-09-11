@@ -19,6 +19,7 @@ export interface WorkspaceUserActions {
   deletingWorkspaceId?: string;
   lockingWorkspaceId?: string;
   leavingWorkspaceId?: string;
+  showSettingsWorkspaceId?: string;
   requestingAccessWorkspaceId?: string;
   sharingWorkspace?: WorkspaceWrapper;
   cloningWorkspace?: WorkspaceWrapper;

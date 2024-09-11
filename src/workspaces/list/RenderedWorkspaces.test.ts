@@ -74,6 +74,7 @@ describe('The behavior of the RenderedWorkspaces component', () => {
   it.each<{ state: WorkspaceState; message: string }>([
     { state: 'CloningFailed', message: 'Workspace clone unsuccessful' },
     { state: 'DeleteFailed', message: 'Error deleting workspace' },
+    { state: 'UpdateFailed', message: 'Error updating billing account' },
   ])('should indicate workspace failure instead of displaying the description', ({ state, message }) => {
     // Arrange
     const workspace: WorkspaceWrapper = {
@@ -149,13 +150,17 @@ describe('The behavior of the RenderedWorkspaces component', () => {
     expect(workspaceDescriptionDisplay).toHaveLength(1);
   });
 
-  it('gives a link to display the workspace error message if present', () => {
+  it.each<{ state: WorkspaceState }>([
+    { state: 'CloningFailed' },
+    { state: 'DeleteFailed' },
+    { state: 'UpdateFailed' },
+  ])('gives a link to display the $state workspace error message if present', ({ state }) => {
     // Arrange
     const workspace: WorkspaceWrapper = {
       ...defaultAzureWorkspace,
       workspace: {
         ...defaultAzureWorkspace.workspace,
-        state: 'DeleteFailed',
+        state,
         errorMessage: 'A semi-helpful message!',
       },
     };
@@ -190,26 +195,5 @@ describe('The behavior of the RenderedWorkspaces component', () => {
 
     const message = screen.getByText('A semi-helpful message!');
     expect(message).not.toBeNull();
-  });
-
-  it('gives a link to display the workspace error message for workspaces that failed cloning', () => {
-    // Arrange
-    const workspace: WorkspaceWrapper = {
-      ...defaultAzureWorkspace,
-      workspace: {
-        ...defaultAzureWorkspace.workspace,
-        state: 'CloningFailed',
-        errorMessage: 'A semi-helpful message!',
-      },
-    };
-    const label = 'myWorkspaces';
-
-    // Act
-    render(h(RenderedWorkspaces, { workspaces: [workspace], label, noContent: div({}) }));
-
-    // Assert
-    const detailsLink = screen.getByText('See error details.');
-    expect(detailsLink).not.toBeNull();
-    expect(detailsLink).toHaveLength[1];
   });
 });

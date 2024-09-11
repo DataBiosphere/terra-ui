@@ -4,10 +4,11 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { AppAccessScope, AppToolLabel } from 'src/analysis/utils/tool-utils';
 import { authOpts } from 'src/auth/auth-session';
-import { appIdentifier, fetchLeo } from 'src/libs/ajax/ajax-common';
+import { fetchLeo } from 'src/libs/ajax/ajax-common';
+import { appIdentifier } from 'src/libs/ajax/fetch/fetch-core';
 import { CreateAppV1Request, GetAppItem, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 
-export const Apps = (signal: AbortSignal) => ({
+export const Apps = (signal?: AbortSignal) => ({
   list: async (project: string, labels: LeoResourceLabels = {}): Promise<ListAppItem[]> => {
     const res = await fetchLeo(
       `api/google/v1/apps/${project}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
@@ -96,9 +97,6 @@ export const Apps = (signal: AbortSignal) => ({
     const body = {
       appType,
       accessScope,
-      labels: {
-        saturnAutoCreated: 'true',
-      },
     };
     const res = fetchLeo(
       `api/apps/v2/${workspaceId}/${appName}`,
