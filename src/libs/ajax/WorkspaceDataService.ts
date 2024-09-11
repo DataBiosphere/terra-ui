@@ -197,6 +197,12 @@ export const WorkspaceData = (signal) => ({
     resultJson.records = _.map(_.unset('attributes.sys_name'), resultJson.records);
     return resultJson;
   },
+  deleteRecords: async (root: string, instanceId: string, recordType: string): Promise<any> => {
+    await fetchWDS(root)(
+      `${instanceId}/records/v1/${collectionId}/${recordType}`,
+      _.mergeAll([authOpts(), jsonBody(record), { signal, method: 'DELETE' }])
+    );
+  },
   describeAllRecordTypes: async (root: string, instanceId: string): Promise<any> => {
     const res = await fetchWDS(root)(`${instanceId}/types/v0.2`, _.mergeAll([authOpts(), { signal, method: 'GET' }]));
     return _.map(

@@ -1,11 +1,18 @@
 import { Fragment, useState } from 'react';
-import { h } from 'react-hyperscript-helpers';
+import { div, h } from 'react-hyperscript-helpers';
+import { ButtonSecondary } from 'src/components/common';
+import { icon } from 'src/components/icons';
+import { MenuButton } from 'src/components/MenuButton';
+import { MenuTrigger } from 'src/components/PopupTrigger';
 import { DataTableProvider } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { RecordTypeSchema, wdsToEntityServiceMetadata } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import DataTable from '../shared/DataTable';
+import { RecordDeleter } from './RecordDeleter';
 
 export interface WDSContentProps {
   workspace: Workspace;
@@ -18,6 +25,9 @@ export interface WDSContentProps {
 
 export const WDSContent = ({
   workspace,
+  workspace: {
+    workspaceSubmissionStats: { runningSubmissionsCount },
+  },
   recordType,
   wdsSchema,
   dataProvider,
@@ -26,10 +36,48 @@ export const WDSContent = ({
 }: WDSContentProps) => {
   const googleProject = isGoogleWorkspace(workspace) ? workspace.workspace.googleProject : undefined;
   // State
-  const [refreshKey] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedEntities, setSelectedEntities] = useState({});
+  const [deletingEntities, setDeletingEntities] = useState(false);
 
   // Render
   const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
+
+  const entitiesSelected = !_.isEmpty(selectedEntities);
+
+  // TODO: This is a (mostly) copy/paste from the EntitiesContent component.
+  //       should it be abstracted into its own component or shared function?
+  const renderEditMenu = () => {
+    return h(
+      MenuTrigger,
+      {
+        side: 'bottom',
+        closeOnClick: true,
+        content: h(Fragment, [
+          h(
+            MenuButton,
+            {
+              disabled: !entitiesSelected,
+              tooltip: !entitiesSelected && 'Select rows to delete in the table',
+              onClick: () => setDeletingEntities(true),
+            },
+            'Delete selected rows'
+          ),
+        ]),
+      },
+      [
+        h(
+          ButtonSecondary,
+          {
+            tooltip: 'Edit data',
+            ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+            style: { marginRight: '1.5rem' },
+          },
+          [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit']
+        ),
+      ]
+    );
+  };
 
   // dataProvider contains the proxyUrl for an instance of WDS
   return h(Fragment, [
@@ -45,11 +93,10 @@ export const WDSContent = ({
       workspace,
       snapshotName: undefined,
       selectionModel: {
-        selected: [],
-        setSelected: () => [],
+        selected: selectedEntities, // TODO: should this be called "selectedRecords"?
+        setSelected: setSelectedEntities, // TODO: same question
       },
       setEntityMetadata,
-      childrenBefore: undefined,
       enableSearch: false,
       controlPanelStyle: {
         background: colors.light(1),
@@ -57,7 +104,22 @@ export const WDSContent = ({
       },
       border: false,
       loadMetadata,
+      childrenBefore: () => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } }, [renderEditMenu()]),
     }),
+    deletingEntities &&
+      h(RecordDeleter, {
+        onDismiss: () => setDeletingEntities(false),
+        onSuccess: () => {
+          setDeletingEntities(false);
+          setSelectedEntities({});
+          setRefreshKey(_.add(1));
+          Ajax().Metrics.captureEvent(Events.workspaceDataDelete, extractWorkspaceDetails(workspace.workspace));
+          loadMetadata();
+        },
+        selectedEntities,
+        selectedDataType: recordType,
+        runningSubmissionsCount,
+      }),
   ]);
 };
 
