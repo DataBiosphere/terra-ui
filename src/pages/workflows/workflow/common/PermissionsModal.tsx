@@ -1,8 +1,8 @@
-import { ButtonPrimary, Modal } from '@terra-ui-packages/components';
+import { ButtonPrimary, Modal, Select } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { CSSProperties, Fragment, useRef } from 'react';
+import React, { CSSProperties, useRef, useState } from 'react';
 import { IdContainer } from 'src/components/common';
-import { TextInput } from 'src/components/input';
+import { AutocompleteTextInput } from 'src/components/input';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
@@ -21,7 +21,17 @@ const styles: CSSProperties = {
   borderTop: Style.standardLine,
 };
 
-const Collaborator = (aclItem) => {
+const UserInput = (props) => {
+  return (
+    <div style={{ display: 'flex', marginTop: '0.25rem' }}>
+      <div style={{ width: 200 }}>
+        <Select value='OWNER' options={['OWNER']} />
+      </div>
+    </div>
+  );
+};
+
+const Collaborator = (/* aclItem */) => {
   // console.log(aclItem[0]);
   return (
     <div
@@ -36,7 +46,8 @@ const Collaborator = (aclItem) => {
         backgroundColor: colors.success(0.05),
       }}
     >
-      <div style={{ flex: 1 }}>{aclItem.email}</div>
+      <div style={{ flex: 1 }}>email</div>
+      <UserInput />
     </div>
   );
 };
@@ -79,6 +90,7 @@ const CurrentUsers = (props) => {
 
 export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const { workflowOrNamespace, name } = props;
+  const [searchValue, setSearchValue] = useState<string>('');
 
   return (
     <Modal
@@ -94,11 +106,43 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
           {(id) => (
             <div style={{ flexGrow: 1, marginRight: '1rem' }}>
               <FormLabel id={id}>User</FormLabel>
-              <TextInput />
+              <AutocompleteTextInput
+                labelId={id}
+                openOnFocus
+                // placeholderText={
+                //   _.includes(searchValue, aclEmails)
+                //     ? 'This email has already been added to the list'
+                //     : 'Type an email address and press "Enter" or "Return"'
+                // }
+                /* eslint-disable-next-line no-console */
+                onPick={() => console.log('add user helper')}
+                placeholder='Add user'
+                value={searchValue}
+                //     onFocus: () => {
+                //   setSearchHasFocus(true);
+                // },
+                //   onBlur: () => {
+                //   setSearchHasFocus(false);
+                // },
+                onChange={setSearchValue}
+                //   suggestions: cond(
+                // [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
+                // [remainingSuggestions.length > 0, () => remainingSuggestions],
+                // () => []
+                // ),
+                style={{ fontSize: 16 }}
+              />
             </div>
           )}
         </IdContainer>
-        <ButtonPrimary>Add</ButtonPrimary>
+        <ButtonPrimary
+          // disable={!searchValueValid}
+          // tooltip={!searchValueValid && 'Enter an email address to add a collaborator'}
+          /* eslint-disable-next-line no-console */
+          onClick={() => console.log('addCollaborator(searchValue)')}
+        >
+          Add
+        </ButtonPrimary>
       </div>
       <CurrentUsers />
     </Modal>
