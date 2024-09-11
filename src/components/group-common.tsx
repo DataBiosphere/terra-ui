@@ -1,18 +1,63 @@
 import { Icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ButtonPrimary, Link } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import { BillingRole } from 'src/libs/ajax/Billing';
-import { GroupRole } from 'src/libs/ajax/Groups';
 import { cardList as cardListStyles } from 'src/libs/style';
+
+export interface Member {
+  email: string;
+  roles: string[];
+}
+
+interface MemberTableProps {
+  adminLabel: string;
+  userLabel: string;
+  members: Member[];
+  adminCanEdit: boolean;
+  onEdit: (user: Member) => void;
+  onDelete: (user: Member) => void;
+  tableAriaLabel: string;
+  isOwner: boolean;
+  onAddUser: () => void;
+}
+
+export const MemberTable = (props: MemberTableProps): ReactNode => {
+  const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
+
+  return (
+    <div style={{ marginTop: '1rem' }}>
+      {props.isOwner && <NewUserCard onClick={props.onAddUser} />}
+      <div role='table' aria-label={props.tableAriaLabel}>
+        <MemberCardHeaders sort={sort} onSort={setSort} />
+        <div style={{ flexGrow: 1, marginTop: '1rem' }}>
+          {_.map(
+            (member: Member) => (
+              <MemberCard
+                key={member.email}
+                adminLabel={props.adminLabel}
+                userLabel={props.userLabel}
+                member={member}
+                adminCanEdit={props.adminCanEdit}
+                onEdit={() => props.onEdit(member)}
+                onDelete={() => props.onDelete(member)}
+                isOwner={props.isOwner}
+              />
+            ),
+            _.orderBy([sort.field], [sort.direction], props.members)
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface NewUserCardProps {
   onClick: () => void;
 }
-export const NewUserCard = (props: NewUserCardProps) => (
+const NewUserCard = (props: NewUserCardProps) => (
   <ButtonPrimary style={{ textTransform: 'none' }} onClick={props.onClick}>
     <Icon icon='plus' size={14} />
     <div style={{ marginLeft: '0.5rem' }}>Add User</div>
@@ -39,7 +84,7 @@ const UserMenuContent = (props: UserMenuContentProps) => (
 
 const menuCardSize = 20;
 
-export interface Sort {
+interface Sort {
   field: string;
   direction: 'asc' | 'desc';
 }
@@ -49,7 +94,7 @@ interface MemberCardHeadersProps {
   onSort: (v: Sort) => void;
 }
 
-export const MemberCardHeaders = (props: MemberCardHeadersProps): ReactNode => (
+const MemberCardHeaders = (props: MemberCardHeadersProps): ReactNode => (
   <div role='row' style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' }}>
     <div role='columnheader' aria-sort={ariaSort(props.sort, 'email')} style={{ flex: 1 }}>
       <HeaderRenderer sort={props.sort} onSort={props.onSort} name='email' />
@@ -67,15 +112,8 @@ export const MemberCardHeaders = (props: MemberCardHeadersProps): ReactNode => (
   </div>
 );
 
-export type UserRole = BillingRole | GroupRole;
-
-export interface User {
-  email: string;
-  roles: UserRole[];
-}
-
 interface MemberCardProps {
-  member: User;
+  member: Member;
   adminCanEdit: boolean;
   onEdit: () => void;
   onDelete: () => void;
@@ -84,7 +122,7 @@ interface MemberCardProps {
   isOwner: boolean;
 }
 
-export const MemberCard = (props: MemberCardProps): ReactNode => {
+const MemberCard = (props: MemberCardProps): ReactNode => {
   const {
     member: { email, roles },
     adminCanEdit,

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
 import { Members } from 'src/billing/Members/Members';
-import { User } from 'src/components/group-common';
+import { Member } from 'src/components/group-common';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
@@ -13,7 +13,7 @@ jest.mock('src/libs/ajax');
 describe('Members', () => {
   it('renders a list of members in the billing project with no accessibility errors', async () => {
     // Arrange
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'x_owner@test.email.org', roles: ['Owner'] },
       { email: 'user@test.email.org', roles: ['User'] },
     ];
@@ -44,7 +44,7 @@ describe('Members', () => {
 
   it('supports sorting members', async () => {
     // Arrange
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'x_owner@test.email.org', roles: ['Owner'] },
       { email: 'user@test.email.org', roles: ['User'] },
     ];
@@ -75,7 +75,7 @@ describe('Members', () => {
 
   it('supports adding a member for owners', async () => {
     // Arrange
-    const projectUsers: User[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
+    const projectUsers: Member[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
     const user = userEvent.setup();
 
     const addProjectUser = jest.fn();
@@ -119,7 +119,7 @@ describe('Members', () => {
 
   it('does not show the Add User button for non-owners', async () => {
     // Arrange
-    const projectUsers: User[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
+    const projectUsers: Member[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
 
     // Act
     renderWithAppContexts(
@@ -140,7 +140,7 @@ describe('Members', () => {
   it('disables the action menu for an owner if there are not multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers: User[] = [{ email: ownerEmail, roles: ['Owner'] }];
+    const projectUsers: Member[] = [{ email: ownerEmail, roles: ['Owner'] }];
 
     // Act
     renderWithAppContexts(
@@ -161,7 +161,7 @@ describe('Members', () => {
   it('does not show an action menu if the user is not an owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
       { email: userEmail, roles: ['User'] },
     ];
@@ -185,7 +185,7 @@ describe('Members', () => {
   it('supports deleting an owner if there are multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: ownerEmail, roles: ['Owner'] },
       { email: 'owner2@test.email.org', roles: ['Owner'] },
     ];
@@ -218,7 +218,7 @@ describe('Members', () => {
   it('supports deleting a non-owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
       { email: userEmail, roles: ['User'] },
     ];
@@ -250,7 +250,7 @@ describe('Members', () => {
   it('supports editing a non-owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
       { email: userEmail, roles: ['User'] },
     ];
@@ -291,7 +291,7 @@ describe('Members', () => {
   it('supports editing an owner if there are multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: ownerEmail, roles: ['Owner'] },
       { email: 'owner2@test.email.org', roles: ['Owner'] },
     ];

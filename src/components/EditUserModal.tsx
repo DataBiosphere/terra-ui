@@ -2,14 +2,14 @@ import { ButtonPrimary, Modal, SpinnerOverlay } from '@terra-ui-packages/compone
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
-import { User } from 'src/components/group-common';
+import { Member } from 'src/components/group-common';
 import { withErrorReporting } from 'src/libs/error';
 import { withBusyState } from 'src/libs/utils';
 
 interface EditUserModalProps {
   adminLabel: string;
   userLabel: string;
-  user: User;
+  user: Member;
   onSuccess: () => void;
   onDismiss: () => void;
   saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void | void[]>;
