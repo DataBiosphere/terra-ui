@@ -94,7 +94,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const selectedSnapshot: number = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
 
-  const [deleting, setDeleting] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
 
   const snapshot =
@@ -146,10 +146,10 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
             onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
           }),
         ]),
-        h(SnapshotActionMenu, { onDelete: () => setDeleting(true) }),
+        h(SnapshotActionMenu, { onDelete: () => setShowDeleteModal(true) }),
       ]
     ),
-    deleting &&
+    showDeleteModal &&
       h(DeleteSnapshotModal, {
         namespace,
         name,
@@ -158,12 +158,12 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           Utils.withBusyState(setBusy),
           withErrorReporting('Error deleting snapshot')
         )(async () => {
-          setDeleting(false);
+          setShowDeleteModal(false);
           await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).delete();
           Nav.goToPath('workflows');
         }),
         onDismiss: () => {
-          setDeleting(false);
+          setShowDeleteModal(false);
         },
       }),
     busy && spinnerOverlay,
