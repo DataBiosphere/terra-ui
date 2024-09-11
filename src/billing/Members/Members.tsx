@@ -1,16 +1,10 @@
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { billingRoles } from 'src/billing/utils';
-import {
-  DeleteUserModal,
-  EditUserModal,
-  MemberCard,
-  MemberCardHeaders,
-  NewUserCard,
-  NewUserModal,
-  Sort,
-  User,
-} from 'src/components/group-common';
+import { DeleteUserModal } from 'src/components/DeleteUserModal';
+import { EditUserModal } from 'src/components/EditUserModal';
+import { MemberCard, MemberCardHeaders, NewUserCard, Sort, User } from 'src/components/group-common';
+import { NewUserModal } from 'src/components/NewUserModal';
 import { Ajax } from 'src/libs/ajax';
 import { BillingRole } from 'src/libs/ajax/Billing';
 
@@ -52,8 +46,6 @@ export const Members = (props: MembersProps): ReactNode => {
                 isOwner={isOwner}
               />
             ),
-            // Lodash does not have a well-typed return on this function and there are not any nice alternatives, so expect error for now
-            // @ts-expect-error
             _.orderBy([sort.field], [sort.direction], projectUsers)
           )}
         </div>

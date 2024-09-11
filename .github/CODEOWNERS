@@ -3,6 +3,7 @@
 /src/analysis @DataBiosphere/broad-interactive-analysis
 /src/billing-core/ @DataBiosphere/broadworkspaces-terra-ui
 /src/billing/ @DataBiosphere/broadworkspaces-terra-ui
+/src/groups/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/EnvironmentsPage/ @DataBiosphere/broad-interactive-analysis
 /src/constants/datasets.js @DataBiosphere/data-explorer-eng
 /src/import-data/ @DataBiosphere/data-explorer-eng @DataBiosphere/analysisjourneys
@@ -21,6 +22,7 @@
 /src/data-catalog/ @DataBiosphere/data-explorer-eng
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broadworkspaces-terra-ui
+/src/pages/groups/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces-terra-ui
 /src/profile/notification-settings/* @DataBiosphere/broadworkspaces-terra-ui
 /src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
