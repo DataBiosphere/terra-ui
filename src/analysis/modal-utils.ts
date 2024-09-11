@@ -6,9 +6,13 @@ import {
   getImageUrlFromRuntime,
 } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv, ToolLabel } from 'src/analysis/utils/tool-utils';
-import { ComputeType } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { cloudServiceTypes, ComputeType } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { GooglePdType, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import * as Utils from 'src/libs/utils';
+
+import { ComputeImage } from './useComputeImages';
+import { defaultGceBootDiskSize } from './utils/disk-utils';
 
 export interface IComputeConfig {
   masterMachineType: string;
@@ -35,16 +39,28 @@ export interface IComputeConfig {
   persistentDiskType: DiskType;
 }
 
-export type NormalizedModalRuntimeConfig = {
+export interface ExistingModalRuntimeConfig {
   hasGpu: boolean;
   autopauseThreshold: number | undefined;
+  computeConfig: IComputeConfig;
   runtime?: NormalizedModalRuntime;
-  persistentDisk?: PersistentDiskConfigInModalRuntimeConfig;
-};
+  currentRuntimeDetails?: GetRuntimeItem;
+  persistentDisk?: ExistingModalPersistentDiskConfig;
+}
 
-export interface PersistentDiskConfigInModalRuntimeConfig {
+export type DesiredModalRuntimeConfig = {
+  persistentDisk?: DesiredModalPersistentDiskConfig;
+} & Omit<ExistingModalRuntimeConfig, 'persistentDisk'>;
+
+export interface ExistingModalPersistentDiskConfig {
   size: number;
   diskType: GooglePdType;
+}
+// The desired diverges from the existing because the api request to make a runtime requires `GoogleDiskType`
+// However, we decorate the type to `GooglePdType` when we get it from the api
+export interface DesiredModalPersistentDiskConfig {
+  size: number;
+  diskType: GoogleDiskType;
 }
 
 export type NormalizedModalRuntime = {
@@ -54,7 +70,7 @@ export type NormalizedModalRuntime = {
   persistentDiskAttached: boolean;
   region: string;
   jupyterUserScriptUri?: string;
-  gpuConfig?: any;
+  gpuConfig?: any; // TODO
   zone?: string;
   machineType?: string;
   bootDiskSize?: number | null;
@@ -64,9 +80,28 @@ export type NormalizedModalRuntime = {
   masterDiskSize?: number;
   numberOfWorkers?: number;
   numberOfPreemptibleWorkers?: number | null;
-  workerMachineType?: string | null;
-  workerDiskSize?: number | null;
+  workerMachineType?: string | null | undefined;
+  workerDiskSize?: number | null | undefined;
+  timeoutInMinutes?: number | null;
 };
+
+// Auxiliary functions -- begin
+export const isGce = (runtimeType) => runtimeType === runtimeTypes.gceVm;
+
+export const isDataproc = (runtimeType) =>
+  runtimeType === runtimeTypes.dataprocSingleNode || runtimeType === runtimeTypes.dataprocCluster;
+
+export const isDataprocCluster = (runtimeType) => runtimeType === runtimeTypes.dataprocCluster;
+
+// TODO: use type
+export const runtimeTypes = {
+  gceVm: 'Standard VM',
+  dataprocSingleNode: 'Spark single node',
+  dataprocCluster: 'Spark cluster',
+};
+
+export const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) =>
+  isGce(runtimeType) && (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected);
 
 // TODO: tnis is the best place to start
 export const buildExistingEnvironmentConfig = (
@@ -74,7 +109,7 @@ export const buildExistingEnvironmentConfig = (
   currentRuntimeDetails?: GetRuntimeItem,
   currentPersistentDiskDetails?: PersistentDisk,
   isDataproc = false
-): NormalizedModalRuntimeConfig => {
+): ExistingModalRuntimeConfig => {
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig;
   const cloudService = runtimeConfig?.cloudService;
   const numberOfWorkers = runtimeConfig && 'numberOfWorkers' in runtimeConfig ? runtimeConfig.numberOfWorkers : 0;
@@ -83,6 +118,8 @@ export const buildExistingEnvironmentConfig = (
   return {
     hasGpu: computeConfig.hasGpu,
     autopauseThreshold: currentRuntimeDetails?.autopauseThreshold,
+    computeConfig,
+    currentRuntimeDetails,
     runtime: currentRuntimeDetails
       ? {
           cloudService,
@@ -139,5 +176,128 @@ export const buildExistingEnvironmentConfig = (
     persistentDisk: currentPersistentDiskDetails
       ? { size: currentPersistentDiskDetails.size, diskType: currentPersistentDiskDetails.diskType }
       : undefined,
+  };
+};
+
+export interface DesiredEnvironmentParams {
+  desiredRuntimeType: string;
+  timeoutInMinutes: number;
+  deleteDiskSelected: boolean;
+  upgradeDiskSelected: boolean;
+  jupyterUserScriptUri: string | undefined;
+  isCustomSelectedImage: boolean;
+  customImageUrl: string;
+  selectedImage?: ComputeImage;
+}
+
+// extract desiredruntimeconfig into a type
+// TODO: converge type with getExistingEnvironmentConfig
+// TODO: type desired runtimetype
+export const buildDesiredEnvironmentConfig = (
+  currentRuntimeModalConfig: ExistingModalRuntimeConfig,
+  viewMode: string,
+  params: DesiredEnvironmentParams
+): DesiredModalRuntimeConfig => {
+  const {
+    computeConfig,
+    currentRuntimeDetails,
+    runtime: existingRuntimeModalConfig,
+    persistentDisk: currentPersistentDiskDetails,
+  } = currentRuntimeModalConfig;
+  const {
+    desiredRuntimeType,
+    timeoutInMinutes,
+    deleteDiskSelected,
+    upgradeDiskSelected,
+    jupyterUserScriptUri,
+    isCustomSelectedImage,
+    customImageUrl,
+    selectedImage,
+  } = params;
+  const cloudService: ComputeType = isDataproc(desiredRuntimeType) ? cloudServiceTypes.DATAPROC : cloudServiceTypes.GCE;
+  const desiredNumberOfWorkers = isDataprocCluster(desiredRuntimeType) ? computeConfig.numberOfWorkers : 0;
+  const gpuConfig = {
+    gpuConfig: computeConfig.gpuEnabled
+      ? { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus }
+      : undefined,
+  };
+  const toolLabel: ToolLabel | undefined = Utils.cond(
+    [!!selectedImage?.toolLabel, () => selectedImage?.toolLabel],
+    [!!currentRuntimeDetails, () => currentRuntimeDetails && getToolLabelFromCloudEnv(currentRuntimeDetails)],
+    [Utils.DEFAULT, () => undefined]
+  );
+
+  return {
+    hasGpu: computeConfig.hasGpu,
+    autopauseThreshold: computeConfig.autopauseThreshold,
+    computeConfig,
+    currentRuntimeDetails,
+    runtime: Utils.cond<NormalizedModalRuntime | undefined>(
+      [
+        viewMode !== 'deleteEnvironment',
+        () => ({
+          cloudService,
+          toolDockerImage: isCustomSelectedImage ? customImageUrl : selectedImage?.url,
+          tool: toolLabel,
+          region: computeConfig.computeRegion,
+          persistentDiskAttached: shouldUsePersistentDisk(
+            desiredRuntimeType,
+            currentRuntimeDetails,
+            upgradeDiskSelected
+          ),
+          gpuConfig,
+          ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {}),
+          ...(timeoutInMinutes ? { timeoutInMinutes } : {}),
+          ...(cloudService === cloudServiceTypes.GCE
+            ? {
+                zone: computeConfig.computeZone,
+                machineType:
+                  computeConfig.masterMachineType ||
+                  (!!currentRuntimeDetails &&
+                    getDefaultMachineType(false, getToolLabelFromCloudEnv(currentRuntimeDetails))) ||
+                  undefined,
+                bootDiskSize:
+                  !!currentRuntimeDetails &&
+                  !!currentRuntimeDetails.runtimeConfig &&
+                  'bootDiskSize' in currentRuntimeDetails.runtimeConfig
+                    ? currentRuntimeDetails?.runtimeConfig.bootDiskSize
+                    : defaultGceBootDiskSize,
+                ...(shouldUsePersistentDisk(desiredRuntimeType, currentRuntimeDetails, upgradeDiskSelected)
+                  ? {}
+                  : {
+                      diskSize: computeConfig.masterDiskSize,
+                    }),
+              }
+            : {
+                masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
+                masterDiskSize: computeConfig.masterDiskSize,
+                numberOfWorkers: desiredNumberOfWorkers,
+                componentGatewayEnabled: computeConfig.componentGatewayEnabled,
+                ...(desiredNumberOfWorkers && {
+                  numberOfPreemptibleWorkers: computeConfig.numberOfPreemptibleWorkers,
+                  workerMachineType: computeConfig.workerMachineType || defaultDataprocMachineType,
+                  workerDiskSize: computeConfig.workerDiskSize,
+                }),
+              }),
+        }),
+      ],
+      [!deleteDiskSelected || !!existingRuntimeModalConfig?.persistentDiskAttached, () => undefined],
+      [Utils.DEFAULT, () => existingRuntimeModalConfig]
+    ),
+    persistentDisk: Utils.cond(
+      [deleteDiskSelected, () => undefined],
+      [
+        viewMode !== 'deleteEnvironment' &&
+          shouldUsePersistentDisk(desiredRuntimeType, currentRuntimeDetails, upgradeDiskSelected),
+        () => ({ size: computeConfig.diskSize, diskType: computeConfig.diskType }),
+      ],
+      [
+        Utils.DEFAULT,
+        () =>
+          currentPersistentDiskDetails
+            ? { ...currentPersistentDiskDetails, diskType: currentPersistentDiskDetails.diskType.value }
+            : undefined,
+      ]
+    ),
   };
 };
