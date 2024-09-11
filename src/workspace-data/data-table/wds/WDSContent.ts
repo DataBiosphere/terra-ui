@@ -26,6 +26,7 @@ export interface WDSContentProps {
 export const WDSContent = ({
   workspace,
   workspace: {
+    workspace: { workspaceId },
     workspaceSubmissionStats: { runningSubmissionsCount },
   },
   recordType,
@@ -37,13 +38,13 @@ export const WDSContent = ({
   const googleProject = isGoogleWorkspace(workspace) ? workspace.workspace.googleProject : undefined;
   // State
   const [refreshKey, setRefreshKey] = useState(0);
-  const [selectedEntities, setSelectedEntities] = useState({});
-  const [deletingEntities, setDeletingEntities] = useState(false);
+  const [selectedRecords, setSelectedRecords] = useState({});
+  const [deletingRecords, setDeletingRecords] = useState(false);
 
   // Render
   const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
 
-  const entitiesSelected = !_.isEmpty(selectedEntities);
+  const entitiesSelected = !_.isEmpty(selectedRecords);
 
   // TODO: This is a (mostly) copy/paste from the EntitiesContent component.
   //       should it be abstracted into its own component or shared function?
@@ -59,7 +60,7 @@ export const WDSContent = ({
             {
               disabled: !entitiesSelected,
               tooltip: !entitiesSelected && 'Select rows to delete in the table',
-              onClick: () => setDeletingEntities(true),
+              onClick: () => setDeletingRecords(true),
             },
             'Delete selected rows'
           ),
@@ -93,8 +94,8 @@ export const WDSContent = ({
       workspace,
       snapshotName: undefined,
       selectionModel: {
-        selected: selectedEntities, // TODO: should this be called "selectedRecords"?
-        setSelected: setSelectedEntities, // TODO: same question
+        selected: selectedRecords, // TODO: should this be called "selectedRecords"?
+        setSelected: setSelectedRecords, // TODO: same question
       },
       setEntityMetadata,
       enableSearch: false,
@@ -106,18 +107,20 @@ export const WDSContent = ({
       loadMetadata,
       childrenBefore: () => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } }, [renderEditMenu()]),
     }),
-    deletingEntities &&
+    deletingRecords &&
       h(RecordDeleter, {
-        onDismiss: () => setDeletingEntities(false),
+        onDismiss: () => setDeletingRecords(false),
         onSuccess: () => {
-          setDeletingEntities(false);
-          setSelectedEntities({});
+          setDeletingRecords(false);
+          setSelectedRecords({});
           setRefreshKey(_.add(1));
           Ajax().Metrics.captureEvent(Events.workspaceDataDelete, extractWorkspaceDetails(workspace.workspace));
           loadMetadata();
         },
-        selectedEntities,
-        selectedDataType: recordType,
+        dataProvider,
+        collectionId: workspaceId,
+        selectedRecords,
+        selectedRecordType: recordType,
         runningSubmissionsCount,
       }),
   ]);

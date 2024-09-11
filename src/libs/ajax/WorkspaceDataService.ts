@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import {
+  DeleteRecordsRequest,
   RecordQueryResponse,
   RecordResponseBody,
   RecordTypeSchema,
@@ -197,10 +198,15 @@ export const WorkspaceData = (signal) => ({
     resultJson.records = _.map(_.unset('attributes.sys_name'), resultJson.records);
     return resultJson;
   },
-  deleteRecords: async (root: string, instanceId: string, recordType: string): Promise<any> => {
+  deleteRecords: async (
+    root: string,
+    collectionId: string,
+    recordType: string,
+    parameters: DeleteRecordsRequest
+  ): Promise<any> => {
     await fetchWDS(root)(
-      `${instanceId}/records/v1/${collectionId}/${recordType}`,
-      _.mergeAll([authOpts(), jsonBody(record), { signal, method: 'DELETE' }])
+      `records/v1/${collectionId}/${recordType}`,
+      _.mergeAll([authOpts(), jsonBody(parameters), { signal, method: 'POST' }])
     );
   },
   describeAllRecordTypes: async (root: string, instanceId: string): Promise<any> => {

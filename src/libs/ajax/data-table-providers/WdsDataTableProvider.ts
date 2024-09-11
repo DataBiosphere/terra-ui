@@ -41,6 +41,12 @@ export interface SearchRequest {
   sortAttribute?: string;
 }
 
+export interface DeleteRecordsRequest {
+  record_ids?: string[];
+  excluded_record_ids?: string[];
+  delete_all?: boolean;
+}
+
 export type RecordAttributes = Record<string, unknown>; // truly "unknown" here; the backend Java representation is Map<String, Object>
 
 export interface RecordResponse {

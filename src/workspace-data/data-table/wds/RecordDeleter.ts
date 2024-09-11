@@ -7,22 +7,38 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-export const RecordDeleter = ({ onDismiss, onSuccess, selectedEntities, runningSubmissionsCount }) => {
+export const RecordDeleter = ({
+  onDismiss,
+  onSuccess,
+  dataProvider,
+  collectionId,
+  selectedRecords,
+  runningSubmissionsCount,
+}) => {
   const [additionalDeletions, setAdditionalDeletions] = useState([]);
   const [deleting, setDeleting] = useState(false);
 
-  const selectedKeys = _.keys(selectedEntities);
+  const selectedKeys = _.keys(selectedRecords);
 
   const doDelete = async () => {
-    const entitiesToDelete = _.flow(
+    const recordsToDelete = _.flow(
       _.map(({ name: entityName, entityType }) => ({ entityName, entityType })),
-      (entities) => _.concat(additionalDeletions, entities)
-    )(selectedEntities);
+      (records) => _.concat(additionalDeletions, records)
+    )(selectedRecords);
 
+    const recordTypes = _.uniq(_.map(({ entityType }) => entityType, selectedRecords));
+    if (recordTypes.length > 1) {
+      await reportError(
+        'Something went wrong; more than one recordType is represented in the selection. This should not happen.'
+      );
+    }
+    const recordType = recordTypes[0];
     setDeleting(true);
 
     try {
-      await Ajax().WorkspaceData.deleteRecords(root, instanceId, recordType);
+      await Ajax().WorkspaceData.deleteRecords(dataProvider.proxyUrl, collectionId, recordType, {
+        record_ids: recordsToDelete,
+      });
       onSuccess();
     } catch (error) {
       switch (error.status) {
@@ -34,7 +50,7 @@ export const RecordDeleter = ({ onDismiss, onSuccess, selectedEntities, runningS
                   (selectedEntity) =>
                     selectedEntity.entityType === errorEntity.entityType &&
                     selectedEntity.entityName === errorEntity.entityName,
-                  entitiesToDelete
+                  recordsToDelete
                 ),
               await error.json()
             )
