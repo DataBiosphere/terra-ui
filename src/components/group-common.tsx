@@ -1,29 +1,13 @@
 import { Icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode } from 'react';
-import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
-import { InfoBox } from 'src/components/InfoBox';
+import { ButtonPrimary, Link } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { BillingRole } from 'src/libs/ajax/Billing';
 import { GroupRole } from 'src/libs/ajax/Groups';
 import { cardList as cardListStyles } from 'src/libs/style';
-
-interface AdminNotifierCheckboxProps {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}
-export const AdminNotifierCheckbox = (props: AdminNotifierCheckboxProps) => (
-  <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center' }}>
-    <LabeledCheckbox style={{ marginRight: '0.25rem' }} checked={props.checked} onChange={props.onChange}>
-      Allow anyone to request access
-    </LabeledCheckbox>
-    <InfoBox style={{ marginLeft: '0.3rem' }}>
-      Any user will be able to request to become a member of this group. This will send an email to the group admins.
-    </InfoBox>
-  </div>
-);
 
 interface NewUserCardProps {
   onClick: () => void;
