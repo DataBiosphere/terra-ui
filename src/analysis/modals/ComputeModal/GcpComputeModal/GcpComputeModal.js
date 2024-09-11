@@ -471,6 +471,7 @@ export const GcpComputeModalBase = ({
   const getExistingEnvironmentConfig = () =>
     buildExistingEnvironmentConfig(computeConfig, currentRuntimeDetails, currentPersistentDiskDetails, isDataproc(runtimeType));
 
+  // TODO: converge type with getExistingEnvironmentConfig
   const getDesiredEnvironmentConfig = () => {
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig();
     const cloudService = isDataproc(runtimeType) ? cloudServices.DATAPROC : cloudServices.GCE;

@@ -5,8 +5,10 @@ import {
   getDefaultMachineType,
   getImageUrlFromRuntime,
 } from 'src/analysis/utils/runtime-utils';
-import { getToolLabelFromCloudEnv } from 'src/analysis/utils/tool-utils';
-import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { getToolLabelFromCloudEnv, ToolLabel } from 'src/analysis/utils/tool-utils';
+import { ComputeType } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { GooglePdType, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 
 export interface IComputeConfig {
   masterMachineType: string;
@@ -33,61 +35,103 @@ export interface IComputeConfig {
   persistentDiskType: DiskType;
 }
 
+export type NormalizedModalRuntimeConfig = {
+  hasGpu: boolean;
+  autopauseThreshold: number | undefined;
+  runtime?: NormalizedModalRuntime;
+  persistentDisk?: PersistentDiskConfigInModalRuntimeConfig;
+};
+
+export interface PersistentDiskConfigInModalRuntimeConfig {
+  size: number;
+  diskType: GooglePdType;
+}
+
+export type NormalizedModalRuntime = {
+  cloudService: ComputeType | undefined;
+  toolDockerImage: string | undefined; // this is a url
+  tool?: ToolLabel;
+  persistentDiskAttached: boolean;
+  region: string;
+  jupyterUserScriptUri?: string;
+  gpuConfig?: any;
+  zone?: string;
+  machineType?: string;
+  bootDiskSize?: number | null;
+  diskSize?: number;
+  componentGatewayEnabled?: boolean;
+  masterMachineType?: string;
+  masterDiskSize?: number;
+  numberOfWorkers?: number;
+  numberOfPreemptibleWorkers?: number | null;
+  workerMachineType?: string | null;
+  workerDiskSize?: number | null;
+};
+
+// TODO: tnis is the best place to start
 export const buildExistingEnvironmentConfig = (
   computeConfig: IComputeConfig,
-  currentRuntimeDetails: any,
-  currentPersistentDiskDetails: PersistentDisk,
-  isDataproc: boolean
-) => {
+  currentRuntimeDetails?: GetRuntimeItem,
+  currentPersistentDiskDetails?: PersistentDisk,
+  isDataproc = false
+): NormalizedModalRuntimeConfig => {
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig;
   const cloudService = runtimeConfig?.cloudService;
-  const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0;
-  const hasGpu = computeConfig.hasGpu;
-  const gpuConfig = runtimeConfig?.gpuConfig;
-  const toolLabel = getToolLabelFromCloudEnv(currentRuntimeDetails);
+  const numberOfWorkers = runtimeConfig && 'numberOfWorkers' in runtimeConfig ? runtimeConfig.numberOfWorkers : 0;
+  const gpuConfig = runtimeConfig && 'gpuConfig' in runtimeConfig ? runtimeConfig.gpuConfig : undefined;
+  const toolLabel = currentRuntimeDetails ? getToolLabelFromCloudEnv(currentRuntimeDetails) : undefined;
   return {
-    hasGpu,
+    hasGpu: computeConfig.hasGpu,
     autopauseThreshold: currentRuntimeDetails?.autopauseThreshold,
     runtime: currentRuntimeDetails
       ? {
           cloudService,
           toolDockerImage: getImageUrlFromRuntime(currentRuntimeDetails),
           tool: toolLabel,
+          region: computeConfig.computeRegion,
+          persistentDiskAttached: !!(runtimeConfig && 'persistentDiskId' in runtimeConfig),
+          gpuConfig,
           ...(currentRuntimeDetails?.jupyterUserScriptUri
             ? {
                 jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
               }
             : {}),
-          ...(currentRuntimeDetails?.timeoutInMinutes
-            ? {
-                timeoutInMinutes: currentRuntimeDetails?.timeoutInMinutes,
-              }
-            : {}),
+          // TODO: this can use runtimeconfig conditionals too more safely
           ...(cloudService === cloudServices.GCE
             ? {
                 zone: computeConfig.computeZone,
-                region: computeConfig.computeRegion,
-                machineType: runtimeConfig.machineType || getDefaultMachineType(false, toolLabel),
-                ...(hasGpu && gpuConfig ? { gpuConfig } : {}),
-                bootDiskSize: runtimeConfig.bootDiskSize,
-                ...(runtimeConfig.persistentDiskId
-                  ? {
-                      persistentDiskAttached: true,
-                    }
-                  : {
-                      diskSize: runtimeConfig.diskSize,
-                    }),
+                machineType:
+                  runtimeConfig && 'machineType' in runtimeConfig
+                    ? runtimeConfig.machineType
+                    : getDefaultMachineType(false, getToolLabelFromCloudEnv(currentRuntimeDetails)),
+                ...(runtimeConfig && 'bootDiskSize' in runtimeConfig
+                  ? { bootDiskSize: runtimeConfig.bootDiskSize }
+                  : {}),
+                ...(runtimeConfig && 'diskSize' in runtimeConfig ? { diskSize: runtimeConfig.diskSize } : {}),
               }
             : {
-                region: computeConfig.computeRegion,
-                masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
-                masterDiskSize: runtimeConfig.masterDiskSize || 100,
+                // this branch means its dataproc
+                masterMachineType:
+                  runtimeConfig && 'masterMachineType' in runtimeConfig
+                    ? runtimeConfig.masterMachineType
+                    : defaultDataprocMachineType,
+                masterDiskSize: runtimeConfig && 'masterDiskSize' in runtimeConfig ? runtimeConfig.masterDiskSize : 100,
                 numberOfWorkers,
-                componentGatewayEnabled: runtimeConfig.componentGatewayEnabled || isDataproc,
+                componentGatewayEnabled:
+                  runtimeConfig && 'componentGatewayEnabled' in runtimeConfig
+                    ? runtimeConfig.componentGatewayEnabled
+                    : isDataproc,
                 ...(numberOfWorkers && {
-                  numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
-                  workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
-                  workerDiskSize: runtimeConfig.workerDiskSize || 100,
+                  numberOfPreemptibleWorkers:
+                    runtimeConfig && 'numberOfPreemptibleWorkers' in runtimeConfig
+                      ? runtimeConfig.numberOfPreemptibleWorkers
+                      : 0,
+                  workerMachineType:
+                    runtimeConfig && 'workerMachineType' in runtimeConfig
+                      ? runtimeConfig.workerMachineType
+                      : defaultDataprocMachineType,
+                  workerDiskSize:
+                    runtimeConfig && 'workerDiskSize' in runtimeConfig ? runtimeConfig.workerDiskSize : 100,
                 }),
               }),
         }
