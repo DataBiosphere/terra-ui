@@ -45,6 +45,15 @@ export const useGetter = <T>(value: T): (() => T) => {
 };
 
 /**
+ * Given an initial value, returns a getter/setter pair that can be used to read and update the value.
+ * Relies on useState for the setter and useGetter for the getter.
+ * */
+export const useGetSet = <T>(initialValue: T): [() => T, (value: T) => void] => {
+  const [value, setValue] = useState(initialValue);
+  return [useGetter(value), setValue];
+};
+
+/**
  * Calls the provided function to produce and return a value tied to this component instance.
  * The initializer function is only called once for each component instance, on first render.
  */

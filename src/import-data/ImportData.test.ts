@@ -196,6 +196,7 @@ const setup = async (opts: SetupOptions) => {
 
   await waitFor(() => {
     expect(screen.queryByTestId('loading-spinner')).toBeNull();
+    expect(screen.queryByText('Loading...')).toBeNull();
   });
 
   return {

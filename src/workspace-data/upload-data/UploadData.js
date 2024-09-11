@@ -14,6 +14,7 @@ import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
@@ -390,7 +391,7 @@ const WorkspaceSelectorPanel = ({ workspaces, selectedWorkspaceId, setWorkspaceI
 
 const CollectionSelectorPanel = ({
   workspace: {
-    workspace: { googleProject, bucketName },
+    workspace: { namespace: workspaceNamespace, name: workspaceName, googleProject, bucketName },
   },
   selectedCollection,
   setCollection,
@@ -495,7 +496,10 @@ const CollectionSelectorPanel = ({
         validator: /^[^\s/#*?\[\]]+$/, // eslint-disable-line no-useless-escape
         validationMessage: 'Collection name may not contain spaces, forward slashes, or any of the following characters: # * ? [ ]',
         onDismiss: () => setCreating(false),
-        onSuccess: ({ name }) => setCollection(name),
+        onSuccess: ({ name }) => {
+          Ajax().Metrics.captureEvent(Events.uploaderCreateCollection, { collectionName: name, workspaceNamespace, workspaceName });
+          setCollection(name);
+        },
       }),
     isLoading && topSpinnerOverlay,
   ]);

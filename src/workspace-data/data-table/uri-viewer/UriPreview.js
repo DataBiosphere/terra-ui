@@ -16,10 +16,10 @@ const styles = {
     fontFamily: 'Menlo, monospace',
     fontSize: 12,
     overflowY: 'auto',
-    maxHeight: 206,
+    maxHeight: 400,
     marginTop: '0.5rem',
     padding: '0.5rem',
-    background: colors.dark(0.25),
+    background: colors.light(0.2),
     borderRadius: '0.2rem',
   },
 };
@@ -78,17 +78,17 @@ export const UriPreview = ({ metadata, metadata: { uri, bucket, name }, googlePr
     }
   });
   return els.cell([
+    div({ style: { fontWeight: 'bold', padding: '1rem', backgroundColor: 'lightgray' } }, ['File Preview']),
     Utils.cond(
       [
         isFilePreviewable(metadata),
         () =>
           h(Fragment, [
-            els.label('Preview'),
             Utils.cond(
               [preview === null, () => 'Unable to load preview.'],
               [preview === undefined, () => 'Loading preview...'],
-              [isImage(metadata), () => img({ src: preview, width: 400 })],
-              [canRender(metadata), () => h('iframe', { src: preview, width: 400, height: 400 })],
+              [isImage(metadata), () => img({ src: preview })],
+              [canRender(metadata), () => h('iframe', { src: preview, width: '100%', height: 400 })],
               () =>
                 div(
                   {
