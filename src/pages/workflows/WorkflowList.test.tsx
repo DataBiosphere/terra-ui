@@ -3,7 +3,8 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import React from 'react';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
+import { MethodsAjaxContract } from 'src/libs/ajax/methods/Methods';
 import * as Nav from 'src/libs/nav';
 import { getLink } from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -40,15 +41,12 @@ jest.mock('react-virtualized', () => {
   };
 });
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxMethodsContract = AjaxContract['Methods'];
-
-const mockMethods = (methods: MethodDefinition[]): Partial<AjaxMethodsContract> => {
+const mockMethods = (methods: MethodDefinition[]): Partial<MethodsAjaxContract> => {
   return { definitions: jest.fn(() => Promise.resolve(methods)) };
 };
 
 const mockAjax = (methods: MethodDefinition[]): Partial<AjaxContract> => {
-  return { Methods: mockMethods(methods) as AjaxMethodsContract };
+  return { Methods: mockMethods(methods) as MethodsAjaxContract };
 };
 
 const mockUser = (email: string): Partial<TerraUser> => ({ email });
@@ -840,8 +838,8 @@ describe('workflows table', () => {
         Methods: {
           definitions: jest.fn(() => {
             throw new Error('BOOM');
-          }) as Partial<AjaxMethodsContract>,
-        } as AjaxMethodsContract,
+          }) as Partial<MethodsAjaxContract>,
+        } as MethodsAjaxContract,
       } as AjaxContract;
     });
 

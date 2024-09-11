@@ -5,7 +5,7 @@ import { Checkbox, Link, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { PageBox } from 'src/components/PageBox';
 import { SimpleFlexTable } from 'src/components/table';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePreviews } from 'src/libs/feature-previews';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';

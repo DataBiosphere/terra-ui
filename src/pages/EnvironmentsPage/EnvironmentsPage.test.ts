@@ -35,7 +35,7 @@ jest.mock(
   'src/components/TopBar',
   (): TopBarExports => ({
     __esModule: true,
-    default: (props) => {
+    TopBar: (props) => {
       const { div } = jest.requireActual('react-hyperscript-helpers');
       return div([props.title]);
     },

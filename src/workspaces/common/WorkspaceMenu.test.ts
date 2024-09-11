@@ -6,8 +6,6 @@ import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
 import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
@@ -34,14 +32,6 @@ jest.mock('src/components/PopupTrigger', () => {
   return {
     ...originalModule,
     MenuTrigger: jest.fn(),
-  };
-});
-
-type FeaturePreviewsExports = typeof import('src/libs/feature-previews');
-jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
-  return {
-    ...jest.requireActual<FeaturePreviewsExports>('src/libs/feature-previews'),
-    isFeaturePreviewEnabled: jest.fn(),
   };
 });
 
@@ -103,8 +93,6 @@ describe('WorkspaceMenu - undefined workspace', () => {
   beforeEach(() => {
     // Arrange
     asMockedFn(useWorkspaceDetails).mockReturnValue({ workspace: undefined, loading: false, refresh: jest.fn() });
-    // Enable feature flag for Settings menu (check to be removed when soft delete option is added).
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === GCP_BUCKET_LIFECYCLE_RULES);
   });
 
   it('should not fail any accessibility tests', async () => {
@@ -138,11 +126,6 @@ describe('WorkspaceMenu - undefined workspace', () => {
 });
 
 describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
-  beforeEach(() => {
-    // Enable feature flag for Settings menu (check to be removed when soft delete option is added).
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === GCP_BUCKET_LIFECYCLE_RULES);
-  });
-
   it('should not fail any accessibility tests', async () => {
     // Arrange
     asMockedFn(useWorkspaceDetails).mockReturnValue({
@@ -464,28 +447,12 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
 });
 
 describe('Settings menu item (GCP or Azure workspace)', () => {
-  it('does not show the settings menu item if the feature flag is disabled', () => {
+  it('Shows an enabled settings menu item for GCP workspaces', () => {
     asMockedFn(useWorkspaceDetails).mockReturnValue({
       workspace: googleWorkspace,
       refresh: jest.fn(),
       loading: false,
     });
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps));
-
-    // Assert
-    expect(screen.queryByText('Settings')).toBeNull();
-  });
-
-  it('Shows an enabled settings menu item for GCP workspaces if the feature flag is enabled', () => {
-    asMockedFn(useWorkspaceDetails).mockReturnValue({
-      workspace: googleWorkspace,
-      refresh: jest.fn(),
-      loading: false,
-    });
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === GCP_BUCKET_LIFECYCLE_RULES);
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -495,13 +462,12 @@ describe('Settings menu item (GCP or Azure workspace)', () => {
     expect(menuItem).not.toHaveAttribute('disabled');
   });
 
-  it('shows a disabled settings menu item with a tooltip for Azure workspaces if feature flag is enabled', () => {
+  it('shows a disabled settings menu item with a tooltip for Azure workspaces', () => {
     asMockedFn(useWorkspaceDetails).mockReturnValue({
       workspace: azureWorkspace,
       refresh: jest.fn(),
       loading: false,
     });
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === GCP_BUCKET_LIFECYCLE_RULES);
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));

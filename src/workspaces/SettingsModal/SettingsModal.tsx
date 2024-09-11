@@ -2,19 +2,27 @@ import { ButtonPrimary, Modal, SpinnerOverlay } from '@terra-ui-packages/compone
 import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Ajax } from 'src/libs/ajax';
+import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
+import SoftDelete from 'src/workspaces/SettingsModal/SoftDelete';
 import {
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
   isBucketLifecycleSetting,
   isDeleteBucketLifecycleRule,
+  isSoftDeleteSetting,
   modifyFirstBucketDeletionRule,
+  modifyFirstSoftDeleteSetting,
   removeFirstBucketDeletionRule,
+  secondsInADay,
+  softDeleteDefaultRetention,
+  SoftDeleteSetting,
   suggestedPrefixes,
   WorkspaceSetting,
 } from 'src/workspaces/SettingsModal/utils';
@@ -36,8 +44,13 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [prefixes, setPrefixes] = useState<string[]>([]);
   const [lifecycleAge, setLifecycleAge] = useState<number | null>(null);
 
+  const [softDeleteEnabled, setSoftDeleteEnabled] = useState(false);
+  const [softDeleteRetention, setSoftDeleteRetention] = useState<number | null>(null);
+
   // Original settings from server, may contain multiple types
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSetting[] | undefined>(undefined);
+  // Used for both initial loading and saving settings.
+  const [busy, setBusy] = useState(true);
 
   const signal = useCancellation();
 
@@ -73,8 +86,28 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     return !!deleteRules && deleteRules.length >= 1 ? deleteRules[0] : undefined;
   };
 
+  const getFirstSoftDeleteSetting = (
+    settings: WorkspaceSetting[],
+    printMultipleWarning = false
+  ): SoftDeleteSetting | undefined => {
+    const softDeleteSettings: SoftDeleteSetting[] = settings.filter((setting: WorkspaceSetting) =>
+      isSoftDeleteSetting(setting)
+    ) as SoftDeleteSetting[];
+    if (softDeleteSettings.length > 0) {
+      if (printMultipleWarning && softDeleteSettings.length > 1) {
+        // eslint-disable-next-line no-console
+        console.log('Multiple soft delete settings found, using only first');
+      }
+      return softDeleteSettings[0];
+    }
+    return undefined;
+  };
+
   useEffect(() => {
-    const loadSettings = withErrorReporting('Error loading workspace settings')(async () => {
+    const loadSettings = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error loading workspace settings')
+    )(async () => {
       const settings = (await Ajax(signal)
         .Workspaces.workspaceV2(namespace, name)
         .getSettings()) satisfies WorkspaceSetting[];
@@ -93,12 +126,25 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           setLifecycleAge(rule.conditions.age);
         }
       }
+      const softDelete = getFirstSoftDeleteSetting(settings, true);
+      const retentionSeconds =
+        softDelete === undefined ? softDeleteDefaultRetention : softDelete.config.retentionDurationInSeconds;
+      const settingEnabled = retentionSeconds !== 0;
+      setSoftDeleteEnabled(settingEnabled);
+      if (settingEnabled) {
+        // If soft delete is not enabled, a retention of 0 is returned. However, the UI should not display the value
+        // because it is confusing with the switch being disabled.
+        setSoftDeleteRetention(retentionSeconds / secondsInADay);
+      }
     });
 
     loadSettings();
   }, [namespace, name, signal]);
 
-  const persistSettings = withErrorReporting('Error saving workspace settings')(async () => {
+  const persistSettings = _.flow(
+    Utils.withBusyState(setBusy),
+    withErrorReporting('Error saving workspace settings')
+  )(async () => {
     let newSettings: WorkspaceSetting[];
     if (lifecycleRulesEnabled) {
       const prefixesOrNone = _.without([suggestedPrefixes.allObjects], prefixes);
@@ -106,8 +152,12 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     } else {
       newSettings = removeFirstBucketDeletionRule(workspaceSettings || []);
     }
+    const softDeleteInDays = softDeleteEnabled ? softDeleteRetention! : 0;
+    newSettings = modifyFirstSoftDeleteSetting(newSettings, softDeleteInDays);
     await Ajax().Workspaces.workspaceV2(namespace, name).updateSettings(newSettings);
     props.onDismiss();
+
+    // Event about bucket lifecycle setting only if something actually changed.
     const originalLifecycleSetting = getFirstBucketLifecycleSetting(workspaceSettings || []);
     const newLifecycleSetting = getFirstBucketLifecycleSetting(newSettings);
     if (!_.isEqual(originalLifecycleSetting, newLifecycleSetting)) {
@@ -136,6 +186,23 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         ...extractWorkspaceDetails(props.workspace),
       });
     }
+
+    // Event about soft delete setting only if something actually changed.
+    const originalSoftDeleteSetting = getFirstSoftDeleteSetting(workspaceSettings || []);
+    const newSoftDeleteSetting = getFirstSoftDeleteSetting(newSettings);
+    if (
+      originalSoftDeleteSetting === undefined &&
+      newSoftDeleteSetting?.config.retentionDurationInSeconds === softDeleteDefaultRetention
+    ) {
+      // If the bucket had no soft delete setting before, and the current one is the default retention, don't event.
+    } else if (!_.isEqual(originalSoftDeleteSetting, newSoftDeleteSetting)) {
+      // Event if an explicit setting existed before and it changed.
+      Ajax().Metrics.captureEvent(Events.workspaceSettingsSoftDelete, {
+        enabled: softDeleteEnabled,
+        retention: softDeleteRetention, // will be null if soft delete is disabled
+        ...extractWorkspaceDetails(props.workspace),
+      });
+    }
   });
 
   const getSaveTooltip = () => {
@@ -145,12 +212,16 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     if (lifecycleRulesEnabled && (prefixes.length === 0 || lifecycleAge === null)) {
       return 'Please specify all lifecycle rule options';
     }
+    if (softDeleteEnabled && softDeleteRetention === null) {
+      return 'Please specify a soft delete retention value';
+    }
   };
 
   return (
     <Modal
       title='Configure Workspace Settings'
       onDismiss={props.onDismiss}
+      width={550}
       okButton={
         <ButtonPrimary disabled={!!getSaveTooltip()} onClick={persistSettings} tooltip={getSaveTooltip()}>
           Save
@@ -158,17 +229,27 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       }
     >
       {isFeaturePreviewEnabled(GCP_BUCKET_LIFECYCLE_RULES) && (
-        <BucketLifecycleSettings
-          lifecycleRulesEnabled={lifecycleRulesEnabled}
-          setLifecycleRulesEnabled={setLifecycleRulesEnabled}
-          lifecycleAge={lifecycleAge}
-          setLifecycleAge={setLifecycleAge}
-          prefixes={prefixes}
-          setPrefixes={setPrefixes}
-          isOwner={isOwner}
-        />
+        <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
+          <BucketLifecycleSettings
+            lifecycleRulesEnabled={lifecycleRulesEnabled}
+            setLifecycleRulesEnabled={setLifecycleRulesEnabled}
+            lifecycleAge={lifecycleAge}
+            setLifecycleAge={setLifecycleAge}
+            prefixes={prefixes}
+            setPrefixes={setPrefixes}
+            isOwner={isOwner}
+          />
+        </div>
       )}
-      {workspaceSettings === undefined && <SpinnerOverlay />}
+      <SoftDelete
+        softDeleteEnabled={softDeleteEnabled}
+        setSoftDeleteEnabled={setSoftDeleteEnabled}
+        softDeleteRetention={softDeleteRetention}
+        setSoftDeleteRetention={setSoftDeleteRetention}
+        isOwner={isOwner}
+      />
+
+      {busy && <SpinnerOverlay />}
     </Modal>
   );
 };

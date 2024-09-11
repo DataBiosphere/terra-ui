@@ -88,6 +88,7 @@ const eventsList = {
   pageView: 'page:view',
   permissionsSynchronizationDelay: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
+  uploaderCreateCollection: 'uploader:collection:create',
   user: {
     authToken: {
       load: {
@@ -171,6 +172,7 @@ const eventsList = {
   workspaceOpenFromRecentlyViewed: 'workspace:open-from-recently-viewed',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceSettingsBucketLifecycle: 'workspace:settings:bucketLifecycle',
+  workspaceSettingsSoftDelete: 'workspace:settings:softDelete',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',

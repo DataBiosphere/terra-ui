@@ -1,13 +1,11 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
+import { WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import { importDockstoreWorkflow } from './importDockstoreWorkflow';
 
 jest.mock('src/libs/ajax');
-
-type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
 
 describe('importDockstoreWorkflow', () => {
   const testWorkspace = {
@@ -32,14 +30,13 @@ describe('importDockstoreWorkflow', () => {
     importMethodConfig = jest.fn().mockResolvedValue(undefined);
     deleteMethodConfig = jest.fn().mockResolvedValue(undefined);
 
-    const mockWorkspaceMethodConfigAjax: Partial<ReturnType<AjaxContract['Workspaces']['workspace']>['methodConfig']> =
-      {
-        delete: deleteMethodConfig,
-      };
+    const mockWorkspaceMethodConfigAjax: Partial<ReturnType<WorkspacesAjaxContract['workspace']>['methodConfig']> = {
+      delete: deleteMethodConfig,
+    };
 
     workspaceMethodConfigAjax = jest.fn().mockReturnValue(mockWorkspaceMethodConfigAjax);
 
-    const mockWorkspaceAjax: DeepPartial<ReturnType<AjaxContract['Workspaces']['workspace']>> = {
+    const mockWorkspaceAjax: DeepPartial<ReturnType<WorkspacesAjaxContract['workspace']>> = {
       entityMetadata: () =>
         Promise.resolve({
           participant: { count: 1, idName: 'participant_id', attributeNames: [] },

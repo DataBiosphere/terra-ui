@@ -4,7 +4,7 @@ import { div, h, h1, h3 } from 'react-hyperscript-helpers';
 import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { DataRepo, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';

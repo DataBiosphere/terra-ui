@@ -4,7 +4,7 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
 import SignInButton from 'src/components/SignInButton';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';

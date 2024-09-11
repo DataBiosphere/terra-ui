@@ -1,6 +1,6 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
-import { Ajax } from 'src/libs/ajax';
+import { Ajax, AjaxContract } from 'src/libs/ajax';
 
 import { getServiceAlerts } from './service-alerts';
 
@@ -21,8 +21,6 @@ jest.mock('src/libs/utils', (): UtilsExports => {
 afterEach(() => {
   jest.restoreAllMocks();
 });
-
-type AjaxContract = ReturnType<typeof Ajax>;
 
 describe('getServiceAlerts', () => {
   it('fetches service alerts from GCS', async () => {

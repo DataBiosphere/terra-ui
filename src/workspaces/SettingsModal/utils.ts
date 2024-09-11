@@ -6,6 +6,9 @@ export const suggestedPrefixes = {
   submissionIntermediaries: 'submissions/intermediates/',
 };
 
+export const secondsInADay = 86400;
+export const softDeleteDefaultRetention = 7 * secondsInADay;
+
 interface BucketLifecycleRule {
   action: {
     actionType: string;
@@ -32,11 +35,19 @@ export interface BucketLifecycleSetting extends WorkspaceSetting {
   config: { rules: BucketLifecycleRule[] };
 }
 
+export interface SoftDeleteSetting extends WorkspaceSetting {
+  settingType: 'GcpBucketSoftDelete';
+  config: { retentionDurationInSeconds: number };
+}
+
 export const isBucketLifecycleSetting = (setting: WorkspaceSetting): setting is BucketLifecycleSetting =>
   setting.settingType === 'GcpBucketLifecycle';
 
 export const isDeleteBucketLifecycleRule = (rule: BucketLifecycleRule): rule is DeleteBucketLifecycleRule =>
   rule.action.actionType === 'Delete';
+
+export const isSoftDeleteSetting = (setting: WorkspaceSetting): setting is BucketLifecycleSetting =>
+  setting.settingType === 'GcpBucketSoftDelete';
 
 /**
  * Removes the first delete rule from the first bucketLifecycleSetting in the workspace settings.
@@ -88,7 +99,6 @@ export const modifyFirstBucketDeletionRule = (
 
   // If no bucketLifecycleSettings existed, create a new one.
   if (bucketLifecycleSettings.length === 0) {
-    // @ts-ignore
     return _.concat(
       [
         {
@@ -125,4 +135,43 @@ export const modifyFirstBucketDeletionRule = (
   }
   bucketLifecycleSettings[0].config.rules = _.concat(deleteRules, otherRules);
   return _.concat(bucketLifecycleSettings, otherSettings);
+};
+
+/**
+ * Modifies the first soft delete setting in the workspace settings.
+ * If no such setting exists, it will be created.
+ *
+ * Note that any other settings will be preserved but moved to the end of the array.
+ */
+export const modifyFirstSoftDeleteSetting = (
+  originalSettings: WorkspaceSetting[],
+  days: number
+): WorkspaceSetting[] => {
+  // Clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
+
+  const softDeleteSettings: SoftDeleteSetting[] = workspaceSettings.filter((setting: WorkspaceSetting) =>
+    isSoftDeleteSetting(setting)
+  ) as SoftDeleteSetting[];
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isSoftDeleteSetting(setting));
+
+  // If no SoftDeleteSetting existed, create a new one.
+  if (softDeleteSettings.length === 0) {
+    return _.concat(
+      [
+        {
+          settingType: 'GcpBucketSoftDelete',
+          config: {
+            retentionDurationInSeconds: secondsInADay * days,
+          },
+        } as SoftDeleteSetting,
+      ],
+      otherSettings
+    );
+  }
+  // If multiple soft delete settings, we will modify only the first one.
+  const existingSetting = softDeleteSettings[0];
+  existingSetting.config.retentionDurationInSeconds = secondsInADay * days;
+
+  return _.concat(softDeleteSettings, otherSettings);
 };

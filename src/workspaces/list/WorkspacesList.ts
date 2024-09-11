@@ -5,7 +5,7 @@ import { isAzureUser } from 'src/auth/auth';
 import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
-import TopBar from 'src/components/TopBar';
+import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { withErrorIgnoring } from 'src/libs/error';
 import { updateSearch, useRoute } from 'src/libs/nav';
