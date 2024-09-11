@@ -17,7 +17,6 @@ import { Methods } from 'src/libs/ajax/methods/Methods';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
-import { Submissions } from 'src/libs/ajax/submissions/Submissions';
 import { Support } from 'src/libs/ajax/Support';
 import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import { User } from 'src/libs/ajax/User';
@@ -55,7 +54,6 @@ export const Ajax = (signal?: AbortSignal) => {
     OAuth2: OAuth2(signal),
     Runtimes: Runtimes(signal),
     SamResources: SamResources(signal),
-    Submissions: Submissions(signal),
     Support: Support(signal),
     Surveys: Surveys(signal),
     TermsOfService: TermsOfService(signal),
