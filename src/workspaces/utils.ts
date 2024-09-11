@@ -2,7 +2,17 @@ import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { AzureBillingProject, BillingProject } from 'src/billing-core/models';
+import { GoogleWorkspaceInfo, WorkspaceInfo, WorkspacePolicy } from 'src/libs/ajax/workspaces/workspace-models';
 import { azureRegions } from 'src/libs/azure-regions';
+
+export type {
+  AzureWorkspaceInfo,
+  BaseWorkspaceInfo,
+  GoogleWorkspaceInfo,
+  WorkspaceInfo,
+  WorkspacePolicy,
+  WorkspaceState,
+} from 'src/libs/ajax/workspaces/workspace-models';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -18,43 +28,6 @@ export const cloudProviderLabels: Record<CloudProvider, string> = {
 export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
   return (x as string) in cloudProviderTypes;
 };
-
-export type AuthorizationDomain = {
-  membersGroupName: string;
-};
-
-// TODO: Clean up all the optional types when we fix return types of all the places we retrieve workspaces
-export interface BaseWorkspaceInfo {
-  namespace: string;
-  name: string;
-  workspaceId: string;
-  authorizationDomain: AuthorizationDomain[];
-  createdDate: string;
-  createdBy: string;
-  lastModified: string;
-  attributes?: Record<string, unknown>;
-  isLocked?: boolean;
-  state?: WorkspaceState;
-  errorMessage?: string;
-  completedCloneWorkspaceFileTransfer?: string;
-  workspaceType?: 'mc' | 'rawls';
-  workspaceVersion?: string;
-}
-
-export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
-  cloudPlatform: 'Azure';
-  bucketName?: '';
-  googleProject?: '';
-}
-
-export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
-  cloudPlatform: 'Gcp';
-  googleProject: string;
-  billingAccount: string;
-  bucketName: string;
-}
-
-export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;
 
 export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo | undefined): workspace is GoogleWorkspaceInfo => {
   return workspace ? workspace.cloudPlatform === 'Gcp' : false;
@@ -80,19 +53,6 @@ export interface WorkspaceSubmissionStats {
   runningSubmissionsCount: number;
 }
 
-export type WorkspaceState =
-  | 'Creating'
-  | 'CreateFailed'
-  | 'Cloning'
-  | 'CloningContainer'
-  | 'CloningFailed'
-  | 'Ready'
-  | 'Updating'
-  | 'UpdateFailed'
-  | 'Deleting'
-  | 'DeleteFailed'
-  | 'Deleted'; // For UI only - not a state in rawls
-
 export interface BaseWorkspace {
   owners?: string[];
   accessLevel: WorkspaceAccessLevel;
@@ -108,12 +68,6 @@ export interface AzureContext {
   managedResourceGroupId: string;
   subscriptionId: string;
   tenantId: string;
-}
-
-export interface WorkspacePolicy {
-  name: string;
-  namespace: string;
-  additionalData: { [key: string]: string }[];
 }
 
 export interface PolicyDescription {

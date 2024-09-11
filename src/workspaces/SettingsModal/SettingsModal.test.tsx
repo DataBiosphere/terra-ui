@@ -37,7 +37,7 @@ jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
 describe('SettingsModal', () => {
   const captureEvent = jest.fn();
 
-  const fourDaysAllObjects = {
+  const fourDaysAllObjects: BucketLifecycleSetting = {
     config: {
       rules: [
         {
@@ -54,7 +54,7 @@ describe('SettingsModal', () => {
     settingType: 'GcpBucketLifecycle',
   };
 
-  const zeroDaysTwoPrefixes = {
+  const zeroDaysTwoPrefixes: BucketLifecycleSetting = {
     config: {
       rules: [
         {
@@ -71,7 +71,7 @@ describe('SettingsModal', () => {
     settingType: 'GcpBucketLifecycle',
   };
 
-  const twoRules = {
+  const twoRules: BucketLifecycleSetting = {
     config: {
       rules: [
         {

@@ -142,7 +142,7 @@ export const NewWorkspaceModal = withDisplayName(
         setCreating(true);
 
         const body = {
-          namespace,
+          namespace: namespace!,
           name,
           authorizationDomain: _.map((v) => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
           attributes: { description },
@@ -156,7 +156,7 @@ export const NewWorkspaceModal = withDisplayName(
           [
             !!cloneWorkspace,
             async () => {
-              const workspace = await Ajax()
+              const workspace: WorkspaceInfo = await Ajax()
                 .Workspaces.workspaceV2(cloneWorkspace!.workspace.namespace, cloneWorkspace!.workspace.name)
                 .clone(body);
               const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces();
