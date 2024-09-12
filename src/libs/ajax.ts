@@ -1,5 +1,3 @@
-import * as qs from 'qs';
-import { fetchGoogleForms } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
@@ -18,6 +16,7 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { OAuth2 } from 'src/libs/ajax/OAuth2';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Support } from 'src/libs/ajax/Support';
+import { Surveys } from 'src/libs/ajax/surveys/Surveys';
 import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import { User } from 'src/libs/ajax/User';
 import { Cbas } from 'src/libs/ajax/workflows-app/Cbas';
@@ -27,10 +26,6 @@ import { WorkflowScript } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
-
-const Surveys = (signal?: AbortSignal) => ({
-  submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal }),
-});
 
 export const Ajax = (signal?: AbortSignal) => {
   return {
