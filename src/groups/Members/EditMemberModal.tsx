@@ -2,7 +2,7 @@ import { ButtonPrimary, Modal, SpinnerOverlay } from '@terra-ui-packages/compone
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
-import { Member } from 'src/components/group-common';
+import { Member } from 'src/groups/Members/MemberTable';
 import { withErrorReporting } from 'src/libs/error';
 import { withBusyState } from 'src/libs/utils';
 
