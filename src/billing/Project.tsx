@@ -10,9 +10,9 @@ import { SpendReport } from 'src/billing/SpendReport/SpendReport';
 import { accountLinkStyle, BillingAccountStatus, billingRoles } from 'src/billing/utils';
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
 import { Link } from 'src/components/common';
-import { Member } from 'src/components/group-common';
 import { InfoBox } from 'src/components/InfoBox';
 import { SimpleTabBar } from 'src/components/tabBars';
+import { Member } from 'src/groups/Members/MemberTable';
 import { Ajax } from 'src/libs/ajax';
 import {
   BillingProject,

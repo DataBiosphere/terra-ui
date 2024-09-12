@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
 import { Members } from 'src/billing/Members/Members';
-import { Member } from 'src/components/group-common';
+import { Member } from 'src/groups/Members/MemberTable';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
