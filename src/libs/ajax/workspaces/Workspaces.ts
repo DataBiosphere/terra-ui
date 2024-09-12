@@ -5,6 +5,7 @@ import { authOpts } from 'src/auth/auth-session';
 import { fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import { CreationRequestBody, WorkspaceInfo, WorkspaceSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -43,7 +44,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  create: async (body) => {
+  create: async (body: CreationRequestBody): Promise<WorkspaceInfo> => {
     const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return res.json();
   },
@@ -75,7 +76,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     const root = `workspaces/v2/${namespace}/${name}`;
 
     return {
-      clone: async (body) => {
+      clone: async (body: CreationRequestBody): Promise<WorkspaceInfo> => {
         const res = await fetchRawls(
           `${root}/clone`,
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
@@ -92,12 +93,12 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return response.json();
       },
 
-      getSettings: async () => {
+      getSettings: async (): Promise<WorkspaceSetting[]> => {
         const response = await fetchRawls(`${root}/settings`, _.merge(authOpts(), { signal }));
         return response.json();
       },
 
-      updateSettings: async (body) => {
+      updateSettings: async (body: WorkspaceSetting[]) => {
         const response = await fetchRawls(
           `${root}/settings`,
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }])
