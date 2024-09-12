@@ -4,6 +4,7 @@ import React from 'react';
 import { Ajax, AjaxContract } from 'src/libs/ajax';
 import { MethodsAjaxContract } from 'src/libs/ajax/methods/Methods';
 import * as ExportWorkflowToWorkspaceProvider from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
+import { goToPath } from 'src/libs/nav';
 import { WorkflowsContainer } from 'src/pages/workflows/workflow/WorkflowWrapper';
 import { Snapshot } from 'src/snapshots/Snapshot';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -15,16 +16,12 @@ jest.mock('src/libs/notifications');
 
 type NavExports = typeof import('src/libs/nav');
 
-const mockGoToPath = jest.fn();
-
 jest.mock(
   'src/libs/nav',
   (): NavExports => ({
     ...jest.requireActual('src/libs/nav'),
     getLink: jest.fn(),
-    // Additional lambda function is necessary to avoid issues with Jest
-    // hoisting (the mock is hoisted above the mockGoToPath initialization)
-    goToPath: (...args) => mockGoToPath(...args),
+    goToPath: jest.fn(),
   })
 );
 
@@ -318,7 +315,7 @@ describe('workflows container', () => {
     await user.click(screen.getByRole('button', { name: /go to exported workflow/i }));
 
     // Assert
-    expect(mockGoToPath).toHaveBeenCalledWith('workflow', {
+    expect(goToPath).toHaveBeenCalledWith('workflow', {
       namespace: mockWorkspace.namespace,
       name: mockWorkspace.name,
       workflowNamespace: mockSnapshot.namespace,
