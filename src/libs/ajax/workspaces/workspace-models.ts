@@ -118,8 +118,8 @@ export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
 
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;
 
-// BODY FOR V2 CLONE REQUEST
-export interface CloneRequestBody {
+// BODY FOR WORKSPACE CREATE AND CLONE REQUEST
+export interface CreationRequestBody {
   namespace: string;
   name: string;
   authorizationDomain: AuthorizationDomain[];
