@@ -1597,11 +1597,13 @@ describe('NewWorkspaceModal', () => {
     });
 
     const { getWorkspaceDetails } = setup();
-    getWorkspaceDetails.mockResolvedValue({
-      workspace: {
-        attributes: { description: 'Important: before using this workspace, <rest of the instructions>.' },
-      },
-    });
+    getWorkspaceDetails.mockResolvedValue(
+      makeGoogleWorkspace({
+        workspace: {
+          attributes: { description: 'Important: before using this workspace, <rest of the instructions>.' },
+        },
+      })
+    );
 
     // Act
     await act(async () => {
