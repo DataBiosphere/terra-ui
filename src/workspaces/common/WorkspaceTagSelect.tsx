@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import React from 'react';
 import { AsyncCreatableSelect } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
+import { WorkspaceTag } from 'src/libs/ajax/workspaces/workspace-models';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useInstance } from 'src/libs/react-utils';
 
@@ -20,7 +21,7 @@ export const WorkspaceTagSelect = <isMulti extends boolean>(props: WorkspaceTagS
   const getTagSuggestions = useInstance(() =>
     debouncePromise(
       withErrorReporting('Error loading tags')(async (text: string) => {
-        return _.map((matchingTag: { tag: string; count: number }): WorkspaceTagSelectOption => {
+        return _.map((matchingTag: WorkspaceTag): WorkspaceTagSelectOption => {
           const { tag, count } = matchingTag;
           return { value: tag, label: `${tag} (${count})` };
         }, await Ajax(signal).Workspaces.getTags(text, 10));

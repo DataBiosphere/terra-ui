@@ -158,13 +158,40 @@ export interface GoogleWorkspace extends BaseWorkspace {
 export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace;
 
 // BODY FOR WORKSPACE CREATE AND CLONE REQUEST
-export interface CreationRequestBody {
+export interface WorkspaceRequest {
   namespace: string;
   name: string;
   authorizationDomain: AuthorizationDomain[];
-  attributes?: Record<string, unknown>;
-  copyFilesWithPrefix?: string;
+  attributes: Record<string, unknown>;
   bucketLocation?: string;
   enhancedBucketLogging?: boolean;
   policies?: WorkspacePolicy[];
+}
+
+export interface WorkspaceRequestClone extends Omit<WorkspaceRequest, 'policies'> {
+  copyFilesWithPrefix?: string;
+}
+
+// TAGS
+export interface WorkspaceTag {
+  tag: string;
+  count: number;
+}
+
+// Workspace ACL
+// a map of email -> RawAccessEntry
+export type RawWorkspaceAcl = { [key: string]: RawAccessEntry };
+
+export interface RawAccessEntry {
+  pending: boolean;
+  canShare: boolean;
+  canCompute: boolean;
+  accessLevel: WorkspaceAccessLevel;
+}
+
+export interface WorkspaceAclUpdate {
+  email: string;
+  accessLevel: WorkspaceAccessLevel;
+  canShare?: boolean;
+  canCompute?: boolean;
 }

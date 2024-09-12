@@ -7,9 +7,13 @@ import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import {
-  CreationRequestBody,
+  RawWorkspaceAcl,
+  WorkspaceAclUpdate,
   WorkspaceInfo,
+  WorkspaceRequest,
+  WorkspaceRequestClone,
   WorkspaceSetting,
+  WorkspaceTag,
   WorkspaceWrapper,
 } from 'src/libs/ajax/workspaces/workspace-models';
 import { getTerraUser } from 'src/libs/state';
@@ -51,17 +55,17 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  create: async (body: CreationRequestBody): Promise<WorkspaceInfo> => {
+  create: async (body: WorkspaceRequest): Promise<WorkspaceInfo> => {
     const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return res.json();
   },
 
-  getShareLog: async () => {
+  getShareLog: async (): Promise<string[]> => {
     const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
-  getTags: async (tag, limit) => {
+  getTags: async (tag: string, limit: number): Promise<WorkspaceTag[]> => {
     const params: any = { q: tag };
     if (limit) {
       params.limit = limit;
@@ -83,7 +87,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     const root = `workspaces/v2/${namespace}/${name}`;
 
     return {
-      clone: async (body: CreationRequestBody): Promise<WorkspaceInfo> => {
+      clone: async (body: WorkspaceRequestClone): Promise<WorkspaceInfo> => {
         const res = await fetchRawls(
           `${root}/clone`,
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
@@ -157,12 +161,12 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      getAcl: async () => {
+      getAcl: async (): Promise<Record<'acl', RawWorkspaceAcl>> => {
         const res = await fetchRawls(`${root}/acl`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 
-      updateAcl: async (aclUpdates, inviteNew = true) => {
+      updateAcl: async (aclUpdates: WorkspaceAclUpdate[], inviteNew = true) => {
         const res = await fetchOrchestration(
           `api/${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }])
