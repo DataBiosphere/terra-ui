@@ -84,7 +84,7 @@ const UserMenuContent = (props: UserMenuContentProps) => (
 
 const menuCardSize = 20;
 
-interface Sort {
+export interface Sort {
   field: string;
   direction: 'asc' | 'desc';
 }

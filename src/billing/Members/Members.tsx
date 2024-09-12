@@ -1,10 +1,10 @@
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { billingRoles } from 'src/billing/utils';
-import { DeleteUserModal } from 'src/groups/Members/DeleteUserModal';
-import { EditUserModal } from 'src/groups/Members/EditUserModal';
+import { DeleteMemberModal } from 'src/groups/Members/DeleteMemberModal';
+import { EditMemberModal } from 'src/groups/Members/EditMemberModal';
 import { Member, MemberTable } from 'src/groups/Members/MemberTable';
-import { NewUserModal } from 'src/groups/Members/NewUserModal';
+import { NewMemberModal } from 'src/groups/Members/NewMemberModal';
 import { Ajax } from 'src/libs/ajax';
 import { BillingRole } from 'src/libs/ajax/Billing';
 
@@ -40,7 +40,7 @@ export const Members = (props: MembersProps): ReactNode => {
         isOwner={isOwner}
       />
       {addingUser && (
-        <NewUserModal
+        <NewMemberModal
           adminLabel={billingRoles.owner}
           userLabel={billingRoles.user}
           title='Add user to Billing Project'
@@ -58,7 +58,7 @@ export const Members = (props: MembersProps): ReactNode => {
         />
       )}
       {!!editingUser && (
-        <EditUserModal
+        <EditMemberModal
           adminLabel={billingRoles.owner}
           userLabel={billingRoles.user}
           user={editingUser}
@@ -73,7 +73,7 @@ export const Members = (props: MembersProps): ReactNode => {
         />
       )}
       {!!deletingUser && (
-        <DeleteUserModal
+        <DeleteMemberModal
           userEmail={deletingUser.email}
           onDismiss={() => setDeletingUser(false)}
           onSubmit={() => {

@@ -6,7 +6,7 @@ import { Member } from 'src/components/group-common';
 import { withErrorReporting } from 'src/libs/error';
 import { withBusyState } from 'src/libs/utils';
 
-interface EditUserModalProps {
+interface EditMemberModalProps {
   adminLabel: string;
   userLabel: string;
   user: Member;
@@ -15,7 +15,7 @@ interface EditUserModalProps {
   saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void | void[]>;
 }
 
-export const EditUserModal = (props: EditUserModalProps): ReactNode => {
+export const EditMemberModal = (props: EditMemberModalProps): ReactNode => {
   const {
     adminLabel,
     userLabel,

@@ -6,10 +6,10 @@ import { DelayedSearchInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import { TopBar } from 'src/components/TopBar';
 import { AdminNotifierCheckbox } from 'src/groups/AdminNotifierCheckbox';
-import { DeleteUserModal } from 'src/groups/Members/DeleteUserModal';
-import { EditUserModal } from 'src/groups/Members/EditUserModal';
+import { DeleteMemberModal } from 'src/groups/Members/DeleteMemberModal';
+import { EditMemberModal } from 'src/groups/Members/EditMemberModal';
 import { Member, MemberTable } from 'src/groups/Members/MemberTable';
-import { NewUserModal } from 'src/groups/Members/NewUserModal';
+import { NewMemberModal } from 'src/groups/Members/NewMemberModal';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
 import { reportError } from 'src/libs/error';
@@ -140,7 +140,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
           />
         </div>
         {creatingNewUser && (
-          <NewUserModal
+          <NewMemberModal
             adminLabel='admin'
             userLabel='member'
             title='Add user to Terra Group'
@@ -157,7 +157,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
           />
         )}
         {editingUser && (
-          <EditUserModal
+          <EditMemberModal
             adminLabel='admin'
             userLabel='member'
             user={editingUser}
@@ -171,7 +171,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
           />
         )}
         {deletingUser && (
-          <DeleteUserModal
+          <DeleteMemberModal
             userEmail={deletingUser.email}
             onDismiss={() => setDeletingUser(undefined)}
             onSubmit={() => deleteUser(deletingUser)}

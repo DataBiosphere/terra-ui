@@ -1,13 +1,13 @@
 import { ButtonPrimary, Modal } from '@terra-ui-packages/components';
 import React from 'react';
 
-interface DeleteUserModalProps {
+interface DeleteMemberModalProps {
   onDismiss: () => void;
   onSubmit: () => void;
   userEmail: string;
 }
 
-export const DeleteUserModal = (props: DeleteUserModalProps) => (
+export const DeleteMemberModal = (props: DeleteMemberModalProps) => (
   <Modal
     onDismiss={props.onDismiss}
     title='Confirm'

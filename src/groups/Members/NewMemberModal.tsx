@@ -21,7 +21,7 @@ const styles = {
   },
 };
 
-interface NewUserModalProps {
+interface NewMemberModalProps {
   addFunction: (roles: string[], email: string) => Promise<void>;
   addUnregisteredUser?: boolean;
   adminLabel: string;
@@ -31,7 +31,7 @@ interface NewUserModalProps {
   onDismiss: () => void;
   footer?: React.ReactNode[];
 }
-export const NewUserModal = (props: NewUserModalProps) => {
+export const NewMemberModal = (props: NewMemberModalProps) => {
   const {
     addFunction,
     addUnregisteredUser = false,
