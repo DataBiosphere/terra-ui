@@ -24,9 +24,11 @@ const isWorkspaceDataAttribute = (name: string): boolean => {
  * @param workspaceAttributes - Workspace attributes.
  * @returns List of [attribute name, attribute value, attribute description] tuples.
  */
-export const getWorkspaceDataAttributes = (workspaceAttributes: {
-  [key: string]: unknown;
-}): [string, unknown, string | undefined][] => {
+export const getWorkspaceDataAttributes = (
+  workspaceAttributes: Record<string, unknown> | undefined
+): [string, unknown, string | undefined][] => {
+  if (workspaceAttributes === undefined) return [];
+
   return Object.entries(workspaceAttributes)
     .filter(([name]) => isWorkspaceDataAttribute(name))
     .map(([name, value]): [string, unknown, string | undefined] => {

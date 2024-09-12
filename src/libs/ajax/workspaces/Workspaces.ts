@@ -5,7 +5,13 @@ import { authOpts } from 'src/auth/auth-session';
 import { fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
-import { CreationRequestBody, WorkspaceInfo, WorkspaceSetting } from 'src/libs/ajax/workspaces/workspace-models';
+import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
+import {
+  CreationRequestBody,
+  WorkspaceInfo,
+  WorkspaceSetting,
+  WorkspaceWrapper,
+} from 'src/libs/ajax/workspaces/workspace-models';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -35,7 +41,8 @@ const attributesUpdateOps = _.flow(
   })
 );
 export const Workspaces = (signal?: AbortSignal) => ({
-  list: async (fields, stringAttributeMaxLength) => {
+  list: async (fields: FieldsArg, stringAttributeMaxLength: number | undefined): Promise<WorkspaceWrapper[]> => {
+    // isNil checks null and undefined
     const lenParam = _.isNil(stringAttributeMaxLength) ? '' : `stringAttributeMaxLength=${stringAttributeMaxLength}&`;
     const res = await fetchRawls(
       `workspaces?${lenParam}${qs.stringify({ fields }, { arrayFormat: 'comma' })}`,
@@ -63,7 +70,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  getById: async (workspaceId: string, fields: string[] | undefined = undefined) => {
+  getById: async (workspaceId: string, fields: FieldsArg | undefined = undefined): Promise<WorkspaceWrapper> => {
     let url = `workspaces/id/${workspaceId}`;
     if (fields) {
       url += `?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`;
@@ -72,7 +79,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return response.json();
   },
 
-  workspaceV2: (namespace, name) => {
+  workspaceV2: (namespace: string, name: string) => {
     const root = `workspaces/v2/${namespace}/${name}`;
 
     return {
@@ -129,7 +136,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return response.json();
   },
 
-  workspace: (namespace, name) => {
+  workspace: (namespace: string, name: string) => {
     const root = `workspaces/${namespace}/${name}`;
     const mcPath = `${root}/methodconfigs`;
 
@@ -142,7 +149,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
 
       checkBucketLocation: GoogleStorage(signal).checkBucketLocation,
 
-      details: async (fields) => {
+      details: async (fields: FieldsArg): Promise<WorkspaceWrapper> => {
         const res = await fetchRawls(
           `${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`,
           _.merge(authOpts(), { signal })

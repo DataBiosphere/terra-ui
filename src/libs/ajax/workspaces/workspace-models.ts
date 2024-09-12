@@ -118,6 +118,45 @@ export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
 
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;
 
+export interface WorkspaceSubmissionStats {
+  lastSuccessDate?: string;
+  lastFailureDate?: string;
+  runningSubmissionsCount: number;
+}
+
+export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER'] as const;
+
+export type WorkspaceAccessLevels = typeof workspaceAccessLevels;
+
+export type WorkspaceAccessLevel = WorkspaceAccessLevels[number];
+
+export interface BaseWorkspace {
+  owners?: string[];
+  accessLevel: WorkspaceAccessLevel;
+  canShare: boolean;
+  canCompute: boolean;
+  workspace: WorkspaceInfo;
+  policies: WorkspacePolicy[];
+  public?: boolean;
+  workspaceSubmissionStats?: WorkspaceSubmissionStats;
+}
+
+export interface AzureContext {
+  managedResourceGroupId: string;
+  subscriptionId: string;
+  tenantId: string;
+}
+
+export interface AzureWorkspace extends BaseWorkspace {
+  azureContext: AzureContext;
+}
+
+export interface GoogleWorkspace extends BaseWorkspace {
+  workspace: GoogleWorkspaceInfo;
+}
+
+export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace;
+
 // BODY FOR WORKSPACE CREATE AND CLONE REQUEST
 export interface CreationRequestBody {
   namespace: string;
