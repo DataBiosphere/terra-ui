@@ -20,8 +20,8 @@ interface MembersProps {
 export const Members = (props: MembersProps): ReactNode => {
   const { billingProjectName, isOwner, projectUsers, userEdited, deleteUser, userAdded } = props;
   const [addingUser, setAddingUser] = useState(false);
-  const [editingUser, setEditingUser] = useState<Member | false>(false);
-  const [deletingUser, setDeletingUser] = useState<Member | false>(false);
+  const [editingUser, setEditingUser] = useState<Member>();
+  const [deletingUser, setDeletingUser] = useState<Member>();
 
   const projectHasMultipleOwners =
     _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1;
@@ -65,9 +65,9 @@ export const Members = (props: MembersProps): ReactNode => {
           saveFunction={(email: string, roles: string[], newRoles: string[]) =>
             Ajax().Billing.changeUserRoles(billingProjectName, email, roles as BillingRole[], newRoles as BillingRole[])
           }
-          onDismiss={() => setEditingUser(false)}
+          onDismiss={() => setEditingUser(undefined)}
           onSuccess={() => {
-            setEditingUser(false);
+            setEditingUser(undefined);
             userEdited();
           }}
         />
@@ -75,10 +75,10 @@ export const Members = (props: MembersProps): ReactNode => {
       {!!deletingUser && (
         <DeleteMemberModal
           userEmail={deletingUser.email}
-          onDismiss={() => setDeletingUser(false)}
+          onDismiss={() => setDeletingUser(undefined)}
           onSubmit={() => {
             deleteUser(deletingUser);
-            setDeletingUser(false);
+            setDeletingUser(undefined);
           }}
         />
       )}
