@@ -1,10 +1,10 @@
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { billingRoles } from 'src/billing/utils';
-import { DeleteUserModal } from 'src/components/DeleteUserModal';
-import { EditUserModal } from 'src/components/EditUserModal';
-import { Member, MemberTable } from 'src/components/MemberTable';
-import { NewUserModal } from 'src/components/NewUserModal';
+import { DeleteUserModal } from 'src/groups/Members/DeleteUserModal';
+import { EditUserModal } from 'src/groups/Members/EditUserModal';
+import { Member, MemberTable } from 'src/groups/Members/MemberTable';
+import { NewUserModal } from 'src/groups/Members/NewUserModal';
 import { Ajax } from 'src/libs/ajax';
 import { BillingRole } from 'src/libs/ajax/Billing';
 
