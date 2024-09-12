@@ -12,7 +12,7 @@ const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
   const { onDelete } = props;
 
   const menuContent = (
-    <MenuButton disabled={false} onClick={onDelete}>
+    <MenuButton onClick={onDelete}>
       {makeMenuIcon('trash')}
       Delete snapshot
     </MenuButton>
