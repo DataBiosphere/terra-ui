@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { TextInput, ValidatedInput } from 'src/components/input';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
+import { WDLEditor } from 'src/pages/workflows/common/WDLEditor';
 import validate from 'validate.js';
 
 interface WorkflowModalProps {
@@ -166,6 +167,9 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
             setWorkflowName={setWorkflowName}
             errors={errors}
           />
+        </div>
+        <div style={{ paddingTop: '1.5rem' }}>
+          <WDLEditor wdl='' />
         </div>
         <SynopsisSnapshotSection synopsis={synopsis} setWorkflowSynopsis={setWorkflowSynopsis} errors={errors} />
         {(namespace + name).length > 250 && (

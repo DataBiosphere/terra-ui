@@ -1116,8 +1116,7 @@ describe('NewWorkspaceModal', () => {
         // Arrange
         const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
-        // Create workspace endpoint response does not include cloudPlatform.
-        const newWorkspace: Omit<AzureWorkspaceInfo, 'cloudPlatform'> = {
+        const newWorkspace: AzureWorkspaceInfo = {
           namespace: azureBillingProject.projectName,
           name: 'test-workspace',
           workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
@@ -1125,6 +1124,7 @@ describe('NewWorkspaceModal', () => {
           createdDate: '2023-11-13T18:39:32.267Z',
           lastModified: '2023-11-13T18:39:32.267Z',
           authorizationDomain: [],
+          cloudPlatform: 'Azure',
         };
 
         const { createWorkspace, listApps, listWdsCollections } = setup({ billingProjects: [azureBillingProject] });
@@ -1234,8 +1234,7 @@ describe('NewWorkspaceModal', () => {
         // Arrange
         const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
-        // Create workspace endpoint response does not include cloudPlatform.
-        const newWorkspace: Omit<AzureWorkspaceInfo, 'cloudPlatform'> = {
+        const newWorkspace: AzureWorkspaceInfo = {
           namespace: azureBillingProject.projectName,
           name: 'test-workspace',
           workspaceId: 'aaaabbbb-cccc-dddd-0000-111122223333',
@@ -1243,6 +1242,7 @@ describe('NewWorkspaceModal', () => {
           createdDate: '2023-11-13T18:39:32.267Z',
           lastModified: '2023-11-13T18:39:32.267Z',
           authorizationDomain: [],
+          cloudPlatform: 'Azure',
         };
 
         const { createWorkspace, listApps } = setup({ billingProjects: [azureBillingProject] });

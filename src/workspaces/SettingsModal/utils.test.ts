@@ -8,6 +8,12 @@ import {
   WorkspaceSetting,
 } from 'src/workspaces/SettingsModal/utils';
 
+// There may be other setting types in the future-- this test data is used to ensure they are preserved.
+const otherSetting: WorkspaceSetting = {
+  // @ts-ignore
+  settingType: 'OtherSetting',
+};
+
 describe('disableFirstBucketDeletionRule', () => {
   it('returns an empty array', async () => {
     // Assert
@@ -16,9 +22,6 @@ describe('disableFirstBucketDeletionRule', () => {
 
   it('returns original settings if no bucket lifecyle setting', async () => {
     // Act
-    const otherSetting: WorkspaceSetting = {
-      settingType: 'OtherSetting',
-    };
     const result = removeFirstBucketDeletionRule([otherSetting]);
 
     // Assert
@@ -27,9 +30,6 @@ describe('disableFirstBucketDeletionRule', () => {
 
   it('removes the first delete rule (of multiple) in the first bucket lifecycle setting', async () => {
     // Act
-    const otherSetting: WorkspaceSetting = {
-      settingType: 'OtherSetting',
-    };
     const firstDeleteSetting: BucketLifecycleSetting = {
       settingType: 'GcpBucketLifecycle',
       config: {
@@ -108,9 +108,6 @@ describe('disableFirstBucketDeletionRule', () => {
 
   it('removes the first delete rule in the first bucket lifecycle setting', async () => {
     // Act
-    const otherSetting: WorkspaceSetting = {
-      settingType: 'OtherSetting',
-    };
     const firstDeleteSetting: BucketLifecycleSetting = {
       settingType: 'GcpBucketLifecycle',
       config: {
@@ -198,10 +195,8 @@ describe('modifyFirstBucketDeletionRule', () => {
 
   it('adds a new setting in the case of no existing delete bucket lifecycle', async () => {
     // Arrange
-    const originalSettings = [
-      {
-        settingType: 'OtherSetting',
-      },
+    const originalSettings: WorkspaceSetting[] = [
+      otherSetting,
       {
         settingType: 'GcpBucketLifecycle',
         config: {
@@ -274,10 +269,8 @@ describe('modifyFirstBucketDeletionRule', () => {
 
   it('modifies the first delete rule found', async () => {
     // Arrange
-    const originalSettings = [
-      {
-        settingType: 'OtherSetting',
-      },
+    const originalSettings: WorkspaceSetting[] = [
+      otherSetting,
       {
         settingType: 'GcpBucketLifecycle',
         config: {
@@ -402,10 +395,8 @@ describe('modifyFirstSoftDeleteSetting', () => {
 
   it('adds a new setting in the case of no existing soft delete lifecycle', async () => {
     // Arrange
-    const originalSettings = [
-      {
-        settingType: 'OtherSetting',
-      },
+    const originalSettings: WorkspaceSetting[] = [
+      otherSetting,
       {
         settingType: 'GcpBucketLifecycle',
         config: {
@@ -451,10 +442,8 @@ describe('modifyFirstSoftDeleteSetting', () => {
 
   it('modifies the first soft delete setting found', async () => {
     // Arrange
-    const originalSettings = [
-      {
-        settingType: 'OtherSetting',
-      },
+    const originalSettings: WorkspaceSetting[] = [
+      otherSetting,
       {
         settingType: 'GcpBucketSoftDelete',
         config: {
