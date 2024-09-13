@@ -124,6 +124,32 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     }
   });
 
+  const deleteSnapshot = async () => {
+    await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).delete();
+
+    // Replace the current history entry linking to the workflow details
+    // page of a specific snapshot, like
+    // /#workflows/sschu/echo-strings-test/29, with an entry with the
+    // corresponding link without the snapshot ID, like
+    // /#workflows/sschu/echo-strings-test
+    // This way, if the user presses the back button after deleting a
+    // workflow snapshot, they will be automatically redirected to the
+    // most recent snapshot that still exists of the same workflow
+    window.history.replaceState({}, '', Nav.getLink('workflow-dashboard', { namespace, name }));
+
+    // Clear the cache of the snapshot that was just deleted so that if
+    // the user manually navigates to the URL for that snapshot, outdated
+    // information will not be shown
+    snapshotStore.reset();
+
+    // Clear the cached snapshot list for this workflow since the list now
+    // contains a deleted snapshot - this way, if the user clicks on this
+    // workflow in the workflow list (or presses the back button), they
+    // will be redirected to the most recent snapshot that still exists,
+    // rather than the snapshot that was just deleted
+    snapshotsListStore.reset();
+  };
+
   return h(Fragment, [
     h(
       TabBar,
@@ -159,36 +185,10 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           withErrorReporting('Error deleting snapshot')
         )(async () => {
           setShowDeleteModal(false);
-          await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).delete();
-
-          // Replace the current history entry linking to the workflow details
-          // page of a specific snapshot, like
-          // /#workflows/sschu/echo-strings-test/29, with an entry with the
-          // corresponding link without the snapshot ID, like
-          // /#workflows/sschu/echo-strings-test
-          // This way, if the user presses the back button after deleting a
-          // workflow snapshot, they will be automatically redirected to the
-          // most recent snapshot that still exists of the same workflow
-          window.history.replaceState({}, '', Nav.getLink('workflow-dashboard', { namespace, name }));
-
-          // Clear the cache of the snapshot that was just deleted so that if
-          // the user manually navigates to the URL for that snapshot, outdated
-          // information will not be shown
-          snapshotStore.reset();
-
-          // Clear the cached snapshot list for this workflow since the list now
-          // contains a deleted snapshot - this way, if the user clicks on this
-          // workflow in the workflow list (or presses the back button), they
-          // will be redirected to the most recent snapshot that still exists,
-          // rather than the snapshot that was just deleted
-          snapshotsListStore.reset();
-
-          // Navigate to the workflows list page
+          await deleteSnapshot();
           Nav.goToPath('workflows');
         }),
-        onDismiss: () => {
-          setShowDeleteModal(false);
-        },
+        onDismiss: () => setShowDeleteModal(false),
       }),
     busy && spinnerOverlay,
     snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
