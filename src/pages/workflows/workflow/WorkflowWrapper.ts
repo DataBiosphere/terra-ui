@@ -11,7 +11,7 @@ import { Ajax } from 'src/libs/ajax';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
-import { snapshotsListStore, snapshotStore } from 'src/libs/state';
+import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
@@ -106,6 +106,11 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
       ? cachedSnapshot
       : undefined;
 
+  const isSnapshotOwner: boolean = _.includes(
+    getTerraUser().email?.toLowerCase(),
+    _.map(_.toLower, snapshot?.managers)
+  );
+
   useOnMount(() => {
     const loadSnapshot = async () => {
       snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
@@ -172,7 +177,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
             onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
           }),
         ]),
-        h(SnapshotActionMenu, { onDelete: () => setShowDeleteModal(true) }),
+        h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
       ]
     ),
     showDeleteModal &&

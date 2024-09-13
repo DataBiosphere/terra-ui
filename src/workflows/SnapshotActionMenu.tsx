@@ -5,14 +5,22 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 
 export interface SnapshotActionMenuProps {
+  isSnapshotOwner: boolean;
   onDelete: () => void;
 }
 
 const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
-  const { onDelete } = props;
+  const { isSnapshotOwner, onDelete } = props;
+
+  const notSnapshotOwnerTooltip = 'You must be an owner of this snapshot';
 
   const menuContent = (
-    <MenuButton onClick={onDelete}>
+    <MenuButton
+      disabled={!isSnapshotOwner}
+      tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
+      tooltipSide='left'
+      onClick={onDelete}
+    >
       {makeMenuIcon('trash')}
       Delete snapshot
     </MenuButton>
