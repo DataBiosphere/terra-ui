@@ -106,7 +106,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      delete: (): Promise<void> => {
+      delete: (): Promise<Response> => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
@@ -253,7 +253,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
             return res.json();
           },
 
-          delete: (): Promise<void> => {
+          delete: (): Promise<Response> => {
             return fetchRawls(path, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
         };
@@ -294,7 +294,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
             );
           },
 
-          delete: (): Promise<void> => {
+          delete: (): Promise<Response> => {
             return fetchRawls(snapshotPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
         };
@@ -314,7 +314,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
             return res.json();
           },
 
-          abort: (): Promise<void> => {
+          abort: (): Promise<Response> => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
 
@@ -351,7 +351,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         };
       },
 
-      delete: (): Promise<void> => {
+      delete: (): Promise<Response> => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
@@ -398,7 +398,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      deleteEntitiesOfType: (entityType: string): Promise<void> => {
+      deleteEntitiesOfType: (entityType: string): Promise<Response> => {
         return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
@@ -425,7 +425,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      deleteEntityColumn: (type: string, attributeName: string): Promise<void> => {
+      deleteEntityColumn: (type: string, attributeName: string): Promise<Response> => {
         return fetchRawls(
           `${root}/entities/${type}?attributeNames=${attributeName}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
@@ -455,7 +455,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      deleteEntities: (entities: AttributeEntityReference[]): Promise<void> => {
+      deleteEntities: (entities: AttributeEntityReference[]): Promise<Response> => {
         return fetchRawls(
           `${root}/entities/delete`,
           _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }])
@@ -512,7 +512,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      importEntitiesFile: (file: File, { deleteEmptyValues = false } = {}) => {
+      importEntitiesFile: (file: File, { deleteEmptyValues = false } = {}): Promise<Response> => {
         const formData = new FormData();
         formData.set('entities', file);
         return fetchOrchestration(
@@ -521,7 +521,10 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      importFlexibleEntitiesFileSynchronous: async (file: File, { deleteEmptyValues = false } = {}) => {
+      importFlexibleEntitiesFileSynchronous: async (
+        file: File,
+        { deleteEmptyValues = false } = {}
+      ): Promise<Response> => {
         const formData = new FormData();
         formData.set('entities', file);
         const res = await fetchOrchestration(
@@ -608,7 +611,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      deleteTag: async (tag: string): Promise<void> => {
+      deleteTag: async (tag: string): Promise<string[]> => {
         const res = await fetchOrchestration(
           `api/workspaces/${namespace}/${name}/tags`,
           _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }])
