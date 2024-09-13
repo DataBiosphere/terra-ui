@@ -195,3 +195,25 @@ export interface WorkspaceAclUpdate {
   canShare?: boolean;
   canCompute?: boolean;
 }
+
+// Entities, see also EntityServiceDataTableProvider.ts
+export interface EntityUpdateDefinition {
+  name: string;
+  entityType: string;
+  operations: any[];
+}
+
+export interface AttributeEntityReference {
+  entityType: string;
+  entityName: string;
+}
+
+export interface StorageCostEstimate {
+  estimate: string;
+  lastUpdated?: string;
+}
+
+export interface BucketUsageResponse {
+  usageInBytes: number;
+  lastUpdated?: string;
+}
