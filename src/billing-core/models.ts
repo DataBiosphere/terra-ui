@@ -7,4 +7,6 @@ export type {
   CloudPlatform,
   GCPBillingProject,
   GoogleBillingAccount,
-} from 'src/libs/ajax/billing/Billing';
+} from 'src/libs/ajax/billing/billing-models';
+
+export { isAzureBillingProject, isGoogleBillingProject } from 'src/libs/ajax/billing/billing-models';

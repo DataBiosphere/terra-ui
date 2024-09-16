@@ -1,4 +1,5 @@
-import { Billing, BillingContract, BillingProfile } from 'src/libs/ajax/billing/Billing';
+import { BillingProfile } from 'src/billing-core/models';
+import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { WorkspaceManagerResources, WorkspaceManagerResourcesContract } from 'src/libs/ajax/WorkspaceManagerResources';
 import { azureBillingProfile } from 'src/testing/billing-profile-fixtures';
 import { asMockedFn, mockNotifications, renderHookInActWithAppContexts } from 'src/testing/test-utils';

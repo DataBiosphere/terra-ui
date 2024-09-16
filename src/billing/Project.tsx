@@ -9,17 +9,16 @@ import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/Ext
 import { SpendReport } from 'src/billing/SpendReport/SpendReport';
 import { accountLinkStyle, BillingAccountStatus, billingRoles } from 'src/billing/utils';
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
-import { Link } from 'src/components/common';
-import { InfoBox } from 'src/components/InfoBox';
-import { SimpleTabBar } from 'src/components/tabBars';
-import { Member } from 'src/groups/Members/MemberTable';
-import { Ajax } from 'src/libs/ajax';
 import {
   BillingProject,
   GoogleBillingAccount,
   isAzureBillingProject,
   isGoogleBillingProject,
-} from 'src/libs/ajax/billing/Billing';
+} from 'src/billing-core/models';
+import { Link } from 'src/components/common';
+import { InfoBox } from 'src/components/InfoBox';
+import { SimpleTabBar } from 'src/components/tabBars';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';

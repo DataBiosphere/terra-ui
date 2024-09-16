@@ -3,94 +3,14 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchBillingProfileManager, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
-import { WorkspacePolicy } from 'src/workspaces/utils';
-
-export interface GoogleBillingAccount {
-  accountName: string;
-  firecloudHasAccess?: boolean;
-  displayName: string;
-}
-
-export interface AzureManagedAppCoordinates {
-  tenantId: string; // UUID as string
-  subscriptionId: string; // UUID as string
-  managedResourceGroupId: string;
-  region?: string;
-  applicationDeploymentName?: string;
-}
-
-export interface Organization {
-  enterprise?: boolean;
-
-  /** Resource limits for the billing profile. */
-  limits?: { [resource: string]: unknown };
-}
-
-export type CloudPlatform = 'GCP' | 'AZURE' | 'UNKNOWN';
-
-export type BillingRole = 'Owner' | 'User';
-
-export interface BillingProjectMember {
-  email: string;
-  role: BillingRole;
-}
-
-interface BaseBillingProject {
-  cloudPlatform: CloudPlatform;
-  projectName: string;
-  invalidBillingAccount: boolean;
-  roles: BillingRole[];
-  status: 'Creating' | 'Ready' | 'Error' | 'Deleting' | 'DeletionFailed' | 'AddingToPerimeter' | 'CreatingLandingZone';
-  message?: string;
-}
-
-export interface AzureBillingProject extends BaseBillingProject {
-  cloudPlatform: 'AZURE';
-  managedAppCoordinates: AzureManagedAppCoordinates;
-  landingZoneId: string;
-  protectedData: boolean;
-  region?: string; // was backfilled for billing projects with valid MRG info
-  organization?: Organization;
-}
-
-export interface GCPBillingProject extends BaseBillingProject {
-  cloudPlatform: 'GCP';
-  billingAccount: string;
-  servicePerimeter?: string;
-}
-
-export const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
-  isCloudProviderBillingProject(project, 'AZURE');
-
-export const isGoogleBillingProject = (project?: BillingProject): project is GCPBillingProject =>
-  isCloudProviderBillingProject(project, 'GCP');
-
-const isCloudProviderBillingProject = (project: BillingProject | undefined, cloudProvider: CloudPlatform): boolean =>
-  project?.cloudPlatform === cloudProvider;
-
-export interface UnknownBillingProject extends BaseBillingProject {
-  cloudPlatform: 'UNKNOWN';
-}
-
-export type BillingProject = AzureBillingProject | GCPBillingProject | UnknownBillingProject;
-
-export interface BillingProfile {
-  id: string;
-  biller: 'direct';
-  displayName: string;
-  description: string;
-  cloudPlatform: CloudPlatform;
-  tenantId?: string;
-  subscriptionId?: string;
-  managedResourceGroupId?: string;
-  createdDate: string;
-  lastModified: string;
-  createdBy: string;
-  policies: {
-    inputs: WorkspacePolicy[];
-  };
-  organization: Organization;
-}
+import {
+  AzureManagedAppCoordinates,
+  BillingProfile,
+  BillingProject,
+  BillingProjectMember,
+  BillingRole,
+  GoogleBillingAccount,
+} from 'src/libs/ajax/billing/billing-models';
 
 export const Billing = (signal?: AbortSignal) => ({
   listProjects: async (): Promise<BillingProject[]> => {

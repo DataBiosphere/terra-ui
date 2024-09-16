@@ -1,8 +1,8 @@
 import { Icon, Link } from '@terra-ui-packages/components';
 import { CSSProperties, ReactNode } from 'react';
 import * as React from 'react';
+import { BillingProject } from 'src/billing-core/models';
 import { getLocationType, getRegionInfo } from 'src/components/region-common';
-import { BillingProject } from 'src/libs/ajax/billing/Billing';
 import { getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
-import { GoogleBillingAccount } from 'src/libs/ajax/billing/Billing';
+import { GoogleBillingAccount } from 'src/billing-core/models';
 import { azureBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 import {

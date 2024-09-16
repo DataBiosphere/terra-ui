@@ -2,14 +2,14 @@ import { Icon, Link, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, ReactNode, useState } from 'react';
 import { billingAccountIconSize, BillingAccountStatus, getBillingAccountIconProps } from 'src/billing/utils';
-import { ariaSort, HeaderRenderer } from 'src/components/table';
-import { Ajax } from 'src/libs/ajax';
 import {
   BillingProject,
   GoogleBillingAccount,
   isAzureBillingProject,
   isGoogleBillingProject,
-} from 'src/libs/ajax/billing/Billing';
+} from 'src/billing-core/models';
+import { ariaSort, HeaderRenderer } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import Events, { extractBillingDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
