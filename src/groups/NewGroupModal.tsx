@@ -1,7 +1,7 @@
 import { ButtonPrimary, Modal, SpinnerOverlay, useUniqueId } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
-import { AdminNotifierCheckbox } from 'src/components/group-common';
 import { ValidatedInput } from 'src/components/input';
+import { AdminNotifierCheckbox } from 'src/groups/AdminNotifierCheckbox';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
 import { formHint, FormLabel } from 'src/libs/forms';

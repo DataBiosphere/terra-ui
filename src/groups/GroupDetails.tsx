@@ -1,21 +1,15 @@
 import { SpinnerOverlay, useAutoLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useEffect, useState } from 'react';
-import { DeleteUserModal } from 'src/components/DeleteUserModal';
-import { EditUserModal } from 'src/components/EditUserModal';
 import FooterWrapper from 'src/components/FooterWrapper';
-import {
-  AdminNotifierCheckbox,
-  MemberCard,
-  MemberCardHeaders,
-  NewUserCard,
-  Sort,
-  User,
-} from 'src/components/group-common';
 import { DelayedSearchInput } from 'src/components/input';
-import { NewUserModal } from 'src/components/NewUserModal';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
 import { TopBar } from 'src/components/TopBar';
+import { AdminNotifierCheckbox } from 'src/groups/AdminNotifierCheckbox';
+import { DeleteMemberModal } from 'src/groups/Members/DeleteMemberModal';
+import { EditMemberModal } from 'src/groups/Members/EditMemberModal';
+import { Member, MemberTable } from 'src/groups/Members/MemberTable';
+import { NewMemberModal } from 'src/groups/Members/NewMemberModal';
 import { Ajax } from 'src/libs/ajax';
 import { GroupRole } from 'src/libs/ajax/Groups';
 import { reportError } from 'src/libs/error';
@@ -30,7 +24,7 @@ interface GroupDetailsProps {
 }
 
 interface GroupDetailsData {
-  members: User[];
+  members: Member[];
   allowAccessRequests: boolean;
   adminCanEdit: boolean;
 }
@@ -55,7 +49,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
         _.fromPairs(_.map((email) => [email, ['member']], membersEmails)),
       ]
     );
-    const members: User[] = _.flow(
+    const members: Member[] = _.flow(
       _.toPairs,
       _.map(([email, roles]) => ({ email, roles })),
       _.sortBy((member) => member.email.toUpperCase())
@@ -72,10 +66,9 @@ export const GroupDetails = (props: GroupDetailsProps) => {
   const [details, updateDetails] = useAutoLoadedData<GroupDetailsData>(loadDetails, [signal], {
     onError: (state) => reportError('Error loading group details', state.error),
   });
-  const [creatingNewUser, setCreatingNewUser] = useState<boolean>(false);
-  const [editingUser, setEditingUser] = useState<User>();
-  const [deletingUser, setDeletingUser] = useState<User>();
-  const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
+  const [addingNewMember, setAddingNewMember] = useState<boolean>(false);
+  const [editingUser, setEditingUser] = useState<Member>();
+  const [deletingUser, setDeletingUser] = useState<Member>();
 
   const updateAllowAccessRequests = (allowAccessRequests: boolean) =>
     updateDetails(async () => {
@@ -88,7 +81,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
       return updatedDetails;
     });
 
-  const deleteUser = (deletingUser: User) =>
+  const deleteUser = (deletingUser: Member) =>
     updateDetails(async () => {
       setDeletingUser(undefined);
       try {
@@ -101,7 +94,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
     });
 
   const refresh = async () => {
-    setCreatingNewUser(false);
+    setAddingNewMember(false);
     setEditingUser(undefined);
     setDeletingUser(undefined);
     updateDetails(loadDetails);
@@ -134,54 +127,38 @@ export const GroupDetails = (props: GroupDetailsProps) => {
           onChange={details.state ? updateAllowAccessRequests : () => {}}
         />
         <div style={{ marginTop: '1rem' }}>
-          <NewUserCard onClick={() => setCreatingNewUser(true)} />
-          <div role='table' aria-label={`users in group ${groupName}`}>
-            <MemberCardHeaders sort={sort} onSort={setSort} />
-            <div style={{ flexGrow: 1, marginTop: '1rem' }}>
-              {_.map(
-                (member: User) => (
-                  <MemberCard
-                    key={member.email}
-                    adminLabel='admin'
-                    userLabel='member'
-                    member={member}
-                    adminCanEdit={!!details.state?.adminCanEdit}
-                    onEdit={() => setEditingUser(member)}
-                    onDelete={() => setDeletingUser(member)}
-                    isOwner
-                  />
-                ),
-                _.orderBy(
-                  [sort.field],
-                  [sort.direction],
-                  _.filter(({ email }) => textMatch(filter, email), details.state?.members ?? [])
-                )
-              )}
-            </div>
-          </div>
-        </div>
-        {creatingNewUser && (
-          <NewUserModal
+          <MemberTable
             adminLabel='admin'
-            userLabel='member'
+            memberLabel='member'
+            members={_.filter(({ email }) => textMatch(filter, email), details.state?.members ?? [])}
+            adminCanEdit={!!details.state?.adminCanEdit}
+            onEdit={setEditingUser}
+            onDelete={setDeletingUser}
+            onAddMember={() => setAddingNewMember(true)}
+            tableAriaLabel={`users in group ${groupName}`}
+            isOwner
+          />
+        </div>
+        {addingNewMember && (
+          <NewMemberModal
+            adminLabel='admin'
+            memberLabel='member'
             title='Add user to Terra Group'
             addUnregisteredUser
             addFunction={(roles: string[], email: string) =>
               Ajax()
                 .Groups.group(groupName)
                 .addUser(roles as GroupRole[], email)
-                // convert void[] to void
-                .then(() => {})
             }
-            onDismiss={() => setCreatingNewUser(false)}
+            onDismiss={() => setAddingNewMember(false)}
             onSuccess={refresh}
           />
         )}
         {editingUser && (
-          <EditUserModal
+          <EditMemberModal
             adminLabel='admin'
-            userLabel='member'
-            user={editingUser}
+            memberLabel='member'
+            member={editingUser}
             saveFunction={(email: string, roles: string[], newRoles: string[]) =>
               Ajax()
                 .Groups.group(groupName)
@@ -192,8 +169,8 @@ export const GroupDetails = (props: GroupDetailsProps) => {
           />
         )}
         {deletingUser && (
-          <DeleteUserModal
-            userEmail={deletingUser.email}
+          <DeleteMemberModal
+            memberEmail={deletingUser.email}
             onDismiss={() => setDeletingUser(undefined)}
             onSubmit={() => deleteUser(deletingUser)}
           />
@@ -207,6 +184,6 @@ export const GroupDetails = (props: GroupDetailsProps) => {
 const groupRoleGuard = (value: string): value is GroupRole => {
   return value === 'admin' || value === 'member';
 };
-const getGroupRoles = (user: User): GroupRole[] => {
+const getGroupRoles = (user: Member): GroupRole[] => {
   return user.roles.filter(groupRoleGuard);
 };

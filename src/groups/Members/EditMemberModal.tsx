@@ -2,24 +2,24 @@ import { ButtonPrimary, Modal, SpinnerOverlay } from '@terra-ui-packages/compone
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
-import { User } from 'src/components/group-common';
+import { Member } from 'src/groups/Members/MemberTable';
 import { withErrorReporting } from 'src/libs/error';
 import { withBusyState } from 'src/libs/utils';
 
-interface EditUserModalProps {
+interface EditMemberModalProps {
   adminLabel: string;
-  userLabel: string;
-  user: User;
+  memberLabel: string;
+  member: Member;
   onSuccess: () => void;
   onDismiss: () => void;
   saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void | void[]>;
 }
 
-export const EditUserModal = (props: EditUserModalProps): ReactNode => {
+export const EditMemberModal = (props: EditMemberModalProps): ReactNode => {
   const {
     adminLabel,
-    userLabel,
-    user: { email, roles },
+    memberLabel,
+    member: { email, roles },
     onSuccess,
     onDismiss,
     saveFunction,
@@ -32,8 +32,8 @@ export const EditUserModal = (props: EditUserModalProps): ReactNode => {
     withErrorReporting('Error updating user')
   )(async () => {
     const applyAdminChange = _.flow(
-      _.without([isAdmin ? userLabel : adminLabel]),
-      _.union([isAdmin ? adminLabel : userLabel])
+      _.without([isAdmin ? memberLabel : adminLabel]),
+      _.union([isAdmin ? adminLabel : memberLabel])
     );
 
     await saveFunction(email, roles, applyAdminChange(roles));

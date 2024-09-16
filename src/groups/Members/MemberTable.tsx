@@ -1,46 +1,75 @@
 import { Icon } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { ReactNode } from 'react';
-import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
-import { InfoBox } from 'src/components/InfoBox';
+import React, { ReactNode, useState } from 'react';
+import { ButtonPrimary, Link } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
-import { BillingRole } from 'src/libs/ajax/Billing';
-import { GroupRole } from 'src/libs/ajax/Groups';
 import { cardList as cardListStyles } from 'src/libs/style';
 
-interface AdminNotifierCheckboxProps {
-  checked: boolean;
-  onChange: (v: boolean) => void;
+export interface Member {
+  email: string;
+  roles: string[];
 }
-export const AdminNotifierCheckbox = (props: AdminNotifierCheckboxProps) => (
-  <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center' }}>
-    <LabeledCheckbox style={{ marginRight: '0.25rem' }} checked={props.checked} onChange={props.onChange}>
-      Allow anyone to request access
-    </LabeledCheckbox>
-    <InfoBox style={{ marginLeft: '0.3rem' }}>
-      Any user will be able to request to become a member of this group. This will send an email to the group admins.
-    </InfoBox>
-  </div>
-);
 
-interface NewUserCardProps {
+interface MemberTableProps {
+  adminLabel: string;
+  memberLabel: string;
+  members: Member[];
+  adminCanEdit: boolean;
+  onEdit: (member: Member) => void;
+  onDelete: (member: Member) => void;
+  tableAriaLabel: string;
+  isOwner: boolean;
+  onAddMember: () => void;
+}
+
+export const MemberTable = (props: MemberTableProps): ReactNode => {
+  const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
+
+  return (
+    <div style={{ marginTop: '1rem' }}>
+      {props.isOwner && <NewMemberCard onClick={props.onAddMember} />}
+      <div role='table' aria-label={props.tableAriaLabel}>
+        <MemberCardHeaders sort={sort} onSort={setSort} />
+        <div style={{ flexGrow: 1, marginTop: '1rem' }}>
+          {_.map(
+            (member: Member) => (
+              <MemberCard
+                key={member.email}
+                adminLabel={props.adminLabel}
+                memberLabel={props.memberLabel}
+                member={member}
+                adminCanEdit={props.adminCanEdit}
+                onEdit={() => props.onEdit(member)}
+                onDelete={() => props.onDelete(member)}
+                isOwner={props.isOwner}
+              />
+            ),
+            _.orderBy([sort.field], [sort.direction], props.members)
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface NewMemberCardProps {
   onClick: () => void;
 }
-export const NewUserCard = (props: NewUserCardProps) => (
+const NewMemberCard = (props: NewMemberCardProps) => (
   <ButtonPrimary style={{ textTransform: 'none' }} onClick={props.onClick}>
     <Icon icon='plus' size={14} />
     <div style={{ marginLeft: '0.5rem' }}>Add User</div>
   </ButtonPrimary>
 );
 
-interface UserMenuContentProps {
+interface MemberMenuContentProps {
   onEdit: () => void;
   onDelete: () => void;
 }
 
-const UserMenuContent = (props: UserMenuContentProps) => (
+const MemberMenuContent = (props: MemberMenuContentProps) => (
   <>
     <MenuButton onClick={props.onEdit}>
       {makeMenuIcon('edit')}
@@ -65,7 +94,7 @@ interface MemberCardHeadersProps {
   onSort: (v: Sort) => void;
 }
 
-export const MemberCardHeaders = (props: MemberCardHeadersProps): ReactNode => (
+const MemberCardHeaders = (props: MemberCardHeadersProps): ReactNode => (
   <div role='row' style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' }}>
     <div role='columnheader' aria-sort={ariaSort(props.sort, 'email')} style={{ flex: 1 }}>
       <HeaderRenderer sort={props.sort} onSort={props.onSort} name='email' />
@@ -83,31 +112,24 @@ export const MemberCardHeaders = (props: MemberCardHeadersProps): ReactNode => (
   </div>
 );
 
-export type UserRole = BillingRole | GroupRole;
-
-export interface User {
-  email: string;
-  roles: UserRole[];
-}
-
 interface MemberCardProps {
-  member: User;
+  member: Member;
   adminCanEdit: boolean;
   onEdit: () => void;
   onDelete: () => void;
   adminLabel: string;
-  userLabel: string;
+  memberLabel: string;
   isOwner: boolean;
 }
 
-export const MemberCard = (props: MemberCardProps): ReactNode => {
+const MemberCard = (props: MemberCardProps): ReactNode => {
   const {
     member: { email, roles },
     adminCanEdit,
     onEdit,
     onDelete,
     adminLabel,
-    userLabel,
+    memberLabel,
     isOwner,
   } = props;
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles);
@@ -122,7 +144,7 @@ export const MemberCard = (props: MemberCardProps): ReactNode => {
         {email}
       </div>
       <div role='cell' style={{ flex: '1', textTransform: 'capitalize', height: '1rem' }}>
-        {_.includes(adminLabel, roles) ? adminLabel : userLabel}
+        {_.includes(adminLabel, roles) ? adminLabel : memberLabel}
       </div>
       {isOwner && (
         <div role='cell' style={{ flex: 'none' }}>
@@ -130,7 +152,7 @@ export const MemberCard = (props: MemberCardProps): ReactNode => {
             side='left'
             style={{ height: menuCardSize, width: menuCardSize }}
             closeOnClick
-            content={<UserMenuContent onEdit={onEdit} onDelete={onDelete} />}
+            content={<MemberMenuContent onEdit={onEdit} onDelete={onDelete} />}
           >
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <Link aria-label={`Menu for User: ${email}`} disabled={!canEdit} tooltip={tooltip} tooltipSide='left'>
