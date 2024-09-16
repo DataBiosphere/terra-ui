@@ -9,7 +9,7 @@ import { TextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/Billing';
+import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/billing/Billing';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';

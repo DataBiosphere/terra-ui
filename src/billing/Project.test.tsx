@@ -3,7 +3,7 @@ import { act, screen } from '@testing-library/react';
 import React from 'react';
 import Project, { groupByBillingAccountStatus } from 'src/billing/Project';
 import { Ajax } from 'src/libs/ajax';
-import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/Billing';
+import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/billing/Billing';
 import { azureBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';

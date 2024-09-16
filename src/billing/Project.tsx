@@ -19,7 +19,7 @@ import {
   GoogleBillingAccount,
   isAzureBillingProject,
   isGoogleBillingProject,
-} from 'src/libs/ajax/Billing';
+} from 'src/libs/ajax/billing/Billing';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';

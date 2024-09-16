@@ -4,7 +4,7 @@ import React, { ReactNode, useState } from 'react';
 import { hasBillingScope } from 'src/auth/auth';
 import { BillingAccountControls } from 'src/billing/BillingAccount/BillingAccountControls';
 import { Ajax } from 'src/libs/ajax';
-import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/Billing';
+import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/billing/Billing';
 import Events, { extractBillingDetails } from 'src/libs/events';
 import { gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, renderWithAppContexts, SelectHelper } from 'src/testing/test-utils';

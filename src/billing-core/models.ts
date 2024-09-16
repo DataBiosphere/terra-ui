@@ -7,4 +7,4 @@ export type {
   CloudPlatform,
   GCPBillingProject,
   GoogleBillingAccount,
-} from 'src/libs/ajax/Billing';
+} from 'src/libs/ajax/billing/Billing';
