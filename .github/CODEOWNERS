@@ -15,6 +15,7 @@
 /src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis
 /src/libs/ajax/Catalog.ts @DataBiosphere/data-explorer-eng
 /src/libs/ajax/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
+/src/libs/ajax/workspaces/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/library/DataBrowser* @DataBiosphere/data-explorer-eng
 /src/pages/library/Datasets* @DataBiosphere/data-explorer-eng
 /src/pages/library/SearchAndFilterComponent* @DataBiosphere/data-explorer-eng
