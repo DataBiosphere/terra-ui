@@ -321,7 +321,7 @@ export const snapshotStore = atom<Snapshot>({
   payload: '',
   public: undefined,
   snapshotComment: '',
-  snapshotId: '',
+  snapshotId: 0,
   synopsis: '',
   url: '',
 });
