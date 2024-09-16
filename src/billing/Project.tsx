@@ -135,12 +135,12 @@ const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
       <Members
         billingProjectName={billingProject.projectName}
         isOwner={isOwner}
-        projectUsers={projectUsers}
-        userAdded={() => reloadBillingProjectUsers()}
-        userEdited={() => {
+        projectMembers={projectUsers}
+        memberAdded={() => reloadBillingProjectUsers()}
+        memberEdited={() => {
           reloadBillingProject().then(reloadBillingProjectUsers);
         }}
-        deleteUser={(user) => {
+        deleteMember={(user) => {
           removeUserFromBillingProject(user.roles, user.email)
             .then(reloadBillingProject)
             .then(reloadBillingProjectUsers);

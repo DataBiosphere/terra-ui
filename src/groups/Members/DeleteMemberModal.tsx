@@ -4,7 +4,7 @@ import React from 'react';
 interface DeleteMemberModalProps {
   onDismiss: () => void;
   onSubmit: () => void;
-  userEmail: string;
+  memberEmail: string;
 }
 
 export const DeleteMemberModal = (props: DeleteMemberModalProps) => (
@@ -14,7 +14,7 @@ export const DeleteMemberModal = (props: DeleteMemberModalProps) => (
     okButton={<ButtonPrimary onClick={props.onSubmit}>Remove</ButtonPrimary>}
   >
     <div>
-      Are you sure you want to remove <b>{props.userEmail}</b>?
+      Are you sure you want to remove <b>{props.memberEmail}</b>?
     </div>
   </Modal>
 );

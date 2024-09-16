@@ -8,8 +8,8 @@ import { withBusyState } from 'src/libs/utils';
 
 interface EditMemberModalProps {
   adminLabel: string;
-  userLabel: string;
-  user: Member;
+  memberLabel: string;
+  member: Member;
   onSuccess: () => void;
   onDismiss: () => void;
   saveFunction: (email: string, roles: string[], newRoles: string[]) => Promise<void | void[]>;
@@ -18,8 +18,8 @@ interface EditMemberModalProps {
 export const EditMemberModal = (props: EditMemberModalProps): ReactNode => {
   const {
     adminLabel,
-    userLabel,
-    user: { email, roles },
+    memberLabel,
+    member: { email, roles },
     onSuccess,
     onDismiss,
     saveFunction,
@@ -32,8 +32,8 @@ export const EditMemberModal = (props: EditMemberModalProps): ReactNode => {
     withErrorReporting('Error updating user')
   )(async () => {
     const applyAdminChange = _.flow(
-      _.without([isAdmin ? userLabel : adminLabel]),
-      _.union([isAdmin ? adminLabel : userLabel])
+      _.without([isAdmin ? memberLabel : adminLabel]),
+      _.union([isAdmin ? adminLabel : memberLabel])
     );
 
     await saveFunction(email, roles, applyAdminChange(roles));

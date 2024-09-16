@@ -22,10 +22,10 @@ const styles = {
 };
 
 interface NewMemberModalProps {
-  addFunction: (roles: string[], email: string) => Promise<void>;
+  addFunction: (roles: string[], email: string) => Promise<unknown>;
   addUnregisteredUser?: boolean;
   adminLabel: string;
-  userLabel: string;
+  memberLabel: string;
   title: string;
   onSuccess: () => void;
   onDismiss: () => void;
@@ -36,7 +36,7 @@ export const NewMemberModal = (props: NewMemberModalProps) => {
     addFunction,
     addUnregisteredUser = false,
     adminLabel,
-    userLabel,
+    memberLabel,
     title,
     onSuccess,
     onDismiss,
@@ -45,7 +45,7 @@ export const NewMemberModal = (props: NewMemberModalProps) => {
   const [userEmail, setUserEmail] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [confirmAddUser, setConfirmAddUser] = useState(false);
-  const [roles, setRoles] = useState<string[]>([userLabel]);
+  const [roles, setRoles] = useState<string[]>([memberLabel]);
   const [submitError, setSubmitError] = useState(undefined);
   const [busy, setBusy] = useState(false);
 
@@ -154,7 +154,7 @@ export const NewMemberModal = (props: NewMemberModalProps) => {
           type={undefined}
         />
         <FormLabel>Role</FormLabel>
-        <LabeledCheckbox checked={isAdmin} onChange={() => setRoles([isAdmin ? userLabel : adminLabel])}>
+        <LabeledCheckbox checked={isAdmin} onChange={() => setRoles([isAdmin ? memberLabel : adminLabel])}>
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
           <label style={{ margin: '0 2rem 0 0.25rem' }}>Can manage users ({adminLabel})</label>
         </LabeledCheckbox>

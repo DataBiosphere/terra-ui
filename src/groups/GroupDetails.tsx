@@ -66,7 +66,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
   const [details, updateDetails] = useAutoLoadedData<GroupDetailsData>(loadDetails, [signal], {
     onError: (state) => reportError('Error loading group details', state.error),
   });
-  const [creatingNewUser, setCreatingNewUser] = useState<boolean>(false);
+  const [addingNewMember, setAddingNewMember] = useState<boolean>(false);
   const [editingUser, setEditingUser] = useState<Member>();
   const [deletingUser, setDeletingUser] = useState<Member>();
 
@@ -94,7 +94,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
     });
 
   const refresh = async () => {
-    setCreatingNewUser(false);
+    setAddingNewMember(false);
     setEditingUser(undefined);
     setDeletingUser(undefined);
     updateDetails(loadDetails);
@@ -129,38 +129,36 @@ export const GroupDetails = (props: GroupDetailsProps) => {
         <div style={{ marginTop: '1rem' }}>
           <MemberTable
             adminLabel='admin'
-            userLabel='member'
+            memberLabel='member'
             members={_.filter(({ email }) => textMatch(filter, email), details.state?.members ?? [])}
             adminCanEdit={!!details.state?.adminCanEdit}
             onEdit={setEditingUser}
             onDelete={setDeletingUser}
-            onAddUser={() => setCreatingNewUser(true)}
+            onAddMember={() => setAddingNewMember(true)}
             tableAriaLabel={`users in group ${groupName}`}
             isOwner
           />
         </div>
-        {creatingNewUser && (
+        {addingNewMember && (
           <NewMemberModal
             adminLabel='admin'
-            userLabel='member'
+            memberLabel='member'
             title='Add user to Terra Group'
             addUnregisteredUser
             addFunction={(roles: string[], email: string) =>
               Ajax()
                 .Groups.group(groupName)
                 .addUser(roles as GroupRole[], email)
-                // convert void[] to void
-                .then(() => {})
             }
-            onDismiss={() => setCreatingNewUser(false)}
+            onDismiss={() => setAddingNewMember(false)}
             onSuccess={refresh}
           />
         )}
         {editingUser && (
           <EditMemberModal
             adminLabel='admin'
-            userLabel='member'
-            user={editingUser}
+            memberLabel='member'
+            member={editingUser}
             saveFunction={(email: string, roles: string[], newRoles: string[]) =>
               Ajax()
                 .Groups.group(groupName)
@@ -172,7 +170,7 @@ export const GroupDetails = (props: GroupDetailsProps) => {
         )}
         {deletingUser && (
           <DeleteMemberModal
-            userEmail={deletingUser.email}
+            memberEmail={deletingUser.email}
             onDismiss={() => setDeletingUser(undefined)}
             onSubmit={() => deleteUser(deletingUser)}
           />

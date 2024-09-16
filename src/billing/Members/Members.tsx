@@ -11,38 +11,38 @@ import { BillingRole } from 'src/libs/ajax/Billing';
 interface MembersProps {
   billingProjectName: string;
   isOwner: boolean;
-  projectUsers: Member[];
-  userAdded: () => void;
-  userEdited: () => void;
-  deleteUser: (arg: Member) => void;
+  projectMembers: Member[];
+  memberAdded: () => void;
+  memberEdited: () => void;
+  deleteMember: (arg: Member) => void;
 }
 
 export const Members = (props: MembersProps): ReactNode => {
-  const { billingProjectName, isOwner, projectUsers, userEdited, deleteUser, userAdded } = props;
-  const [addingUser, setAddingUser] = useState(false);
-  const [editingUser, setEditingUser] = useState<Member>();
-  const [deletingUser, setDeletingUser] = useState<Member>();
+  const { billingProjectName, isOwner, projectMembers, memberEdited, deleteMember, memberAdded } = props;
+  const [addingMember, setAddingMember] = useState(false);
+  const [editingMember, setEditingMember] = useState<Member>();
+  const [deletingMember, setDeletingMember] = useState<Member>();
 
   const projectHasMultipleOwners =
-    _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1;
+    _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectMembers).length > 1;
 
   return (
     <>
       <MemberTable
         adminLabel={billingRoles.owner}
-        userLabel={billingRoles.user}
-        members={projectUsers}
+        memberLabel={billingRoles.user}
+        members={projectMembers}
         adminCanEdit={projectHasMultipleOwners && isOwner}
-        onEdit={setEditingUser}
-        onDelete={setDeletingUser}
-        onAddUser={() => setAddingUser(true)}
+        onEdit={setEditingMember}
+        onDelete={setDeletingMember}
+        onAddMember={() => setAddingMember(true)}
         tableAriaLabel={`users in billing project ${billingProjectName}`}
         isOwner={isOwner}
       />
-      {addingUser && (
+      {addingMember && (
         <NewMemberModal
           adminLabel={billingRoles.owner}
-          userLabel={billingRoles.user}
+          memberLabel={billingRoles.user}
           title='Add user to Billing Project'
           footer={[
             'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
@@ -50,35 +50,35 @@ export const Members = (props: MembersProps): ReactNode => {
           addFunction={(roles: string[], email: string) =>
             Ajax().Billing.addProjectUser(billingProjectName, roles as BillingRole[], email)
           }
-          onDismiss={() => setAddingUser(false)}
+          onDismiss={() => setAddingMember(false)}
           onSuccess={() => {
-            setAddingUser(false);
-            userAdded();
+            setAddingMember(false);
+            memberAdded();
           }}
         />
       )}
-      {!!editingUser && (
+      {!!editingMember && (
         <EditMemberModal
           adminLabel={billingRoles.owner}
-          userLabel={billingRoles.user}
-          user={editingUser}
+          memberLabel={billingRoles.user}
+          member={editingMember}
           saveFunction={(email: string, roles: string[], newRoles: string[]) =>
             Ajax().Billing.changeUserRoles(billingProjectName, email, roles as BillingRole[], newRoles as BillingRole[])
           }
-          onDismiss={() => setEditingUser(undefined)}
+          onDismiss={() => setEditingMember(undefined)}
           onSuccess={() => {
-            setEditingUser(undefined);
-            userEdited();
+            setEditingMember(undefined);
+            memberEdited();
           }}
         />
       )}
-      {!!deletingUser && (
+      {!!deletingMember && (
         <DeleteMemberModal
-          userEmail={deletingUser.email}
-          onDismiss={() => setDeletingUser(undefined)}
+          memberEmail={deletingMember.email}
+          onDismiss={() => setDeletingMember(undefined)}
           onSubmit={() => {
-            deleteUser(deletingUser);
-            setDeletingUser(undefined);
+            deleteMember(deletingMember);
+            setDeletingMember(undefined);
           }}
         />
       )}

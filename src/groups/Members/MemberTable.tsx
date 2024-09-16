@@ -14,14 +14,14 @@ export interface Member {
 
 interface MemberTableProps {
   adminLabel: string;
-  userLabel: string;
+  memberLabel: string;
   members: Member[];
   adminCanEdit: boolean;
-  onEdit: (user: Member) => void;
-  onDelete: (user: Member) => void;
+  onEdit: (member: Member) => void;
+  onDelete: (member: Member) => void;
   tableAriaLabel: string;
   isOwner: boolean;
-  onAddUser: () => void;
+  onAddMember: () => void;
 }
 
 export const MemberTable = (props: MemberTableProps): ReactNode => {
@@ -29,7 +29,7 @@ export const MemberTable = (props: MemberTableProps): ReactNode => {
 
   return (
     <div style={{ marginTop: '1rem' }}>
-      {props.isOwner && <NewUserCard onClick={props.onAddUser} />}
+      {props.isOwner && <NewMemberCard onClick={props.onAddMember} />}
       <div role='table' aria-label={props.tableAriaLabel}>
         <MemberCardHeaders sort={sort} onSort={setSort} />
         <div style={{ flexGrow: 1, marginTop: '1rem' }}>
@@ -38,7 +38,7 @@ export const MemberTable = (props: MemberTableProps): ReactNode => {
               <MemberCard
                 key={member.email}
                 adminLabel={props.adminLabel}
-                userLabel={props.userLabel}
+                memberLabel={props.memberLabel}
                 member={member}
                 adminCanEdit={props.adminCanEdit}
                 onEdit={() => props.onEdit(member)}
@@ -54,22 +54,22 @@ export const MemberTable = (props: MemberTableProps): ReactNode => {
   );
 };
 
-interface NewUserCardProps {
+interface NewMemberCardProps {
   onClick: () => void;
 }
-const NewUserCard = (props: NewUserCardProps) => (
+const NewMemberCard = (props: NewMemberCardProps) => (
   <ButtonPrimary style={{ textTransform: 'none' }} onClick={props.onClick}>
     <Icon icon='plus' size={14} />
     <div style={{ marginLeft: '0.5rem' }}>Add User</div>
   </ButtonPrimary>
 );
 
-interface UserMenuContentProps {
+interface MemberMenuContentProps {
   onEdit: () => void;
   onDelete: () => void;
 }
 
-const UserMenuContent = (props: UserMenuContentProps) => (
+const MemberMenuContent = (props: MemberMenuContentProps) => (
   <>
     <MenuButton onClick={props.onEdit}>
       {makeMenuIcon('edit')}
@@ -118,7 +118,7 @@ interface MemberCardProps {
   onEdit: () => void;
   onDelete: () => void;
   adminLabel: string;
-  userLabel: string;
+  memberLabel: string;
   isOwner: boolean;
 }
 
@@ -129,7 +129,7 @@ const MemberCard = (props: MemberCardProps): ReactNode => {
     onEdit,
     onDelete,
     adminLabel,
-    userLabel,
+    memberLabel,
     isOwner,
   } = props;
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles);
@@ -144,7 +144,7 @@ const MemberCard = (props: MemberCardProps): ReactNode => {
         {email}
       </div>
       <div role='cell' style={{ flex: '1', textTransform: 'capitalize', height: '1rem' }}>
-        {_.includes(adminLabel, roles) ? adminLabel : userLabel}
+        {_.includes(adminLabel, roles) ? adminLabel : memberLabel}
       </div>
       {isOwner && (
         <div role='cell' style={{ flex: 'none' }}>
@@ -152,7 +152,7 @@ const MemberCard = (props: MemberCardProps): ReactNode => {
             side='left'
             style={{ height: menuCardSize, width: menuCardSize }}
             closeOnClick
-            content={<UserMenuContent onEdit={onEdit} onDelete={onDelete} />}
+            content={<MemberMenuContent onEdit={onEdit} onDelete={onDelete} />}
           >
             {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <Link aria-label={`Menu for User: ${email}`} disabled={!canEdit} tooltip={tooltip} tooltipSide='left'>
