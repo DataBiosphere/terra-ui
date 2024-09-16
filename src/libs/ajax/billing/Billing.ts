@@ -10,6 +10,7 @@ import {
   BillingProjectMember,
   BillingRole,
   GoogleBillingAccount,
+  SpendReport,
 } from 'src/libs/ajax/billing/billing-models';
 
 export const Billing = (signal?: AbortSignal) => ({
@@ -29,7 +30,7 @@ export const Billing = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  createGCPProject: async (projectName: string, billingAccount: string): Promise<void> => {
+  createGCPProject: async (projectName: string, billingAccount: string): Promise<Response> => {
     return await fetchRawls(
       'billing/v2',
       _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }])
@@ -43,8 +44,7 @@ export const Billing = (signal?: AbortSignal) => ({
     managedResourceGroupId: string,
     members: BillingProjectMember[],
     protectedData: boolean
-  ): Promise<void> => {
-    // members: an array of {email: string, role: string}
+  ): Promise<Response> => {
     return await fetchRawls(
       'billing/v2',
       _.mergeAll([
@@ -61,10 +61,9 @@ export const Billing = (signal?: AbortSignal) => ({
     );
   },
 
-  deleteProject: async (projectName: string): Promise<void> => {
+  deleteProject: async (projectName: string): Promise<Response> => {
     const route = `billing/v2/${projectName}`;
-    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }));
-    return res;
+    return await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }));
   },
 
   changeBillingAccount: async ({
@@ -74,27 +73,32 @@ export const Billing = (signal?: AbortSignal) => ({
     billingProjectName: string;
     newBillingAccountName: string;
   }): Promise<BillingProject> => {
-    const res = await fetchOrchestration(
+    return await fetchOrchestration(
       `api/billing/v2/${billingProjectName}/billingAccount`,
       _.mergeAll([authOpts(), { signal, method: 'PUT' }, jsonBody({ billingAccount: newBillingAccountName })])
     );
-    return res;
   },
 
-  removeBillingAccount: async ({ billingProjectName }: { billingProjectName: string }): Promise<void> => {
-    const res = await fetchOrchestration(
+  removeBillingAccount: async ({ billingProjectName }: { billingProjectName: string }): Promise<Response> => {
+    return await fetchOrchestration(
       `api/billing/v2/${billingProjectName}/billingAccount`,
       _.merge(authOpts(), { signal, method: 'DELETE' })
     );
-    return res;
   },
 
-  updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
-    const res = await fetchOrchestration(
+  updateSpendConfiguration: async ({
+    billingProjectName,
+    datasetGoogleProject,
+    datasetName,
+  }: {
+    billingProjectName: string;
+    datasetGoogleProject: string;
+    datasetName: string;
+  }): Promise<Response> => {
+    return await fetchOrchestration(
       `api/billing/v2/${billingProjectName}/spendReportConfiguration`,
       _.mergeAll([authOpts(), { signal, method: 'PUT' }, jsonBody({ datasetGoogleProject, datasetName })])
     );
-    return res;
   },
 
   /**
@@ -107,7 +111,17 @@ export const Billing = (signal?: AbortSignal) => ({
    * @param aggregationKeys a list of strings indicating how to aggregate spend data. subAggregation can be requested by separating keys with '~' e.g. 'Workspace~Category'
    * @returns {Promise<*>}
    */
-  getSpendReport: async ({ billingProjectName, startDate, endDate, aggregationKeys }) => {
+  getSpendReport: async ({
+    billingProjectName,
+    startDate,
+    endDate,
+    aggregationKeys,
+  }: {
+    billingProjectName: string;
+    startDate: string;
+    endDate: string;
+    aggregationKeys: string[];
+  }): Promise<SpendReport> => {
     const res = await fetchRawls(
       `billing/v2/${billingProjectName}/spendReport?${qs.stringify(
         { startDate, endDate, aggregationKey: aggregationKeys },
@@ -123,7 +137,7 @@ export const Billing = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  addProjectUser: async (projectName: string, roles: BillingRole[], email: string): Promise<void> => {
+  addProjectUser: async (projectName: string, roles: BillingRole[], email: string): Promise<Response> => {
     let userRoles: BillingProjectMember[] = [];
     roles.forEach((role) => {
       userRoles = _.concat(userRoles, [{ email, role }]);

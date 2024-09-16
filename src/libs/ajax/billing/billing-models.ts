@@ -86,3 +86,46 @@ export interface BillingProfile {
   };
   organization: Organization;
 }
+
+// Interfaces for dealing with the server SpendReport JSON response
+export interface CategorySpendData {
+  category: 'Compute' | 'Storage' | 'WorkspaceInfrastructure' | 'Other';
+  cost: string;
+  credits: string;
+  currency: string;
+}
+
+export interface WorkspaceSpendData {
+  cost: string;
+  credits: string;
+  currency: string;
+  googleProjectId: string;
+  subAggregation: { aggregationKey: 'Category'; spendData: CategorySpendData[] };
+  workspace: { name: string; namespace: string };
+}
+
+interface AggregatedSpendData {
+  aggregationKey: 'Workspace' | 'Category';
+}
+
+export interface AggregatedWorkspaceSpendData extends AggregatedSpendData {
+  aggregationKey: 'Workspace';
+  spendData: WorkspaceSpendData[];
+}
+
+export interface AggregatedCategorySpendData extends AggregatedSpendData {
+  aggregationKey: 'Category';
+  spendData: CategorySpendData[];
+}
+
+export interface SpendReport {
+  spendDetails: AggregatedSpendData[];
+  spendSummary: {
+    cost: string;
+    credits: string;
+    currency: string;
+    endTime: string;
+    startTime: string;
+  };
+}
+// End of interfaces for dealing with the server SpendReport JSON response

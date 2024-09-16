@@ -64,26 +64,26 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
   const removeBillingAccount = _.flow(
     reportErrorAndRethrow('Error removing billing account'),
     Utils.withBusyState(setUpdating)
-  )(() => {
+  )((billingProjectName: string) => {
     Ajax().Metrics.captureEvent(Events.billingRemoveAccount, extractBillingDetails(billingProject));
     return Ajax(signal).Billing.removeBillingAccount({
-      billingProjectName: billingProject.projectName,
+      billingProjectName,
     });
   });
 
   const updateSpendConfiguration = _.flow(
     reportErrorAndRethrow('Error updating spend report configuration'),
     Utils.withBusyState(setUpdating)
-  )(() => {
+  )((billingProjectName: string, datasetGoogleProject: string, datasetName: string) => {
     Ajax().Metrics.captureEvent(Events.billingSpendConfigurationUpdated, {
-      datasetGoogleProject: selectedDatasetProjectName,
-      datasetName: selectedDatasetName,
+      datasetGoogleProject,
+      datasetName,
       ...extractBillingDetails(billingProject),
     });
     return Ajax(signal).Billing.updateSpendConfiguration({
-      billingProjectName: billingProject.projectName,
-      datasetGoogleProject: selectedDatasetProjectName,
-      datasetName: selectedDatasetName,
+      billingProjectName,
+      datasetGoogleProject,
+      datasetName,
     });
   });
 
