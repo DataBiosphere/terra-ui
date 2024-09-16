@@ -74,14 +74,14 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
   const updateSpendConfiguration = _.flow(
     reportErrorAndRethrow('Error updating spend report configuration'),
     Utils.withBusyState(setUpdating)
-  )((billingProjectName: string, datasetGoogleProject: string, datasetName: string) => {
+  )((billingProject: GCPBillingProject, datasetGoogleProject: string, datasetName: string) => {
     Ajax().Metrics.captureEvent(Events.billingSpendConfigurationUpdated, {
       datasetGoogleProject,
       datasetName,
       ...extractBillingDetails(billingProject),
     });
     return Ajax(signal).Billing.updateSpendConfiguration({
-      billingProjectName,
+      billingProjectName: billingProject.projectName,
       datasetGoogleProject,
       datasetName,
     });
@@ -197,7 +197,7 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
                 <ButtonPrimary
                   onClick={() => {
                     setShowBillingRemovalModal(false);
-                    removeBillingAccount(selectedBilling).then(reloadBillingProject);
+                    removeBillingAccount(billingProject.projectName).then(reloadBillingProject);
                   }}
                 >
                   Ok
@@ -241,11 +241,7 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
                   disabled={!selectedDatasetProjectName || !selectedDatasetName}
                   onClick={async () => {
                     setShowSpendReportConfigurationModal(false);
-                    await updateSpendConfiguration(
-                      billingProject.projectName,
-                      selectedDatasetProjectName,
-                      selectedDatasetName
-                    );
+                    await updateSpendConfiguration(billingProject, selectedDatasetProjectName, selectedDatasetName);
                   }}
                 >
                   Ok
