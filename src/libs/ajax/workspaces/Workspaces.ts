@@ -3,11 +3,16 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
+import { Entity, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import {
+  AttributeEntityReference,
+  BucketUsageResponse,
+  EntityUpdateDefinition,
   RawWorkspaceAcl,
+  StorageCostEstimate,
   WorkspaceAclUpdate,
   WorkspaceInfo,
   WorkspaceRequest,
@@ -20,7 +25,13 @@ import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 const getSnapshotEntityMetadata = Utils.memoizeAsync(
-  async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
+  async (
+    token: string | undefined,
+    workspaceNamespace: string,
+    workspaceName: string,
+    googleProject: string,
+    dataReference: string
+  ) => {
     const res = await fetchRawls(
       `workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`,
       authOpts(token)
@@ -95,10 +106,12 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      delete: () => {
+      delete: (): Promise<Response> => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
+      // Bucket migration page no longer displayed (though the code was retained in the event of
+      // any future migrations).
       migrateWorkspace: async () => {
         const response = await fetchRawls(`${root}/bucketMigration`, _.merge(authOpts(), { signal, method: 'POST' }));
         return response.json();
@@ -119,6 +132,8 @@ export const Workspaces = (signal?: AbortSignal) => ({
     };
   },
 
+  // Bucket migration page no longer displayed (though the code was retained in the event of
+  // any future migrations).
   bucketMigrationInfo: async () => {
     const response = await fetchRawls('workspaces/v2/bucketMigration', _.merge(authOpts(), { signal }));
     return response.json();
@@ -238,7 +253,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
             return res.json();
           },
 
-          delete: () => {
+          delete: (): Promise<Response> => {
             return fetchRawls(path, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
         };
@@ -249,7 +264,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      listSnapshots: async (limit, offset) => {
+      listSnapshots: async (limit: number, offset: number) => {
         const res = await fetchRawls(
           `${root}/snapshots/v2?offset=${offset}&limit=${limit}`,
           _.merge(authOpts(), { signal })
@@ -263,7 +278,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      snapshot: (snapshotId) => {
+      snapshot: (snapshotId: string) => {
         const snapshotPath = `${root}/snapshots/v2/${snapshotId}`;
 
         return {
@@ -279,13 +294,13 @@ export const Workspaces = (signal?: AbortSignal) => ({
             );
           },
 
-          delete: () => {
+          delete: (): Promise<Response> => {
             return fetchRawls(snapshotPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
         };
       },
 
-      submission: (submissionId) => {
+      submission: (submissionId: string) => {
         const submissionPath = `${root}/submissions/${submissionId}`;
 
         return {
@@ -299,11 +314,11 @@ export const Workspaces = (signal?: AbortSignal) => ({
             return res.json();
           },
 
-          abort: () => {
+          abort: (): Promise<Response> => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
           },
 
-          updateUserComment: (userComment) => {
+          updateUserComment: (userComment: string) => {
             const payload = { userComment };
             return fetchRawls(submissionPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
           },
@@ -311,7 +326,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
           // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
           // workflow: workflowId => Ajax(signal).CromIAM.workflow(workflowId)
           // But: Because of the slowness of asking via CromIAM, that's probably a non-starter for right now.
-          workflow: (workflowId) => {
+          workflow: (workflowId: string) => {
             return {
               metadata: async ({ includeKey, excludeKey }) => {
                 const res = await fetchRawls(
@@ -336,30 +351,30 @@ export const Workspaces = (signal?: AbortSignal) => ({
         };
       },
 
-      delete: () => {
+      delete: (): Promise<Response> => {
         return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
-      shallowMergeNewAttributes: (attributesObject) => {
+      shallowMergeNewAttributes: (attributesObject: Record<string, unknown>) => {
         const payload = attributesUpdateOps(attributesObject);
         return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
       },
 
-      deleteAttributes: (attributeNames) => {
+      deleteAttributes: (attributeNames: string[]) => {
         const payload = _.map((attributeName) => ({ op: 'RemoveAttribute', attributeName }), attributeNames);
         return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
       },
 
-      entityMetadata: async () => {
+      entityMetadata: async (): Promise<Record<string, unknown>> => {
         const res = await fetchRawls(`${root}/entities`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 
-      snapshotEntityMetadata: (googleProject, dataReference) => {
+      snapshotEntityMetadata: (googleProject: string, dataReference: string) => {
         return getSnapshotEntityMetadata(getTerraUser().token, namespace, name, googleProject, dataReference);
       },
 
-      createEntity: async (payload) => {
+      createEntity: async (payload: Entity) => {
         const res = await fetchRawls(
           `${root}/entities`,
           _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }])
@@ -367,14 +382,14 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      renameEntity: (type, name, newName) => {
+      renameEntity: (type: string, name: string, newName: string) => {
         return fetchRawls(
           `${root}/entities/${type}/${name}/rename`,
           _.mergeAll([authOpts(), jsonBody({ name: newName }), { signal, method: 'POST' }])
         );
       },
 
-      renameEntityType: (oldName, newName) => {
+      renameEntityType: (oldName: string, newName: string) => {
         const payload = { newName };
 
         return fetchRawls(
@@ -383,18 +398,18 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      deleteEntitiesOfType: (entityType) => {
+      deleteEntitiesOfType: (entityType: string): Promise<Response> => {
         return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
       },
 
-      deleteEntityAttribute: (type, name, attributeName) => {
+      deleteEntityAttribute: (type: string, name: string, attributeName: string) => {
         return fetchRawls(
           `${root}/entities/${type}/${name}`,
           _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]), { signal, method: 'PATCH' }])
         );
       },
 
-      deleteAttributeFromEntities: (entityType, attributeName, entityNames) => {
+      deleteAttributeFromEntities: (entityType: string, attributeName: string, entityNames: string[]) => {
         const body = _.map(
           (name) => ({
             entityType,
@@ -410,14 +425,14 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      deleteEntityColumn: (type, attributeName) => {
+      deleteEntityColumn: (type: string, attributeName: string): Promise<Response> => {
         return fetchRawls(
           `${root}/entities/${type}?attributeNames=${attributeName}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }])
         );
       },
 
-      renameEntityColumn: (type, attributeName, newAttributeName) => {
+      renameEntityColumn: (type: string, attributeName: string, newAttributeName: string) => {
         const payload = { newAttributeName };
         return fetchRawls(
           `${root}/entityTypes/${type}/attributes/${attributeName}`,
@@ -425,14 +440,14 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      upsertEntities: (entityUpdates) => {
+      upsertEntities: (entityUpdates: EntityUpdateDefinition[]) => {
         return fetchRawls(
           `${root}/entities/batchUpsert`,
           _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: 'POST' }])
         );
       },
 
-      paginatedEntitiesOfType: async (type, parameters) => {
+      paginatedEntitiesOfType: async (type: string, parameters: Record<string, any>): Promise<EntityQueryResponse> => {
         const res = await fetchRawls(
           `${root}/entityQuery/${type}?${qs.stringify(parameters)}`,
           _.merge(authOpts(), { signal })
@@ -440,23 +455,29 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      deleteEntities: (entities) => {
+      deleteEntities: (entities: AttributeEntityReference[]): Promise<Response> => {
         return fetchRawls(
           `${root}/entities/delete`,
           _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }])
         );
       },
 
-      getEntities: (entityType) =>
+      getEntities: (entityType: string): Promise<EntityQueryResponse> =>
         fetchRawls(`${root}/entities/${entityType}`, _.merge(authOpts(), { signal })).then((r) => r.json()),
 
-      getEntitiesTsv: (entityType) =>
+      getEntitiesTsv: (entityType: string): Promise<Blob> =>
         fetchOrchestration(
           `api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`,
           _.mergeAll([authOpts(), { signal }])
         ).then((r) => r.blob()),
 
-      copyEntities: async (destNamespace, destName, entityType, entities, link) => {
+      copyEntities: async (
+        destNamespace: string,
+        destName: string,
+        entityType: string,
+        entities: string[],
+        link: boolean
+      ) => {
         const payload = {
           sourceWorkspace: { namespace, name },
           destinationWorkspace: { namespace: destNamespace, name: destName },
@@ -470,14 +491,14 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importBagit: (bagitURL) => {
+      importBagit: (bagitURL: string) => {
         return fetchOrchestration(
           `api/workspaces/${namespace}/${name}/importBagit`,
           _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { signal, method: 'POST' }])
         );
       },
 
-      importJSON: async (url) => {
+      importJSON: async (url: string) => {
         const res = await fetchOk(url);
         const payload = await res.json();
 
@@ -491,7 +512,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      importEntitiesFile: (file, { deleteEmptyValues = false } = {}) => {
+      importEntitiesFile: (file: File, { deleteEmptyValues = false } = {}): Promise<Response> => {
         const formData = new FormData();
         formData.set('entities', file);
         return fetchOrchestration(
@@ -500,7 +521,10 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      importFlexibleEntitiesFileSynchronous: async (file, { deleteEmptyValues = false } = {}) => {
+      importFlexibleEntitiesFileSynchronous: async (
+        file: File,
+        { deleteEmptyValues = false } = {}
+      ): Promise<Response> => {
         const formData = new FormData();
         formData.set('entities', file);
         const res = await fetchOrchestration(
@@ -510,7 +534,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res;
       },
 
-      importFlexibleEntitiesFileAsync: async (file, { deleteEmptyValues = false } = {}) => {
+      importFlexibleEntitiesFileAsync: async (file: File, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData();
         formData.set('entities', file);
         const res = await fetchOrchestration(
@@ -520,7 +544,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importJob: async (url, filetype, options) => {
+      importJob: async (url: string, filetype: string, options: Record<string, any> | null) => {
         const res = await fetchOrchestration(
           `api/${root}/importJob`,
           _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: 'POST' }])
@@ -528,12 +552,12 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      getImportJobStatus: async (jobId) => {
+      getImportJobStatus: async (jobId: string) => {
         const res = await fetchOrchestration(`api/${root}/importJob/${jobId}`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 
-      listImportJobs: async (isRunning) => {
+      listImportJobs: async (isRunning: boolean): Promise<{ jobId: string }[]> => {
         const res = await fetchOrchestration(
           `api/${root}/importJob?running_only=${isRunning}`,
           _.merge(authOpts(), { signal })
@@ -541,7 +565,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importSnapshot: async (snapshotId, name, description?: any) => {
+      importSnapshot: async (snapshotId: string, name: string, description?: string) => {
         const res = await fetchRawls(
           `${root}/snapshots/v2`,
           _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: 'POST' }])
@@ -549,7 +573,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importAttributes: (file) => {
+      importAttributes: (file: File) => {
         const formData = new FormData();
         formData.set('attributes', file);
         return fetchOrchestration(
@@ -558,12 +582,12 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      exportAttributes: async () => {
+      exportAttributes: async (): Promise<Blob> => {
         const res = await fetchOrchestration(`api/${root}/exportAttributesTSV`, _.merge(authOpts(), { signal }));
         return res.blob();
       },
 
-      storageCostEstimate: async () => {
+      storageCostEstimate: async (): Promise<StorageCostEstimate> => {
         const res = await fetchOrchestration(
           `api/workspaces/${namespace}/${name}/storageCostEstimate`,
           _.merge(authOpts(), { signal })
@@ -571,7 +595,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      getTags: async () => {
+      getTags: async (): Promise<WorkspaceTag[]> => {
         const res = await fetchOrchestration(
           `api/workspaces/${namespace}/${name}/tags`,
           _.merge(authOpts(), { signal, method: 'GET' })
@@ -579,7 +603,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      addTag: async (tag) => {
+      addTag: async (tag: string) => {
         const res = await fetchOrchestration(
           `api/workspaces/${namespace}/${name}/tags`,
           _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'PATCH' }])
@@ -587,7 +611,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      deleteTag: async (tag) => {
+      deleteTag: async (tag: string): Promise<string[]> => {
         const res = await fetchOrchestration(
           `api/workspaces/${namespace}/${name}/tags`,
           _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }])
@@ -595,12 +619,12 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      bucketUsage: async () => {
+      bucketUsage: async (): Promise<BucketUsageResponse> => {
         const res = await fetchRawls(`${root}/bucketUsage`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 
-      listActiveFileTransfers: async () => {
+      listActiveFileTransfers: async (): Promise<any[]> => {
         const res = await fetchRawls(`${root}/fileTransfers`, _.merge(authOpts(), { signal }));
         return res.json();
       },
