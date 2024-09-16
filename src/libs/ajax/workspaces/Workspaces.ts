@@ -5,7 +5,17 @@ import { authOpts } from 'src/auth/auth-session';
 import { fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
-import { CreationRequestBody, WorkspaceInfo, WorkspaceSetting } from 'src/libs/ajax/workspaces/workspace-models';
+import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
+import {
+  RawWorkspaceAcl,
+  WorkspaceAclUpdate,
+  WorkspaceInfo,
+  WorkspaceRequest,
+  WorkspaceRequestClone,
+  WorkspaceSetting,
+  WorkspaceTag,
+  WorkspaceWrapper,
+} from 'src/libs/ajax/workspaces/workspace-models';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -35,7 +45,8 @@ const attributesUpdateOps = _.flow(
   })
 );
 export const Workspaces = (signal?: AbortSignal) => ({
-  list: async (fields, stringAttributeMaxLength) => {
+  list: async (fields: FieldsArg, stringAttributeMaxLength: number | undefined): Promise<WorkspaceWrapper[]> => {
+    // isNil checks null and undefined
     const lenParam = _.isNil(stringAttributeMaxLength) ? '' : `stringAttributeMaxLength=${stringAttributeMaxLength}&`;
     const res = await fetchRawls(
       `workspaces?${lenParam}${qs.stringify({ fields }, { arrayFormat: 'comma' })}`,
@@ -44,17 +55,17 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  create: async (body: CreationRequestBody): Promise<WorkspaceInfo> => {
+  create: async (body: WorkspaceRequest): Promise<WorkspaceInfo> => {
     const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
     return res.json();
   },
 
-  getShareLog: async () => {
+  getShareLog: async (): Promise<string[]> => {
     const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
-  getTags: async (tag, limit) => {
+  getTags: async (tag: string, limit: number): Promise<WorkspaceTag[]> => {
     const params: any = { q: tag };
     if (limit) {
       params.limit = limit;
@@ -63,7 +74,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  getById: async (workspaceId: string, fields: string[] | undefined = undefined) => {
+  getById: async (workspaceId: string, fields: FieldsArg | undefined = undefined): Promise<WorkspaceWrapper> => {
     let url = `workspaces/id/${workspaceId}`;
     if (fields) {
       url += `?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`;
@@ -72,11 +83,11 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return response.json();
   },
 
-  workspaceV2: (namespace, name) => {
+  workspaceV2: (namespace: string, name: string) => {
     const root = `workspaces/v2/${namespace}/${name}`;
 
     return {
-      clone: async (body: CreationRequestBody): Promise<WorkspaceInfo> => {
+      clone: async (body: WorkspaceRequestClone): Promise<WorkspaceInfo> => {
         const res = await fetchRawls(
           `${root}/clone`,
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }])
@@ -129,7 +140,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return response.json();
   },
 
-  workspace: (namespace, name) => {
+  workspace: (namespace: string, name: string) => {
     const root = `workspaces/${namespace}/${name}`;
     const mcPath = `${root}/methodconfigs`;
 
@@ -142,7 +153,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
 
       checkBucketLocation: GoogleStorage(signal).checkBucketLocation,
 
-      details: async (fields) => {
+      details: async (fields: FieldsArg): Promise<WorkspaceWrapper> => {
         const res = await fetchRawls(
           `${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`,
           _.merge(authOpts(), { signal })
@@ -150,12 +161,12 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      getAcl: async () => {
+      getAcl: async (): Promise<Record<'acl', RawWorkspaceAcl>> => {
         const res = await fetchRawls(`${root}/acl`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 
-      updateAcl: async (aclUpdates, inviteNew = true) => {
+      updateAcl: async (aclUpdates: WorkspaceAclUpdate[], inviteNew = true) => {
         const res = await fetchOrchestration(
           `api/${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }])
