@@ -137,7 +137,7 @@ export const Billing = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  addProjectUser: async (projectName: string, roles: BillingRole[], email: string): Promise<void> => {
+  addProjectUser: async (projectName: string, roles: BillingRole[], email: string): Promise<Response> => {
     let userRoles: BillingProjectMember[] = [];
     roles.forEach((role) => {
       userRoles = _.concat(userRoles, [{ email, role }]);

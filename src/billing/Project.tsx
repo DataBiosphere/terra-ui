@@ -18,6 +18,7 @@ import {
 import { Link } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { SimpleTabBar } from 'src/components/tabBars';
+import { Member } from 'src/groups/Members/MemberTable';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
