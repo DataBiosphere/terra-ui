@@ -149,10 +149,13 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
 
   const visibleRows = getVisibleRows(data);
 
-  const initialRow = _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + 5;
-
   return h(AutoSizer, { disableWidth: true }, [
     ({ height }) => {
+      const rowsShowing = height ? height / rowHeight : 0;
+      // We want to place the selected concept in the middle of the visible rows, so we scroll to the element plus half the rows showing
+      const initialRow =
+        _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + _.floor(rowsShowing / 2);
+
       return h(Grid, {
         rowHeight,
         height,
