@@ -5207,14 +5207,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/qs@npm:*, @types/qs@npm:^6.9.5":
-  version: 6.9.11
-  resolution: "@types/qs@npm:6.9.11"
-  checksum: 620ca1628bf3da65662c54ed6ebb120b18a3da477d0bfcc872b696685a9bb1893c3c92b53a1190a8f54d52eaddb6af8b2157755699ac83164604329935e8a7f2
-  languageName: node
-  linkType: hard
-
-"@types/qs@npm:^6.9.15":
+"@types/qs@npm:*, @types/qs@npm:^6.9.15, @types/qs@npm:^6.9.5":
   version: 6.9.15
   resolution: "@types/qs@npm:6.9.15"
   checksum: 97d8208c2b82013b618e7a9fc14df6bd40a73e1385ac479b6896bafc7949a46201c15f42afd06e86a05e914f146f495f606b6fb65610cc60cf2e0ff743ec38a2
@@ -13543,10 +13536,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"path-to-regexp@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "path-to-regexp@npm:5.0.0"
-  checksum: 26c8df9893c0c05711fc9e0239b72e2c6e95dd2ca3e88b84fce7d39514506bee9abf83752c76a63229db30fbae618f140ef47d4077cb555d9b2358693e8a856d
+"path-to-regexp@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "path-to-regexp@npm:6.3.0"
+  checksum: eca78602e6434a1b6799d511d375ec044e8d7e28f5a48aa5c28d57d8152fb52f3fc62fb1cfc5dfa2198e1f041c2a82ed14043d75740a2fe60e91b5089a153250
   languageName: node
   linkType: hard
 
@@ -16514,7 +16507,7 @@ __metadata:
     monaco-editor: 0.51.0
     oidc-client-ts: ^2.4.0
     outdated-browser-rework: ^3.0.1
-    path-to-regexp: ^5.0.0
+    path-to-regexp: ^6.3.0
     pluralize: ^8.0.0
     postcss: ^8.4.31
     postcss-flexbugs-fixes: ^5.0.2
