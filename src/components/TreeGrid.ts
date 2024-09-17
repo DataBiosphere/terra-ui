@@ -2,7 +2,7 @@ import { IconId, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { CSSProperties, ReactElement, useState } from 'react';
 import { div, h, strong } from 'react-hyperscript-helpers';
-import { Grid } from 'react-virtualized';
+import { AutoSizer, Grid } from 'react-virtualized';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { toIndexPairs } from 'src/libs/utils';
@@ -147,83 +147,73 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     setData(_.set(`[${getRowIndex(row, data)}].state`, 'closed', data));
   };
 
-  /*
-     Height is the window height minus:
-     64 px for the top bar
-     120 px for the dataset builder header
-     73 px for the domain header
-     54 px for the column headers
-     We want to have the height clamped here, in order to allow the grid
-     to handle the scrolling, so that we can have initial scrolling behavior
-     on the grid
-     */
-  const gridHeight = window.innerHeight - 64 - 120 - 73 - 54;
-  const rowsVisibleAtOnce = _.floor(gridHeight / rowHeight);
-
   const visibleRows = getVisibleRows(data);
 
-  const initialRow =
-    _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + rowsVisibleAtOnce / 2;
+  const initialRow = _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + 5;
 
-  return h(Grid, {
-    rowHeight,
-    height: gridHeight,
-    rowCount: visibleRows.length,
-    columnCount: columns.length,
-    columnWidth: (index) => columns[index.index].width,
-    width: gridWidth,
-    noContentMessage: 'No matching data',
-    cellRenderer: ({ rowIndex, columnIndex, style }) => {
-      const row = visibleRows[rowIndex];
-      const [iconName, handler, label]: [IconId, ((row: Row<T>) => void) | undefined, string | undefined] = (() => {
-        switch (row.state) {
-          case 'closed':
-            return ['angle-up', expand, 'expand'];
-          case 'open':
-            return ['angle-down', collapse, 'collapse'];
-          case 'opening':
-          default:
-            return ['loadingSpinner', undefined, undefined];
-        }
-      })();
-      return div(
-        {
-          key: `${rowIndex}-${columnIndex}`,
-          style: {
-            ...style,
-            backgroundColor: 'white',
-            borderTop: rowIndex === 0 ? 0 : `.5px solid ${colors.dark(0.2)}`,
-            paddingTop: 10,
-            alignItems: 'center',
-          },
+  return h(AutoSizer, { disableWidth: true }, [
+    ({ height }) => {
+      return h(Grid, {
+        rowHeight,
+        height,
+        rowCount: visibleRows.length,
+        columnCount: columns.length,
+        columnWidth: (index) => columns[index.index].width,
+        width: gridWidth,
+        noContentMessage: 'No matching data',
+        cellRenderer: ({ rowIndex, columnIndex, style }) => {
+          const row = visibleRows[rowIndex];
+          const [iconName, handler, label]: [IconId, ((row: Row<T>) => void) | undefined, string | undefined] = (() => {
+            switch (row.state) {
+              case 'closed':
+                return ['angle-up', expand, 'expand'];
+              case 'open':
+                return ['angle-down', collapse, 'collapse'];
+              case 'opening':
+              default:
+                return ['loadingSpinner', undefined, undefined];
+            }
+          })();
+          return div(
+            {
+              key: `${rowIndex}-${columnIndex}`,
+              style: {
+                ...style,
+                backgroundColor: 'white',
+                borderTop: rowIndex === 0 ? 0 : `.5px solid ${colors.dark(0.2)}`,
+                paddingTop: 10,
+                alignItems: 'center',
+              },
+            },
+            [
+              columnIndex === 0
+                ? div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
+                    row.contents.hasChildren &&
+                      (handler
+                        ? h(
+                            Link,
+                            {
+                              onClick: () => handler(row),
+                              'aria-label': `${label} ${row.contents.id}`,
+                              style: { paddingLeft: 5 },
+                            },
+                            [icon(iconName, { size: 16 })]
+                          )
+                        : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
+                    div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
+                      columns[columnIndex].render(row.contents),
+                    ]),
+                  ])
+                : columns[columnIndex].render(row.contents),
+            ]
+          );
         },
-        [
-          columnIndex === 0
-            ? div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
-                row.contents.hasChildren &&
-                  (handler
-                    ? h(
-                        Link,
-                        {
-                          onClick: () => handler(row),
-                          'aria-label': `${label} ${row.contents.id}`,
-                          style: { paddingLeft: 5 },
-                        },
-                        [icon(iconName, { size: 16 })]
-                      )
-                    : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
-                div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
-                  columns[columnIndex].render(row.contents),
-                ]),
-              ])
-            : columns[columnIndex].render(row.contents),
-        ]
-      );
+        border: false,
+        // Clamp lets us place the first occurrence of the selected concept in the middle of the grid
+        scrollToRow: _.clamp(0, visibleRows.length - 1, initialRow),
+      });
     },
-    border: false,
-    // Clamp lets us place the first occurrence of the selected concept in the middle of the grid
-    scrollToRow: _.clamp(0, visibleRows.length - 1, initialRow),
-  });
+  ]);
 };
 
 /**
@@ -236,12 +226,13 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
   const { columns, headerStyle } = props;
   // Add 15px to account for the scroll bar
   const gridWidth = _.sum(_.map((c) => c.width, columns)) + 15;
-  return div([
+  return div({ style: { flex: 1, display: 'flex', flexDirection: 'column', height: '100%' } }, [
     // generate a header row
     div(
       {
         style: {
           ...headerStyle,
+          height: undefined,
           width: _.sum(_.map((c) => c.width, columns)),
         },
       },
@@ -259,6 +250,6 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
         ),
       ]
     ),
-    h(TreeGridInner<T>, { ...props, gridWidth }),
+    div({ style: { flex: 1 } }, [h(TreeGridInner<T>, { ...props, gridWidth })]),
   ]);
 };

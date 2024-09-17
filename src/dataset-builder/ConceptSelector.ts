@@ -5,7 +5,7 @@ import { LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Parent, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { ConceptCart } from 'src/dataset-builder/ConceptCart';
-import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
+import { BuilderPageHeaderWrapper } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
@@ -51,7 +51,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
     })();
 
   return h(Fragment, [
-    h(BuilderPageHeader, [
+    h(BuilderPageHeaderWrapper, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,
