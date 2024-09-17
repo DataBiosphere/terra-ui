@@ -49,7 +49,7 @@ export const WorkspaceDashboard = forwardRef(
           gridTemplateColumns: 'auto min-content',
           gridTemplateRows: 'auto 1fr',
           display: 'grid',
-          minHeight: '100vh',
+          minHeight: '100%',
         },
       },
       [
