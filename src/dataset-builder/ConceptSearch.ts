@@ -103,7 +103,11 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
                 ]),
                 p([
                   'Learn more about the ',
-                  h(ExternalLink, { href: 'https://www.ohdsi.org/data-standardization/' }, ['OMOP Common Data Model']),
+                  h(
+                    ExternalLink,
+                    { style: { textDecoration: 'underline' }, href: 'https://www.ohdsi.org/data-standardization/' },
+                    ['OMOP Common Data Model']
+                  ),
                 ]),
               ]),
             },
