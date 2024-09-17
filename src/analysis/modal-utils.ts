@@ -80,8 +80,8 @@ export type NormalizedModalRuntime = {
   masterDiskSize?: number;
   numberOfWorkers?: number;
   numberOfPreemptibleWorkers?: number | null;
-  workerMachineType?: string | null | undefined;
-  workerDiskSize?: number | null | undefined;
+  workerMachineType?: string | null;
+  workerDiskSize?: number | null;
   timeoutInMinutes?: number | null;
 };
 
@@ -103,7 +103,6 @@ export const runtimeTypes = {
 export const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) =>
   isGce(runtimeType) && (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected);
 
-// TODO: tnis is the best place to start
 export const buildExistingEnvironmentConfig = (
   computeConfig: IComputeConfig,
   currentRuntimeDetails?: GetRuntimeItem,
@@ -190,9 +189,6 @@ export interface DesiredEnvironmentParams {
   selectedImage?: ComputeImage;
 }
 
-// extract desiredruntimeconfig into a type
-// TODO: converge type with getExistingEnvironmentConfig
-// TODO: type desired runtimetype
 export const buildDesiredEnvironmentConfig = (
   currentRuntimeModalConfig: ExistingModalRuntimeConfig,
   viewMode: string,
