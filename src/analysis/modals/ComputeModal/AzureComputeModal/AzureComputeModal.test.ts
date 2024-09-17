@@ -15,7 +15,7 @@ import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analy
 import { autopauseDisabledValue, defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { Ajax } from 'src/libs/ajax';
-import { Billing, BillingContract } from 'src/libs/ajax/Billing';
+import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { RuntimeAjaxContractV2 } from 'src/libs/ajax/leonardo/Runtimes';
@@ -31,7 +31,7 @@ import { AzureComputeModalBase } from './AzureComputeModal';
 jest.mock('src/analysis/utils/cost-utils');
 jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
 jest.mock('src/libs/ajax/WorkspaceManagerResources', () => ({ WorkspaceManagerResources: jest.fn() }));
-jest.mock('src/libs/ajax/Billing', () => ({ Billing: jest.fn() }));
+jest.mock('src/libs/ajax/billing/Billing', () => ({ Billing: jest.fn() }));
 
 jest.mock('src/libs/ajax');
 jest.mock('src/libs/notifications', () => ({

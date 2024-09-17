@@ -32,7 +32,7 @@ jest.mock(
 describe('BillingProjectActions', () => {
   const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
   const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
-  const deleteProjectMock = jest.fn(() => Promise.resolve());
+  const deleteProjectMock = jest.fn(() => Promise.resolve(new Response('', { status: 204 })));
   const projectName = 'testProject';
   const propsWithNoWorkspacesInProject = {
     projectName,

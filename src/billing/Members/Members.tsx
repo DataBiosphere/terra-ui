@@ -1,12 +1,12 @@
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { billingRoles } from 'src/billing/utils';
+import { BillingRole } from 'src/billing-core/models';
 import { DeleteMemberModal } from 'src/groups/Members/DeleteMemberModal';
 import { EditMemberModal } from 'src/groups/Members/EditMemberModal';
 import { Member, MemberTable } from 'src/groups/Members/MemberTable';
 import { NewMemberModal } from 'src/groups/Members/NewMemberModal';
 import { Ajax } from 'src/libs/ajax';
-import { BillingRole } from 'src/libs/ajax/Billing';
 
 interface MembersProps {
   billingProjectName: string;

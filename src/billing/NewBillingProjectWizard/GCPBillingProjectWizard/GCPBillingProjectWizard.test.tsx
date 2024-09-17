@@ -147,7 +147,7 @@ const testStep4Enabled = () => {
 
 const accountName = 'Billing_Account_Name';
 const displayName = 'Billing_Account_Display_Name';
-const createGCPProject = jest.fn(() => Promise.resolve());
+const createGCPProject = jest.fn(() => Promise.resolve(new Response('', { status: 201 })));
 const captureEvent = jest.fn();
 
 describe('GCPBillingProjectWizard Steps', () => {
