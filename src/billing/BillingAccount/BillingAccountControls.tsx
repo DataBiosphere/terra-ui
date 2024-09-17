@@ -64,26 +64,27 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
   const removeBillingAccount = _.flow(
     reportErrorAndRethrow('Error removing billing account'),
     Utils.withBusyState(setUpdating)
-  )((billingProjectName: string) => {
+  )(() => {
     Ajax().Metrics.captureEvent(Events.billingRemoveAccount, extractBillingDetails(billingProject));
     return Ajax(signal).Billing.removeBillingAccount({
-      billingProjectName,
+      billingProjectName: billingProject.projectName,
     });
   });
 
   const updateSpendConfiguration = _.flow(
     reportErrorAndRethrow('Error updating spend report configuration'),
     Utils.withBusyState(setUpdating)
-  )((billingProject: GCPBillingProject, datasetGoogleProject: string, datasetName: string) => {
+  )(() => {
     Ajax().Metrics.captureEvent(Events.billingSpendConfigurationUpdated, {
-      datasetGoogleProject,
-      datasetName,
+      datasetGoogleProject: selectedDatasetProjectName,
+      datasetName: selectedDatasetName,
       ...extractBillingDetails(billingProject),
     });
+    // The option to update spend configuration is disabled if "!selectedDatasetProjectName || !selectedDatasetName".
     return Ajax(signal).Billing.updateSpendConfiguration({
       billingProjectName: billingProject.projectName,
-      datasetGoogleProject,
-      datasetName,
+      datasetGoogleProject: selectedDatasetProjectName!,
+      datasetName: selectedDatasetName!,
     });
   });
 
@@ -197,7 +198,7 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
                 <ButtonPrimary
                   onClick={() => {
                     setShowBillingRemovalModal(false);
-                    removeBillingAccount(billingProject.projectName).then(reloadBillingProject);
+                    removeBillingAccount().then(reloadBillingProject);
                   }}
                 >
                   Ok
@@ -241,7 +242,7 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
                   disabled={!selectedDatasetProjectName || !selectedDatasetName}
                   onClick={async () => {
                     setShowSpendReportConfigurationModal(false);
-                    await updateSpendConfiguration(billingProject, selectedDatasetProjectName, selectedDatasetName);
+                    await updateSpendConfiguration();
                   }}
                 >
                   Ok
