@@ -24,6 +24,8 @@ const DeleteSnapshotModal = (props: DeleteSnapshotModalProps): ReactNode => {
         <b>
           {namespace}/{name}
         </b>
+        {/*
+         */}
         ?
       </p>
       <p>Workspaces into which this snapshot has been exported will not be affected.</p>
