@@ -15,7 +15,6 @@ import * as Style from 'src/libs/style';
 export interface WrapWorkflowOptions {
   breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
   activeTab?: string;
-  title: string | ((props: { name: string; namespace: string }) => string);
 }
 
 interface WorkflowWrapperProps extends PropsWithChildren {

@@ -116,7 +116,6 @@ const WorkflowSummary = _.flow(
   forwardRefWithName('WorkflowSummary'),
   wrapWorkflows({
     breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
-    title: 'Workflows',
     activeTab: 'dashboard',
   })
 )(() => {

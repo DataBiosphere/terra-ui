@@ -37,7 +37,6 @@ const WorkflowWdl = _.flow(
   forwardRefWithName('WorkflowWdl'),
   wrapWorkflows({
     breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
-    title: 'Workflows',
     activeTab: 'wdl',
   })
 )(() => {
