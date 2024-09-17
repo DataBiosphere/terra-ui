@@ -15,6 +15,7 @@ import { ComputeImage } from './useComputeImages';
 import { defaultGceBootDiskSize } from './utils/disk-utils';
 
 export interface IComputeConfig {
+  bootDiskSize?: number;
   masterMachineType: string;
   masterDiskSize: number;
   numberOfWorkers: number;
@@ -35,8 +36,8 @@ export interface IComputeConfig {
   diskType: GoogleDiskType;
 
   // Used by Azure disk select
-  persistentDiskSize: number;
-  persistentDiskType: DiskType;
+  persistentDiskSize?: number;
+  persistentDiskType?: DiskType;
 }
 
 export interface ExistingModalRuntimeConfig {
@@ -112,7 +113,7 @@ export const buildExistingEnvironmentConfig = (
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig;
   const cloudService = runtimeConfig?.cloudService;
   const numberOfWorkers = runtimeConfig && 'numberOfWorkers' in runtimeConfig ? runtimeConfig.numberOfWorkers : 0;
-  const gpuConfig = runtimeConfig && 'gpuConfig' in runtimeConfig ? runtimeConfig.gpuConfig : undefined;
+  const gpuConfig = runtimeConfig && 'gpuConfig' in runtimeConfig ? runtimeConfig.gpuConfig : {};
   const toolLabel = currentRuntimeDetails ? getToolLabelFromCloudEnv(currentRuntimeDetails) : undefined;
   return {
     hasGpu: computeConfig.hasGpu,
@@ -126,7 +127,7 @@ export const buildExistingEnvironmentConfig = (
           tool: toolLabel,
           region: computeConfig.computeRegion,
           persistentDiskAttached: !!(runtimeConfig && 'persistentDiskId' in runtimeConfig),
-          gpuConfig,
+          ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
           ...(currentRuntimeDetails?.jupyterUserScriptUri
             ? {
                 jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
@@ -180,7 +181,7 @@ export const buildExistingEnvironmentConfig = (
 
 export interface DesiredEnvironmentParams {
   desiredRuntimeType: string;
-  timeoutInMinutes: number;
+  timeoutInMinutes: number | null;
   deleteDiskSelected: boolean;
   upgradeDiskSelected: boolean;
   jupyterUserScriptUri: string | undefined;
@@ -190,7 +191,7 @@ export interface DesiredEnvironmentParams {
 }
 
 export const buildDesiredEnvironmentConfig = (
-  currentRuntimeModalConfig: ExistingModalRuntimeConfig,
+  currentRuntimeModalConfig: DesiredModalRuntimeConfig,
   viewMode: string,
   params: DesiredEnvironmentParams
 ): DesiredModalRuntimeConfig => {
@@ -213,9 +214,7 @@ export const buildDesiredEnvironmentConfig = (
   const cloudService: ComputeType = isDataproc(desiredRuntimeType) ? cloudServiceTypes.DATAPROC : cloudServiceTypes.GCE;
   const desiredNumberOfWorkers = isDataprocCluster(desiredRuntimeType) ? computeConfig.numberOfWorkers : 0;
   const gpuConfig = {
-    gpuConfig: computeConfig.gpuEnabled
-      ? { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus }
-      : undefined,
+    gpuConfig: computeConfig.gpuEnabled ? { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } : {},
   };
   const toolLabel: ToolLabel | undefined = Utils.cond(
     [!!selectedImage?.toolLabel, () => selectedImage?.toolLabel],
@@ -241,7 +240,7 @@ export const buildDesiredEnvironmentConfig = (
             currentRuntimeDetails,
             upgradeDiskSelected
           ),
-          gpuConfig,
+          ...(computeConfig.gpuEnabled ? gpuConfig : {}),
           ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {}),
           ...(timeoutInMinutes ? { timeoutInMinutes } : {}),
           ...(cloudService === cloudServiceTypes.GCE
@@ -287,13 +286,7 @@ export const buildDesiredEnvironmentConfig = (
           shouldUsePersistentDisk(desiredRuntimeType, currentRuntimeDetails, upgradeDiskSelected),
         () => ({ size: computeConfig.diskSize, diskType: computeConfig.diskType }),
       ],
-      [
-        Utils.DEFAULT,
-        () =>
-          currentPersistentDiskDetails
-            ? { ...currentPersistentDiskDetails, diskType: currentPersistentDiskDetails.diskType.value }
-            : undefined,
-      ]
+      [Utils.DEFAULT, () => currentPersistentDiskDetails]
     ),
   };
 };
