@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
 import { Members } from 'src/billing/Members/Members';
-import { User } from 'src/components/group-common';
+import { Member } from 'src/groups/Members/MemberTable';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
 
@@ -13,7 +13,7 @@ jest.mock('src/libs/ajax');
 describe('Members', () => {
   it('renders a list of members in the billing project with no accessibility errors', async () => {
     // Arrange
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'x_owner@test.email.org', roles: ['Owner'] },
       { email: 'user@test.email.org', roles: ['User'] },
     ];
@@ -23,10 +23,10 @@ describe('Members', () => {
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={jest.fn()}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={jest.fn()}
+        deleteMember={jest.fn()}
       />
     );
 
@@ -44,7 +44,7 @@ describe('Members', () => {
 
   it('supports sorting members', async () => {
     // Arrange
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'x_owner@test.email.org', roles: ['Owner'] },
       { email: 'user@test.email.org', roles: ['User'] },
     ];
@@ -55,10 +55,10 @@ describe('Members', () => {
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={jest.fn()}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={jest.fn()}
+        deleteMember={jest.fn()}
       />
     );
 
@@ -75,7 +75,7 @@ describe('Members', () => {
 
   it('supports adding a member for owners', async () => {
     // Arrange
-    const projectUsers: User[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
+    const projectUsers: Member[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
     const user = userEvent.setup();
 
     const addProjectUser = jest.fn();
@@ -93,10 +93,10 @@ describe('Members', () => {
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={userAddedCallback}
-        userEdited={jest.fn()}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={userAddedCallback}
+        memberEdited={jest.fn()}
+        deleteMember={jest.fn()}
       />
     );
     // Open add user dialog
@@ -119,17 +119,17 @@ describe('Members', () => {
 
   it('does not show the Add User button for non-owners', async () => {
     // Arrange
-    const projectUsers: User[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
+    const projectUsers: Member[] = [{ email: 'owner@test.email.org', roles: ['Owner'] }];
 
     // Act
     renderWithAppContexts(
       <Members
         billingProjectName='test-project'
         isOwner={false}
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={jest.fn()}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={jest.fn()}
+        deleteMember={jest.fn()}
       />
     );
 
@@ -140,17 +140,17 @@ describe('Members', () => {
   it('disables the action menu for an owner if there are not multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers: User[] = [{ email: ownerEmail, roles: ['Owner'] }];
+    const projectUsers: Member[] = [{ email: ownerEmail, roles: ['Owner'] }];
 
     // Act
     renderWithAppContexts(
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={jest.fn()}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={jest.fn()}
+        deleteMember={jest.fn()}
       />
     );
 
@@ -161,7 +161,7 @@ describe('Members', () => {
   it('does not show an action menu if the user is not an owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
       { email: userEmail, roles: ['User'] },
     ];
@@ -171,10 +171,10 @@ describe('Members', () => {
       <Members
         billingProjectName='test-project'
         isOwner={false}
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={jest.fn()}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={jest.fn()}
+        deleteMember={jest.fn()}
       />
     );
 
@@ -185,22 +185,22 @@ describe('Members', () => {
   it('supports deleting an owner if there are multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: ownerEmail, roles: ['Owner'] },
       { email: 'owner2@test.email.org', roles: ['Owner'] },
     ];
     const user = userEvent.setup();
-    const deleteUserCallback = jest.fn();
+    const deleteMemberCallback = jest.fn();
 
     // Act
     renderWithAppContexts(
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={jest.fn()}
-        deleteUser={deleteUserCallback}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={jest.fn()}
+        deleteMember={deleteMemberCallback}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${ownerEmail}`);
@@ -212,28 +212,28 @@ describe('Members', () => {
     await user.click(screen.getByText('Remove'));
 
     // Assert
-    expect(deleteUserCallback).toHaveBeenCalledWith({ email: ownerEmail, roles: ['Owner'] });
+    expect(deleteMemberCallback).toHaveBeenCalledWith({ email: ownerEmail, roles: ['Owner'] });
   });
 
   it('supports deleting a non-owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
       { email: userEmail, roles: ['User'] },
     ];
     const user = userEvent.setup();
-    const deleteUserCallback = jest.fn();
+    const deleteMemberCallback = jest.fn();
 
     // Act
     renderWithAppContexts(
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={jest.fn()}
-        deleteUser={deleteUserCallback}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={jest.fn()}
+        deleteMember={deleteMemberCallback}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${userEmail}`);
@@ -244,13 +244,13 @@ describe('Members', () => {
     await user.click(screen.getByText('Remove'));
 
     // Assert
-    expect(deleteUserCallback).toHaveBeenCalledWith({ email: userEmail, roles: ['User'] });
+    expect(deleteMemberCallback).toHaveBeenCalledWith({ email: userEmail, roles: ['User'] });
   });
 
   it('supports editing a non-owner', async () => {
     // Arrange
     const userEmail = 'user@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: 'owner@test.email.org', roles: ['Owner'] },
       { email: userEmail, roles: ['User'] },
     ];
@@ -267,10 +267,10 @@ describe('Members', () => {
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={editingUserCallback}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={editingUserCallback}
+        deleteMember={jest.fn()}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${userEmail}`);
@@ -291,7 +291,7 @@ describe('Members', () => {
   it('supports editing an owner if there are multiple owners', async () => {
     // Arrange
     const ownerEmail = 'owner@test.email.org';
-    const projectUsers: User[] = [
+    const projectUsers: Member[] = [
       { email: ownerEmail, roles: ['Owner'] },
       { email: 'owner2@test.email.org', roles: ['Owner'] },
     ];
@@ -308,10 +308,10 @@ describe('Members', () => {
       <Members
         billingProjectName='test-project'
         isOwner
-        projectUsers={projectUsers}
-        userAdded={jest.fn()}
-        userEdited={userEditedCallback}
-        deleteUser={jest.fn()}
+        projectMembers={projectUsers}
+        memberAdded={jest.fn()}
+        memberEdited={userEditedCallback}
+        deleteMember={jest.fn()}
       />
     );
     const menu = screen.getByLabelText(`Menu for User: ${ownerEmail}`);

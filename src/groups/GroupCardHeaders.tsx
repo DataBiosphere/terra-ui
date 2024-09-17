@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
-import { Sort } from 'src/components/group-common';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
 import { columnWidths } from 'src/groups/GroupCard';
+import { Sort } from 'src/groups/Members/MemberTable';
 
 interface GroupCardHeadersProps {
   sort: Sort;

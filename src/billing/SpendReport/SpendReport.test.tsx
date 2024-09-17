@@ -1,13 +1,12 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { SpendReport, WorkspaceLink } from 'src/billing/SpendReport/SpendReport';
+import { Ajax } from 'src/libs/ajax';
 import {
   AggregatedCategorySpendData,
   AggregatedWorkspaceSpendData,
-  SpendReport,
-  SpendReportServerResponse,
-  WorkspaceLink,
-} from 'src/billing/SpendReport/SpendReport';
-import { Ajax } from 'src/libs/ajax';
+  SpendReport as SpendReportServerResponse,
+} from 'src/libs/ajax/billing/billing-models';
 import { getLink } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -140,7 +139,7 @@ describe('SpendReport', () => {
 
   it('does not call the server if view is not active', async () => {
     // Arrange
-    const getSpendReport = jest.fn(() => Promise.resolve());
+    const getSpendReport = jest.fn(() => Promise.resolve({} as SpendReportServerResponse));
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({

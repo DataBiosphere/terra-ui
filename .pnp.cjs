@@ -162,7 +162,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["monaco-editor", "npm:0.51.0"],\
             ["oidc-client-ts", "npm:2.4.0"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
-            ["path-to-regexp", "npm:5.0.0"],\
+            ["path-to-regexp", "npm:6.3.0"],\
             ["pluralize", "npm:8.0.0"],\
             ["postcss", "npm:8.4.38"],\
             ["postcss-flexbugs-fixes", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.0.2"],\
@@ -6777,7 +6777,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@storybook/csf", "npm:0.1.11"],\
             ["@storybook/global", "npm:5.0.0"],\
             ["@storybook/types", "npm:8.0.10"],\
-            ["@types/qs", "npm:6.9.11"],\
+            ["@types/qs", "npm:6.9.15"],\
             ["dequal", "npm:2.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["memoizerific", "npm:1.11.3"],\
@@ -6798,7 +6798,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@storybook/csf", "npm:0.1.11"],\
             ["@storybook/global", "npm:5.0.0"],\
             ["@storybook/types", "npm:8.1.11"],\
-            ["@types/qs", "npm:6.9.11"],\
+            ["@types/qs", "npm:6.9.15"],\
             ["dequal", "npm:2.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["memoizerific", "npm:1.11.3"],\
@@ -8222,7 +8222,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/express", "npm:4.17.21"],\
             ["@types/body-parser", "npm:1.19.2"],\
             ["@types/express-serve-static-core", "npm:4.17.35"],\
-            ["@types/qs", "npm:6.9.11"],\
+            ["@types/qs", "npm:6.9.15"],\
             ["@types/serve-static", "npm:1.15.2"]\
           ],\
           "linkType": "HARD"\
@@ -8234,7 +8234,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@types/express-serve-static-core", "npm:4.17.35"],\
             ["@types/node", "npm:20.6.2"],\
-            ["@types/qs", "npm:6.9.11"],\
+            ["@types/qs", "npm:6.9.15"],\
             ["@types/range-parser", "npm:1.2.4"],\
             ["@types/send", "npm:0.17.1"]\
           ],\
@@ -8501,13 +8501,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@types/qs", [\
-        ["npm:6.9.11", {\
-          "packageLocation": "./.yarn/cache/@types-qs-npm-6.9.11-e12802ac61-620ca1628b.zip/node_modules/@types/qs/",\
-          "packageDependencies": [\
-            ["@types/qs", "npm:6.9.11"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["npm:6.9.15", {\
           "packageLocation": "./.yarn/cache/@types-qs-npm-6.9.15-aae1b1e2f7-97d8208c2b.zip/node_modules/@types/qs/",\
           "packageDependencies": [\
@@ -18470,10 +18463,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "HARD"\
         }],\
-        ["npm:5.0.0", {\
-          "packageLocation": "./.yarn/cache/path-to-regexp-npm-5.0.0-b5fd67fa3e-26c8df9893.zip/node_modules/path-to-regexp/",\
+        ["npm:6.3.0", {\
+          "packageLocation": "./.yarn/cache/path-to-regexp-npm-6.3.0-ee2cdde576-eca78602e6.zip/node_modules/path-to-regexp/",\
           "packageDependencies": [\
-            ["path-to-regexp", "npm:5.0.0"]\
+            ["path-to-regexp", "npm:6.3.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -22379,7 +22372,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["monaco-editor", "npm:0.51.0"],\
             ["oidc-client-ts", "npm:2.4.0"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
-            ["path-to-regexp", "npm:5.0.0"],\
+            ["path-to-regexp", "npm:6.3.0"],\
             ["pluralize", "npm:8.0.0"],\
             ["postcss", "npm:8.4.38"],\
             ["postcss-flexbugs-fixes", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.0.2"],\

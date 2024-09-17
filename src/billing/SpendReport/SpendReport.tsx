@@ -9,6 +9,13 @@ import { CostCard } from 'src/billing/SpendReport/CostCard';
 import { CloudPlatform } from 'src/billing-core/models';
 import { Select } from 'src/components/common';
 import { Ajax } from 'src/libs/ajax';
+import {
+  AggregatedCategorySpendData,
+  AggregatedWorkspaceSpendData,
+  CategorySpendData,
+  SpendReport as SpendReportServerResponse,
+  WorkspaceSpendData,
+} from 'src/libs/ajax/billing/billing-models';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -55,49 +62,6 @@ interface ProjectCost {
   other: string;
 }
 // End of interfaces for internal storage of data
-
-// Interfaces for dealing with the server SpendReport JSON response
-interface CategorySpendData {
-  category: 'Compute' | 'Storage' | 'WorkspaceInfrastructure' | 'Other';
-  cost: string;
-  credits: string;
-  currency: string;
-}
-
-interface WorkspaceSpendData {
-  cost: string;
-  credits: string;
-  currency: string;
-  googleProjectId: string;
-  subAggregation: { aggregationKey: 'Category'; spendData: CategorySpendData[] };
-  workspace: { name: string; namespace: string };
-}
-
-interface AggregatedSpendData {
-  aggregationKey: 'Workspace' | 'Category';
-}
-
-export interface AggregatedWorkspaceSpendData extends AggregatedSpendData {
-  aggregationKey: 'Workspace';
-  spendData: WorkspaceSpendData[];
-}
-
-export interface AggregatedCategorySpendData extends AggregatedSpendData {
-  aggregationKey: 'Category';
-  spendData: CategorySpendData[];
-}
-
-export interface SpendReportServerResponse {
-  spendDetails: AggregatedSpendData[];
-  spendSummary: {
-    cost: string;
-    credits: string;
-    currency: string;
-    endTime: string;
-    startTime: string;
-  };
-}
-// End of interfaces for dealing with the server SpendReport JSON response
 
 interface SpendReportProps {
   billingProjectName: string;

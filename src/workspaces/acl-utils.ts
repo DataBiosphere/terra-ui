@@ -1,24 +1,18 @@
 import _ from 'lodash/fp';
+import { RawAccessEntry, RawWorkspaceAcl } from 'src/libs/ajax/workspaces/workspace-models';
 import { WorkspaceAccessLevel, workspaceAccessLevels } from 'src/workspaces/utils';
 
 // a map of email -> AccessEntry
-export type RawWorkspaceAcl = { [key: string]: RawAccessEntry };
+export type { RawWorkspaceAcl } from 'src/libs/ajax/workspaces/workspace-models';
 
 // a list of email, AccessEntry pairs
 export type WorkspaceAcl = AccessEntry[];
-
-export interface RawAccessEntry {
-  pending: boolean;
-  canShare: boolean;
-  canCompute: boolean;
-  accessLevel: WorkspaceAccessLevel;
-}
 
 export interface AccessEntry extends RawAccessEntry {
   email: string;
 }
 
-export const transformAcl: (RawWorkspaceAcl) => WorkspaceAcl = (raw) => {
+export const transformAcl = (raw: RawWorkspaceAcl): WorkspaceAcl => {
   return _.flow(
     _.toPairs,
     _.map(([email, data]) => ({ email, ...data })),

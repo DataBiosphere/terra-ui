@@ -3,7 +3,7 @@ import { LoadedState } from '@terra-ui-packages/core-utils';
 import { useNotificationsFromContext } from '@terra-ui-packages/notifications';
 import { useEffect } from 'react';
 import { BillingProfile } from 'src/billing-core/models';
-import { Billing } from 'src/libs/ajax/Billing';
+import { Billing } from 'src/libs/ajax/billing/Billing';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 
 export const useWorkspaceBillingProfile = (
