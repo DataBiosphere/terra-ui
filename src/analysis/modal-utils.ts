@@ -132,7 +132,7 @@ export const buildExistingEnvironmentConfig = (
                 jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri,
               }
             : {}),
-          // TODO: this can use runtimeconfig conditionals too more safely
+          // TODO: this can use `runtimeTypes` conditionals for more safety
           ...(cloudService === cloudServices.GCE
             ? {
                 zone: computeConfig.computeZone,
