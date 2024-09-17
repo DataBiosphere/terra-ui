@@ -64,7 +64,6 @@ export const importDockstoreWorkflow = async (
     rootEntityType: _.head(_.keys(entityMetadata)),
     inputs: {},
     outputs: defaultOutputConfiguration,
-    prerequisites: {},
     methodConfigVersion: 1,
     deleted: false,
     methodRepoMethod: {

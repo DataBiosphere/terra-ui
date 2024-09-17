@@ -5,7 +5,12 @@ import { authOpts } from 'src/auth/auth-session';
 import { fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
-import { CreationRequestBody, WorkspaceInfo, WorkspaceSetting } from 'src/libs/ajax/workspaces/workspace-models';
+import {
+  CreationRequestBody,
+  MethodConfiguration,
+  WorkspaceInfo,
+  WorkspaceSetting,
+} from 'src/libs/ajax/workspaces/workspace-models';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
@@ -176,7 +181,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importMethodConfig: (config) => {
+      importMethodConfig: (config: MethodConfiguration) => {
         return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(config), { signal, method: 'POST' }]));
       },
 

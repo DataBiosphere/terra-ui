@@ -47,7 +47,7 @@ export const makeExportWorkflowFromWorkspaceProvider = (
  *
  * @param {MethodRepoMethod} sourceMethod - the method to be exported from the
  * Methods Repository. The methodNamespace, methodName, and methodVersion
- * properties should be present.
+ * properties should be present, and methodVersion should be a number.
  */
 export const makeExportWorkflowFromMethodsRepoProvider = (
   sourceMethod: MethodRepoMethod
