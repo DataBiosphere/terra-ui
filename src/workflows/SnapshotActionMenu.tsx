@@ -1,6 +1,5 @@
 import { Clickable, Icon } from '@terra-ui-packages/components';
-import { ReactNode } from 'react';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 
