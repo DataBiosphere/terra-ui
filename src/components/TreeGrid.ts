@@ -82,6 +82,8 @@ type TreeGridProps<T extends RowContents> = {
   readonly getChildren: (row: T) => Promise<T[]>;
   /** Optional header style */
   readonly headerStyle?: CSSProperties;
+  /** Optional opened concept ID for determining initial row */
+  readonly openedConceptId?: number;
 };
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
@@ -145,11 +147,27 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     setData(_.set(`[${getRowIndex(row, data)}].state`, 'closed', data));
   };
 
+  /*
+     Height is the window height minus:
+     64 px for the top bar
+     120 px for the dataset builder header
+     73 px for the domain header
+     54 px for the column headers
+     We want to have the height clamped here, in order to allow the grid
+     to handle the scrolling, so that we can have initial scrolling behavior
+     on the grid
+     */
+  const gridHeight = window.innerHeight - 64 - 120 - 73 - 54;
+  const rowsVisibleAtOnce = _.floor(gridHeight / rowHeight);
+
   const visibleRows = getVisibleRows(data);
+
+  const initialRow =
+    _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + rowsVisibleAtOnce / 2;
 
   return h(Grid, {
     rowHeight,
-    height: rowHeight * visibleRows.length,
+    height: gridHeight,
     rowCount: visibleRows.length,
     columnCount: columns.length,
     columnWidth: (index) => columns[index.index].width,
@@ -203,6 +221,8 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
       );
     },
     border: false,
+    // Clamp lets us place the first occurrence of the selected concept in the middle of the grid
+    scrollToRow: _.clamp(0, visibleRows.length - 1, initialRow),
   });
 };
 
@@ -214,7 +234,8 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
   const { columns, headerStyle } = props;
-  const gridWidth = _.sum(_.map((c) => c.width, columns));
+  // Add 15px to account for the scroll bar
+  const gridWidth = _.sum(_.map((c) => c.width, columns)) + 15;
   return div([
     // generate a header row
     div(

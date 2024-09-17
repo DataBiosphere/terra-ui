@@ -99,6 +99,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         root: { id: findRoot(parents), name: 'root', code: '0', count: 0, hasChildren: true },
         parents,
         getChildren,
+        openedConceptId: openedConcept?.id,
         headerStyle: tableHeaderStyle,
       }),
     ]),
