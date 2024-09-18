@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
+import { mockAutoSizer } from 'src/components/TreeGrid.test';
 import { DataRepo, DataRepoContract } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -23,6 +24,8 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
     DataRepo: jest.fn(),
   };
 });
+
+mockAutoSizer();
 
 describe('DomainCriteriaSelector', () => {
   const mockDataRepoContract: Partial<DataRepoContract> = {
