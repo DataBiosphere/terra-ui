@@ -4,12 +4,12 @@ import React from 'react';
 import { useState } from 'react';
 import * as Auth from 'src/auth/auth';
 import { accountLinkStyle } from 'src/billing/utils';
+import { GCPBillingProject, GoogleBillingAccount } from 'src/billing-core/models';
 import { VirtualizedSelect } from 'src/components/common';
 import { TextInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { Ajax } from 'src/libs/ajax';
-import { GCPBillingProject, GoogleBillingAccount } from 'src/libs/ajax/Billing';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
@@ -80,10 +80,11 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
       datasetName: selectedDatasetName,
       ...extractBillingDetails(billingProject),
     });
+    // The option to update spend configuration is disabled if "!selectedDatasetProjectName || !selectedDatasetName".
     return Ajax(signal).Billing.updateSpendConfiguration({
       billingProjectName: billingProject.projectName,
-      datasetGoogleProject: selectedDatasetProjectName,
-      datasetName: selectedDatasetName,
+      datasetGoogleProject: selectedDatasetProjectName!,
+      datasetName: selectedDatasetName!,
     });
   });
 
@@ -197,7 +198,7 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
                 <ButtonPrimary
                   onClick={() => {
                     setShowBillingRemovalModal(false);
-                    removeBillingAccount(selectedBilling).then(reloadBillingProject);
+                    removeBillingAccount().then(reloadBillingProject);
                   }}
                 >
                   Ok
@@ -241,11 +242,7 @@ export const BillingAccountControls = (props: BillingAccountControlsProps) => {
                   disabled={!selectedDatasetProjectName || !selectedDatasetName}
                   onClick={async () => {
                     setShowSpendReportConfigurationModal(false);
-                    await updateSpendConfiguration(
-                      billingProject.projectName,
-                      selectedDatasetProjectName,
-                      selectedDatasetName
-                    );
+                    await updateSpendConfiguration();
                   }}
                 >
                   Ok

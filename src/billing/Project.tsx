@@ -1,8 +1,7 @@
 import { Icon, SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import React from 'react';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import React, { ReactNode, useEffect, useMemo, useState } from 'react';
 import { BillingAccountControls } from 'src/billing/BillingAccount/BillingAccountControls';
 import { BillingAccountSummary, BillingAccountSummaryProps } from 'src/billing/BillingAccount/BillingAccountSummary';
 import { Members } from 'src/billing/Members/Members';
@@ -10,17 +9,17 @@ import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/Ext
 import { SpendReport } from 'src/billing/SpendReport/SpendReport';
 import { accountLinkStyle, BillingAccountStatus, billingRoles } from 'src/billing/utils';
 import { Workspaces } from 'src/billing/Workspaces/Workspaces';
-import { Link } from 'src/components/common';
-import { User } from 'src/components/group-common';
-import { InfoBox } from 'src/components/InfoBox';
-import { SimpleTabBar } from 'src/components/tabBars';
-import { Ajax } from 'src/libs/ajax';
 import {
   BillingProject,
   GoogleBillingAccount,
   isAzureBillingProject,
   isGoogleBillingProject,
-} from 'src/libs/ajax/Billing';
+} from 'src/billing-core/models';
+import { Link } from 'src/components/common';
+import { InfoBox } from 'src/components/InfoBox';
+import { SimpleTabBar } from 'src/components/tabBars';
+import { Member } from 'src/groups/Members/MemberTable';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events, { extractBillingDetails } from 'src/libs/events';
@@ -87,7 +86,7 @@ const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || []);
-  const projectOwners: User[] = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers);
+  const projectOwners: Member[] = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers);
 
   const [updating, setUpdating] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
@@ -136,12 +135,12 @@ const ProjectDetail = (props: ProjectDetailProps): ReactNode => {
       <Members
         billingProjectName={billingProject.projectName}
         isOwner={isOwner}
-        projectUsers={projectUsers}
-        userAdded={() => reloadBillingProjectUsers()}
-        userEdited={() => {
+        projectMembers={projectUsers}
+        memberAdded={() => reloadBillingProjectUsers()}
+        memberEdited={() => {
           reloadBillingProject().then(reloadBillingProjectUsers);
         }}
-        deleteUser={(user) => {
+        deleteMember={(user) => {
           removeUserFromBillingProject(user.roles, user.email)
             .then(reloadBillingProject)
             .then(reloadBillingProjectUsers);

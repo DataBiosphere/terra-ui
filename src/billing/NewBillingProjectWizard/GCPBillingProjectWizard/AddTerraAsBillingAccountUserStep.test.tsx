@@ -32,7 +32,7 @@ const getUserAddedButton = () =>
     screen.queryByLabelText('I have added terra-billing as a billing account user (requires reauthentication)')
   );
 
-const createGCPProject = jest.fn(() => Promise.resolve());
+const createGCPProject = jest.fn(() => Promise.resolve(new Response('', { status: 201 })));
 const captureEvent = jest.fn();
 describe('AddTerraAsBillingAccountUserStep', () => {
   beforeEach(() => {

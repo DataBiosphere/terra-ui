@@ -213,7 +213,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
     // Request a service account token. If this is the first time, it could take some time before everything is in sync.
     // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
     if (canWrite(accessLevel) && isGoogleWorkspace(workspace)) {
-      saToken(googleProject);
+      saToken(googleProject!);
     }
 
     // This is old code-- it is unclear if this case can actually happen anymore.

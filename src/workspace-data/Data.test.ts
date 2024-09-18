@@ -32,6 +32,26 @@ jest.mock('src/libs/error', () => ({
   reportError: jest.fn(),
 }));
 
+const cwdsUrlRoot = 'https://cwds.test.url';
+
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  getConfig: jest.fn().mockReturnValue({ cwdsUrlRoot }),
+}));
+
+type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
+
+jest.mock('src/libs/ajax/ajax-common', (): AjaxCommonExports => {
+  return {
+    ...jest.requireActual<AjaxCommonExports>('src/libs/ajax/ajax-common'),
+    fetchWDS: jest.fn().mockImplementation(() => {
+      return jest.fn().mockResolvedValue({
+        json: jest.fn().mockResolvedValue({}),
+      });
+    }),
+  };
+});
+
 // When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
 // this type belongs there.
 interface WorkspaceDataProps {

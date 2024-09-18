@@ -2,7 +2,35 @@ import { cond, safeCurry } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
 import { AzureBillingProject, BillingProject } from 'src/billing-core/models';
+import {
+  AzureWorkspace,
+  BaseWorkspace,
+  GoogleWorkspace,
+  GoogleWorkspaceInfo,
+  WorkspaceAccessLevel,
+  workspaceAccessLevels,
+  WorkspaceInfo,
+  WorkspacePolicy,
+  WorkspaceWrapper,
+} from 'src/libs/ajax/workspaces/workspace-models';
 import { azureRegions } from 'src/libs/azure-regions';
+
+export { workspaceAccessLevels } from 'src/libs/ajax/workspaces/workspace-models';
+
+export type {
+  AzureContext,
+  AzureWorkspace,
+  AzureWorkspaceInfo,
+  BaseWorkspace,
+  BaseWorkspaceInfo,
+  GoogleWorkspace,
+  GoogleWorkspaceInfo,
+  WorkspaceAccessLevel,
+  WorkspaceInfo,
+  WorkspacePolicy,
+  WorkspaceState,
+  WorkspaceWrapper,
+} from 'src/libs/ajax/workspaces/workspace-models';
 
 export type CloudProvider = 'AZURE' | 'GCP';
 export const cloudProviderTypes: Record<CloudProvider, CloudProvider> = {
@@ -19,52 +47,9 @@ export const isKnownCloudProvider = (x: unknown): x is CloudProvider => {
   return (x as string) in cloudProviderTypes;
 };
 
-export type AuthorizationDomain = {
-  membersGroupName: string;
-};
-
-// TODO: Clean up all the optional types when we fix return types of all the places we retrieve workspaces
-export interface BaseWorkspaceInfo {
-  namespace: string;
-  name: string;
-  workspaceId: string;
-  authorizationDomain: AuthorizationDomain[];
-  createdDate: string;
-  createdBy: string;
-  lastModified: string;
-  attributes?: Record<string, unknown>;
-  isLocked?: boolean;
-  state?: WorkspaceState;
-  errorMessage?: string;
-  completedCloneWorkspaceFileTransfer?: string;
-  workspaceType?: 'mc' | 'rawls';
-  workspaceVersion?: string;
-}
-
-export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
-  cloudPlatform: 'Azure';
-  bucketName?: '';
-  googleProject?: '';
-}
-
-export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
-  cloudPlatform: 'Gcp';
-  googleProject: string;
-  billingAccount: string;
-  bucketName: string;
-}
-
-export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo;
-
 export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo | undefined): workspace is GoogleWorkspaceInfo => {
   return workspace ? workspace.cloudPlatform === 'Gcp' : false;
 };
-
-export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER'] as const;
-
-export type WorkspaceAccessLevels = typeof workspaceAccessLevels;
-
-export type WorkspaceAccessLevel = WorkspaceAccessLevels[number];
 
 export const hasAccessLevel = (required: WorkspaceAccessLevel, current: WorkspaceAccessLevel): boolean => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required);
@@ -73,48 +58,6 @@ export const hasAccessLevel = (required: WorkspaceAccessLevel, current: Workspac
 export const canWrite = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('WRITER', accessLevel);
 export const canRead = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('READER', accessLevel);
 export const isOwner = (accessLevel: WorkspaceAccessLevel): boolean => hasAccessLevel('OWNER', accessLevel);
-
-export interface WorkspaceSubmissionStats {
-  lastSuccessDate?: string;
-  lastFailureDate?: string;
-  runningSubmissionsCount: number;
-}
-
-export type WorkspaceState =
-  | 'Creating'
-  | 'CreateFailed'
-  | 'Cloning'
-  | 'CloningContainer'
-  | 'CloningFailed'
-  | 'Ready'
-  | 'Updating'
-  | 'UpdateFailed'
-  | 'Deleting'
-  | 'DeleteFailed'
-  | 'Deleted'; // For UI only - not a state in rawls
-
-export interface BaseWorkspace {
-  owners?: string[];
-  accessLevel: WorkspaceAccessLevel;
-  canShare: boolean;
-  canCompute: boolean;
-  workspace: WorkspaceInfo;
-  policies: WorkspacePolicy[];
-  public?: boolean;
-  workspaceSubmissionStats?: WorkspaceSubmissionStats;
-}
-
-export interface AzureContext {
-  managedResourceGroupId: string;
-  subscriptionId: string;
-  tenantId: string;
-}
-
-export interface WorkspacePolicy {
-  name: string;
-  namespace: string;
-  additionalData: { [key: string]: string }[];
-}
 
 export interface PolicyDescription {
   shortDescription: string;
@@ -152,16 +95,6 @@ export const getPolicyDescriptions = (
   }
   return policyDescriptions;
 };
-
-export interface AzureWorkspace extends BaseWorkspace {
-  azureContext: AzureContext;
-}
-
-export interface GoogleWorkspace extends BaseWorkspace {
-  workspace: GoogleWorkspaceInfo;
-}
-
-export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace;
 
 export const isAzureWorkspace = (workspace: BaseWorkspace): workspace is AzureWorkspace => {
   return workspace.workspace.cloudPlatform === 'Azure';

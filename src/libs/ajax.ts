@@ -1,9 +1,7 @@
-import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { authOpts } from 'src/auth/auth-session';
-import { fetchGoogleForms, fetchRawls } from 'src/libs/ajax/ajax-common';
+import { fetchGoogleForms } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
-import { Billing } from 'src/libs/ajax/Billing';
+import { Billing } from 'src/libs/ajax/billing/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';
@@ -29,13 +27,6 @@ import { WorkflowScript } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
-
-const Submissions = (signal?: AbortSignal) => ({
-  queueStatus: async () => {
-    const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }));
-    return res.json();
-  },
-});
 
 const Surveys = (signal?: AbortSignal) => ({
   submitForm: (formId, data) => fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal }),
@@ -63,7 +54,6 @@ export const Ajax = (signal?: AbortSignal) => {
     OAuth2: OAuth2(signal),
     Runtimes: Runtimes(signal),
     SamResources: SamResources(signal),
-    Submissions: Submissions(signal),
     Support: Support(signal),
     Surveys: Surveys(signal),
     TermsOfService: TermsOfService(signal),

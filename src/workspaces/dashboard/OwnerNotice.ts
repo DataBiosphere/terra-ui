@@ -8,7 +8,7 @@ import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
-import { WorkspaceAcl } from 'src/workspaces/acl-utils';
+import { RawWorkspaceAcl } from 'src/workspaces/acl-utils';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 import { isOwner } from 'src/workspaces/utils';
 
@@ -20,7 +20,7 @@ export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
   const { workspace } = props;
   const { owners = [], accessLevel } = workspace;
 
-  const [acl, setAcl] = useState<WorkspaceAcl>();
+  const [acl, setAcl] = useState<RawWorkspaceAcl>();
 
   const signal = useCancellation();
 
@@ -40,7 +40,7 @@ export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
   return cond(
     // No warning if there are multiple owners.
     [_.size(owners) !== 1, () => null],
-    // If the current user does not own the workspace, then then workspace must be shared.
+    // If the current user does not own the workspace, then the workspace must be shared.
     [
       !isOwner(accessLevel),
       () =>
@@ -59,7 +59,7 @@ export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
     ],
     // If the current user is the only owner of the workspace, check if the workspace is shared.
     [
-      _.size(acl) > 1,
+      _.size(acl) > 1, // acl is a dict, and _.size will give the number of entries
       () =>
         h(
           InfoBox,

@@ -1,11 +1,12 @@
-import { Billing, BillingContract, BillingProfile } from 'src/libs/ajax/Billing';
+import { BillingProfile } from 'src/billing-core/models';
+import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { WorkspaceManagerResources, WorkspaceManagerResourcesContract } from 'src/libs/ajax/WorkspaceManagerResources';
 import { azureBillingProfile } from 'src/testing/billing-profile-fixtures';
 import { asMockedFn, mockNotifications, renderHookInActWithAppContexts } from 'src/testing/test-utils';
 
 import { useWorkspaceBillingProfile } from './useWorkspaceBillingProfile';
 
-jest.mock('src/libs/ajax/Billing', () => ({ Billing: jest.fn() }));
+jest.mock('src/libs/ajax/billing/Billing', () => ({ Billing: jest.fn() }));
 jest.mock('src/libs/ajax/WorkspaceManagerResources', () => ({ WorkspaceManagerResources: jest.fn() }));
 
 describe('useWorkspaceBillingProfile', () => {

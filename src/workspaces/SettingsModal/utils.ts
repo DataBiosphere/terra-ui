@@ -1,4 +1,18 @@
 import _ from 'lodash/fp';
+import {
+  BucketLifecycleRule,
+  BucketLifecycleSetting,
+  DeleteBucketLifecycleRule,
+  SoftDeleteSetting,
+  WorkspaceSetting,
+} from 'src/libs/ajax/workspaces/workspace-models';
+
+export type {
+  BucketLifecycleSetting,
+  SoftDeleteSetting,
+  WorkspaceSetting,
+  DeleteBucketLifecycleRule,
+} from 'src/libs/ajax/workspaces/workspace-models';
 
 export const suggestedPrefixes = {
   allObjects: 'All Objects',
@@ -8,37 +22,6 @@ export const suggestedPrefixes = {
 
 export const secondsInADay = 86400;
 export const softDeleteDefaultRetention = 7 * secondsInADay;
-
-interface BucketLifecycleRule {
-  action: {
-    actionType: string;
-  };
-  conditions?: any;
-}
-
-export interface DeleteBucketLifecycleRule extends BucketLifecycleRule {
-  action: {
-    actionType: 'Delete';
-  };
-  conditions: {
-    age: number;
-    matchesPrefix: string[];
-  };
-}
-
-export interface WorkspaceSetting {
-  settingType: string;
-}
-
-export interface BucketLifecycleSetting extends WorkspaceSetting {
-  settingType: 'GcpBucketLifecycle';
-  config: { rules: BucketLifecycleRule[] };
-}
-
-export interface SoftDeleteSetting extends WorkspaceSetting {
-  settingType: 'GcpBucketSoftDelete';
-  config: { retentionDurationInSeconds: number };
-}
 
 export const isBucketLifecycleSetting = (setting: WorkspaceSetting): setting is BucketLifecycleSetting =>
   setting.settingType === 'GcpBucketLifecycle';
