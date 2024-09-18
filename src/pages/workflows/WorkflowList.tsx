@@ -190,7 +190,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
 
   return (
     <FooterWrapper>
-      <TopBar title='Workflows' href=''>
+      <TopBar title='Broad Methods Repository' href=''>
         {null /* no additional content to display in the top bar */}
       </TopBar>
       <TabBar

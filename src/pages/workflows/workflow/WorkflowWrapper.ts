@@ -60,7 +60,7 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
       });
 
       return h(FooterWrapper, [
-        h(TopBar, { title: 'Workflows', href: Nav.getLink('workflows') }, [
+        h(TopBar, { title: 'Broad Methods Repository', href: Nav.getLink('workflows') }, [
           div({ style: Style.breadcrumb.breadcrumb }, [
             div(breadcrumbs(props)),
             div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`${namespace}/${name}`]),
