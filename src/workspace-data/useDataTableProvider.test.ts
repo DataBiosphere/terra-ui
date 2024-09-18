@@ -97,17 +97,16 @@ describe('useDataTableProvider', () => {
     expect(mockInnerFunction).toHaveBeenCalledWith(`collections/v1/${WDS_APP_WORKSPACE_ID}`, expect.anything());
   });
 
-  // This test is disabled until a later PR for AJ-1965 uses the useCwds variable to determine whether or not to call listAppsV2
-  //   it('should not call list apps if cwds is in use', async () => {
-  //     // Arrange
-  //     // Act
-  //     await act(() => {
-  //       renderHook(() => useDataTableProvider(CWDS_WORKSPACE_ID));
-  //     });
+  it('should not call list apps if cwds is in use', async () => {
+    // Arrange
+    // Act
+    await act(() => {
+      renderHook(() => useDataTableProvider(CWDS_WORKSPACE_ID));
+    });
 
-  //     // Assert
-  //     expect(mockListAppsV2).not.toHaveBeenCalled();
-  //   });
+    // Assert
+    expect(mockListAppsV2).not.toHaveBeenCalled();
+  });
 
   it('should call list apps if cwds is not in use', async () => {
     // Arrange
