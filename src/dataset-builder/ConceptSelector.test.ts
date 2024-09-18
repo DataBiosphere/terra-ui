@@ -1,7 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { mockAutoSizer } from 'src/components/TreeGrid.test';
 import { dummyGetConceptForId } from 'src/dataset-builder/TestConstants';
 import { DataRepo, DataRepoContract, SnapshotBuilderConcept } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -17,7 +16,25 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
-mockAutoSizer();
+jest.mock('react-virtualized', () => {
+  const actual = jest.requireActual('react-virtualized');
+
+  const { AutoSizer } = actual;
+
+  class MockAutoSizer extends AutoSizer {
+    state = {
+      height: 1000,
+      width: 1000,
+    };
+
+    setState = () => {};
+  }
+
+  return {
+    ...actual,
+    AutoSizer: MockAutoSizer,
+  };
+});
 
 describe('ConceptSelector', () => {
   const onCancel = jest.fn();

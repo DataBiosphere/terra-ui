@@ -2,7 +2,6 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { mockAutoSizer } from 'src/components/TreeGrid.test';
 import { DataRepo, DataRepoContract } from 'src/libs/ajax/DataRepo';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -25,7 +24,25 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
-mockAutoSizer();
+jest.mock('react-virtualized', () => {
+  const actual = jest.requireActual('react-virtualized');
+
+  const { AutoSizer } = actual;
+
+  class MockAutoSizer extends AutoSizer {
+    state = {
+      height: 1000,
+      width: 1000,
+    };
+
+    setState = () => {};
+  }
+
+  return {
+    ...actual,
+    AutoSizer: MockAutoSizer,
+  };
+});
 
 describe('DomainCriteriaSelector', () => {
   const mockDataRepoContract: Partial<DataRepoContract> = {

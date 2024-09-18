@@ -8,28 +8,25 @@ type Node = RowContents & {
   name: string;
 };
 
-export const mockAutoSizer = () =>
-  jest.mock('react-virtualized', () => {
-    const actual = jest.requireActual('react-virtualized');
+jest.mock('react-virtualized', () => {
+  const actual = jest.requireActual('react-virtualized');
 
-    const { AutoSizer } = actual;
+  const { AutoSizer } = actual;
 
-    class MockAutoSizer extends AutoSizer {
-      state = {
-        height: 1000,
-        width: 1000,
-      };
-
-      setState = () => {};
-    }
-
-    return {
-      ...actual,
-      AutoSizer: MockAutoSizer,
+  class MockAutoSizer extends AutoSizer {
+    state = {
+      height: 1000,
+      width: 1000,
     };
-  });
 
-mockAutoSizer();
+    setState = () => {};
+  }
+
+  return {
+    ...actual,
+    AutoSizer: MockAutoSizer,
+  };
+});
 
 // to show root, we need a rootPointer because parent of hierarchy will not show
 const child1: Node = { id: 2, name: 'child1', hasChildren: false };
