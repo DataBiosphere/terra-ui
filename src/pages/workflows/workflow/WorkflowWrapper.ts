@@ -191,7 +191,9 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           },
           ['Export to Workspace']
         ),
-        h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
+        div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
+          h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
+        ]),
       ]
     ),
     exportingWorkflow &&

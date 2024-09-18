@@ -30,7 +30,7 @@ const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
       <Clickable
         aria-label='Snapshot action menu'
         aria-haspopup='menu'
-        style={{ marginLeft: '1.5rem', marginRight: '0.5rem', opacity: 0.65, height: 27 }}
+        style={{ opacity: 0.65, height: 27 }}
         hover={{ opacity: 1 }}
       >
         <Icon icon='cardMenuIcon' size={27} />
