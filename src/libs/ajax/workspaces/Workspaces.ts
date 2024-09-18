@@ -203,7 +203,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importMethodConfig: (config: MethodConfiguration) => {
+      importMethodConfig: (config: MethodConfiguration): Promise<Response> => {
         return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(config), { signal, method: 'POST' }]));
       },
 
