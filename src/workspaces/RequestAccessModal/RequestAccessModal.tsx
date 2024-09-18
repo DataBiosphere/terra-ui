@@ -1,15 +1,14 @@
-import { Modal } from '@terra-ui-packages/components';
+import { ExternalLink, Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React from 'react';
 import { ReactNode, useState } from 'react';
-import { ButtonPrimary, Link } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
+import { ButtonPrimary } from 'src/components/common';
+import { centeredSpinner } from 'src/components/icons';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
-import * as Utils from 'src/libs/utils';
 import { cond, withBusyState } from 'src/libs/utils';
 import {
   azureControlledAccessRequestMessage,
@@ -66,10 +65,9 @@ const GcpRequestAccessModal = (props: GcpRequestAccessModalProps): ReactNode => 
         &quot;Request Access&quot; button below will send an email to the admins of that group.
       </div>
       <div style={{ marginTop: '1rem' }}>
-        <Link href='https://support.terra.bio/hc/en-us/articles/360026775691' {...Utils.newTabLinkProps}>
+        <ExternalLink href='https://support.terra.bio/hc/en-us/articles/360026775691'>
           Learn more about Authorization Domains
-          {icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })}
-        </Link>
+        </ExternalLink>
       </div>
       {loading ? (
         centeredSpinner({ size: 32 })
@@ -146,10 +144,9 @@ const AzureRequestAccessModal = (props: AzureRequestAccessModalProps): ReactNode
       You are currently logged in as
       <span style={{ fontWeight: 600 }}>{getTerraUser().email}</span>. You may have access with a different account, or
       your linked identity may have expired.
-      <Link href='https://support.terra.bio/hc/en-us/articles/19124069598235' {...Utils.newTabLinkProps}>
+      <ExternalLink href='https://support.terra.bio/hc/en-us/articles/19124069598235'>
         Learn more about linking your NIH account
-        {icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })}
-      </Link>
+      </ExternalLink>
       <p>{azureControlledAccessRequestMessage}</p>
     </Modal>
   );
