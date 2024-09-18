@@ -1,10 +1,10 @@
 import { AbortOption } from '@terra-ui-packages/data-client-core';
 import { Ajax } from 'src/libs/ajax';
-import { MethodConfiguration } from 'src/libs/ajax/workspaces/workspace-models';
+import { MethodConfiguration, MethodRepoMethod } from 'src/libs/ajax/workspaces/workspace-models';
 import { WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface ExportWorkflowToWorkspaceProvider {
-  export: (destWorkspace: WorkspaceInfo, destWorkflowName: string, options?: AbortOption) => Promise<void>;
+  export: (destWorkspace: WorkspaceInfo, destWorkflowName: string, options?: AbortOption) => Promise<any>;
 }
 
 /**
@@ -36,6 +36,36 @@ export const makeExportWorkflowFromWorkspaceProvider = (
             namespace: destWorkspace.namespace,
             name: destWorkspace.name,
           },
+        });
+    },
+  };
+};
+
+/**
+ * Create a provider to export a workflow from the Broad Methods Repository to a
+ * workspace, with a blank configuration.
+ *
+ * @param {MethodRepoMethod} sourceMethod - the method to be exported from the
+ * Methods Repository. The methodNamespace, methodName, and methodVersion
+ * properties should be present, and methodVersion should be a number.
+ */
+export const makeExportWorkflowFromMethodsRepoProvider = (
+  sourceMethod: MethodRepoMethod
+): ExportWorkflowToWorkspaceProvider => {
+  return {
+    export: async (destWorkspace: WorkspaceInfo, destWorkflowName: string, options: AbortOption = {}) => {
+      const { signal } = options;
+
+      // Remove placeholder root entity type from template before importing -
+      // the user can select their own on the workflow configuration page
+      const { rootEntityType, ...template } = await Ajax(signal).Methods.template(sourceMethod);
+
+      return Ajax(signal)
+        .Workspaces.workspace(destWorkspace.namespace, destWorkspace.name)
+        .importMethodConfig({
+          ...template,
+          name: destWorkflowName,
+          namespace: sourceMethod.methodNamespace,
         });
     },
   };
