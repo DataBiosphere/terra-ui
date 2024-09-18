@@ -4,7 +4,7 @@ import { MethodConfiguration, MethodRepoMethod } from 'src/libs/ajax/workspaces/
 import { WorkspaceInfo } from 'src/workspaces/utils';
 
 export interface ExportWorkflowToWorkspaceProvider {
-  export: (destWorkspace: WorkspaceInfo, destWorkflowName: string, options?: AbortOption) => Promise<void>;
+  export: (destWorkspace: WorkspaceInfo, destWorkflowName: string, options?: AbortOption) => Promise<any>;
 }
 
 /**
