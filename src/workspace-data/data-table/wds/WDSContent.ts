@@ -94,8 +94,8 @@ export const WDSContent = ({
       workspace,
       snapshotName: undefined,
       selectionModel: {
-        selected: selectedRecords, // TODO: should this be called "selectedRecords"?
-        setSelected: setSelectedRecords, // TODO: same question
+        selected: selectedRecords,
+        setSelected: setSelectedRecords,
       },
       setEntityMetadata,
       enableSearch: false,
