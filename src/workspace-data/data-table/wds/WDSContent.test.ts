@@ -54,6 +54,9 @@ const defaultProps: WDSContentProps = {
       // attributes are required to avoid an error while destructuring from 'workspace-column-defaults'
       attributes: {},
     },
+    workspaceSubmissionStats: {
+      runningSubmissionsCount: 0,
+    },
   },
   recordType: marbleSchema.name,
   wdsSchema: [marbleSchema],
