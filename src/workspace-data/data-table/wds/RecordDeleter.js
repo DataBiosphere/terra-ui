@@ -7,14 +7,7 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import * as Utils from 'src/libs/utils';
 
-export const RecordDeleter = ({
-  onDismiss,
-  onSuccess,
-  dataProvider,
-  collectionId,
-  selectedRecords,
-  runningSubmissionsCount,
-}) => {
+export const RecordDeleter = ({ onDismiss, onSuccess, dataProvider, collectionId, selectedRecords, runningSubmissionsCount }) => {
   const [additionalDeletions, setAdditionalDeletions] = useState([]);
   const [deleting, setDeleting] = useState(false);
 
@@ -28,9 +21,7 @@ export const RecordDeleter = ({
 
     const recordTypes = _.uniq(_.map(({ entityType }) => entityType, selectedRecords));
     if (recordTypes.length > 1) {
-      await reportError(
-        'Something went wrong; more than one recordType is represented in the selection. This should not happen.'
-      );
+      await reportError('Something went wrong; more than one recordType is represented in the selection. This should not happen.');
     }
     const recordType = recordTypes[0];
     setDeleting(true);
@@ -47,9 +38,7 @@ export const RecordDeleter = ({
             _.filter(
               (errorEntity) =>
                 !_.some(
-                  (selectedEntity) =>
-                    selectedEntity.entityType === errorEntity.entityType &&
-                    selectedEntity.entityName === errorEntity.entityName,
+                  (selectedEntity) => selectedEntity.entityType === errorEntity.entityType && selectedEntity.entityName === errorEntity.entityName,
                   recordsToDelete
                 ),
               await error.json()
