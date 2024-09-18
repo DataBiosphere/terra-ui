@@ -1,59 +1,48 @@
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { billingRoles } from 'src/billing/utils';
-import { DeleteUserModal } from 'src/components/DeleteUserModal';
-import { EditUserModal } from 'src/components/EditUserModal';
-import { MemberCard, MemberCardHeaders, NewUserCard, Sort, User } from 'src/components/group-common';
-import { NewUserModal } from 'src/components/NewUserModal';
+import { BillingRole } from 'src/billing-core/models';
+import { DeleteMemberModal } from 'src/groups/Members/DeleteMemberModal';
+import { EditMemberModal } from 'src/groups/Members/EditMemberModal';
+import { Member, MemberTable } from 'src/groups/Members/MemberTable';
+import { NewMemberModal } from 'src/groups/Members/NewMemberModal';
 import { Ajax } from 'src/libs/ajax';
-import { BillingRole } from 'src/libs/ajax/Billing';
 
 interface MembersProps {
   billingProjectName: string;
   isOwner: boolean;
-  projectUsers: User[];
-  userAdded: () => void;
-  userEdited: () => void;
-  deleteUser: (arg: User) => void;
+  projectMembers: Member[];
+  memberAdded: () => void;
+  memberEdited: () => void;
+  deleteMember: (arg: Member) => void;
 }
 
 export const Members = (props: MembersProps): ReactNode => {
-  const { billingProjectName, isOwner, projectUsers, userEdited, deleteUser, userAdded } = props;
-  const [sort, setSort] = useState<Sort>({ field: 'email', direction: 'asc' });
-  const [addingUser, setAddingUser] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | false>(false);
-  const [deletingUser, setDeletingUser] = useState<User | false>(false);
+  const { billingProjectName, isOwner, projectMembers, memberEdited, deleteMember, memberAdded } = props;
+  const [addingMember, setAddingMember] = useState(false);
+  const [editingMember, setEditingMember] = useState<Member>();
+  const [deletingMember, setDeletingMember] = useState<Member>();
 
   const projectHasMultipleOwners =
-    _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1;
+    _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectMembers).length > 1;
 
   return (
     <>
-      {isOwner && <NewUserCard onClick={() => setAddingUser(true)} />}
-      <div role='table' aria-label={`users in billing project ${billingProjectName}`}>
-        <MemberCardHeaders sort={sort} onSort={setSort} />
-        <div>
-          {_.map(
-            (member: User) => (
-              <MemberCard
-                key={member.email}
-                adminLabel={billingRoles.owner}
-                userLabel={billingRoles.user}
-                member={member}
-                adminCanEdit={projectHasMultipleOwners && isOwner}
-                onEdit={() => setEditingUser(member)}
-                onDelete={() => setDeletingUser(member)}
-                isOwner={isOwner}
-              />
-            ),
-            _.orderBy([sort.field], [sort.direction], projectUsers)
-          )}
-        </div>
-      </div>
-      {addingUser && (
-        <NewUserModal
+      <MemberTable
+        adminLabel={billingRoles.owner}
+        memberLabel={billingRoles.user}
+        members={projectMembers}
+        adminCanEdit={projectHasMultipleOwners && isOwner}
+        onEdit={setEditingMember}
+        onDelete={setDeletingMember}
+        onAddMember={() => setAddingMember(true)}
+        tableAriaLabel={`users in billing project ${billingProjectName}`}
+        isOwner={isOwner}
+      />
+      {addingMember && (
+        <NewMemberModal
           adminLabel={billingRoles.owner}
-          userLabel={billingRoles.user}
+          memberLabel={billingRoles.user}
           title='Add user to Billing Project'
           footer={[
             'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
@@ -61,35 +50,35 @@ export const Members = (props: MembersProps): ReactNode => {
           addFunction={(roles: string[], email: string) =>
             Ajax().Billing.addProjectUser(billingProjectName, roles as BillingRole[], email)
           }
-          onDismiss={() => setAddingUser(false)}
+          onDismiss={() => setAddingMember(false)}
           onSuccess={() => {
-            setAddingUser(false);
-            userAdded();
+            setAddingMember(false);
+            memberAdded();
           }}
         />
       )}
-      {!!editingUser && (
-        <EditUserModal
+      {!!editingMember && (
+        <EditMemberModal
           adminLabel={billingRoles.owner}
-          userLabel={billingRoles.user}
-          user={editingUser}
+          memberLabel={billingRoles.user}
+          member={editingMember}
           saveFunction={(email: string, roles: string[], newRoles: string[]) =>
             Ajax().Billing.changeUserRoles(billingProjectName, email, roles as BillingRole[], newRoles as BillingRole[])
           }
-          onDismiss={() => setEditingUser(false)}
+          onDismiss={() => setEditingMember(undefined)}
           onSuccess={() => {
-            setEditingUser(false);
-            userEdited();
+            setEditingMember(undefined);
+            memberEdited();
           }}
         />
       )}
-      {!!deletingUser && (
-        <DeleteUserModal
-          userEmail={deletingUser.email}
-          onDismiss={() => setDeletingUser(false)}
+      {!!deletingMember && (
+        <DeleteMemberModal
+          memberEmail={deletingMember.email}
+          onDismiss={() => setDeletingMember(undefined)}
           onSubmit={() => {
-            deleteUser(deletingUser);
-            setDeletingUser(false);
+            deleteMember(deletingMember);
+            setDeletingMember(undefined);
           }}
         />
       )}

@@ -26,5 +26,6 @@
   "terraDockerVersionsFile": "terra-docker-versions-staging.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-staging",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_staging",
-  "terraDeploymentEnv": "staging"
+  "terraDeploymentEnv": "staging",
+  "cwdsUrlRoot": "https://cwds.dsde-staging.broadinstitute.org"
 }

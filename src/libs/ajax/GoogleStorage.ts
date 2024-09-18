@@ -12,7 +12,7 @@ import {
 import { getAuthToken } from 'src/auth/auth';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchSam } from 'src/libs/ajax/ajax-common';
-import { canUseWorkspaceProject } from 'src/libs/ajax/Billing';
+import { canUseWorkspaceProject } from 'src/libs/ajax/billing/Billing';
 import { fetchOk, withMaybeRetry, withUrlPrefix } from 'src/libs/ajax/fetch/fetch-core';
 import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';

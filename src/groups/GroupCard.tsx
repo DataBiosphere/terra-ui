@@ -32,7 +32,7 @@ export const GroupCard = (props: GroupCardProps): ReactNode => {
         <a
           href={isAdmin ? getLink('group', { groupName }) : undefined}
           aria-disabled={!isAdmin}
-          style={{ ...Style.cardList.longTitle, color: isAdmin ? colors.accent() : undefined }}
+          style={{ color: isAdmin ? colors.accent() : undefined }}
         >
           {groupName}
         </a>

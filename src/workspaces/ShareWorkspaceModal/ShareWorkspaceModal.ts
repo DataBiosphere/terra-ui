@@ -7,6 +7,7 @@ import { centeredSpinner } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
 import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
+import { WorkspaceAclUpdate } from 'src/libs/ajax/workspaces/workspace-models';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
@@ -112,7 +113,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
     const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length;
     const eventData = { numAdditions, ...extractWorkspaceDetails(workspace.workspace) };
 
-    const aclUpdates = [
+    // @ts-ignore
+    const aclUpdates: WorkspaceAclUpdate[] = [
       ..._.flow(
         _.remove({ accessLevel: 'PROJECT_OWNER' }),
         _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))

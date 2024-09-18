@@ -1,7 +1,7 @@
 import * as qs from 'qs';
 import { fetchGoogleForms } from 'src/libs/ajax/ajax-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
-import { Billing } from 'src/libs/ajax/Billing';
+import { Billing } from 'src/libs/ajax/billing/Billing';
 import { Catalog } from 'src/libs/ajax/Catalog';
 import { DataRepo } from 'src/libs/ajax/DataRepo';
 import { Dockstore } from 'src/libs/ajax/Dockstore';

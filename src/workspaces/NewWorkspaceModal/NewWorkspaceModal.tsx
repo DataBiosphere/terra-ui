@@ -142,7 +142,7 @@ export const NewWorkspaceModal = withDisplayName(
         setCreating(true);
 
         const body = {
-          namespace,
+          namespace: namespace!,
           name,
           authorizationDomain: _.map((v) => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
           attributes: { description },
@@ -156,7 +156,7 @@ export const NewWorkspaceModal = withDisplayName(
           [
             !!cloneWorkspace,
             async () => {
-              const workspace = await Ajax()
+              const workspace: WorkspaceInfo = await Ajax()
                 .Workspaces.workspaceV2(cloneWorkspace!.workspace.namespace, cloneWorkspace!.workspace.name)
                 .clone(body);
               const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces();
@@ -275,15 +275,15 @@ export const NewWorkspaceModal = withDisplayName(
         Ajax(signal).Groups.list().then(setAllGroups),
         !!cloneWorkspace &&
           Ajax(signal)
-            .Workspaces.workspace(namespace, cloneWorkspace.workspace.name)
+            .Workspaces.workspace(namespace!, cloneWorkspace.workspace.name)
             .details(['workspace.attributes.description'])
             .then((workspace) => {
-              setDescription(workspace.workspace.attributes.description || '');
+              setDescription(workspace.workspace.attributes?.description || '');
             }),
         !!cloneWorkspace &&
           isGoogleWorkspace(cloneWorkspace) &&
           Ajax(signal)
-            .Workspaces.workspace(namespace, cloneWorkspace.workspace.name)
+            .Workspaces.workspace(namespace!, cloneWorkspace.workspace.name)
             .checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
             .then(({ location }) => {
               // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
