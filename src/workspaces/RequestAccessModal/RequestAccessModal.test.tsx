@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { axe } from 'jest-axe';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { RequestAccessModal } from 'src/workspaces/RequestAccessModal/RequestAccessModal';
@@ -74,7 +74,7 @@ describe('RequestAccessModal', () => {
     const props = { onDismiss: jest.fn(), workspace: azureWorkspace };
     // Act
     await act(async () => {
-      const { container } = render(h(RequestAccessModal, props));
+      const { container } = render(<RequestAccessModal {...props} />);
       expect(await axe(container)).toHaveNoViolations();
     });
     // Assert
@@ -88,7 +88,7 @@ describe('RequestAccessModal', () => {
     const props = { onDismiss, workspace: azureWorkspace };
     // Act
     await act(async () => {
-      render(h(RequestAccessModal, props));
+      render(<RequestAccessModal {...props} />);
     });
     const okButton = await screen.findByText('OK');
     await act(async () => {
@@ -111,7 +111,7 @@ describe('RequestAccessModal', () => {
     const props = { onDismiss: jest.fn(), workspace: googleWorkspace };
     // Act
     await act(async () => {
-      const { container } = render(h(RequestAccessModal, props));
+      const { container } = render(<RequestAccessModal {...props} />);
       expect(await axe(container)).toHaveNoViolations();
     });
     // Assert
@@ -134,7 +134,7 @@ describe('RequestAccessModal', () => {
 
     // Act
     await act(async () => {
-      render(h(RequestAccessModal, props));
+      render(<RequestAccessModal {...props} />);
     });
     const okButton = await screen.findByText('OK');
     await act(async () => {
@@ -172,7 +172,7 @@ describe('RequestAccessModal', () => {
 
     // Act
     await act(async () => {
-      render(h(RequestAccessModal, props));
+      render(<RequestAccessModal {...props} />);
     });
     const group3Button = await screen.findByLabelText('Request access to group-3');
     await act(async () => {
