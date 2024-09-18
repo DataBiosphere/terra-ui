@@ -5,6 +5,7 @@ import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
+import { Ajax } from 'src/libs/ajax';
 import { DataTableProvider } from 'src/libs/ajax/data-table-providers/DataTableProvider';
 import { RecordTypeSchema, wdsToEntityServiceMetadata } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import colors from 'src/libs/colors';
@@ -45,7 +46,7 @@ export const WDSContent = ({
   // Render
   const [entityMetadata, setEntityMetadata] = useState(() => wdsToEntityServiceMetadata(wdsSchema));
 
-  const entitiesSelected = !_.isEmpty(selectedRecords);
+  const recordsSelected = !_.isEmpty(selectedRecords);
 
   // TODO: This is a (mostly) copy/paste from the EntitiesContent component.
   //       should it be abstracted into its own component or shared function?
@@ -59,8 +60,8 @@ export const WDSContent = ({
           h(
             MenuButton,
             {
-              disabled: !entitiesSelected,
-              tooltip: !entitiesSelected && 'Select rows to delete in the table',
+              disabled: !recordsSelected,
+              tooltip: !recordsSelected && 'Select rows to delete in the table',
               onClick: () => setDeletingRecords(true),
             },
             'Delete selected rows'
