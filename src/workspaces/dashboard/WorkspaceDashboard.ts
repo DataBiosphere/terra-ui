@@ -43,77 +43,87 @@ export const WorkspaceDashboard = forwardRef(
     // @ts-expect-error
     const { value: canEdit } = canEditWorkspace(workspace);
 
-    return div({ style: { gridTemplateColumns: 'auto min-content', gridTemplateRows: '1fr 2fr', display: 'grid' } }, [
-      div({ style: Style.dashboard.leftBox }, [
-        h(WorkspaceDescription, { workspace, refreshWorkspace }),
-        h(DatasetAttributes, { attributes }),
-      ]),
-      div({ style: Style.dashboard.rightBox }, [
-        h(
-          WorkspaceRightBoxSection,
-          {
-            title: 'Workspace information',
-            defaultPanelOpen: true,
-            persistenceId: `${persistenceId}/workspaceInfoPanelOpen`,
-            workspace,
-          },
-          [h(WorkspaceInformation, { workspace })]
-        ),
-        h(
-          WorkspaceRightBoxSection,
-          {
-            title: 'Cloud information',
-            persistenceId: `${persistenceId}/cloudInfoPanelOpen`,
-            workspace,
-          },
-          [h(CloudInformation, { workspace, storageDetails })]
-        ),
-        h(
-          WorkspaceRightBoxSection,
-          {
-            title: 'Owners',
-            persistenceId: `${persistenceId}/ownersPanelOpen`,
-            afterTitle: OwnerNotice({ workspace }),
-            workspace,
-          },
-          [
-            div(
-              { style: { margin: '0.5rem' } },
-              _.map((email) => {
-                return div(
-                  { key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } },
-                  [h(Link, { href: `mailto:${email}` }, [email])]
-                );
-              }, owners)
-            ),
-          ]
-        ),
-        isGoogleWorkspace(workspace) &&
-          !_.isEmpty(authorizationDomain) &&
+    return div(
+      {
+        style: {
+          gridTemplateColumns: 'auto min-content',
+          gridTemplateRows: 'auto 1fr',
+          display: 'grid',
+          minHeight: '100%',
+        },
+      },
+      [
+        div({ style: Style.dashboard.leftBox }, [
+          h(WorkspaceDescription, { workspace, refreshWorkspace }),
+          h(DatasetAttributes, { attributes }),
+        ]),
+        div({ style: Style.dashboard.rightBox }, [
           h(
             WorkspaceRightBoxSection,
             {
-              title: 'Authorization domain',
-              persistenceId: `${persistenceId}/authDomainPanelOpen`,
+              title: 'Workspace information',
+              defaultPanelOpen: true,
+              persistenceId: `${persistenceId}/workspaceInfoPanelOpen`,
               workspace,
             },
-            [h(AuthDomainPanel, { workspace })]
+            [h(WorkspaceInformation, { workspace })]
           ),
-        h(WorkspaceTags, { workspace, canEdit }),
-        h(
-          WorkspaceRightBoxSection,
-          {
-            title: 'Notifications',
-            persistenceId: `${persistenceId}/notificationsPanelOpen`,
-            workspace,
-          },
-          [h(WorkspaceNotifications, { workspace })]
-        ),
-      ]),
-      // "dummy" div to make background color below the right box sections the same if they do not
-      // fill the full height of the dashboard
-      div({ style: { ...Style.dashboard.rightBox, gridRow: '2', gridColumn: '2' } }, []),
-    ]);
+          h(
+            WorkspaceRightBoxSection,
+            {
+              title: 'Cloud information',
+              persistenceId: `${persistenceId}/cloudInfoPanelOpen`,
+              workspace,
+            },
+            [h(CloudInformation, { workspace, storageDetails })]
+          ),
+          h(
+            WorkspaceRightBoxSection,
+            {
+              title: 'Owners',
+              persistenceId: `${persistenceId}/ownersPanelOpen`,
+              afterTitle: OwnerNotice({ workspace }),
+              workspace,
+            },
+            [
+              div(
+                { style: { margin: '0.5rem' } },
+                _.map((email) => {
+                  return div(
+                    { key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } },
+                    [h(Link, { href: `mailto:${email}` }, [email])]
+                  );
+                }, owners)
+              ),
+            ]
+          ),
+          isGoogleWorkspace(workspace) &&
+            !_.isEmpty(authorizationDomain) &&
+            h(
+              WorkspaceRightBoxSection,
+              {
+                title: 'Authorization domain',
+                persistenceId: `${persistenceId}/authDomainPanelOpen`,
+                workspace,
+              },
+              [h(AuthDomainPanel, { workspace })]
+            ),
+          h(WorkspaceTags, { workspace, canEdit }),
+          h(
+            WorkspaceRightBoxSection,
+            {
+              title: 'Notifications',
+              persistenceId: `${persistenceId}/notificationsPanelOpen`,
+              workspace,
+            },
+            [h(WorkspaceNotifications, { workspace })]
+          ),
+        ]),
+        // "dummy" div to make background color below the right box sections the same if they do not
+        // fill the full height of the dashboard
+        div({ style: { ...Style.dashboard.rightBox, gridRow: '2', gridColumn: '2', padding: 0 } }, []),
+      ]
+    );
   }
 );
 
