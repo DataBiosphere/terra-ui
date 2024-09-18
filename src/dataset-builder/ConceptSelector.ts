@@ -23,7 +23,6 @@ type ConceptSelectorProps = {
 };
 
 export const tableHeaderStyle: CSSProperties = {
-  height: '100%',
   display: 'flex',
   paddingTop: 15,
   paddingBottom: 15,

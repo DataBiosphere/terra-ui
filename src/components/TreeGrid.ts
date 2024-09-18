@@ -1,6 +1,6 @@
 import { IconId, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { CSSProperties, ReactElement, useState } from 'react';
+import { CSSProperties, ReactElement, useRef, useState } from 'react';
 import { div, h, strong } from 'react-hyperscript-helpers';
 import { AutoSizer, Grid } from 'react-virtualized';
 import { icon } from 'src/components/icons';
@@ -88,6 +88,7 @@ type TreeGridProps<T extends RowContents> = {
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
   readonly gridWidth: number;
+  readonly height: number;
 };
 
 /**
@@ -118,8 +119,11 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, getChildren, gridWidth, root, parents } = props;
+  const { columns, getChildren, gridWidth, height, root, parents } = props;
   const [data, setData] = useState(populateTree(root, parents ?? []));
+  const [scrollbarSize, setScrollbarSize] = useState(0);
+  const treeGrid = useRef<Grid>();
+
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);
@@ -149,74 +153,76 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
 
   const visibleRows = getVisibleRows(data);
 
-  return h(AutoSizer, { disableWidth: true }, [
-    ({ height }) => {
-      const rowsShowing = height ? height / rowHeight : 0;
-      // We want to place the selected concept in the middle of the visible rows, so we scroll to the element plus half the rows showing
-      const initialRow =
-        _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + _.floor(rowsShowing / 2);
+  const rowsShowing = height ? height / rowHeight : 0;
+  // We want to place the selected concept in the middle of the visible rows, so we scroll to the element plus half the rows showing
+  const initialRow =
+    _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + _.floor(rowsShowing / 2);
 
-      return h(Grid, {
-        rowHeight,
-        height,
-        rowCount: visibleRows.length,
-        columnCount: columns.length,
-        columnWidth: (index) => columns[index.index].width,
-        width: gridWidth,
-        noContentMessage: 'No matching data',
-        cellRenderer: ({ rowIndex, columnIndex, style }) => {
-          const row = visibleRows[rowIndex];
-          const [iconName, handler, label]: [IconId, ((row: Row<T>) => void) | undefined, string | undefined] = (() => {
-            switch (row.state) {
-              case 'closed':
-                return ['angle-up', expand, 'expand'];
-              case 'open':
-                return ['angle-down', collapse, 'collapse'];
-              case 'opening':
-              default:
-                return ['loadingSpinner', undefined, undefined];
-            }
-          })();
-          return div(
-            {
-              key: `${rowIndex}-${columnIndex}`,
-              style: {
-                ...style,
-                backgroundColor: 'white',
-                borderTop: rowIndex === 0 ? 0 : `.5px solid ${colors.dark(0.2)}`,
-                paddingTop: 10,
-                alignItems: 'center',
-              },
-            },
-            [
-              columnIndex === 0
-                ? div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
-                    row.contents.hasChildren &&
-                      (handler
-                        ? h(
-                            Link,
-                            {
-                              onClick: () => handler(row),
-                              'aria-label': `${label} ${row.contents.id}`,
-                              style: { paddingLeft: 5 },
-                            },
-                            [icon(iconName, { size: 16 })]
-                          )
-                        : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
-                    div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
-                      columns[columnIndex].render(row.contents),
-                    ]),
-                  ])
-                : columns[columnIndex].render(row.contents),
-            ]
-          );
-        },
-        border: false,
-        // Clamp lets us place the first occurrence of the selected concept in the middle of the grid
-        scrollToRow: _.clamp(0, visibleRows.length - 1, initialRow),
-      });
+  return h(Grid, {
+    ref: treeGrid,
+    rowHeight,
+    height,
+    rowCount: visibleRows.length,
+    columnCount: columns.length,
+    columnWidth: (index) =>
+      index.index === columns.length - 1 ? columns[index.index].width - scrollbarSize : columns[index.index].width,
+    onScrollbarPresenceChange: (args) => {
+      setScrollbarSize(args.vertical ? args.size : 0);
+      treeGrid?.current?.recomputeGridSize();
     },
-  ]);
+    width: gridWidth,
+    noContentMessage: 'No matching data',
+    cellRenderer: ({ rowIndex, columnIndex, style }) => {
+      const row = visibleRows[rowIndex];
+      const [iconName, handler, label]: [IconId, ((row: Row<T>) => void) | undefined, string | undefined] = (() => {
+        switch (row.state) {
+          case 'closed':
+            return ['angle-up', expand, 'expand'];
+          case 'open':
+            return ['angle-down', collapse, 'collapse'];
+          case 'opening':
+          default:
+            return ['loadingSpinner', undefined, undefined];
+        }
+      })();
+      return div(
+        {
+          key: `${rowIndex}-${columnIndex}`,
+          style: {
+            ...style,
+            backgroundColor: 'white',
+            borderTop: rowIndex === 0 ? 0 : `.5px solid ${colors.dark(0.2)}`,
+            paddingTop: 10,
+            alignItems: 'center',
+          },
+        },
+        [
+          columnIndex === 0
+            ? div({ style: { paddingLeft: `${1 + row.depth}rem`, display: 'flex' } }, [
+                row.contents.hasChildren &&
+                  (handler
+                    ? h(
+                        Link,
+                        {
+                          onClick: () => handler(row),
+                          'aria-label': `${label} ${row.contents.id}`,
+                          style: { paddingLeft: 5 },
+                        },
+                        [icon(iconName, { size: 16 })]
+                      )
+                    : icon(iconName, { size: 16, style: { marginLeft: 5 } })),
+                div({ style: { display: 'flex', marginLeft: row.contents.hasChildren ? 10 : 5 + 16 + 10 } }, [
+                  columns[columnIndex].render(row.contents),
+                ]),
+              ])
+            : columns[columnIndex].render(row.contents),
+        ]
+      );
+    },
+    border: false,
+    // Clamp lets us place the first occurrence of the selected concept in the middle of the grid
+    scrollToRow: _.clamp(0, visibleRows.length - 1, initialRow),
+  });
 };
 
 /**
@@ -227,32 +233,36 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
   const { columns, headerStyle } = props;
-  // Add 15px to account for the scroll bar
-  const gridWidth = _.sum(_.map((c) => c.width, columns)) + 15;
-  return div({ style: { flex: 1, display: 'flex', flexDirection: 'column', height: '100%' } }, [
-    // generate a header row
-    div(
-      {
-        style: {
-          ...headerStyle,
-          height: undefined,
-          width: _.sum(_.map((c) => c.width, columns)),
-        },
-      },
-      [
-        _.map(
-          ([index, c]) =>
-            div(
-              {
-                key: index,
-                style: { width: c.width, marginTop: 5, paddingRight: 5, paddingLeft: index === 0 ? 20 : 0 },
-              },
-              [strong([c.name])]
+  const gridWidth = _.sum(_.map((c) => c.width, columns));
+  return h(AutoSizer, { disableWidth: true }, [
+    ({ height }) => {
+      const headerHeight = 60;
+      // generate a header row
+      return div({ style: { flex: 1, display: 'flex', flexDirection: 'column', height: '100%' } }, [
+        div(
+          {
+            style: {
+              ...headerStyle,
+              height: headerHeight,
+              width: gridWidth,
+            },
+          },
+          [
+            _.map(
+              ([index, c]) =>
+                div(
+                  {
+                    key: index,
+                    style: { width: c.width, marginTop: 5, paddingRight: 5, paddingLeft: index === 0 ? 20 : 0 },
+                  },
+                  [strong([c.name])]
+                ),
+              toIndexPairs(columns)
             ),
-          toIndexPairs(columns)
+          ]
         ),
-      ]
-    ),
-    div({ style: { flex: 1 } }, [h(TreeGridInner<T>, { ...props, gridWidth })]),
+        div({ style: { flex: 1 } }, [h(TreeGridInner<T>, { ...props, gridWidth, height: height - headerHeight })]),
+      ]);
+    },
   ]);
 };
