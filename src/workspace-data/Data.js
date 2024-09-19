@@ -229,6 +229,7 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
 const NoDataPlaceholder = ({ message, buttonText, onAdd }) =>
   div(
     {
+      role: 'listitem', // for screen readers and enabling child elements to be focusable
       style: {
         display: 'flex',
         flexDirection: 'column',
@@ -808,7 +809,7 @@ export const WorkspaceData = _.flow(
                             onAdd: () => setUploadingFile(true),
                           }),
                         !_.isEmpty(sortedEntityPairs) &&
-                          div({ style: { margin: '1rem' } }, [
+                          div({ role: 'listitem', style: { margin: '1rem' } }, [
                             h(ConfirmedSearchInput, {
                               'aria-label': 'Search all tables',
                               placeholder: 'Search all tables',
