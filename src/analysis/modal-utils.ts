@@ -83,7 +83,7 @@ export type NormalizedModalRuntime = {
   numberOfPreemptibleWorkers?: number | null;
   workerMachineType?: string | null;
   workerDiskSize?: number | null;
-  timeoutInMinutes?: number | null;
+  timeoutInMinutes?: number | null; // note that this isn't a thing returned from leo for `existing` runtimes, it is only used for desired runtimes in the request
 };
 
 // Auxiliary functions -- begin
