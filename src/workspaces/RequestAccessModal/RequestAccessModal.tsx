@@ -132,12 +132,7 @@ const GcpRequestAccessModal = (props: GcpRequestAccessModalProps): ReactNode => 
           )}
           <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end' }}>
             {canDelete && (
-              <ButtonOutline
-                style={{ marginRight: '1.0rem' }}
-                onClick={() => {
-                  props.setDeleting(true);
-                }}
-              >
+              <ButtonOutline style={{ marginRight: '1.0rem' }} onClick={props.setDeleting}>
                 Delete Workspace
               </ButtonOutline>
             )}
