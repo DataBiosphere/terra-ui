@@ -27,10 +27,6 @@ export interface WDSContentProps {
 
 export const WDSContent = ({
   workspace,
-  workspace: {
-    workspace: { workspaceId },
-    workspaceSubmissionStats: { runningSubmissionsCount },
-  },
   recordType,
   wdsSchema,
   dataProvider,
@@ -64,7 +60,7 @@ export const WDSContent = ({
               tooltip: !recordsSelected && 'Select rows to delete in the table',
               onClick: () => setDeletingRecords(true),
             },
-            'Delete selected rows'
+            ['Delete selected rows']
           ),
         ]),
       },
@@ -73,7 +69,7 @@ export const WDSContent = ({
           ButtonSecondary,
           {
             tooltip: 'Edit data',
-            ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+            ...WorkspaceUtils.getWorkspaceEditControlProps(workspace as WorkspaceUtils.WorkspaceAccessInfo),
             style: { marginRight: '1.5rem' },
           },
           [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit']
@@ -120,10 +116,10 @@ export const WDSContent = ({
           loadMetadata();
         },
         dataProvider,
-        collectionId: workspaceId,
+        collectionId: workspace.workspace.workspaceId,
         selectedRecords,
         selectedRecordType: recordType,
-        runningSubmissionsCount,
+        runningSubmissionsCount: workspace?.workspaceSubmissionStats?.runningSubmissionsCount,
       }),
   ]);
 };
