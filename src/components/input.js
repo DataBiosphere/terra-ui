@@ -366,6 +366,7 @@ const withAutocomplete = (WrappedComponent) =>
             clearSelectionRef.current = clearSelection;
             return div(
               {
+                'aria-controls': 'autocomplete-suggestions', // Required for screen readers to announce the suggestions container
                 onFocus: openOnFocus ? openMenu : undefined,
                 style: { width: style?.width || '100%', display: 'inline-flex', position: 'relative', outline: 'none' },
               },
