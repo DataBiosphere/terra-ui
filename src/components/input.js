@@ -416,6 +416,7 @@ const withAutocomplete = (WrappedComponent) =>
                         () => [
                           div(
                             {
+                              role: 'option', // Required for screen readers to announce the placeholder text
                               style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) },
                             },
                             [placeholderText]
