@@ -8,7 +8,7 @@ import { TextInput, withDebouncedChange } from 'src/components/input';
 import { SimpleTable } from 'src/components/table';
 import { ConceptCart } from 'src/dataset-builder/ConceptCart';
 import { tableHeaderStyle } from 'src/dataset-builder/ConceptSelector';
-import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
+import { BuilderPageHeaderWrapper } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount, HighlightSearchText } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
   DataRepo,
@@ -83,7 +83,7 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
   };
 
   return h(Fragment, [
-    h(BuilderPageHeader, [
+    h(BuilderPageHeaderWrapper, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,

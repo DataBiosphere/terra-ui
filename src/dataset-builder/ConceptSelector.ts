@@ -5,7 +5,7 @@ import { LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { Parent, RowContents, TreeGrid } from 'src/components/TreeGrid';
 import { ConceptCart } from 'src/dataset-builder/ConceptCart';
-import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
+import { BuilderPageHeaderWrapper } from 'src/dataset-builder/DatasetBuilderHeader';
 import { formatCount } from 'src/dataset-builder/DatasetBuilderUtils';
 import { DataRepo, SnapshotBuilderConcept as Concept } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
@@ -23,7 +23,6 @@ type ConceptSelectorProps = {
 };
 
 export const tableHeaderStyle: CSSProperties = {
-  height: '100%',
   display: 'flex',
   paddingTop: 15,
   paddingBottom: 15,
@@ -51,7 +50,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
     })();
 
   return h(Fragment, [
-    h(BuilderPageHeader, [
+    h(BuilderPageHeaderWrapper, [
       h2({ style: { display: 'flex', alignItems: 'center' } }, [
         h(
           Link,
@@ -67,7 +66,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         columns: [
           {
             name: 'Concept name',
-            width: 710,
+            widthPercentage: 50,
             render: (concept) => {
               return h(Fragment, [
                 h(
@@ -88,17 +87,18 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
               ]);
             },
           },
-          { name: 'Concept ID', width: 205, render: _.get('id') },
-          { name: 'Code', width: 205, render: _.get('code') },
+          { name: 'Concept ID', widthPercentage: 17, render: _.get('id') },
+          { name: 'Code', widthPercentage: 17, render: _.get('code') },
           {
             name: '# Participants',
-            width: 185,
+            widthPercentage: 16,
             render: (row) => formatCount(row.count),
           },
         ],
         root: { id: findRoot(parents), name: 'root', code: '0', count: 0, hasChildren: true },
         parents,
         getChildren,
+        openedConceptId: openedConcept?.id,
         headerStyle: tableHeaderStyle,
       }),
     ]),

@@ -1,8 +1,8 @@
 import { IconId, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { CSSProperties, ReactElement, useState } from 'react';
+import { CSSProperties, ReactElement, useRef, useState } from 'react';
 import { div, h, strong } from 'react-hyperscript-helpers';
-import { Grid } from 'react-virtualized';
+import { AutoSizer, Grid } from 'react-virtualized';
 import { icon } from 'src/components/icons';
 import colors from 'src/libs/colors';
 import { toIndexPairs } from 'src/libs/utils';
@@ -18,8 +18,8 @@ export type RowContents = {
 export type Column<T extends RowContents> = {
   /** The column's name, displayed as a column header. */
   name: string;
-  /** The column's width, in pixels. */
-  width: number;
+  /** The column's width, in percentage. */
+  widthPercentage: number;
   /** Given the current row, return the column's contents. */
   render: (row: T) => string | ReactElement;
 };
@@ -82,10 +82,13 @@ type TreeGridProps<T extends RowContents> = {
   readonly getChildren: (row: T) => Promise<T[]>;
   /** Optional header style */
   readonly headerStyle?: CSSProperties;
+  /** Optional opened concept ID for determining initial row */
+  readonly openedConceptId?: number;
 };
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
-  readonly gridWidth: number;
+  readonly width: number;
+  readonly height: number;
 };
 
 /**
@@ -116,8 +119,11 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, getChildren, gridWidth, root, parents } = props;
+  const { columns, getChildren, width, height, root, parents } = props;
   const [data, setData] = useState(populateTree(root, parents ?? []));
+  const [scrollbarSize, setScrollbarSize] = useState(0);
+  const treeGrid = useRef<Grid>();
+
   const rowHeight = 40;
   const expand = async (row: Row<T>) => {
     const index = getRowIndex(row, data);
@@ -147,13 +153,27 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
 
   const visibleRows = getVisibleRows(data);
 
+  const rowsShowing = height ? height / rowHeight : 0;
+  // We want to place the selected concept in the middle of the visible rows, so we scroll to the element plus half the rows showing
+  const initialRow =
+    _.findIndex((row) => row.contents.id === props.openedConceptId, visibleRows) + _.floor(rowsShowing / 2);
+
   return h(Grid, {
+    ref: treeGrid,
     rowHeight,
-    height: rowHeight * visibleRows.length,
+    height,
     rowCount: visibleRows.length,
     columnCount: columns.length,
-    columnWidth: (index) => columns[index.index].width,
-    width: gridWidth,
+    columnWidth: (index) => {
+      const calculatedWidth = (width * columns[index.index].widthPercentage) / 100;
+      const scrollbarOffset = index.index === columns.length - 1 ? scrollbarSize : 0;
+      return calculatedWidth - scrollbarOffset;
+    },
+    onScrollbarPresenceChange: (args) => {
+      setScrollbarSize(args.vertical ? args.size : 0);
+      treeGrid?.current?.recomputeGridSize();
+    },
+    width,
     noContentMessage: 'No matching data',
     cellRenderer: ({ rowIndex, columnIndex, style }) => {
       const row = visibleRows[rowIndex];
@@ -203,6 +223,8 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
       );
     },
     border: false,
+    // Clamp lets us place the first occurrence of the selected concept in the middle of the grid
+    scrollToRow: _.clamp(0, visibleRows.length - 1, initialRow),
   });
 };
 
@@ -214,30 +236,41 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
   const { columns, headerStyle } = props;
-  const gridWidth = _.sum(_.map((c) => c.width, columns));
-  return div([
-    // generate a header row
-    div(
-      {
-        style: {
-          ...headerStyle,
-          width: _.sum(_.map((c) => c.width, columns)),
-        },
-      },
-      [
-        _.map(
-          ([index, c]) =>
-            div(
-              {
-                key: index,
-                style: { width: c.width, marginTop: 5, paddingRight: 5, paddingLeft: index === 0 ? 20 : 0 },
-              },
-              [strong([c.name])]
+  return h(AutoSizer, [
+    ({ width, height }) => {
+      const headerHeight = 60;
+      // generate a header row
+      return div({ style: { flex: 1, display: 'flex', flexDirection: 'column', height: '100%' } }, [
+        div(
+          {
+            style: {
+              ...headerStyle,
+              height: headerHeight,
+              width,
+            },
+          },
+          [
+            _.map(
+              ([index, c]) =>
+                div(
+                  {
+                    key: index,
+                    style: {
+                      // Manually calculate the number to align with the grid calculations. which must be pixel numbers
+                      width: (width * c.widthPercentage) / 100,
+                      marginTop: 5,
+                      paddingRight: 5,
+                      paddingLeft: index === 0 ? 20 : 0,
+                    },
+                  },
+                  [strong([c.name])]
+                ),
+              toIndexPairs(columns)
             ),
-          toIndexPairs(columns)
+          ]
         ),
-      ]
-    ),
-    h(TreeGridInner<T>, { ...props, gridWidth }),
+        div({ style: { flex: 1 } }, [h(TreeGridInner<T>, { ...props, width, height: height - headerHeight })]),
+      ]);
+    },
   ]);
 };
