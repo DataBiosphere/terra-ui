@@ -18,8 +18,8 @@ export type RowContents = {
 export type Column<T extends RowContents> = {
   /** The column's name, displayed as a column header. */
   name: string;
-  /** The column's width, in pixels. */
-  width: number;
+  /** The column's width, in percentage. */
+  widthPercentage: number;
   /** Given the current row, return the column's contents. */
   render: (row: T) => string | ReactElement;
 };
@@ -87,7 +87,7 @@ type TreeGridProps<T extends RowContents> = {
 };
 
 type TreeGridPropsInner<T extends RowContents> = TreeGridProps<T> & {
-  readonly gridWidth: number;
+  readonly width: number;
   readonly height: number;
 };
 
@@ -119,7 +119,7 @@ const getRowIndex = <T extends RowContents>(row: Row<T>, rows: Row<T>[]) =>
   _.findIndex((r) => r.contents.id === row.contents.id, rows);
 
 const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
-  const { columns, getChildren, gridWidth, height, root, parents } = props;
+  const { columns, getChildren, width, height, root, parents } = props;
   const [data, setData] = useState(populateTree(root, parents ?? []));
   const [scrollbarSize, setScrollbarSize] = useState(0);
   const treeGrid = useRef<Grid>();
@@ -164,13 +164,16 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
     height,
     rowCount: visibleRows.length,
     columnCount: columns.length,
-    columnWidth: (index) =>
-      index.index === columns.length - 1 ? columns[index.index].width - scrollbarSize : columns[index.index].width,
+    columnWidth: (index) => {
+      const calculatedWidth = (width * columns[index.index].widthPercentage) / 100;
+      const scrollbarOffset = index.index === columns.length - 1 ? scrollbarSize : 0;
+      return calculatedWidth - scrollbarOffset;
+    },
     onScrollbarPresenceChange: (args) => {
       setScrollbarSize(args.vertical ? args.size : 0);
       treeGrid?.current?.recomputeGridSize();
     },
-    width: gridWidth,
+    width,
     noContentMessage: 'No matching data',
     cellRenderer: ({ rowIndex, columnIndex, style }) => {
       const row = visibleRows[rowIndex];
@@ -233,9 +236,8 @@ const TreeGridInner = <T extends RowContents>(props: TreeGridPropsInner<T>) => {
  */
 export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
   const { columns, headerStyle } = props;
-  const gridWidth = _.sum(_.map((c) => c.width, columns));
-  return h(AutoSizer, { disableWidth: true }, [
-    ({ height }) => {
+  return h(AutoSizer, [
+    ({ width, height }) => {
       const headerHeight = 60;
       // generate a header row
       return div({ style: { flex: 1, display: 'flex', flexDirection: 'column', height: '100%' } }, [
@@ -244,7 +246,7 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
             style: {
               ...headerStyle,
               height: headerHeight,
-              width: gridWidth,
+              width,
             },
           },
           [
@@ -253,7 +255,13 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
                 div(
                   {
                     key: index,
-                    style: { width: c.width, marginTop: 5, paddingRight: 5, paddingLeft: index === 0 ? 20 : 0 },
+                    style: {
+                      // Manually calculate the number to align with the grid calculations. which must be pixel numbers
+                      width: (width * c.widthPercentage) / 100,
+                      marginTop: 5,
+                      paddingRight: 5,
+                      paddingLeft: index === 0 ? 20 : 0,
+                    },
                   },
                   [strong([c.name])]
                 ),
@@ -261,7 +269,7 @@ export const TreeGrid = <T extends RowContents>(props: TreeGridProps<T>) => {
             ),
           ]
         ),
-        div({ style: { flex: 1 } }, [h(TreeGridInner<T>, { ...props, gridWidth, height: height - headerHeight })]),
+        div({ style: { flex: 1 } }, [h(TreeGridInner<T>, { ...props, width, height: height - headerHeight })]),
       ]);
     },
   ]);

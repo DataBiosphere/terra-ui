@@ -66,7 +66,7 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
         columns: [
           {
             name: 'Concept name',
-            width: 710,
+            widthPercentage: 50,
             render: (concept) => {
               return h(Fragment, [
                 h(
@@ -87,11 +87,11 @@ export const ConceptSelector = (props: ConceptSelectorProps) => {
               ]);
             },
           },
-          { name: 'Concept ID', width: 205, render: _.get('id') },
-          { name: 'Code', width: 205, render: _.get('code') },
+          { name: 'Concept ID', widthPercentage: 17, render: _.get('id') },
+          { name: 'Code', widthPercentage: 17, render: _.get('code') },
           {
             name: '# Participants',
-            width: 185,
+            widthPercentage: 16,
             render: (row) => formatCount(row.count),
           },
         ],
