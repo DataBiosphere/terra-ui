@@ -44,8 +44,8 @@ export const WDSContent = ({
 
   const recordsSelected = !_.isEmpty(selectedRecords);
 
-  // TODO: This is a (mostly) copy/paste from the EntitiesContent component.
-  //       should it be abstracted into its own component or shared function?
+  // This is a (mostly) copy/paste from the EntitiesContent component.
+  // Maintainers of the future should consider abstracting it into its own component or shared function.
   const renderEditMenu = () => {
     return h(
       MenuTrigger,
