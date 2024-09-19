@@ -71,7 +71,7 @@ describe('RequestAccessModal', () => {
 
   it('renders a message for Azure workspaces with no accessibility violations', async () => {
     // Arrange
-    const props = { onDismiss: jest.fn(), workspace: azureWorkspace };
+    const props = { onDismiss: jest.fn(), workspace: azureWorkspace, refreshWorkspaces: jest.fn() };
     // Act
     await act(async () => {
       const { container } = render(<RequestAccessModal {...props} />);
@@ -85,7 +85,7 @@ describe('RequestAccessModal', () => {
   it('for an Azure workspace, it calls the onDismiss callback when closed', async () => {
     // Arrange
     const onDismiss = jest.fn();
-    const props = { onDismiss, workspace: azureWorkspace };
+    const props = { onDismiss, workspace: azureWorkspace, refreshWorkspaces: jest.fn() };
     // Act
     await act(async () => {
       render(<RequestAccessModal {...props} />);
@@ -108,7 +108,7 @@ describe('RequestAccessModal', () => {
           } as Partial<AjaxContract['Groups']>,
         } as Partial<AjaxContract> as AjaxContract)
     );
-    const props = { onDismiss: jest.fn(), workspace: googleWorkspace };
+    const props = { onDismiss: jest.fn(), workspace: googleWorkspace, refreshWorkspaces: jest.fn() };
     // Act
     await act(async () => {
       const { container } = render(<RequestAccessModal {...props} />);
@@ -122,7 +122,7 @@ describe('RequestAccessModal', () => {
   it('for a GCP workspace, it calls the onDismiss callback when closed', async () => {
     // Arrange
     const onDismiss = jest.fn();
-    const props = { onDismiss, workspace: googleWorkspace };
+    const props = { onDismiss, workspace: googleWorkspace, refreshWorkspaces: jest.fn() };
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
@@ -150,7 +150,7 @@ describe('RequestAccessModal', () => {
     const groupMock = jest.fn().mockReturnValue({
       requestAccess: requestAccessMock,
     } as Partial<ReturnType<AjaxContract['Groups']['group']>>);
-    const props = { onDismiss: jest.fn(), workspace: googleWorkspace };
+    const props = { onDismiss: jest.fn(), workspace: googleWorkspace, refreshWorkspaces: jest.fn() };
     asMockedFn(Ajax).mockImplementation(
       () =>
         ({
