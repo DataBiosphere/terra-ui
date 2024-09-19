@@ -79,7 +79,7 @@ const defaultFeatures: DataTableFeatures = {
   supportsExport: false,
   supportsPointCorrection: false,
   supportsFiltering: false,
-  supportsRowSelection: false,
+  supportsRowSelection: true,
   supportsPerColumnDatatype: true,
 };
 
@@ -244,6 +244,29 @@ describe('WDSContent', () => {
       // only 3 column should be editable at this this
       const editableValues = await screen.findAllByText('Edit value');
       expect(editableValues.length).toEqual(3);
+    });
+  });
+
+  describe('select rows', () => {
+    it('', async () => {
+      // Arrange
+      const { props } = setup({
+        ...defaultSetupOptions,
+        props: { ...defaultProps, editable: true },
+        features: {
+          ...defaultFeatures,
+        },
+      });
+
+      // Act
+      await act(() => {
+        render(h(WDSContent, props));
+      });
+
+      // Assert
+      // there should be 4 checkboxes for 3 values: one for each value, plus one to select all rows.
+      const checkboxes = await screen.findAllByRole('checkbox');
+      expect(checkboxes.length).toEqual(4);
     });
   });
 });
