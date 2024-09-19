@@ -238,7 +238,7 @@ const NoDataPlaceholder = ({ message, buttonText, onAdd }) =>
         backgroundColor: 'white',
       },
     },
-    [message, h(Link, { style: { marginTop: '0.5rem' }, onClick: onAdd }, [buttonText])]
+    [message, h(Link, { 'aria-label': message, style: { marginTop: '0.5rem' }, onClick: onAdd }, [buttonText])]
   );
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
