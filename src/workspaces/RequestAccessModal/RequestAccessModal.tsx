@@ -127,7 +127,7 @@ const GcpRequestAccessModal = (props: GcpRequestAccessModalProps): ReactNode => 
           {canDelete && (
             <div style={{ marginTop: '2.0rem', marginBottom: '2.0rem' }}>
               <span style={{ fontWeight: 'bold', marginRight: '.5rem' }}>Note:</span>
-              <span>you are an owner of this workspace and can choose to delete it.</span>
+              <span>You are an owner of this workspace and can choose to delete it.</span>
             </div>
           )}
           <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end' }}>
