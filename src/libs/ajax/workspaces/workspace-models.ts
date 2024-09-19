@@ -7,7 +7,7 @@
 export interface MethodRepoMethod {
   methodNamespace?: string;
   methodName?: string;
-  methodVersion: number;
+  methodVersion: number | string;
   methodPath?: string;
   sourceRepo?: string;
   methodUri?: string;
