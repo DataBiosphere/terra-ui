@@ -16,6 +16,26 @@ jest.mock('src/libs/ajax/DataRepo', (): DataRepoExports => {
   };
 });
 
+jest.mock('react-virtualized', () => {
+  const actual = jest.requireActual('react-virtualized');
+
+  const { AutoSizer } = actual;
+
+  class MockAutoSizer extends AutoSizer {
+    state = {
+      height: 1000,
+      width: 1000,
+    };
+
+    setState = () => {};
+  }
+
+  return {
+    ...actual,
+    AutoSizer: MockAutoSizer,
+  };
+});
+
 describe('ConceptSelector', () => {
   const onCancel = jest.fn();
   const onCommit = jest.fn();

@@ -1,4 +1,5 @@
 import { div, h, h1 } from 'react-hyperscript-helpers';
+import { ACTION_BAR_HEIGHT } from 'src/components/ActionBar';
 import { Link } from 'src/components/common';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
@@ -16,9 +17,18 @@ const PAGE_PADDING_HEIGHT = 0;
 const PAGE_PADDING_WIDTH = 3;
 
 // The dataset builder has "pages" each of which has a similarly styled header.
-export const BuilderPageHeader = (props: BuilderPageHeaderProps) => {
+export const BuilderPageHeaderWrapper = (props: BuilderPageHeaderProps) => {
   const { style, children } = props;
-  return div({ style: { padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`, ...style } }, children);
+  return div(
+    {
+      style: {
+        padding: `${PAGE_PADDING_HEIGHT}rem ${PAGE_PADDING_WIDTH}rem`,
+        height: `calc(100% - ${ACTION_BAR_HEIGHT})`,
+        ...style,
+      },
+    },
+    children
+  );
 };
 
 export const DatasetBuilderHeader = ({ snapshotId }: DatasetBuilderHeaderProps) => {
