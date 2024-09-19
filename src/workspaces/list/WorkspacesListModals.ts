@@ -70,6 +70,7 @@ export const WorkspacesListModals = (props: WorkspacesListModalsProps): ReactNod
       h(RequestAccessModal, {
         workspace: getWorkspace(userActions.requestingAccessWorkspaceId),
         onDismiss: () => setUserActions({ requestingAccessWorkspaceId: undefined }),
+        refreshWorkspaces,
       }),
     !!userActions.showSettingsWorkspaceId &&
       h(SettingsModal, {
