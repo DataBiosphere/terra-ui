@@ -11,8 +11,8 @@ import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { GooglePdType, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import * as Utils from 'src/libs/utils';
 
-import { ComputeImage } from './useComputeImages';
-import { defaultGceBootDiskSize } from './utils/disk-utils';
+import { ComputeImage } from '../useComputeImages';
+import { defaultGceBootDiskSize } from '../utils/disk-utils';
 
 export interface IComputeConfig {
   bootDiskSize?: number;

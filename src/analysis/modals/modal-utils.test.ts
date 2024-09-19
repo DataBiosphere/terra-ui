@@ -1,6 +1,8 @@
 import { cloudServiceTypes } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 
 import { defaultImage, getGoogleRuntime, getPersistentDiskDetail } from '../_testData/testData';
+import { defaultGceBootDiskSize } from '../utils/disk-utils';
+import { defaultGpuType, defaultNumGpus } from '../utils/runtime-utils';
 import {
   buildDesiredEnvironmentConfig,
   buildExistingEnvironmentConfig,
@@ -8,9 +10,7 @@ import {
   DesiredModalRuntimeConfig,
   IComputeConfig,
   NormalizedModalRuntime,
-} from '../modal-utils';
-import { defaultGceBootDiskSize } from '../utils/disk-utils';
-import { defaultGpuType, defaultNumGpus } from '../utils/runtime-utils';
+} from './modal-utils';
 
 const computeConfig: IComputeConfig = {
   bootDiskSize: 250,
@@ -476,7 +476,6 @@ describe('modal-utils', () => {
       });
     });
 
-    // todo: desired runtiume type is dataproc
     it('correctly handles fields when a dataproc runtime is desired (Spark single node) and google runtime exists', () => {
       // Arrange
       const tempGoogleRuntime = getGoogleRuntime();

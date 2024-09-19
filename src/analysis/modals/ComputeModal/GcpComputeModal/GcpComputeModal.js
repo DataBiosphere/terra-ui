@@ -2,6 +2,11 @@ import { formatDate } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
+import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
+import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
+import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
+import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
+import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
 import {
   buildDesiredEnvironmentConfig,
   buildExistingEnvironmentConfig,
@@ -10,12 +15,7 @@ import {
   isGce,
   runtimeTypes,
   shouldUsePersistentDisk,
-} from 'src/analysis/modal-utils';
-import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
-import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
-import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
-import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
-import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
+} from 'src/analysis/modals/modal-utils';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
