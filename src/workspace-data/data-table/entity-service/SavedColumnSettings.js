@@ -219,6 +219,7 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
                     placeholderText: 'Enter a name for selection',
                     onPick: setSelectedSettingsName,
                     placeholder: 'Enter a name for selection',
+                    'aria-controls': id,
                     value: selectedSettingsName,
                     onChange: setSelectedSettingsName,
                     suggestions: _.flow(
