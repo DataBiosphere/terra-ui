@@ -3,7 +3,7 @@ import LeaveResourceModal from 'src/components/LeaveResourceModal';
 import * as Nav from 'src/libs/nav';
 import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
-import DeleteWorkspaceModal from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
+import { DeleteWorkspaceModal } from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import { NewWorkspaceModal } from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
