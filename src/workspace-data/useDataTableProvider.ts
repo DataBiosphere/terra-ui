@@ -29,13 +29,13 @@ export const useDataTableProvider = (
   workspaceId: string
 ): [
   WdsDataTableProvider,
-  LoadedState<ListAppItem, string>,
+  LoadedState<ListAppItem | null, string>,
   LoadedState<RecordTypeSchema[], string>,
   Dispatch<SetStateAction<LoadedState<RecordTypeSchema[], string>>>,
   () => Promise<void>
 ] => {
   // A ListAppItem containing all the data for a WDS app
-  const [wdsApp, setWdsApp] = useState<LoadedState<ListAppItem, string>>({ status: 'None' });
+  const [wdsApp, setWdsApp] = useState<LoadedState<ListAppItem | null, string>>({ status: 'None' });
   // The schema of the data types in the data table
   const [wdsTypes, setWdsTypes] = useState<LoadedState<RecordTypeSchema[], string>>({ status: 'None' });
   // Defines what capabilities the data tables app currently has
@@ -114,15 +114,16 @@ export const useDataTableProvider = (
 
   const loadWdsData = useCallback(async () => {
     if (useCwds.status === 'Ready') {
-      // Try to load the proxy URL
-      if (!['Ready', 'Error'].includes(wdsApp.status)) {
+      if (!useCwds.state && !['Ready', 'Error'].includes(wdsApp.status)) {
         await loadWdsApp();
+      } else if (useCwds.state) {
+        loadWdsTypes();
       }
     }
-  }, [wdsApp, loadWdsApp, useCwds]);
+  }, [wdsApp, loadWdsApp, useCwds, loadWdsTypes]);
 
   useEffect(() => {
-    if (useCwds.status === 'Ready' && wdsApp.status === 'None') {
+    if (useCwds.status === 'Ready' && !useCwds.state && wdsApp.status === 'None') {
       loadWdsApp();
     }
     if (wdsUrl.status === 'Ready') {
@@ -139,6 +140,7 @@ export const useDataTableProvider = (
         if (response.status === 200 && Object.keys(data).length !== 0) {
           setWdsUrl({ status: 'Ready', state: cwdsURL });
           setUseCwds({ status: 'Ready', state: true });
+          setWdsApp({ status: 'Ready', state: null });
         } else {
           setWdsUrl({ status: 'Loading', state: null });
           setUseCwds({ status: 'Ready', state: false });
