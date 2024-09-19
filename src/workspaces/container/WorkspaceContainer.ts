@@ -47,7 +47,7 @@ const TitleBarSpinner = (props: PropsWithChildren): ReactNode => {
 };
 
 const GooglePermissionsSpinner = (): ReactNode => {
-  const warningMessage = ['Terra synchronizing permissions with Google. This may take a couple moments.'];
+  const warningMessage = ['Terra is synchronizing permissions with Google. This may take a couple moments.'];
 
   return h(TitleBarSpinner, warningMessage);
 };
