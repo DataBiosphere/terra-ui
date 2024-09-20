@@ -1,15 +1,49 @@
-import { ButtonPrimary, Modal, Select } from '@terra-ui-packages/components';
+import { ButtonPrimary, Clickable, Icon, Modal, Select } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { CSSProperties, useRef, useState } from 'react';
-import { IdContainer } from 'src/components/common';
-import { AutocompleteTextInput } from 'src/components/input';
+import React, { CSSProperties, Dispatch, SetStateAction, useRef, useState } from 'react';
+import { IdContainer, spinnerOverlay } from 'src/components/common';
+import { centeredSpinner } from 'src/components/icons';
+import { TextInput } from 'src/components/input';
+import { getPopupRoot } from 'src/components/popup-utils';
+import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
+import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
+import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import { append, withBusyState } from 'src/libs/utils';
+import * as Utils from 'src/libs/utils';
+import {
+  publicUser,
+  RawWorkflowsPermissions,
+  WorkflowAccessLevel,
+  WorkflowsPermissions,
+} from 'src/pages/workflows/workflow/workflows-acl-utils';
 
 type WorkflowPermissionsModalProps = {
   workflowOrNamespace: 'workflow' | 'namespace';
+  namespace: string;
   name: string;
+  selectedSnapshot: string;
+  setPermissionsModalOpen: (b: boolean) => void;
+};
+
+type UserProps = {
+  userEmail: RawWorkflowsPermissions;
+  setUserPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
+  userPermissions: WorkflowsPermissions;
+};
+
+type UserSelectProps = {
+  disabled: boolean | undefined;
+  value: RawWorkflowsPermissions;
+  onChange: (RawWorkflowsPermissions) => void;
+};
+
+type CurrentUserProps = {
+  userPermissions: WorkflowsPermissions;
+  setUserPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
 };
 
 const styles: CSSProperties = {
@@ -20,19 +54,46 @@ const styles: CSSProperties = {
   borderBottom: Style.standardLine,
   borderTop: Style.standardLine,
 };
+const AclSelect = Select as typeof Select<WorkflowAccessLevel>;
 
-const UserInput = (props) => {
+const UserSelectInput = (props: UserSelectProps) => {
+  const { value, disabled, onChange, ...rest } = props;
+  const { role } = value;
+
   return (
     <div style={{ display: 'flex', marginTop: '0.25rem' }}>
       <div style={{ width: 200 }}>
-        <Select value='OWNER' options={['OWNER']} />
+        <AclSelect
+          aria-label='permissions for change me'
+          value={role}
+          options={['READER', 'OWNER']}
+          isDisabled={disabled}
+          getOptionLabel={(r) => Utils.normalizeLabel(r.value)}
+          onChange={(r) =>
+            onChange({
+              ...value,
+              role: r?.value,
+              ...Utils.switchCase(
+                r?.value,
+                ['OWNER', () => ({ role: 'OWNER' })],
+                ['READER', () => ({ role: 'READER' })]
+              ),
+            })
+          }
+          menuPortalTarget={getPopupRoot()}
+          {...rest}
+        />
       </div>
     </div>
   );
 };
 
-const Collaborator = (/* aclItem */) => {
-  // console.log(aclItem[0]);
+const User = (props: UserProps) => {
+  const { userEmail, setUserPermissions, userPermissions } = props;
+  const { user } = userEmail;
+
+  const disabled = user === getTerraUser().email;
+
   return (
     <div
       role='listitem'
@@ -42,109 +103,123 @@ const Collaborator = (/* aclItem */) => {
         borderRadius: 5,
         padding: '0.5rem 0.75rem',
         marginBottom: 10,
-        border: ` 2px dashed ${colors.success(0.5)}`,
-        backgroundColor: colors.success(0.05),
+        border: `1px solid ${colors.dark(0.25)}`,
+        backgroundColor: colors.light(0.2),
       }}
     >
-      <div style={{ flex: 1 }}>email</div>
-      <UserInput />
+      <div style={{ flex: 1 }}>
+        {user}
+        <UserSelectInput
+          aria-label={`permissions for ${user}`}
+          disabled={disabled}
+          value={userEmail}
+          onChange={(v) => {
+            setUserPermissions(_.map((entry) => (entry.user === user ? v : entry), userPermissions));
+          }}
+        />
+      </div>
+      <Clickable
+        tooltip='Remove'
+        onClick={() => {
+          const newPermissions = _.remove({ user }, userPermissions);
+          setUserPermissions(newPermissions);
+        }}
+      >
+        <Icon icon='times' size={20} style={{ marginRight: '0.5rem' }} />
+      </Clickable>
     </div>
   );
 };
 
-const CurrentUsers = (props) => {
+const CurrentUsers = (props: CurrentUserProps) => {
   const list = useRef<HTMLDivElement>(null);
-  const aList = [
-    {
-      email: 'lstrano@broadinstitute.org',
-      accessLevel: 'WRITER',
-      canCompute: true,
-      canShare: false,
-      pending: false,
-    },
-    {
-      email: 'cpage@broadinstitute.org',
-      accessLevel: 'WRITER',
-      canCompute: true,
-      canShare: false,
-      pending: false,
-    },
-    {
-      email: 'donttestme.koala@gmail.com',
-      accessLevel: 'OWNER',
-      canCompute: true,
-      canShare: true,
-      pending: false,
-    },
-  ];
-
+  const { userPermissions } = props;
   return (
     <>
       <div style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>Current Users</div>
       <div ref={list} role='list' style={styles}>
-        {_.flow(_.map((aclItem) => <Collaborator aclItem={aclItem} {...props} />))(aList)}
+        {_.flow(
+          _.remove(publicUser),
+          _.map((user) => <User userEmail={user} {...props} />)
+        )(userPermissions)}
       </div>
     </>
   );
 };
 
 export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
-  const { workflowOrNamespace, name } = props;
+  const { workflowOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen } = props;
+  const signal: AbortSignal = useCancellation();
   const [searchValue, setSearchValue] = useState<string>('');
+  const [permissions, setPermissions] = useState<WorkflowsPermissions>([]);
+  const [working, setWorking] = useState(false);
+  const [loaded, setLoaded] = useState<boolean>(false);
+  const [originalPermissions, setOriginalPermissions] = useState<WorkflowsPermissions>([]);
+  const userEmails = _.map('user', permissions);
+
+  useOnMount(() => {
+    const loadWorkflowPermissions = async () => {
+      try {
+        const workflowPermissions: WorkflowsPermissions = await Ajax(signal)
+          .Methods.method(namespace, name, selectedSnapshot)
+          .permissions();
+        setPermissions(workflowPermissions);
+        setOriginalPermissions(workflowPermissions);
+        setLoaded(true);
+      } catch (error) {
+        await reportError('Error loading permissions.', error);
+        setPermissionsModalOpen(false);
+      }
+    };
+
+    loadWorkflowPermissions();
+  });
+
+  const addUser = (userEmail) => {
+    setSearchValue('');
+    setPermissions(append({ user: userEmail, role: 'READER' } as RawWorkflowsPermissions));
+  };
+
+  const save = withBusyState(setWorking, async () => {
+    const toBeDeleted = _.remove((entry) => userEmails.includes(entry.user), originalPermissions);
+
+    const permissionUpdates = [
+      ..._.flow(_.map(_.pick(['role', 'user'])))(permissions),
+      ..._.map(({ user }) => ({ user, role: 'NO ACCESS' }), toBeDeleted),
+    ];
+
+    try {
+      await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).setPermissions(permissionUpdates);
+      setPermissionsModalOpen(false);
+    } catch (error) {
+      await reportError('Error loading permissions.', error);
+      setPermissionsModalOpen(false);
+    }
+  });
 
   return (
     <Modal
-      title={`Permissions for ${workflowOrNamespace} ${name}`}
-      onDismiss={undefined}
-      okButton={
-        /* eslint-disable-next-line no-alert */
-        <ButtonPrimary onClick={() => alert('not yet implemented')}>Save</ButtonPrimary>
-      }
+      title={`Permissions for ${workflowOrNamespace} ${namespace}/${name}`}
+      onDismiss={() => setPermissionsModalOpen(false)}
+      width='30rem'
+      okButton={<ButtonPrimary onClick={save}>Save</ButtonPrimary>}
     >
       <div style={{ display: 'flex', alignItems: 'flex-end' }}>
         <IdContainer>
           {(id) => (
             <div style={{ flexGrow: 1, marginRight: '1rem' }}>
-              <FormLabel id={id}>User</FormLabel>
-              <AutocompleteTextInput
-                labelId={id}
-                openOnFocus
-                // placeholderText={
-                //   _.includes(searchValue, aclEmails)
-                //     ? 'This email has already been added to the list'
-                //     : 'Type an email address and press "Enter" or "Return"'
-                // }
-                /* eslint-disable-next-line no-console */
-                onPick={() => console.log('add user helper')}
-                placeholder='Add user'
-                value={searchValue}
-                //     onFocus: () => {
-                //   setSearchHasFocus(true);
-                // },
-                //   onBlur: () => {
-                //   setSearchHasFocus(false);
-                // },
-                onChange={setSearchValue}
-                //   suggestions: cond(
-                // [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
-                // [remainingSuggestions.length > 0, () => remainingSuggestions],
-                // () => []
-                // ),
-                style={{ fontSize: 16 }}
-              />
+              <FormLabel id={id} style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>
+                User
+              </FormLabel>
+              <TextInput id={id} placeholder='Add a user' value={searchValue} onChange={setSearchValue} />
             </div>
           )}
         </IdContainer>
-        <ButtonPrimary
-          // disable={!searchValueValid}
-          // tooltip={!searchValueValid && 'Enter an email address to add a collaborator'}
-          /* eslint-disable-next-line no-console */
-          onClick={() => console.log('addCollaborator(searchValue)')}
-        >
-          Add
-        </ButtonPrimary>
+        <ButtonPrimary onClick={() => addUser(searchValue)}>Add</ButtonPrimary>
       </div>
-      <CurrentUsers />
+      {!loaded && centeredSpinner()}
+      <CurrentUsers userPermissions={permissions} setUserPermissions={setPermissions} />
+      {working && spinnerOverlay}
     </Modal>
   );
 };
