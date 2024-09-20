@@ -4,10 +4,22 @@ import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 
 export interface SnapshotActionMenuProps {
+  /**
+   * Whether the user is an owner of the workflow snapshot the actions in the
+   * menu are for. Controls whether the following operations are enabled: delete
+   */
   isSnapshotOwner: boolean;
+
+  /** The action to be performed if the "Delete snapshot" button is pressed. */
   onDelete: () => void;
 }
 
+/**
+ * A kebab (vertical three-dot) menu that displays buttons to perform actions on
+ * a workflow snapshot.
+ *
+ * Currently supported actions: delete
+ */
 const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
   const { isSnapshotOwner, onDelete } = props;
 
