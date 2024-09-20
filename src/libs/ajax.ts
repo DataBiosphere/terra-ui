@@ -34,10 +34,10 @@ const Surveys = (signal?: AbortSignal) => ({
 
 export const Ajax = (signal?: AbortSignal) => {
   return {
-    Apps: Apps(signal),
-    AzureStorage: AzureStorage(signal),
+    Apps: Apps(signal), // used for e2e testing
+    AzureStorage: AzureStorage(signal), // target 1 for removal
     Billing: Billing(signal),
-    Buckets: GoogleStorage(signal),
+    Buckets: GoogleStorage(signal), // used for e2e testing
     Catalog: Catalog(signal),
     Cbas: Cbas(signal),
     CromIAM: CromIAM(signal),
@@ -52,7 +52,7 @@ export const Ajax = (signal?: AbortSignal) => {
     Methods: Methods(signal),
     Metrics: Metrics(signal),
     OAuth2: OAuth2(signal),
-    Runtimes: Runtimes(signal),
+    Runtimes: Runtimes(signal), // used for e2e testing
     SamResources: SamResources(signal),
     Support: Support(signal),
     Surveys: Surveys(signal),
@@ -61,7 +61,7 @@ export const Ajax = (signal?: AbortSignal) => {
     WorkflowScript: WorkflowScript(signal),
     WorkspaceData: WorkspaceData(signal),
     WorkspaceManagerResources: WorkspaceManagerResources(signal),
-    Workspaces: Workspaces(signal),
+    Workspaces: Workspaces(signal), // used for e2e testing
   };
 };
 
