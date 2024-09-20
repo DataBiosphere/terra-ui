@@ -355,8 +355,8 @@ const getColumns = (
 export const navPaths = [
   {
     name: 'workflows',
-    path: '/workflows',
+    path: '/methods',
     component: WorkflowList,
-    title: 'Workflows',
+    title: 'Methods',
   },
 ];

@@ -125,7 +125,7 @@ const WorkflowSummary = _.flow(
 export const navPaths = [
   {
     name: 'workflow-dashboard',
-    path: '/workflows/:namespace/:name/:snapshotId?',
+    path: '/methods/:namespace/:name/:snapshotId?',
     component: (props) => h(WorkflowSummary, { ...props, tabName: 'dashboard' }),
     title: ({ name }) => `${name} - Dashboard`,
   },
