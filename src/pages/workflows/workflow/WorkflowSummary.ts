@@ -112,7 +112,14 @@ export const BaseWorkflowSummary = () => {
         ]
       ),
     ]),
-    permissionsModalOpen && h(PermissionsModal, { workflowOrNamespace: 'workflow', name: `${namespace}/${name}` }),
+    permissionsModalOpen &&
+      h(PermissionsModal, {
+        workflowOrNamespace: 'workflow',
+        namespace,
+        name,
+        selectedSnapshot: snapshotId,
+        setPermissionsModalOpen,
+      }),
   ]);
 };
 
