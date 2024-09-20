@@ -51,6 +51,13 @@ export const SamResources = (signal?: AbortSignal) => ({
       _.mergeAll([authOpts(), { signal }])
     ).then((r) => r.json());
   },
+
+  canDelete: async (fqResourceId: FullyQualifiedResourceId): Promise<boolean> => {
+    return fetchSam(
+      `api/resources/v2/${fqResourceId.resourceTypeName}/${fqResourceId.resourceId}/action/delete`,
+      _.mergeAll([authOpts(), { signal }])
+    ).then((r) => r.json());
+  },
 });
 
 export type SamResourcesContract = ReturnType<typeof SamResources>;
