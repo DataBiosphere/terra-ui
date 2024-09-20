@@ -1,7 +1,7 @@
 import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import pluralize from 'pluralize';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
@@ -19,7 +19,7 @@ interface DeleteWorkspaceModalProps {
   onSuccess: () => void;
 }
 
-const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
+export const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps): ReactNode => {
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const { workspace, onDismiss, onSuccess } = props;
   const {
@@ -147,5 +147,3 @@ const DeleteWorkspaceModal = (props: DeleteWorkspaceModalProps) => {
     ]
   );
 };
-
-export default DeleteWorkspaceModal;

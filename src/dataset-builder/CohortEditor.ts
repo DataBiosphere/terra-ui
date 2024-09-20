@@ -6,7 +6,7 @@ import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/c
 import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
-import { BuilderPageHeader } from 'src/dataset-builder/DatasetBuilderHeader';
+import { BuilderPageHeaderWrapper } from 'src/dataset-builder/DatasetBuilderHeader';
 import {
   AnyCriteria,
   Cohort,
@@ -530,7 +530,7 @@ type CohortEditorContentsProps = {
 };
 const CohortEditorContents: React.FC<CohortEditorContentsProps> = (props) => {
   const { updateCohort, cohort, snapshotId, snapshotBuilderSettings, onStateChange, getNextCriteriaIndex } = props;
-  return h(BuilderPageHeader, [
+  return h(BuilderPageHeaderWrapper, [
     h2({ style: { display: 'flex', alignItems: 'center' } }, [
       h(
         Link,

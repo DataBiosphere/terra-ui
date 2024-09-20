@@ -185,9 +185,7 @@ const NameCell = (props: CellProps): ReactNode => {
             canAccessWorkspace();
             !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace));
           }}
-          tooltip={
-            !canView && 'You do not have access to this workspace. Select the workspace to learn about gaining access.'
-          }
+          tooltip={!canView && 'You do not have access to this workspace. Select the workspace to learn about options.'}
           tooltipSide='right'
           disabled={workspace.state !== 'Ready'}
         >

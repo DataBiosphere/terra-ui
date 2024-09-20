@@ -366,6 +366,7 @@ const withAutocomplete = (WrappedComponent) =>
             clearSelectionRef.current = clearSelection;
             return div(
               {
+                'aria-controls': isOpen ? getMenuProps().id : labelId, // Required for screen readers switching focus to the menu when it opens
                 onFocus: openOnFocus ? openMenu : undefined,
                 style: { width: style?.width || '100%', display: 'inline-flex', position: 'relative', outline: 'none' },
               },
@@ -416,6 +417,7 @@ const withAutocomplete = (WrappedComponent) =>
                         () => [
                           div(
                             {
+                              role: 'option', // Required for screen readers to announce the placeholder text
                               style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) },
                             },
                             [placeholderText]
