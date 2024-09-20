@@ -178,6 +178,8 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
             value: selectedSnapshot,
             isSearchable: false,
             options: _.map('snapshotId', cachedSnapshotsList),
+            // Gives dropdown click precedence over elements underneath
+            menuPortalTarget: document.body,
             onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
           }),
         ]),
