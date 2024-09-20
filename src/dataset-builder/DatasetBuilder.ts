@@ -41,7 +41,7 @@ import { validate } from 'validate.js';
 
 import { CohortEditor } from './CohortEditor';
 import { AnyDatasetBuilderState, cohortEditorState, homepageState, newCohort, Updater } from './dataset-builder-types';
-import { BuilderPageHeader, DatasetBuilderHeader } from './DatasetBuilderHeader';
+import { BuilderPageHeaderWrapper, DatasetBuilderHeader } from './DatasetBuilderHeader';
 import { DomainCriteriaSelector } from './DomainCriteriaSelector';
 
 const SelectorSubHeader = ({ children }) => div({ style: { fontSize: 12, fontWeight: 600 } }, children);
@@ -468,7 +468,7 @@ export const DatasetBuilderContents = ({
 
   return h(Fragment, [
     div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }, [
-      h(BuilderPageHeader, [
+      h(BuilderPageHeaderWrapper, [
         h2(['Data Snapshots']),
         div(['Build a snapshot by selecting the participants and data for one or more of your cohorts.']),
         div({ style: { marginTop: '5px', whiteSpace: 'pre-line' } }, [
@@ -634,7 +634,7 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
     ? h(FooterWrapper, [
         h(TopBar, { title: 'Preview', href: '' }, []),
         h(DatasetBuilderHeader, { snapshotId }),
-        div({ style: { backgroundColor: editorBackgroundColor } }, [
+        div({ style: { backgroundColor: editorBackgroundColor, height: '100%' } }, [
           (() => {
             switch (datasetBuilderState.mode) {
               case 'homepage':
@@ -683,7 +683,6 @@ export const DatasetBuilderView: React.FC<DatasetBuilderProps> = (props) => {
             }
           })(),
         ]),
-        div({ style: { backgroundColor: editorBackgroundColor, height: '100%' } }, []),
       ])
     : spinnerOverlay;
 };

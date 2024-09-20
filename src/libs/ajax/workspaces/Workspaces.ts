@@ -11,6 +11,7 @@ import {
   AttributeEntityReference,
   BucketUsageResponse,
   EntityUpdateDefinition,
+  MethodConfiguration,
   RawWorkspaceAcl,
   StorageCostEstimate,
   WorkspaceAclUpdate,
@@ -202,7 +203,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importMethodConfig: (config) => {
+      importMethodConfig: (config: MethodConfiguration): Promise<Response> => {
         return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(config), { signal, method: 'POST' }]));
       },
 

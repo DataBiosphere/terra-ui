@@ -1,16 +1,20 @@
-import { Select, useUniqueId } from '@terra-ui-packages/components';
+import { ButtonPrimary, Select, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, PropsWithChildren, ReactNode } from 'react';
+import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner } from 'src/components/icons';
 import { TabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
+import { makeExportWorkflowFromMethodsRepoProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
+import { isGoogleWorkspace, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
+import * as WorkspaceUtils from 'src/workspaces/utils';
 
 export interface WrapWorkflowOptions {
   breadcrumbs: (props: { name: string; namespace: string }) => ReactNode[];
@@ -20,13 +24,13 @@ export interface WrapWorkflowOptions {
 interface WorkflowWrapperProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: string;
+  snapshotId: string | undefined;
 }
 
 interface WorkflowContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: string;
+  snapshotId: string | undefined;
   tabName: string | undefined;
 }
 
@@ -84,8 +88,9 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const signal = useCancellation();
   const cachedSnapshotsList: any = useStore(snapshotsListStore);
   const cachedSnapshot = useStore(snapshotStore);
+  const [exportingWorkflow, setExportingWorkflow] = useState<boolean>(false);
   // @ts-ignore
-  const selectedSnapshot: number | undefined = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
+  const selectedSnapshot: number = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
 
   const snapshot =
@@ -137,8 +142,40 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
             onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
           }),
         ]),
+        h(
+          ButtonPrimary,
+          {
+            style: { marginLeft: '1rem' },
+            onClick: () => {
+              setExportingWorkflow(true);
+            },
+          },
+          ['Export to Workspace']
+        ),
       ]
     ),
+    exportingWorkflow &&
+      h(ExportWorkflowModal, {
+        defaultWorkflowName: name,
+        destinationWorkspace: (workspace: WorkspaceWrapper) => {
+          return WorkspaceUtils.canWrite(workspace.accessLevel) && isGoogleWorkspace(workspace);
+        },
+        title: 'Export to Workspace',
+        exportButtonText: 'Export',
+        exportProvider: makeExportWorkflowFromMethodsRepoProvider({
+          methodNamespace: namespace,
+          methodName: name,
+          methodVersion: selectedSnapshot,
+        }),
+        onGoToExportedWorkflow: (selectedWorkspace: WorkspaceInfo, workflowName: string) =>
+          Nav.goToPath('workflow', {
+            namespace: selectedWorkspace.namespace,
+            name: selectedWorkspace.name,
+            workflowNamespace: namespace,
+            workflowName,
+          }),
+        onDismiss: () => setExportingWorkflow(false),
+      }),
     snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
   ]);
 };
