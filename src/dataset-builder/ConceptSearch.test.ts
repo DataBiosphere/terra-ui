@@ -193,7 +193,7 @@ describe('ConceptSearch', () => {
 
   it('renders column headers defined', async () => {
     // Arrange
-    renderSearch(); // might change
+    renderSearch();
     // Assert
     expect(await screen.findByText('Column Headers Defined')).toBeTruthy();
   });
