@@ -64,7 +64,7 @@ const UserSelectInput = (props: UserSelectProps) => {
     <div style={{ display: 'flex', marginTop: '0.25rem' }}>
       <div style={{ width: 200 }}>
         <AclSelect
-          aria-label='permissions for change me'
+          aria-label={`selected role ${role}`}
           value={role}
           options={['READER', 'OWNER']}
           isDisabled={disabled}
