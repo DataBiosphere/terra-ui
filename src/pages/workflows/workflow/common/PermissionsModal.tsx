@@ -140,7 +140,7 @@ const CurrentUsers = (props: CurrentUserProps) => {
       <div ref={list} role='list' style={styles}>
         {_.flow(
           _.remove(publicUser),
-          _.map((user) => <User userEmail={user} {...props} />)
+          _.map((user) => <User key={`user ${user?.user}`} userEmail={user} {...props} />)
         )(userPermissions)}
       </div>
     </>
