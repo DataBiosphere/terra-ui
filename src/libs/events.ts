@@ -89,6 +89,9 @@ const eventsList = {
   permissionsSynchronizationDelay: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
   uploaderCreateCollection: 'uploader:collection:create',
+  uploaderUploadMetadata: 'uploader:metadata:upload',
+  uploaderCreateTable: 'uploader:table:create',
+  uploaderUpdateTable: 'uploader:table:update',
   user: {
     authToken: {
       load: {

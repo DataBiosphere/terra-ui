@@ -726,8 +726,18 @@ const MetadataUploadPanel = ({
       const file = Utils.makeTSV([metadata.table.columns, ...metadata.table.rows]);
       const workspace = Ajax().Workspaces.workspace(namespace, name);
       await workspace.importFlexibleEntitiesFileSynchronous(file);
+      Ajax().Metrics.captureEvent(metadata?.isUpdate ? Events.uploaderUpdateTable : Events.uploaderCreateTable, {
+        workspaceNamespace: namespace,
+        workspaceName: name,
+        successful: true,
+      });
       onSuccess && onSuccess({ file, metadata });
     } catch (error) {
+      Ajax().Metrics.captureEvent(metadata?.isUpdate ? Events.uploaderUpdateTable : Events.uploaderCreateTable, {
+        workspaceNamespace: namespace,
+        workspaceName: name,
+        successful: false,
+      });
       await reportError('Failed to upload entity metadata', error);
     }
   });
