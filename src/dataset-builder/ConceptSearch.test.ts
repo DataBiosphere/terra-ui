@@ -190,4 +190,23 @@ describe('ConceptSearch', () => {
     // Assert
     expect(screen.queryByText('1 concept', { exact: false })).toBeTruthy();
   });
+
+  it('renders column headers defined', async () => {
+    // Arrange
+    renderSearch(); // might change
+    // Assert
+    expect(await screen.findByText('Column Headers Defined')).toBeTruthy();
+  });
+
+  it('opens popup when column headers defined is clicked', async () => {
+    // Arrange
+    renderSearch();
+    // Act
+    const user = userEvent.setup();
+    await user.click(screen.getByText('Column Headers Defined'));
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'A descriptive label for each Concept across all domains from the OMOP CDM.'
+    );
+  });
 });

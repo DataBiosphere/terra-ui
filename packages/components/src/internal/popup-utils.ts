@@ -93,7 +93,7 @@ export const computePopupPosition = (args: ComputePopupPositionArgs): ComputePop
       case 'left':
         return position.left < 0 ? 'right' : 'left';
       case 'right-aligned-bottom':
-        return position.top + elementSize.height >= viewportSize.height ? 'top' : 'right-aligned-bottom';
+        return 'right-aligned-bottom'; // don't flip
       default:
         throw new Error('Invalid side');
     }

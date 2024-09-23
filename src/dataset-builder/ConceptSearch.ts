@@ -64,6 +64,8 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
     ? `Top ${conceptsLength} results for ${domainOption.name}`
     : 'Loading data table';
 
+  const columnHeadersInfoSpacing = { marginTop: 4, marginBottom: 24 };
+
   const conceptTableText = () => {
     return div(
       {
@@ -77,28 +79,30 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
         },
       },
       [
-        searchText.length > 2 ? conceptTableTextForSearch : conceptTableTextForNoSearch,
-        ...(conceptsReady ? [] : [h(Spinner, { size: 20, style: { marginLeft: '1rem' } })]),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          searchText.length > 2 ? conceptTableTextForSearch : conceptTableTextForNoSearch,
+          ...(conceptsReady ? [] : [h(Spinner, { size: 20, style: { marginLeft: '1rem' } })]),
+        ]),
         div({ style: { display: 'flex', paddingLeft: 10 } }, [
           h(
             PopupTrigger,
             {
               side: 'right-aligned-bottom',
-              content: div({ style: { padding: 16, overflowWrap: 'break-word', width: '30em' } }, [
+              content: div({ style: { padding: 16, overflowWrap: 'break-word', width: '30rem' } }, [
                 strong(['Concept name:']),
-                p({ style: { marginTop: 4, marginBottom: 24 } }, [
+                p({ style: columnHeadersInfoSpacing }, [
                   'A descriptive label for each Concept across all domains from the OMOP CDM.',
                 ]),
                 strong(['Concept ID:']),
-                p({ style: { marginTop: 4, marginBottom: 24 } }, [
+                p({ style: columnHeadersInfoSpacing }, [
                   'A unique identifier for each Concept across all domains from the OMOP CDM.',
                 ]),
                 strong(['Code:']),
-                p({ style: { marginTop: 4, marginBottom: 24 } }, [
+                p({ style: columnHeadersInfoSpacing }, [
                   'Represents the identifier of the Concept in the source vocabulary, such as SNOMED-CT concept IDs, RxNorm RXCUIs etc. Note that concept codes are not unique across vocabularies.',
                 ]),
                 strong(['# Participants']),
-                p({ style: { marginTop: 4, marginBottom: 24 } }, [
+                p({ style: columnHeadersInfoSpacing }, [
                   'The total number of unique participants in the dataset who are associated with or have exhibited this specific concept.',
                 ]),
                 p([
