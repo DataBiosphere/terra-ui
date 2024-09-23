@@ -106,7 +106,7 @@ describe('PermissionsModal', () => {
     const saveButton = screen.getByRole('button', { name: 'Save' });
 
     fireEvent.change(textbox, { target: { value: 'newuser@boo.com' } });
-    fireEvent.click(addButton);
+    await act(() => fireEvent.click(addButton));
     expect(screen.getByText('newuser@boo.com'));
 
     const roleSelector = new SelectHelper(
@@ -114,7 +114,7 @@ describe('PermissionsModal', () => {
       user
     );
     await roleSelector.selectOption('Owner');
-    fireEvent.click(saveButton);
+    await act(() => fireEvent.click(saveButton));
 
     expect(mockSetPermissions).toHaveBeenCalledTimes(1);
     expect(mockSetPermissions).toHaveBeenCalledWith([
@@ -143,11 +143,11 @@ describe('PermissionsModal', () => {
     const removeButtons = screen.getAllByRole('button', { name: 'Remove' });
     const removableUserButton = removeButtons[removeButtons.length - 1]; // avoid possibility of this being undefined
 
-    fireEvent.click(removableUserButton);
+    await act(() => fireEvent.click(removableUserButton));
 
     expect(screen.queryByText('user2@bar.com')).not.toBeInTheDocument();
 
-    fireEvent.click(saveButton);
+    await act(() => fireEvent.click(saveButton));
 
     expect(mockSetPermissions).toHaveBeenCalledTimes(1);
     expect(mockSetPermissions).toHaveBeenCalledWith([
