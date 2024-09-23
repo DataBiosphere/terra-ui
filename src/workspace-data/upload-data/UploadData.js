@@ -631,6 +631,11 @@ const MetadataUploadPanel = ({
       if (!idColumn || _.indexOf('', headerRow) > -1) {
         errors.push(['This does not look like a valid .tsv file.']);
         // Return right away
+        Ajax().Metrics.captureEvent(Events.uploaderUploadMetadata, {
+          workspaceNamespace: namespace,
+          workspaceName: name,
+          success: false,
+        });
         setErrors(errors);
         return;
       }
@@ -691,10 +696,23 @@ const MetadataUploadPanel = ({
           otherRows
         );
 
+        Ajax().Metrics.captureEvent(Events.uploaderUploadMetadata, {
+          workspaceNamespace: namespace,
+          workspaceName: name,
+          success: true,
+        });
+
         setMetadataTable({ errors, entityClass, entityType, idName, idColumn, columns: headerRow, rows: otherRows });
       }
     } catch (e) {
       console.error('Failed to parse metadata file', e);
+
+      Ajax().Metrics.captureEvent(Events.uploaderUploadMetadata, {
+        workspaceNamespace: namespace,
+        workspaceName: name,
+        success: false,
+      });
+
       setErrors(['We were unable to process the metadata file. Are you sure it is in the proper format?']);
     }
   };
@@ -729,14 +747,14 @@ const MetadataUploadPanel = ({
       Ajax().Metrics.captureEvent(metadata?.isUpdate ? Events.uploaderUpdateTable : Events.uploaderCreateTable, {
         workspaceNamespace: namespace,
         workspaceName: name,
-        successful: true,
+        success: true,
       });
       onSuccess && onSuccess({ file, metadata });
     } catch (error) {
       Ajax().Metrics.captureEvent(metadata?.isUpdate ? Events.uploaderUpdateTable : Events.uploaderCreateTable, {
         workspaceNamespace: namespace,
         workspaceName: name,
-        successful: false,
+        success: false,
       });
       await reportError('Failed to upload entity metadata', error);
     }
