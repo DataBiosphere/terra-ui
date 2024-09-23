@@ -73,6 +73,7 @@ const eventsList = {
   catalogWorkspaceLinkFromDetailsView: 'catalog:workspaceLink:detailsView',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
+  dataTableOpenUploader: 'dataTable:openUploader',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
   dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',
   dataTableVersioningViewVersionHistory: 'dataTable:versioning:viewVersionHistory',
