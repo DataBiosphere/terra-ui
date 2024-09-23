@@ -2,7 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
-import { fetchAgora, fetchRawls } from 'src/libs/ajax/ajax-common';
+import { fetchAgora, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 
 export const Methods = (signal?: AbortSignal) => ({
   list: async (params) => {
@@ -27,6 +27,14 @@ export const Methods = (signal?: AbortSignal) => ({
     const res = await fetchRawls(
       'methodconfigs/template',
       _.mergeAll([authOpts(), jsonBody(modifiedConfigMethod), { signal, method: 'POST' }])
+    );
+    return res.json();
+  },
+
+  methods: async (payload) => {
+    const res = await fetchOrchestration(
+      'api/methods',
+      _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }])
     );
     return res.json();
   },

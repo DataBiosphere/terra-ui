@@ -1,7 +1,9 @@
-import { ButtonPrimary, Modal } from '@terra-ui-packages/components';
+import { ButtonPrimary, Clickable, Modal } from '@terra-ui-packages/components';
+import { readFileAsText } from '@terra-ui-packages/core-utils';
 import React, { useState } from 'react';
+import Dropzone from 'src/components/Dropzone';
 import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
-import WDLViewer from 'src/components/WDLViewer';
+import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 import { WDLEditor } from 'src/pages/workflows/common/WDLEditor';
@@ -13,10 +15,12 @@ interface WorkflowModalProps {
   namespace: string;
   name: string;
   synopsis: string;
-  buttonAction: string; // name of the primary button i.e. 'save' or 'upload'
+  buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
+  buttonAction: () => void;
   setWorkflowNamespace: (value: string) => void;
   setWorkflowName: (value: string) => void;
   setWorkflowSynopsis: (value: string) => void;
+  setWorkflowDocumentation: (value: string) => void;
 }
 
 interface NamespaceNameSectionProps {
@@ -32,6 +36,15 @@ interface SynopsisSnapshotSectionProps {
   setWorkflowSynopsis: (value: string) => void;
   errors: any;
 }
+
+type WdlBoxSectionProps = {
+  wdlPayload: string;
+  setWdlPayload: (value: string) => void;
+};
+
+type WorkflowDocumentationProps = {
+  setWorkflowDocumentation: (value: string) => void;
+};
 
 const constraints = {
   namespace: {
@@ -51,6 +64,11 @@ const constraints = {
   synopsis: {
     length: { maximum: 80 },
   },
+};
+
+const uploadWdl = async (wdlFile, setWdlPayload) => {
+  const rawWdl = await readFileAsText(wdlFile);
+  setWdlPayload(rawWdl);
 };
 
 const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
@@ -132,21 +150,32 @@ const WdlBoxSection = (props: WdlBoxSectionProps) => {
     <>
       {/* <div style={{ display: 'flex', alignItems: 'center' }}> */}
       <FormLabel>WDL</FormLabel>
-      {/* <Dropzone */}
-      {/*   accept='.wdl' */}
-      {/*   multiple={false} */}
-      {/*   // onDropAccepted={async (file) => setWdlPayload(await readFileAsText(file))} */}
-      {/* > */}
-      {/*   {({ openUploader }) => ( */}
-      {/* <Link href=''>Load from file...</Link> */}
-      {/*   )} */}
-      {/* </Dropzone> */}
-      {/* </div> */}
+      <Dropzone
+        accept='.wdl'
+        multiple={false}
+        onDropRejected={() =>
+          reportError(
+            'Not a valid wdl file',
+            'The selected file is not a wdl file. To import a wdl, upload a file with the .wdl extension'
+          )
+        }
+        onDropAccepted={(wdlFile) => uploadWdl(wdlFile[0], setWdlPayload)}
+      >
+        {({ openUploader }) => <Clickable onClick={() => openUploader()}>Load wdl file</Clickable>}
+      </Dropzone>
 
-      <WDLViewer wdl='hi' canedit='true' style={{ maxHeight: '300px' }}>
-        <TextArea style={{ height: '300px' }} value={wdlPayload} onChange={(v: string) => setWdlPayload(v)} />
-      </WDLViewer>
+      <WDLEditor wdl={wdlPayload} onChange={(v: string) => setWdlPayload(v)} />
     </>
+  );
+};
+
+const DocumentationSection = (props: WorkflowDocumentationProps) => {
+  const { setWorkflowDocumentation } = props;
+  return (
+    <div style={{ paddingTop: '1.5rem' }}>
+      <FormLabel>Documentation</FormLabel>
+      <TextArea onChange={(v) => setWorkflowDocumentation(v)} />
+    </div>
   );
 };
 
@@ -157,11 +186,13 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     title,
     namespace,
     name,
-    buttonAction,
+    buttonActionName,
     synopsis,
+    buttonAction,
     setWorkflowNamespace,
     setWorkflowName,
     setWorkflowSynopsis,
+    setWorkflowDocumentation,
   } = props;
 
   const errors = validate({ namespace, name, synopsis }, constraints, {
@@ -175,13 +206,14 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         setWorkflowNamespace('');
         setWorkflowName('');
         setWdlPayload('');
+        setWorkflowDocumentation('');
       }}
       title={title}
       width='75rem'
       okButton={
         /* eslint-disable-next-line no-alert */
-        <ButtonPrimary disabled={errors} onClick={() => alert('not yet implemented')}>
-          {buttonAction}
+        <ButtonPrimary disabled={errors} onClick={() => buttonAction()}>
+          {buttonActionName}
         </ButtonPrimary>
       }
     >
@@ -196,8 +228,9 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
           />
         </div>
         <div style={{ paddingTop: '1.5rem' }}>
-          <WDLEditor wdl='' />
+          <WdlBoxSection wdlPayload={wdlPayload} setWdlPayload={setWdlPayload} />
         </div>
+        <DocumentationSection setWorkflowDocumentation={setWorkflowDocumentation} />
         <SynopsisSnapshotSection synopsis={synopsis} setWorkflowSynopsis={setWorkflowSynopsis} errors={errors} />
         {(namespace + name).length > 250 && (
           <div style={{ color: 'red', paddingTop: '1.5rem' }}>

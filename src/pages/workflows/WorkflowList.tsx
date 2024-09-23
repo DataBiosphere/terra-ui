@@ -10,6 +10,7 @@ import { TabBar } from 'src/components/tabBars';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
+import { reportError } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -94,6 +95,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
   const [workflowNamespace, setWorkflowNamespace] = useState<string>('');
   const [workflowName, setWorkflowName] = useState<string>('');
   const [workflowSynopsis, setWorkflowSynopsis] = useState<string>('');
+  const [workflowDocumentation, setWorkflowDocumentation] = useState<string>('');
 
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
@@ -165,6 +167,29 @@ export const WorkflowList = (props: WorkflowListProps) => {
 
     loadWorkflows();
   });
+
+  const uploadWorkflow = async () => {
+    try {
+      const workflowPayload = {
+        namespace: workflowNamespace,
+        name: workflowName,
+        synopsis: workflowSynopsis,
+        snapshotComment: '', // get snapshotComment
+        documentation: workflowDocumentation,
+        payload: '', // get wdl payload
+        entityType: 'Workflow',
+      };
+
+      const { namespace, name, snapshotId } = await Ajax(signal).Methods.methods(workflowPayload);
+      Nav.goToPath('workflow-dashboard', {
+        namespace,
+        name,
+        snapshotId,
+      });
+    } catch (e) {
+      reportError('Error uploading method', e);
+    }
+  };
 
   // Gets the sort key of a method definition based on the currently
   // selected sort field such that numeric fields are sorted numerically
@@ -268,11 +293,13 @@ export const WorkflowList = (props: WorkflowListProps) => {
             title='Create New Workflow'
             namespace={workflowNamespace}
             name={workflowName}
-            buttonAction='Upload'
+            buttonActionName='Upload'
+            buttonAction={uploadWorkflow}
             synopsis={workflowSynopsis}
             setWorkflowNamespace={setWorkflowNamespace}
             setWorkflowName={setWorkflowName}
             setWorkflowSynopsis={setWorkflowSynopsis}
+            setWorkflowDocumentation={setWorkflowDocumentation}
           />
         )}
       </main>
