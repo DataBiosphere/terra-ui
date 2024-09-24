@@ -4,7 +4,6 @@ import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { centeredSpinner } from 'src/components/icons';
 import { TabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
@@ -15,6 +14,7 @@ import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs
 import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { withBusyState } from 'src/libs/utils';
 import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
 import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
 import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
@@ -81,7 +81,7 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
             ? h(WorkflowsContainer, { namespace, name, snapshotId, tabName: activeTab }, [
                 h(WrappedComponent, { ...props }),
               ])
-            : centeredSpinner(),
+            : spinnerOverlay,
         ]),
       ]);
     };
@@ -116,11 +116,13 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     _.map(_.toLower, snapshot?.managers)
   );
 
-  useOnMount(() => {
-    const loadSnapshot = async () => {
-      snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
-    };
+  const doSnapshotLoad = async () => {
+    snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
+  };
 
+  const loadSnapshot = _.flow(withBusyState(setBusy))(doSnapshotLoad);
+
+  useOnMount(() => {
     if (!snapshot) {
       loadSnapshot();
     }
@@ -236,6 +238,6 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         onDismiss: () => setShowDeleteModal(false),
       }),
     busy && spinnerOverlay,
-    snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
+    snapshot && div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
   ]);
 };
