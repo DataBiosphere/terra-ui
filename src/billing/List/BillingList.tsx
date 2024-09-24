@@ -69,6 +69,9 @@ const RightHandContent = (props: RightHandContentProps): ReactNode => {
     reloadBillingProject,
   } = props;
   if (!!selectedName && !_.some({ projectName: selectedName }, billingProjects)) {
+    // Redirect to billing page after 3 seconds if the selected billing project does not exist.
+    setTimeout(() => window.location.assign('/billing'), 3000);
+
     return (
       <div style={{ margin: '1rem auto 0 auto' }}>
         <div>
