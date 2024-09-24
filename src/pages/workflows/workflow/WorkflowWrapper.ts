@@ -125,7 +125,6 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const checkForSnapshotNotFound: ErrorCallback = (error: unknown) => {
     if (error instanceof Response && error.status === 404) {
       setSnapshotNotFound(true);
-      snapshotNotFound; // temporary to satisfy eslint
     } else {
       throw error;
     }
@@ -176,45 +175,52 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     snapshotsListStore.reset();
   };
 
-  return h(Fragment, [
-    h(
-      TabBar,
-      {
-        'aria-label': 'workflow menu',
-        activeTab: tabName,
-        tabNames: ['dashboard', 'wdl'],
-        displayNames: { configs: 'configurations' },
-        getHref: (currentTab) =>
-          Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
-      },
-      [
-        label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
-        div({ style: { width: 100 } }, [
-          h(Select, {
-            id: snapshotLabelId,
-            value: selectedSnapshot,
-            isSearchable: false,
-            options: _.map('snapshotId', cachedSnapshotsList),
-            // Gives dropdown click precedence over elements underneath
-            menuPortalTarget: document.body,
-            onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
-          }),
-        ]),
+  const snapshotNotFoundPage = '[temp] Snapshot not found';
+
+  const workflowPage = h(Fragment, [
+    snapshot &&
+      h(Fragment, [
         h(
-          ButtonPrimary,
+          TabBar,
           {
-            style: { marginLeft: '1rem' },
-            onClick: () => {
-              setExportingWorkflow(true);
-            },
+            'aria-label': 'workflow menu',
+            activeTab: tabName,
+            tabNames: ['dashboard', 'wdl'],
+            displayNames: { configs: 'configurations' },
+            getHref: (currentTab) =>
+              Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
           },
-          ['Export to Workspace']
+          [
+            label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
+            div({ style: { width: 100 } }, [
+              h(Select, {
+                id: snapshotLabelId,
+                value: selectedSnapshot,
+                isSearchable: false,
+                options: _.map('snapshotId', cachedSnapshotsList),
+                // Gives dropdown click precedence over elements underneath
+                menuPortalTarget: document.body,
+                onChange: ({ value }: any) =>
+                  Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
+              }),
+            ]),
+            h(
+              ButtonPrimary,
+              {
+                style: { marginLeft: '1rem' },
+                onClick: () => {
+                  setExportingWorkflow(true);
+                },
+              },
+              ['Export to Workspace']
+            ),
+            div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
+              h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
+            ]),
+          ]
         ),
-        div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
-          h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
-        ]),
-      ]
-    ),
+        div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
+      ]),
     exportingWorkflow &&
       h(ExportWorkflowModal, {
         defaultWorkflowName: name,
@@ -253,6 +259,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         onDismiss: () => setShowDeleteModal(false),
       }),
     busy && spinnerOverlay,
-    snapshot && div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
   ]);
+
+  return snapshotNotFound ? snapshotNotFoundPage : workflowPage;
 };
