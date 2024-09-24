@@ -1,6 +1,6 @@
 import { fireEvent, getByRole, screen } from '@testing-library/react';
+import React from 'react';
 import { Dispatch, SetStateAction } from 'react';
-import { h } from 'react-hyperscript-helpers';
 import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -48,14 +48,14 @@ describe('a Collaborator component', () => {
     const setAcl: Dispatch<SetStateAction<WorkspaceAcl>> = asMockedFn(jest.fn());
     const acl = [item];
     render(
-      h(Collaborator, {
-        aclItem: item,
-        acl,
-        setAcl,
-        originalAcl: acl,
-        workspace,
-        lastAddedEmail: undefined,
-      })
+      <Collaborator
+        aclItem={item}
+        acl={acl}
+        setAcl={setAcl}
+        originalAcl={acl}
+        workspace={workspace}
+        lastAddedEmail={undefined}
+      />
     );
     expect(screen.queryByRole('listitem')).not.toBeNull();
     expect(screen.queryByText(item.email)).not.toBeNull();
@@ -73,14 +73,14 @@ describe('a Collaborator component', () => {
     const acl = [item];
 
     render(
-      h(Collaborator, {
-        aclItem: item,
-        acl,
-        setAcl,
-        originalAcl: acl,
-        workspace,
-        lastAddedEmail: undefined,
-      })
+      <Collaborator
+        aclItem={item}
+        acl={acl}
+        setAcl={setAcl}
+        originalAcl={acl}
+        workspace={workspace}
+        lastAddedEmail={undefined}
+      />
     );
 
     const select = screen.getByLabelText(`permissions for ${item.email}`);
@@ -100,13 +100,14 @@ describe('a Collaborator component', () => {
     const acl = [item];
 
     render(
-      h(Collaborator, {
-        aclItem: item,
-        acl,
-        setAcl,
-        originalAcl: acl,
-        workspace: { ...workspace, accessLevel: 'PROJECT_OWNER' },
-      })
+      <Collaborator
+        aclItem={item}
+        acl={acl}
+        setAcl={setAcl}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'PROJECT_OWNER' }}
+        lastAddedEmail={undefined}
+      />
     );
     const select = screen.getByLabelText(`permissions for ${item.email}`);
     expect(select).not.toBeNull();
@@ -145,13 +146,14 @@ describe('a Collaborator component', () => {
     const acl = [item, removeItem];
 
     render(
-      h(Collaborator, {
-        aclItem: removeItem,
-        acl,
-        setAcl: aclMock,
-        originalAcl: acl,
-        workspace: { ...workspace, accessLevel: 'PROJECT_OWNER' },
-      })
+      <Collaborator
+        aclItem={removeItem}
+        acl={acl}
+        setAcl={aclMock}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'PROJECT_OWNER' }}
+        lastAddedEmail={undefined}
+      />
     );
 
     expect(screen.getByLabelText(`permissions for ${removeItem.email}`)).not.toBeNull();
@@ -189,13 +191,14 @@ describe('a Collaborator component', () => {
     const acl = [item, currentItem];
 
     render(
-      h(Collaborator, {
-        aclItem: currentItem,
-        acl,
-        setAcl: aclMock,
-        originalAcl: acl,
-        workspace: { ...workspace, accessLevel: 'PROJECT_OWNER' },
-      })
+      <Collaborator
+        aclItem={currentItem}
+        acl={acl}
+        setAcl={aclMock}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'PROJECT_OWNER' }}
+        lastAddedEmail={undefined}
+      />
     );
 
     expect(screen.getByLabelText(`permissions for ${currentItem.email}`)).not.toBeNull();
@@ -221,13 +224,14 @@ describe('a Collaborator component', () => {
     it('displays a tooltip when the user cannot share with additional permissions', () => {
       // Arrange
       render(
-        h(Collaborator, {
-          aclItem: item,
-          acl,
-          setAcl,
-          originalAcl: acl,
-          workspace: { ...workspace, accessLevel: 'WRITER' },
-        })
+        <Collaborator
+          aclItem={item}
+          acl={acl}
+          setAcl={setAcl}
+          originalAcl={acl}
+          workspace={{ ...workspace, accessLevel: 'WRITER' }}
+          lastAddedEmail={undefined}
+        />
       );
 
       // Act
@@ -258,13 +262,14 @@ describe('a Collaborator component', () => {
     ])('$descriptor an $accessLevel to share with additional permissions', ({ accessLevel, shouldDisableCheckbox }) => {
       // Act
       render(
-        h(Collaborator, {
-          aclItem: item,
-          acl,
-          setAcl,
-          originalAcl: acl,
-          workspace: { ...workspace, accessLevel },
-        })
+        <Collaborator
+          aclItem={item}
+          acl={acl}
+          setAcl={setAcl}
+          originalAcl={acl}
+          workspace={{ ...workspace, accessLevel }}
+          lastAddedEmail={undefined}
+        />
       );
 
       // Assert
@@ -306,13 +311,14 @@ describe('a Collaborator component', () => {
 
         // Act
         render(
-          h(Collaborator, {
-            aclItem: item,
-            acl,
-            setAcl,
-            originalAcl: acl,
-            workspace: { ...workspace, accessLevel: 'OWNER' },
-          })
+          <Collaborator
+            aclItem={item}
+            acl={acl}
+            setAcl={setAcl}
+            originalAcl={acl}
+            workspace={{ ...workspace, accessLevel: 'OWNER' }}
+            lastAddedEmail={undefined}
+          />
         );
 
         // Assert

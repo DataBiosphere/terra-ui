@@ -1,7 +1,6 @@
 import { Modal, modalStyles, Switch, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { div, h, label, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
@@ -135,143 +134,126 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
     }
   });
 
-  return h(
-    Modal,
-    {
-      title: 'Share Workspace',
-      width: 550,
-      showButtons: false,
-      onDismiss,
-    },
-    [
-      div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-        h(IdContainer, [
-          (id) =>
-            div({ style: { flexGrow: 1, marginRight: '1rem' } }, [
-              h(FormLabel, { id }, ['User email']),
-              h(AutocompleteTextInput, {
-                labelId: id,
-                openOnFocus: true,
-                placeholderText: _.includes(searchValue, aclEmails)
-                  ? 'This email has already been added to the list'
-                  : 'Type an email address and press "Enter" or "Return"',
-                onPick: addCollaborator,
-                placeholder: 'Add people or groups',
-                value: searchValue,
-                onFocus: () => {
-                  setSearchHasFocus(true);
-                },
-                onBlur: () => {
-                  setSearchHasFocus(false);
-                },
-                onChange: setSearchValue,
-                suggestions: cond(
+  return (
+    <Modal title='Share Workspace' width={550} showButtons={false} onDismiss={onDismiss}>
+      <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <IdContainer>
+          {(id) => (
+            <div style={{ flexGrow: 1, marginRight: '1rem' }}>
+              <FormLabel id={id}>User email</FormLabel>
+              <AutocompleteTextInput
+                labelId={id}
+                openOnFocus
+                placeholderText={
+                  _.includes(searchValue, aclEmails)
+                    ? 'This email has already been added to the list'
+                    : 'Type an email address and press "Enter" or "Return"'
+                }
+                onPick={addCollaborator}
+                placeholder='Add people or groups'
+                value={searchValue}
+                onFocus={() => setSearchHasFocus(true)}
+                onBlur={() => setSearchHasFocus(false)}
+                onChange={setSearchValue}
+                suggestions={cond(
                   [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
                   [remainingSuggestions.length > 0, () => remainingSuggestions],
                   () => []
-                ),
-                style: { fontSize: 16 },
-              }),
-            ]),
-        ]),
-        h(
-          ButtonPrimary,
-          {
-            disabled: !searchValueValid,
-            tooltip: !searchValueValid && 'Enter an email address to add a collaborator',
-            onClick: () => {
-              addCollaborator(searchValue);
-            },
-          },
-          ['Add']
-        ),
-      ]),
-      searchValueValid && !searchHasFocus && p([addUserReminder]),
-      h(CurrentCollaborators, { acl, setAcl, originalAcl, lastAddedEmail, workspace }),
-      h(WorkspacePolicies, {
-        workspace,
-        noCheckboxes: true,
-      }),
-      !loaded && centeredSpinner(),
-      updateError && div({ style: { marginTop: '1rem' } }, [div(['An error occurred:']), updateError]),
-      div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
-        h(IdContainer, [
-          (id) =>
-            h(
-              TooltipTrigger,
-              {
-                content: cond(
-                  [
-                    !currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
-                    () => 'Allow Terra Support to view this workspace',
-                  ],
-                  [
-                    !currentTerraSupportAccessLevel && !!newTerraSupportAccessLevel,
-                    () =>
-                      `Saving will grant Terra Support ${_.toLower(
-                        newTerraSupportAccessLevel!
-                      )} access to this workspace`,
-                  ],
-                  [
-                    !!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
-                    () => "Saving will remove Terra Support's access to this workspace",
-                  ],
-                  [
-                    currentTerraSupportAccessLevel !== newTerraSupportAccessLevel,
-                    () =>
-                      `Saving will change Terra Support's level of access to this workspace from ${_.toLower(
-                        currentTerraSupportAccessLevel!
-                      )} to ${_.toLower(newTerraSupportAccessLevel!)}`,
-                  ],
-                  [
-                    currentTerraSupportAccessLevel === newTerraSupportAccessLevel,
-                    () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
-                  ]
-                ),
-              },
-              [
-                label({ htmlFor: id }, [
-                  span({ style: { marginRight: '1ch' } }, ['Share with Support']),
-                  h(Switch, {
-                    id,
-                    checked: !!newTerraSupportAccessLevel,
-                    onLabel: 'Yes',
-                    offLabel: 'No',
-                    width: 70,
-                    onChange: (checked) => {
-                      if (checked) {
-                        addTerraSupportToAcl();
-                      } else {
-                        removeTerraSupportFromAcl();
-                      }
-                    },
-                  }),
-                ]),
-              ]
-            ),
-        ]),
-        span([
-          h(
-            ButtonSecondary,
-            {
-              style: { marginRight: '1rem' },
-              onClick: onDismiss,
-            },
-            ['Cancel']
-          ),
-          h(
-            ButtonPrimary,
-            {
-              disabled: searchValueValid,
-              tooltip: searchValueValid && addUserReminder,
-              onClick: save,
-            },
-            ['Save']
-          ),
-        ]),
-      ]),
-      working && spinnerOverlay,
-    ]
+                )}
+                style={{ fontSize: 16 }}
+              />
+            </div>
+          )}
+        </IdContainer>
+        <ButtonPrimary
+          disabled={!searchValueValid}
+          tooltip={!searchValueValid && 'Enter an email address to add a collaborator'}
+          onClick={() => addCollaborator(searchValue)}
+        >
+          Add
+        </ButtonPrimary>
+      </div>
+      {searchValueValid && !searchHasFocus && <p>{addUserReminder}</p>}
+      <CurrentCollaborators
+        acl={acl}
+        setAcl={setAcl}
+        originalAcl={originalAcl}
+        lastAddedEmail={lastAddedEmail}
+        workspace={workspace}
+      />
+      <WorkspacePolicies workspace={workspace} noCheckboxes />
+      {!loaded && centeredSpinner()}
+      {updateError && (
+        <div style={{ marginTop: '1rem' }}>
+          <div>An error occurred:</div>
+          {updateError}
+        </div>
+      )}
+      <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
+        <IdContainer>
+          {(id) => (
+            <TooltipTrigger
+              content={cond(
+                [
+                  !currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
+                  () => 'Allow Terra Support to view this workspace',
+                ],
+                [
+                  !currentTerraSupportAccessLevel && !!newTerraSupportAccessLevel,
+                  () =>
+                    `Saving will grant Terra Support ${_.toLower(
+                      newTerraSupportAccessLevel!
+                    )} access to this workspace`,
+                ],
+                [
+                  !!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
+                  () => "Saving will remove Terra Support's access to this workspace",
+                ],
+                [
+                  currentTerraSupportAccessLevel !== newTerraSupportAccessLevel,
+                  () =>
+                    `Saving will change Terra Support's level of access to this workspace from ${_.toLower(
+                      currentTerraSupportAccessLevel!
+                    )} to ${_.toLower(newTerraSupportAccessLevel!)}`,
+                ],
+                [
+                  currentTerraSupportAccessLevel === newTerraSupportAccessLevel,
+                  () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
+                ]
+              )}
+            >
+              {/* eslint-disable jsx-a11y/label-has-associated-control */}
+              <label htmlFor={id}>
+                <span style={{ marginRight: '1ch' }}>Share with Support</span>
+                <Switch
+                  id={id}
+                  checked={!!newTerraSupportAccessLevel}
+                  onLabel='Yes'
+                  offLabel='No'
+                  width={70}
+                  onChange={(checked) => {
+                    if (checked) {
+                      addTerraSupportToAcl();
+                    } else {
+                      removeTerraSupportFromAcl();
+                    }
+                  }}
+                />
+              </label>
+            </TooltipTrigger>
+          )}
+        </IdContainer>
+        <span>
+          <ButtonSecondary style={{ marginRight: '1rem' }} onClick={onDismiss}>
+            Cancel
+          </ButtonSecondary>
+          <ButtonPrimary disabled={searchValueValid} tooltip={searchValueValid && addUserReminder} onClick={save}>
+            Save
+          </ButtonPrimary>
+        </span>
+      </div>
+      {working && spinnerOverlay}
+    </Modal>
   );
 };
 
