@@ -357,6 +357,6 @@ export const navPaths = [
     name: 'workflows',
     path: '/methods',
     component: WorkflowList,
-    title: 'Methods',
+    title: 'Broad Methods Repository',
   },
 ];
