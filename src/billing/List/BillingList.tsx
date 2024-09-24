@@ -179,9 +179,9 @@ export const BillingList = (props: BillingListProps) => {
     try {
       const project = await Ajax(signal).Billing.getProject(selectedName!);
       setBillingProjects(_.set([index], project));
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       // Remove project if user doesn't have access or project doesn't exist then set redirect flag
-      if (error.status === 403 || error.status === 404) {
+      if (error instanceof Response && (error.status === 403 || error.status === 404)) {
         setBillingProjects(billingProjects.filter((bp) => bp.projectName !== projectName));
         setShouldRedirectToBilling(true);
       }
