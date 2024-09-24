@@ -1,4 +1,5 @@
 import { ButtonPrimary, Select, useUniqueId } from '@terra-ui-packages/components';
+import { withErrorHandling } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
@@ -8,7 +9,7 @@ import { TabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { makeExportWorkflowFromMethodsRepoProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
-import { withErrorReporting } from 'src/libs/error';
+import { ErrorCallback, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
 import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state';
@@ -94,11 +95,12 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const signal = useCancellation();
   const cachedSnapshotsList: any = useStore(snapshotsListStore);
   const cachedSnapshot = useStore(snapshotStore);
-  const [exportingWorkflow, setExportingWorkflow] = useState<boolean>(false);
   // @ts-ignore
   const selectedSnapshot: number = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
 
+  const [snapshotNotFound, setSnapshotNotFound] = useState<boolean>(false);
+  const [exportingWorkflow, setExportingWorkflow] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
 
@@ -120,7 +122,20 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
   };
 
-  const loadSnapshot = _.flow(withBusyState(setBusy))(doSnapshotLoad);
+  const checkForSnapshotNotFound: ErrorCallback = (error: unknown) => {
+    if (error instanceof Response && error.status === 404) {
+      setSnapshotNotFound(true);
+      snapshotNotFound; // temporary to satisfy eslint
+    } else {
+      throw error;
+    }
+  };
+
+  const loadSnapshot = _.flow(
+    withErrorHandling(checkForSnapshotNotFound),
+    withErrorReporting('Error loading snapshot'),
+    withBusyState(setBusy)
+  )(doSnapshotLoad);
 
   useOnMount(() => {
     if (!snapshot) {
