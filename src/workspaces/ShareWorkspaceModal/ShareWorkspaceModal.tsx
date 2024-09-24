@@ -1,7 +1,7 @@
-import { Modal, modalStyles, Switch, TooltipTrigger } from '@terra-ui-packages/components';
+import { Modal, modalStyles, Switch, TooltipTrigger, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { ButtonPrimary, ButtonSecondary, IdContainer, spinnerOverlay } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { AutocompleteTextInput } from 'src/components/input';
 import { Ajax } from 'src/libs/ajax';
@@ -134,37 +134,36 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
     }
   });
 
+  const newEntryId = useUniqueId('new-entry');
+  const shareSupportId = useUniqueId('share-support');
+
   return (
     <Modal title='Share Workspace' width={550} showButtons={false} onDismiss={onDismiss}>
       <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-        <IdContainer>
-          {(id) => (
-            <div style={{ flexGrow: 1, marginRight: '1rem' }}>
-              <FormLabel id={id}>User email</FormLabel>
-              <AutocompleteTextInput
-                labelId={id}
-                openOnFocus
-                placeholderText={
-                  _.includes(searchValue, aclEmails)
-                    ? 'This email has already been added to the list'
-                    : 'Type an email address and press "Enter" or "Return"'
-                }
-                onPick={addCollaborator}
-                placeholder='Add people or groups'
-                value={searchValue}
-                onFocus={() => setSearchHasFocus(true)}
-                onBlur={() => setSearchHasFocus(false)}
-                onChange={setSearchValue}
-                suggestions={cond(
-                  [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
-                  [remainingSuggestions.length > 0, () => remainingSuggestions],
-                  () => []
-                )}
-                style={{ fontSize: 16 }}
-              />
-            </div>
-          )}
-        </IdContainer>
+        <div style={{ flexGrow: 1, marginRight: '1rem' }}>
+          <FormLabel id={newEntryId}>User email</FormLabel>
+          <AutocompleteTextInput
+            labelId={newEntryId}
+            openOnFocus
+            placeholderText={
+              _.includes(searchValue, aclEmails)
+                ? 'This email has already been added to the list'
+                : 'Type an email address and press "Enter" or "Return"'
+            }
+            onPick={addCollaborator}
+            placeholder='Add people or groups'
+            value={searchValue}
+            onFocus={() => setSearchHasFocus(true)}
+            onBlur={() => setSearchHasFocus(false)}
+            onChange={setSearchValue}
+            suggestions={cond(
+              [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
+              [remainingSuggestions.length > 0, () => remainingSuggestions],
+              () => []
+            )}
+            style={{ fontSize: 16 }}
+          />
+        </div>
         <ButtonPrimary
           disabled={!searchValueValid}
           tooltip={!searchValueValid && 'Enter an email address to add a collaborator'}
@@ -190,59 +189,53 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         </div>
       )}
       <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
-        <IdContainer>
-          {(id) => (
-            <TooltipTrigger
-              content={cond(
-                [
-                  !currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
-                  () => 'Allow Terra Support to view this workspace',
-                ],
-                [
-                  !currentTerraSupportAccessLevel && !!newTerraSupportAccessLevel,
-                  () =>
-                    `Saving will grant Terra Support ${_.toLower(
-                      newTerraSupportAccessLevel!
-                    )} access to this workspace`,
-                ],
-                [
-                  !!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
-                  () => "Saving will remove Terra Support's access to this workspace",
-                ],
-                [
-                  currentTerraSupportAccessLevel !== newTerraSupportAccessLevel,
-                  () =>
-                    `Saving will change Terra Support's level of access to this workspace from ${_.toLower(
-                      currentTerraSupportAccessLevel!
-                    )} to ${_.toLower(newTerraSupportAccessLevel!)}`,
-                ],
-                [
-                  currentTerraSupportAccessLevel === newTerraSupportAccessLevel,
-                  () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
-                ]
-              )}
-            >
-              {/* eslint-disable jsx-a11y/label-has-associated-control */}
-              <label htmlFor={id}>
-                <span style={{ marginRight: '1ch' }}>Share with Support</span>
-                <Switch
-                  id={id}
-                  checked={!!newTerraSupportAccessLevel}
-                  onLabel='Yes'
-                  offLabel='No'
-                  width={70}
-                  onChange={(checked) => {
-                    if (checked) {
-                      addTerraSupportToAcl();
-                    } else {
-                      removeTerraSupportFromAcl();
-                    }
-                  }}
-                />
-              </label>
-            </TooltipTrigger>
+        <TooltipTrigger
+          content={cond(
+            [
+              !currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
+              () => 'Allow Terra Support to view this workspace',
+            ],
+            [
+              !currentTerraSupportAccessLevel && !!newTerraSupportAccessLevel,
+              () =>
+                `Saving will grant Terra Support ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
+            ],
+            [
+              !!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
+              () => "Saving will remove Terra Support's access to this workspace",
+            ],
+            [
+              currentTerraSupportAccessLevel !== newTerraSupportAccessLevel,
+              () =>
+                `Saving will change Terra Support's level of access to this workspace from ${_.toLower(
+                  currentTerraSupportAccessLevel!
+                )} to ${_.toLower(newTerraSupportAccessLevel!)}`,
+            ],
+            [
+              currentTerraSupportAccessLevel === newTerraSupportAccessLevel,
+              () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
+            ]
           )}
-        </IdContainer>
+        >
+          {/* eslint-disable jsx-a11y/label-has-associated-control */}
+          <label htmlFor={shareSupportId}>
+            <span style={{ marginRight: '1ch' }}>Share with Support</span>
+            <Switch
+              id={shareSupportId}
+              checked={!!newTerraSupportAccessLevel}
+              onLabel='Yes'
+              offLabel='No'
+              width={70}
+              onChange={(checked) => {
+                if (checked) {
+                  addTerraSupportToAcl();
+                } else {
+                  removeTerraSupportFromAcl();
+                }
+              }}
+            />
+          </label>
+        </TooltipTrigger>
         <span>
           <ButtonSecondary style={{ marginRight: '1rem' }} onClick={onDismiss}>
             Cancel
