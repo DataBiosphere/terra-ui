@@ -759,6 +759,11 @@ export const WorkspaceData = _.flow(
                               MenuButton,
                               {
                                 href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`,
+                                onClick: () =>
+                                  Ajax().Metrics.captureEvent(Events.dataTableOpenUploader, {
+                                    workspaceNamespace: namespace,
+                                    workspaceName: name,
+                                  }),
                               },
                               ['Open data uploader']
                             ),

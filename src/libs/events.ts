@@ -73,6 +73,7 @@ const eventsList = {
   catalogWorkspaceLinkFromDetailsView: 'catalog:workspaceLink:detailsView',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
+  dataTableOpenUploader: 'dataTable:openUploader',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
   dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',
   dataTableVersioningViewVersionHistory: 'dataTable:versioning:viewVersionHistory',
@@ -89,6 +90,9 @@ const eventsList = {
   permissionsSynchronizationDelay: 'permissions:propagationDelay',
   resourceLeave: 'resource:leave',
   uploaderCreateCollection: 'uploader:collection:create',
+  uploaderUploadMetadata: 'uploader:metadata:upload',
+  uploaderCreateTable: 'uploader:table:create',
+  uploaderUpdateTable: 'uploader:table:update',
   user: {
     authToken: {
       load: {
