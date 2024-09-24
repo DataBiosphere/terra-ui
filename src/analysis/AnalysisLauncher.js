@@ -21,7 +21,9 @@ import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinn
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import { Ajax } from 'src/libs/ajax';
+import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -368,8 +370,8 @@ const PreviewHeader = ({
   const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false);
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status')(async () => {
-    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
-      .Buckets.analysis(googleProject, bucketName, getFileName(analysisName), currentFileToolLabel)
+    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await GoogleStorage(signal)
+      .analysis(googleProject, bucketName, getFileName(analysisName), currentFileToolLabel)
       .getObject();
     const hashedUser = await notebookLockHash(bucketName, email);
     const lockExpirationDate = new Date(parseInt(lockExpiresAt));
@@ -381,7 +383,7 @@ const PreviewHeader = ({
   });
 
   const startAndRefresh = withErrorReporting('Error starting compute')(async (refreshRuntimes, runtime) => {
-    await Ajax().Runtimes.runtimeWrapper(runtime).start();
+    await Runtimes().runtimeWrapper(runtime).start();
     await refreshRuntimes(true);
   });
 
@@ -652,11 +654,11 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace, onRequesterP
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing analysis')
   )(async () => {
-    // TOODO: Tracked in IA-4015. This implementation is not ideal. Introduce Error typing to better resolve the response.
+    // TODO: Tracked in IA-4015. This implementation is not ideal. Introduce Error typing to better resolve the response.
     const response =
       cloudPlatform === cloudProviderTypes.GCP
-        ? await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview()
-        : await Ajax(signal).AzureStorage.blob(workspaceId, analysisName).preview();
+        ? await GoogleStorage(signal).analysis(googleProject, bucketName, analysisName, toolLabel).preview()
+        : await AzureStorage(signal).blob(workspaceId, analysisName).preview();
 
     if (response.status === 200) {
       Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform });
@@ -780,18 +782,18 @@ const AnalysisEditorFrame = ({ styles, mode, analysisName, toolLabel, workspace,
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
     )(async () => {
-      await Ajax()
-        .Runtimes.fileSyncing(googleProject, runtimeName)
+      await Runtimes()
+        .fileSyncing(googleProject, runtimeName)
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(toolLabel));
 
-      if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
+      if (mode === 'edit' && !(await Runtimes().fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {
           message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.',
         });
         chooseMode(undefined);
       } else {
-        await Ajax()
-          .Runtimes.fileSyncing(googleProject, runtimeName)
+        await Runtimes()
+          .fileSyncing(googleProject, runtimeName)
           .localize([
             {
               sourceUri: `${cloudStorageDirectory}/${analysisName}`,
@@ -856,8 +858,8 @@ const WelderDisabledNotebookEditorFrame = ({ styles, mode, notebookName, workspa
       });
       chooseMode(undefined);
     } else {
-      await Ajax(signal)
-        .Runtimes.fileSyncing(googleProject, runtimeName)
+      await Runtimes(signal)
+        .fileSyncing(googleProject, runtimeName)
         .oldLocalize({
           [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`,
         });

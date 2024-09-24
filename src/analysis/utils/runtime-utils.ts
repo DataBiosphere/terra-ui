@@ -20,12 +20,6 @@ import * as Utils from 'src/libs/utils';
 import { CloudProvider } from 'src/workspaces/utils';
 import { v4 as uuid } from 'uuid';
 
-export const runtimeTypes = {
-  gceVm: 'Standard VM',
-  dataprocSingleNode: 'Spark single node',
-  dataprocCluster: 'Spark cluster',
-};
-
 export const defaultGceMachineType = 'n1-standard-1';
 export const defaultDataprocMachineType = 'n1-standard-4';
 export const defaultRStudioMachineType = 'n1-standard-4';
