@@ -28,7 +28,7 @@ export const BaseWorkflowSummary = () => {
     public: isPublic,
     snapshotComment,
   } = useStore(snapshotStore);
-  const persistenceId = `workflows/${namespace}/${name}/dashboard`;
+  const persistenceId = `methods/${namespace}/${name}/dashboard`;
   const [importUrlCopied, setImportUrlCopied] = useState<boolean>();
   const importUrl = `${
     getConfig().orchestrationUrlRoot

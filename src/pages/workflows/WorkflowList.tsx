@@ -20,7 +20,7 @@ import { MethodDefinition } from 'src/pages/workflows/workflow-utils';
 
 /**
  * Represents a list of method definitions grouped into two
- * categories — My Workflows and Public Workflows — corresponding
+ * categories — My Methods and Public Methods — corresponding
  * to the tabs above the workflows table.
  */
 interface GroupedWorkflows {
@@ -123,7 +123,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
   };
 
   const tabName: string = tab || 'mine';
-  const tabs = { mine: 'My Workflows', public: 'Public Workflows' };
+  const tabs = { mine: 'My Methods', public: 'Public Methods' };
 
   const getTabDisplayNames = (workflows: GroupedWorkflows | null | undefined, currentTabName: string) => {
     const getCountString = (tabName: keyof GroupedWorkflows): string => {
@@ -140,8 +140,8 @@ export const WorkflowList = (props: WorkflowListProps) => {
     };
 
     return {
-      mine: `My Workflows${getCountString('mine')}`,
-      public: `Public Workflows${getCountString('public')}`,
+      mine: `My Methods${getCountString('mine')}`,
+      public: `Public Methods${getCountString('public')}`,
     };
   };
 
@@ -159,7 +159,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         });
       } catch (error) {
         setWorkflows(null);
-        notify('error', 'Error loading workflows', { detail: error instanceof Response ? await error.text() : error });
+        notify('error', 'Error loading methods', { detail: error instanceof Response ? await error.text() : error });
       }
     };
 
@@ -194,7 +194,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {null /* no additional content to display in the top bar */}
       </TopBar>
       <TabBar
-        aria-label='workflows menu'
+        aria-label='methods list menu'
         activeTab={tabName}
         tabNames={Object.keys(tabs)}
         displayNames={getTabDisplayNames(workflows, tabName)}
@@ -210,8 +210,8 @@ export const WorkflowList = (props: WorkflowListProps) => {
         <div style={{ display: 'flex' }}>
           <DelayedSearchInput
             style={{ width: 500, display: 'flex', justifyContent: 'flex-start' }}
-            placeholder='SEARCH WORKFLOWS'
-            aria-label='Search workflows'
+            placeholder='SEARCH METHODS'
+            aria-label='Search methods'
             onChange={(val) => updateQuery({ newFilter: val })}
             value={filter}
           />
@@ -221,7 +221,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
                 setCreateWorkflowModalOpen(true);
               }}
             >
-              Create New Workflow
+              Create New Method
             </ButtonPrimary>
           </div>
         </div>
@@ -265,7 +265,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {createWorkflowModalOpen && (
           <WorkflowModal
             setCreateWorkflowModalOpen={setCreateWorkflowModalOpen}
-            title='Create New Workflow'
+            title='Create New Method'
             namespace={workflowNamespace}
             name={workflowName}
             buttonAction='Upload'
@@ -291,7 +291,7 @@ const getColumns = (
     field: 'name',
     headerRenderer: () => (
       <WorkflowTableHeader sort={sort} field='name' onSort={onSort}>
-        Workflow
+        Method
       </WorkflowTableHeader>
     ),
     cellRenderer: ({ rowIndex }) => {

@@ -124,7 +124,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     h(
       TabBar,
       {
-        'aria-label': 'workflow menu',
+        'aria-label': 'method details menu',
         activeTab: tabName,
         tabNames: ['dashboard', 'wdl'],
         displayNames: { configs: 'configurations' },
