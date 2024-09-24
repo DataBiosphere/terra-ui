@@ -2,12 +2,20 @@ import { formatDate } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
-import { buildExistingEnvironmentConfig } from 'src/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
+import {
+  buildDesiredEnvironmentConfig,
+  buildExistingEnvironmentConfig,
+  isDataproc,
+  isDataprocCluster,
+  isGce,
+  runtimeTypes,
+  shouldUsePersistentDisk,
+} from 'src/analysis/modals/modal-utils';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
@@ -40,7 +48,6 @@ import {
   getValidGpuOptions,
   getValidGpuTypesForZone,
   isAutopauseEnabled,
-  runtimeTypes,
 } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -198,15 +205,6 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
 };
 // Auxiliary components -- end
 
-// Auxiliary functions -- begin
-const isGce = (runtimeType) => runtimeType === runtimeTypes.gceVm;
-
-const isDataproc = (runtimeType) => runtimeType === runtimeTypes.dataprocSingleNode || runtimeType === runtimeTypes.dataprocCluster;
-
-const isDataprocCluster = (runtimeType) => runtimeType === runtimeTypes.dataprocCluster;
-
-const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) =>
-  isGce(runtimeType) && (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected);
 // Auxiliary functions -- end
 
 export const GcpComputeModalBase = ({
@@ -471,67 +469,19 @@ export const GcpComputeModalBase = ({
   const getExistingEnvironmentConfig = () =>
     buildExistingEnvironmentConfig(computeConfig, currentRuntimeDetails, currentPersistentDiskDetails, isDataproc(runtimeType));
 
-  const getDesiredEnvironmentConfig = () => {
-    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig();
-    const cloudService = isDataproc(runtimeType) ? cloudServices.DATAPROC : cloudServices.GCE;
-    const desiredNumberOfWorkers = isDataprocCluster(runtimeType) ? computeConfig.numberOfWorkers : 0;
+  const getDesiredEnvironmentParams = () => ({
+    desiredRuntimeType: runtimeType,
+    timeoutInMinutes,
+    deleteDiskSelected,
+    upgradeDiskSelected,
+    jupyterUserScriptUri,
+    isCustomSelectedImage,
+    customImageUrl,
+    selectedImage,
+  });
 
-    return {
-      hasGpu: computeConfig.hasGpu,
-      autopauseThreshold: computeConfig.autopauseThreshold,
-      runtime: Utils.cond(
-        [
-          viewMode !== 'deleteEnvironment',
-          () => {
-            return {
-              cloudService,
-              toolDockerImage: isCustomSelectedImage ? customImageUrl : selectedImage?.url,
-              tool: selectedImage?.toolLabel ?? getToolLabelFromCloudEnv(existingRuntime),
-              ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {}),
-              ...(timeoutInMinutes ? { timeoutInMinutes } : {}),
-              ...(cloudService === cloudServices.GCE
-                ? {
-                    zone: computeConfig.computeZone,
-                    region: computeConfig.computeRegion,
-                    machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolLabelFromCloudEnv(existingRuntime)),
-                    ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
-                    bootDiskSize: computeConfig.bootDiskSize,
-                    ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
-                      ? {
-                          persistentDiskAttached: true,
-                        }
-                      : {
-                          diskSize: computeConfig.masterDiskSize,
-                        }),
-                  }
-                : {
-                    region: computeConfig.computeRegion,
-                    masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
-                    masterDiskSize: computeConfig.masterDiskSize,
-                    numberOfWorkers: desiredNumberOfWorkers,
-                    componentGatewayEnabled: computeConfig.componentGatewayEnabled,
-                    ...(desiredNumberOfWorkers && {
-                      numberOfPreemptibleWorkers: computeConfig.numberOfPreemptibleWorkers,
-                      workerMachineType: computeConfig.workerMachineType || defaultDataprocMachineType,
-                      workerDiskSize: computeConfig.workerDiskSize,
-                    }),
-                  }),
-            };
-          },
-        ],
-        [!deleteDiskSelected || existingRuntime?.persistentDiskAttached, () => undefined],
-        () => existingRuntime
-      ),
-      persistentDisk: Utils.cond(
-        [deleteDiskSelected, () => undefined],
-        [
-          viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected),
-          () => ({ size: computeConfig.diskSize, diskType: computeConfig.diskType }),
-        ],
-        () => existingPersistentDisk
-      ),
-    };
-  };
+  // TODO: converge type with getExistingEnvironmentConfig
+  const getDesiredEnvironmentConfig = () => buildDesiredEnvironmentConfig(getExistingEnvironmentConfig(), viewMode, getDesiredEnvironmentParams());
 
   /**
    * Transforms the new environment config into the shape of a disk returned
