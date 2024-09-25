@@ -66,6 +66,25 @@ export const renderInputForAttributeType = _.curry((attributeType, props) => {
           onEdit: _.flow(_.get('updated_src'), onChange),
         });
       },
+    ],
+    [
+      'array',
+      () => {
+        const { value, onChange, ...otherProps } = props;
+        return h(ReactJson, {
+          ...otherProps,
+          style: { ...otherProps.style, whiteSpace: 'pre-wrap' },
+          src: value,
+          displayObjectSize: false,
+          displayDataTypes: false,
+          enableClipboard: false,
+          displayArrayKey: false,
+          name: false,
+          onAdd: _.flow(_.get('updated_src'), onChange),
+          onDelete: _.flow(_.get('updated_src'), onChange),
+          onEdit: _.flow(_.get('updated_src'), onChange),
+        });
+      },
     ]
   );
 });
