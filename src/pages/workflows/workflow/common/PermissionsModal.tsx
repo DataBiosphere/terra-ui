@@ -1,7 +1,15 @@
-import { ButtonPrimary, Clickable, Icon, Modal, Select } from '@terra-ui-packages/components';
+import {
+  ButtonPrimary,
+  ButtonSecondary,
+  Clickable,
+  Icon,
+  Modal,
+  modalStyles,
+  Select,
+} from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, SetStateAction, useRef, useState } from 'react';
-import { IdContainer, spinnerOverlay } from 'src/components/common';
+import { IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { TextInput } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -22,7 +30,7 @@ import {
 } from 'src/pages/workflows/workflow/workflows-acl-utils';
 
 type WorkflowPermissionsModalProps = {
-  workflowOrNamespace: 'workflow' | 'namespace';
+  methodOrNamespace: 'method' | 'namespace';
   namespace: string;
   name: string;
   selectedSnapshot: string;
@@ -118,15 +126,17 @@ const User = (props: UserProps) => {
           }}
         />
       </div>
-      <Clickable
-        tooltip='Remove'
-        onClick={() => {
-          const newPermissions = _.remove({ user }, userPermissions);
-          setUserPermissions(newPermissions);
-        }}
-      >
-        <Icon icon='times' size={20} style={{ marginRight: '0.5rem' }} />
-      </Clickable>
+      {user === getTerraUser().email ? undefined : (
+        <Clickable
+          tooltip='Remove'
+          onClick={() => {
+            const newPermissions = _.remove({ user }, userPermissions);
+            setUserPermissions(newPermissions);
+          }}
+        >
+          <Icon icon='times' size={20} style={{ marginRight: '0.5rem' }} />
+        </Clickable>
+      )}
     </div>
   );
 };
@@ -148,7 +158,7 @@ const CurrentUsers = (props: CurrentUserProps) => {
 };
 
 export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
-  const { workflowOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen } = props;
+  const { methodOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen } = props;
   const signal: AbortSignal = useCancellation();
   const [searchValue, setSearchValue] = useState<string>('');
   const [permissions, setPermissions] = useState<WorkflowsPermissions>([]);
@@ -156,6 +166,10 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [originalPermissions, setOriginalPermissions] = useState<WorkflowsPermissions>([]);
   const userEmails = _.map('user', permissions);
+  const publicUser = _.find({ user: 'public' }, originalPermissions);
+  // console.log(publicUser);
+  const [isPublic, setIsPublic] = useState<boolean>(_.isUndefined(publicUser));
+  // console.log(isPublic);
 
   useOnMount(() => {
     const loadWorkflowPermissions = async () => {
@@ -180,29 +194,34 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
     setPermissions(append({ user: userEmail, role: 'READER' } as RawWorkflowsPermissions));
   };
 
+  const updatePublicUser = (publicUser) => {
+    return _.update(publicUser.role, (v) =>
+      v === false ? publicUser.role === 'NO ACCESS' : publicUser.role === 'READER'
+    );
+
+    _.update('role', _.set(publicUser.role, ''));
+  };
+
   const save = withBusyState(setWorking, async () => {
     const toBeDeleted = _.remove((entry) => userEmails.includes(entry.user), originalPermissions);
 
-    const permissionUpdates = [
-      ..._.flow(_.map(_.pick(['role', 'user'])))(permissions),
-      ..._.map(({ user }) => ({ user, role: 'NO ACCESS' }), toBeDeleted),
-    ];
+    const permissionUpdates = [...permissions, ..._.map(({ user }) => ({ user, role: 'NO ACCESS' }), toBeDeleted)];
 
     try {
       await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).setPermissions(permissionUpdates);
       setPermissionsModalOpen(false);
     } catch (error) {
-      await reportError('Error loading permissions.', error);
+      await reportError('Error saving permissions.', error);
       setPermissionsModalOpen(false);
     }
   });
 
   return (
     <Modal
-      title={`Permissions for ${workflowOrNamespace} ${namespace}/${name}`}
+      title={`Permissions for ${methodOrNamespace} ${namespace}/${name}`}
       onDismiss={() => setPermissionsModalOpen(false)}
       width='30rem'
-      okButton={<ButtonPrimary onClick={save}>Save</ButtonPrimary>}
+      showButtons={false}
     >
       <div style={{ display: 'flex', alignItems: 'flex-end' }}>
         <IdContainer>
@@ -219,6 +238,25 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
       </div>
       {!loaded && centeredSpinner()}
       <CurrentUsers userPermissions={permissions} setUserPermissions={setPermissions} />
+      <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
+        <div>
+          <LabeledCheckbox
+            checked={isPublic}
+            onChange={(v) => {
+              updatePublicUser(publicUser, v);
+              setIsPublic(v);
+            }}
+          >
+            <span style={{ marginLeft: '0.3rem' }}>Make Publicly Readable?</span>
+          </LabeledCheckbox>
+        </div>
+        <span>
+          <ButtonSecondary style={{ marginRight: '1rem' }} onClick={() => setPermissionsModalOpen(false)}>
+            Cancel
+          </ButtonSecondary>
+          <ButtonPrimary onClick={save}>Save</ButtonPrimary>
+        </span>
+      </div>
       {working && spinnerOverlay}
     </Modal>
   );
