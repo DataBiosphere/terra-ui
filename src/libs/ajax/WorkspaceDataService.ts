@@ -205,7 +205,7 @@ export const WorkspaceData = (signal) => ({
     parameters: DeleteRecordsRequest
   ): Promise<any> => {
     await fetchWDS(root)(
-      `records/v1/${collectionId}/${recordType}`,
+      `records/v1/${collectionId}/${recordType}/delete`,
       _.mergeAll([authOpts(), jsonBody(parameters), { signal, method: 'POST' }])
     );
   },
