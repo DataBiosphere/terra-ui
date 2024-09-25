@@ -9,7 +9,8 @@ export const getAttributeType = (attributeValue) => {
     [isReference, () => 'reference'],
     // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
     // eslint-disable-next-line eqeqeq
-    [(isList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
+    [isList && Array.isArray(attributeValue.items) && attributeValue.items.some(Array.isArray), () => 'array'],
+    [(isList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
     [isList, () => typeof attributeValue.items[0]],
     [typeof attributeValue === 'object', () => 'json'],
     () => typeof attributeValue
