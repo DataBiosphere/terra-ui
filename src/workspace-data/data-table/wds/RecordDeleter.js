@@ -26,31 +26,34 @@ export const RecordDeleter = ({ onDismiss, onSuccess, dataProvider, collectionId
     const recordType = recordTypes[0];
     setDeleting(true);
 
-const filterAdditionalDeletions = async (error: Response, recordsToDelete: Array<{ entityType: string, entityName: string }>) => {
-  const errorEntities = await error.json();
-  
-  return _.filter(errorEntities, (errorEntity: { entityType: string, entityName: string }) => 
-    !_.some(recordsToDelete, (selectedEntity) => 
-      selectedEntity.entityType === errorEntity.entityType && selectedEntity.entityName === errorEntity.entityName
-    )
-  );
-};
     try {
       await Ajax().WorkspaceData.deleteRecords(dataProvider.proxyUrl, collectionId, recordType, {
         record_ids: recordsToDelete,
       });
       onSuccess();
     } catch (error) {
-      if (error.status != 409){
-         await reportError('Error deleting data entries', error);
-         return onDismiss();
+      if (error.status !== 409) {
+        await reportError('Error deleting data entries', error);
+        return onDismiss();
       }
-          
+
       // Handle 409 error by filtering additional deletions that need to be deleted first
       setAdditionalDeletions(await filterAdditionalDeletions(error, recordsToDelete));
       setDeleting(false);
-      }
     }
+  };
+
+  const filterAdditionalDeletions = async (error, recordsToDelete) => {
+    const errorEntities = await error.json();
+
+    return _.filter(
+      errorEntities,
+      (errorEntity) =>
+        !_.some(
+          recordsToDelete,
+          (selectedEntity) => selectedEntity.entityType === errorEntity.entityType && selectedEntity.entityName === errorEntity.entityName
+        )
+    );
   };
 
   const moreToDelete = !!additionalDeletions.length;
