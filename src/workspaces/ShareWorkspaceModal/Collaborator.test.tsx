@@ -1,8 +1,9 @@
 import { fireEvent, getByRole, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Dispatch, SetStateAction } from 'react';
 import { getTerraUser } from 'src/libs/state';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
@@ -18,13 +19,25 @@ jest.mock('src/components/popup-utils', () => ({
   getPopupRoot: jest.fn(),
 }));
 
-/**
- * Select and open the permissions menu for the email passed
- * The ArrowDown input is needed because the select component doesn't render it's options until opened
- */
-const openMenu = (email: string) => {
-  const permissionSelect = screen.getByLabelText(`permissions for ${email}`);
-  fireEvent.keyDown(permissionSelect, { key: 'ArrowDown', code: 'ArrowDown' });
+// Tests rendering a Collaborator component that update state based on interactions.
+const CollaboratorWithState = ({ aclItem, acl, originalAcl, workspace, lastAddedEmail, expectedModifiedAcl }) => {
+  const [aclItemState, setAclItemState] = React.useState(aclItem);
+  const setAcl = jest.fn((val) => {
+    expect(val).toHaveLength(2);
+    expect(val[1]).toEqual(expectedModifiedAcl);
+    setAclItemState(val[1]);
+  });
+
+  return (
+    <Collaborator
+      aclItem={aclItemState}
+      acl={acl}
+      setAcl={setAcl}
+      originalAcl={originalAcl}
+      workspace={workspace}
+      lastAddedEmail={lastAddedEmail}
+    />
+  );
 };
 
 describe('a Collaborator component', () => {
@@ -38,6 +51,7 @@ describe('a Collaborator component', () => {
   const workspace: BaseWorkspace = defaultGoogleWorkspace;
 
   it('displays the email of the access item', () => {
+    // Arrange
     const item: AccessEntry = {
       email: 'user@test.com',
       pending: false,
@@ -47,6 +61,8 @@ describe('a Collaborator component', () => {
     };
     const setAcl: Dispatch<SetStateAction<WorkspaceAcl>> = asMockedFn(jest.fn());
     const acl = [item];
+
+    // Act
     render(
       <Collaborator
         aclItem={item}
@@ -57,11 +73,14 @@ describe('a Collaborator component', () => {
         lastAddedEmail={undefined}
       />
     );
+
+    // Assert
     expect(screen.queryByRole('listitem')).not.toBeNull();
     expect(screen.queryByText(item.email)).not.toBeNull();
   });
 
   it('shows the role selection as disabled for the current user ', () => {
+    // Arrange
     const item: AccessEntry = {
       email: 'owner@test.com',
       pending: false,
@@ -72,6 +91,7 @@ describe('a Collaborator component', () => {
     const setAcl: Dispatch<SetStateAction<WorkspaceAcl>> = asMockedFn(jest.fn());
     const acl = [item];
 
+    // Act
     render(
       <Collaborator
         aclItem={item}
@@ -83,12 +103,15 @@ describe('a Collaborator component', () => {
       />
     );
 
+    // Assert
     const select = screen.getByLabelText(`permissions for ${item.email}`);
     expect(select).not.toBeNull();
     expect(select).toBeDisabled();
   });
 
   it('shows a selection of available access levels', async () => {
+    // Arrange
+    const user = userEvent.setup();
     const item: AccessEntry = {
       email: 'abc@test.com',
       pending: false,
@@ -99,6 +122,7 @@ describe('a Collaborator component', () => {
     const setAcl: Dispatch<SetStateAction<WorkspaceAcl>> = asMockedFn(jest.fn());
     const acl = [item];
 
+    // Act
     render(
       <Collaborator
         aclItem={item}
@@ -109,21 +133,17 @@ describe('a Collaborator component', () => {
         lastAddedEmail={undefined}
       />
     );
-    const select = screen.getByLabelText(`permissions for ${item.email}`);
-    expect(select).not.toBeNull();
-    expect(select).not.toBeDisabled();
 
-    // The user's current permission is displayed by default in the select component
-    // Opening the menu causes it to be rendered twice in the DOM:
-    // once for the default display, and once for the menu option
-    expect(screen.queryByText('Owner')).not.toBeNull();
-    await openMenu(item.email);
-    expect(screen.queryByText('Writer')).not.toBeNull();
-    expect(screen.queryByText('Reader')).not.toBeNull();
-    expect(screen.queryByText('Project Owner')).toBeNull();
+    // Assert
+    const dropdown = screen.getByLabelText(`permissions for ${item.email}`);
+    const dropdownHelper = new SelectHelper(dropdown, user);
+    expect(dropdownHelper.getSelectedOptions()).toEqual(['Owner']);
+    const options = await dropdownHelper.getOptions();
+    expect(options).toEqual(['Reader', 'Writer', 'Owner']);
   });
 
   it('removes a user with setAcl with the x is selected', async () => {
+    // Arrange
     const removeItem: AccessEntry = {
       email: 'user1@test.com',
       pending: false,
@@ -145,6 +165,7 @@ describe('a Collaborator component', () => {
     const aclMock = asMockedFn(setAcl);
     const acl = [item, removeItem];
 
+    // Act
     render(
       <Collaborator
         aclItem={removeItem}
@@ -156,6 +177,7 @@ describe('a Collaborator component', () => {
       />
     );
 
+    // Assert
     expect(screen.getByLabelText(`permissions for ${removeItem.email}`)).not.toBeNull();
     const removeButton = screen.getByRole('button'); // this appears to be the only button in the component
     expect(removeButton).not.toBeNull();
@@ -164,6 +186,8 @@ describe('a Collaborator component', () => {
   });
 
   it('can change the permission of the user with setAcl', async () => {
+    // Arrange
+    const user = userEvent.setup();
     const item: AccessEntry = {
       email: 'user1@test.com',
       pending: false,
@@ -178,36 +202,75 @@ describe('a Collaborator component', () => {
       canCompute: true,
       accessLevel: 'OWNER',
     };
-
-    const setAcl = jest.fn((val) => {
-      expect(val).toHaveLength(2);
-      expect(val[0]).toBe(item);
-      expect(val[1].email).toEqual(currentItem.email);
-      expect(val[1].accessLevel).toEqual('READER');
-      // .toContainEqual(item);
-      expect(val).not.toContainEqual(currentItem);
-    });
-    const aclMock = asMockedFn(setAcl);
     const acl = [item, currentItem];
 
+    // Act
     render(
-      <Collaborator
+      <CollaboratorWithState
         aclItem={currentItem}
         acl={acl}
-        setAcl={aclMock}
         originalAcl={acl}
         workspace={{ ...workspace, accessLevel: 'PROJECT_OWNER' }}
         lastAddedEmail={undefined}
+        expectedModifiedAcl={{ ...currentItem, accessLevel: 'WRITER', canShare: false }}
       />
     );
 
-    expect(screen.getByLabelText(`permissions for ${currentItem.email}`)).not.toBeNull();
-    openMenu(currentItem.email);
+    // Assert
+    const dropdown = screen.getByLabelText(`permissions for ${currentItem.email}`);
+    const dropdownHelper = new SelectHelper(dropdown, user);
+    await dropdownHelper.selectOption('Writer');
+    expect(dropdownHelper.getSelectedOptions()).toEqual(['Writer']);
 
-    const writterPermission = screen.getByText('Reader');
-    expect(writterPermission).not.toBeNull();
-    fireEvent.click(writterPermission);
-    expect(setAcl).toHaveBeenCalledTimes(1);
+    const canCompute = screen.getByLabelText('Can compute');
+    // Since an owner is changing the permission, canCompute will be selected by default.
+    expect(canCompute).toBeChecked();
+    expect(canCompute).not.toHaveAttribute('disabled');
+  });
+
+  it('does not allow writers to share with canCompute true', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const item: AccessEntry = {
+      email: 'user1@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'WRITER',
+    };
+    const currentItem: AccessEntry = {
+      email: 'user2@test.com',
+      pending: false,
+      canShare: false,
+      canCompute: false,
+      accessLevel: 'READER',
+    };
+    const acl = [item, currentItem];
+
+    // Act
+    render(
+      <CollaboratorWithState
+        aclItem={currentItem}
+        acl={acl}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'WRITER' }}
+        lastAddedEmail={undefined}
+        expectedModifiedAcl={{ ...currentItem, accessLevel: 'WRITER' }}
+      />
+    );
+
+    // Assert
+    const dropdown = screen.getByLabelText(`permissions for ${currentItem.email}`);
+    const dropdownHelper = new SelectHelper(dropdown, user);
+    await dropdownHelper.selectOption('Writer');
+    expect(dropdownHelper.getSelectedOptions()).toEqual(['Writer']);
+
+    const canCompute = screen.getByText('Can compute');
+
+    // Since a writer is changing the permission, canCompute will be disabled. We can't
+    // verify that it is not checked because we can't get the checkbox input element for a disabled item.
+    // However, expectModifiedAcl includes canCompute: false, so we can verify that it is not changed.
+    expect(canCompute).toHaveAttribute('disabled');
   });
 
   describe('only allows owners and project owners to share with additional permissions', () => {
