@@ -50,7 +50,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          workflowOrNamespace='workflow'
+          methodOrNamespace='method'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -71,7 +71,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          workflowOrNamespace='workflow'
+          methodOrNamespace='method'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -93,7 +93,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          workflowOrNamespace='workflow'
+          methodOrNamespace='method'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -131,7 +131,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          workflowOrNamespace='workflow'
+          methodOrNamespace='method'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -165,7 +165,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          workflowOrNamespace='workflow'
+          methodOrNamespace='method'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
