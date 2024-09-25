@@ -246,6 +246,7 @@ const cohortBuilder = () =>
   h(
     Participant,
     {
+      logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
       title: 'Cohort Builder Demo',
       description: h(Fragment, [
         'The cohort builder is an alpha feature in Terra, currently being designed and build for use to help with subsetting large datasets. This card takes you to a demo dataset for use in demoing and exploring the alpha cohort builder.',
