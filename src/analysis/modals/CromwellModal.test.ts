@@ -11,7 +11,7 @@ import { CromwellModal } from './CromwellModal';
 
 const onSuccess = jest.fn();
 
-const defaultAjaxImpl: AppsAjaxContract = {
+const defaultAppsImpl: AppsAjaxContract = {
   list: jest.fn(),
   listWithoutProject: jest.fn(),
   app: jest.fn(),
@@ -47,7 +47,7 @@ function createAppV2Func() {
   const createFunc = jest.fn();
   asMockedFn(Apps).mockImplementation(
     (): AppsAjaxContract => ({
-      ...defaultAjaxImpl,
+      ...defaultAppsImpl,
       createAppV2: createFunc,
     })
   );
