@@ -50,7 +50,6 @@ interface RightHandContentProps {
   authorizeAndLoadAccounts: () => Promise<void>;
   setCreatingBillingProjectType: (type: CloudProvider | null) => void;
   reloadBillingProject: (billingProject: BillingProject) => Promise<unknown>;
-  shouldRedirectToBilling: boolean;
 }
 
 // This is the view of the Billing Project details, or the wizard to create a new billing project.
@@ -68,11 +67,8 @@ const RightHandContent = (props: RightHandContentProps): ReactNode => {
     authorizeAndLoadAccounts,
     setCreatingBillingProjectType,
     reloadBillingProject,
-    shouldRedirectToBilling,
   } = props;
   if (!!selectedName && !_.some({ projectName: selectedName }, billingProjects)) {
-    shouldRedirectToBilling && Nav.goToPath('billing'); // Redirect to billing page if redirect flag is set
-
     return (
       <div style={{ margin: '1rem auto 0 auto' }}>
         <div>
@@ -156,7 +152,6 @@ export const BillingList = (props: BillingListProps) => {
   const [isAuthorizing, setIsAuthorizing] = useState<boolean>(false);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState<boolean>(false);
   const { workspaces: allWorkspaces, loading: workspacesLoading, refresh: refreshWorkspaces } = useWorkspaces();
-  const [shouldRedirectToBilling, setShouldRedirectToBilling] = useState<boolean>(false);
 
   const signal = useCancellation();
   const interval = useRef<number>();
@@ -180,13 +175,14 @@ export const BillingList = (props: BillingListProps) => {
       const project = await Ajax(signal).Billing.getProject(selectedName!);
       setBillingProjects(_.set([index], project));
     } catch (error: unknown) {
-      // Remove project if user doesn't have access or project doesn't exist then set redirect flag
+      // Remove project if user doesn't have access or project doesn't exist then redirect to billing page
       if (error instanceof Response && (error.status === 403 || error.status === 404)) {
         setBillingProjects(billingProjects.filter((bp) => bp.projectName !== projectName));
-        setShouldRedirectToBilling(true);
+        Nav.goToPath('billing');
+      } else {
+        // Rethrow the error so reportErrorAndRethrow still works as expected
+        throw error;
       }
-      // Rethrow the error so reportErrorAndRethrow still works as expected
-      throw error;
     }
   });
 
@@ -338,7 +334,6 @@ export const BillingList = (props: BillingListProps) => {
           showAzureBillingProjectWizard={azureUserWithNoBillingProjects || creatingAzureBillingProject}
           setCreatingBillingProjectType={setCreatingBillingProjectType}
           reloadBillingProject={reloadBillingProject}
-          shouldRedirectToBilling={shouldRedirectToBilling}
         />
       </div>
       {(isLoadingProjects || isAuthorizing || isLoadingAccounts) && <SpinnerOverlay mode='FullScreen' />}
