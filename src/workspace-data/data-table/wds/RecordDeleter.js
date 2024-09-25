@@ -41,23 +41,14 @@ const filterAdditionalDeletions = async (error: Response, recordsToDelete: Array
       });
       onSuccess();
     } catch (error) {
-      switch (error.status) {
-        case 409:
-          setAdditionalDeletions(
-            _.filter(
-              (errorEntity) =>
-                !_.some(
-                  (selectedEntity) => selectedEntity.entityType === errorEntity.entityType && selectedEntity.entityName === errorEntity.entityName,
-                  recordsToDelete
-                ),
-              await error.json()
-            )
-          );
-          setDeleting(false);
-          break;
-        default:
-          await reportError('Error deleting data entries', error);
-          onDismiss();
+      if (error.status != 409){
+         await reportError('Error deleting data entries', error);
+         return onDismiss();
+      }
+          
+      // Handle 409 error by filtering additional deletions that need to be deleted first
+      setAdditionalDeletions(await filterAdditionalDeletions(error, recordsToDelete));
+      setDeleting(false);
       }
     }
   };
