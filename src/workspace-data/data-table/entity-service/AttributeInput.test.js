@@ -269,6 +269,19 @@ describe('AttributeInput', () => {
       expect(listCheckbox.getAttribute('aria-checked')).toBe('true');
     });
 
+    it('renders a checkbox for list status [Nested Array]', () => {
+      const { getByLabelText } = render(
+        h(AttributeInput, {
+          value: { itemsType: 'AttributeValue', items: [['foo', 'bar'], ['baz']] },
+          onChange: jest.fn(),
+        })
+      );
+
+      const listCheckbox = getByLabelText('Value is a list');
+      expect(listCheckbox.getAttribute('role')).toBe('checkbox');
+      expect(listCheckbox.getAttribute('aria-checked')).toBe('true');
+    });
+
     it('it converts single value to a list when list checkbox is checked', () => {
       const onChange = jest.fn();
       const { getByLabelText } = render(
@@ -314,6 +327,20 @@ describe('AttributeInput', () => {
 
       fireEvent.change(valueInputs[1], { target: { value: 'qux' } });
       expect(onChange).toHaveBeenCalledWith({ itemsType: 'AttributeValue', items: ['foo', 'qux', 'baz'] });
+    });
+
+    it('renders json input for Nested Array', () => {
+      const onChange = jest.fn();
+      const { getByText } = render(
+        h(AttributeInput, {
+          value: { itemsType: 'AttributeValue', items: [['foo', 'bar'], ['baz']] },
+          onChange,
+        })
+      );
+
+      expect(getByText('"foo"')).toBeInTheDocument();
+      expect(getByText('"bar"')).toBeInTheDocument();
+      expect(getByText('"baz"')).toBeInTheDocument();
     });
 
     it('renders buttons to remove items from list', () => {
