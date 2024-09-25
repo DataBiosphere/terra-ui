@@ -16,6 +16,7 @@ import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state'
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
+import { Snapshot } from 'src/snapshots/Snapshot';
 import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
 import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
 import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
@@ -58,8 +59,8 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
     const Wrapper = (props: WorkflowWrapperProps) => {
       const { namespace, name, snapshotId } = props;
       const signal = useCancellation();
-      const cachedSnapshotsList = useStore(snapshotsListStore);
-      const snapshotsList =
+      const cachedSnapshotsList: Snapshot[] | undefined = useStore(snapshotsListStore);
+      const snapshotsList: Snapshot[] | undefined =
         cachedSnapshotsList && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedSnapshotsList[0]))
           ? cachedSnapshotsList
           : undefined;
@@ -97,8 +98,9 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
 export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const { namespace, name, snapshotId, tabName, children } = props;
   const signal = useCancellation();
-  const cachedSnapshotsList: any = useStore(snapshotsListStore);
-  const cachedSnapshot = useStore(snapshotStore);
+  const cachedSnapshotsList: Snapshot[] | undefined = useStore(snapshotsListStore);
+  const cachedSnapshot: Snapshot = useStore(snapshotStore);
+  // wrapWorkflows will not render this component if cachedSnapshotsList is undefined or empty
   // @ts-ignore
   const selectedSnapshot: number = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
@@ -108,7 +110,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
 
-  const snapshot =
+  const snapshot: Snapshot | undefined =
     cachedSnapshot &&
     _.isEqual(
       { namespace, name, snapshotId: selectedSnapshot },
