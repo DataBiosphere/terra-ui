@@ -2,7 +2,7 @@ import { ButtonPrimary, Select, useUniqueId } from '@terra-ui-packages/component
 import { withErrorHandling } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
-import { div, h, label } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, label, p, span, strong } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { TabBar } from 'src/components/tabBars';
@@ -44,6 +44,10 @@ interface WorkflowContainerProps extends PropsWithChildren {
 interface WrappedComponentProps {
   namespace: string;
   name: string;
+}
+
+interface NotFoundMessageProps {
+  subject: 'snapshot' | 'method';
 }
 
 type WrappedWorkflowComponent = (props: WrappedComponentProps) => ReactNode;
@@ -175,52 +179,52 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     snapshotsListStore.reset();
   };
 
-  const snapshotNotFoundPage = '[temp] Snapshot not found';
-
-  const workflowPage = h(Fragment, [
-    snapshot &&
-      h(Fragment, [
-        h(
-          TabBar,
-          {
-            'aria-label': 'workflow menu',
-            activeTab: tabName,
-            tabNames: ['dashboard', 'wdl'],
-            displayNames: { configs: 'configurations' },
-            getHref: (currentTab) =>
-              Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
-          },
-          [
-            label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
-            div({ style: { width: 100 } }, [
-              h(Select, {
-                id: snapshotLabelId,
-                value: selectedSnapshot,
-                isSearchable: false,
-                options: _.map('snapshotId', cachedSnapshotsList),
-                // Gives dropdown click precedence over elements underneath
-                menuPortalTarget: document.body,
-                onChange: ({ value }: any) =>
-                  Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
-              }),
-            ]),
-            h(
-              ButtonPrimary,
-              {
-                style: { marginLeft: '1rem' },
-                onClick: () => {
-                  setExportingWorkflow(true);
-                },
+  return h(Fragment, [
+    (snapshot || snapshotNotFound) &&
+      h(
+        TabBar,
+        {
+          'aria-label': 'workflow menu',
+          activeTab: tabName,
+          tabNames: ['dashboard', 'wdl'],
+          getHref: (currentTab) =>
+            Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
+        },
+        [
+          label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
+          div({ style: { width: 100 } }, [
+            h(Select, {
+              id: snapshotLabelId,
+              value: selectedSnapshot,
+              // Only used if the selected snapshot cannot be found
+              placeholder: selectedSnapshot,
+              isSearchable: false,
+              options: _.map('snapshotId', cachedSnapshotsList),
+              // Gives dropdown click precedence over elements underneath
+              menuPortalTarget: document.body,
+              onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
+            }),
+          ]),
+          h(
+            ButtonPrimary,
+            {
+              disabled: !snapshot,
+              style: { marginLeft: '1rem' },
+              onClick: () => {
+                setExportingWorkflow(true);
               },
-              ['Export to Workspace']
-            ),
-            div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
-              h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
-            ]),
-          ]
-        ),
-        div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
-      ]),
+            },
+            ['Export to Workspace']
+          ),
+          div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
+            h(SnapshotActionMenu, {
+              disabled: !snapshot,
+              isSnapshotOwner,
+              onDelete: () => setShowDeleteModal(true),
+            }),
+          ]),
+        ]
+      ),
     exportingWorkflow &&
       h(ExportWorkflowModal, {
         defaultWorkflowName: name,
@@ -259,7 +263,27 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         onDismiss: () => setShowDeleteModal(false),
       }),
     busy && spinnerOverlay,
+    snapshotNotFound && h(NotFoundMessage, { subject: 'snapshot' }),
+    snapshot && div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
   ]);
+};
 
-  return snapshotNotFound ? snapshotNotFoundPage : workflowPage;
+const NotFoundMessage = (props: NotFoundMessageProps) => {
+  const { subject } = props;
+
+  return div({ style: { padding: '2rem', flexGrow: 1 } }, [
+    h2([`Could not display ${subject}`]),
+    p(['You cannot access this method snapshot because either it does not exist or you do not have access to it.']),
+    h3(['Troubleshooting access:']),
+    p([
+      'You are currently logged in as ',
+      span({ style: { fontWeight: 600 } }, [getTerraUser().email]),
+      '. You may have access with a different account.',
+    ]),
+    p([
+      'To view an existing method snapshot, an owner of the snapshot must give you permission to view it or make it publicly readable.',
+    ]),
+    p(['The snapshot may also have been deleted by one of its owners.']),
+    p([strong(['Please select a different snapshot from the dropdown above.'])]),
+  ]);
 };
