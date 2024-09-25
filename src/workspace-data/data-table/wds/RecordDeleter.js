@@ -26,6 +26,15 @@ export const RecordDeleter = ({ onDismiss, onSuccess, dataProvider, collectionId
     const recordType = recordTypes[0];
     setDeleting(true);
 
+const filterAdditionalDeletions = async (error: Response, recordsToDelete: Array<{ entityType: string, entityName: string }>) => {
+  const errorEntities = await error.json();
+  
+  return _.filter(errorEntities, (errorEntity: { entityType: string, entityName: string }) => 
+    !_.some(recordsToDelete, (selectedEntity) => 
+      selectedEntity.entityType === errorEntity.entityType && selectedEntity.entityName === errorEntity.entityName
+    )
+  );
+};
     try {
       await Ajax().WorkspaceData.deleteRecords(dataProvider.proxyUrl, collectionId, recordType, {
         record_ids: recordsToDelete,
