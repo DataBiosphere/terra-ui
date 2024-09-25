@@ -96,6 +96,8 @@ export const WorkflowList = (props: WorkflowListProps) => {
   const [workflowName, setWorkflowName] = useState<string>('');
   const [workflowSynopsis, setWorkflowSynopsis] = useState<string>('');
   const [workflowDocumentation, setWorkflowDocumentation] = useState<string>('');
+  const [snapshotComment, setSnapshotComment] = useState<string>('');
+  const [workflowWdl, setWorkflowWdl] = useState<string>('');
 
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
@@ -174,10 +176,10 @@ export const WorkflowList = (props: WorkflowListProps) => {
         namespace: workflowNamespace,
         name: workflowName,
         synopsis: workflowSynopsis,
-        snapshotComment: '', // get snapshotComment
+        snapshotComment,
         documentation: workflowDocumentation,
-        payload: '', // get wdl payload
-        entityType: 'Workflow',
+        payload: workflowWdl,
+        entityType: 'Workflow', // Currently not supporting task creation
       };
 
       const { namespace, name, snapshotId } = await Ajax(signal).Methods.methods(workflowPayload);
@@ -246,7 +248,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
                 setCreateWorkflowModalOpen(true);
               }}
             >
-              Create New Workflow
+              Create New Method
             </ButtonPrimary>
           </div>
         </div>
@@ -290,7 +292,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         {createWorkflowModalOpen && (
           <WorkflowModal
             setCreateWorkflowModalOpen={setCreateWorkflowModalOpen}
-            title='Create New Workflow'
+            title='Create New Method'
             namespace={workflowNamespace}
             name={workflowName}
             buttonActionName='Upload'
@@ -300,6 +302,10 @@ export const WorkflowList = (props: WorkflowListProps) => {
             setWorkflowName={setWorkflowName}
             setWorkflowSynopsis={setWorkflowSynopsis}
             setWorkflowDocumentation={setWorkflowDocumentation}
+            snapshotComment={snapshotComment}
+            setSnapshotComment={setSnapshotComment}
+            wdl={workflowWdl}
+            setWdl={setWorkflowWdl}
           />
         )}
       </main>
