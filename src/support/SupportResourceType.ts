@@ -22,7 +22,11 @@ export const supportResources: SupportResourceType[] = [
     resourceType: 'managed-group',
     loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().Groups.group(id.resourceId).getSupportSummary(),
   },
-  { displayName: 'Workspace', resourceType: 'workspace', loadSupportSummaryFn: undefined },
+  {
+    displayName: 'Workspace',
+    resourceType: 'workspace',
+    loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().Workspaces.adminGetById(id.resourceId),
+  },
   { displayName: 'Billing Project', resourceType: 'billing-project', loadSupportSummaryFn: undefined },
   { displayName: 'Dataset', resourceType: 'dataset', loadSupportSummaryFn: undefined },
   { displayName: 'Snapshot', resourceType: 'datasnapshot', loadSupportSummaryFn: undefined },
