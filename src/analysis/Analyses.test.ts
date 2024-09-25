@@ -8,7 +8,8 @@ import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/analysis/us
 import { AbsolutePath, FileName, notebookLockHash } from 'src/analysis/utils/file-utils';
 import { findPotentialNotebookLockers } from 'src/analysis/utils/notebook-lockers';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { ENABLE_JUPYTERLAB_ID, JUPYTERLAB_GCP_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { goToPath } from 'src/libs/nav';
@@ -52,7 +53,9 @@ jest.mock(
   })
 );
 
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
+
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 type NotificationExports = typeof import('src/libs/notifications');
 jest.mock(
@@ -110,10 +113,11 @@ const defaultAnalysesProps: AnalysesProps = {
 };
 
 const watchCaptureEvent = jest.fn();
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxMetricsContract = AjaxContract['Metrics'];
-type OuterWorkspacesContract = AjaxContract['Workspaces'];
-type InnerWorkspacesContract = AjaxContract['Workspaces']['workspace'];
+
+type AjaxMetricsContract = MetricsContract;
+type OuterWorkspacesContract = WorkspacesAjaxContract;
+type InnerWorkspacesContract = WorkspacesAjaxContract['workspace'];
+
 const mockInnerWorkspaces = jest.fn().mockReturnValue({
   listActiveFileTransfers: jest.fn(),
 }) as InnerWorkspacesContract;
@@ -125,18 +129,14 @@ const mockMetrics: Partial<AjaxMetricsContract> = {
   captureEvent: (event, details) => watchCaptureEvent(event, details),
 };
 
-const defaultAjaxImpl: Partial<AjaxContract> = {
-  Workspaces: mockOuterWorkspaces as OuterWorkspacesContract,
-  Metrics: mockMetrics as AjaxMetricsContract,
-};
-
 describe('Analyses', () => {
   beforeEach(() => {
     // Arrange
     asMockedFn(useAnalysisFiles).mockReturnValue(defaultUseAnalysisStore);
     asMockedFn(notebookLockHash).mockReturnValue(Promise.resolve('testhash'));
     asMockedFn(findPotentialNotebookLockers).mockReturnValue(Promise.resolve({}));
-    asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(mockOuterWorkspaces as WorkspacesAjaxContract);
+    asMockedFn(Metrics).mockReturnValue(mockMetrics as MetricsContract);
     asMockedFn(getLocalPref).mockReturnValue(undefined);
   });
 
@@ -356,7 +356,7 @@ describe('Analyses', () => {
       workspace: mockInnerWorkspaces,
     };
 
-    asMockedFn(Ajax).mockReturnValue({ ...defaultAjaxImpl, Workspaces: mockOuterWorkspaces } as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(mockOuterWorkspaces as WorkspacesAjaxContract);
 
     // Act
     await act(async () => {

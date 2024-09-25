@@ -366,7 +366,7 @@ describe('GcpComputeModal', () => {
       screen.getByDisplayValue(disk.size);
 
       verifyEnabled(screen.getByText('Delete Environment'));
-      verifyEnabled(screen.getByText('Update'));
+      verifyDisabled(screen.getByText('Update'));
     }
   );
 
@@ -377,6 +377,7 @@ describe('GcpComputeModal', () => {
       const disk = getDisk();
       const runtimeProps = { status: status.leoLabel, runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }) };
       const runtime = getGoogleRuntime(runtimeProps);
+      const user = userEvent.setup();
 
       const runtimeFunc = jest.fn(() => ({
         details: () => runtime,
@@ -402,6 +403,12 @@ describe('GcpComputeModal', () => {
       await act(async () => {
         selectRuntimeImage(GcpComputeImageSection, runtime);
       });
+
+      await user.click(screen.getByLabelText('CPUs'));
+      const selectOption = await screen.findByText('2');
+      await user.click(selectOption);
+      const nextButton = await screen.findByText('Next');
+      await user.click(nextButton);
 
       // Assert
       if (status.canChangeCompute) {

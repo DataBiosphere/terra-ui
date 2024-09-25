@@ -10,7 +10,7 @@
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "firecloudUrlRoot": "https://portal.firecloud.org",
   "externalCreds": {
-    "providers": ["fence", "dcf-fence", "anvil", "kids-first", "github"],
+    "providers": ["fence", "dcf-fence", "kids-first", "github"],
     "urlRoot": "https://externalcreds.dsde-prod.broadinstitute.org"
   },
   "isProd": true,

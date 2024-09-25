@@ -25,8 +25,10 @@ import {
 } from 'src/analysis/utils/tool-utils';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
-import { Ajax } from 'src/libs/ajax';
+import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -110,14 +112,14 @@ const ApplicationLauncher = _.flow(
               if (shouldCopy) {
                 // clear 'outdated' metadata (which gets populated by welder) so that new copy file does not get marked as outdated
                 newMetadata[hashedOwnerEmail] = '';
-                await Ajax()
-                  .Buckets.analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio)
+                await GoogleStorage()
+                  .analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio)
                   .copyWithMetadata(getCopyName(file), bucketName, newMetadata);
               }
               // update bucket metadata for the outdated file to be marked as doNotSync so that welder ignores the outdated file for the current user
               newMetadata[hashedOwnerEmail] = 'doNotSync';
-              await Ajax()
-                .Buckets.analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio)
+              await GoogleStorage()
+                .analysis(googleProject, bucketName, file, runtimeToolLabels.RStudio)
                 .updateMetadata(file, newMetadata);
             } else {
               console.error(
@@ -220,7 +222,7 @@ const ApplicationLauncher = _.flow(
     };
 
     const checkForOutdatedAnalyses = async ({ googleProject, bucketName }): Promise<AnalysisFile[]> => {
-      const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName);
+      const analyses = await GoogleStorage(signal).listAnalyses(googleProject, bucketName);
       return _.filter(
         (analysis: AnalysisFile) =>
           _.includes(getExtension(analysis?.name), runtimeTools.RStudio.ext) &&
@@ -264,23 +266,23 @@ const ApplicationLauncher = _.flow(
           !!googleProject && application === runtimeToolLabels.JupyterLab ? `${workspaceName}/edit` : '';
 
         const { storageContainerName } = azureContext
-          ? await Ajax(signal).AzureStorage.details(workspaceId)
+          ? await AzureStorage(signal).details(workspaceId)
           : { storageContainerName: bucketName };
         const cloudStorageDirectory = azureContext
           ? `${storageContainerName}/analyses`
           : `gs://${storageContainerName}/notebooks`;
 
         googleProject
-          ? await Ajax()
-              .Runtimes.fileSyncing(googleProject, runtime.runtimeName)
+          ? await Runtimes()
+              .fileSyncing(googleProject, runtime.runtimeName)
               .setStorageLinks(
                 localBaseDirectory,
                 '',
                 cloudStorageDirectory,
                 getPatternFromRuntimeTool(getToolLabelFromRuntime(runtime))
               )
-          : await Ajax()
-              .Runtimes.azureProxy(runtime.proxyUrl)
+          : await Runtimes()
+              .azureProxy(runtime.proxyUrl)
               .setStorageLinks(
                 localBaseDirectory,
                 cloudStorageDirectory,
