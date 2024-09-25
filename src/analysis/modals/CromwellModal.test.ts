@@ -1,8 +1,9 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import { appAccessScopes, appToolLabels } from '../utils/tool-utils';
@@ -10,7 +11,7 @@ import { CromwellModal } from './CromwellModal';
 
 const onSuccess = jest.fn();
 
-const defaultAjaxImpl = {
+const defaultAjaxImpl: AppsAjaxContract = {
   list: jest.fn(),
   listWithoutProject: jest.fn(),
   app: jest.fn(),
@@ -30,8 +31,9 @@ const defaultCromwellProps = {
   onExited: () => {},
 };
 
-jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/leonardo/Apps');
+jest.mock('src/libs/ajax/Metrics');
+
 type FeaturePrev = typeof import('src/libs/feature-previews');
 jest.mock(
   'src/libs/feature-previews',
@@ -41,20 +43,15 @@ jest.mock(
   })
 );
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
 function createAppV2Func() {
   const createFunc = jest.fn();
-  asMockedFn(Ajax).mockImplementation(
-    () =>
-      ({
-        Apps: {
-          ...defaultAjaxImpl,
-          createAppV2: createFunc,
-        },
-        Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
-      } as Partial<AjaxContract> as AjaxContract)
+  asMockedFn(Apps).mockImplementation(
+    (): AppsAjaxContract => ({
+      ...defaultAjaxImpl,
+      createAppV2: createFunc,
+    })
   );
+  asMockedFn(Metrics).mockImplementation(() => partial<MetricsContract>({ captureEvent: jest.fn() }));
   return createFunc;
 }
 

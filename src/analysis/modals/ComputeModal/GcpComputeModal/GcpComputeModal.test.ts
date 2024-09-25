@@ -34,13 +34,13 @@ import {
   defaultNumGpus,
 } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
-import { Ajax } from 'src/libs/ajax';
 import { cloudServiceTypes, NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { GetRuntimeItem, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoDiskProvider, leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
-import { RuntimeAjaxContractV1, RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
+import { RuntimeAjaxContractV1, Runtimes, RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { formatUSD } from 'src/libs/utils';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 jest.mock('src/libs/notifications', () => ({
@@ -62,7 +62,9 @@ jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider', (): DiskProviderEx
   };
 });
 
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/leonardo/Runtimes');
+jest.mock('src/libs/ajax/Metrics');
+
 jest.mock('src/analysis/utils/cost-utils');
 jest.mock('src/libs/config', () => ({
   getConfig: () => ({
@@ -94,18 +96,17 @@ const defaultModalProps = {
 const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
 const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
 
-type AjaxContract = ReturnType<typeof Ajax>;
-const defaultAjaxImpl: AjaxContract = {
-  Runtimes: {
+const defaultAjaxImpl = {
+  Runtimes: partial<RuntimesAjaxContract>({
     runtime: () =>
-      ({
+      partial<RuntimeAjaxContractV1>({
         details: jest.fn(),
-      } as Partial<RuntimeAjaxContractV1>),
-  } as Partial<RuntimesAjaxContract>,
-  Metrics: {
+      }),
+  }),
+  Metrics: partial<MetricsContract>({
     captureEvent: jest.fn(),
-  } as Partial<AjaxContract['Metrics']>,
-} as AjaxContract;
+  }),
+};
 
 describe('GcpComputeModal', () => {
   beforeAll(() => {});
@@ -113,9 +114,8 @@ describe('GcpComputeModal', () => {
   beforeEach(() => {
     // Arrange
     asMockedFn(GcpComputeImageSection).mockImplementation(() => 'Mock GcpComputeImageSection');
-    asMockedFn(Ajax).mockImplementation(() => ({
-      ...defaultAjaxImpl,
-    }));
+    asMockedFn(Runtimes).mockImplementation(() => defaultAjaxImpl.Runtimes);
+    asMockedFn(Metrics).mockReturnValue(defaultAjaxImpl.Metrics);
   });
 
   afterEach(() => {
@@ -188,16 +188,17 @@ describe('GcpComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -224,16 +225,17 @@ describe('GcpComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -277,16 +279,17 @@ describe('GcpComputeModal', () => {
     const disk: PersistentDisk = defaultTestDisk;
     const createFunc = jest.fn();
     const diskDetailsFunc = jest.fn().mockResolvedValue(disk);
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
     asMockedFn(leoDiskProvider.details).mockImplementation(diskDetailsFunc);
 
     // Act
@@ -326,16 +329,17 @@ describe('GcpComputeModal', () => {
       };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
-        create: jest.fn(),
-        details: () => runtime,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          create: jest.fn(),
+          details: async () => runtime,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
@@ -379,15 +383,16 @@ describe('GcpComputeModal', () => {
       const runtime = getGoogleRuntime(runtimeProps);
       const user = userEvent.setup();
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
@@ -430,15 +435,16 @@ describe('GcpComputeModal', () => {
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
@@ -480,16 +486,17 @@ describe('GcpComputeModal', () => {
 
       const deleteFunc = jest.fn();
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-        delete: deleteFunc,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          delete: deleteFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
@@ -525,16 +532,17 @@ describe('GcpComputeModal', () => {
 
       const updateFunc = jest.fn();
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-        update: updateFunc,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          update: updateFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
@@ -588,16 +596,17 @@ describe('GcpComputeModal', () => {
 
       const updateRuntimeFunc = jest.fn();
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-        update: updateRuntimeFunc,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          update: updateRuntimeFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
@@ -642,17 +651,18 @@ describe('GcpComputeModal', () => {
       const createFunc = jest.fn();
       const deleteFunc = jest.fn();
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-        create: createFunc,
-        delete: deleteFunc,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          create: createFunc,
+          delete: deleteFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act
@@ -703,15 +713,16 @@ describe('GcpComputeModal', () => {
 
     const deleteDiskFunc = jest.fn();
 
-    const runtimeFunc = jest.fn(() => ({
-      details: () => {},
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        details: async () => partial<GetRuntimeItem>({}),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
     asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
     asMockedFn(leoDiskProvider.delete).mockImplementation(deleteDiskFunc);
 
@@ -749,17 +760,18 @@ describe('GcpComputeModal', () => {
     const createFunc = jest.fn();
     const updateDiskFunc = jest.fn();
 
-    const runtimeFunc = jest.fn(() => ({
-      details: () => {},
-      create: createFunc,
-    }));
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        details: async () => partial<GetRuntimeItem>({}),
+        create: createFunc,
+      })
+    );
 
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
     asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
     asMockedFn(leoDiskProvider.update).mockImplementation(updateDiskFunc);
 
@@ -802,16 +814,17 @@ describe('GcpComputeModal', () => {
       const updateDiskFunc = jest.fn();
       const updateRuntimeFunc = jest.fn();
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-        update: updateRuntimeFunc,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          update: updateRuntimeFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
       asMockedFn(leoDiskProvider.update).mockImplementation(updateDiskFunc);
 
@@ -856,16 +869,17 @@ describe('GcpComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -905,16 +919,17 @@ describe('GcpComputeModal', () => {
     // Arrange
     const createFunc = jest.fn();
     const user = userEvent.setup();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -961,16 +976,17 @@ describe('GcpComputeModal', () => {
 
     const deleteFunc = jest.fn();
 
-    const runtimeFunc = jest.fn(() => ({
-      details: () => runtime,
-      delete: deleteFunc,
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        details: async () => partial<GetRuntimeItem>(runtime),
+        delete: deleteFunc,
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -1016,16 +1032,17 @@ describe('GcpComputeModal', () => {
     };
     const runtime = getGoogleRuntime(runtimeProps);
 
-    const runtimeFunc = jest.fn(() => ({
-      create: jest.fn(),
-      details: () => runtime,
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: jest.fn(),
+        details: async () => runtime,
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -1067,16 +1084,17 @@ describe('GcpComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -1126,16 +1144,17 @@ describe('GcpComputeModal', () => {
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-        create: createFunc,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          create: createFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act and assert
@@ -1170,16 +1189,17 @@ describe('GcpComputeModal', () => {
       const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
       const runtime = getGoogleRuntime(runtimeProps);
 
-      const runtimeFunc = jest.fn(() => ({
-        details: () => runtime,
-        create: createFunc,
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          create: createFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
       asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
 
       // Act and assert
@@ -1285,16 +1305,17 @@ describe('GcpComputeModal', () => {
       const user = userEvent.setup();
 
       const createFunc = jest.fn();
-      const runtimeFunc = jest.fn(() => ({
-        create: createFunc,
-        details: jest.fn(),
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          create: createFunc,
+          details: jest.fn(),
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
 
       // Act
       await act(async () => {
@@ -1368,16 +1389,17 @@ describe('GcpComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-      } as Partial<RuntimesAjaxContract>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
     render(h(GcpComputeModalBase, defaultModalProps));
 
     // Act
@@ -1409,16 +1431,17 @@ describe('GcpComputeModal', () => {
       // Arrange
       const user = userEvent.setup();
       const createFunc = jest.fn();
-      const runtimeFunc = jest.fn(() => ({
-        create: createFunc,
-        details: jest.fn(),
-      }));
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          create: createFunc,
+          details: jest.fn(),
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
 
       // Act
       await act(async () => {
@@ -1464,17 +1487,18 @@ describe('GcpComputeModal', () => {
       const user = userEvent.setup();
 
       const createFunc = jest.fn();
-      const runtimeFunc = jest.fn(() => ({
-        create: createFunc,
-        details: jest.fn(),
-      }));
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          create: createFunc,
+          details: jest.fn(),
+        })
+      );
 
-      asMockedFn(Ajax).mockReturnValue({
-        ...defaultAjaxImpl,
-        Runtimes: {
-          runtime: runtimeFunc as Partial<RuntimeAjaxContractV1>,
-        } as Partial<RuntimesAjaxContract>,
-      } as AjaxContract);
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
 
       // Act
       await act(async () => {
