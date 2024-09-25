@@ -23,7 +23,10 @@ jest.mock('src/components/popup-utils', () => ({
 const CollaboratorWithState = ({ aclItem, acl, originalAcl, workspace, lastAddedEmail, expectedModifiedAcl }) => {
   const [aclItemState, setAclItemState] = React.useState(aclItem);
   const setAcl = jest.fn((val) => {
+    // Length 2 because the first one represents the user who opened the modal.
     expect(val).toHaveLength(2);
+    expect(val[0]).toEqual(originalAcl[0]);
+    // The second one is the item being modified.
     expect(val[1]).toEqual(expectedModifiedAcl);
     setAclItemState(val[1]);
   });
@@ -188,7 +191,7 @@ describe('a Collaborator component', () => {
   it('can change the permission of the user with setAcl', async () => {
     // Arrange
     const user = userEvent.setup();
-    const item: AccessEntry = {
+    const workspaceUser: AccessEntry = {
       email: 'user1@test.com',
       pending: false,
       canShare: true,
@@ -202,7 +205,7 @@ describe('a Collaborator component', () => {
       canCompute: true,
       accessLevel: 'OWNER',
     };
-    const acl = [item, currentItem];
+    const acl = [workspaceUser, currentItem];
 
     // Act
     render(
@@ -210,7 +213,7 @@ describe('a Collaborator component', () => {
         aclItem={currentItem}
         acl={acl}
         originalAcl={acl}
-        workspace={{ ...workspace, accessLevel: 'PROJECT_OWNER' }}
+        workspace={{ ...workspace, accessLevel: workspaceUser.accessLevel }}
         lastAddedEmail={undefined}
         expectedModifiedAcl={{ ...currentItem, accessLevel: 'WRITER', canShare: false }}
       />
@@ -231,7 +234,7 @@ describe('a Collaborator component', () => {
   it('does not allow writers to share with canCompute true', async () => {
     // Arrange
     const user = userEvent.setup();
-    const item: AccessEntry = {
+    const workspaceUser: AccessEntry = {
       email: 'user1@test.com',
       pending: false,
       canShare: true,
@@ -245,7 +248,7 @@ describe('a Collaborator component', () => {
       canCompute: false,
       accessLevel: 'READER',
     };
-    const acl = [item, currentItem];
+    const acl = [workspaceUser, currentItem];
 
     // Act
     render(
@@ -253,7 +256,7 @@ describe('a Collaborator component', () => {
         aclItem={currentItem}
         acl={acl}
         originalAcl={acl}
-        workspace={{ ...workspace, accessLevel: 'WRITER' }}
+        workspace={{ ...workspace, accessLevel: workspaceUser.accessLevel }}
         lastAddedEmail={undefined}
         expectedModifiedAcl={{ ...currentItem, accessLevel: 'WRITER' }}
       />
@@ -266,7 +269,6 @@ describe('a Collaborator component', () => {
     expect(dropdownHelper.getSelectedOptions()).toEqual(['Writer']);
 
     const canCompute = screen.getByText('Can compute');
-
     // Since a writer is changing the permission, canCompute will be disabled. We can't
     // verify that it is not checked because we can't get the checkbox input element for a disabled item.
     // However, expectModifiedAcl includes canCompute: false, so we can verify that it is not changed.
