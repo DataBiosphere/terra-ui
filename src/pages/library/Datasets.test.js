@@ -35,7 +35,10 @@ describe('Dataset Browser', () => {
   it('shows all datasets in terra', () => {
     expect(
       prepareDatasetsForDisplay(
-        [{ 'dct:title': 'radx-up', 'TerraDCAT_ap:hasDataCollection': [{ 'dct:title': 'RADx-UP' }] }, { 'dct:title': 'not-radx' }],
+        [
+          { 'dct:title': 'catalog-test-included', 'TerraDCAT_ap:hasDataCollection': [{ 'dct:title': 'catalog-test-included' }] },
+          { 'dct:title': 'not-included' },
+        ],
         brands.terra.catalogDataCollectionsToInclude
       ).length
     ).toBe(2);
