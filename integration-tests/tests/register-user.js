@@ -80,7 +80,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
 
   await assertLabelledTextInputValue(page, label({ labelContains: 'Contact Email' }), 'ltcommanderdata@neighborhood.horse');
 
-  const registrationEmailDiv = await page.waitForXPath("(//div[.='Email']/following-sibling::div)");
+  const registrationEmailDiv = await page.waitForSelector("(xpath///div[.='Email']/following-sibling::div)");
   const registrationEmail = registrationEmailDiv?.evaluate((d) => d.value);
   const contactEmail = await getLabelledTextInputValue(page, label({ labelContains: 'Contact Email' }));
 

@@ -8,13 +8,13 @@
     "test-flakes": "FLAKES=true yarn test-local --runInBand"
   },
   "devDependencies": {
-    "jest": "^27.4.3",
-    "jest-environment-puppeteer": "^6.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-puppeteer": "^10.1.1",
     "jest-junit": "^13.0.0",
-    "jest-puppeteer": "^6.0.2",
+    "jest-puppeteer": "^10.1.1",
     "node-fetch": "^2.6.7",
     "prompts": "^2.4.1",
-    "puppeteer-cluster": "^0.23.0"
+    "puppeteer-cluster": "^0.24.0"
   },
   "dependencies": {
     "@axe-core/puppeteer": "^4.6.0",

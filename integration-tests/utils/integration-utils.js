@@ -44,7 +44,7 @@ const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
 };
 
 const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe', options) => {
-  const iframeNode = await page.waitForXPath(iframeXPath, defaultToVisibleTrue(options));
+  const iframeNode = await page.waitForSelector(`xpath/${iframeXPath}`, defaultToVisibleTrue(options));
   const srcHandle = await iframeNode.getProperty('src');
   const src = await srcHandle.jsonValue();
   const hasFrame = () => page.frames().find((frame) => frame.url().includes(src));
@@ -53,7 +53,7 @@ const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe', option
 };
 
 const findInGrid = (page, textContains, options) => {
-  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
+  return page.waitForSelector(`xpath///*[@role="table"][contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
 };
 
 const getClickablePath = (path, text, textContains, isDescendant = false) => {
@@ -127,26 +127,26 @@ const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { 
 const clickTableCell = async (page, { tableName, columnHeader, text, isDescendant = false }, options) => {
   const tableCellPath = await getTableCellByContents(page, { tableName, columnHeader, text, isDescendant });
   const xpath = `${tableCellPath}[@role="button" or @role="link" or @role="checkbox"]`;
-  return (await page.waitForXPath(xpath, options)).click();
+  return (await page.waitForSelector(`xpath/${xpath}`, options)).click();
 };
 
 const click = async (page, xpath, options) => {
   try {
-    return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click();
+    return (await page.waitForSelector(`xpath/${xpath}`, defaultToVisibleTrue(options))).click();
   } catch (e) {
     if (e.message.includes('Node is detached from document')) {
-      return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click();
+      return (await page.waitForSelector(`xpath/${xpath}`, defaultToVisibleTrue(options))).click();
     }
     throw e;
   }
 };
 
 const findText = (page, textContains, options) => {
-  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
+  return page.waitForSelector(`xpath///*[contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options));
 };
 
 const getLabelledTextInputValue = async (page, xpath) => {
-  const inputLabel = await page.waitForXPath(xpath);
+  const inputLabel = await page.waitForSelector(`xpath/${xpath}`);
   const labelFor = await inputLabel?.evaluate((l) => l.getAttribute('for'));
   const input = await page.$(`#${labelFor}`);
   return await input?.evaluate((i) => i.value);
@@ -185,7 +185,7 @@ const label = ({ labelContains }) => {
 };
 
 const fillIn = async (page, xpath, text, options) => {
-  const input = await page.waitForXPath(xpath, defaultToVisibleTrue(options));
+  const input = await page.waitForSelector(`xpath/${xpath}`, defaultToVisibleTrue(options));
   await input.click();
 
   // Actually type the text
@@ -222,15 +222,15 @@ const select = async (page, labelContains, text) => {
 };
 
 const waitForNoSpinners = (page, { timeout = 30000 } = {}) => {
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true, timeout });
+  return page.waitForSelector('xpath///*[@data-icon="loadingSpinner"]', { hidden: true, timeout });
 };
 
 const waitForNoModal = (page, { timeout = 30000 } = {}) => {
-  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
+  return page.waitForSelector('xpath///*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
 };
 
 const waitForModal = (page, { timeout = 30000 } = {}) => {
-  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: false, timeout });
+  return page.waitForSelector('xpath///*[contains(@class, "ReactModal__Overlay")]', { hidden: false, timeout });
 };
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -240,7 +240,7 @@ const noSpinnersAfter = async (page, { action, debugMessage, timeout = 30000 }) 
   if (debugMessage) {
     console.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`);
   }
-  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]', { timeout });
+  const foundSpinner = page.waitForSelector('xpath///*[@data-icon="loadingSpinner"]', { timeout });
   await Promise.all([foundSpinner, action()]);
   return waitForNoSpinners(page, { timeout });
 };
@@ -252,7 +252,7 @@ const delay = (ms) => {
 /** Dismiss all popup notifications, including errors. */
 const dismissAllNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")]');
+  const notificationCloseButtons = await page.$$('(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(@aria-label,"Dismiss")]');
 
   await Promise.all(notificationCloseButtons.map((handle) => handle.click()));
 
@@ -262,8 +262,8 @@ const dismissAllNotifications = async (page) => {
 /** Dismiss popup notifications, except for errors. */
 const dismissInfoNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x(
-    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
+  const notificationCloseButtons = await page.$$(
+    '(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
   );
 
   await Promise.all(notificationCloseButtons.map((handle) => handle.click()));
@@ -275,14 +275,14 @@ const dismissInfoNotifications = async (page) => {
 const dismissNPSSurvey = async (page) => {
   let element;
   try {
-    element = await page.waitForXPath('//iframe[@aria-label="NPS Survey"]', { timeout: 1000 });
+    element = await page.waitForSelector('xpath///iframe[@aria-label="NPS Survey"]', { timeout: 1000 });
   } catch (e) {
     return; // NPS survey was not found
   }
   try {
     console.log('dismissing NPS survey');
     const iframe = await element.contentFrame();
-    const [closeButton] = await iframe.$x('.//*[normalize-space(.)="Ask Me Later"]');
+    const [closeButton] = await iframe.$$('.//*[normalize-space(.)="Ask Me Later"]');
     await closeButton.evaluate((button) => button.click());
     await delay(500); // delayed for survey to animate off
   } catch (e) {
@@ -297,7 +297,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   if (testUrl) {
     await gotoPage(page, testUrl);
   } else {
-    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true });
+    await page.waitForSelector('xpath///*[contains(normalize-space(.),"Loading Terra")]', { hidden: true });
   }
 
   await waitForNoSpinners(page);
@@ -311,11 +311,14 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 };
 
 const findElement = (page, xpath, options) => {
-  return page.waitForXPath(xpath, defaultToVisibleTrue(options));
+  return page.waitForSelector(`xpath/${xpath}`, defaultToVisibleTrue(options));
 };
 
 const findErrorPopup = (page, options) => {
-  return page.waitForXPath('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")][contains(@aria-label,"error")]', options);
+  return page.waitForSelector(
+    '(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(@aria-label,"Dismiss")][contains(@aria-label,"error")]',
+    options
+  );
 };
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
@@ -334,7 +337,7 @@ const heading = ({ level, text, textContains, isDescendant = false }) => {
 };
 
 const findHeading = (page, xpath, options) => {
-  return page.waitForXPath(xpath, options);
+  return page.waitForSelector(`xpath/${xpath}`, options);
 };
 
 const svgText = ({ textContains }) => {
@@ -348,7 +351,7 @@ const navChild = (text) => {
 const assertNavChildNotFound = async (page, text) => {
   let found = false;
   try {
-    await page.waitForXPath(navChild(text), { timeout: 5 * 1000 });
+    await page.waitForSelector(`xpath/${navChild(text)}`, { timeout: 5 * 1000 });
     found = true;
   } catch (e) {}
   if (found) {
@@ -365,15 +368,15 @@ const findInDataTableRow = (page, entityName, text) => {
 };
 
 const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
-  return page.waitForXPath(`//*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`, {
+  return page.waitForSelector(`xpath///*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`, {
     visible: true,
   });
 };
 
 /** Waits for a menu element to expand (or collapse if isExpanded=false) */
 const waitForMenu = (page, { labelContains, isExpanded = true, ...options }) => {
-  return page.waitForXPath(
-    `//*[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id][@aria-expanded="${isExpanded}"]`,
+  return page.waitForSelector(
+    `xpath///*[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id][@aria-expanded="${isExpanded}"]`,
     defaultToVisibleTrue(options)
   );
 };
@@ -382,7 +385,7 @@ const openError = async (page) => {
   // close out any non-error notifications first
   await dismissInfoNotifications(page);
 
-  const errorDetails = await page.$x('(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"Details")]');
+  const errorDetails = await page.$$('(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(normalize-space(.),"Details")]');
 
   !!errorDetails[0] && (await errorDetails[0].click());
 
@@ -526,12 +529,15 @@ const gotoPage = async (page, url) => {
       if (httpResponse && !(httpResponse.ok() || httpResponse.status() === 304)) {
         throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`);
       }
-      await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true });
+      await page.waitForSelector('///*[contains(normalize-space(.),"Loading Terra")]', { hidden: true });
     } catch (e) {
       console.error(e);
       // Stop page loading, as if you hit "X" in the browser. ignore exception.
       // eslint-disable-next-line no-underscore-dangle
-      await page._client.send('Page.stopLoading').catch((err) => void err);
+      await page
+        ._client()
+        .send('Page.stopLoading')
+        .catch((err) => void err);
       throw new Error(e);
     }
   };
