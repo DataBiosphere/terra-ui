@@ -2,7 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
-import { fetchAgora, fetchRawls } from 'src/libs/ajax/ajax-common';
+import { fetchAgora, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
 
 export const Methods = (signal?: AbortSignal) => ({
   list: async (params) => {
@@ -37,6 +37,11 @@ export const Methods = (signal?: AbortSignal) => ({
     return {
       get: async () => {
         const res = await fetchAgora(root, _.merge(authOpts(), { signal }));
+        return res.json();
+      },
+
+      delete: async () => {
+        const res = await fetchOrchestration(`api/${root}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
         return res.json();
       },
 

@@ -920,7 +920,7 @@ export const WorkflowView = _.flow(
               ]),
               currentSnapRedacted &&
                 div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
-                  'You do not have access to this workflow, or this snapshot has been removed. To use this workflow, contact the owner to request access, or select another snapshot.',
+                  'You do not have access to this workflow, or this snapshot has been deleted. To use this workflow, contact the owner to request access, or select another snapshot.',
                 ]),
               h(IdContainer, [
                 (id) =>
@@ -1271,7 +1271,7 @@ export const WorkflowView = _.flow(
                   {
                     style: { marginLeft: '1rem' },
                     disabled: !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
-                    tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was deleted.'),
                     ...WorkspaceUtils.getWorkspaceAnalysisControlProps(ws),
                     onClick: () => this.setState({ launching: true }),
                   },

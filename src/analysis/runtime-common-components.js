@@ -7,7 +7,8 @@ import { getConvertedRuntimeStatus, usableStatuses } from 'src/analysis/utils/ru
 import { cookiesAcceptedKey } from 'src/auth/accept-cookies';
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { Ajax } from 'src/libs/ajax';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -64,8 +65,8 @@ export function RuntimeKicker({ runtime, refreshRuntimes }) {
       if (status === 'Stopped') {
         setBusy(true);
         (await cloudContext.cloudProvider) === cloudProviderTypes.AZURE
-          ? Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).start()
-          : Ajax().Runtimes.runtime(googleProject, runtimeName).start();
+          ? Runtimes().runtimeV2(workspaceId, runtimeName).start()
+          : Runtimes().runtime(googleProject, runtimeName).start();
         await refreshRuntimes();
         setBusy(false);
         return;
@@ -145,7 +146,7 @@ export function PeriodicCookieSetter() {
   const signal = useCancellation();
   usePollingEffect(
     withErrorIgnoring(async () => {
-      await Ajax(signal).Runtimes.setCookie();
+      await Runtimes(signal).setCookie();
       cookieReadyStore.set(true);
     }),
     { ms: 5 * 60 * 1000, leading: true }
@@ -154,7 +155,7 @@ export function PeriodicCookieSetter() {
 }
 
 export async function setAzureCookieOnUrl(signal, proxyUrl, forApp) {
-  await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie();
+  await Runtimes(signal).azureProxy(proxyUrl).setAzureCookie();
   if (forApp) azureCookieReadyStore.update(_.set('readyForApp', true));
   else azureCookieReadyStore.update(_.set('readyForRuntime', true));
 }
@@ -180,7 +181,7 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
       href: app.proxyUrls.galaxy,
       onClick: () => {
         onClick();
-        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' });
+        Metrics().captureEvent(Events.applicationLaunch, { app: 'Galaxy' });
       },
       ...Utils.newTabLinkPropsWithReferrer, // Galaxy needs the referrer to be present so we can validate it, otherwise we fail with 401
       ...props,

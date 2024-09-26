@@ -33,7 +33,7 @@ export const RequestAccessModal = (props: RequestAccessModalProps) => {
       showX: false,
       onDismiss,
       width: 500,
-      cancelText: 'Return to AxIN Overview',
+      cancelText: 'Return Dataset Overview',
       okButton: h(
         ButtonPrimary,
         {
@@ -70,7 +70,7 @@ export const RequestAccessModal = (props: RequestAccessModalProps) => {
                 style: { display: 'pre-wrap', marginTop: -10, lineHeight: 1.5 },
               },
               [
-                span(['Before proceeding to the AnalytiXIN form, please copy and paste the ']),
+                span(['Before proceeding to the request access form, please copy and paste the ']),
                 span({ style: { fontWeight: 600 } }, ['Request ID']),
                 span([' and the ']),
                 span({ style: { fontWeight: 600 } }, ['Request Summary']),
