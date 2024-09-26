@@ -186,9 +186,6 @@ describe('a Collaborator component', () => {
     expect(removeButton).not.toBeNull();
     fireEvent.click(removeButton);
     expect(setAcl).toHaveBeenCalledTimes(1);
-
-    // There should be no delete button for the user who opened the modal.
-    expect(screen.queryByLabelText(`Remove owner ${item.email}`)).toBeNull();
   });
 
   it('does not allow writers to remove users with permissions', async () => {
@@ -224,6 +221,36 @@ describe('a Collaborator component', () => {
     // Assert
     expect(screen.queryByLabelText(`Remove owner ${removeItem.email}`)).toBeNull();
     expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('does not allow users to remove or edit themselves', async () => {
+    // Arrange
+    const item: AccessEntry = {
+      email: 'owner@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'OWNER',
+    };
+    const acl = [item];
+
+    // Act
+    render(
+      <Collaborator
+        aclItem={item}
+        acl={acl}
+        setAcl={jest.fn()}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'OWNER' }}
+        lastAddedEmail={undefined}
+      />
+    );
+
+    // Assert
+    expect(screen.queryByLabelText(`Remove owner ${item.email}`)).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+    const dropdown = screen.getByLabelText(`permissions for ${item.email}`);
+    expect(dropdown).toHaveAttribute('disabled');
   });
 
   it('can change the permission of the user with setAcl', async () => {
