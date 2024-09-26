@@ -90,6 +90,7 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
           <FormLabel required>Namespace</FormLabel>
           <ValidatedInput
             inputProps={{
+              id: 'namespace-input',
               autoFocus: true,
               value: namespace,
               onChange: (v) => {
@@ -106,6 +107,7 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
           <FormLabel required>Name</FormLabel>
           <ValidatedInput
             inputProps={{
+              id: 'name-input',
               value: name,
               onChange: (v) => {
                 setWorkflowName(v);
@@ -131,6 +133,7 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
           <FormLabel>Synopsis (80 characters max)</FormLabel>
           <ValidatedInput
             inputProps={{
+              id: 'synopsis-input',
               value: synopsis,
               onChange: (v) => {
                 setWorkflowSynopsis(v);
@@ -145,7 +148,7 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
         <div style={{ marginBottom: '0.1667em' }}>
           <FormLabel>Snapshot Comment</FormLabel>
         </div>
-        <TextInput value={snapshotComment} onChange={(value) => setSnapshotComment(value)} />
+        <TextInput id='snapshot-input' value={snapshotComment} onChange={(value) => setSnapshotComment(value)} />
       </div>
     </div>
   );
@@ -186,7 +189,7 @@ const DocumentationSection = (props: WorkflowDocumentationProps) => {
   return (
     <div style={{ paddingTop: '1.5rem' }}>
       <FormLabel>Documentation</FormLabel>
-      <TextArea onChange={(v) => setWorkflowDocumentation(v)} />
+      <TextArea id='documentation-input' onChange={(v) => setWorkflowDocumentation(v)} />
     </div>
   );
 };

@@ -189,6 +189,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         snapshotId,
       });
     } catch (e) {
+      setCreateWorkflowModalOpen(false);
       reportError('Error uploading method', e);
     }
   };
