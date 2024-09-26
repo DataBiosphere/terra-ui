@@ -1399,7 +1399,7 @@ export const WorkflowView = _.flow(
         const {
           methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
         } = modifiedConfig;
-        Metrics().captureEvent(Events.workflowUploadIO, {
+        void Metrics().captureEvent(Events.workflowUploadIO, {
           ...extractWorkspaceDetails(workspace.workspace),
           inputsOrOutputs: key,
           methodVersion,
@@ -1426,7 +1426,7 @@ export const WorkflowView = _.flow(
       const {
         methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
       } = modifiedConfig;
-      Metrics().captureEvent(Events.workflowClearIO, {
+      void Metrics().captureEvent(Events.workflowClearIO, {
         ...extractWorkspaceDetails(workspace.workspace),
         inputsOrOutputs: key,
         methodVersion,
@@ -1573,7 +1573,7 @@ export const WorkflowView = _.flow(
                         const {
                           methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
                         } = modifiedConfig;
-                        Metrics().captureEvent(Events.workflowUseDefaultOutputs, {
+                        void Metrics().captureEvent(Events.workflowUseDefaultOutputs, {
                           ...extractWorkspaceDetails(workspace.workspace),
                           methodVersion,
                           sourceRepo,

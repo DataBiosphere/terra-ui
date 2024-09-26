@@ -183,7 +183,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   );
 
   const menuClicked = (action: string) => {
-    Metrics().captureEvent(Events.workspaceMenu, {
+    void Metrics().captureEvent(Events.workspaceMenu, {
       action,
       origin,
       ...extractWorkspaceDetails({
