@@ -11,7 +11,7 @@ import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, SetStateAction, useRef, useState } from 'react';
 import { IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
-import { TextInput } from 'src/components/input';
+import { ValidatedInput } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
@@ -28,6 +28,7 @@ import {
   WorkflowAccessLevel,
   WorkflowsPermissions,
 } from 'src/pages/workflows/workflow/workflows-acl-utils';
+import validate from 'validate.js';
 
 type WorkflowPermissionsModalProps = {
   methodOrNamespace: 'method' | 'namespace';
@@ -52,6 +53,12 @@ type UserSelectProps = {
 type CurrentUserProps = {
   userPermissions: WorkflowsPermissions;
   setUserPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
+};
+
+const constraints = {
+  searchValue: {
+    email: true,
+  },
 };
 
 const styles: CSSProperties = {
@@ -169,7 +176,12 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const publicUser = _.find({ user: 'public' }, originalPermissions);
   // console.log(publicUser);
   const [isPublic, setIsPublic] = useState<boolean>(_.isUndefined(publicUser));
+  const [userValueModified, setUserValueModified] = useState<boolean>(false);
   // console.log(isPublic);
+
+  const errors = validate({ searchValue }, constraints, {
+    prettify: (v) => ({ searchValue: 'User' }[v] || validate.prettify(v)),
+  });
 
   useOnMount(() => {
     const loadWorkflowPermissions = async () => {
@@ -230,11 +242,24 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
               <FormLabel id={id} style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>
                 User
               </FormLabel>
-              <TextInput id={id} placeholder='Add a user' value={searchValue} onChange={setSearchValue} />
+              <ValidatedInput
+                inputProps={{
+                  autoFocus: true,
+                  placeholder: 'Add a user',
+                  value: searchValue,
+                  onChange: (v) => {
+                    setSearchValue(v);
+                    setUserValueModified(true);
+                  },
+                }}
+                error={Utils.summarizeErrors(userValueModified && errors?.searchValue)}
+              />
             </div>
           )}
         </IdContainer>
-        <ButtonPrimary onClick={() => addUser(searchValue)}>Add</ButtonPrimary>
+        <ButtonPrimary disabled={errors} onClick={() => addUser(searchValue)}>
+          Add
+        </ButtonPrimary>
       </div>
       {!loaded && centeredSpinner()}
       <CurrentUsers userPermissions={permissions} setUserPermissions={setPermissions} />
@@ -243,7 +268,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
           <LabeledCheckbox
             checked={isPublic}
             onChange={(v) => {
-              updatePublicUser(publicUser, v);
+              updatePublicUser(publicUser);
               setIsPublic(v);
             }}
           >
