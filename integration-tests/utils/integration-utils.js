@@ -375,10 +375,10 @@ const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
 
 /** Waits for a menu element to expand (or collapse if isExpanded=false) */
 const waitForMenu = (page, { labelContains, isExpanded = true, ...options }) => {
-  return page.waitForSelector(
-    `xpath///*[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id][@aria-expanded="${isExpanded}"]`,
-    defaultToVisibleTrue(options)
-  );
+  const labelContainsSelector = `[aria-label*="${labelContains}"], [id="${labelContains}"], [aria-labelledby*="${labelContains}"]`;
+  const expandedSelector = `[aria-expanded="${isExpanded}"]`;
+
+  return page.waitForSelector(`${labelContainsSelector}${expandedSelector}`, defaultToVisibleTrue(options));
 };
 
 const openError = async (page) => {

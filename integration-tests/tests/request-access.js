@@ -5,7 +5,7 @@ const { registerTest } = require('../utils/jest-utils');
 const { withUserToken } = require('../utils/terra-sa-utils');
 
 async function getHrefFromClickable(page, selector) {
-  return (await (await page.waitForSelector(clickable(`xpath/${selector}`), _.defaults({ visible: true }))).getProperty('href')).jsonValue();
+  return (await (await page.waitForSelector(`xpath/${clickable(selector)}`, _.defaults({ visible: true }))).getProperty('href')).jsonValue();
 }
 
 const dbGapUrlRoot = 'https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=';
