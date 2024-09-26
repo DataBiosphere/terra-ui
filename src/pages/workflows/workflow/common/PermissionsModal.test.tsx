@@ -57,7 +57,7 @@ describe('PermissionsModal', () => {
       );
     });
 
-    expect(screen.getByText('Permissions for workflow namespace/test'));
+    expect(screen.getByText('Permissions for method namespace/test'));
     expect(screen.getByText('User'));
     expect(screen.getByRole('button', { name: 'Add' }));
     expect(screen.getByText('Current Users'));
@@ -175,5 +175,29 @@ describe('PermissionsModal', () => {
     // ASSERT
     const roleSelector = new SelectHelper(await screen.findByLabelText('permissions for user1@foo.com'), user);
     expect(roleSelector.inputElement).toBeDisabled();
+  });
+
+  it('gives an error with invalid user email', async () => {
+    // ARRANGE
+    await act(async () => {
+      renderWithAppContexts(
+        <PermissionsModal
+          name='test'
+          namespace='namespace'
+          methodOrNamespace='method'
+          selectedSnapshot='3'
+          setPermissionsModalOpen={jest.fn()}
+        />
+      );
+    });
+
+    // ASSERT
+    const textbox = screen.getByRole('textbox');
+    const addButton = screen.getByRole('button', { name: 'Add' });
+
+    fireEvent.change(textbox, { target: { value: 'blahblah' } });
+
+    expect(screen.getByText('User is not a valid email')).toBeInTheDocument();
+    expect(addButton).toHaveAttribute('aria-disabled', 'true');
   });
 });
