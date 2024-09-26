@@ -252,7 +252,7 @@ const delay = (ms) => {
 /** Dismiss all popup notifications, including errors. */
 const dismissAllNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
-  const notificationCloseButtons = await page.$$('(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(@aria-label,"Dismiss")]');
+  const notificationCloseButtons = await page.$$('[aria-label*="Dismiss"], a[role="button"], button[aria-label*="Dismiss"]');
 
   await Promise.all(notificationCloseButtons.map((handle) => handle.click()));
 
@@ -263,7 +263,7 @@ const dismissAllNotifications = async (page) => {
 const dismissInfoNotifications = async (page) => {
   await delay(3000); // delayed for any alerts to show
   const notificationCloseButtons = await page.$$(
-    '(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
+    'a[aria-label*="Dismiss"]:not([aria-label*="error"]), [role="button"][aria-label*="Dismiss"]:not([aria-label*="error"]), button[aria-label*="Dismiss"]:not([aria-label*="error"])'
   );
 
   await Promise.all(notificationCloseButtons.map((handle) => handle.click()));
@@ -385,7 +385,7 @@ const openError = async (page) => {
   // close out any non-error notifications first
   await dismissInfoNotifications(page);
 
-  const errorDetails = await page.$$('(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(normalize-space(.),"Details")]');
+  const errorDetails = await page.$$('a[aria-label*="Details"], [role="button"][aria-label*="Details"], button[aria-label*="Details"]');
 
   !!errorDetails[0] && (await errorDetails[0].click());
 
@@ -529,7 +529,7 @@ const gotoPage = async (page, url) => {
       if (httpResponse && !(httpResponse.ok() || httpResponse.status() === 304)) {
         throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`);
       }
-      await page.waitForSelector('///*[contains(normalize-space(.),"Loading Terra")]', { hidden: true });
+      await page.waitForSelector('xpath///*[contains(normalize-space(.),"Loading Terra")]', { hidden: true });
     } catch (e) {
       console.error(e);
       // Stop page loading, as if you hit "X" in the browser. ignore exception.
