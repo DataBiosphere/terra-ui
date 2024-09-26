@@ -78,9 +78,9 @@ jest.mock('src/libs/error', (): ErrorExports => {
 const mockAjax = (deleteImpl = jest.fn()) =>
   asMockedFn(Ajax).mockReturnValue({
     Methods: {
-      method: jest.fn(() => {
+      method: jest.fn((namespace) => {
         return {
-          get: jest.fn((namespace) => (namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot)),
+          get: jest.fn(() => (namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot)),
           delete: deleteImpl,
         };
       }) as Partial<MethodsAjaxContract>,
