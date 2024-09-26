@@ -59,8 +59,9 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
-import { Ajax } from 'src/libs/ajax';
 import { leoDiskProvider, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -325,8 +326,8 @@ export const GcpComputeModalBase = ({
     sendCloudEnvironmentMetrics();
 
     if (shouldDeleteRuntime) {
-      await Ajax()
-        .Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName)
+      await Runtimes()
+        .runtime(googleProject, currentRuntimeDetails.runtimeName)
         .delete(hasAttachedDisk() && shouldDeletePersistentDisk);
     }
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
@@ -359,7 +360,7 @@ export const GcpComputeModalBase = ({
       if (shouldUpdateRuntime) {
         const updateRuntimeConfig = _.merge(shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {}, runtimeConfig);
 
-        await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({
+        await Runtimes().runtime(googleProject, currentRuntimeDetails.runtimeName).update({
           runtimeConfig: updateRuntimeConfig,
           autopauseThreshold: computeConfig.autopauseThreshold,
         });
@@ -389,8 +390,8 @@ export const GcpComputeModalBase = ({
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig };
-        await Ajax()
-          .Runtimes.runtime(googleProject, generateRuntimeName())
+        await Runtimes()
+          .runtime(googleProject, generateRuntimeName())
           .create({
             runtimeConfig: createRuntimeConfig,
             autopauseThreshold: computeConfig.autopauseThreshold,
@@ -612,7 +613,7 @@ export const GcpComputeModalBase = ({
       () => 'cloudEnvironmentCreate'
     );
 
-    Ajax().Metrics.captureEvent(Events[metricsEvent], {
+    Metrics().captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(getWorkspaceObject()),
       ..._.mapKeys((key) => `desiredRuntime_${key}`, desiredRuntime),
       desiredRuntime_exists: !!desiredRuntime,
@@ -716,7 +717,7 @@ export const GcpComputeModalBase = ({
 
   // Lifecycle
   useEffect(() => {
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+    Metrics().captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentRuntime,
       ...extractWorkspaceDetails(workspace?.workspace),
     });
@@ -729,7 +730,7 @@ export const GcpComputeModalBase = ({
       Utils.withBusyState(setLoading)
     )(async () => {
       const [runtimeDetails, persistentDiskDetails] = await Promise.all([
-        currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
+        currentRuntime ? Runtimes().runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         currentDisk ? leoDiskProvider.details(currentDisk) : null,
       ]);
       const diskTypeName = persistentDiskDetails?.diskType?.value ?? persistentDiskDetails?.diskType;
@@ -1574,7 +1575,7 @@ export const GcpComputeModalBase = ({
             updateComputeConfig,
             onClickAbout: () => {
               setViewMode('aboutPersistentDisk');
-              Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+              Metrics().captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
             },
             cloudPlatform,
             tool,
@@ -1589,7 +1590,7 @@ export const GcpComputeModalBase = ({
                 {
                   onClick: () => {
                     setViewMode('aboutPersistentDisk');
-                    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+                    Metrics().captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
                   },
                 },
                 ['Learn more about Persistent disks and where your disk is mounted']

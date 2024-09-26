@@ -1,5 +1,3 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -14,26 +12,36 @@ import {
 import { getAzureComputeCostEstimate, getAzureDiskCostEstimate } from 'src/analysis/utils/cost-utils';
 import { autopauseDisabledValue, defaultAutopauseThreshold } from 'src/analysis/utils/runtime-utils';
 import { runtimeToolLabels } from 'src/analysis/utils/tool-utils';
-import { Ajax } from 'src/libs/ajax';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
+import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
+import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
-import { RuntimeAjaxContractV2 } from 'src/libs/ajax/leonardo/Runtimes';
+import {
+  RuntimeAjaxContractV1,
+  RuntimeAjaxContractV2,
+  Runtimes,
+  RuntimesAjaxContract,
+} from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { WorkspaceManagerResources, WorkspaceManagerResourcesContract } from 'src/libs/ajax/WorkspaceManagerResources';
 import { azureMachineTypes, defaultAzureMachineType, getMachineTypeLabel } from 'src/libs/azure-utils';
 import { formatUSD } from 'src/libs/utils';
 import { azureBillingProfile } from 'src/testing/billing-profile-fixtures';
-import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 
 import { AzureComputeModalBase } from './AzureComputeModal';
 
 jest.mock('src/analysis/utils/cost-utils');
+
 jest.mock('src/libs/ajax/leonardo/providers/LeoDiskProvider');
 jest.mock('src/libs/ajax/WorkspaceManagerResources', () => ({ WorkspaceManagerResources: jest.fn() }));
 jest.mock('src/libs/ajax/billing/Billing', () => ({ Billing: jest.fn() }));
+jest.mock('src/libs/ajax/GoogleStorage');
+jest.mock('src/libs/ajax/leonardo/Runtimes');
+jest.mock('src/libs/ajax/Metrics');
 
-jest.mock('src/libs/ajax');
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
 }));
@@ -65,16 +73,14 @@ const persistentDiskModalProps = {
   hideCloseButton: false,
 };
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
-const defaultAjaxImpl: AjaxContract = {
-  Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) } satisfies Partial<
-    AjaxContract['Buckets']
-  >,
-  Metrics: {
+const defaultAjaxImpl = {
+  Buckets: partial<GoogleStorageContract>({
+    getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
+  }),
+  Metrics: partial<MetricsContract>({
     captureEvent: jest.fn(),
-  } satisfies Partial<AjaxContract['Metrics']>,
-} as DeepPartial<AjaxContract> as AjaxContract;
+  }),
+};
 
 const verifyEnabled = (item) => expect(item).not.toHaveAttribute('disabled');
 const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
@@ -82,7 +88,8 @@ const verifyDisabled = (item) => expect(item).toHaveAttribute('disabled');
 describe('AzureComputeModal', () => {
   beforeEach(() => {
     // Arrange
-    asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl);
+    asMockedFn(Metrics).mockReturnValue(defaultAjaxImpl.Metrics);
+    asMockedFn(GoogleStorage).mockReturnValue(defaultAjaxImpl.Buckets);
 
     const getWorkspace = jest.fn(() => Promise.resolve({ spendProfile: azureBillingProfile.id }));
     asMockedFn(WorkspaceManagerResources).mockImplementation(
@@ -128,17 +135,18 @@ describe('AzureComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
+    const runtimeFunc: RuntimesAjaxContract['runtimeV2'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV2>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
 
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtimeV2: runtimeFunc as Partial<RuntimeAjaxContractV2>,
-      } as Partial<AjaxContract['Runtimes']>,
-    } as AjaxContract);
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtimeV2: runtimeFunc,
+      })
+    );
 
     // Act
     // wrapping component init-time stateful side-effects with act()
@@ -174,16 +182,17 @@ describe('AzureComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtimeV2: runtimeFunc as Partial<RuntimeAjaxContractV2>,
-      } as Partial<AjaxContract['Runtimes']>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtimeV2'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV2>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtimeV2: runtimeFunc,
+      })
+    );
 
     // Act
     // wrapping component init-time stateful side-effects with act()
@@ -220,16 +229,17 @@ describe('AzureComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(() => ({
-      create: createFunc,
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtimeV2: runtimeFunc as Partial<RuntimeAjaxContractV2>,
-      } as Partial<AjaxContract['Runtimes']>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtimeV2'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV2>({
+        create: createFunc,
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtimeV2: runtimeFunc,
+      })
+    );
 
     // Act
     // wrapping component init-time stateful side-effects with act()
@@ -271,19 +281,17 @@ describe('AzureComputeModal', () => {
     const user = userEvent.setup();
 
     const createFunc = jest.fn();
-    const runtimeFunc = jest.fn(
-      () =>
-        ({
-          create: createFunc,
-          details: jest.fn(),
-        } satisfies Partial<RuntimeAjaxContractV2>)
+    const runtimeFunc: RuntimesAjaxContract['runtimeV2'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV2>({
+        create: createFunc,
+        details: jest.fn(),
+      })
     );
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
         runtimeV2: runtimeFunc,
-      } satisfies DeepPartial<AjaxContract['Runtimes']>,
-    } as DeepPartial<AjaxContract> as AjaxContract);
+      })
+    );
 
     // Act
     // wrapping component init-time stateful side-effects with act()
@@ -381,15 +389,16 @@ describe('AzureComputeModal', () => {
     const runtime = azureRuntime;
     (runtime.runtimeConfig as AzureConfig).persistentDiskId = disk.id;
 
-    const runtimeFunc = jest.fn(() => ({
-      details: () => runtime,
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtimeV2: runtimeFunc as Partial<RuntimeAjaxContractV2>,
-      } as Partial<RuntimeAjaxContractV2>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtimeV2'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV2>({
+        details: async () => partial<GetRuntimeItem>(runtime),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtimeV2: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {
@@ -417,15 +426,16 @@ describe('AzureComputeModal', () => {
     const user = userEvent.setup();
     const disk = getDisk();
 
-    const runtimeFunc = jest.fn(() => ({
-      details: jest.fn(),
-    }));
-    asMockedFn(Ajax).mockReturnValue({
-      ...defaultAjaxImpl,
-      Runtimes: {
-        runtime: runtimeFunc as Partial<RuntimeAjaxContractV2>,
-      } as Partial<AjaxContract['Runtimes']>,
-    } as AjaxContract);
+    const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+      partial<RuntimeAjaxContractV1>({
+        details: jest.fn(),
+      })
+    );
+    asMockedFn(Runtimes).mockReturnValue(
+      partial<RuntimesAjaxContract>({
+        runtime: runtimeFunc,
+      })
+    );
 
     // Act
     await act(async () => {

@@ -17,8 +17,9 @@ import { icon } from 'src/components/icons';
 import { NumberInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
-import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { googlePdTypes, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -66,8 +67,8 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating app', onError)
     )(async () => {
-      await Ajax()
-        .Apps.app(googleProject, generateAppName())
+      await Apps()
+        .app(googleProject, generateAppName())
         .create({
           kubernetesRuntimeConfig,
           diskName: currentDataDisk ? currentDataDisk.name : generatePersistentDiskName(),
@@ -78,7 +79,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           bucketName,
           workspaceName,
         });
-      Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
+      Metrics().captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
       return onSuccess();
     });
 
@@ -86,10 +87,10 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error deleting galaxy instance', onError)
     )(async () => {
-      await Ajax()
-        .Apps.app(app.cloudContext.cloudResource, app.appName)
+      await Apps()
+        .app(app.cloudContext.cloudResource, app.appName)
         .delete(attachedDataDisk ? shouldDeleteDisk : false);
-      Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
+      Metrics().captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
       return onSuccess();
     });
 
@@ -97,8 +98,8 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error stopping galaxy instance', onError)
     )(async () => {
-      await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).pause();
-      Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
+      await Apps().app(app.cloudContext.cloudResource, app.appName).pause();
+      Metrics().captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
       return onSuccess();
     });
 
@@ -106,8 +107,8 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error starting galaxy instance', onError)
     )(async () => {
-      await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).resume();
-      Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
+      await Apps().app(app.cloudContext.cloudResource, app.appName).resume();
+      Metrics().captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) });
       return onSuccess();
     });
 

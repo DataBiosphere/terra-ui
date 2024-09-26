@@ -5,7 +5,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { runtimeTools } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
-import { Ajax } from 'src/libs/ajax';
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
@@ -101,7 +101,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
           onClick: async () => {
             setCreating(true);
             try {
-              await Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(notebookName)).create(notebookData[notebookKernel]);
+              await GoogleStorage().notebook(googleProject, bucketName, addExtensionToNotebook(notebookName)).create(notebookData[notebookKernel]);
               reloadList();
               onSuccess(notebookName, notebookKernel);
             } catch (error) {

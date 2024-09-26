@@ -9,7 +9,9 @@ import { analysisNameInput, analysisNameValidator } from 'src/analysis/utils/not
 import { ToolLabel } from 'src/analysis/utils/tool-utils';
 import { ButtonPrimary } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
-import { Ajax } from 'src/libs/ajax';
+import { AzureStorage } from 'src/libs/ajax/AzureStorage';
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
@@ -69,33 +71,28 @@ export const AnalysisDuplicator = ({
             setProcessing(true);
             const rename = isGoogleWorkspaceInfo(workspaceInfo)
               ? () =>
-                  Ajax()
-                    .Buckets.analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, printName, toolLabel)
+                  GoogleStorage()
+                    .analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, printName, toolLabel)
                     .rename(newName)
-              : () => Ajax().AzureStorage.blob(workspaceInfo.workspaceId, printName).rename(newName);
+              : () => AzureStorage().blob(workspaceInfo.workspaceId, printName).rename(newName);
 
             const duplicate = isGoogleWorkspaceInfo(workspaceInfo)
               ? () =>
-                  Ajax()
-                    .Buckets.analysis(
-                      workspaceInfo.googleProject,
-                      workspaceInfo.bucketName,
-                      getFileName(printName),
-                      toolLabel
-                    )
+                  GoogleStorage()
+                    .analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, getFileName(printName), toolLabel)
                     .copy(`${newName}.${getExtension(printName)}`, workspaceInfo.bucketName, true)
-              : () => Ajax().AzureStorage.blob(workspaceInfo.workspaceId, printName).copy(newName);
+              : () => AzureStorage().blob(workspaceInfo.workspaceId, printName).copy(newName);
 
             if (destroyOld) {
               await rename();
-              Ajax().Metrics.captureEvent(Events.notebookRename, {
+              Metrics().captureEvent(Events.notebookRename, {
                 oldName: printName,
                 newName,
                 ...extractWorkspaceDetails(workspaceInfo),
               });
             } else {
               await duplicate();
-              Ajax().Metrics.captureEvent(Events.notebookCopy, {
+              Metrics().captureEvent(Events.notebookCopy, {
                 oldName: printName,
                 newName,
                 ...extractCrossWorkspaceDetails({ workspace: workspaceInfo }, { workspace: workspaceInfo }),
