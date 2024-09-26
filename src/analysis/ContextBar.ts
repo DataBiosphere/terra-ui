@@ -40,10 +40,11 @@ import galaxyLogo from 'src/images/galaxy-project-logo-square.png';
 import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
-import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -353,14 +354,14 @@ export const ContextBar = ({
               tooltipSide: 'left',
               href: terminalLaunchLink,
               onClick: withErrorReporting('Error starting runtime')(async () => {
-                await Ajax().Metrics.captureEvent(Events.analysisLaunch, {
+                await Metrics().captureEvent(Events.analysisLaunch, {
                   origin: 'contextBar',
                   application: 'terminal',
                   workspaceName: name,
                   namespace,
                 });
                 if (currentRuntime?.status === 'Stopped') {
-                  await Ajax().Runtimes.runtimeWrapper(currentRuntime).start();
+                  await Runtimes().runtimeWrapper(currentRuntime).start();
                 }
               }),
               tooltip: 'Terminal',

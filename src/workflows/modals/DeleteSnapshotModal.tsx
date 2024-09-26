@@ -47,7 +47,7 @@ const DeleteSnapshotModal = (props: DeleteSnapshotModalProps): ReactNode => {
          */}
         ?
       </p>
-      <p>Workspaces into which this snapshot has been exported will not be affected.</p>
+      <p>Exports of this snapshot in workspaces will no longer run.</p>
       <p>
         <strong>This cannot be undone.</strong>
       </p>

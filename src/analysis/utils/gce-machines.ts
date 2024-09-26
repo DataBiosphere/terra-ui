@@ -153,6 +153,8 @@ export const zonesToGpus = [
   { name: 'US-WEST4-C', validTypes: [] },
 ];
 
+// **Deprecated**
+// Use cloudServiceTypes in `runtime-config-models`
 export const cloudServices = {
   GCE: 'GCE',
   DATAPROC: 'DATAPROC',

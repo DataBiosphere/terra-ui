@@ -1,7 +1,7 @@
 import { useUniqueId } from '@terra-ui-packages/components';
 import { ReactNode } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
-import { IComputeConfig } from 'src/analysis/modal-utils';
+import { IComputeConfig } from 'src/analysis/modals/modal-utils';
 import { computeStyles } from 'src/analysis/modals/modalStyles';
 import { Select } from 'src/components/common';
 import { defaultAzureDiskSize } from 'src/libs/azure-utils';

@@ -171,8 +171,19 @@ export const BillingList = (props: BillingListProps) => {
     const index = _.findIndex({ projectName }, billingProjects);
     // fetch the project to error if it doesn't exist/user can't access
     // The component that calls this function is only rendered when selectedName is non-null.
-    const project = await Ajax(signal).Billing.getProject(selectedName!);
-    setBillingProjects(_.set([index], project));
+    try {
+      const project = await Ajax(signal).Billing.getProject(selectedName!);
+      setBillingProjects(_.set([index], project));
+    } catch (error: unknown) {
+      // Remove project if user doesn't have access or project doesn't exist then redirect to billing page
+      if (error instanceof Response && (error.status === 403 || error.status === 404)) {
+        setBillingProjects(billingProjects.filter((bp) => bp.projectName !== projectName));
+        Nav.goToPath('billing');
+      } else {
+        // Rethrow the error so reportErrorAndRethrow still works as expected
+        throw error;
+      }
+    }
   });
 
   const authorizeAccounts = _.flow(

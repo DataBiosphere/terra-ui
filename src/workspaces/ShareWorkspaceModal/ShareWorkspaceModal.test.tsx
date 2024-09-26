@@ -1,7 +1,7 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import _ from 'lodash/fp';
-import { h } from 'react-hyperscript-helpers';
+import React from 'react';
 import { Ajax } from 'src/libs/ajax';
 import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -75,12 +75,7 @@ describe('the share workspace modal', () => {
       },
     };
     mockAjax(acl, [], []);
-    render(
-      h(ShareWorkspaceModal, {
-        onDismiss: jest.fn(),
-        workspace,
-      })
-    );
+    render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
     const email1 = await screen.findByText('user1@test.com');
     expect(email1).not.toBeNull();
     const email2 = await screen.findByText('user2@test.com');
@@ -115,12 +110,7 @@ describe('the share workspace modal', () => {
     });
     mockAjax(acl, [], [], updateAcl);
 
-    render(
-      h(ShareWorkspaceModal, {
-        onDismiss: () => {},
-        workspace,
-      })
-    );
+    render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
     expect(permissionSelect).not.toBeNull();
     act(() => {
@@ -164,12 +154,7 @@ describe('the share workspace modal', () => {
       throw err;
     });
     mockAjax(acl, [], [], updateAcl);
-    render(
-      h(ShareWorkspaceModal, {
-        onDismiss: () => {},
-        workspace,
-      })
-    );
+    render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
 
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
     expect(permissionSelect).not.toBeNull();
@@ -198,12 +183,7 @@ describe('the share workspace modal', () => {
     it('shows a policy section for Azure workspaces that have them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {
-        render(
-          h(ShareWorkspaceModal, {
-            onDismiss: jest.fn(),
-            workspace: protectedAzureWorkspace,
-          })
-        );
+        render(<ShareWorkspaceModal workspace={protectedAzureWorkspace} onDismiss={jest.fn()} />);
       });
       screen.getByText(policyTitle);
     });
@@ -211,12 +191,7 @@ describe('the share workspace modal', () => {
     it('shows a policy section for GCP workspaces that have them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {
-        render(
-          h(ShareWorkspaceModal, {
-            onDismiss: jest.fn(),
-            workspace: protectedGoogleWorkspace,
-          })
-        );
+        render(<ShareWorkspaceModal workspace={protectedGoogleWorkspace} onDismiss={jest.fn()} />);
       });
       screen.getByText(policyTitle);
     });
@@ -224,12 +199,7 @@ describe('the share workspace modal', () => {
     it('does not show a policy section for Azure workspaces without them', async () => {
       mockAjax({}, [], [], jest.fn());
       await act(async () => {
-        render(
-          h(ShareWorkspaceModal, {
-            onDismiss: jest.fn(),
-            workspace: defaultAzureWorkspace,
-          })
-        );
+        render(<ShareWorkspaceModal workspace={defaultAzureWorkspace} onDismiss={jest.fn()} />);
       });
       expect(defaultAzureWorkspace.policies).toEqual([]);
       expect(screen.queryByText(policyTitle)).toBeNull();
