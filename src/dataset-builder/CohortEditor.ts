@@ -2,6 +2,7 @@ import { Spinner, useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
+import Chart from 'src/components/Chart';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
@@ -580,6 +581,21 @@ interface CohortEditorProps {
   readonly addSelectedCohort: (cohort: Cohort) => void;
   readonly getNextCriteriaIndex: () => number;
 }
+interface ChartLabel {
+  short: string;
+  long?: string;
+}
+interface ChartSeries {
+  name?: string;
+  data: number[];
+}
+
+interface CohortDemographics {
+  categories: ChartLabel[];
+  series: ChartSeries[];
+  title: string;
+  yTitle: string;
+}
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const {
@@ -592,48 +608,161 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     getNextCriteriaIndex,
   } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
+  const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
+    useLoadedData<SnapshotBuilderCountResponse>();
+  const [cohortDemographics1] = useState<CohortDemographics>({
+    categories: [
+      { short: 'Female' },
+      { short: 'Male' },
+      { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
+    ],
+    series: [{ data: [40, 50, 30] }],
+    title: 'Gender identity',
+    yTitle: 'AVERAGE AGE',
+  });
+  const [cohortDemographics2] = useState<CohortDemographics>({
+    categories: [
+      { short: 'Female' },
+      { short: 'Female 18-44' },
+      { short: 'Female 45-64' },
+      { short: 'Female 65+' },
+      { short: 'Male' },
+      { short: 'Male 18-44' },
+      { short: 'Male 45-64' },
+      { short: 'Male 65+' },
+      { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
+      { short: 'Other 18-44', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
+      { short: 'Other 45-64', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
+      { short: 'Other 65+', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
+    ],
+    series: [
+      { name: 'Asian', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 1, 1] },
+      { name: 'Black', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 1, 1] },
+      { name: 'White', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 1, 1] },
+      { name: 'Native American', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 0, 0] },
+      { name: 'Pacific Islander', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 0, 0, 0] },
+    ],
+    title: 'Gender identity, current age, race',
+    yTitle: 'OVERALL PERCENTAGE',
+  });
+
+  const chartOptions: any = (cohortDemographics: CohortDemographics) => {
+    return {
+      chart: { marginTop: 50, spacingLeft: 20, style: { fontFamily: 'inherit' }, type: 'bar' },
+      // legend: { reversed: true },
+      plotOptions: { series: { stacking: 'normal' } },
+      series: cohortDemographics.series,
+      title: {
+        align: 'left',
+        style: { fontSize: '16px', fontWeight: 'bold', color: '#333f52' },
+        text: cohortDemographics.title,
+      },
+      tooltip: {
+        followPointer: true,
+        shared: true,
+        headerFormat: '{point.key}',
+        // pointFormatter() {
+        //   // @ts-ignore
+        //   // eslint-disable-next-line react/no-this-in-sfc
+        //   return `<br/><span style="color:${this.color}">\u25CF</span> ${
+        //     // @ts-ignore
+        //     // eslint-disable-next-line react/no-this-in-sfc
+        //     this.series.name
+        //   }: ${
+        //     // @ts-ignore
+        //     // eslint-disable-next-line react/no-this-in-sfc
+        //     costPerWorkspace.costFormatter.format(this.y)
+        //   }`;
+        // },
+      },
+      xAxis: {
+        categories: _.map('short', cohortDemographics.categories),
+        crosshair: true,
+      },
+      yAxis: {
+        crosshair: true,
+        min: 0,
+        // labels: { text: ''},
+        title: { text: cohortDemographics.yTitle },
+        width: '96%',
+      },
+      accessibility: {
+        // point: {
+        //   descriptionFormatter: (point) => {
+        //     // @ts-ignore
+        //     return `${point.index + 1}. Workspace ${point.category}, ${
+        //       point.series.name
+        //     }: ${costPerWorkspace.costFormatter.format(point.y)}.`;
+        //   },
+        // },
+      },
+      exporting: { buttons: { contextButton: { x: -15 } } },
+    };
+  };
 
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
-  return h(Fragment, [
-    h(CohortEditorContents, {
-      updateCohort,
-      cohort,
-      snapshotId,
-      snapshotBuilderSettings,
-      onStateChange,
-      getNextCriteriaIndex,
-    }),
-    // add div to cover page to footer
-    div(
-      {
-        style: {
-          display: 'flex',
-          backgroundColor: editorBackgroundColor,
-          alignItems: 'end',
-          flexDirection: 'row-reverse',
-          padding: wideMargin,
-        },
-      },
-      [
-        h(
-          ButtonPrimary,
-          {
-            onClick: () => {
-              updateCohorts((cohorts) => {
-                const index = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
-                if (index === -1) {
-                  // Only add to selectedCohorts on creation of new cohort
-                  addSelectedCohort(cohort);
-                }
-                return _.set(`[${index === -1 ? cohorts.length : index}]`, cohort, cohorts);
-              });
-              onStateChange(homepageState.new());
-            },
+  useEffect(() => {
+    setSnapshotRequestParticipantCount(
+      withErrorReporting(`Error fetching snapshot builder count for snapshot ${snapshotId}`)(async () =>
+        DataRepo()
+          .snapshot(snapshotId)
+          .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([cohort]))
+      )
+    );
+  }, [snapshotId, setSnapshotRequestParticipantCount, cohort]);
+
+  return div({ style: { display: 'flex' } }, [
+    div([
+      h(CohortEditorContents, {
+        updateCohort,
+        cohort,
+        snapshotId,
+        snapshotBuilderSettings,
+        onStateChange,
+        getNextCriteriaIndex,
+      }),
+      // add div to cover page to footer
+      div(
+        {
+          style: {
+            display: 'flex',
+            backgroundColor: editorBackgroundColor,
+            alignItems: 'end',
+            flexDirection: 'row-reverse',
+            padding: '0 3rem',
           },
-          ['Save cohort']
-        ),
-      ]
-    ),
+        },
+        [
+          h(
+            ButtonPrimary,
+            {
+              onClick: () => {
+                updateCohorts((cohorts) => {
+                  const index = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
+                  if (index === -1) {
+                    // Only add to selectedCohorts on creation of new cohort
+                    addSelectedCohort(cohort);
+                  }
+                  return _.set(`[${index === -1 ? cohorts.length : index}]`, cohort, cohorts);
+                });
+                onStateChange(homepageState.new());
+              },
+            },
+            ['Save cohort']
+          ),
+        ]
+      ),
+    ]),
+    div({ style: { backgroundColor: 'white', width: '42rem' } }, [
+      h2({ style: { marginLeft: '1rem' } }, [
+        'Total participant count: ',
+        snapshotRequestParticipantCount.status === 'Ready'
+          ? formatCount(snapshotRequestParticipantCount.state.result.total)
+          : h(Spinner),
+      ]),
+      h(Chart, { options: chartOptions(cohortDemographics1) }),
+      h(Chart, { options: chartOptions(cohortDemographics2) }),
+    ]),
   ]);
 };
