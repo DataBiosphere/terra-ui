@@ -29,8 +29,7 @@ interface CollaboratorProps {
 export const Collaborator: React.FC<CollaboratorProps> = (props: CollaboratorProps) => {
   const { originalAcl, aclItem, acl, setAcl, workspace, lastAddedEmail } = props;
   const { email, accessLevel, pending } = aclItem;
-  const POAccessLevel: WorkspaceAccessLevel = 'PROJECT_OWNER';
-  const disabled = accessLevel === POAccessLevel || email === getTerraUser().email;
+  const disabled = accessLevel === 'PROJECT_OWNER' || email === getTerraUser().email;
   const isOld = _.find({ email }, originalAcl);
 
   return (
@@ -59,10 +58,10 @@ export const Collaborator: React.FC<CollaboratorProps> = (props: CollaboratorPro
           isAzureWorkspace={isAzureWorkspace(workspace)}
         />
       </div>
-      {!disabled && (
+      {!disabled && allowRoleEdit(workspace.accessLevel, aclItem) && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <Link
-          tooltip='Remove'
+          tooltip={`Remove ${accessLevel.toLowerCase()} ${email}`}
           onClick={() => {
             const newAcl = _.remove({ email }, acl);
             setAcl(newAcl);
@@ -105,7 +104,7 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
           isSearchable={false}
           isDisabled={disabled}
           getOptionLabel={(o) => Utils.normalizeLabel(o.value)}
-          isOptionDisabled={(o) => !hasAccessLevel(o.value, maxAccessLevel)}
+          isOptionDisabled={(o) => !allowRoleEdit(maxAccessLevel, { ...value, accessLevel: o.value })}
           value={accessLevel}
           onChange={(o) =>
             onChange({
@@ -133,7 +132,7 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
               onChange={() => onChange(_.update('canShare', (b) => !b, value))}
               {...tooltipProps}
             >
-              Can share
+              &nbsp;Can share
             </LabeledCheckbox>
           </div>
           <div>
@@ -144,7 +143,7 @@ export const AclInput: React.FC<AclInputProps> = (props: AclInputProps) => {
                 onChange={() => onChange(_.update('canCompute', (b) => !b, value))}
                 {...tooltipProps}
               >
-                Can compute
+                &nbsp;Can compute
               </LabeledCheckbox>
             )}
           </div>
@@ -158,4 +157,34 @@ const styles: React.CSSProperties = {
   textTransform: 'uppercase',
   fontWeight: 500,
   color: colors.warning(),
+};
+
+/**
+ * This method checks if the user has sufficient access level to modify/delete the specified
+ * ACL entry. Note that this method does not check if the ACL entry specifies the user themselves--
+ * it is assumed that has already been checked and the control was appropriately disabled if necessary.
+ */
+export const allowRoleEdit = (workspaceUserAccessLevel: WorkspaceAccessLevel, userAclToModify: AccessEntry) => {
+  switch (workspaceUserAccessLevel) {
+    case 'OWNER':
+    case 'PROJECT_OWNER':
+      // Owners can always modify other users, except for project owners.
+      return !hasAccessLevel('PROJECT_OWNER', userAclToModify.accessLevel);
+    case 'WRITER':
+      // Writers can modify below the owner level with no additional permissions.
+      return (
+        !hasAccessLevel('OWNER', userAclToModify.accessLevel) &&
+        !userAclToModify.canCompute &&
+        !userAclToModify.canShare
+      );
+    case 'READER':
+      // Readers can delete below the writer level with no additional permissions.
+      return (
+        !hasAccessLevel('WRITER', userAclToModify.accessLevel) &&
+        !userAclToModify.canCompute &&
+        !userAclToModify.canShare
+      );
+    default:
+      return false;
+  }
 };
