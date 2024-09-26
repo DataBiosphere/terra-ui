@@ -595,6 +595,7 @@ interface CohortDemographics {
   series: ChartSeries[];
   title: string;
   yTitle: string;
+  height: string;
 }
 
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
@@ -619,6 +620,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     series: [{ data: [40, 50, 30] }],
     title: 'Gender identity',
     yTitle: 'AVERAGE AGE',
+    height: '250rem',
   });
   const [cohortDemographics2] = useState<CohortDemographics>({
     categories: [
@@ -644,11 +646,18 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     ],
     title: 'Gender identity, current age, race',
     yTitle: 'OVERALL PERCENTAGE',
+    height: '500rem',
   });
 
   const chartOptions: any = (cohortDemographics: CohortDemographics) => {
     return {
-      chart: { marginTop: 50, spacingLeft: 20, style: { fontFamily: 'inherit' }, type: 'bar' },
+      chart: {
+        marginTop: 50,
+        spacingLeft: 20,
+        height: cohortDemographics.height,
+        style: { fontFamily: 'inherit' },
+        type: 'bar',
+      },
       // legend: { reversed: true },
       plotOptions: { series: { stacking: 'normal' } },
       series: cohortDemographics.series,
