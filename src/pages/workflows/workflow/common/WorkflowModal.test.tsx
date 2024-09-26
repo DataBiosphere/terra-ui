@@ -12,16 +12,25 @@ describe('WorkflowModal', () => {
         title='Create New Workflow'
         namespace=''
         name=''
-        buttonAction='Upload'
+        buttonActionName='Upload'
+        buttonAction={jest.fn()}
         synopsis=''
         setWorkflowNamespace={jest.fn}
         setWorkflowName={jest.fn}
         setWorkflowSynopsis={jest.fn}
+        snapshotComment=''
+        wdl=''
+        setWorkflowDocumentation={jest.fn()}
+        setSnapshotComment={jest.fn()}
+        setWdl={jest.fn()}
       />
     );
 
     expect(screen.getByText(/Namespace/));
     expect(screen.getByText(/name \*/i));
+    expect(screen.getByText('WDL'));
+    expect(screen.getByText('Load from file'));
+    expect(screen.getByText('Documentation'));
     expect(screen.getByText('Synopsis (80 characters max)'));
     expect(screen.getByText('Snapshot Comment'));
   });
@@ -33,16 +42,22 @@ describe('WorkflowModal', () => {
         title='Create New Workflow'
         namespace='namespace'
         name='name'
-        buttonAction='Upload'
+        buttonActionName='Upload'
+        buttonAction={jest.fn}
         synopsis=''
         setWorkflowNamespace={jest.fn}
         setWorkflowName={jest.fn}
         setWorkflowSynopsis={jest.fn}
+        snapshotComment=''
+        wdl=''
+        setWorkflowDocumentation={jest.fn()}
+        setSnapshotComment={jest.fn()}
+        setWdl={jest.fn()}
       />
     );
 
     const textInputs = screen.getAllByRole('textbox');
-    expect(textInputs.length).toBe(4);
+    expect(textInputs.length).toBe(5);
 
     const namespaceTextbox = textInputs[0];
     const nameTextbox = textInputs[1];
@@ -51,18 +66,24 @@ describe('WorkflowModal', () => {
     expect(nameTextbox).toHaveDisplayValue('name');
   });
 
-  it('upload button is disabled when invalid characters are in namespace and name input', () => {
+  it('action button is disabled when invalid characters are in namespace and name input', () => {
     renderWithAppContexts(
       <WorkflowModal
         setCreateWorkflowModalOpen={jest.fn}
         title='Create New Workflow'
         namespace=','
         name=','
-        buttonAction='Upload'
+        buttonActionName='Upload'
+        buttonAction={jest.fn}
         synopsis=''
         setWorkflowNamespace={jest.fn}
         setWorkflowName={jest.fn}
         setWorkflowSynopsis={jest.fn}
+        snapshotComment=''
+        wdl=''
+        setWorkflowDocumentation={jest.fn()}
+        setSnapshotComment={jest.fn()}
+        setWdl={jest.fn()}
       />
     );
 
@@ -80,11 +101,17 @@ describe('WorkflowModal', () => {
         title='Create New Workflow'
         namespace={longStringNamespace}
         name={longStringName}
-        buttonAction='Upload'
+        buttonAction={jest.fn}
+        buttonActionName='Upload'
         synopsis=''
         setWorkflowNamespace={jest.fn}
         setWorkflowName={jest.fn}
         setWorkflowSynopsis={jest.fn}
+        snapshotComment=''
+        wdl=''
+        setWorkflowDocumentation={jest.fn()}
+        setSnapshotComment={jest.fn()}
+        setWdl={jest.fn()}
       />
     );
 
