@@ -3,15 +3,17 @@ import {
   BucketLifecycleRule,
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
+  RequesterPaysSetting,
   SoftDeleteSetting,
   WorkspaceSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 
 export type {
   BucketLifecycleSetting,
+  DeleteBucketLifecycleRule,
+  RequesterPaysSetting,
   SoftDeleteSetting,
   WorkspaceSetting,
-  DeleteBucketLifecycleRule,
 } from 'src/libs/ajax/workspaces/workspace-models';
 
 export const suggestedPrefixes = {
@@ -29,8 +31,11 @@ export const isBucketLifecycleSetting = (setting: WorkspaceSetting): setting is 
 export const isDeleteBucketLifecycleRule = (rule: BucketLifecycleRule): rule is DeleteBucketLifecycleRule =>
   rule.action.actionType === 'Delete';
 
-export const isSoftDeleteSetting = (setting: WorkspaceSetting): setting is BucketLifecycleSetting =>
+export const isSoftDeleteSetting = (setting: WorkspaceSetting): setting is SoftDeleteSetting =>
   setting.settingType === 'GcpBucketSoftDelete';
+
+export const isRequesterPaysSetting = (setting: WorkspaceSetting): setting is RequesterPaysSetting =>
+  setting.settingType === 'GcpBucketRequesterPays';
 
 /**
  * Removes the first delete rule from the first bucketLifecycleSetting in the workspace settings.
@@ -157,4 +162,37 @@ export const modifyFirstSoftDeleteSetting = (
   existingSetting.config.retentionDurationInSeconds = secondsInADay * days;
 
   return _.concat(softDeleteSettings, otherSettings);
+};
+
+/**
+ * Modifies the requester pays setting in the workspace settings.
+ * If no such setting exists and requester pays is set to enabled, it will be created.
+ *
+ * Note that any other settings will be preserved but moved to the end of the array.
+ */
+export const modifyRequesterPaysSetting = (
+  originalSettings: WorkspaceSetting[],
+  enabled: boolean
+): WorkspaceSetting[] => {
+  // Clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
+
+  const requesterPaysSettings: RequesterPaysSetting[] = workspaceSettings.filter((setting: WorkspaceSetting) =>
+    isRequesterPaysSetting(setting)
+  ) as RequesterPaysSetting[];
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isRequesterPaysSetting(setting));
+
+  // If no RequesterPaysSetting existed and requester pays is set to disabled, do nothing
+  if (requesterPaysSettings.length === 0 && !enabled) {
+    return workspaceSettings;
+  }
+  return _.concat(
+    [
+      {
+        settingType: 'GcpBucketRequesterPays',
+        config: { enabled },
+      } as RequesterPaysSetting,
+    ],
+    otherSettings
+  );
 };

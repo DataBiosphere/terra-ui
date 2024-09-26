@@ -177,6 +177,7 @@ const eventsList = {
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceSettingsBucketLifecycle: 'workspace:settings:bucketLifecycle',
   workspaceSettingsSoftDelete: 'workspace:settings:softDelete',
+  workspaceSettingsRequesterPays: 'workspace:settings:requesterPays',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',

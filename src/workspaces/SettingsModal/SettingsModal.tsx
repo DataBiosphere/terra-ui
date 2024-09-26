@@ -10,16 +10,20 @@ import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
+import RequesterPays from 'src/workspaces/SettingsModal/RequesterPays';
 import SoftDelete from 'src/workspaces/SettingsModal/SoftDelete';
 import {
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
   isBucketLifecycleSetting,
   isDeleteBucketLifecycleRule,
+  isRequesterPaysSetting,
   isSoftDeleteSetting,
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
+  modifyRequesterPaysSetting,
   removeFirstBucketDeletionRule,
+  RequesterPaysSetting,
   secondsInADay,
   softDeleteDefaultRetention,
   SoftDeleteSetting,
@@ -46,6 +50,8 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
 
   const [softDeleteEnabled, setSoftDeleteEnabled] = useState(false);
   const [softDeleteRetention, setSoftDeleteRetention] = useState<number | null>(null);
+
+  const [requesterPaysEnabled, setRequesterPaysEnabled] = useState(false);
 
   // Original settings from server, may contain multiple types
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSetting[] | undefined>(undefined);
@@ -103,6 +109,16 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     return undefined;
   };
 
+  const getRequesterPaysSetting = (settings: WorkspaceSetting[]): RequesterPaysSetting | undefined => {
+    const requesterPaysSettings: RequesterPaysSetting[] = settings.filter((setting: WorkspaceSetting) =>
+      isRequesterPaysSetting(setting)
+    ) as RequesterPaysSetting[];
+    if (requesterPaysSettings.length > 0) {
+      return requesterPaysSettings[0];
+    }
+    return undefined;
+  };
+
   useEffect(() => {
     const loadSettings = _.flow(
       Utils.withBusyState(setBusy),
@@ -136,6 +152,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         // because it is confusing with the switch being disabled.
         setSoftDeleteRetention(retentionSeconds / secondsInADay);
       }
+      const requesterPays = getRequesterPaysSetting(settings);
+      const requesterPaysEnabled = requesterPays === undefined ? false : requesterPays.config.enabled;
+      setRequesterPaysEnabled(requesterPaysEnabled);
     });
 
     loadSettings();
@@ -154,6 +173,8 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     }
     const softDeleteInDays = softDeleteEnabled ? softDeleteRetention! : 0;
     newSettings = modifyFirstSoftDeleteSetting(newSettings, softDeleteInDays);
+    newSettings = modifyRequesterPaysSetting(newSettings, requesterPaysEnabled);
+
     await Ajax().Workspaces.workspaceV2(namespace, name).updateSettings(newSettings);
     props.onDismiss();
 
@@ -203,6 +224,19 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         ...extractWorkspaceDetails(props.workspace),
       });
     }
+
+    // Event about requester pays setting only if something actually changed.
+    const originalRequesterPaysSetting = getRequesterPaysSetting(workspaceSettings || []);
+    const newRequesterPaysSetting = getRequesterPaysSetting(newSettings);
+    if (originalRequesterPaysSetting === undefined && !newRequesterPaysSetting?.config.enabled) {
+      // If the bucket had no requester pays setting before, and the current one is disabled, don't event.
+    } else if (!_.isEqual(originalRequesterPaysSetting, newRequesterPaysSetting)) {
+      // Event if an explicit setting existed before and it changed.
+      Ajax().Metrics.captureEvent(Events.workspaceSettingsRequesterPays, {
+        enabled: requesterPaysEnabled,
+        ...extractWorkspaceDetails(props.workspace),
+      });
+    }
   });
 
   const getSaveTooltip = () => {
@@ -241,11 +275,18 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           />
         </div>
       )}
-      <SoftDelete
-        softDeleteEnabled={softDeleteEnabled}
-        setSoftDeleteEnabled={setSoftDeleteEnabled}
-        softDeleteRetention={softDeleteRetention}
-        setSoftDeleteRetention={setSoftDeleteRetention}
+      <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
+        <SoftDelete
+          softDeleteEnabled={softDeleteEnabled}
+          setSoftDeleteEnabled={setSoftDeleteEnabled}
+          softDeleteRetention={softDeleteRetention}
+          setSoftDeleteRetention={setSoftDeleteRetention}
+          isOwner={isOwner}
+        />
+      </div>
+      <RequesterPays
+        requesterPaysEnabled={requesterPaysEnabled}
+        setRequesterPaysEnabled={setRequesterPaysEnabled}
         isOwner={isOwner}
       />
 
