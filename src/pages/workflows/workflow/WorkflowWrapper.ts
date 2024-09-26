@@ -59,19 +59,31 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
     const Wrapper = (props: WorkflowWrapperProps) => {
       const { namespace, name, snapshotId } = props;
       const signal = useCancellation();
+      const [busy, setBusy] = useState<boolean>(false);
+      const [methodNotFound, setMethodNotFound] = useState<boolean>(false);
+
       const cachedSnapshotsList: Snapshot[] | undefined = useStore(snapshotsListStore);
       const snapshotsList: Snapshot[] | undefined =
         cachedSnapshotsList && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedSnapshotsList[0]))
           ? cachedSnapshotsList
           : undefined;
 
-      useOnMount(() => {
-        const loadSnapshots = async () => {
-          snapshotsListStore.set(snapshotsList || (await Ajax(signal).Methods.list({ namespace, name })));
-        };
+      const doSnapshotsListLoad = async () => {
+        const loadedSnapshots: Snapshot[] = snapshotsList || (await Ajax(signal).Methods.list({ namespace, name }));
+        snapshotsListStore.set(loadedSnapshots);
+        if (_.isEmpty(loadedSnapshots)) {
+          setMethodNotFound(true);
+        }
+      };
 
+      const loadSnapshotsList = _.flow(
+        withErrorReporting('Error loading method'),
+        withBusyState(setBusy)
+      )(doSnapshotsListLoad);
+
+      useOnMount(() => {
         if (!snapshotsList) {
-          loadSnapshots();
+          loadSnapshotsList();
         }
       });
 
@@ -82,13 +94,14 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
             div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`${namespace}/${name}`]),
           ]),
         ]),
-        div({ role: 'main', style: { flex: 1, display: 'flex', flexFlow: 'column nowrap' } }, [
-          snapshotsList
-            ? h(WorkflowsContainer, { namespace, name, snapshotId, tabName: activeTab }, [
-                h(WrappedComponent, { ...props }),
-              ])
-            : spinnerOverlay,
-        ]),
+        busy && spinnerOverlay,
+        methodNotFound && h(NotFoundMessage, { subject: 'method' }),
+        snapshotsList &&
+          div({ role: 'main', style: { flex: 1, display: 'flex', flexFlow: 'column nowrap' } }, [
+            h(WorkflowsContainer, { namespace, name, snapshotId, tabName: activeTab }, [
+              h(WrappedComponent, { ...props }),
+            ]),
+          ]),
       ]);
     };
     return withDisplayName('wrapWorkflows', Wrapper);
@@ -272,10 +285,22 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
 
 const NotFoundMessage = (props: NotFoundMessageProps) => {
   const { subject } = props;
+  const isMethodMessage = subject === 'method';
+  const fullSubject = isMethodMessage ? subject : 'method snapshot';
+
+  const suggestedAction = isMethodMessage
+    ? h(
+        ButtonPrimary,
+        {
+          href: Nav.getLink('workflows'),
+        },
+        ['Return to Methods List']
+      )
+    : p([strong(['Please select a different snapshot from the dropdown above.'])]);
 
   return div({ style: { padding: '2rem', flexGrow: 1 } }, [
     h2([`Could not display ${subject}`]),
-    p(['You cannot access this method snapshot because either it does not exist or you do not have access to it.']),
+    p([`You cannot access this ${fullSubject} because either it does not exist or you do not have access to it.`]),
     h3(['Troubleshooting access:']),
     p([
       'You are currently logged in as ',
@@ -283,9 +308,11 @@ const NotFoundMessage = (props: NotFoundMessageProps) => {
       '. You may have access with a different account.',
     ]),
     p([
-      'To view an existing method snapshot, an owner of the snapshot must give you permission to view it or make it publicly readable.',
+      `To view ${
+        isMethodMessage ? 'a snapshot of an existing method' : 'an existing method snapshot'
+      }, an owner of the snapshot must give you permission to view it or make it publicly readable.`,
     ]),
-    p(['The snapshot may also have been deleted by one of its owners.']),
-    p([strong(['Please select a different snapshot from the dropdown above.'])]),
+    p([`The ${subject} may also have been deleted by one of its owners.`]),
+    suggestedAction,
   ]);
 };
