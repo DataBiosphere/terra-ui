@@ -282,7 +282,11 @@ const dismissNPSSurvey = async (page) => {
   try {
     console.log('dismissing NPS survey');
     const iframe = await element.contentFrame();
-    const [closeButton] = await iframe.$$('.//*[normalize-space(.)="Ask Me Later"]');
+    const elements = await iframe.$$('div');
+    const closeButton = elements.find(async (element) => {
+      const text = await (await element.getProperty('textContent')).jsonValue();
+      return text.trim() === 'Ask Me Later';
+    });
     await closeButton.evaluate((button) => button.click());
     await delay(500); // delayed for survey to animate off
   } catch (e) {
@@ -312,13 +316,6 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 
 const findElement = (page, xpath, options) => {
   return page.waitForSelector(`xpath/${xpath}`, defaultToVisibleTrue(options));
-};
-
-const findErrorPopup = (page, options) => {
-  return page.waitForSelector(
-    '(xpath///a | xpath///*[@role="button"] | xpath///button)[contains(@aria-label,"Dismiss")][contains(@aria-label,"error")]',
-    options
-  );
 };
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
@@ -365,12 +362,6 @@ const elementInDataTableRow = (entityName, text) => {
 
 const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, elementInDataTableRow(entityName, text));
-};
-
-const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
-  return page.waitForSelector(`xpath///*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`, {
-    visible: true,
-  });
 };
 
 /** Waits for a menu element to expand (or collapse if isExpanded=false) */
@@ -616,9 +607,7 @@ module.exports = {
   enablePageLogging,
   fillIn,
   fillInReplace,
-  findButtonInDialogByAriaLabel,
   findElement,
-  findErrorPopup,
   findHeading,
   findIframe,
   findInDataTableRow,
