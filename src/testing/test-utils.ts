@@ -144,11 +144,15 @@ export class SelectHelper {
     }
   }
 
-  async getOptions(): Promise<string[]> {
+  async getOptions(excludeDisabled = false): Promise<string[]> {
     await this.openMenu();
     const listboxId = this.inputElement.getAttribute('aria-controls')!;
     const listBox = document.getElementById(listboxId)!;
-    const options = Array.from(listBox.querySelectorAll('[role="option"]'));
+    let selector = '[role="option"]';
+    if (excludeDisabled) {
+      selector += '[aria-disabled="false"]';
+    }
+    const options = Array.from(listBox.querySelectorAll(selector));
     const optionLabels = options.map((opt) => opt.textContent!);
     await this.closeMenu();
     return optionLabels;

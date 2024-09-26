@@ -6,7 +6,7 @@ import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
-import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
+import { allowRoleEdit, Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
 import { BaseWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 jest.mock('src/libs/state', () => ({
@@ -141,11 +141,11 @@ describe('a Collaborator component', () => {
     const dropdown = screen.getByLabelText(`permissions for ${item.email}`);
     const dropdownHelper = new SelectHelper(dropdown, user);
     expect(dropdownHelper.getSelectedOptions()).toEqual(['Owner']);
-    const options = await dropdownHelper.getOptions();
+    const options = await dropdownHelper.getOptions(true);
     expect(options).toEqual(['Reader', 'Writer', 'Owner']);
   });
 
-  it('removes a user with setAcl with the x is selected', async () => {
+  it('can remove a user with access level same or below', async () => {
     // Arrange
     const removeItem: AccessEntry = {
       email: 'user1@test.com',
@@ -182,10 +182,75 @@ describe('a Collaborator component', () => {
 
     // Assert
     expect(screen.getByLabelText(`permissions for ${removeItem.email}`)).not.toBeNull();
-    const removeButton = screen.getByRole('button'); // this appears to be the only button in the component
+    const removeButton = screen.getByLabelText(`Remove owner ${removeItem.email}`);
     expect(removeButton).not.toBeNull();
     fireEvent.click(removeButton);
     expect(setAcl).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not allow writers to remove users with permissions', async () => {
+    // Arrange
+    const removeItem: AccessEntry = {
+      email: 'user1@test.com',
+      pending: false,
+      canShare: false,
+      canCompute: true,
+      accessLevel: 'WRITER',
+    };
+    const item: AccessEntry = {
+      email: 'user2@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'WRITER',
+    };
+    const acl = [item, removeItem];
+
+    // Act
+    render(
+      <Collaborator
+        aclItem={removeItem}
+        acl={acl}
+        setAcl={jest.fn()}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'WRITER' }}
+        lastAddedEmail={undefined}
+      />
+    );
+
+    // Assert
+    expect(screen.queryByLabelText(`Remove owner ${removeItem.email}`)).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('does not allow users to remove or edit themselves', async () => {
+    // Arrange
+    const item: AccessEntry = {
+      email: 'owner@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'OWNER',
+    };
+    const acl = [item];
+
+    // Act
+    render(
+      <Collaborator
+        aclItem={item}
+        acl={acl}
+        setAcl={jest.fn()}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'OWNER' }}
+        lastAddedEmail={undefined}
+      />
+    );
+
+    // Assert
+    expect(screen.queryByLabelText(`Remove owner ${item.email}`)).toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+    const dropdown = screen.getByLabelText(`permissions for ${item.email}`);
+    expect(dropdown).toHaveAttribute('disabled');
   });
 
   it('can change the permission of the user with setAcl', async () => {
@@ -265,6 +330,9 @@ describe('a Collaborator component', () => {
     // Assert
     const dropdown = screen.getByLabelText(`permissions for ${currentItem.email}`);
     const dropdownHelper = new SelectHelper(dropdown, user);
+    const options = await dropdownHelper.getOptions(true);
+    // No owner because we are excluded disabled, and user is only a writer
+    expect(options).toEqual(['Reader', 'Writer']);
     await dropdownHelper.selectOption('Writer');
     expect(dropdownHelper.getSelectedOptions()).toEqual(['Writer']);
 
@@ -273,6 +341,44 @@ describe('a Collaborator component', () => {
     // verify that it is not checked because we can't get the checkbox input element for a disabled item.
     // However, expectModifiedAcl includes canCompute: false, so we can verify that it is not changed.
     expect(canCompute).toHaveAttribute('disabled');
+  });
+
+  it('does not allow writers to modify users with canShare true', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const workspaceUser: AccessEntry = {
+      email: 'user1@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: true,
+      accessLevel: 'WRITER',
+    };
+    const currentItem: AccessEntry = {
+      email: 'user2@test.com',
+      pending: false,
+      canShare: true,
+      canCompute: false,
+      accessLevel: 'READER',
+    };
+    const acl = [workspaceUser, currentItem];
+
+    // Act
+    render(
+      <Collaborator
+        aclItem={currentItem}
+        acl={acl}
+        setAcl={jest.fn()}
+        originalAcl={acl}
+        workspace={{ ...workspace, accessLevel: 'WRITER' }}
+        lastAddedEmail={undefined}
+      />
+    );
+
+    // Assert
+    const dropdown = screen.getByLabelText(`permissions for ${currentItem.email}`);
+    const dropdownHelper = new SelectHelper(dropdown, user);
+    const options = await dropdownHelper.getOptions(true);
+    expect(options).toHaveLength(0);
   });
 
   describe('only allows owners and project owners to share with additional permissions', () => {
@@ -389,6 +495,132 @@ describe('a Collaborator component', () => {
         // Assert
         expect(screen.queryByText('Can compute')).not.toBeInTheDocument();
         expect(screen.queryByText('Can share')).toBeInTheDocument();
+      }
+    );
+  });
+
+  describe('determines which users can be edited/deleted', () => {
+    interface TestCase {
+      workspaceUserAccessLevel: WorkspaceAccessLevel;
+      userAclToDelete: AccessEntry;
+      editEnabled: boolean;
+    }
+
+    test.each<TestCase>([
+      {
+        workspaceUserAccessLevel: 'OWNER',
+        userAclToDelete: {
+          email: 'user2@test.com',
+          pending: false,
+          canShare: false,
+          canCompute: false,
+          accessLevel: 'READER',
+        },
+        editEnabled: true,
+      },
+      {
+        workspaceUserAccessLevel: 'OWNER',
+        userAclToDelete: {
+          email: 'pj@test.com',
+          pending: false,
+          canShare: true,
+          canCompute: true,
+          accessLevel: 'PROJECT_OWNER',
+        },
+        editEnabled: false,
+      },
+      {
+        workspaceUserAccessLevel: 'WRITER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: true,
+          canCompute: true,
+          accessLevel: 'WRITER',
+        },
+        editEnabled: false,
+      },
+      {
+        workspaceUserAccessLevel: 'WRITER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: false,
+          canCompute: false,
+          accessLevel: 'WRITER',
+        },
+        editEnabled: true,
+      },
+      {
+        workspaceUserAccessLevel: 'WRITER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: false,
+          canCompute: false,
+          accessLevel: 'OWNER',
+        },
+        editEnabled: false,
+      },
+      {
+        workspaceUserAccessLevel: 'WRITER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: true,
+          canCompute: false,
+          accessLevel: 'READER',
+        },
+        editEnabled: false,
+      },
+      {
+        workspaceUserAccessLevel: 'WRITER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: false,
+          canCompute: false,
+          accessLevel: 'READER',
+        },
+        editEnabled: true,
+      },
+      {
+        workspaceUserAccessLevel: 'READER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: false,
+          canCompute: false,
+          accessLevel: 'READER',
+        },
+        editEnabled: true,
+      },
+      {
+        workspaceUserAccessLevel: 'READER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: true,
+          canCompute: false,
+          accessLevel: 'READER',
+        },
+        editEnabled: false,
+      },
+      {
+        workspaceUserAccessLevel: 'READER',
+        userAclToDelete: {
+          email: 'user@test.com',
+          pending: false,
+          canShare: false,
+          canCompute: false,
+          accessLevel: 'WRITER',
+        },
+        editEnabled: false,
+      },
+    ])(
+      'user with accessLevel $workspaceUserAccessLevel: modify (level: $userAclToDelete.accessLevel, canShare: $userAclToDelete.canShare, canCompute: $userAclToDelete.canCompute), expected: $editEnabled',
+      ({ workspaceUserAccessLevel, userAclToDelete, editEnabled }) => {
+        expect(allowRoleEdit(workspaceUserAccessLevel, userAclToDelete)).toBe(editEnabled);
       }
     );
   });
