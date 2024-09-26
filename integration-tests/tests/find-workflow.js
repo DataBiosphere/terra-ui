@@ -30,7 +30,7 @@ const testFindWorkflowFn = _.flow(
      without these lines it will redirect to dev-Terra even if started out at localhost:3000-Terra */
     if (testUrl === 'http://localhost:3000') {
       await findElement(page, clickable({ textContains: 'Yes' }));
-      const yesButtonHrefDetails = (await page.$$('//a[contains(text(), "Yes")]/@href'))[0];
+      const yesButtonHrefDetails = (await page.$$('xpath///a[contains(text(), "Yes")]/@href'))[0];
       const href = await page.evaluate((yesButton) => yesButton.textContent, yesButtonHrefDetails);
       const redirectURL = _.replace(/https:\/\/bvdp-saturn-(dev|staging).appspot.com/, testUrl, href);
       await gotoPage(page, redirectURL);
