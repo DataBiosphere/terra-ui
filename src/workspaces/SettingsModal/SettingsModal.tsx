@@ -110,13 +110,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   };
 
   const getRequesterPaysSetting = (settings: WorkspaceSetting[]): RequesterPaysSetting | undefined => {
-    const requesterPaysSettings: RequesterPaysSetting[] = settings.filter((setting: WorkspaceSetting) =>
-      isRequesterPaysSetting(setting)
-    ) as RequesterPaysSetting[];
-    if (requesterPaysSettings.length > 0) {
-      return requesterPaysSettings[0];
-    }
-    return undefined;
+    return settings.find((setting: WorkspaceSetting) => isRequesterPaysSetting(setting)) as RequesterPaysSetting;
   };
 
   useEffect(() => {
@@ -217,7 +211,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     ) {
       // If the bucket had no soft delete setting before, and the current one is the default retention, don't event.
     } else if (!_.isEqual(originalSoftDeleteSetting, newSoftDeleteSetting)) {
-      // Event if an explicit setting existed before and it changed.
+      // Event if the setting changed.
       Ajax().Metrics.captureEvent(Events.workspaceSettingsSoftDelete, {
         enabled: softDeleteEnabled,
         retention: softDeleteRetention, // will be null if soft delete is disabled
