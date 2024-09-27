@@ -600,6 +600,58 @@ interface CohortDemographics {
   showSeriesName: boolean;
 }
 
+function generateRandomNumbers(numNumbers: number, max: number) {
+  const randomNumbers: number[] = [];
+  for (let i = 0; i < numNumbers; i++) {
+    const randomNumber = Math.floor(Math.random() * max) + 1;
+    randomNumbers.push(randomNumber);
+  }
+  return randomNumbers;
+}
+
+function generateRandomNumbersThatAddUpTo(total: number, numNumbers: number): number[] {
+  const randomNumbers: number[] = [];
+  let remaining = total;
+  for (let i = 0; i < numNumbers; i++) {
+    const randomNumber = Math.floor(Math.random() * remaining) + 1;
+    remaining -= randomNumber;
+    randomNumbers.push(randomNumber);
+  }
+  return randomNumbers;
+}
+
+// series and data will always be the same length
+function addToSeriesData(series: ChartSeries[], data: number[]) {
+  for (let i = 0; i < series.length; i++) {
+    series[i].data.push(data[i]);
+  }
+}
+
+function generateSeries(): ChartSeries[] {
+  // order of data points is Female, Male, Other, Female 18-44, Female 45-64, Female 65+, Male 18-44, Male
+  const series: ChartSeries[] = [
+    { name: 'Asian', data: [] },
+    { name: 'Black', data: [] },
+    { name: 'White', data: [] },
+    { name: 'Native American', data: [] },
+    { name: 'Pacific Islander', data: [] },
+  ];
+  // for each of the three gender identity totals,
+  const genderTotals = generateRandomNumbersThatAddUpTo(100, 3);
+  for (const genderTotal of genderTotals) {
+    // generate the race breakdown for the gender totals
+    const genderTotalRaceBreakDown = generateRandomNumbersThatAddUpTo(genderTotal, 5);
+    addToSeriesData(series, genderTotalRaceBreakDown);
+    // get the three age group breakdowns
+    const ageGroupGenderTotal = generateRandomNumbersThatAddUpTo(genderTotal, 3);
+    // get race breakdowns for each of the gender age groups
+    for (const genderAgeGroupTotal of ageGroupGenderTotal) {
+      const genderAgeGroupRaceBreakdown = generateRandomNumbersThatAddUpTo(genderAgeGroupTotal, 5);
+      addToSeriesData(series, genderAgeGroupRaceBreakdown);
+    }
+  }
+  return series;
+}
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const {
     onStateChange,
@@ -619,7 +671,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
       { short: 'Male' },
       { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
     ],
-    series: [{ name: 'Overall', data: [40, 50, 30] }],
+    series: [{ name: 'Overall', data: generateRandomNumbers(3, 100) }],
     title: 'Gender identity',
     yTitle: 'AVERAGE AGE',
     height: '250rem',
@@ -641,13 +693,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
       { short: 'Other 45-64', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 45-64' },
       { short: 'Other 65+', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 65+' },
     ],
-    series: [
-      { name: 'Asian', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 1, 1] },
-      { name: 'Black', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 1, 1] },
-      { name: 'White', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 1, 1] },
-      { name: 'Native American', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 1, 0, 0] },
-      { name: 'Pacific Islander', data: [9, 3, 3, 3, 9, 5, 3, 1, 2, 0, 0, 0] },
-    ],
+    series: generateSeries(),
     title: 'Gender identity, current age, race',
     yTitle: 'OVERALL PERCENTAGE',
     height: '500rem',
@@ -655,11 +701,11 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     showSeriesName: true,
   });
 
-  const chartOptions: any = (cohortDemographics: CohortDemographics) => {
+  function chartOptions(cohortDemographics: CohortDemographics) {
     return {
       chart: {
-        marginTop: 50,
         spacingLeft: 20,
+        spacingRight: 30,
         height: cohortDemographics.height,
         style: { fontFamily: 'inherit' },
         type: 'bar',
@@ -695,22 +741,18 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
       },
       yAxis: {
         crosshair: true,
-        min: 0,
-        // labels: { text: ''},
         title: { text: cohortDemographics.yTitle },
-        width: '96%',
       },
       accessibility: {
         point: {
           descriptionFormatter: (point) => {
-            // @ts-ignore
             return `${point.index + 1}. Category ${point.category}, ${point.series.name}: ${point.y}.`;
           },
         },
       },
       exporting: { buttons: { contextButton: { x: -15 } } },
     };
-  };
+  }
 
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
