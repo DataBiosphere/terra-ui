@@ -3,6 +3,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
+import { snapshotStore } from 'src/libs/state';
 import { PermissionsModal } from 'src/pages/workflows/workflow/common/PermissionsModal';
 import { asMockedFn, renderWithAppContexts, SelectHelper } from 'src/testing/test-utils';
 
@@ -50,7 +51,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          methodOrNamespace='method'
+          snapshotOrNamespace='Snapshot'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -71,7 +72,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          methodOrNamespace='method'
+          snapshotOrNamespace='Snapshot'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -93,7 +94,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          methodOrNamespace='method'
+          snapshotOrNamespace='Snapshot'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -131,7 +132,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          methodOrNamespace='method'
+          snapshotOrNamespace='Snapshot'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -165,7 +166,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          methodOrNamespace='method'
+          snapshotOrNamespace='Snapshot'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -184,7 +185,7 @@ describe('PermissionsModal', () => {
         <PermissionsModal
           name='test'
           namespace='namespace'
-          methodOrNamespace='method'
+          snapshotOrNamespace='Snapshot'
           selectedSnapshot='3'
           setPermissionsModalOpen={jest.fn()}
         />
@@ -199,5 +200,70 @@ describe('PermissionsModal', () => {
 
     expect(screen.getByText('User is not a valid email')).toBeInTheDocument();
     expect(addButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('checkbox is checked for public workflow', async () => {
+    // ARRANGE
+    jest.spyOn(snapshotStore, 'get').mockImplementation(
+      jest.fn().mockReturnValue({
+        namespace: 'nameFoo',
+        name: 'cnv_somatic_pair_workflow',
+        snapshotId: 1,
+        createDate: '2017-10-20T20:07:22Z',
+        managers: ['nameFoo@fooname.com'],
+        synopsis: 'a very fancy method',
+        documentation: '',
+        public: true,
+        snapshotComment: 'a fake snapshot',
+      })
+    );
+
+    await act(async () => {
+      renderWithAppContexts(
+        <PermissionsModal
+          name='test'
+          namespace='namespace'
+          snapshotOrNamespace='Snapshot'
+          selectedSnapshot='3'
+          setPermissionsModalOpen={jest.fn()}
+        />
+      );
+    });
+
+    // ASSERT
+    const publiclyReadableButton = screen.queryByLabelText('Make Publicly Readable?');
+    expect(publiclyReadableButton).toBeChecked();
+  });
+
+  it('checkbox is unchecked for private workflow', async () => {
+    // ARRANGE
+    jest.spyOn(snapshotStore, 'get').mockImplementation(
+      jest.fn().mockReturnValue({
+        namespace: 'nameFoo',
+        name: 'cnv_somatic_pair_workflow',
+        snapshotId: 1,
+        createDate: '2017-10-20T20:07:22Z',
+        managers: ['nameFoo@fooname.com'],
+        synopsis: 'a very fancy method',
+        documentation: '',
+        public: false,
+        snapshotComment: 'a fake snapshot',
+      })
+    );
+
+    await act(async () => {
+      renderWithAppContexts(
+        <PermissionsModal
+          name='test'
+          namespace='namespace'
+          snapshotOrNamespace='Snapshot'
+          selectedSnapshot='3'
+          setPermissionsModalOpen={jest.fn()}
+        />
+      );
+    });
+
+    const publiclyReadableButton = screen.queryByLabelText('Make Publicly Readable?');
+    expect(publiclyReadableButton).not.toBeChecked();
   });
 });
