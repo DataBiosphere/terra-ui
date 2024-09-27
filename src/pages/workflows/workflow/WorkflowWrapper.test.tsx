@@ -1,4 +1,4 @@
-import { delay } from '@terra-ui-packages/core-utils';
+import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import _ from 'lodash';
@@ -594,5 +594,55 @@ describe('workflows container', () => {
       workflowNamespace: mockSnapshot.namespace,
       workflowName: 'newname',
     });
+  });
+
+  it('renders edit permissions modal', async () => {
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const mockPermissions = [
+      {
+        role: 'OWNER',
+        user: 'user1@foo.com',
+      },
+      {
+        role: 'READER',
+        user: 'user2@bar.com',
+      },
+    ];
+
+    const mockWorkflowPermissions = jest.fn().mockReturnValue(Promise.resolve(mockPermissions));
+    const mockSetPermissions = jest.fn();
+
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Methods: {
+        method: (_namespace, _name, _snapshotId) => ({
+          get: jest.fn().mockReturnValue(Promise.resolve(mockSnapshot)),
+          permissions: mockWorkflowPermissions,
+          setPermissions: mockSetPermissions,
+        }),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={mockSnapshot.snapshotId}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    expect(screen.getByText('Edit Permissions'));
+
+    await user.click(screen.getByRole('button', { name: 'Edit Permissions' }));
+    expect(screen.getByText('Edit Snapshot Permissions'));
   });
 });
