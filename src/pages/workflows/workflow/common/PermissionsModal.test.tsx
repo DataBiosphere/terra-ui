@@ -52,7 +52,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
@@ -73,7 +73,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
@@ -95,7 +95,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
@@ -133,7 +133,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
@@ -167,7 +167,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
@@ -186,7 +186,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
@@ -224,7 +224,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
@@ -257,7 +257,7 @@ describe('PermissionsModal', () => {
           name='test'
           namespace='namespace'
           snapshotOrNamespace='Snapshot'
-          selectedSnapshot='3'
+          selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
         />
       );
