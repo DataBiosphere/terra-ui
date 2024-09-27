@@ -12,6 +12,9 @@ export interface SnapshotActionMenuProps {
 
   /** The action to be performed if the "Delete snapshot" button is pressed. */
   onDelete: () => void;
+
+  /** The state that controls whether the permissions modal shows on the page */
+  onEdit: () => void;
 }
 
 /**
@@ -21,20 +24,31 @@ export interface SnapshotActionMenuProps {
  * Currently supported actions: delete
  */
 const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
-  const { isSnapshotOwner, onDelete } = props;
+  const { isSnapshotOwner, onDelete, onEdit } = props;
 
   const notSnapshotOwnerTooltip = 'You must be an owner of this snapshot';
 
   const menuContent = (
-    <MenuButton
-      disabled={!isSnapshotOwner}
-      tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
-      tooltipSide='left'
-      onClick={onDelete}
-    >
-      {makeMenuIcon('trash')}
-      Delete snapshot
-    </MenuButton>
+    <>
+      <MenuButton
+        disabled={!isSnapshotOwner}
+        tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
+        tooltipSide='left'
+        onClick={onDelete}
+      >
+        {makeMenuIcon('trash')}
+        Delete snapshot
+      </MenuButton>
+      <MenuButton
+        disabled={!isSnapshotOwner}
+        tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
+        tooltipSide='left'
+        onClick={onEdit}
+      >
+        {makeMenuIcon('cog')}
+        Edit Permissions
+      </MenuButton>
+    </>
   );
 
   return (

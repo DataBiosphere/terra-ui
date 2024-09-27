@@ -15,6 +15,7 @@ import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs
 import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { PermissionsModal } from 'src/pages/workflows/workflow/common/PermissionsModal';
 import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
 import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
 import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
@@ -30,13 +31,13 @@ export interface WrapWorkflowOptions {
 interface WorkflowWrapperProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: string | undefined;
+  snapshotId: number | undefined;
 }
 
 interface WorkflowContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: string | undefined;
+  snapshotId: number | undefined;
   tabName: string | undefined;
 }
 
@@ -101,6 +102,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
 
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
+  const [permissionsModalOpen, setPermissionsModalOpen] = useState<boolean>(false);
 
   const snapshot =
     cachedSnapshot &&
@@ -115,6 +117,10 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     getTerraUser().email?.toLowerCase(),
     _.map(_.toLower, snapshot?.managers)
   );
+
+  const refresh = Utils.withBusyState(setBusy, async () => {
+    snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, snapshotId).get());
+  });
 
   useOnMount(() => {
     const loadSnapshot = async () => {
@@ -192,7 +198,11 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           ['Export to Workspace']
         ),
         div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
-          h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
+          h(SnapshotActionMenu, {
+            isSnapshotOwner,
+            onDelete: () => setShowDeleteModal(true),
+            onEdit: () => setPermissionsModalOpen(true),
+          }),
         ]),
       ]
     ),
@@ -232,6 +242,16 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           Nav.goToPath('workflows');
         }),
         onDismiss: () => setShowDeleteModal(false),
+      }),
+    permissionsModalOpen &&
+      h(PermissionsModal, {
+        snapshotOrNamespace: 'Snapshot',
+        namespace,
+        name,
+        selectedSnapshot: snapshotId,
+        setPermissionsModalOpen,
+        refresh,
+        setLoading: () => busy,
       }),
     busy && spinnerOverlay,
     snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
