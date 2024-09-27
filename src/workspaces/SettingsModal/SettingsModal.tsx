@@ -225,7 +225,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     if (originalRequesterPaysSetting === undefined && !newRequesterPaysSetting?.config.enabled) {
       // If the bucket had no requester pays setting before, and the current one is disabled, don't event.
     } else if (!_.isEqual(originalRequesterPaysSetting, newRequesterPaysSetting)) {
-      // Event if an explicit setting existed before and it changed.
+      // Event if the setting changed.
       Ajax().Metrics.captureEvent(Events.workspaceSettingsRequesterPays, {
         enabled: requesterPaysEnabled,
         ...extractWorkspaceDetails(props.workspace),
