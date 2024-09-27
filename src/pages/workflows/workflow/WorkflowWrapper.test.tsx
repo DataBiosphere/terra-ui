@@ -422,7 +422,7 @@ describe('workflows container', () => {
         <WorkflowsContainer
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockDeleteSnapshot.snapshotId}
+          snapshotId={mockSnapshot.snapshotId}
           tabName='dashboard'
         />
       );
@@ -451,7 +451,7 @@ describe('workflows container', () => {
         <WorkflowsContainer
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockDeleteSnapshot.snapshotId}
+          snapshotId={mockSnapshot.snapshotId}
           tabName='dashboard'
         />
       );
@@ -477,7 +477,7 @@ describe('workflows container', () => {
         <WorkflowsContainer
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockDeleteSnapshot.snapshotId}
+          snapshotId={mockSnapshot.snapshotId}
           tabName='dashboard'
         />
       );
@@ -508,7 +508,7 @@ describe('workflows container', () => {
         <WorkflowsContainer
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockDeleteSnapshot.snapshotId}
+          snapshotId={mockSnapshot.snapshotId}
           tabName='dashboard'
         />
       );
@@ -538,7 +538,7 @@ describe('workflows container', () => {
         <WorkflowsContainer
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockDeleteSnapshot.snapshotId}
+          snapshotId={mockSnapshot.snapshotId}
           tabName='dashboard'
         />
       );
@@ -572,7 +572,7 @@ describe('workflows container', () => {
         <WorkflowsContainer
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockDeleteSnapshot.snapshotId}
+          snapshotId={mockSnapshot.snapshotId}
           tabName='dashboard'
         />
       );
