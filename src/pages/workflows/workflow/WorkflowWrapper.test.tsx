@@ -75,17 +75,34 @@ jest.mock('src/libs/error', (): ErrorExports => {
   };
 });
 
-const mockAjax = (deleteImpl = jest.fn()) =>
+type ListAjaxContract = MethodsAjaxContract['list'];
+type MethodAjaxContract = MethodsAjaxContract['method'];
+
+interface AjaxMocks {
+  listImpl?: jest.Mock;
+  getImpl?: jest.Mock;
+  deleteImpl?: jest.Mock;
+}
+
+const defaultListImpl = jest.fn();
+const defaultGetImpl = (namespace) =>
+  jest.fn().mockResolvedValue(namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot);
+const defaultDeleteImpl = jest.fn();
+
+const mockAjax = (mocks: AjaxMocks = {}) => {
+  const { listImpl, getImpl, deleteImpl } = mocks;
   asMockedFn(Ajax).mockReturnValue({
     Methods: {
+      list: (listImpl || defaultListImpl) as ListAjaxContract,
       method: jest.fn((namespace) => {
         return {
-          get: jest.fn(() => (namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot)),
-          delete: deleteImpl,
-        };
-      }) as Partial<MethodsAjaxContract>,
+          get: getImpl || defaultGetImpl(namespace),
+          delete: deleteImpl || defaultDeleteImpl,
+        } as Partial<ReturnType<MethodAjaxContract>>;
+      }) as MethodAjaxContract,
     } as MethodsAjaxContract,
   } as AjaxContract);
+};
 
 type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
 jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports => {
@@ -221,7 +238,10 @@ describe('workflows container', () => {
     await user.click(screen.getByRole('button', { name: 'Delete snapshot' })); // confirm deletion
 
     // Assert
-    expect(Ajax().Methods.method).toHaveBeenCalledWith(
+
+    // The first call is to load the snapshot; the second is to delete it
+    expect(Ajax().Methods.method).toHaveBeenNthCalledWith(
+      2,
       mockDeleteSnapshot.namespace,
       mockDeleteSnapshot.name,
       mockDeleteSnapshot.snapshotId
@@ -242,11 +262,11 @@ describe('workflows container', () => {
 
   it('hides the delete snapshot modal and displays a loading spinner when the deletion is confirmed', async () => {
     // Arrange
-    mockAjax(
-      jest.fn(async () => {
+    mockAjax({
+      deleteImpl: jest.fn(async () => {
         await delay(100);
-      })
-    );
+      }),
+    });
 
     // ensure that an additional loading spinner does not appear due to the
     // snapshot store being reset, so that we can test only the spinner that
@@ -378,11 +398,11 @@ describe('workflows container', () => {
 
   it('displays an error message when there is an error deleting a snapshot', async () => {
     // Arrange
-    mockAjax(
-      jest.fn(() => {
+    mockAjax({
+      deleteImpl: jest.fn(() => {
         throw new Error('BOOM');
-      })
-    );
+      }),
+    });
 
     // set the user's email
     jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
