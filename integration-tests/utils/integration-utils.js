@@ -226,11 +226,11 @@ const waitForNoSpinners = (page, { timeout = 30000 } = {}) => {
 };
 
 const waitForNoModal = (page, { timeout = 30000 } = {}) => {
-  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
+  return page.waitForSelector('.ReactModal__Overlay', { hidden: true, timeout });
 };
 
 const waitForModal = (page, { timeout = 30000 } = {}) => {
-  return page.waitForXPath('//*[contains(@class, "ReactModal__Overlay")]', { hidden: false, timeout });
+  return page.waitForSelector('.ReactModal__Overlay', { hidden: false, timeout });
 };
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -314,10 +314,6 @@ const findElement = (page, xpath, options) => {
   return page.waitForXPath(xpath, defaultToVisibleTrue(options));
 };
 
-const findErrorPopup = (page, options) => {
-  return page.waitForXPath('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss")][contains(@aria-label,"error")]', options);
-};
-
 const heading = ({ level, text, textContains, isDescendant = false }) => {
   const tag = `h${level}`;
   const aria = `*[@role="heading" and @aria-level=${level}]`;
@@ -364,18 +360,12 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, elementInDataTableRow(entityName, text));
 };
 
-const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
-  return page.waitForXPath(`//*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`, {
-    visible: true,
-  });
-};
-
 /** Waits for a menu element to expand (or collapse if isExpanded=false) */
 const waitForMenu = (page, { labelContains, isExpanded = true, ...options }) => {
-  return page.waitForXPath(
-    `//*[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id][@aria-expanded="${isExpanded}"]`,
-    defaultToVisibleTrue(options)
-  );
+  const labelContainsSelector = `[aria-label*="${labelContains}"], [id="${labelContains}"], [aria-labelledby*="${labelContains}"]`;
+  const expandedSelector = `[aria-expanded="${isExpanded}"]`;
+
+  return page.waitForSelector(`${labelContainsSelector}${expandedSelector}`, defaultToVisibleTrue(options));
 };
 
 const openError = async (page) => {
@@ -610,9 +600,7 @@ module.exports = {
   enablePageLogging,
   fillIn,
   fillInReplace,
-  findButtonInDialogByAriaLabel,
   findElement,
-  findErrorPopup,
   findHeading,
   findIframe,
   findInDataTableRow,
