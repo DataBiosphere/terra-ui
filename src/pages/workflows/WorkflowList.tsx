@@ -182,7 +182,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         entityType: 'Workflow', // Currently not supporting task creation
       };
 
-      const { namespace, name, snapshotId } = await Ajax(signal).Methods.methods(workflowPayload);
+      const { namespace, name, snapshotId } = await Ajax(signal).Methods.postMethods(workflowPayload);
       Nav.goToPath('workflow-dashboard', {
         namespace,
         name,

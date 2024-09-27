@@ -878,7 +878,7 @@ describe('create new workflow button', () => {
     // Act
     const mockAjax: DeepPartial<AjaxContract> = {
       Methods: {
-        methods: jest.fn().mockReturnValue(Promise.resolve(mockCreateMethodResp)),
+        postMethods: jest.fn().mockReturnValue(Promise.resolve(mockCreateMethodResp)),
       },
     };
     asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
