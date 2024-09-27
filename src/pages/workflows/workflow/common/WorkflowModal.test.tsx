@@ -9,7 +9,7 @@ describe('WorkflowModal', () => {
     renderWithAppContexts(
       <WorkflowModal
         setCreateWorkflowModalOpen={jest.fn}
-        title='Create New Workflow'
+        title='Create New Method'
         namespace=''
         name=''
         buttonAction='Upload'
@@ -30,7 +30,7 @@ describe('WorkflowModal', () => {
     renderWithAppContexts(
       <WorkflowModal
         setCreateWorkflowModalOpen={jest.fn}
-        title='Create New Workflow'
+        title='Create New Method'
         namespace='namespace'
         name='name'
         buttonAction='Upload'
@@ -55,7 +55,7 @@ describe('WorkflowModal', () => {
     renderWithAppContexts(
       <WorkflowModal
         setCreateWorkflowModalOpen={jest.fn}
-        title='Create New Workflow'
+        title='Create New Method'
         namespace=','
         name=','
         buttonAction='Upload'
@@ -77,7 +77,7 @@ describe('WorkflowModal', () => {
     renderWithAppContexts(
       <WorkflowModal
         setCreateWorkflowModalOpen={jest.fn}
-        title='Create New Workflow'
+        title='Create New Method'
         namespace={longStringNamespace}
         name={longStringName}
         buttonAction='Upload'
