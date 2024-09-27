@@ -50,7 +50,7 @@ const testRunAnalysisFn = _.flowRight(
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${notebookName}.ipynb"]`);
+  await click(page, clickable({ textContains: `${notebookName}.ipynb` }));
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
   await waitForNoSpinners(page);

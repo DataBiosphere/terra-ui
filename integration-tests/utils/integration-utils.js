@@ -226,11 +226,11 @@ const waitForNoSpinners = (page, { timeout = 30000 } = {}) => {
 };
 
 const waitForNoModal = (page, { timeout = 30000 } = {}) => {
-  return page.waitForSelector('xpath///*[contains(@class, "ReactModal__Overlay")]', { hidden: true, timeout });
+  return page.waitForSelector('.ReactModal__Overlay', { hidden: true, timeout });
 };
 
 const waitForModal = (page, { timeout = 30000 } = {}) => {
-  return page.waitForSelector('xpath///*[contains(@class, "ReactModal__Overlay")]', { hidden: false, timeout });
+  return page.waitForSelector('.ReactModal__Overlay', { hidden: false, timeout });
 };
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
