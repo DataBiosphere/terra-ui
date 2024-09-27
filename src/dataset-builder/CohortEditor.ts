@@ -612,12 +612,13 @@ function generateRandomNumbers(numNumbers: number, max: number) {
 function generateRandomNumbersThatAddUpTo(total: number, numNumbers: number): number[] {
   const randomNumbers: number[] = [];
   let remaining = total;
-  for (let i = 0; i < numNumbers; i++) {
-    const randomNumber = Math.floor(Math.random() * remaining) + 1;
+  for (let i = 0; i < numNumbers - 1; i++) {
+    const randomNumber = Math.floor(Math.random() * remaining);
     remaining -= randomNumber;
     randomNumbers.push(randomNumber);
   }
-  return randomNumbers;
+  randomNumbers.push(remaining);
+  return _.shuffle(randomNumbers);
 }
 
 // series and data will always be the same length
