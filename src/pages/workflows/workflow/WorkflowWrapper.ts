@@ -108,6 +108,7 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
   };
 };
 
+// Exported for testing - should only be used directly by wrapWorkflows
 export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const { namespace, name, snapshotId, tabName, children } = props;
   const signal = useCancellation();
