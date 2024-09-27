@@ -6,6 +6,7 @@ import {
   Modal,
   modalStyles,
   Select,
+  useStore,
 } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, SetStateAction, useRef, useState } from 'react';
@@ -18,7 +19,7 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getTerraUser } from 'src/libs/state';
+import { getTerraUser, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { append, withBusyState } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
@@ -31,7 +32,7 @@ import {
 import validate from 'validate.js';
 
 type WorkflowPermissionsModalProps = {
-  methodOrNamespace: 'method' | 'namespace';
+  snapshotOrNamespace: 'Snapshot' | 'Namespace';
   namespace: string;
   name: string;
   selectedSnapshot: string;
@@ -165,7 +166,7 @@ const CurrentUsers = (props: CurrentUserProps) => {
 };
 
 export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
-  const { methodOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen } = props;
+  const { snapshotOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen } = props;
   const signal: AbortSignal = useCancellation();
   const [searchValue, setSearchValue] = useState<string>('');
   const [permissions, setPermissions] = useState<WorkflowsPermissions>([]);
@@ -173,12 +174,10 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [originalPermissions, setOriginalPermissions] = useState<WorkflowsPermissions>([]);
   const userEmails = _.map('user', permissions);
-  const publicUser = _.find({ user: 'public' }, originalPermissions);
-  // console.log(publicUser);
-  const [isPublic, setIsPublic] = useState<boolean>(_.isUndefined(publicUser));
+  const publicUser = _.find({ user: 'public' }, permissions);
   const [userValueModified, setUserValueModified] = useState<boolean>(false);
-  // console.log(isPublic);
-
+  const { public: isPublic } = useStore(snapshotStore);
+  const [isPublicSnapshot, setIsPublicSnapshot] = useState<boolean | undefined>(isPublic);
   const errors = validate({ searchValue }, constraints, {
     prettify: (v) => ({ searchValue: 'User' }[v] || validate.prettify(v)),
   });
@@ -206,12 +205,24 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
     setPermissions(append({ user: userEmail, role: 'READER' } as RawWorkflowsPermissions));
   };
 
-  const updatePublicUser = (publicUser) => {
-    return _.update(publicUser.role, (v) =>
-      v === false ? publicUser.role === 'NO ACCESS' : publicUser.role === 'READER'
-    );
+  const updatePublicUser = (v) => {
+    if (publicUser) {
+      permissions.map((pub) => {
+        if (v === false) {
+          if (pub.user === 'public') {
+            Object.assign(pub, { user: 'public', role: 'NO ACCESS' });
+          }
+        } else if (v === true) {
+          if (pub.user === 'public') {
+            Object.assign(pub, { user: 'public', role: 'READER' });
+          }
+        }
 
-    _.update('role', _.set(publicUser.role, ''));
+        return null;
+      });
+    } else {
+      addUser('public');
+    }
   };
 
   const save = withBusyState(setWorking, async () => {
@@ -221,6 +232,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
 
     try {
       await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).setPermissions(permissionUpdates);
+      window.location.reload();
       setPermissionsModalOpen(false);
     } catch (error) {
       await reportError('Error saving permissions.', error);
@@ -230,7 +242,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
 
   return (
     <Modal
-      title={`Permissions for ${methodOrNamespace} ${namespace}/${name}`}
+      title={`Edit ${snapshotOrNamespace} Permissions`}
       onDismiss={() => setPermissionsModalOpen(false)}
       width='30rem'
       showButtons={false}
@@ -266,10 +278,10 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
       <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
         <div>
           <LabeledCheckbox
-            checked={isPublic}
-            onChange={(v) => {
-              updatePublicUser(publicUser);
-              setIsPublic(v);
+            checked={isPublicSnapshot}
+            onChange={(v: boolean) => {
+              setIsPublicSnapshot(v);
+              updatePublicUser(v);
             }}
           >
             <span style={{ marginLeft: '0.3rem' }}>Make Publicly Readable?</span>
