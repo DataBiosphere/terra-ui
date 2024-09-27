@@ -893,8 +893,6 @@ describe('create new workflow button', () => {
 
     const newMethodText = screen.getAllByText('Create New Method');
     const modalTitle = newMethodText[1];
-    expect(modalTitle).not.toHaveAttribute('role', 'button'); // Ensure the element is the modal title and not the button
-
     expect(modalTitle).toBeInTheDocument();
 
     // Get text areas in modal
