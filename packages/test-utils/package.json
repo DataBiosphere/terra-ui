@@ -59,7 +59,7 @@
   "devDependencies": {
     "@jest/types": "^27.5.1",
     "@terra-ui-packages/build-utils": "^2.0.1",
-    "@testing-library/react": "^14.0.0",
+    "@testing-library/react": "^15.0.6",
     "@types/jest": "^28.1.8",
     "@types/node": "^20.6.2",
     "check-dts": "^0.7.2",
