@@ -45,7 +45,6 @@ jest.mock('react-virtualized', () => {
 const mockMethods = (methods: MethodDefinition[]): Partial<MethodsAjaxContract> => {
   return {
     definitions: jest.fn(() => Promise.resolve(methods)),
-    // methods: jest.fn(() => Promise.resolve()),
   };
 };
 
