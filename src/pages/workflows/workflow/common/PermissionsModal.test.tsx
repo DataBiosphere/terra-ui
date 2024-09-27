@@ -54,6 +54,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });
@@ -75,6 +77,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });
@@ -97,6 +101,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });
@@ -135,6 +141,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });
@@ -169,6 +177,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });
@@ -188,6 +198,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });
@@ -226,6 +238,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });
@@ -259,6 +273,8 @@ describe('PermissionsModal', () => {
           snapshotOrNamespace='Snapshot'
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+          setLoading={jest.fn()}
         />
       );
     });

@@ -3,15 +3,17 @@ import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h2, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { ButtonPrimary, Link } from 'src/components/common';
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import { TooltipCell } from 'src/components/table';
+import { Ajax } from 'src/libs/ajax';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
-import { forwardRefWithName, useStore } from 'src/libs/react-utils';
+import { forwardRefWithName, useCancellation, useStore } from 'src/libs/react-utils';
 import { snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
 import { WorkflowRightBoxSection } from 'src/pages/workflows/components/WorkflowRightBoxSection';
 import { PermissionsModal } from 'src/pages/workflows/workflow/common/PermissionsModal';
 import { wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
@@ -32,9 +34,15 @@ export const BaseWorkflowSummary = () => {
   const persistenceId = `workflows/${namespace}/${name}/dashboard`;
   const [importUrlCopied, setImportUrlCopied] = useState<boolean>();
   const [permissionsModalOpen, setPermissionsModalOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const signal: AbortSignal = useCancellation();
   const importUrl = `${
     getConfig().orchestrationUrlRoot
   }/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`;
+
+  const refresh = Utils.withBusyState(setLoading, async () => {
+    snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, snapshotId).get());
+  });
 
   return div({ style: { flex: 1, display: 'flex' }, role: 'tabpanel' }, [
     div({ style: Style.dashboard.leftBox }, [
@@ -119,7 +127,10 @@ export const BaseWorkflowSummary = () => {
         name,
         selectedSnapshot: snapshotId,
         setPermissionsModalOpen,
+        refresh,
+        setLoading,
       }),
+    loading && spinnerOverlay,
   ]);
 };
 

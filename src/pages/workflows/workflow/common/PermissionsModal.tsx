@@ -37,6 +37,8 @@ type WorkflowPermissionsModalProps = {
   name: string;
   selectedSnapshot: number;
   setPermissionsModalOpen: (b: boolean) => void;
+  refresh: () => void;
+  setLoading: (b: boolean) => void;
 };
 
 type UserProps = {
@@ -166,7 +168,8 @@ const CurrentUsers = (props: CurrentUserProps) => {
 };
 
 export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
-  const { snapshotOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen } = props;
+  const { snapshotOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen, refresh, setLoading } =
+    props;
   const signal: AbortSignal = useCancellation();
   const [searchValue, setSearchValue] = useState<string>('');
   const [permissions, setPermissions] = useState<WorkflowsPermissions>([]);
@@ -207,14 +210,14 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
 
   const updatePublicUser = (v) => {
     if (publicUser) {
-      permissions.map((pub) => {
+      permissions.map((user) => {
         if (v === false) {
-          if (pub.user === 'public') {
-            Object.assign(pub, { user: 'public', role: 'NO ACCESS' });
+          if (user.user === 'public') {
+            Object.assign(user, { user: 'public', role: 'NO ACCESS' });
           }
         } else if (v === true) {
-          if (pub.user === 'public') {
-            Object.assign(pub, { user: 'public', role: 'READER' });
+          if (user.user === 'public') {
+            Object.assign(user, { user: 'public', role: 'READER' });
           }
         }
 
@@ -232,10 +235,12 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
 
     try {
       await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).setPermissions(permissionUpdates);
-      window.location.reload();
+      setLoading(true);
+      refresh();
       setPermissionsModalOpen(false);
     } catch (error) {
       await reportError('Error saving permissions.', error);
+      setLoading(false);
       setPermissionsModalOpen(false);
     }
   });
