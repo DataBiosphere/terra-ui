@@ -1,5 +1,6 @@
 import { ButtonPrimary, Clickable, Modal } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
+import _ from 'lodash/fp';
 import React, { Fragment, useState } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
@@ -57,19 +58,22 @@ const constraints = {
   namespace: {
     presence: { allowEmpty: false },
     format: {
-      pattern: /[\w- ]*/,
-      message: 'can only contain letters, numbers, dashes, underscores, and spaces',
+      pattern: /^[A-Za-z0-9_.-]+$/,
+      message: 'Only letters, numbers, underscores, dashes, and periods allowed',
     },
   },
   name: {
     presence: { allowEmpty: false },
     format: {
-      pattern: /[\w- ]*/,
-      message: 'can only contain letters, numbers, dashes, underscores, and spaces',
+      pattern: /^[A-Za-z0-9_.-]+$/,
+      message: 'Only letters, numbers, underscores, dashes, and periods allowed',
     },
   },
   synopsis: {
     length: { maximum: 80 },
+  },
+  wdl: {
+    presence: { allowEmpty: false },
   },
 };
 
@@ -159,7 +163,7 @@ const WdlBoxSection = (props: WdlBoxSectionProps) => {
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'baseline' }}>
-        <FormLabel>WDL</FormLabel>
+        <FormLabel required>WDL</FormLabel>
         <Dropzone
           accept='.wdl'
           multiple={false}
@@ -213,8 +217,9 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     setWdl,
   } = props;
 
-  const errors = validate({ namespace, name, synopsis }, constraints, {
-    prettify: (v) => ({ namespace: 'Namespace', name: 'Name', synopsis: 'Synopsis' }[v] || validate.prettify(v)),
+  const errors = validate({ namespace, name, synopsis, wdl }, constraints, {
+    prettify: (v) =>
+      ({ namespace: 'Namespace', name: 'Name', synopsis: 'Synopsis', wdl: 'WDL' }[v] || validate.prettify(v)),
   });
 
   return (
@@ -231,7 +236,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
       width='75rem'
       okButton={
         /* eslint-disable-next-line no-alert */
-        <ButtonPrimary disabled={errors} onClick={() => buttonAction()}>
+        <ButtonPrimary disabled={errors || _.isEmpty(wdl)} onClick={() => buttonAction()}>
           {buttonActionName}
         </ButtonPrimary>
       }

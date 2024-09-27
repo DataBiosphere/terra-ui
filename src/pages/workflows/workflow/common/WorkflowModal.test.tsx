@@ -28,7 +28,7 @@ describe('WorkflowModal', () => {
 
     expect(screen.getByText(/Namespace/));
     expect(screen.getByText(/name \*/i));
-    expect(screen.getByText('WDL'));
+    expect(screen.getByText(/WDL/));
     expect(screen.getByText('Load from file'));
     expect(screen.getByText('Documentation'));
     expect(screen.getByText('Synopsis (80 characters max)'));
@@ -116,5 +116,30 @@ describe('WorkflowModal', () => {
     );
 
     expect(screen.getByText('The namespace/name configuration must be 250 characters or less.')).toBeInTheDocument();
+  });
+
+  it('action button is disabled if wdl is blank', () => {
+    renderWithAppContexts(
+      <WorkflowModal
+        setCreateWorkflowModalOpen={jest.fn}
+        title='Create New Workflow'
+        namespace='.'
+        name='.'
+        buttonActionName='Upload'
+        buttonAction={jest.fn}
+        synopsis=''
+        setWorkflowNamespace={jest.fn}
+        setWorkflowName={jest.fn}
+        setWorkflowSynopsis={jest.fn}
+        snapshotComment=''
+        wdl=''
+        setWorkflowDocumentation={jest.fn()}
+        setSnapshotComment={jest.fn()}
+        setWdl={jest.fn()}
+      />
+    );
+
+    const uploadButton = screen.getByRole('button', { name: 'Upload' });
+    expect(uploadButton).toHaveAttribute('aria-disabled', 'true');
   });
 });
