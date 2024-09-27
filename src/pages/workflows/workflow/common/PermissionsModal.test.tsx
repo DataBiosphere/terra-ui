@@ -58,7 +58,7 @@ describe('PermissionsModal', () => {
       );
     });
 
-    expect(screen.getByText('Permissions for method namespace/test'));
+    expect(screen.getByText('Edit Snapshot Permissions'));
     expect(screen.getByText('User'));
     expect(screen.getByRole('button', { name: 'Add' }));
     expect(screen.getByText('Current Users'));
