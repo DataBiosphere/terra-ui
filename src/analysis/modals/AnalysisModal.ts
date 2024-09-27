@@ -40,10 +40,10 @@ import galaxyLogo from 'src/images/galaxy-logo.svg';
 import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
-import { Ajax } from 'src/libs/ajax';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { AppDataDisk, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -524,7 +524,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   );
                   const fullAnalysisName = `${analysisName}.${fileExt}`;
                   await createAnalysis(fullAnalysisName, toolLabel, contents);
-                  await Ajax().Metrics.captureEvent(Events.analysisCreate, {
+                  await Metrics().captureEvent(Events.analysisCreate, {
                     tool: toolLabel,
                     filename: fullAnalysisName,
                     cloudProvider,

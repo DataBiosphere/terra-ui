@@ -28,6 +28,15 @@ describe('getAttributeType', () => {
     expect(getAttributeType({ key: 'value' })).toEqual({ type: 'json', isList: false });
     expect(getAttributeType(['a', 'b', 'c'])).toEqual({ type: 'json', isList: false });
     expect(getAttributeType([{ idx: 0 }, { idx: 1 }, { idx: 2 }])).toEqual({ type: 'json', isList: false });
+    expect(
+      getAttributeType({
+        items: [
+          ['a', 'b'],
+          ['c', 'd'],
+        ],
+        itemsType: 'AttributeValue',
+      })
+    ).toEqual({ type: 'array', isList: true });
   });
 
   it('returns string for null values', () => {

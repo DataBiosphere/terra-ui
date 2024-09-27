@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
-import React, { CSSProperties, Dispatch, Fragment, SetStateAction, useLayoutEffect, useRef } from 'react';
-import { div, h } from 'react-hyperscript-helpers';
+import React, { CSSProperties, Dispatch, SetStateAction, useLayoutEffect, useRef } from 'react';
 import * as Style from 'src/libs/style';
 import { aclEntryIsTerraSupport, WorkspaceAcl } from 'src/workspaces/acl-utils';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
@@ -30,19 +29,17 @@ export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props:
     !!props.lastAddedEmail && list?.current?.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' });
   }, [props.lastAddedEmail]);
 
-  return h(Fragment, [
-    div({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
-
-    div({ ref: list, role: 'list', style: styles }, [
-      h(
-        Fragment,
-        _.flow(
+  return (
+    <>
+      <div style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>Current Collaborators</div>
+      <div ref={list} role='list' style={styles}>
+        {_.flow(
           _.remove(aclEntryIsTerraSupport),
-          _.map((aclItem) => h(Collaborator, { aclItem, ...props }))
-        )(acl)
-      ),
-    ]),
-  ]);
+          _.map((aclItem) => <Collaborator key={aclItem.email} aclItem={aclItem} {...props} />)
+        )(acl)}
+      </div>
+    </>
+  );
 };
 
 const styles: CSSProperties = {

@@ -14,11 +14,12 @@ import {
 } from 'src/analysis/utils/cost-utils';
 import { appToolLabels, isToolHidden, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { Ajax } from 'src/libs/ajax';
 import { App, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { NormalizedComputeRegion } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes, RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -107,18 +108,13 @@ jest.mock(
   })
 );
 
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/leonardo/Runtimes');
+jest.mock('src/libs/ajax/Metrics');
+
 jest.mock('src/libs/feature-previews');
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxMetricsContract = AjaxContract['Metrics'];
-
-const mockMetrics: Partial<AjaxMetricsContract> = {
+const mockMetrics: Partial<MetricsContract> = {
   captureEvent: () => Promise.resolve(),
-};
-
-const defaultAjaxImpl: Partial<AjaxContract> = {
-  Metrics: mockMetrics as AjaxMetricsContract,
 };
 
 beforeEach(() => {
@@ -136,7 +132,7 @@ beforeEach(() => {
       : div([]);
   });
 
-  asMockedFn(Ajax).mockReturnValue(defaultAjaxImpl as AjaxContract);
+  asMockedFn(Metrics).mockReturnValue(mockMetrics as MetricsContract);
 
   asMockedFn(getGalaxyComputeCost).mockReturnValue(GALAXY_COMPUTE_COST);
   asMockedFn(getGalaxyDiskCost).mockReturnValue(GALAXY_DISK_COST);
@@ -736,21 +732,16 @@ describe('ContextBar - actions', () => {
     const user = userEvent.setup();
 
     const mockRuntimesStartFn = jest.fn();
-    type RuntimesContract = AjaxContract['Runtimes'];
 
-    const mockRuntimeWrapper: Partial<RuntimesContract['runtimeWrapper']> = jest.fn(() => ({
+    const mockRuntimeWrapper: Partial<RuntimesAjaxContract['runtimeWrapper']> = jest.fn(() => ({
       start: mockRuntimesStartFn,
     }));
 
-    const mockRuntimes: Partial<RuntimesContract> = {
-      runtimeWrapper: mockRuntimeWrapper as RuntimesContract['runtimeWrapper'],
+    const mockRuntimes: Partial<RuntimesAjaxContract> = {
+      runtimeWrapper: mockRuntimeWrapper as RuntimesAjaxContract['runtimeWrapper'],
     };
 
-    const newMockAjax: Partial<AjaxContract> = {
-      ...defaultAjaxImpl,
-      Runtimes: mockRuntimes as RuntimesContract,
-    };
-    asMockedFn(Ajax).mockReturnValue(newMockAjax as AjaxContract);
+    asMockedFn(Runtimes).mockReturnValue(mockRuntimes as RuntimesAjaxContract);
 
     const runtime: Runtime = {
       ...jupyter,
@@ -780,21 +771,16 @@ describe('ContextBar - actions', () => {
   it('clicking Terminal will not attempt to start an already running Jupyter notebook', () => {
     // Arrange
     const mockRuntimesStartFn = jest.fn();
-    type RuntimesContract = AjaxContract['Runtimes'];
 
-    const mockRuntimeWrapper: Partial<RuntimesContract['runtimeWrapper']> = jest.fn(() => ({
+    const mockRuntimeWrapper: Partial<RuntimesAjaxContract['runtimeWrapper']> = jest.fn(() => ({
       start: mockRuntimesStartFn,
     }));
 
-    const mockRuntimes: Partial<RuntimesContract> = {
-      runtimeWrapper: mockRuntimeWrapper as RuntimesContract['runtimeWrapper'],
+    const mockRuntimes: Partial<RuntimesAjaxContract> = {
+      runtimeWrapper: mockRuntimeWrapper as RuntimesAjaxContract['runtimeWrapper'],
     };
 
-    const newMockAjax: Partial<AjaxContract> = {
-      ...defaultAjaxImpl,
-      Runtimes: mockRuntimes as RuntimesContract,
-    };
-    asMockedFn(Ajax).mockReturnValue(newMockAjax as AjaxContract);
+    asMockedFn(Runtimes).mockReturnValue(mockRuntimes as RuntimesAjaxContract);
 
     const jupyterContextBarProps: ContextBarProps = {
       ...contextBarProps,

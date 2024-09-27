@@ -40,6 +40,11 @@ export const Methods = (signal?: AbortSignal) => ({
         return res.json();
       },
 
+      delete: async () => {
+        const res = await fetchOrchestration(`api/${root}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
+        return res.json();
+      },
+
       configs: async () => {
         const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }));
         return res.json();
