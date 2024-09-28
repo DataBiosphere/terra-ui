@@ -2,7 +2,7 @@ const PuppeteerEnvironment = require('jest-environment-puppeteer');
 const { parse } = require('path');
 const { maybeSaveScreenshot, savePageContent } = require('./utils/integration-utils');
 
-class JestCircusEnvironment extends PuppeteerEnvironment {
+class JestCircusEnvironment extends PuppeteerEnvironment.default {
   constructor(config, context) {
     super(config, context);
     this.testName = parse(context.testPath).name;
