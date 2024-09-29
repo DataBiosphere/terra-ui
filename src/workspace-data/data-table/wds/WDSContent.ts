@@ -103,7 +103,11 @@ export const WDSContent = ({
       },
       border: false,
       loadMetadata,
-      childrenBefore: () => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } }, [renderEditMenu()]),
+      childrenBefore: () =>
+        div(
+          { style: { display: 'flex', alignItems: 'center', flex: 'none' } },
+          dataProvider.features.supportsEditableData ? [renderEditMenu()] : []
+        ),
     }),
     deletingRecords &&
       h(RecordDeleter, {
