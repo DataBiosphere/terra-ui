@@ -90,7 +90,7 @@ const testRunRStudioFn = _.flowRight(
   await delay(Millis.ofSeconds(3));
   await fillIn(frame, '//textarea', 'x=1;x');
   await page.keyboard.press('Enter');
-  await frame.$x('//*[contains(normalize-space(.),"[1] 1")]');
+  await frame.$$('xpath///*[contains(normalize-space(.),"[1] 1")]');
 
   await dismissInfoNotifications(page);
 

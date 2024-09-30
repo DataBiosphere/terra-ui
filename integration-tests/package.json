@@ -22,7 +22,7 @@
     "google-auth-library": "^7.9.2",
     "lodash": "^4.17.21",
     "p-retry": "^4.6.1",
-    "puppeteer": "^21.11.0",
+    "puppeteer": "22.0.0",
     "qs": "^6.10.1",
     "uuid": "^8.3.2"
   }

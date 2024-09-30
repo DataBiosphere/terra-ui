@@ -42,7 +42,12 @@ module.exports = {
           'If you notice unexpected side effects in your tests',
           'you can disable this flag in src/jest-puppeteer.config.js',
         ]);
-        return [flag];
+        // May not actually need these
+        return [
+          '--disable-web-security',
+          '--disable-features=BlockInsecurePrivateNetworkRequests,IsolateOrigins,site-per-process',
+          '--disable-site-isolation-trials',
+        ];
       }
       return [];
     })({ headfull: process.env.HEADLESS === 'false', devtools: process.env.DEVTOOLS === 'true' }),
