@@ -106,7 +106,7 @@ export const WDSContent = ({
       childrenBefore: () =>
         div(
           { style: { display: 'flex', alignItems: 'center', flex: 'none' } },
-          dataProvider.features.supportsEditableData ? [renderEditMenu()] : []
+          dataProvider.features.supportsRowSelection ? [renderEditMenu()] : []
         ),
     }),
     deletingRecords &&

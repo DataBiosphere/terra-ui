@@ -183,8 +183,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsExport: false,
       supportsPointCorrection: false,
       supportsFiltering: false,
-      supportsRowSelection: this.isCapabilityEnabled('apiV1.deleteRecords'),
-      supportsEditableData: this.isCapabilityEnabled('apiV1.deleteRecords'), // deletion is the only editing action available right now
+      supportsRowSelection: this.isCapabilityEnabled('apiV1.deleteRecords'), // deletion is the only row-based edit action available right now
       supportsPerColumnDatatype: true,
     };
   }
