@@ -205,6 +205,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
 
   const addUser = (userEmail) => {
     setSearchValue('');
+    setUserValueModified(false);
     setPermissions(append({ user: userEmail, role: 'READER' } as RawWorkflowsPermissions));
   };
 
