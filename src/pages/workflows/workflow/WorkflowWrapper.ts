@@ -2,17 +2,22 @@ import { ButtonPrimary, Select, useUniqueId } from '@terra-ui-packages/component
 import _ from 'lodash/fp';
 import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
 import { div, h, label } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { centeredSpinner } from 'src/components/icons';
 import { TabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { makeExportWorkflowFromMethodsRepoProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
+import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
-import { snapshotsListStore, snapshotStore } from 'src/libs/state';
+import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
 import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
+import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
 import { isGoogleWorkspace, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
@@ -94,6 +99,9 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const selectedSnapshot: number = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
 
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
+
   const snapshot =
     cachedSnapshot &&
     _.isEqual(
@@ -102,6 +110,11 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     )
       ? cachedSnapshot
       : undefined;
+
+  const isSnapshotOwner: boolean = _.includes(
+    getTerraUser().email?.toLowerCase(),
+    _.map(_.toLower, snapshot?.managers)
+  );
 
   useOnMount(() => {
     const loadSnapshot = async () => {
@@ -120,6 +133,31 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
       );
     }
   });
+
+  const deleteSnapshot = async () => {
+    await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).delete();
+
+    // Replace the current history entry linking to the method details page of a
+    // specific snapshot, like /#workflows/sschu/echo-strings-test/29, with an
+    // entry with the corresponding link without the snapshot ID, like
+    // /#workflows/sschu/echo-strings-test
+    // This way, if the user presses the back button after deleting a
+    // method snapshot, they will be automatically redirected to the most recent
+    // snapshot that still exists of the same method
+    window.history.replaceState({}, '', Nav.getLink('workflow-dashboard', { namespace, name }));
+
+    // Clear the cache of the snapshot that was just deleted so that if the user
+    // manually navigates to the URL for that snapshot, outdated information
+    // will not be shown
+    snapshotStore.reset();
+
+    // Clear the cached snapshot list for this method since the list now
+    // contains a deleted snapshot - this way, if the user clicks on this
+    // method in the methods list (or presses the back button), they will be
+    // redirected to the most recent snapshot that still exists, rather than the
+    // snapshot that was just deleted
+    snapshotsListStore.reset();
+  };
 
   return h(Fragment, [
     h(
@@ -153,6 +191,9 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           },
           ['Export to Workspace']
         ),
+        div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
+          h(SnapshotActionMenu, { isSnapshotOwner, onDelete: () => setShowDeleteModal(true) }),
+        ]),
       ]
     ),
     exportingWorkflow &&
@@ -177,6 +218,22 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           }),
         onDismiss: () => setExportingWorkflow(false),
       }),
+    showDeleteModal &&
+      h(DeleteSnapshotModal, {
+        namespace,
+        name,
+        snapshotId: `${selectedSnapshot}`,
+        onConfirm: _.flow(
+          Utils.withBusyState(setBusy),
+          withErrorReporting('Error deleting snapshot')
+        )(async () => {
+          setShowDeleteModal(false);
+          await deleteSnapshot();
+          Nav.goToPath('workflows');
+        }),
+        onDismiss: () => setShowDeleteModal(false),
+      }),
+    busy && spinnerOverlay,
     snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
   ]);
 };
