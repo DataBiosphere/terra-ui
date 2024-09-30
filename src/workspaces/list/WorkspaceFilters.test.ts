@@ -1,11 +1,12 @@
-import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
+import { delay } from '@terra-ui-packages/core-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events from 'src/libs/events';
 import { updateSearch } from 'src/libs/nav';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceFilters } from 'src/workspaces/list/WorkspaceFilters';
 
@@ -21,9 +22,8 @@ jest.mock(
   })
 );
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 describe('WorkspaceFilters', () => {
   it.each([
@@ -56,17 +56,14 @@ describe('WorkspaceFilters', () => {
     async ({ label, item, eventData, filterParam }) => {
       const user = userEvent.setup();
       const captureEvent = jest.fn();
-      asMockedFn(Ajax).mockImplementation(
-        () =>
-          ({
-            Workspaces: {
-              getTags: jest.fn().mockResolvedValue([
-                { tag: 'tag1', count: 1 },
-                { tag: 'tag2', count: 2 },
-              ]),
-            } as DeepPartial<AjaxContract['Workspaces']>,
-            Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-          } as Partial<AjaxContract> as AjaxContract)
+      asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
+      asMockedFn(Workspaces).mockReturnValue(
+        partial<WorkspacesAjaxContract>({
+          getTags: jest.fn().mockResolvedValue([
+            { tag: 'tag1', count: 1 },
+            { tag: 'tag2', count: 2 },
+          ]),
+        })
       );
       asMockedFn(updateSearch);
 
@@ -92,14 +89,11 @@ describe('WorkspaceFilters', () => {
   it('can emit an event when focus leaves the search by keyword input', async () => {
     const user = userEvent.setup();
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Workspaces: {
-            getTags: jest.fn().mockResolvedValue([]),
-          } as DeepPartial<AjaxContract['Workspaces']>,
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        getTags: jest.fn().mockResolvedValue([]),
+      })
     );
     asMockedFn(updateSearch);
 

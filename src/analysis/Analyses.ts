@@ -317,10 +317,10 @@ const AnalysisCard = ({
     ]
   );
 
+  const launchAnalysis = () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName });
   // the flex values for columns here correspond to the flex values in the header
   const artifactName = div(
     {
-      onClick: () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName }),
       title: getFileName(name),
       role: 'cell',
       style: {
@@ -331,7 +331,7 @@ const AnalysisCard = ({
         ...centerColumnFlex,
       },
     },
-    [getFileName(name)]
+    [h(Clickable, { onClick: launchAnalysis }, [getFileName(name)])]
   );
 
   const toolLogos: Record<RuntimeToolLabel, string> = {

@@ -3,7 +3,8 @@ import _ from 'lodash/fp';
 import { CSSProperties, ReactNode, useState } from 'react';
 import { div, h, i, span } from 'react-hyperscript-helpers';
 import { icon } from 'src/components/icons';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -51,8 +52,8 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     withErrorReporting('Error adding tag'),
     withBusyState(setBusy)
   )(async (tag) => {
-    setTagsList(await Ajax().Workspaces.workspace(namespace, name).addTag(tag));
-    Ajax().Metrics.captureEvent(Events.workspaceDashboardAddTag, {
+    setTagsList(await Workspaces().workspace(namespace, name).addTag(tag));
+    void Metrics().captureEvent(Events.workspaceDashboardAddTag, {
       tag,
       ...extractWorkspaceDetails(workspace),
     });
@@ -62,8 +63,8 @@ export const WorkspaceTags = (props: WorkspaceTagsProps): ReactNode => {
     withErrorReporting('Error removing tag'),
     withBusyState(setBusy)
   )(async (tag) => {
-    setTagsList(await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag));
-    Ajax().Metrics.captureEvent(Events.workspaceDashboardDeleteTag, {
+    setTagsList(await Workspaces().workspace(namespace, name).deleteTag(tag));
+    void Metrics().captureEvent(Events.workspaceDashboardDeleteTag, {
       tag,
       ...extractWorkspaceDetails(workspace),
     });

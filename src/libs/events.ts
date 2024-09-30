@@ -67,7 +67,6 @@ const eventsList = {
   catalogFilterSidebar: 'catalog:filter:sidebar',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',
-  catalogLandingPageBanner: 'catalog:landingPageBanner',
   catalogViewDetails: 'catalog:view:details',
   catalogViewPreviewData: 'catalog:view:previewData',
   catalogWorkspaceLinkFromDetailsView: 'catalog:workspaceLink:detailsView',

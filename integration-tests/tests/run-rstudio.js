@@ -53,7 +53,7 @@ const testRunRStudioFn = _.flowRight(
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${rFileName}.Rmd"]`);
+  await click(page, clickable({ textContains: `${rFileName}.Rmd` }));
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
   await waitForNoSpinners(page);
