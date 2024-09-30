@@ -31,13 +31,13 @@ export interface WrapWorkflowOptions {
 interface WorkflowWrapperProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: number | undefined;
+  snapshotId: string | undefined;
 }
 
 interface WorkflowContainerProps extends PropsWithChildren {
   namespace: string;
   name: string;
-  snapshotId: number | undefined;
+  snapshotId: string | undefined;
   tabName: string | undefined;
 }
 
@@ -119,7 +119,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   );
 
   const refresh = Utils.withBusyState(setBusy, async () => {
-    snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, snapshotId).get());
+    snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
   });
 
   useOnMount(() => {
@@ -248,7 +248,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         snapshotOrNamespace: 'Snapshot',
         namespace,
         name,
-        selectedSnapshot: snapshotId,
+        selectedSnapshot,
         setPermissionsModalOpen,
         refresh,
         setLoading: () => busy,
