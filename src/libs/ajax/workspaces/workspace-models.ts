@@ -32,7 +32,7 @@ export interface MethodConfiguration {
 }
 
 // TYPES RELATED TO WORKSPACE SETTINGS
-export type WorkspaceSetting = BucketLifecycleSetting | SoftDeleteSetting;
+export type WorkspaceSetting = BucketLifecycleSetting | SoftDeleteSetting | RequesterPaysSetting;
 
 export interface BucketLifecycleSetting {
   settingType: 'GcpBucketLifecycle';
@@ -42,6 +42,11 @@ export interface BucketLifecycleSetting {
 export interface SoftDeleteSetting {
   settingType: 'GcpBucketSoftDelete';
   config: { retentionDurationInSeconds: number };
+}
+
+export interface RequesterPaysSetting {
+  settingType: 'GcpBucketRequesterPays';
+  config: { enabled: boolean };
 }
 
 export interface BucketLifecycleRule {
