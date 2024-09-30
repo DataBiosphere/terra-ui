@@ -11,7 +11,6 @@ import { errorWatcher } from 'src/libs/error.mock';
 import { goToPath } from 'src/libs/nav';
 import { forwardRefWithName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore, TerraUser, TerraUserState, userStore } from 'src/libs/state';
-import { BaseWorkflowSummary } from 'src/pages/workflows/workflow/WorkflowSummary';
 import { WorkflowsContainer, wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 import { Snapshot } from 'src/snapshots/Snapshot';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -129,6 +128,17 @@ const mockUser = (email: string): Partial<TerraUser> => ({ email });
 const mockUserState = (email: string): Partial<TerraUserState> => {
   return { terraUser: mockUser(email) as TerraUser };
 };
+
+const MockWrappedWorkflowComponent = _.flow(
+  forwardRefWithName('MockWrappedWorkflowComponent'),
+  wrapWorkflows({
+    breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
+    title: 'Methods',
+    activeTab: 'dashboard',
+  })
+)(() => {
+  return 'children';
+});
 
 const mockWorkspace: WorkspaceInfo = {
   workspaceId: 'Workspace1',
@@ -434,26 +444,15 @@ describe('workflows container', () => {
 
   it('displays the method not found page if a method does not exist or the user does not have access', async () => {
     // Arrange
-    mockAjax({ listImpl: jest.fn().mockReturnValue([]) });
+    mockAjax({ listImpl: jest.fn().mockResolvedValue([]) });
 
     // set the user's email
     jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
 
-    const WorkflowSummary = _.flow(
-      forwardRefWithName('WorkflowSummary'),
-      wrapWorkflows({
-        breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
-        title: 'Methods',
-        activeTab: 'dashboard',
-      })
-    )(() => {
-      return <BaseWorkflowSummary />;
-    });
-
     // Act
     await act(async () => {
       render(
-        <WorkflowSummary
+        <MockWrappedWorkflowComponent
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
           snapshotId={mockSnapshot.snapshotId}
@@ -471,16 +470,14 @@ describe('workflows container', () => {
     // should not display an error toast
     expect(errorWatcher).not.toHaveBeenCalled();
 
-    // should not display the tab bar
+    // should not display the tab bar or children
     expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
     expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
-
-    // should not display the base workflow summary
-    expect(screen.queryByText(/snapshot information/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
 
     // should only display the 404 error page, with the correct info filled in
     expect(screen.getByText('Could not display method')).toBeInTheDocument();
@@ -507,21 +504,10 @@ describe('workflows container', () => {
       }),
     });
 
-    const WorkflowSummary = _.flow(
-      forwardRefWithName('WorkflowSummary'),
-      wrapWorkflows({
-        breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
-        title: 'Methods',
-        activeTab: 'dashboard',
-      })
-    )(() => {
-      return <BaseWorkflowSummary />;
-    });
-
     // Act
     await act(async () => {
       render(
-        <WorkflowSummary
+        <MockWrappedWorkflowComponent
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
           snapshotId={mockSnapshot.snapshotId}
@@ -536,16 +522,14 @@ describe('workflows container', () => {
     const spinner = document.querySelector('[data-icon="loadingSpinner"]');
     expect(spinner).not.toBeInTheDocument();
 
-    // should not display the tab bar
+    // should not display the tab bar or children
     expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
     expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
-
-    // should not display the base workflow summary
-    expect(screen.queryByText(/snapshot information/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
 
     // should not display the 404 error page
     expect(screen.queryByText('Could not display method')).not.toBeInTheDocument();
