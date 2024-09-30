@@ -200,8 +200,8 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
           h(SnapshotActionMenu, {
             isSnapshotOwner,
+            onEditPermissions: () => setPermissionsModalOpen(true),
             onDelete: () => setShowDeleteModal(true),
-            onEdit: () => setPermissionsModalOpen(true),
           }),
         ]),
       ]

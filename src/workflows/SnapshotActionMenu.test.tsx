@@ -5,7 +5,7 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
 
 const mockOnDelete = jest.fn();
-const mockOnEdit = jest.fn();
+const mockOnEditPermissions = jest.fn();
 
 describe('snapshot action menu delete', () => {
   it('renders and enables the menu buttons if you are the snapshot owner', async () => {
@@ -14,7 +14,7 @@ describe('snapshot action menu delete', () => {
 
     // Act
     await act(async () => {
-      render(<SnapshotActionMenu isSnapshotOwner onDelete={mockOnDelete} onEdit={mockOnEdit} />);
+      render(<SnapshotActionMenu isSnapshotOwner onEditPermissions={mockOnEditPermissions} onDelete={mockOnDelete} />);
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
@@ -35,7 +35,9 @@ describe('snapshot action menu delete', () => {
 
     // Act
     await act(async () => {
-      render(<SnapshotActionMenu isSnapshotOwner={false} onDelete={mockOnDelete} onEdit={mockOnEdit} />);
+      render(
+        <SnapshotActionMenu isSnapshotOwner={false} onEditPermissions={mockOnEditPermissions} onDelete={mockOnDelete} />
+      );
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
@@ -56,7 +58,7 @@ describe('snapshot action menu delete', () => {
 
     // Act
     await act(async () => {
-      render(<SnapshotActionMenu isSnapshotOwner onDelete={mockOnDelete} onEdit={mockOnEdit} />);
+      render(<SnapshotActionMenu isSnapshotOwner onEditPermissions={mockOnEditPermissions} onDelete={mockOnDelete} />);
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
@@ -69,19 +71,19 @@ describe('snapshot action menu delete', () => {
 });
 
 describe('snapshot action menu edit permissions', () => {
-  it('does', async () => {
+  it('closes and calls the onEditPermissions callback when you press the edit permissions menu button', async () => {
     // Arrange
     const user: UserEvent = userEvent.setup();
 
     // Act
     await act(async () => {
-      render(<SnapshotActionMenu isSnapshotOwner onDelete={mockOnDelete} onEdit={mockOnEdit} />);
+      render(<SnapshotActionMenu isSnapshotOwner onEditPermissions={mockOnEditPermissions} onDelete={mockOnDelete} />);
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    await user.click(screen.getByRole('button', { name: 'Edit Permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
 
-    expect(screen.queryByRole('button', { name: 'Edit Permissions' })).not.toBeInTheDocument();
-    expect(mockOnEdit).toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Edit permissions' })).not.toBeInTheDocument();
+    expect(mockOnEditPermissions).toHaveBeenCalled();
   });
 });
