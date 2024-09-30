@@ -46,7 +46,7 @@ const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
         onClick={onEdit}
       >
         {makeMenuIcon('cog')}
-        Edit Permissions
+        Edit permissions
       </MenuButton>
     </>
   );
