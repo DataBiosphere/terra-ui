@@ -634,3 +634,4 @@ export const Workspaces = (signal?: AbortSignal) => ({
 });
 
 export type WorkspacesAjaxContract = ReturnType<typeof Workspaces>;
+export type WorkspaceContract = ReturnType<WorkspacesAjaxContract['workspace']>;

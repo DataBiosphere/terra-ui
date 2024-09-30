@@ -4,9 +4,10 @@ import { div, h } from 'react-hyperscript-helpers';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { Link } from 'src/components/common';
 import { locationTypes } from 'src/components/region-common';
-import { Ajax } from 'src/libs/ajax';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { responseContainsRequesterPaysError, saToken } from 'src/libs/ajax/GoogleStorage';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { ErrorCallback, withErrorHandling, withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { clearNotification, notify } from 'src/libs/notifications';
@@ -99,13 +100,13 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
       // cost estimate may fail (due to caching of previous failure results), do not consider permissions
       // to be done syncing until all the methods that we know will be called quickly in succession succeed.
       // This is not guaranteed to eliminate the issue, but it improves the odds.
-      await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess();
+      await Workspaces(signal).workspace(namespace, name).checkBucketReadAccess();
       if (canWrite(workspace.accessLevel)) {
         // Calls done on the Workspace Dashboard. We could store the results and pass them
         // through, but then we would have to do it checkWorkspaceInitialization as well,
         // and nobody else actually needs these values.
-        await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate();
-        await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage();
+        await Workspaces(signal).workspace(namespace, name).storageCostEstimate();
+        await Workspaces(signal).workspace(namespace, name).bucketUsage();
       }
       await loadGoogleBucketLocation(workspace);
       updateWorkspaceInStore(workspace, true);
@@ -120,7 +121,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
         updateWorkspaceInStore(workspace, false);
         console.log('Google permissions are still syncing'); // eslint-disable-line no-console
         if (times === 1) {
-          Ajax().Metrics.captureEvent(Events.permissionsSynchronizationDelay, {
+          void Metrics().captureEvent(Events.permissionsSynchronizationDelay, {
             accessLevel: workspace.accessLevel,
             createdDate: workspace.workspace.createdDate,
             isWorkspaceCreator: workspace.workspace.createdBy === getTerraUser().email,
@@ -142,8 +143,8 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
 
   const loadGoogleBucketLocation = async (workspace) => {
     try {
-      const storageDetails = await Ajax(signal)
-        .Workspaces.workspace(namespace, name)
+      const storageDetails = await Workspaces(signal)
+        .workspace(namespace, name)
         .checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName);
       storageDetails.fetchedLocation = 'SUCCESS';
       setGoogleStorage(storageDetails);
@@ -181,8 +182,8 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
   });
 
   const doWorkspaceRefresh = async (): Promise<void> => {
-    const workspace = await Ajax(signal)
-      .Workspaces.workspace(namespace, name)
+    const workspace = await Workspaces(signal)
+      .workspace(namespace, name)
       .details([
         'accessLevel',
         'azureContext',

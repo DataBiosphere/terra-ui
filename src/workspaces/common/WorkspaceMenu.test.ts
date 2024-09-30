@@ -1,10 +1,10 @@
-import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import { div, h } from 'react-hyperscript-helpers';
 import { MenuTrigger } from 'src/components/PopupTrigger';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, protectedDataPolicy } from 'src/testing/workspace-fixtures';
@@ -13,9 +13,7 @@ import { tooltipText, WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu'
 import * as WorkspaceUtils from 'src/workspaces/utils';
 import { AzureWorkspace, GoogleWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
 
 type UseWorkspaceDetailsExports = typeof import('src/workspaces/common/state/useWorkspaceDetails');
 jest.mock('src/workspaces/common/state/useWorkspaceDetails', (): UseWorkspaceDetailsExports => {
@@ -421,12 +419,7 @@ describe('WorkspaceMenu - defined workspace (GCP or Azure)', () => {
       loading: false,
     });
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -537,12 +530,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       loading: false,
     });
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
@@ -567,12 +555,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       loading: false,
     });
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
 
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps));
