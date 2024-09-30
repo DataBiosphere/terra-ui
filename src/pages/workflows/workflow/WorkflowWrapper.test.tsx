@@ -27,7 +27,7 @@ jest.mock(
   (): NavExports => ({
     ...jest.requireActual('src/libs/nav'),
     getLink: jest.fn((name, pathParams?) =>
-      name === 'workflow-dashboard' ? `#workflows/${pathParams!.namespace}/${pathParams!.name}` : ''
+      name === 'workflow-dashboard' ? `#workflows/${pathParams!.namespace}/${pathParams!.name}` : `#${name}`
     ),
     goToPath: jest.fn(),
   })
@@ -493,7 +493,10 @@ describe('workflows container', () => {
       )
     ).toBeInTheDocument();
     expect(screen.getByText('The method may also have been deleted by one of its owners.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Return to Methods List' })).toBeInTheDocument();
+
+    const returnToMethodsListButton = screen.getByRole('link', { name: 'Return to Methods List' });
+    expect(returnToMethodsListButton).toBeInTheDocument();
+    expect(returnToMethodsListButton).toHaveAttribute('href', '#workflows');
   });
 
   it('displays an error toast when there is an unexpected error loading a method', async () => {
@@ -603,6 +606,8 @@ describe('workflows container', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('The snapshot may also have been deleted by one of its owners.')).toBeInTheDocument();
     expect(screen.getByText('Please select a different snapshot from the dropdown above.')).toBeInTheDocument();
+
+    expect(screen.queryByRole('link', { name: 'Return to Methods List' })).not.toBeInTheDocument();
   });
 
   it('displays an error toast when there is an unexpected error loading a snapshot', async () => {
