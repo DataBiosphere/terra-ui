@@ -34,19 +34,19 @@ const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
         disabled={!isSnapshotOwner}
         tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
         tooltipSide='left'
-        onClick={onDelete}
+        onClick={onEdit}
       >
-        {makeMenuIcon('trash')}
-        Delete snapshot
+        {makeMenuIcon('cog')}
+        Edit permissions
       </MenuButton>
       <MenuButton
         disabled={!isSnapshotOwner}
         tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
         tooltipSide='left'
-        onClick={onEdit}
+        onClick={onDelete}
       >
-        {makeMenuIcon('cog')}
-        Edit permissions
+        {makeMenuIcon('trash')}
+        Delete snapshot
       </MenuButton>
     </>
   );
