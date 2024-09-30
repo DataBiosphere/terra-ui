@@ -35,7 +35,7 @@ type WorkflowPermissionsModalProps = {
   snapshotOrNamespace: 'Snapshot' | 'Namespace';
   namespace: string;
   name: string;
-  selectedSnapshot: number | undefined;
+  selectedSnapshot: number;
   setPermissionsModalOpen: (b: boolean) => void;
   refresh: () => void;
   setLoading: (b: boolean) => void;
