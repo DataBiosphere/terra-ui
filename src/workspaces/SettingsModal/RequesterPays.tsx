@@ -21,12 +21,9 @@ const RequesterPays = (props: RequesterPaysProps): ReactNode => {
       isOwner={isOwner}
       description={
         <>
-          This{' '}
-          <ExternalLink href='https://cloud.google.com/storage/docs/requester-pays'>
-            requester pays setting
-          </ExternalLink>{' '}
-          specifies whether the costs of requests on a storage resource are billed to the project owner or the
-          requester. Requester pays can be enabled or disabled.{' '}
+          When <ExternalLink href='https://cloud.google.com/storage/docs/requester-pays'>requester pays</ExternalLink>{' '}
+          is enabled, requests for the bucket&apos;s data will be billed to the requester&apos;s project instead of the
+          bucket owner. The requester will be prompted to select their own billing project.{' '}
         </>
       }
     />
