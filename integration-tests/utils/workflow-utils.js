@@ -10,7 +10,7 @@ const launchWorkflowAndWaitForSuccess = async (page) => {
   // stopLoggingPageAjaxResponses()
 
   // If this table doesn't exists, something is wrong. Fail test now.
-  await page.waitForXPath('//*[@role="table" and @aria-label="submission details"]', { visible: true });
+  await page.waitForSelector('xpath///*[@role="table" and @aria-label="submission details"]', { visible: true });
 
   // Workflow status list:
   // Queued -> Submitted -> Launching -> Running -> Succeeded or Failed

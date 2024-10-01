@@ -1,19 +1,16 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { ButtonOutline, ButtonPrimary, Clickable, Link } from 'src/components/common';
+import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { HeroWrapper } from 'src/components/HeroWrapper';
 import { icon } from 'src/components/icons';
 import hexButton from 'src/images/hex-button.svg';
-import terraHero from 'src/images/terra-hero.png';
 import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils';
 import { landingPageCardsDefault } from 'src/libs/brands';
 import colors from 'src/libs/colors';
 import { withErrorHandling } from 'src/libs/error';
-import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { setLocalPref } from 'src/libs/prefs';
 import { useCancellation, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
@@ -136,40 +133,6 @@ export const LandingPage = () => {
     // width is set to prevent text from overlapping the background image and decreasing legibility
     div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
     div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, makeCard(getEnabledBrand().landingPageCards || landingPageCardsDefault)),
-    isTerra() &&
-      div(
-        {
-          style: {
-            ...styles.callToActionBanner,
-            backgroundColor: colors.primary(),
-            backgroundImage: `url(${terraHero})`,
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`,
-            marginTop: 15,
-          },
-        },
-        [
-          div([
-            h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['New Data Catalog']),
-            'Preview the Data Catalog and provide valuable feedback.',
-          ]),
-          h(
-            ButtonOutline,
-            {
-              style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
-              onClick: () => {
-                Ajax().Metrics.captureEvent(Events.catalogLandingPageBanner);
-                setLocalPref('catalog-toggle', true);
-                Nav.goToPath('library-datasets');
-              },
-            },
-            ['Preview the new Data Catalog']
-          ),
-        ]
-      ),
     (isTerra() || isFirecloud()) &&
       div({ style: { width: 700, marginTop: '4rem' } }, [
         'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',

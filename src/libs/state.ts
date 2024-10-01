@@ -310,7 +310,7 @@ export type AsyncImportJob = AzureAsyncImportJob | GCPAsyncImportJob;
 
 export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 
-export const snapshotsListStore = atom<unknown>(undefined);
+export const snapshotsListStore = atom<Snapshot[] | undefined>(undefined);
 
 export const snapshotStore = atom<Snapshot>({
   createDate: '',

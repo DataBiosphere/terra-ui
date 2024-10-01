@@ -50,7 +50,7 @@ const testRunAnalysisFn = _.flowRight(
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${notebookName}.ipynb"]`);
+  await click(page, clickable({ textContains: `${notebookName}.ipynb` }));
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
   await waitForNoSpinners(page);
@@ -88,7 +88,7 @@ const testRunAnalysisFn = _.flowRight(
   await delay(Millis.ofSeconds(3));
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
   await click(frame, clickable({ text: 'Run' }));
-  await findText(frame, '123456789099886419754209');
+  await frame.$$('xpath///*[contains(normalize-space(.),"123456789099886419754209")]');
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }));

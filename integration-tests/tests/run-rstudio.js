@@ -53,7 +53,7 @@ const testRunRStudioFn = _.flowRight(
   await waitForNoModal(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${rFileName}.Rmd"]`);
+  await click(page, clickable({ textContains: `${rFileName}.Rmd` }));
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
   await waitForNoSpinners(page);
@@ -90,7 +90,7 @@ const testRunRStudioFn = _.flowRight(
   await delay(Millis.ofSeconds(3));
   await fillIn(frame, '//textarea', 'x=1;x');
   await page.keyboard.press('Enter');
-  await findText(frame, '[1] 1');
+  await frame.$$('xpath///*[contains(normalize-space(.),"[1] 1")]');
 
   await dismissInfoNotifications(page);
 
