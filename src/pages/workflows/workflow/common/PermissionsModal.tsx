@@ -71,7 +71,6 @@ const styles: CSSProperties = {
   borderBottom: Style.standardLine,
   borderTop: Style.standardLine,
 };
-const AclSelect = Select as typeof Select<WorkflowAccessLevel>;
 
 const UserSelectInput = (props: UserSelectProps) => {
   const { value, disabled, onChange, ...rest } = props;
@@ -80,7 +79,7 @@ const UserSelectInput = (props: UserSelectProps) => {
   return (
     <div style={{ display: 'flex', marginTop: '0.25rem' }}>
       <div style={{ width: 200 }}>
-        <AclSelect
+        <Select<WorkflowAccessLevel>
           aria-label={`selected role ${role}`}
           value={role}
           options={['READER', 'OWNER']}
