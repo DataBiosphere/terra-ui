@@ -49,7 +49,7 @@ type UserProps = {
 type UserSelectProps = {
   disabled: boolean | undefined;
   value: RawWorkflowsPermissions;
-  onChange: (RawWorkflowsPermissions) => void;
+  onChange: (newPerms: RawWorkflowsPermissions) => void;
 };
 
 type CurrentUserProps = {
@@ -89,12 +89,7 @@ const UserSelectInput = (props: UserSelectProps) => {
           onChange={(r) =>
             onChange({
               ...value,
-              role: r?.value,
-              ...Utils.switchCase(
-                r?.value,
-                ['OWNER', () => ({ role: 'OWNER' })],
-                ['READER', () => ({ role: 'READER' })]
-              ),
+              role: r!.value,
             })
           }
           menuPortalTarget={getPopupRoot()}
