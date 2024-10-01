@@ -22,8 +22,8 @@ import {
   cohortAgeData,
   cohortDemographicData,
   CohortDemographics,
-  generateAgeSeries,
   generateDemographicSeries,
+  generateRandomNumbers,
 } from 'src/dataset-builder/TestConstants';
 import {
   DataRepo,
@@ -672,7 +672,7 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
 
   useEffect(() => {
     setTimeout(() => {
-      cohortAgeData.series = generateAgeSeries(3, 90);
+      cohortAgeData.series = [{ data: generateRandomNumbers(3, 90) }];
       setCohortAges(cohortAgeData);
     }, 2000);
   }, [snapshotRequestParticipantCount]);

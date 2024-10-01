@@ -201,7 +201,7 @@ export const cohortAgeData = {
     { short: 'Male' },
     { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
   ],
-  series: generateAgeSeries(3, 90),
+  series: [{ data: generateRandomNumbers(3, 90) }],
   title: 'Gender identity',
   yTitle: 'AVERAGE AGE',
   height: '250rem',
@@ -232,16 +232,16 @@ export const cohortDemographicData = {
   showSeriesName: true,
 };
 
-export function generateAgeSeries(numNumbers: number, max: number) {
+export function generateRandomNumbers(numNumbers: number, max: number) {
   const randomNumbers: number[] = [];
   for (let i = 0; i < numNumbers; i++) {
     const randomNumber = Math.floor(Math.random() * max) + 1;
     randomNumbers.push(randomNumber);
   }
-  return [{ name: 'Overall', data: randomNumbers }];
+  return randomNumbers;
 }
 
-function generateRandomNumbersThatAddUpTo(total: number, numNumbers: number): number[] {
+export function generateRandomNumbersThatAddUpTo(total: number, numNumbers: number): number[] {
   const randomNumbers: number[] = [];
   let remaining = total;
   for (let i = 0; i < numNumbers - 1; i++) {
@@ -254,7 +254,8 @@ function generateRandomNumbersThatAddUpTo(total: number, numNumbers: number): nu
 }
 
 // series and data will always be the same length
-function addToSeriesData(series: ChartSeries[], data: number[]) {
+export function addToSeriesData(series: ChartSeries[], data: number[]) {
+  if (series.length !== data.length) throw new Error('series and data must be the same length');
   for (let i = 0; i < series.length; i++) {
     series[i].data.push(data[i]);
   }
