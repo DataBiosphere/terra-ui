@@ -5,7 +5,7 @@ export interface RawWorkflowsPermissions {
 
 export type WorkflowsPermissions = RawWorkflowsPermissions[];
 
-export const publicUser: (WorkflowsPermissions) => boolean = ({ user }) => {
+export const publicUser: (userPerms: RawWorkflowsPermissions) => boolean = ({ user }) => {
   return user === 'public';
 };
 
