@@ -113,8 +113,7 @@ const User = (props: UserProps) => {
   const disabled = user === getTerraUser().email;
 
   return (
-    <div
-      role='listitem'
+    <li
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -147,22 +146,22 @@ const User = (props: UserProps) => {
           <Icon icon='times' size={20} style={{ marginRight: '0.5rem' }} />
         </Clickable>
       )}
-    </div>
+    </li>
   );
 };
 
 const CurrentUsers = (props: CurrentUserProps) => {
-  const list = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLUListElement>(null);
   const { userPermissions } = props;
   return (
     <>
       <div style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>Current Users</div>
-      <div ref={list} role='list' style={styles}>
+      <ul ref={list} style={styles}>
         {_.flow(
           _.remove(publicUser),
           _.map((user) => <User key={`user ${user?.user}`} userEmail={user} {...props} />)
         )(userPermissions)}
-      </div>
+      </ul>
     </>
   );
 };
