@@ -55,7 +55,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });
@@ -78,7 +77,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });
@@ -102,7 +100,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });
@@ -142,7 +139,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });
@@ -178,7 +174,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });
@@ -199,7 +194,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });
@@ -239,7 +233,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });
@@ -274,7 +267,6 @@ describe('PermissionsModal', () => {
           selectedSnapshot={3}
           setPermissionsModalOpen={jest.fn()}
           refresh={jest.fn()}
-          setLoading={jest.fn()}
         />
       );
     });

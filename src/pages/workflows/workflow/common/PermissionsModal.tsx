@@ -38,7 +38,6 @@ type WorkflowPermissionsModalProps = {
   selectedSnapshot: number;
   setPermissionsModalOpen: (b: boolean) => void;
   refresh: () => void;
-  setLoading: (b: boolean) => void;
 };
 
 type UserProps = {
@@ -167,8 +166,7 @@ const CurrentUsers = (props: CurrentUserProps) => {
 };
 
 export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
-  const { snapshotOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen, refresh, setLoading } =
-    props;
+  const { snapshotOrNamespace, namespace, name, selectedSnapshot, setPermissionsModalOpen, refresh } = props;
   const signal: AbortSignal = useCancellation();
   const [searchValue, setSearchValue] = useState<string>('');
   const [permissions, setPermissions] = useState<WorkflowsPermissions>([]);
@@ -235,12 +233,10 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
 
     try {
       await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).setPermissions(permissionUpdates);
-      setLoading(true);
       refresh();
       setPermissionsModalOpen(false);
     } catch (error) {
       await reportError('Error saving permissions.', error);
-      setLoading(false);
       setPermissionsModalOpen(false);
     }
   });

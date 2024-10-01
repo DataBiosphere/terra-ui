@@ -251,7 +251,6 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         selectedSnapshot,
         setPermissionsModalOpen,
         refresh,
-        setLoading: () => busy,
       }),
     busy && spinnerOverlay,
     snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
