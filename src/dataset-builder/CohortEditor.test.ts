@@ -550,8 +550,35 @@ describe('CohortEditor', () => {
   it('renders total cohort count', async () => {
     // Arrange
     showCohortEditor();
-
     // Assert
     expect(await screen.findByText('Total participant count: 0', { exact: false })).toBeTruthy();
+    // expect(getSnapshotBuilderCountMock().getSnapshotBuilderCount).toBeCalled();
+  });
+
+  it('displays cohort demographic information', async () => {
+    // Arrange
+    // const mockRandomValue = 0.5;
+    // jest.spyOn(Math, 'random').mockReturnValue(mockRandomValue);
+    showCohortEditor();
+
+    expect(await screen.findAllByText('Female')).toHaveLength(2);
+    expect(await screen.findAllByText('Male')).toHaveLength(2);
+    expect(await screen.findAllByText('Other')).toHaveLength(2);
+
+    expect(await screen.findByText('Female 18-44')).toBeTruthy();
+    expect(await screen.findByText('Female 45-64')).toBeTruthy();
+    expect(await screen.findByText('Female 65+')).toBeTruthy();
+    expect(await screen.findByText('Male 18-44')).toBeTruthy();
+    expect(await screen.findByText('Male 45-64')).toBeTruthy();
+    expect(await screen.findByText('Male 65+')).toBeTruthy();
+    expect(await screen.findByText('Other 18-44')).toBeTruthy();
+    expect(await screen.findByText('Other 45-64')).toBeTruthy();
+    expect(await screen.findByText('Other 65+')).toBeTruthy();
+
+    expect(await screen.findByText('Asian')).toBeTruthy();
+    expect(await screen.findByText('Black')).toBeTruthy();
+    expect(await screen.findByText('Native American')).toBeTruthy();
+    expect(await screen.findByText('Pacific Islander')).toBeTruthy();
+    expect(await screen.findByText('White')).toBeTruthy();
   });
 });
