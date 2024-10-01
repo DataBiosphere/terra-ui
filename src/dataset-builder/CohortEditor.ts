@@ -726,15 +726,24 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
         ]
       ),
     ]),
-    div({ style: { backgroundColor: 'white', width: '42rem' } }, [
-      h2({ style: { marginLeft: '1rem' } }, [
-        'Total participant count: ',
-        snapshotRequestParticipantCount.status === 'Ready'
-          ? formatCount(snapshotRequestParticipantCount.state.result.total)
-          : h(Spinner),
-      ]),
-      h(Chart, { options: chartOptions(cohortAges) }),
-      h(Chart, { options: chartOptions(cohortDemographics) }),
-    ]),
+    div(
+      { style: { backgroundColor: 'white', width: '42rem' } },
+      snapshotRequestParticipantCount.status === 'Ready'
+        ? [
+            h2({ style: { marginLeft: '1rem' } }, [
+              'Total participant count: ',
+              formatCount(snapshotRequestParticipantCount.state.result.total),
+            ]),
+            h(Chart, { options: chartOptions(cohortAges) }),
+            h(Chart, { options: chartOptions(cohortDemographics) }),
+          ]
+        : [
+            h2({ style: { marginLeft: '1rem' } }, [
+              'Total participant count: ',
+              h(Spinner),
+              div({ style: { marginTop: '1rem' } }, ['Loading...']),
+            ]),
+          ]
+    ),
   ]);
 };
