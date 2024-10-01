@@ -275,11 +275,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
             </div>
           )}
         </IdContainer>
-        <ButtonPrimary
-          tooltip={Utils.summarizeErrors(errors?.searchValue)}
-          disabled={errors?.searchValue}
-          onClick={() => addUser(searchValue)}
-        >
+        <ButtonPrimary disabled={errors} onClick={() => addUser(searchValue)}>
           Add
         </ButtonPrimary>
       </div>
