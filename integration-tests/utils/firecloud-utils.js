@@ -6,10 +6,10 @@ const selectWorkspace = async (page, billingAccount, workspace) => {
 };
 
 const signIntoFirecloud = async (page, token) => {
-  await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]');
+  await page.waitForSelector('xpath///title[text()="FireCloud | Broad Institute"]');
   await findText(page, 'content you are looking for is currently only accessible');
 
-  await page.waitForXPath('//*[@id="sign-in-button"]');
+  await page.waitForSelector('xpath///*[@id="sign-in-button"]');
 
   /*
    * The FireCloud not-signed-in page renders the sign-in button while it is still doing some
