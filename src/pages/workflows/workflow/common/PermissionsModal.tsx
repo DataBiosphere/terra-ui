@@ -246,11 +246,12 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
         <IdContainer>
           {(id) => (
             <div style={{ flexGrow: 1, marginRight: '1rem' }}>
-              <FormLabel id={id} style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>
+              <FormLabel htmlFor={id} style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>
                 User
               </FormLabel>
               <ValidatedInput
                 inputProps={{
+                  id,
                   autoFocus: true,
                   placeholder: 'Add a user',
                   value: searchValue,
