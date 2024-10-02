@@ -140,10 +140,6 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     _.map(_.toLower, snapshot?.managers)
   );
 
-  const refresh = Utils.withBusyState(setBusy, async () => {
-    snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
-  });
-
   const doSnapshotLoad = async () => {
     snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
   };
@@ -292,7 +288,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
         name,
         selectedSnapshot,
         setPermissionsModalOpen,
-        refresh,
+        refresh: loadSnapshot,
       }),
     busy && spinnerOverlay,
     snapshotNotFound && h(NotFoundMessage, { subject: 'snapshot' }),
