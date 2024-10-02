@@ -252,6 +252,108 @@ const snapshotStoreInitialValue = {
   url: '',
 };
 
+describe('workflow wrapper', () => {
+  it('displays the method not found page if a method does not exist or the user does not have access', async () => {
+    // Arrange
+    mockAjax({ listImpl: jest.fn().mockResolvedValue([]) });
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
+
+    // Act
+    await act(async () => {
+      render(
+        <MockWrappedWorkflowComponent
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display an error toast
+    expect(errorWatcher).not.toHaveBeenCalled();
+
+    // should not display the tab bar or children
+    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should only display the 404 error page, with the correct info filled in
+    expect(screen.getByText('Could not display method')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'You cannot access this method because either it does not exist or you do not have access to it.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('hello@world.org')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'To view a snapshot of an existing method, an owner of the snapshot must give you permission to view it or make it publicly readable.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('The method may also have been deleted by one of its owners.')).toBeInTheDocument();
+
+    const returnToMethodsListButton = screen.getByRole('link', { name: 'Return to Methods List' });
+    expect(returnToMethodsListButton).toBeInTheDocument();
+    expect(returnToMethodsListButton).toHaveAttribute('href', '#workflows');
+  });
+
+  it('displays an error toast when there is an unexpected error loading a method', async () => {
+    // Arrange
+    mockAjax({
+      listImpl: jest.fn(() => {
+        throw new Error('BOOM');
+      }),
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        <MockWrappedWorkflowComponent
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display the tab bar or children
+    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should not display the 404 error page
+    expect(screen.queryByText('Could not display method')).not.toBeInTheDocument();
+    expect(screen.queryByText('Could not display snapshot')).not.toBeInTheDocument();
+
+    // should only display an error toast
+    expect(errorWatcher).toHaveBeenCalledWith('Error loading method', expect.anything());
+  });
+});
+
 describe('workflows container', () => {
   // Keep this test first to avoid potential issues with Jest and stores
   it('performs the correct non-visual operations when a snapshot deletion is confirmed', async () => {
@@ -471,106 +573,6 @@ describe('workflows container', () => {
 
     // Assert
     expect(errorWatcher).toHaveBeenCalledWith('Error deleting snapshot', expect.anything());
-  });
-
-  it('displays the method not found page if a method does not exist or the user does not have access', async () => {
-    // Arrange
-    mockAjax({ listImpl: jest.fn().mockResolvedValue([]) });
-
-    // set the user's email
-    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
-
-    // Act
-    await act(async () => {
-      render(
-        <MockWrappedWorkflowComponent
-          namespace={mockSnapshot.namespace}
-          name={mockSnapshot.name}
-          snapshotId={`${mockSnapshot.snapshotId}`}
-          tabName='dashboard'
-        />
-      );
-    });
-
-    // Assert
-
-    // should not display the loading spinner
-    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
-    expect(spinner).not.toBeInTheDocument();
-
-    // should not display an error toast
-    expect(errorWatcher).not.toHaveBeenCalled();
-
-    // should not display the tab bar or children
-    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
-    expect(screen.queryByText('children')).not.toBeInTheDocument();
-
-    // should only display the 404 error page, with the correct info filled in
-    expect(screen.getByText('Could not display method')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'You cannot access this method because either it does not exist or you do not have access to it.'
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByText('hello@world.org')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'To view a snapshot of an existing method, an owner of the snapshot must give you permission to view it or make it publicly readable.'
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByText('The method may also have been deleted by one of its owners.')).toBeInTheDocument();
-
-    const returnToMethodsListButton = screen.getByRole('link', { name: 'Return to Methods List' });
-    expect(returnToMethodsListButton).toBeInTheDocument();
-    expect(returnToMethodsListButton).toHaveAttribute('href', '#workflows');
-  });
-
-  it('displays an error toast when there is an unexpected error loading a method', async () => {
-    // Arrange
-    mockAjax({
-      listImpl: jest.fn(() => {
-        throw new Error('BOOM');
-      }),
-    });
-
-    // Act
-    await act(async () => {
-      render(
-        <MockWrappedWorkflowComponent
-          namespace={mockSnapshot.namespace}
-          name={mockSnapshot.name}
-          snapshotId={`${mockSnapshot.snapshotId}`}
-          tabName='dashboard'
-        />
-      );
-    });
-
-    // Assert
-
-    // should not display the loading spinner
-    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
-    expect(spinner).not.toBeInTheDocument();
-
-    // should not display the tab bar or children
-    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
-    expect(screen.queryByText('children')).not.toBeInTheDocument();
-
-    // should not display the 404 error page
-    expect(screen.queryByText('Could not display method')).not.toBeInTheDocument();
-    expect(screen.queryByText('Could not display snapshot')).not.toBeInTheDocument();
-
-    // should only display an error toast
-    expect(errorWatcher).toHaveBeenCalledWith('Error loading method', expect.anything());
   });
 
   it('displays the snapshot not found page if a snapshot does not exist or the user does not have access', async () => {
