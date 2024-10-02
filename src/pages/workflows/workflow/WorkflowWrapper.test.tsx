@@ -50,6 +50,23 @@ const mockSnapshot: Snapshot = {
   synopsis: '',
 };
 
+const mockSnapshotWithAdditionalOwners: Snapshot = {
+  managers: ['hello@world.org', 'new@owner.com'],
+  name: 'testname',
+  createDate: '2024-09-04T15:37:57Z',
+  documentation: '',
+  entityType: 'Workflow',
+  snapshotComment: '',
+  snapshotId: 1,
+  namespace: 'testnamespace',
+  payload:
+    // eslint-disable-next-line no-template-curly-in-string
+    'task echo_files {\\n  String? input1\\n  String? input2\\n  String? input3\\n  \\n  output {\\n    String out = read_string(stdout())\\n  }\\n\\n  command {\\n    echo \\"result: ${input1} ${input2} ${input3}\\"\\n  }\\n\\n  runtime {\\n    docker: \\"ubuntu:latest\\"\\n  }\\n}\\n\\nworkflow echo_strings {\\n  call echo_files\\n}',
+  url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/sschu/echo-strings-test/1',
+  public: false,
+  synopsis: '',
+};
+
 const mockDeleteSnapshot: Snapshot = {
   managers: ['revali@gale.com', 'hello@WORLD.org', 'sam@i.am'],
   name: 'testname',
@@ -101,18 +118,19 @@ const defaultListImpl = jest.fn();
 const defaultGetImpl = (namespace) =>
   jest.fn().mockResolvedValue(namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot);
 const defaultDeleteImpl = jest.fn();
+const setPermissionsMock = jest.fn();
 
 const mockAjax = (mocks: AjaxMocks = {}) => {
   const { listImpl, getImpl, deleteImpl } = mocks;
   asMockedFn(Ajax).mockReturnValue({
     Methods: {
       list: (listImpl || defaultListImpl) as ListAjaxContract,
-      method: jest.fn((namespace) => {
+      method: jest.fn((namespace, name, snapshotId) => {
         return {
           get: getImpl || defaultGetImpl(namespace),
           delete: deleteImpl || defaultDeleteImpl,
           permissions: jest.fn().mockResolvedValue(mockPermissions),
-          setPermissions: jest.fn(),
+          setPermissions: () => setPermissionsMock(namespace, name, snapshotId),
         } as Partial<ReturnType<MethodAjaxContract>>;
       }) as MethodAjaxContract,
     } as MethodsAjaxContract,
@@ -876,11 +894,106 @@ describe('workflows container', () => {
       );
     });
 
-    // Assert
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    expect(screen.getByText('Edit permissions'));
-
     await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+
+    // Assert
     expect(screen.getByText('Edit Snapshot Permissions'));
+  });
+
+  it('hides edit permissions modal when it is dismissed', async () => {
+    // Arrange
+    mockAjax();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Assert
+    expect(screen.queryByText('Edit Snapshot Permissions')).not.toBeInTheDocument();
+  });
+
+  it("allows the currently displayed snapshot's permissions to be edited", async () => {
+    // Arrange
+    mockAjax();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    // Assert
+    expect(setPermissionsMock).toHaveBeenCalledTimes(1);
+    expect(setPermissionsMock).toHaveBeenCalledWith(mockSnapshot.namespace, mockSnapshot.name, mockSnapshot.snapshotId);
+  });
+
+  it('reloads the displayed snapshot after its permissions are edited', async () => {
+    // Arrange
+    mockAjax();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+
+    // Simulate the snapshot being updated with new owners in the backend when
+    // the save button is pressed
+    mockAjax({
+      getImpl: jest.fn().mockResolvedValue(mockSnapshotWithAdditionalOwners),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    // Assert
+    expect(snapshotStore.get().managers).toEqual(mockSnapshotWithAdditionalOwners.managers);
+    expect(snapshotStore.get().public).toEqual(mockSnapshotWithAdditionalOwners.public);
   });
 });
