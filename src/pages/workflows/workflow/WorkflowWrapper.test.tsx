@@ -486,7 +486,7 @@ describe('workflows container', () => {
         <MockWrappedWorkflowComponent
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockSnapshot.snapshotId}
+          snapshotId={`${mockSnapshot.snapshotId}`}
           tabName='dashboard'
         />
       );
@@ -544,7 +544,7 @@ describe('workflows container', () => {
         <MockWrappedWorkflowComponent
           namespace={mockSnapshot.namespace}
           name={mockSnapshot.name}
-          snapshotId={mockSnapshot.snapshotId}
+          snapshotId={`${mockSnapshot.snapshotId}`}
           tabName='dashboard'
         />
       );
