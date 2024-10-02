@@ -1,7 +1,9 @@
-import { CreatableSelect, ExternalLink, useUniqueId } from '@terra-ui-packages/components';
+import { CreatableSelect, ExternalLink, Icon, useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode } from 'react';
 import { NumberInput } from 'src/components/input';
+import colors from 'src/libs/colors';
+import * as Style from 'src/libs/style';
 import Setting from 'src/workspaces/SettingsModal/Setting';
 import { suggestedPrefixes } from 'src/workspaces/SettingsModal/utils';
 
@@ -59,6 +61,25 @@ const BucketLifecycleSettings = (props: BucketLifecycleSettingsProps): ReactNode
       }
     >
       <div style={{ marginTop: '.5rem', marginBottom: '.5rem' }}>
+        <div style={{ ...Style.elements.noticeContainer }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto auto',
+              fontStyle: 'italic',
+            }}
+          >
+            <Icon
+              icon='warning-standard'
+              size={24}
+              style={{ color: colors.warning(), flex: 'none', marginRight: '0.5rem' }}
+            />
+            <div style={{ flex: 1 }}>
+              Enabling lifecycle rules will also change the directory structure for future workflow submissions by
+              separating files into submission/intermediates and submissions/final-outputs directories.
+            </div>
+          </div>
+        </div>
         <div style={{ marginTop: '.75rem', marginBottom: '.5rem' }}>Delete objects in:</div>
         <CreatableSelect
           isClearable
