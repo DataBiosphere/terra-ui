@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Methods } from 'src/libs/ajax/methods/Methods';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -18,6 +19,7 @@ jest.mock('src/libs/ajax');
 jest.mock('src/libs/ajax/Dockstore');
 jest.mock('src/libs/ajax/GoogleStorage');
 jest.mock('src/libs/ajax/leonardo/Apps');
+jest.mock('src/libs/ajax/leonardo/Runtimes');
 jest.mock('src/libs/ajax/methods/Methods');
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
@@ -287,6 +289,7 @@ describe('Workflow View (GCP)', () => {
       }),
     });
     Apps.mockReturnValue({ list: jest.fn().mockReturnValue([]) });
+    Runtimes.mockReturnValue({ listV2: jest.fn() });
     Ajax.mockImplementation(() => ({
       Disks: {
         disksV1: () => ({
