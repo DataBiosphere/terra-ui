@@ -7,7 +7,7 @@ import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
 const mockOnDelete = jest.fn();
 const mockOnEditPermissions = jest.fn();
 
-describe('snapshot action menu delete', () => {
+describe('snapshot action menu', () => {
   it('honors the disabled prop', async () => {
     // Act
     await act(async () => {
@@ -37,18 +37,30 @@ describe('snapshot action menu delete', () => {
       render(<SnapshotActionMenu isSnapshotOwner onEditPermissions={mockOnEditPermissions} onDelete={mockOnDelete} />);
     });
 
+    // Assert
     const snapshotActionMenu = screen.getByRole('button', { name: 'Snapshot action menu' });
 
+    expect(snapshotActionMenu).not.toHaveAttribute('disabled');
+    expect(snapshotActionMenu).toHaveAttribute('aria-disabled', 'false');
+
+    // Act
     await user.click(snapshotActionMenu);
 
+    const editPermissionsButton = screen.getByRole('button', { name: 'Edit permissions' });
+
+    await user.pointer({ target: editPermissionsButton });
+
+    // Assert
+    expect(editPermissionsButton).toBeInTheDocument();
+    expect(editPermissionsButton).toHaveAttribute('aria-disabled', 'false');
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+    // Act
     const deleteSnapshotButton = screen.getByRole('button', { name: 'Delete snapshot' });
 
     await user.pointer({ target: deleteSnapshotButton });
 
     // Assert
-    expect(snapshotActionMenu).not.toHaveAttribute('disabled');
-    expect(snapshotActionMenu).toHaveAttribute('aria-disabled', 'false');
-
     expect(deleteSnapshotButton).toBeInTheDocument();
     expect(deleteSnapshotButton).toHaveAttribute('aria-disabled', 'false');
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
@@ -65,8 +77,25 @@ describe('snapshot action menu delete', () => {
       );
     });
 
-    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    // Assert
+    const snapshotActionMenu = screen.getByRole('button', { name: 'Snapshot action menu' });
 
+    expect(snapshotActionMenu).not.toHaveAttribute('disabled');
+    expect(snapshotActionMenu).toHaveAttribute('aria-disabled', 'false');
+
+    // Act
+    await user.click(snapshotActionMenu);
+
+    const editPermissionsButton = screen.getByRole('button', { name: 'Edit permissions' });
+
+    await user.pointer({ target: editPermissionsButton });
+
+    // Assert
+    expect(editPermissionsButton).toBeInTheDocument();
+    expect(editPermissionsButton).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+    // Act
     const deleteSnapshotButton = screen.getByRole('button', { name: 'Delete snapshot' });
 
     await user.pointer({ target: deleteSnapshotButton });
@@ -76,8 +105,29 @@ describe('snapshot action menu delete', () => {
     expect(deleteSnapshotButton).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('tooltip')).toBeInTheDocument();
   });
+});
 
-  it('closes and calls the onDelete callback when you press the delete snapshot menu button', async () => {
+describe('snapshot action menu edit permissions button', () => {
+  it('closes and calls the onEditPermissions callback when you press it', async () => {
+    // Arrange
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<SnapshotActionMenu isSnapshotOwner onEditPermissions={mockOnEditPermissions} onDelete={mockOnDelete} />);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+
+    expect(screen.queryByRole('button', { name: 'Edit permissions' })).not.toBeInTheDocument();
+    expect(mockOnEditPermissions).toHaveBeenCalled();
+    expect(mockOnDelete).not.toHaveBeenCalled();
+  });
+});
+
+describe('snapshot action menu delete snapshot button', () => {
+  it('closes and calls the onDelete callback when you press it', async () => {
     // Arrange
     const user: UserEvent = userEvent.setup();
 
@@ -92,23 +142,6 @@ describe('snapshot action menu delete', () => {
     // Assert
     expect(screen.queryByRole('button', { name: 'Delete snapshot' })).not.toBeInTheDocument();
     expect(mockOnDelete).toHaveBeenCalled();
-  });
-});
-
-describe('snapshot action menu edit permissions', () => {
-  it('closes and calls the onEditPermissions callback when you press the edit permissions menu button', async () => {
-    // Arrange
-    const user: UserEvent = userEvent.setup();
-
-    // Act
-    await act(async () => {
-      render(<SnapshotActionMenu isSnapshotOwner onEditPermissions={mockOnEditPermissions} onDelete={mockOnDelete} />);
-    });
-
-    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
-
-    expect(screen.queryByRole('button', { name: 'Edit permissions' })).not.toBeInTheDocument();
-    expect(mockOnEditPermissions).toHaveBeenCalled();
+    expect(mockOnEditPermissions).not.toHaveBeenCalled();
   });
 });
