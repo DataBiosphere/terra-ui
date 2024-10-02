@@ -251,8 +251,6 @@ describe('Workflow View (GCP)', () => {
   const mockLaunchResponse = jest.fn(() => Promise.resolve({ submissionId: 'abc123', ...initializedGoogleWorkspace.workspaceId }));
 
   const mockDefaultAjax = () => {
-    asMockedFn(leoDiskProvider.list).mockImplementation(jest.fn());
-
     Methods.mockReturnValue({
       list: jest.fn(() => Promise.resolve(methodList)),
       method: () => ({
@@ -290,19 +288,7 @@ describe('Workflow View (GCP)', () => {
     });
     Apps.mockReturnValue({ list: jest.fn().mockReturnValue([]) });
     Runtimes.mockReturnValue({ listV2: jest.fn() });
-    // Ajax.mockImplementation(() => ({
-    //   Disks: {
-    //     disksV1: () => ({
-    //       list: jest.fn(),
-    //     }),
-    //   },
-    //   Runtimes: {
-    //     listV2: jest.fn(),
-    //   },
-    //   Apps: {
-    //     list: jest.fn().mockReturnValue([]),
-    //   },
-    // }));
+    asMockedFn(leoDiskProvider.list).mockImplementation(jest.fn());
   };
 
   it('view workflow in workspace from mock import', async () => {
