@@ -290,19 +290,19 @@ describe('Workflow View (GCP)', () => {
     });
     Apps.mockReturnValue({ list: jest.fn().mockReturnValue([]) });
     Runtimes.mockReturnValue({ listV2: jest.fn() });
-    Ajax.mockImplementation(() => ({
-      Disks: {
-        disksV1: () => ({
-          list: jest.fn(),
-        }),
-      },
-      Runtimes: {
-        listV2: jest.fn(),
-      },
-      Apps: {
-        list: jest.fn().mockReturnValue([]),
-      },
-    }));
+    // Ajax.mockImplementation(() => ({
+    //   Disks: {
+    //     disksV1: () => ({
+    //       list: jest.fn(),
+    //     }),
+    //   },
+    //   Runtimes: {
+    //     listV2: jest.fn(),
+    //   },
+    //   Apps: {
+    //     list: jest.fn().mockReturnValue([]),
+    //   },
+    // }));
   };
 
   it('view workflow in workspace from mock import', async () => {
