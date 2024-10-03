@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
@@ -30,14 +30,14 @@ export const useAppPolling = (name: string, namespace: string, workspace?: Works
     try {
       const newGoogleApps =
         workspace?.workspaceInitialized && isGoogleWorkspace(workspace)
-          ? await Ajax(signal).Apps.list(workspace.workspace.googleProject, {
+          ? await Apps(signal).list(workspace.workspace.googleProject, {
               role: 'creator',
               saturnWorkspaceName: workspace.workspace.name,
             })
           : [];
       const newAzureApps =
         workspace?.workspaceInitialized && isAzureWorkspace(workspace)
-          ? await Ajax(signal).Apps.listAppsV2(workspace.workspace.workspaceId)
+          ? await Apps(signal).listAppsV2(workspace.workspace.workspaceId)
           : [];
       const combinedNewApps = [...newGoogleApps, ...newAzureApps];
 

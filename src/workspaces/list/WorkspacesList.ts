@@ -6,7 +6,7 @@ import { Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/componen
 import FooterWrapper from 'src/components/FooterWrapper';
 import { icon } from 'src/components/icons';
 import { TopBar } from 'src/components/TopBar';
-import { Ajax } from 'src/libs/ajax';
+import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { withErrorIgnoring } from 'src/libs/error';
 import { updateSearch, useRoute } from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
@@ -79,7 +79,7 @@ export const WorkspacesList = (): ReactNode => {
 
   useOnMount(() => {
     const loadFeatured = withErrorIgnoring(async () => {
-      setFeaturedList(await Ajax().FirecloudBucket.getFeaturedWorkspaces());
+      setFeaturedList(await FirecloudBucket().getFeaturedWorkspaces());
     });
     loadFeatured();
   });
