@@ -16,7 +16,7 @@ const {
   getAnimatedDrawer,
   input,
   noSpinnersAfter,
-  waitForNoModal,
+  waitForNoModalDrawer,
   waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -50,11 +50,7 @@ const testRunRStudioFn = _.flowRight(
     timeout: Millis.ofMinute,
   });
   await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
-  await waitForNoModal(page);
-  // Debugging to see if waiting helps (still not clear if modal animation is causing the problem)
-  await delay(Millis.ofSeconds(5));
-  // In addition to spinners related to the side modal, there is a spinner over the page while content loads.
-  await waitForNoSpinners(page);
+  await waitForNoModalDrawer(page);
 
   // Navigate to analysis launcher
   await click(page, clickable({ textContains: `${rFileName}.Rmd` }));
@@ -67,7 +63,7 @@ const testRunRStudioFn = _.flowRight(
     action: () => click(page, clickable({ textContains: 'Open' })),
   });
   await click(page, clickable({ text: 'Create' }));
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Wait for env to begin creating
   await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: Millis.ofMinutes(2) });
