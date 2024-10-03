@@ -249,7 +249,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     <Modal
       title='Configure Workspace Settings'
       onDismiss={props.onDismiss}
-      width={550}
+      width={600}
       okButton={
         <ButtonPrimary disabled={!!getSaveTooltip()} onClick={persistSettings} tooltip={getSaveTooltip()}>
           Save

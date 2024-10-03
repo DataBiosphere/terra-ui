@@ -5,8 +5,13 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 
 export interface SnapshotActionMenuProps {
   /**
+   * Whether opening the action menu should be disabled.
+   */
+  disabled?: boolean;
+
+  /**
    * Whether the user is an owner of the workflow snapshot the actions in the
-   * menu are for. Controls whether the following operations are enabled: delete
+   * menu are for. Controls whether the following actions are enabled: delete
    */
   isSnapshotOwner: boolean;
 
@@ -21,7 +26,7 @@ export interface SnapshotActionMenuProps {
  * Currently supported actions: delete
  */
 const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
-  const { isSnapshotOwner, onDelete } = props;
+  const { disabled, isSnapshotOwner, onDelete } = props;
 
   const notSnapshotOwnerTooltip = 'You must be an owner of this snapshot';
 
@@ -43,7 +48,8 @@ const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
         aria-label='Snapshot action menu'
         aria-haspopup='menu'
         style={{ opacity: 0.65, height: 27 }}
-        hover={{ opacity: 1 }}
+        hover={!disabled ? { opacity: 1 } : undefined}
+        disabled={disabled}
       >
         <Icon icon='cardMenuIcon' size={27} />
       </Clickable>

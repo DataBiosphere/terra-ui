@@ -3,13 +3,15 @@ import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import _ from 'lodash';
 import React from 'react';
+import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Ajax, AjaxContract } from 'src/libs/ajax';
 import { MethodsAjaxContract } from 'src/libs/ajax/methods/Methods';
 import * as ExportWorkflowToWorkspaceProvider from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import { errorWatcher } from 'src/libs/error.mock';
 import { goToPath } from 'src/libs/nav';
+import { forwardRefWithName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore, TerraUser, TerraUserState, userStore } from 'src/libs/state';
-import { WorkflowsContainer } from 'src/pages/workflows/workflow/WorkflowWrapper';
+import { WorkflowsContainer, wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 import { Snapshot } from 'src/snapshots/Snapshot';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
@@ -25,7 +27,7 @@ jest.mock(
   (): NavExports => ({
     ...jest.requireActual('src/libs/nav'),
     getLink: jest.fn((name, pathParams?) =>
-      name === 'workflow-dashboard' ? `#workflows/${pathParams!.namespace}/${pathParams!.name}` : ''
+      name === 'workflow-dashboard' ? `#workflows/${pathParams!.namespace}/${pathParams!.name}` : `#${name}`
     ),
     goToPath: jest.fn(),
   })
@@ -75,17 +77,34 @@ jest.mock('src/libs/error', (): ErrorExports => {
   };
 });
 
-const mockAjax = (deleteImpl = jest.fn()) =>
+type ListAjaxContract = MethodsAjaxContract['list'];
+type MethodAjaxContract = MethodsAjaxContract['method'];
+
+interface AjaxMocks {
+  listImpl?: jest.Mock;
+  getImpl?: jest.Mock;
+  deleteImpl?: jest.Mock;
+}
+
+const defaultListImpl = jest.fn();
+const defaultGetImpl = (namespace) =>
+  jest.fn().mockResolvedValue(namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot);
+const defaultDeleteImpl = jest.fn();
+
+const mockAjax = (mocks: AjaxMocks = {}) => {
+  const { listImpl, getImpl, deleteImpl } = mocks;
   asMockedFn(Ajax).mockReturnValue({
     Methods: {
-      method: jest.fn(() => {
+      list: (listImpl || defaultListImpl) as ListAjaxContract,
+      method: jest.fn((namespace) => {
         return {
-          get: jest.fn((namespace) => (namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot)),
-          delete: deleteImpl,
-        };
-      }) as Partial<MethodsAjaxContract>,
+          get: getImpl || defaultGetImpl(namespace),
+          delete: deleteImpl || defaultDeleteImpl,
+        } as Partial<ReturnType<MethodAjaxContract>>;
+      }) as MethodAjaxContract,
     } as MethodsAjaxContract,
   } as AjaxContract);
+};
 
 type UseWorkspacesExports = typeof import('src/workspaces/common/state/useWorkspaces');
 jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports => {
@@ -109,6 +128,17 @@ const mockUser = (email: string): Partial<TerraUser> => ({ email });
 const mockUserState = (email: string): Partial<TerraUserState> => {
   return { terraUser: mockUser(email) as TerraUser };
 };
+
+const MockWrappedWorkflowComponent = _.flow(
+  forwardRefWithName('MockWrappedWorkflowComponent'),
+  wrapWorkflows({
+    breadcrumbs: () => breadcrumbs.commonPaths.workflowList(),
+    title: 'Methods',
+    activeTab: 'dashboard',
+  })
+)(() => {
+  return 'children';
+});
 
 const mockWorkspace: WorkspaceInfo = {
   workspaceId: 'Workspace1',
@@ -221,7 +251,10 @@ describe('workflows container', () => {
     await user.click(screen.getByRole('button', { name: 'Delete snapshot' })); // confirm deletion
 
     // Assert
-    expect(Ajax().Methods.method).toHaveBeenCalledWith(
+
+    // The first call is to load the snapshot; the second is to delete it
+    expect(Ajax().Methods.method).toHaveBeenNthCalledWith(
+      2,
       mockDeleteSnapshot.namespace,
       mockDeleteSnapshot.name,
       mockDeleteSnapshot.snapshotId
@@ -242,11 +275,11 @@ describe('workflows container', () => {
 
   it('hides the delete snapshot modal and displays a loading spinner when the deletion is confirmed', async () => {
     // Arrange
-    mockAjax(
-      jest.fn(async () => {
+    mockAjax({
+      deleteImpl: jest.fn(async () => {
         await delay(100);
-      })
-    );
+      }),
+    });
 
     // ensure that an additional loading spinner does not appear due to the
     // snapshot store being reset, so that we can test only the spinner that
@@ -378,11 +411,11 @@ describe('workflows container', () => {
 
   it('displays an error message when there is an error deleting a snapshot', async () => {
     // Arrange
-    mockAjax(
-      jest.fn(() => {
+    mockAjax({
+      deleteImpl: jest.fn(() => {
         throw new Error('BOOM');
-      })
-    );
+      }),
+    });
 
     // set the user's email
     jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
@@ -407,6 +440,219 @@ describe('workflows container', () => {
 
     // Assert
     expect(errorWatcher).toHaveBeenCalledWith('Error deleting snapshot', expect.anything());
+  });
+
+  it('displays the method not found page if a method does not exist or the user does not have access', async () => {
+    // Arrange
+    mockAjax({ listImpl: jest.fn().mockResolvedValue([]) });
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
+
+    // Act
+    await act(async () => {
+      render(
+        <MockWrappedWorkflowComponent
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={mockSnapshot.snapshotId}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display an error toast
+    expect(errorWatcher).not.toHaveBeenCalled();
+
+    // should not display the tab bar or children
+    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should only display the 404 error page, with the correct info filled in
+    expect(screen.getByText('Could not display method')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'You cannot access this method because either it does not exist or you do not have access to it.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('hello@world.org')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'To view a snapshot of an existing method, an owner of the snapshot must give you permission to view it or make it publicly readable.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('The method may also have been deleted by one of its owners.')).toBeInTheDocument();
+
+    const returnToMethodsListButton = screen.getByRole('link', { name: 'Return to Methods List' });
+    expect(returnToMethodsListButton).toBeInTheDocument();
+    expect(returnToMethodsListButton).toHaveAttribute('href', '#workflows');
+  });
+
+  it('displays an error toast when there is an unexpected error loading a method', async () => {
+    // Arrange
+    mockAjax({
+      listImpl: jest.fn(() => {
+        throw new Error('BOOM');
+      }),
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        <MockWrappedWorkflowComponent
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={mockSnapshot.snapshotId}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display the tab bar or children
+    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should not display the 404 error page
+    expect(screen.queryByText('Could not display method')).not.toBeInTheDocument();
+    expect(screen.queryByText('Could not display snapshot')).not.toBeInTheDocument();
+
+    // should only display an error toast
+    expect(errorWatcher).toHaveBeenCalledWith('Error loading method', expect.anything());
+  });
+
+  it('displays the snapshot not found page if a snapshot does not exist or the user does not have access', async () => {
+    // Arrange
+    mockAjax({ getImpl: jest.fn().mockRejectedValue(new Response('{ "message": "Not found"}', { status: 404 })) });
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        >
+          children
+        </WorkflowsContainer>
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display the children
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should not display an error toast
+    expect(errorWatcher).not.toHaveBeenCalled();
+
+    // should display the tab bar, but with the export button and action menu disabled
+    expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
+    expect(screen.getByText(/wdl/i)).toBeInTheDocument();
+    expect(screen.getByText(/snapshot:/i)).toBeInTheDocument();
+    expect(screen.getByText(`${mockSnapshot.snapshotId}`)).toBeInTheDocument();
+
+    const exportButton = screen.getByRole('button', { name: /export to workspace/i });
+    expect(exportButton).toBeInTheDocument();
+    expect(exportButton).toHaveAttribute('disabled');
+    expect(exportButton).toHaveAttribute('aria-disabled');
+
+    const actionMenu = screen.getByRole('button', { name: 'Snapshot action menu' });
+    expect(actionMenu).toBeInTheDocument();
+    expect(actionMenu).toHaveAttribute('disabled');
+    expect(actionMenu).toHaveAttribute('aria-disabled');
+
+    // should display the 404 error page, with the correct info filled in
+    expect(screen.getByText('Could not display snapshot')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'You cannot access this method snapshot because either it does not exist or you do not have access to it.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('hello@world.org')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'To view an existing method snapshot, an owner of the snapshot must give you permission to view it or make it publicly readable.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('The snapshot may also have been deleted by one of its owners.')).toBeInTheDocument();
+    expect(screen.getByText('Please select a different snapshot from the dropdown above.')).toBeInTheDocument();
+
+    expect(screen.queryByRole('link', { name: 'Return to Methods List' })).not.toBeInTheDocument();
+  });
+
+  it('displays an error toast when there is an unexpected error loading a snapshot', async () => {
+    // Arrange
+    mockAjax({
+      getImpl: jest.fn(() => {
+        throw new Error('BOOM');
+      }),
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        >
+          children
+        </WorkflowsContainer>
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display the tab bar or children
+    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should not display the 404 error page
+    expect(screen.queryByText('Could not display method')).not.toBeInTheDocument();
+    expect(screen.queryByText('Could not display snapshot')).not.toBeInTheDocument();
+
+    // should only display an error toast
+    expect(errorWatcher).toHaveBeenCalledWith('Error loading snapshot', expect.anything());
   });
 
   it('displays export to workspace modal when export button is pressed', async () => {

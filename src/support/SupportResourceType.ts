@@ -22,8 +22,16 @@ export const supportResources: SupportResourceType[] = [
     resourceType: 'managed-group',
     loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().Groups.group(id.resourceId).getSupportSummary(),
   },
-  { displayName: 'Workspace', resourceType: 'workspace', loadSupportSummaryFn: undefined },
-  { displayName: 'Billing Project', resourceType: 'billing-project', loadSupportSummaryFn: undefined },
+  {
+    displayName: 'Workspace',
+    resourceType: 'workspace',
+    loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().Workspaces.adminGetById(id.resourceId),
+  },
+  {
+    displayName: 'Billing Project',
+    resourceType: 'billing-project',
+    loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().Billing.adminGetProject(id.resourceId),
+  },
   { displayName: 'Dataset', resourceType: 'dataset', loadSupportSummaryFn: undefined },
   { displayName: 'Snapshot', resourceType: 'datasnapshot', loadSupportSummaryFn: undefined },
 ].sort((a, b) => a.displayName.localeCompare(b.displayName));
