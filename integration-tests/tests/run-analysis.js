@@ -48,6 +48,8 @@ const testRunAnalysisFn = _.flowRight(
   });
   await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
   await waitForNoModal(page);
+  // In addition to spinners related to the side modal, there is a spinner over the page.
+  await waitForNoSpinners(page);
 
   // Navigate to analysis launcher
   await click(page, clickable({ textContains: `${notebookName}.ipynb` }));
