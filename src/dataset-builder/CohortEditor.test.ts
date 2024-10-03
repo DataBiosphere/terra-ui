@@ -552,13 +552,9 @@ describe('CohortEditor', () => {
     showCohortEditor();
     // Assert
     expect(await screen.findByText('Total participant count: 0', { exact: false })).toBeTruthy();
-    // expect(getSnapshotBuilderCountMock().getSnapshotBuilderCount).toBeCalled();
   });
 
   it('displays cohort demographic information', async () => {
-    // Arrange
-    // const mockRandomValue = 0.5;
-    // jest.spyOn(Math, 'random').mockReturnValue(mockRandomValue);
     showCohortEditor();
 
     expect(await screen.findAllByText('Female')).toHaveLength(2);
