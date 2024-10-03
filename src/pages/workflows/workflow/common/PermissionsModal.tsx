@@ -6,7 +6,6 @@ import {
   Modal,
   modalStyles,
   Select,
-  useStore,
 } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, SetStateAction, useRef, useState } from 'react';
@@ -19,7 +18,7 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getTerraUser, snapshotStore } from 'src/libs/state';
+import { getTerraUser } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import { append, withBusyState } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
@@ -168,10 +167,8 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [originalPermissions, setOriginalPermissions] = useState<WorkflowsPermissions>([]);
   const userEmails = _.map('user', permissions);
-  const publicUser = _.find({ user: 'public' }, permissions);
   const [userValueModified, setUserValueModified] = useState<boolean>(false);
-  const { public: isPublic } = useStore(snapshotStore);
-  const [isPublicSnapshot, setIsPublicSnapshot] = useState<boolean | undefined>(isPublic);
+  const publicAccessLevel: WorkflowAccessLevel = _.find(publicUser, permissions)?.role ?? 'NO ACCESS';
   const errors = validate({ searchValue }, constraints, {
     prettify: (v) => ({ searchValue: 'User' }[v] || validate.prettify(v)),
   });
@@ -200,24 +197,14 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
     setPermissions(append({ user: userEmail, role: 'READER' } as RawWorkflowsPermissions));
   };
 
-  const updatePublicUser = (v) => {
-    if (publicUser) {
-      permissions.map((user) => {
-        if (v === false) {
-          if (user.user === 'public') {
-            Object.assign(user, { user: 'public', role: 'NO ACCESS' });
-          }
-        } else if (v === true) {
-          if (user.user === 'public') {
-            Object.assign(user, { user: 'public', role: 'READER' });
-          }
-        }
+  const updatePublicUser = (publiclyReadable: boolean) => {
+    const publicUserPermissions: RawWorkflowsPermissions = {
+      role: publiclyReadable ? 'READER' : 'NO ACCESS',
+      user: 'public',
+    };
 
-        return null;
-      });
-    } else {
-      addUser('public');
-    }
+    // overwrites the old public user permissions if necessary
+    setPermissions(_.uniqBy('user', [publicUserPermissions, ...permissions]));
   };
 
   const save = withBusyState(setWorking, async () => {
@@ -274,9 +261,8 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
       <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
         <div>
           <LabeledCheckbox
-            checked={isPublicSnapshot}
+            checked={publicAccessLevel !== 'NO ACCESS'}
             onChange={(v: boolean) => {
-              setIsPublicSnapshot(v);
               updatePublicUser(v);
             }}
           >
