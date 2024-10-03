@@ -52,10 +52,6 @@ const testRunAnalysisAzure = _.flowRight(
   });
   await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
   await waitForNoModalDrawer(page);
-  // Debugging to see if waiting helps (still not clear if modal animation is causing the problem)
-  await delay(Millis.ofSeconds(5));
-  // In addition to spinners related to the side modal, there is a spinner over the page while content loads.
-  await waitForNoSpinners(page);
 
   // Navigate to analysis launcher
   await click(page, clickable({ textContains: `${notebookName}.ipynb` }));
