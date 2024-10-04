@@ -190,7 +190,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
       });
     } catch (e) {
       setCreateWorkflowModalOpen(false);
-      reportError('Error uploading method', e);
+      await reportError('Error uploading method', e);
     }
   };
 
