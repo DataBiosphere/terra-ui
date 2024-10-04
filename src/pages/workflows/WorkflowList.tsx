@@ -1,4 +1,4 @@
-import { CenteredSpinner } from '@terra-ui-packages/components';
+import { SpinnerOverlay } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import React, { useState } from 'react';
@@ -16,6 +16,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { withBusyState } from 'src/libs/utils';
 import { WorkflowModal } from 'src/pages/workflows/workflow/common/WorkflowModal';
 import { MethodDefinition } from 'src/pages/workflows/workflow-utils';
 
@@ -82,6 +83,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
   const { tab = 'mine', filter = '', ...query } = queryParams;
 
   const signal: AbortSignal = useCancellation();
+  const [busy, setBusy] = useState<boolean>(false);
 
   // workflows is undefined while the method definitions are still loading;
   // it is null if there is an error while loading
@@ -153,7 +155,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
     const isMine = ({ public: isPublic, managers }: MethodDefinition): boolean =>
       !isPublic || _.includes(getTerraUser().email, managers);
 
-    const loadWorkflows = async () => {
+    const loadWorkflows = withBusyState(setBusy, async () => {
       try {
         const allWorkflows: MethodDefinition[] = await Ajax(signal).Methods.definitions();
 
@@ -165,12 +167,14 @@ export const WorkflowList = (props: WorkflowListProps) => {
         setWorkflows(null);
         notify('error', 'Error loading workflows', { detail: error instanceof Response ? await error.text() : error });
       }
-    };
+    });
 
     loadWorkflows();
   });
 
-  const uploadWorkflow = async () => {
+  const uploadWorkflow = withBusyState(setBusy, async () => {
+    setCreateWorkflowModalOpen(false);
+
     try {
       const workflowPayload = {
         namespace: workflowNamespace,
@@ -189,10 +193,9 @@ export const WorkflowList = (props: WorkflowListProps) => {
         snapshotId,
       });
     } catch (e) {
-      setCreateWorkflowModalOpen(false);
       await reportError('Error uploading method', e);
     }
-  };
+  });
 
   // Gets the sort key of a method definition based on the currently
   // selected sort field such that numeric fields are sorted numerically
@@ -270,7 +273,6 @@ export const WorkflowList = (props: WorkflowListProps) => {
               />
             )}
           </AutoSizer>
-          {workflows === undefined && <CenteredSpinner />}
         </div>
         {!_.isEmpty(sortedWorkflows) && (
           <div style={{ marginBottom: '0.5rem' }}>
@@ -310,6 +312,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
           />
         )}
       </main>
+      {busy && <SpinnerOverlay />}
     </FooterWrapper>
   );
 };

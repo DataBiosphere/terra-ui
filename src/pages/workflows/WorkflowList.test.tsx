@@ -834,6 +834,35 @@ describe('workflows table', () => {
     expect(screen.getByText('method-name')).toHaveAttribute('href', '/workflow-dashboard/test-namespace/method-name');
   });
 
+  it('shows a loading spinner while the workflows are loading', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => {
+      return {
+        Methods: {
+          definitions: jest.fn(async () => {
+            await delay(100);
+            return Promise.resolve([]);
+          }) as Partial<MethodsAjaxContract>,
+        } as MethodsAjaxContract,
+      } as AjaxContract;
+    });
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    // Assert
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).toBeInTheDocument();
+
+    // Act
+    await act(async () => await delay(200));
+
+    // Assert
+    expect(spinner).not.toBeInTheDocument();
+  });
+
   it('handles errors loading workflows', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => {
