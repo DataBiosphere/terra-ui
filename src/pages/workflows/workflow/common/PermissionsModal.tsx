@@ -56,10 +56,16 @@ type CurrentUsersProps = {
   setAllPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
 };
 
-const constraints = {
-  searchValue: {
-    email: true,
-  },
+const constraints = (existingUserEmails: string[]) => {
+  return {
+    searchValue: {
+      email: true,
+      exclusion: {
+        within: existingUserEmails,
+        message: 'has already been added',
+      },
+    },
+  };
 };
 
 const styles: CSSProperties = {
@@ -171,7 +177,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const userEmails = _.map('user', permissions);
   const [userValueModified, setUserValueModified] = useState<boolean>(false);
   const publicAccessLevel: WorkflowAccessLevel = _.find(publicUser, permissions)?.role ?? 'NO ACCESS';
-  const errors = validate({ searchValue }, constraints, {
+  const errors = validate({ searchValue }, constraints(userEmails), {
     prettify: (v) => ({ searchValue: 'User' }[v] || validate.prettify(v)),
   });
 

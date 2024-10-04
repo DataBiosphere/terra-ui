@@ -275,6 +275,46 @@ describe('PermissionsModal', () => {
     expect(addButton).toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('gives an error with a user email that already exists', async () => {
+    // ARRANGE
+    mockAjax();
+    const user: UserEvent = userEvent.setup();
+
+    await act(async () => {
+      renderWithAppContexts(
+        <PermissionsModal
+          name='test'
+          namespace='namespace'
+          snapshotOrNamespace='Snapshot'
+          selectedSnapshot={3}
+          setPermissionsModalOpen={jest.fn()}
+          refresh={jest.fn()}
+        />
+      );
+    });
+
+    // ACT/ASSERT
+    const textbox = screen.getByRole('textbox');
+    const addButton = screen.getByRole('button', { name: 'Add' });
+
+    fireEvent.change(textbox, { target: { value: 'user1@foo.com' } });
+
+    expect(screen.getByText('User has already been added')).toBeInTheDocument();
+    expect(addButton).toHaveAttribute('aria-disabled', 'true');
+
+    fireEvent.change(textbox, { target: { value: 'user3@test.com' } });
+
+    expect(screen.queryByText('User has already been added')).not.toBeInTheDocument();
+    expect(addButton).toHaveAttribute('aria-disabled', 'false');
+
+    await user.click(addButton);
+
+    fireEvent.change(textbox, { target: { value: 'user3@test.com' } });
+
+    expect(screen.getByText('User has already been added')).toBeInTheDocument();
+    expect(addButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
   it('lets you make a public workflow private', async () => {
     // ARRANGE
     mockAjax({
