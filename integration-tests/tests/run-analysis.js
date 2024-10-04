@@ -16,7 +16,7 @@ const {
   getAnimatedDrawer,
   input,
   noSpinnersAfter,
-  waitForNoModal,
+  waitForNoModalDrawer,
   waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -47,7 +47,7 @@ const testRunAnalysisFn = _.flowRight(
     timeout: Millis.ofMinute,
   });
   await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Navigate to analysis launcher
   await click(page, clickable({ textContains: `${notebookName}.ipynb` }));
@@ -61,7 +61,7 @@ const testRunAnalysisFn = _.flowRight(
   });
   await findText(page, 'Jupyter Cloud Environment');
   await click(page, clickable({ text: 'Create' }));
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Wait for env to begin creating
   await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: Millis.ofSeconds(40) });
