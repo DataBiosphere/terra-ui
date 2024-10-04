@@ -897,7 +897,7 @@ describe('workflows container', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
 
     // Assert
     expect(screen.getByText('Edit Snapshot Permissions'));
@@ -925,7 +925,7 @@ describe('workflows container', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     // Assert
@@ -954,7 +954,7 @@ describe('workflows container', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     // Assert
@@ -984,7 +984,7 @@ describe('workflows container', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
 
     // Simulate the snapshot being updated with new owners in the backend when
     // the save button is pressed

@@ -46,7 +46,7 @@ describe('snapshot action menu', () => {
     // Act
     await user.click(snapshotActionMenu);
 
-    const editPermissionsButton = screen.getByRole('button', { name: 'Edit permissions' });
+    const editPermissionsButton = screen.getByRole('button', { name: 'Edit snapshot permissions' });
 
     await user.pointer({ target: editPermissionsButton });
 
@@ -86,7 +86,7 @@ describe('snapshot action menu', () => {
     // Act
     await user.click(snapshotActionMenu);
 
-    const editPermissionsButton = screen.getByRole('button', { name: 'Edit permissions' });
+    const editPermissionsButton = screen.getByRole('button', { name: 'Edit snapshot permissions' });
 
     await user.pointer({ target: editPermissionsButton });
 
@@ -107,7 +107,7 @@ describe('snapshot action menu', () => {
   });
 });
 
-describe('snapshot action menu edit permissions button', () => {
+describe('snapshot action menu edit snapshot permissions button', () => {
   it('closes and calls the onEditPermissions callback when you press it', async () => {
     // Arrange
     const user: UserEvent = userEvent.setup();
@@ -118,9 +118,9 @@ describe('snapshot action menu edit permissions button', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
-    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
 
-    expect(screen.queryByRole('button', { name: 'Edit permissions' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit snapshot permissions' })).not.toBeInTheDocument();
     expect(mockOnEditPermissions).toHaveBeenCalled();
     expect(mockOnDelete).not.toHaveBeenCalled();
   });
