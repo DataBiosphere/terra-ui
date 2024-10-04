@@ -17,7 +17,6 @@ import {
 } from 'src/workspaces/common/state/useWorkspace';
 
 jest.mock('src/libs/ajax/AzureStorage');
-
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
 

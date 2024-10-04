@@ -1,31 +1,16 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act } from '@testing-library/react';
-import { Ajax } from 'src/libs/ajax';
-import { asMockedFn, renderHookInAct } from 'src/testing/test-utils';
+import { Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
+import { asMockedFn, partial, renderHookInAct } from 'src/testing/test-utils';
 
 import { useWorkspaceById } from './useWorkspaceById';
 
-type AjaxExports = typeof import('src/libs/ajax');
-jest.mock('src/libs/ajax', (): AjaxExports => {
-  const actual = jest.requireActual<AjaxExports>('src/libs/ajax');
-  return {
-    ...actual,
-    Ajax: jest.fn(),
-  };
-});
-
-type AjaxContract = ReturnType<typeof Ajax>;
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 describe('useWorkspaceById', () => {
   it('fetches a workspace by ID', async () => {
     // Arrange
     const getWorkspaceById = jest.fn().mockResolvedValue({});
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        getById: getWorkspaceById,
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(partial<WorkspacesAjaxContract>({ getById: getWorkspaceById }));
 
     // Act
     await renderHookInAct(() => useWorkspaceById('test-workspace'));
@@ -37,12 +22,7 @@ describe('useWorkspaceById', () => {
   it('fetches workspace when ID changes', async () => {
     // Arrange
     const getWorkspaceById = jest.fn().mockResolvedValue({});
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        getById: getWorkspaceById,
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(partial<WorkspacesAjaxContract>({ getById: getWorkspaceById }));
 
     const { rerender } = await renderHookInAct(useWorkspaceById, { initialProps: 'workspace-1' });
 
