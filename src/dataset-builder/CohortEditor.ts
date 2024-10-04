@@ -19,11 +19,11 @@ import {
   ProgramDataRangeCriteria,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
-  cohortAgeData,
-  cohortDemographicData,
   CohortDemographics,
-  generateDemographicSeries,
-  generateRandomNumbers,
+  generateCohortAgeData,
+  generateCohortDemographicData,
+  generateRandomCohortAgeData,
+  generateRandomCohortDemographicData,
 } from 'src/dataset-builder/TestConstants';
 import {
   DataRepo,
@@ -602,9 +602,19 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
-  const [cohortAges, setCohortAges] = useState<CohortDemographics>(cohortAgeData);
-  const [cohortDemographics, setCohortDemographics] = useState<CohortDemographics>(cohortDemographicData);
-
+  const defaultCohortDemographicSeries = [
+    { name: 'Asian', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+    { name: 'Black', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+    { name: 'White', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+    { name: 'Native American', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+    { name: 'Pacific Islander', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  ];
+  const defaultCohortAgeSeries = [{ data: [0, 0, 0] }];
+  const [cohortAges, setCohortAges] = useState<CohortDemographics>(generateCohortAgeData(defaultCohortAgeSeries));
+  const [cohortDemographics, setCohortDemographics] = useState<CohortDemographics>(
+    generateCohortDemographicData(defaultCohortDemographicSeries)
+  );
+  const countStatus = snapshotRequestParticipantCount.status;
   function chartOptions(cohortDemographics: CohortDemographics) {
     return {
       chart: {
@@ -671,18 +681,13 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   }, [snapshotId, setSnapshotRequestParticipantCount, cohort]);
 
   useEffect(() => {
-    setTimeout(() => {
-      cohortAgeData.series = [{ data: generateRandomNumbers(3, 90) }];
-      setCohortAges(cohortAgeData);
-    }, 2000);
-  }, [snapshotRequestParticipantCount]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      cohortDemographicData.series = generateDemographicSeries();
-      setCohortDemographics(cohortDemographicData);
-    }, 2000);
-  }, [snapshotRequestParticipantCount]);
+    countStatus === 'Ready'
+      ? (setCohortAges(generateRandomCohortAgeData()), setCohortDemographics(generateRandomCohortDemographicData()))
+      : (setCohortAges(generateCohortAgeData(defaultCohortAgeSeries)),
+        setCohortDemographics(generateCohortDemographicData(defaultCohortDemographicSeries)));
+    // @ts-ignore
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countStatus]);
 
   return div({ style: { display: 'flex' } }, [
     div([
@@ -726,24 +731,15 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
         ]
       ),
     ]),
-    div(
-      { style: { backgroundColor: 'white', width: '42rem' } },
-      snapshotRequestParticipantCount.status === 'Ready'
-        ? [
-            h2({ style: { marginLeft: '1rem' } }, [
-              'Total participant count: ',
-              formatCount(snapshotRequestParticipantCount.state.result.total),
-            ]),
-            h(Chart, { options: chartOptions(cohortAges) }),
-            h(Chart, { options: chartOptions(cohortDemographics) }),
-          ]
-        : [
-            h2({ style: { marginLeft: '1rem' } }, [
-              'Total participant count: ',
-              h(Spinner),
-              div({ style: { marginTop: '1rem' } }, ['Loading...']),
-            ]),
-          ]
-    ),
+    div({ style: { width: '42rem' } }, [
+      h2({ style: { padding: '1rem', display: 'flex', alignItems: 'center', margin: 0, backgroundColor: 'white' } }, [
+        'Total participant count: ',
+        snapshotRequestParticipantCount.status === 'Ready'
+          ? formatCount(snapshotRequestParticipantCount.state.result.total)
+          : h(Spinner, { style: { marginLeft: '1rem' } }),
+      ]),
+      h(Chart, { options: chartOptions(cohortAges) }),
+      h(Chart, { options: chartOptions(cohortDemographics) }),
+    ]),
   ]);
 };

@@ -554,7 +554,7 @@ describe('CohortEditor', () => {
     expect(await screen.findByText('Total participant count: 0', { exact: false })).toBeTruthy();
   });
 
-  it('displays cohort demographic information', async () => {
+  it('displays cohort demographic visualization', async () => {
     showCohortEditor();
 
     expect(await screen.findAllByText('Female')).toHaveLength(2);

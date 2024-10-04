@@ -195,42 +195,57 @@ export interface CohortDemographics {
   showSeriesName: boolean;
 }
 
-export const cohortAgeData = {
-  categories: [
-    { short: 'Female' },
-    { short: 'Male' },
-    { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
-  ],
-  series: [{ data: generateRandomNumbers(3, 90) }],
-  title: 'Gender identity and current age',
-  yTitle: 'AVERAGE AGE',
-  height: '250rem',
-  legendEnabled: false,
-  showSeriesName: false,
-};
+export function generateCohortAgeData(series) {
+  return {
+    categories: [
+      { short: 'Female' },
+      { short: 'Male' },
+      { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
+    ],
+    series,
+    title: 'Gender identity and current age',
+    yTitle: 'AVERAGE AGE',
+    height: '250rem',
+    legendEnabled: false,
+    showSeriesName: false,
+  };
+}
 
-export const cohortDemographicData = {
-  categories: [
-    { short: 'Female' },
-    { short: 'Female 18-44' },
-    { short: 'Female 45-64' },
-    { short: 'Female 65+' },
-    { short: 'Male' },
-    { short: 'Male 18-44' },
-    { short: 'Male 45-64' },
-    { short: 'Male 65+' },
-    { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
-    { short: 'Other 18-44', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 18-44' },
-    { short: 'Other 45-64', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 45-64' },
-    { short: 'Other 65+', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 65+' },
-  ],
-  series: generateDemographicSeries(),
-  title: 'Gender identity, current age, and race',
-  yTitle: 'OVERALL PERCENTAGE',
-  height: '500rem',
-  legendEnabled: true,
-  showSeriesName: true,
-};
+export function generateRandomCohortAgeSeries() {
+  return [{ data: generateRandomNumbers(3, 90) }];
+}
+export function generateRandomCohortAgeData() {
+  return generateCohortAgeData(generateRandomCohortAgeSeries());
+}
+
+export function generateCohortDemographicData(series) {
+  return {
+    categories: [
+      { short: 'Female' },
+      { short: 'Female 18-44' },
+      { short: 'Female 45-64' },
+      { short: 'Female 65+' },
+      { short: 'Male' },
+      { short: 'Male 18-44' },
+      { short: 'Male 45-64' },
+      { short: 'Male 65+' },
+      { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
+      { short: 'Other 18-44', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 18-44' },
+      { short: 'Other 45-64', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 45-64' },
+      { short: 'Other 65+', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 65+' },
+    ],
+    series,
+    title: 'Gender identity, current age, and race',
+    yTitle: 'OVERALL PERCENTAGE',
+    height: '500rem',
+    legendEnabled: true,
+    showSeriesName: true,
+  };
+}
+
+export function generateRandomCohortDemographicData() {
+  return generateCohortDemographicData(generateDemographicSeries());
+}
 
 export function generateRandomNumbers(numNumbers: number, max: number) {
   const randomNumbers: number[] = [];
@@ -262,7 +277,6 @@ export function addToSeriesData(series: ChartSeries[], data: number[]) {
 }
 
 export function generateDemographicSeries(): ChartSeries[] {
-  // order of data points is Female, Male, Other, Female 18-44, Female 45-64, Female 65+, Male 18-44, Male
   const series: ChartSeries[] = [
     { name: 'Asian', data: [] },
     { name: 'Black', data: [] },
