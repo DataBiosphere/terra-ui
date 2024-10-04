@@ -1,11 +1,11 @@
-export interface RawWorkflowsPermissions {
+export interface WorkflowUserPermissions {
   user: string;
   role: WorkflowAccessLevel;
 }
 
-export type WorkflowsPermissions = RawWorkflowsPermissions[];
+export type WorkflowsPermissions = WorkflowUserPermissions[];
 
-export const publicUser: (userPerms: RawWorkflowsPermissions) => boolean = ({ user }) => {
+export const publicUser: (userPerms: WorkflowUserPermissions) => boolean = ({ user }) => {
   return user === 'public';
 };
 

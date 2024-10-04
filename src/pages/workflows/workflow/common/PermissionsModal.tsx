@@ -24,9 +24,9 @@ import { append, withBusyState } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
 import {
   publicUser,
-  RawWorkflowsPermissions,
   WorkflowAccessLevel,
   WorkflowsPermissions,
+  WorkflowUserPermissions,
 } from 'src/pages/workflows/workflow/workflows-acl-utils';
 import validate from 'validate.js';
 
@@ -40,20 +40,20 @@ type WorkflowPermissionsModalProps = {
 };
 
 type UserProps = {
-  userEmail: RawWorkflowsPermissions;
-  setUserPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
-  userPermissions: WorkflowsPermissions;
+  userPermissions: WorkflowUserPermissions;
+  setAllPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
+  allPermissions: WorkflowsPermissions;
 };
 
 type UserSelectProps = {
   disabled: boolean | undefined;
-  value: RawWorkflowsPermissions;
-  onChange: (newPerms: RawWorkflowsPermissions) => void;
+  value: WorkflowUserPermissions;
+  onChange: (newPerms: WorkflowUserPermissions) => void;
 };
 
-type CurrentUserProps = {
-  userPermissions: WorkflowsPermissions;
-  setUserPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
+type CurrentUsersProps = {
+  allPermissions: WorkflowsPermissions;
+  setAllPermissions: Dispatch<SetStateAction<WorkflowsPermissions>>;
 };
 
 const constraints = {
@@ -99,8 +99,8 @@ const UserSelectInput = (props: UserSelectProps) => {
 };
 
 const User = (props: UserProps) => {
-  const { userEmail, setUserPermissions, userPermissions } = props;
-  const { user } = userEmail;
+  const { userPermissions, setAllPermissions, allPermissions } = props;
+  const { user } = userPermissions;
 
   const disabled = user === getTerraUser().email;
 
@@ -121,9 +121,9 @@ const User = (props: UserProps) => {
         <UserSelectInput
           aria-label={`permissions for ${user}`}
           disabled={disabled}
-          value={userEmail}
+          value={userPermissions}
           onChange={(v) => {
-            setUserPermissions(_.map((entry) => (entry.user === user ? v : entry), userPermissions));
+            setAllPermissions(_.map((entry) => (entry.user === user ? v : entry), allPermissions));
           }}
         />
       </div>
@@ -131,8 +131,8 @@ const User = (props: UserProps) => {
         <Clickable
           tooltip='Remove'
           onClick={() => {
-            const newPermissions = _.remove({ user }, userPermissions);
-            setUserPermissions(newPermissions);
+            const newPermissions = _.remove({ user }, allPermissions);
+            setAllPermissions(newPermissions);
           }}
         >
           <Icon icon='times' size={20} style={{ marginRight: '0.5rem' }} />
@@ -142,17 +142,19 @@ const User = (props: UserProps) => {
   );
 };
 
-const CurrentUsers = (props: CurrentUserProps) => {
+const CurrentUsers = (props: CurrentUsersProps) => {
   const list = useRef<HTMLUListElement>(null);
-  const { userPermissions } = props;
+  const { allPermissions } = props;
   return (
     <>
       <div style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>Current Users</div>
       <ul ref={list} style={styles}>
         {_.flow(
           _.remove(publicUser),
-          _.map((user) => <User key={`user ${user?.user}`} userEmail={user} {...props} />)
-        )(userPermissions)}
+          _.map((userPermissions) => (
+            <User key={`user ${userPermissions?.user}`} userPermissions={userPermissions} {...props} />
+          ))
+        )(allPermissions)}
       </ul>
     </>
   );
@@ -194,11 +196,11 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const addUser = (userEmail) => {
     setSearchValue('');
     setUserValueModified(false);
-    setPermissions(append({ user: userEmail, role: 'READER' } as RawWorkflowsPermissions));
+    setPermissions(append({ user: userEmail, role: 'READER' } as WorkflowUserPermissions));
   };
 
   const updatePublicUser = (publiclyReadable: boolean) => {
-    const publicUserPermissions: RawWorkflowsPermissions = {
+    const publicUserPermissions: WorkflowUserPermissions = {
       role: publiclyReadable ? 'READER' : 'NO ACCESS',
       user: 'public',
     };
@@ -257,7 +259,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
         </ButtonPrimary>
       </div>
       {!loaded && centeredSpinner()}
-      <CurrentUsers userPermissions={permissions} setUserPermissions={setPermissions} />
+      <CurrentUsers allPermissions={permissions} setAllPermissions={setPermissions} />
       <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
         <div>
           <LabeledCheckbox
