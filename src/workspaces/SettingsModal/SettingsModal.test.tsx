@@ -5,6 +5,7 @@ import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
+import { SeparateSubmissionFinalOutputsSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
@@ -113,6 +114,16 @@ describe('SettingsModal', () => {
     config: { enabled: false },
   };
 
+  const separateSubmissionOutputsDisabledSetting: SeparateSubmissionFinalOutputsSetting = {
+    settingType: 'SeparateSubmissionFinalOutputs',
+    config: { enabled: false },
+  };
+
+  const separateSubmissionOutputsEnabledSetting: SeparateSubmissionFinalOutputsSetting = {
+    settingType: 'SeparateSubmissionFinalOutputs',
+    config: { enabled: true },
+  };
+
   const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
     jest.resetAllMocks();
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -174,7 +185,7 @@ describe('SettingsModal', () => {
     // Assert
     expect(onDismiss).toHaveBeenCalled();
     expect(captureEvent).not.toHaveBeenCalled();
-    // On save we do persist the default soft delete setting so it now explicit.
+    // On save we do persist the default soft delete setting so it is now explicit.
     expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
   });
 
@@ -276,7 +287,11 @@ describe('SettingsModal', () => {
       expect(prefixInput.getSelectedOptions()).toEqual([suggestedPrefixes.allObjects]);
       expect(prefixInput.inputElement).not.toHaveAttribute('disabled');
       const allOptions = await prefixInput.getOptions();
-      expect(allOptions).toEqual([suggestedPrefixes.submissions, suggestedPrefixes.submissionIntermediaries]);
+      expect(allOptions).toEqual([
+        suggestedPrefixes.submissionIntermediaries,
+        suggestedPrefixes.submissionFinalOutputs,
+        suggestedPrefixes.submissions,
+      ]);
 
       const daysInput = getDays();
       expect(daysInput).toHaveValue(4);
@@ -366,7 +381,11 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting, noLifecycleRules]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
+        separateSubmissionOutputsDisabledSetting,
+        noLifecycleRules,
+      ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: false,
         prefix: null,
@@ -401,6 +420,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsDisabledSetting,
         {
           config: {
             rules: [
@@ -447,6 +467,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsEnabledSetting,
         {
           config: {
             rules: [
@@ -501,6 +522,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsEnabledSetting,
         {
           config: {
             rules: [
@@ -558,6 +580,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsEnabledSetting,
         {
           config: {
             rules: [

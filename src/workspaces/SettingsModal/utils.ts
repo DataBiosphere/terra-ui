@@ -4,6 +4,7 @@ import {
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
   RequesterPaysSetting,
+  SeparateSubmissionFinalOutputsSetting,
   SoftDeleteSetting,
   WorkspaceSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
@@ -18,8 +19,9 @@ export type {
 
 export const suggestedPrefixes = {
   allObjects: 'All Objects',
-  submissions: 'submissions/',
   submissionIntermediaries: 'submissions/intermediates/',
+  submissionFinalOutputs: 'submissions/final-outputs/',
+  submissions: 'submissions/',
 };
 
 export const secondsInADay = 86400;
@@ -37,6 +39,10 @@ export const isSoftDeleteSetting = (setting: WorkspaceSetting): setting is SoftD
 export const isRequesterPaysSetting = (setting: WorkspaceSetting): setting is RequesterPaysSetting =>
   setting.settingType === 'GcpBucketRequesterPays';
 
+const isSeparateSubmissionFinalOutputsSetting = (
+  setting: WorkspaceSetting
+): setting is SeparateSubmissionFinalOutputsSetting => setting.settingType === 'SeparateSubmissionFinalOutputs';
+
 /**
  * Removes the first delete rule from the first bucketLifecycleSetting in the workspace settings.
  *
@@ -51,7 +57,7 @@ export const removeFirstBucketDeletionRule = (originalSettings: WorkspaceSetting
   ) as BucketLifecycleSetting[];
   const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isBucketLifecycleSetting(setting));
 
-  // If no bucketLifecycleSettings existed, nothing to delete
+  // If no bucketLifecycleSettings existed, nothing to delete (and we don't set the new submission directory setting).
   if (bucketLifecycleSettings.length === 0) {
     return otherSettings;
   }
@@ -63,7 +69,9 @@ export const removeFirstBucketDeletionRule = (originalSettings: WorkspaceSetting
   const otherRules = existingSetting.config.rules.filter((rule) => !isDeleteBucketLifecycleRule(rule));
   bucketLifecycleSettings[0].config.rules = _.concat(deleteRules.slice(1), otherRules);
 
-  return _.concat(bucketLifecycleSettings, otherSettings);
+  const newSettings = _.concat(bucketLifecycleSettings, otherSettings);
+  // When disabling bucket lifecycle rules, we also disable separate submission outputs.
+  return modifySeparateSubmissionOutputsSetting(newSettings, false);
 };
 
 /**
@@ -122,7 +130,10 @@ export const modifyFirstBucketDeletionRule = (
     deleteRules[0].conditions.matchesPrefix = prefixes;
   }
   bucketLifecycleSettings[0].config.rules = _.concat(deleteRules, otherRules);
-  return _.concat(bucketLifecycleSettings, otherSettings);
+  const newSettings = _.concat(bucketLifecycleSettings, otherSettings);
+
+  // When enable bucket lifecycle rules, we also enable separate submission outputs.
+  return modifySeparateSubmissionOutputsSetting(newSettings, true);
 };
 
 /**
@@ -192,6 +203,34 @@ export const modifyRequesterPaysSetting = (
         settingType: 'GcpBucketRequesterPays',
         config: { enabled },
       } as RequesterPaysSetting,
+    ],
+    otherSettings
+  );
+};
+
+/**
+ * Modifies the "separate submission outputs" setting in the workspace settings.
+ * If no such setting exists, it will be created.
+ *
+ * Note that any other settings will be preserved but moved to the end of the array.
+ */
+const modifySeparateSubmissionOutputsSetting = (
+  originalSettings: WorkspaceSetting[],
+  enabled: boolean
+): WorkspaceSetting[] => {
+  // Clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
+
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter(
+    (setting) => !isSeparateSubmissionFinalOutputsSetting(setting)
+  );
+
+  return _.concat(
+    [
+      {
+        settingType: 'SeparateSubmissionFinalOutputs',
+        config: { enabled },
+      } as SeparateSubmissionFinalOutputsSetting,
     ],
     otherSettings
   );

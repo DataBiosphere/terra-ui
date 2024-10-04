@@ -24,6 +24,7 @@ import {
 } from 'src/libs/ajax/workspaces/workspace-models';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
+import { SupportSummary } from 'src/support/SupportResourceType';
 
 const getSnapshotEntityMetadata = Utils.memoizeAsync(
   async (
@@ -93,6 +94,11 @@ export const Workspaces = (signal?: AbortSignal) => ({
     }
     const response = await fetchRawls(url, _.mergeAll([authOpts(), { signal }]));
     return response.json();
+  },
+
+  adminGetById: async (workspaceId: string): Promise<SupportSummary> => {
+    const res = await fetchRawls(`admin/workspaces/${workspaceId}`, _.merge(authOpts(), { signal }));
+    return res.json();
   },
 
   workspaceV2: (namespace: string, name: string) => {

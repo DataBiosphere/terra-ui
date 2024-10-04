@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Ajax } from 'src/libs/ajax';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { useCancellation } from 'src/libs/react-utils';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -27,7 +27,7 @@ export const useWorkspaceById = (workspaceId: string, fields?: string[]): UseWor
       const loadWorkspace = async () => {
         setState({ status: 'Loading', workspace: null });
         try {
-          const workspace = await Ajax(signal).Workspaces.getById(workspaceId, fields);
+          const workspace = await Workspaces(signal).getById(workspaceId, fields);
           setState({ status: 'Ready', workspace });
         } catch (error: unknown) {
           setState({ status: 'Error', workspace: null, error });
