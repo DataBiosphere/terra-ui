@@ -180,6 +180,7 @@ const NotificationDisplay = ({ id }) => {
               {
                 disabled: onFirst,
                 onClick: () => setNotificationNumber(notificationNumber - 1),
+                'aria-label': 'Previous notification',
               },
               [icon('angle-left', { size: 12 })]
             ),
@@ -200,6 +201,7 @@ const NotificationDisplay = ({ id }) => {
               {
                 disabled: onLast,
                 onClick: () => setNotificationNumber(notificationNumber + 1),
+                'aria-label': 'Next notification',
               },
               [icon('angle-right', { size: 12 })]
             ),
