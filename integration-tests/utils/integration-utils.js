@@ -233,6 +233,12 @@ const waitForModal = (page, { timeout = 30000 } = {}) => {
   return page.waitForSelector('.ReactModal__Overlay', { hidden: false, timeout });
 };
 
+const waitForNoModalDrawer = async (page) => {
+  await waitForNoModal(page);
+  // Matches the animation transition time
+  await delay(200);
+};
+
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
 // the action to ensure that the spinner rendering is captured by the observer, followed by
 // waiting for the spinner to be removed
@@ -631,6 +637,7 @@ module.exports = {
   waitForNoModal,
   waitForMenu,
   waitForModal,
+  waitForNoModalDrawer,
   waitForNoSpinners,
   withPageLogging,
   withScreenshot,

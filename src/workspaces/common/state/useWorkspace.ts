@@ -228,7 +228,7 @@ export const useWorkspace = (namespace, name): WorkspaceDetails => {
               {
                 onClick: () => {
                   refreshWorkspace();
-                  clearNotification(accessNotificationId.current);
+                  clearNotification(accessNotificationId.current!);
                 },
               },
               ['Click to refresh now']
