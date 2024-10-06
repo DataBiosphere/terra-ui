@@ -69,15 +69,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (GCP)')}`,
   },
   {
-    id: 'workspace-files',
-    title: 'Workspace Files Browser',
-    description: 'Enabling this feature will allow you to use the new workspace files browser.',
-    groups: ['preview-workspace-files'],
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on workspace files browser'
-    )}`,
-  },
-  {
     id: HAIL_BATCH_AZURE_FEATURE_ID,
     title: 'Hail Batch App on Azure',
     description: 'Enabling this feature will allow you to launch the Hail Batch app in Azure workspaces.',
