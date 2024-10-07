@@ -54,19 +54,35 @@ type WorkflowDocumentationProps = {
   setWorkflowDocumentation: (value: string) => void;
 };
 
+validate.validators.maxNamespaceNameCombinedLength = <OtherFieldName extends string>(
+  value: string,
+  options: { otherField: OtherFieldName },
+  _key: string,
+  attributes: Record<OtherFieldName, string>
+): string | null =>
+  value.length + attributes[options.otherField].length > 250
+    ? '^Namespace and name are too long (maximum is 250 characters total)' // ^ prevents attribute from being prepended
+    : null;
+
 const constraints = {
   namespace: {
     presence: { allowEmpty: false },
     format: {
-      pattern: /^[A-Za-z0-9_.-]+$/,
-      message: 'Only letters, numbers, underscores, dashes, and periods allowed',
+      pattern: /^[A-Za-z0-9_\-.]*$/,
+      message: 'can only contain letters, numbers, underscores, dashes, and periods',
+    },
+    maxNamespaceNameCombinedLength: {
+      otherField: 'name',
     },
   },
   name: {
     presence: { allowEmpty: false },
     format: {
-      pattern: /^[A-Za-z0-9_.-]+$/,
-      message: 'Only letters, numbers, underscores, dashes, and periods allowed',
+      pattern: /^[A-Za-z0-9_\-.]*$/,
+      message: 'can only contain letters, numbers, underscores, dashes, and periods',
+    },
+    maxNamespaceNameCombinedLength: {
+      otherField: 'namespace',
     },
   },
   synopsis: {
@@ -235,8 +251,12 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
       title={title}
       width='75rem'
       okButton={
-        /* eslint-disable-next-line no-alert */
-        <ButtonPrimary disabled={errors || _.isEmpty(wdl)} onClick={() => buttonAction()}>
+        <ButtonPrimary
+          // the same error message will not appear multiple times
+          tooltip={errors && _.uniqBy('props.children', Utils.summarizeErrors(errors))}
+          disabled={errors}
+          onClick={buttonAction}
+        >
           {buttonActionName}
         </ButtonPrimary>
       }
@@ -262,11 +282,6 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
           snapshotComment={snapshotComment}
           setSnapshotComment={setSnapshotComment}
         />
-        {(namespace + name).length > 250 && (
-          <div style={{ color: 'red', paddingTop: '1.5rem' }}>
-            The namespace/name configuration must be 250 characters or less.
-          </div>
-        )}
       </div>
     </Modal>
   );
