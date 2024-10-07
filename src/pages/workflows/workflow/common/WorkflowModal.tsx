@@ -168,7 +168,7 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
         <div style={{ marginBottom: '0.1667em' }}>
           <FormLabel>Snapshot Comment</FormLabel>
         </div>
-        <TextInput id='snapshot-input' value={snapshotComment} onChange={(value) => setSnapshotComment(value)} />
+        <TextInput id='snapshot-input' value={snapshotComment} onChange={setSnapshotComment} />
       </div>
     </div>
   );
@@ -199,7 +199,7 @@ const WdlBoxSection = (props: WdlBoxSectionProps) => {
           )}
         </Dropzone>
       </div>
-      <WDLEditor wdl={wdlPayload} onChange={(v: string) => setWdlPayload(v)} />
+      <WDLEditor wdl={wdlPayload} onChange={setWdlPayload} />
     </>
   );
 };
@@ -209,7 +209,7 @@ const DocumentationSection = (props: WorkflowDocumentationProps) => {
   return (
     <div style={{ paddingTop: '1.5rem' }}>
       <FormLabel>Documentation</FormLabel>
-      <TextArea id='documentation-input' style={{ height: 100 }} onChange={(v) => setWorkflowDocumentation(v)} />
+      <TextArea id='documentation-input' style={{ height: 100 }} onChange={setWorkflowDocumentation} />
     </div>
   );
 };
