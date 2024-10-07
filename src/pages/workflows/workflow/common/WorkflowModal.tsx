@@ -209,7 +209,7 @@ const DocumentationSection = (props: WorkflowDocumentationProps) => {
   return (
     <div style={{ paddingTop: '1.5rem' }}>
       <FormLabel>Documentation</FormLabel>
-      <TextArea id='documentation-input' onChange={(v) => setWorkflowDocumentation(v)} />
+      <TextArea id='documentation-input' style={{ height: 100 }} onChange={(v) => setWorkflowDocumentation(v)} />
     </div>
   );
 };
