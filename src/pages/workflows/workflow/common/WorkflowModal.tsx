@@ -1,7 +1,7 @@
 import { ButtonPrimary, Clickable, Modal } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
-import React, { Fragment, useState } from 'react';
+import React, { useState } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
 import colors from 'src/libs/colors';
