@@ -1170,13 +1170,15 @@ export const WorkspaceData = _.flow(
                   uploadingFile &&
                     h(EntityUploader, {
                       onDismiss: () => setUploadingFile(false),
-                      onSuccess: (recordType) => {
+                      onSuccess: (recordType, isSync) => {
                         setUploadingFile(false);
                         forceRefresh();
                         loadMetadata();
-                        notify('success', `Data imported successfully to table ${recordType}.`, {
-                          id: `${recordType}_success`,
-                        });
+                        // Show success message only for synchronous uploads
+                        isSync &&
+                          notify('success', `Data imported successfully to table ${recordType}.`, {
+                            id: `${recordType}_success`,
+                          });
                       },
                       namespace,
                       name,

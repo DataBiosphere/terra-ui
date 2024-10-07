@@ -56,8 +56,16 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const doUpload = async () => {
     setUploading(true);
     try {
-      await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name });
-      onSuccess(recordType);
+      const uploaderResponse = await dataProvider.uploadTsv({
+        workspaceId,
+        recordType,
+        file,
+        useFireCloudDataModel,
+        deleteEmptyValues,
+        namespace,
+        name,
+      });
+      onSuccess(recordType, !!uploaderResponse);
       clearNotification(recordType);
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace,
