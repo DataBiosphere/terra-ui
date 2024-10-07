@@ -301,6 +301,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
             buttonActionName='Upload'
             buttonAction={uploadWorkflow}
             synopsis={workflowSynopsis}
+            documentation={workflowDocumentation}
             setWorkflowNamespace={setWorkflowNamespace}
             setWorkflowName={setWorkflowName}
             setWorkflowSynopsis={setWorkflowSynopsis}

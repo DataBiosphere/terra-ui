@@ -17,6 +17,7 @@ interface WorkflowModalProps {
   namespace: string;
   name: string;
   synopsis: string;
+  documentation: string;
   snapshotComment: string;
   buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
   wdl: string;
@@ -51,6 +52,7 @@ type WdlBoxSectionProps = {
 };
 
 type WorkflowDocumentationProps = {
+  documentation: string;
   setWorkflowDocumentation: (value: string) => void;
 };
 
@@ -205,11 +207,16 @@ const WdlBoxSection = (props: WdlBoxSectionProps) => {
 };
 
 const DocumentationSection = (props: WorkflowDocumentationProps) => {
-  const { setWorkflowDocumentation } = props;
+  const { documentation, setWorkflowDocumentation } = props;
   return (
     <div style={{ paddingTop: '1.5rem' }}>
       <FormLabel>Documentation</FormLabel>
-      <TextArea id='documentation-input' style={{ height: 100 }} onChange={setWorkflowDocumentation} />
+      <TextArea
+        id='documentation-input'
+        style={{ height: 100 }}
+        value={documentation}
+        onChange={setWorkflowDocumentation}
+      />
     </div>
   );
 };
@@ -222,6 +229,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     name,
     buttonActionName,
     synopsis,
+    documentation,
     buttonAction,
     setWorkflowNamespace,
     setWorkflowName,
@@ -274,7 +282,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         <div style={{ paddingTop: '1.5rem' }}>
           <WdlBoxSection wdlPayload={wdl} setWdlPayload={setWdl} />
         </div>
-        <DocumentationSection setWorkflowDocumentation={setWorkflowDocumentation} />
+        <DocumentationSection documentation={documentation} setWorkflowDocumentation={setWorkflowDocumentation} />
         <SynopsisSnapshotSection
           synopsis={synopsis}
           setWorkflowSynopsis={setWorkflowSynopsis}
