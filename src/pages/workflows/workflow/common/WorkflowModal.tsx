@@ -254,6 +254,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         setWorkflowName('');
         setWdl('');
         setWorkflowDocumentation('');
+        setWorkflowSynopsis('');
         setSnapshotComment('');
       }}
       title={title}
