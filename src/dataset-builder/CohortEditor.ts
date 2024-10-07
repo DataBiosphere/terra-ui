@@ -590,6 +590,15 @@ interface CohortEditorProps {
   readonly getNextCriteriaIndex: () => number;
 }
 
+const defaultCohortDemographicSeries = [
+  { name: 'Asian', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Black', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'White', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Native American', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Pacific Islander', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+];
+const defaultCohortAgeSeries = [{ data: [0, 0, 0] }];
+
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const {
     onStateChange,
@@ -603,14 +612,6 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
   const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
     useLoadedData<SnapshotBuilderCountResponse>();
-  const defaultCohortDemographicSeries = [
-    { name: 'Asian', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-    { name: 'Black', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-    { name: 'White', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-    { name: 'Native American', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-    { name: 'Pacific Islander', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  ];
-  const defaultCohortAgeSeries = [{ data: [0, 0, 0] }];
   const [cohortAges, setCohortAges] = useState<CohortDemographics>(generateCohortAgeData(defaultCohortAgeSeries));
   const [cohortDemographics, setCohortDemographics] = useState<CohortDemographics>(
     generateCohortDemographicData(defaultCohortDemographicSeries)
@@ -630,13 +631,14 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   }, [snapshotId, setSnapshotRequestParticipantCount, cohort]);
 
   useEffect(() => {
-    countStatus === 'Ready'
-      ? (setCohortAges(generateRandomCohortAgeData()), setCohortDemographics(generateRandomCohortDemographicData()))
-      : (setCohortAges(generateCohortAgeData(defaultCohortAgeSeries)),
-        setCohortDemographics(generateCohortDemographicData(defaultCohortDemographicSeries)));
-    // @ts-ignore
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countStatus]);
+    if (countStatus === 'Ready') {
+      setCohortAges(generateRandomCohortAgeData());
+      setCohortDemographics(generateRandomCohortDemographicData());
+    } else {
+      setCohortAges(generateCohortAgeData(defaultCohortAgeSeries));
+      setCohortDemographics(generateCohortDemographicData(defaultCohortDemographicSeries));
+    }
+  }, [countStatus, setCohortAges, setCohortDemographics]);
 
   return div({ style: { display: 'flex' } }, [
     div([

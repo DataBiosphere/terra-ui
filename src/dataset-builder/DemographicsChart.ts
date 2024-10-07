@@ -84,7 +84,8 @@ export function generateCohortAgeData(series) {
       { short: 'Male' },
       { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
     ],
-    series,
+    // keeps the chart from side effecting the series value
+    series: _.cloneDeep(series),
     title: 'Gender identity and current age',
     yTitle: 'AVERAGE AGE',
     height: '250rem',
@@ -117,7 +118,8 @@ export function generateCohortDemographicData(series) {
       { short: 'Other 45-64', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 45-64' },
       { short: 'Other 65+', long: 'Nonbinary, 2 Spirit, Genderqueer, etc. 65+' },
     ],
-    series,
+    // keeps the chart from side effecting the series value
+    series: _.cloneDeep(series),
     title: 'Gender identity, current age, and race',
     yTitle: 'OVERALL PERCENTAGE',
     height: '500rem',
