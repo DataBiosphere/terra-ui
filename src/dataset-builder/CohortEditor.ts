@@ -19,13 +19,6 @@ import {
   ProgramDataRangeCriteria,
 } from 'src/dataset-builder/DatasetBuilderUtils';
 import {
-  CohortDemographics,
-  generateCohortAgeData,
-  generateCohortDemographicData,
-  generateRandomCohortAgeData,
-  generateRandomCohortDemographicData,
-} from 'src/dataset-builder/TestConstants';
-import {
   DataRepo,
   SnapshotBuilderCountResponse,
   SnapshotBuilderDomainOption,
@@ -42,6 +35,14 @@ import * as Utils from 'src/libs/utils';
 
 import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
 import { OnStateChangeHandler } from './DatasetBuilder';
+import {
+  chartOptions,
+  CohortDemographics,
+  generateCohortAgeData,
+  generateCohortDemographicData,
+  generateRandomCohortAgeData,
+  generateRandomCohortDemographicData,
+} from './DemographicsChart';
 
 const flexWithBaseline = {
   display: 'flex',
@@ -615,58 +616,6 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     generateCohortDemographicData(defaultCohortDemographicSeries)
   );
   const countStatus = snapshotRequestParticipantCount.status;
-  function chartOptions(cohortDemographics: CohortDemographics) {
-    return {
-      chart: {
-        spacingLeft: 20,
-        spacingRight: 30,
-        height: cohortDemographics.height,
-        style: { fontFamily: 'inherit' },
-        type: 'bar',
-      },
-      legend: { enabled: cohortDemographics.legendEnabled },
-      plotOptions: { series: { stacking: 'normal' } },
-      series: cohortDemographics.series,
-      title: {
-        align: 'left',
-        style: { fontSize: '16px', fontWeight: 'bold', color: '#333f52' },
-        text: cohortDemographics.title,
-      },
-      tooltip: {
-        followPointer: true,
-        formatter() {
-          // @ts-ignore
-          // eslint-disable-next-line react/no-this-in-sfc
-          const currCategory = _.find((category) => category.short === this.x, cohortDemographics.categories);
-          const categoryDescription = currCategory.long || currCategory.short;
-          if (cohortDemographics.showSeriesName) {
-            // @ts-ignore
-            // eslint-disable-next-line react/no-this-in-sfc
-            return `${categoryDescription} <br/><span style="color:${this.color}">\u25CF</span> ${this.series.name}<br/> ${this.y}`;
-          }
-          // @ts-ignore
-          // eslint-disable-next-line react/no-this-in-sfc
-          return `${categoryDescription} <br/> ${this.y}`;
-        },
-      },
-      xAxis: {
-        categories: _.map('short', cohortDemographics.categories),
-        crosshair: true,
-      },
-      yAxis: {
-        crosshair: true,
-        title: { text: cohortDemographics.yTitle },
-      },
-      accessibility: {
-        point: {
-          descriptionFormatter: (point) => {
-            return `${point.index + 1}. Category ${point.category}, ${point.series.name}: ${point.y}.`;
-          },
-        },
-      },
-      exporting: { buttons: { contextButton: { x: -15 } } },
-    };
-  }
 
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
