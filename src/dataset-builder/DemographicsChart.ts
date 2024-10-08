@@ -42,7 +42,7 @@ export function chartOptions(cohortDemographics: CohortDemographics) {
         // @ts-ignore
         // eslint-disable-next-line react/no-this-in-sfc
         const currCategory: ChartLabel = _.find((category) => category.short === this.x, cohortDemographics.categories);
-        const categoryDescription = currCategory.long || currCategory.short;
+        const categoryDescription = currCategory.long ?? currCategory.short;
         if (cohortDemographics.showSeriesName) {
           // @ts-ignore
           // eslint-disable-next-line react/no-this-in-sfc
