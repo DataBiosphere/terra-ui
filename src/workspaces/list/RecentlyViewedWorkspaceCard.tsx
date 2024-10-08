@@ -1,7 +1,7 @@
 import { Clickable } from '@terra-ui-packages/components';
 import React from 'react';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -33,7 +33,7 @@ export const RecentlyViewedWorkspaceCard = (props: RecentlyViewedWorkspaceCardPr
       }}
       href={Nav.getLink('workspace-dashboard', { namespace, name })}
       onClick={() => {
-        Ajax().Metrics.captureEvent(
+        void Metrics().captureEvent(
           Events.workspaceOpenFromRecentlyViewed,
           extractWorkspaceDetails(workspace.workspace)
         );

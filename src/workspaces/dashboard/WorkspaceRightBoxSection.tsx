@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { RightBoxSection, RightBoxSectionProps } from 'src/components/RightBoxSection';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -13,7 +13,7 @@ export const WorkspaceRightBoxSection = (props: WorkspaceRightBoxSectionProps) =
 
   const workspaceDashboardToggle = useCallback(
     (panelOpen: boolean) => {
-      Ajax().Metrics.captureEvent(Events.workspaceDashboardToggleSection, {
+      void Metrics().captureEvent(Events.workspaceDashboardToggleSection, {
         title,
         opened: panelOpen,
         ...extractWorkspaceDetails(workspace),

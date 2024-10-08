@@ -7,7 +7,8 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { icon } from 'src/components/icons';
 import { TooltipCell } from 'src/components/table';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
@@ -95,9 +96,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
 
     const loadStorageCost = withErrorReporting('Error loading storage cost data')(async () => {
       try {
-        const { estimate, lastUpdated } = await Ajax(signal)
-          .Workspaces.workspace(namespace, name)
-          .storageCostEstimate();
+        const { estimate, lastUpdated } = await Workspaces(signal).workspace(namespace, name).storageCostEstimate();
         setStorageCost({ isSuccess: true, estimate, lastUpdated });
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
@@ -110,7 +109,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
 
     const loadBucketSize = withErrorReporting('Error loading bucket size.')(async () => {
       try {
-        const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage();
+        const { usageInBytes, lastUpdated } = await Workspaces(signal).workspace(namespace, name).bucketUsage();
         setBucketSize({ isSuccess: true, usage: formatBytes(usageInBytes), lastUpdated });
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
@@ -144,7 +143,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           text: googleProject,
           style: { marginLeft: '0.25rem' },
           onClick: (_) => {
-            Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyGoogleProjectId, {
+            void Metrics().captureEvent(Events.workspaceDashboardCopyGoogleProjectId, {
               ...extractWorkspaceDetails(workspace),
             });
           },
@@ -157,7 +156,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           text: bucketName,
           style: { marginLeft: '0.25rem' },
           onClick: (_) => {
-            Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyBucketName, {
+            void Metrics().captureEvent(Events.workspaceDashboardCopyBucketName, {
               ...extractWorkspaceDetails(workspace),
             });
           },
@@ -216,7 +215,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           style: { margin: '1rem 0.5rem' },
           ...newTabLinkProps,
           onClick: () => {
-            Ajax().Metrics.captureEvent(Events.workspaceOpenedBucketInBrowser, {
+            void Metrics().captureEvent(Events.workspaceOpenedBucketInBrowser, {
               ...extractWorkspaceDetails(workspace),
             });
           },
@@ -232,7 +231,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           style: { margin: '1rem 0.5rem' },
           ...newTabLinkProps,
           onClick: () => {
-            Ajax().Metrics.captureEvent(Events.workspaceOpenedProjectInConsole, {
+            void Metrics().captureEvent(Events.workspaceOpenedProjectInConsole, {
               ...extractWorkspaceDetails(workspace),
             });
           },
