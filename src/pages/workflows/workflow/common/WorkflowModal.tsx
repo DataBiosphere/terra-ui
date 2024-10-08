@@ -1,4 +1,4 @@
-import { ButtonPrimary, Clickable, Modal } from '@terra-ui-packages/components';
+import { ButtonPrimary, Clickable, Modal, useUniqueId } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { useState } from 'react';
@@ -105,14 +105,19 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
   const [namespaceModified, setNamespaceModified] = useState<boolean>(false);
   const [nameModified, setNameModified] = useState<boolean>(false);
 
+  const namespaceInputId = useUniqueId();
+  const nameInputId = useUniqueId();
+
   return (
     <>
       <div style={{ flexWrap: 'wrap', flexGrow: 1, flexBasis: '400px' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel required>Namespace</FormLabel>
+          <FormLabel htmlFor={namespaceInputId} required>
+            Namespace
+          </FormLabel>
           <ValidatedInput
             inputProps={{
-              id: 'namespace-input',
+              id: namespaceInputId,
               autoFocus: true,
               value: namespace,
               onChange: (v) => {
@@ -126,10 +131,12 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
       </div>
       <div style={{ flexWrap: 'wrap', flexGrow: 1, flexBasis: '400px' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel required>Name</FormLabel>
+          <FormLabel htmlFor={nameInputId} required>
+            Name
+          </FormLabel>
           <ValidatedInput
             inputProps={{
-              id: 'name-input',
+              id: nameInputId,
               value: name,
               onChange: (v) => {
                 setWorkflowName(v);
@@ -148,14 +155,17 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
   const { synopsis, setWorkflowSynopsis, errors, snapshotComment, setSnapshotComment } = props;
   const [synopsisModified, setSynopsisModified] = useState<boolean>(false);
 
+  const synopsisInputId = useUniqueId();
+  const snapshotCommentInputId = useUniqueId();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ paddingTop: '1.5rem' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel>Synopsis (80 characters max)</FormLabel>
+          <FormLabel htmlFor={synopsisInputId}>Synopsis (80 characters max)</FormLabel>
           <ValidatedInput
             inputProps={{
-              id: 'synopsis-input',
+              id: synopsisInputId,
               value: synopsis,
               onChange: (v) => {
                 setWorkflowSynopsis(v);
@@ -168,9 +178,9 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
       </div>
       <div style={{ paddingTop: '1.5rem' }}>
         <div style={{ marginBottom: '0.1667em' }}>
-          <FormLabel>Snapshot Comment</FormLabel>
+          <FormLabel htmlFor={snapshotCommentInputId}>Snapshot Comment</FormLabel>
         </div>
-        <TextInput id='snapshot-input' value={snapshotComment} onChange={setSnapshotComment} />
+        <TextInput id={snapshotCommentInputId} value={snapshotComment} onChange={setSnapshotComment} />
       </div>
     </div>
   );
@@ -178,10 +188,15 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
 
 const WdlBoxSection = (props: WdlBoxSectionProps) => {
   const { wdlPayload, setWdlPayload } = props;
+
+  const wdlLabelId = useUniqueId();
+
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'baseline' }}>
-        <FormLabel required>WDL</FormLabel>
+        <FormLabel id={wdlLabelId} required>
+          WDL
+        </FormLabel>
         <Dropzone
           accept='.wdl'
           multiple={false}
@@ -195,24 +210,33 @@ const WdlBoxSection = (props: WdlBoxSectionProps) => {
           onDropAccepted={(wdlFile) => uploadWdl(wdlFile[0], setWdlPayload)}
         >
           {({ openUploader }) => (
-            <Clickable style={{ color: colors.accent(1.05) }} onClick={() => openUploader()}>
+            <Clickable
+              style={{ color: colors.accent(1.05) }}
+              aria-label='Load WDL from file'
+              onClick={() => openUploader()}
+            >
               Load from file
             </Clickable>
           )}
         </Dropzone>
       </div>
-      <WDLEditor wdl={wdlPayload} onChange={setWdlPayload} />
+      <div aria-labelledby={wdlLabelId}>
+        <WDLEditor wdl={wdlPayload} onChange={setWdlPayload} />
+      </div>
     </>
   );
 };
 
 const DocumentationSection = (props: WorkflowDocumentationProps) => {
   const { documentation, setWorkflowDocumentation } = props;
+
+  const documentationInputId = useUniqueId();
+
   return (
     <div style={{ paddingTop: '1.5rem' }}>
-      <FormLabel>Documentation</FormLabel>
+      <FormLabel htmlFor={documentationInputId}>Documentation</FormLabel>
       <TextArea
-        id='documentation-input'
+        id={documentationInputId}
         style={{ height: 100 }}
         value={documentation}
         onChange={setWorkflowDocumentation}
