@@ -13,7 +13,7 @@ import { forwardRefWithName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore, TerraUser, TerraUserState, userStore } from 'src/libs/state';
 import { WorkflowsContainer, wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 import { Snapshot } from 'src/snapshots/Snapshot';
-import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { AzureContext, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -109,8 +109,8 @@ type ListAjaxContract = MethodsAjaxContract['list'];
 type MethodAjaxContract = MethodsAjaxContract['method'];
 
 interface AjaxMocks {
-  listImpl?: jest.Mock;
-  getImpl?: jest.Mock;
+  listImpl?: jest.Mock<Promise<Snapshot[]>>;
+  getImpl?: jest.Mock<Promise<Snapshot>, []>;
   deleteImpl?: jest.Mock;
 }
 
@@ -126,12 +126,12 @@ const mockAjax = (mocks: AjaxMocks = {}) => {
     Methods: {
       list: (listImpl || defaultListImpl) as ListAjaxContract,
       method: jest.fn((namespace, name, snapshotId) => {
-        return {
+        return partial<ReturnType<MethodAjaxContract>>({
           get: getImpl || defaultGetImpl(namespace),
           delete: deleteImpl || defaultDeleteImpl,
           permissions: jest.fn().mockResolvedValue(mockPermissions),
           setPermissions: () => setPermissionsMock(namespace, name, snapshotId),
-        } as Partial<ReturnType<MethodAjaxContract>>;
+        });
       }) as MethodAjaxContract,
     } as MethodsAjaxContract,
   } as AjaxContract);
