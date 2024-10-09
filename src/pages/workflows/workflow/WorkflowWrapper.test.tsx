@@ -1,7 +1,7 @@
 import { delay } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
-import _ from 'lodash';
+import _ from 'lodash/fp';
 import React from 'react';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Ajax, AjaxContract } from 'src/libs/ajax';
