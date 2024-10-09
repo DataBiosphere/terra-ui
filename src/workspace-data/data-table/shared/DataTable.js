@@ -514,7 +514,7 @@ const DataTable = (props) => {
                             field: 'name',
                             datatype: dataProvider.features.supportsPerColumnDatatype ? 'STRING' : undefined, // primary keys are always strings.
                             onSort: setSort,
-                            renderSearch: !!googleProject,
+                            renderSearch: dataProvider.features.supportsFiltering,
                             searchByColumn: (v) => searchByColumn(entityMetadata[entityType].idName, v),
                           },
                           [
@@ -567,7 +567,7 @@ const DataTable = (props) => {
                               field: attributeName,
                               datatype: dataProvider.features.supportsPerColumnDatatype ? getColumnDatatype(entityType, attributeName) : undefined,
                               onSort: setSort,
-                              renderSearch: !!googleProject,
+                              renderSearch: dataProvider.features.supportsFiltering,
                               searchByColumn: (v) => searchByColumn(attributeName, v),
                               extraActions: _.concat(
                                 editable
