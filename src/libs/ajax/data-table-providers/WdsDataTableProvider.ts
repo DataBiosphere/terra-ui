@@ -41,6 +41,12 @@ export interface SearchRequest {
   sortAttribute?: string;
 }
 
+export interface DeleteRecordsRequest {
+  record_ids?: string[];
+  excluded_record_ids?: string[];
+  delete_all?: boolean;
+}
+
 export type RecordAttributes = Record<string, unknown>; // truly "unknown" here; the backend Java representation is Map<String, Object>
 
 export interface RecordResponse {
@@ -177,7 +183,7 @@ export class WdsDataTableProvider implements DataTableProvider {
       supportsExport: false,
       supportsPointCorrection: false,
       supportsFiltering: false,
-      supportsRowSelection: false,
+      supportsRowSelection: this.isCapabilityEnabled('apiV1.deleteRecords'), // deletion is the only row-based edit action available right now
       supportsPerColumnDatatype: true,
     };
   }
