@@ -66,8 +66,9 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         name,
       }));
       onSuccess(recordType);
-      // Show success message only for synchronous uploads
+      // Show success message only for synchronous Google Workspace uploads
       isSyncUpload &&
+        isGoogleWorkspace &&
         notify('success', `Data imported successfully to table ${recordType}.`, {
           id: `${recordType}_success`,
         });
