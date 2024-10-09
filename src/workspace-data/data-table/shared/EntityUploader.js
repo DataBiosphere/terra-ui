@@ -17,7 +17,7 @@ import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
-import { clearNotification } from 'src/libs/notifications';
+import { clearNotification, notify } from 'src/libs/notifications';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import validate from 'validate.js';
@@ -56,8 +56,22 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const doUpload = async () => {
     setUploading(true);
     try {
-      await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name });
+      const isSyncUpload = !!(await dataProvider.uploadTsv({
+        workspaceId,
+        recordType,
+        file,
+        useFireCloudDataModel,
+        deleteEmptyValues,
+        namespace,
+        name,
+      }));
       onSuccess(recordType);
+      // Show success message only for synchronous Google Workspace uploads
+      isSyncUpload &&
+        isGoogleWorkspace &&
+        notify('success', `Data imported successfully to table ${recordType}.`, {
+          id: `${recordType}_success`,
+        });
       clearNotification(recordType);
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace,
