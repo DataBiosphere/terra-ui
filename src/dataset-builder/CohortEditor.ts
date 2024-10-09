@@ -2,6 +2,7 @@ import { Spinner, useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, h2, h3, strong } from 'react-hyperscript-helpers';
+import Chart from 'src/components/Chart';
 import { ButtonOutline, ButtonPrimary, GroupedSelect, Link, Select } from 'src/components/common';
 import Slider from 'src/components/common/Slider';
 import { icon } from 'src/components/icons';
@@ -34,6 +35,14 @@ import * as Utils from 'src/libs/utils';
 
 import { domainCriteriaSearchState, homepageState, newCriteriaGroup, Updater } from './dataset-builder-types';
 import { OnStateChangeHandler } from './DatasetBuilder';
+import {
+  chartOptions,
+  CohortDemographics,
+  generateCohortAgeData,
+  generateCohortDemographicData,
+  generateRandomCohortAgeData,
+  generateRandomCohortDemographicData,
+} from './DemographicsChart';
 
 const flexWithBaseline = {
   display: 'flex',
@@ -581,6 +590,15 @@ interface CohortEditorProps {
   readonly getNextCriteriaIndex: () => number;
 }
 
+const defaultCohortDemographicSeries = [
+  { name: 'Asian', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Black', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'White', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Native American', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { name: 'Pacific Islander', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+];
+const defaultCohortAgeSeries = [{ data: [0, 0, 0] }];
+
 export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
   const {
     onStateChange,
@@ -592,48 +610,87 @@ export const CohortEditor: React.FC<CohortEditorProps> = (props) => {
     getNextCriteriaIndex,
   } = props;
   const [cohort, setCohort] = useState<Cohort>(originalCohort);
+  const [snapshotRequestParticipantCount, setSnapshotRequestParticipantCount] =
+    useLoadedData<SnapshotBuilderCountResponse>();
+  const [cohortAges, setCohortAges] = useState<CohortDemographics>(generateCohortAgeData(defaultCohortAgeSeries));
+  const [cohortDemographics, setCohortDemographics] = useState<CohortDemographics>(
+    generateCohortDemographicData(defaultCohortDemographicSeries)
+  );
+  const countStatus = snapshotRequestParticipantCount.status;
 
   const updateCohort = (updateCohort: (Cohort) => Cohort) => setCohort(updateCohort);
 
-  return h(Fragment, [
-    h(CohortEditorContents, {
-      updateCohort,
-      cohort,
-      snapshotId,
-      snapshotBuilderSettings,
-      onStateChange,
-      getNextCriteriaIndex,
-    }),
-    // add div to cover page to footer
-    div(
-      {
-        style: {
-          display: 'flex',
-          backgroundColor: editorBackgroundColor,
-          alignItems: 'end',
-          flexDirection: 'row-reverse',
-          padding: wideMargin,
-        },
-      },
-      [
-        h(
-          ButtonPrimary,
-          {
-            onClick: () => {
-              updateCohorts((cohorts) => {
-                const index = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
-                if (index === -1) {
-                  // Only add to selectedCohorts on creation of new cohort
-                  addSelectedCohort(cohort);
-                }
-                return _.set(`[${index === -1 ? cohorts.length : index}]`, cohort, cohorts);
-              });
-              onStateChange(homepageState.new());
-            },
+  useEffect(() => {
+    setSnapshotRequestParticipantCount(
+      withErrorReporting(`Error fetching snapshot builder count for snapshot ${snapshotId}`)(async () =>
+        DataRepo()
+          .snapshot(snapshotId)
+          .getSnapshotBuilderCount(createSnapshotBuilderCountRequest([cohort]))
+      )
+    );
+  }, [snapshotId, setSnapshotRequestParticipantCount, cohort]);
+
+  useEffect(() => {
+    if (countStatus === 'Ready') {
+      setCohortAges(generateRandomCohortAgeData());
+      setCohortDemographics(generateRandomCohortDemographicData());
+    } else {
+      setCohortAges(generateCohortAgeData(defaultCohortAgeSeries));
+      setCohortDemographics(generateCohortDemographicData(defaultCohortDemographicSeries));
+    }
+  }, [countStatus, setCohortAges, setCohortDemographics]);
+
+  return div({ style: { display: 'flex' } }, [
+    div([
+      h(CohortEditorContents, {
+        updateCohort,
+        cohort,
+        snapshotId,
+        snapshotBuilderSettings,
+        onStateChange,
+        getNextCriteriaIndex,
+      }),
+      // add div to cover page to footer
+      div(
+        {
+          style: {
+            display: 'flex',
+            backgroundColor: editorBackgroundColor,
+            alignItems: 'end',
+            flexDirection: 'row-reverse',
+            padding: '0 3rem',
           },
-          ['Save cohort']
-        ),
-      ]
-    ),
+        },
+        [
+          h(
+            ButtonPrimary,
+            {
+              onClick: () => {
+                updateCohorts((cohorts) => {
+                  const index = _.findIndex((c) => _.equals(c.name, cohort.name), cohorts);
+                  if (index === -1) {
+                    // Only add to selectedCohorts on creation of new cohort
+                    addSelectedCohort(cohort);
+                  }
+                  return _.set(`[${index === -1 ? cohorts.length : index}]`, cohort, cohorts);
+                });
+                onStateChange(homepageState.new());
+              },
+            },
+            ['Save cohort']
+          ),
+        ]
+      ),
+    ]),
+    div({ style: { width: '42rem' } }, [
+      h2({ style: { padding: '1rem', display: 'flex', alignItems: 'center', margin: 0, backgroundColor: 'white' } }, [
+        'Total participant count: ',
+        snapshotRequestParticipantCount.status === 'Ready'
+          ? formatCount(snapshotRequestParticipantCount.state.result.total)
+          : h(Spinner, { style: { marginLeft: '1rem' } }),
+      ]),
+      h(Chart, { options: chartOptions(cohortAges) }),
+      h(Chart, { options: chartOptions(cohortDemographics) }),
+    ]),
   ]);
 };
