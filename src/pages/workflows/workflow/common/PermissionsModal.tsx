@@ -6,11 +6,11 @@ import {
   Modal,
   modalStyles,
   Select,
+  SpinnerOverlay,
 } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, Dispatch, SetStateAction, useRef, useState } from 'react';
-import { IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common';
-import { centeredSpinner } from 'src/components/icons';
+import { IdContainer, LabeledCheckbox } from 'src/components/common';
 import { ValidatedInput } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Ajax } from 'src/libs/ajax';
@@ -172,7 +172,6 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   const [searchValue, setSearchValue] = useState<string>('');
   const [permissions, setPermissions] = useState<WorkflowsPermissions>([]);
   const [working, setWorking] = useState(false);
-  const [loaded, setLoaded] = useState<boolean>(false);
   const [originalPermissions, setOriginalPermissions] = useState<WorkflowsPermissions>([]);
   const userEmails = _.map('user', permissions);
   const [userValueModified, setUserValueModified] = useState<boolean>(false);
@@ -182,19 +181,18 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
   });
 
   useOnMount(() => {
-    const loadWorkflowPermissions = async () => {
+    const loadWorkflowPermissions = withBusyState(setWorking, async () => {
       try {
         const workflowPermissions: WorkflowsPermissions = await Ajax(signal)
           .Methods.method(namespace, name, selectedSnapshot)
           .permissions();
         setPermissions(workflowPermissions);
         setOriginalPermissions(workflowPermissions);
-        setLoaded(true);
       } catch (error) {
         await reportError('Error loading permissions.', error);
         setPermissionsModalOpen(false);
       }
-    };
+    });
 
     loadWorkflowPermissions();
   });
@@ -264,7 +262,6 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
           Add
         </ButtonPrimary>
       </div>
-      {!loaded && centeredSpinner()}
       <CurrentUsers allPermissions={permissions} setAllPermissions={setPermissions} />
       <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
         <div>
@@ -284,7 +281,7 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
           <ButtonPrimary onClick={save}>Save</ButtonPrimary>
         </span>
       </div>
-      {working && spinnerOverlay}
+      {working && <SpinnerOverlay />}
     </Modal>
   );
 };
