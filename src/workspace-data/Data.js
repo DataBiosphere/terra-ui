@@ -1220,19 +1220,13 @@ export const WorkspaceData = _.flow(
                           },
                           ['Workspace Data']
                         ),
-                        h(
-                          DataTypeButton,
-                          {
-                            wrapperProps: { role: 'listitem' },
-                            iconName: 'folder',
-                            iconSize: 18,
-                            selected: selectedData?.type === workspaceDataTypes.bucketObjects,
-                            onClick: () => {
-                              setSelectedData({ type: workspaceDataTypes.bucketObjects });
-                              forceRefresh();
-                            },
-                          },
-                          ['Files']
+                        div(
+                          // File Browser Banner
+                          { style: { padding: '1rem', margin: '0.75rem', backgroundColor: colors.dark(0.1), borderRadius: '0.5rem' } },
+                          [
+                            span({ style: { fontWeight: 'bold' } }, ['Looking for the Files folder?']),
+                            div(['Use the folder icon in the right side-bar to access the workspace Bucket directory.']),
+                          ]
                         ),
                       ]
                     ),

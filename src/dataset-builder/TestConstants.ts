@@ -175,3 +175,24 @@ const dummyConcepts = [
 export const dummyGetConceptForId = (id: number): Concept => {
   return _.find({ id }, dummyConcepts)!;
 };
+
+export function generateRandomNumbers(numNumbers: number, max: number) {
+  const randomNumbers: number[] = [];
+  for (let i = 0; i < numNumbers; i++) {
+    const randomNumber = Math.floor(Math.random() * max) + 1;
+    randomNumbers.push(randomNumber);
+  }
+  return randomNumbers;
+}
+
+export function generateRandomNumbersThatAddUpTo(total: number, numNumbers: number): number[] {
+  const randomNumbers: number[] = [];
+  let remaining = total;
+  for (let i = 0; i < numNumbers - 1; i++) {
+    const randomNumber = Math.floor(Math.random() * remaining);
+    remaining -= randomNumber;
+    randomNumbers.push(randomNumber);
+  }
+  randomNumbers.push(remaining);
+  return _.shuffle(randomNumbers);
+}
