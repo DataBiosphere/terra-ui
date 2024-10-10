@@ -1,13 +1,15 @@
-import { ButtonPrimary, Clickable, Modal, useUniqueId } from '@terra-ui-packages/components';
+import { ButtonPrimary, Clickable, Modal, SpinnerOverlay, useUniqueId } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { useState } from 'react';
 import Dropzone from 'src/components/Dropzone';
+import ErrorView from 'src/components/ErrorView';
 import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
+import { withBusyState } from 'src/libs/utils';
 import { WDLEditor } from 'src/pages/workflows/common/WDLEditor';
 import validate from 'validate.js';
 
@@ -21,7 +23,7 @@ interface WorkflowModalProps {
   snapshotComment: string;
   buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
   wdl: string;
-  buttonAction: () => void;
+  buttonAction: () => Promise<void>;
   setWorkflowNamespace: (value: string) => void;
   setWorkflowName: (value: string) => void;
   setWorkflowSynopsis: (value: string) => void;
@@ -265,10 +267,32 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     setWdl,
   } = props;
 
-  const errors = validate({ namespace, name, synopsis, wdl }, constraints, {
+  const [busy, setBusy] = useState<boolean>(false);
+  const [submissionError, setSubmissionError] = useState<any>(null);
+
+  const validationErrors = validate({ namespace, name, synopsis, wdl }, constraints, {
     prettify: (v) =>
       ({ namespace: 'Namespace', name: 'Name', synopsis: 'Synopsis', wdl: 'WDL' }[v] || validate.prettify(v)),
   });
+
+  const onSubmitWorkflow = withBusyState(setBusy, async () => {
+    try {
+      await buttonAction();
+    } catch (error) {
+      setSubmissionError(error instanceof Response ? await error.text() : error);
+    }
+  });
+
+  const submitWorkflowButton = (
+    <ButtonPrimary
+      // the same error message will not appear multiple times
+      tooltip={validationErrors && _.uniqBy('props.children', Utils.summarizeErrors(validationErrors))}
+      disabled={validationErrors}
+      onClick={onSubmitWorkflow}
+    >
+      {buttonActionName}
+    </ButtonPrimary>
+  );
 
   return (
     <Modal
@@ -283,16 +307,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
       }}
       title={title}
       width='75rem'
-      okButton={
-        <ButtonPrimary
-          // the same error message will not appear multiple times
-          tooltip={errors && _.uniqBy('props.children', Utils.summarizeErrors(errors))}
-          disabled={errors}
-          onClick={buttonAction}
-        >
-          {buttonActionName}
-        </ButtonPrimary>
-      }
+      okButton={submitWorkflowButton}
     >
       <div style={{ padding: '0.5rem 0' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
@@ -301,7 +316,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
             name={name}
             setWorkflowNamespace={setWorkflowNamespace}
             setWorkflowName={setWorkflowName}
-            errors={errors}
+            errors={validationErrors}
           />
         </div>
         <div style={{ paddingTop: '1.5rem' }}>
@@ -311,10 +326,12 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         <SynopsisSnapshotSection
           synopsis={synopsis}
           setWorkflowSynopsis={setWorkflowSynopsis}
-          errors={errors}
+          errors={validationErrors}
           snapshotComment={snapshotComment}
           setSnapshotComment={setSnapshotComment}
         />
+        {busy && <SpinnerOverlay />}
+        {submissionError && <ErrorView error={submissionError} />}
       </div>
     </Modal>
   );

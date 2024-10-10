@@ -10,7 +10,6 @@ import { TabBar } from 'src/components/tabBars';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
-import { reportError } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -172,30 +171,24 @@ export const WorkflowList = (props: WorkflowListProps) => {
     loadWorkflows();
   });
 
-  const uploadWorkflow = withBusyState(setBusy, async () => {
-    setCreateWorkflowModalOpen(false);
+  const uploadWorkflow = async (): Promise<void> => {
+    const workflowPayload = {
+      namespace: workflowNamespace,
+      name: workflowName,
+      synopsis: workflowSynopsis,
+      snapshotComment,
+      documentation: workflowDocumentation,
+      payload: workflowWdl,
+      entityType: 'Workflow', // Currently not supporting task creation
+    };
 
-    try {
-      const workflowPayload = {
-        namespace: workflowNamespace,
-        name: workflowName,
-        synopsis: workflowSynopsis,
-        snapshotComment,
-        documentation: workflowDocumentation,
-        payload: workflowWdl,
-        entityType: 'Workflow', // Currently not supporting task creation
-      };
-
-      const { namespace, name, snapshotId } = await Ajax(signal).Methods.postMethods(workflowPayload);
-      Nav.goToPath('workflow-dashboard', {
-        namespace,
-        name,
-        snapshotId,
-      });
-    } catch (e) {
-      await reportError('Error uploading method', e);
-    }
-  });
+    const { namespace, name, snapshotId } = await Ajax(signal).Methods.postMethods(workflowPayload);
+    Nav.goToPath('workflow-dashboard', {
+      namespace,
+      name,
+      snapshotId,
+    });
+  };
 
   // Gets the sort key of a method definition based on the currently
   // selected sort field such that numeric fields are sorted numerically
