@@ -6,7 +6,6 @@ import Dropzone from 'src/components/Dropzone';
 import ErrorView from 'src/components/ErrorView';
 import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
 import colors from 'src/libs/colors';
-import { reportError } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
@@ -200,15 +199,8 @@ const WdlBoxSection = (props: WdlBoxSectionProps) => {
           WDL
         </FormLabel>
         <Dropzone
-          accept='.wdl'
           multiple={false}
           style={{ paddingLeft: '1rem' }}
-          onDropRejected={() =>
-            reportError(
-              'Not a valid wdl file',
-              'The selected file is not a wdl file. To import a wdl, upload a file with the .wdl extension'
-            )
-          }
           onDropAccepted={(wdlFile) => uploadWdl(wdlFile[0], setWdlPayload)}
         >
           {({ openUploader }) => (
