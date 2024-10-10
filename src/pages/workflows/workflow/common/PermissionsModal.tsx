@@ -235,32 +235,38 @@ export const PermissionsModal = (props: WorkflowPermissionsModalProps) => {
       width='30rem'
       showButtons={false}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-        <IdContainer>
-          {(id) => (
-            <div style={{ flexGrow: 1, marginRight: '1rem' }}>
-              <FormLabel htmlFor={id} style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>
-                User
-              </FormLabel>
-              <ValidatedInput
-                inputProps={{
-                  id,
-                  autoFocus: true,
-                  placeholder: 'Add a user',
-                  value: searchValue,
-                  onChange: (v) => {
-                    setSearchValue(v);
-                    setUserValueModified(true);
-                  },
-                }}
-                error={Utils.summarizeErrors(userValueModified && errors?.searchValue)}
-              />
-            </div>
-          )}
-        </IdContainer>
-        <ButtonPrimary disabled={errors} onClick={() => addUser(searchValue)}>
-          Add
-        </ButtonPrimary>
+      <div>
+        <span style={{ display: 'flex', alignItems: 'center' }}>
+          <Icon size={19} color={colors.warning()} icon='warning-standard' />
+          <span style={{ marginLeft: '1ch' }}>Note: Sharing with user groups is not supported.</span>
+        </span>
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <IdContainer>
+            {(id) => (
+              <div style={{ flexGrow: 1, marginRight: '1rem' }}>
+                <FormLabel htmlFor={id} style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>
+                  User
+                </FormLabel>
+                <ValidatedInput
+                  inputProps={{
+                    id,
+                    autoFocus: true,
+                    placeholder: 'Add a user',
+                    value: searchValue,
+                    onChange: (v) => {
+                      setSearchValue(v);
+                      setUserValueModified(true);
+                    },
+                  }}
+                  error={Utils.summarizeErrors(userValueModified && errors?.searchValue)}
+                />
+              </div>
+            )}
+          </IdContainer>
+          <ButtonPrimary disabled={errors} onClick={() => addUser(searchValue)}>
+            Add
+          </ButtonPrimary>
+        </div>
       </div>
       <CurrentUsers allPermissions={permissions} setAllPermissions={setPermissions} />
       <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>

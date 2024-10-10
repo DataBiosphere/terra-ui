@@ -92,6 +92,7 @@ describe('PermissionsModal', () => {
 
     // ASSERT
     expect(screen.getByText('Edit Snapshot Permissions'));
+    expect(screen.getByText('Note: Sharing with user groups is not supported.'));
     expect(screen.getByText('User'));
     expect(screen.getByRole('textbox', { name: 'User' }));
     expect(screen.getByRole('button', { name: 'Add' }));
