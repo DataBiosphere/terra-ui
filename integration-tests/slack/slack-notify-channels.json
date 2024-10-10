@@ -92,8 +92,8 @@
       ]
     },
     {
-      "name": "dsp-analysis-journeys-alerts",
-      "id": "C031KGQUVB4",
+      "name": "dsp-core-services-alerts",
+      "id": "C07Q8H7F8LV",
       "tests": [
         {
           "name": "import-cohort-data"

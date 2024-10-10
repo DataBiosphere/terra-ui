@@ -80,7 +80,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Azure PFB Import',
     description: 'Enabling this feature will allow PFB import into Azure workspaces.',
     groups: ['preview-azure-pfb-import'],
-    feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure PFB Import'
     )}`,
   },
@@ -89,7 +89,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Azure TDR Import',
     description: 'Enabling this feature will allow importing TDR snapshots into Azure workspaces.',
     groups: ['preview-azure-tdr-import'],
-    feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure TDR snapshot Import'
     )}`,
   },
