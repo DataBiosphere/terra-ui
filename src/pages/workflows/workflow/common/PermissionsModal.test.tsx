@@ -412,6 +412,7 @@ describe('PermissionsModal', () => {
     // ASSERT
     expect(mockSetPermissionsModalOpen).toHaveBeenCalledWith(false);
     expect(mockRefresh).not.toHaveBeenCalled();
+    expect(mockSetPermissions).not.toHaveBeenCalled();
   });
 
   it('closes the modal and calls the refresh callback when you save permissions', async () => {
