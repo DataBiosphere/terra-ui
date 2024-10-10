@@ -16,6 +16,7 @@ import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state'
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { withBusyState } from 'src/libs/utils';
+import { PermissionsModal } from 'src/pages/workflows/workflow/common/PermissionsModal';
 import { Snapshot } from 'src/snapshots/Snapshot';
 import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
 import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
@@ -123,6 +124,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const [exportingWorkflow, setExportingWorkflow] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
+  const [permissionsModalOpen, setPermissionsModalOpen] = useState<boolean>(false);
 
   const snapshot: Snapshot | undefined =
     cachedSnapshot &&
@@ -236,6 +238,7 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
             h(SnapshotActionMenu, {
               disabled: !snapshot,
               isSnapshotOwner,
+              onEditPermissions: () => setPermissionsModalOpen(true),
               onDelete: () => setShowDeleteModal(true),
             }),
           ]),
@@ -277,6 +280,15 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           Nav.goToPath('workflows');
         }),
         onDismiss: () => setShowDeleteModal(false),
+      }),
+    permissionsModalOpen &&
+      h(PermissionsModal, {
+        snapshotOrNamespace: 'Snapshot',
+        namespace,
+        name,
+        selectedSnapshot,
+        setPermissionsModalOpen,
+        refresh: loadSnapshot,
       }),
     busy && spinnerOverlay,
     snapshotNotFound && h(NotFoundMessage, { subject: 'snapshot' }),
