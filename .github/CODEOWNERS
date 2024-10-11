@@ -1,22 +1,22 @@
 # Each line is a file pattern followed by one or more owners.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
-/src/analysis @DataBiosphere/broad-interactive-analysis
+/src/analysis @DataBiosphere/dsp-analysis
 /src/billing-core/ @DataBiosphere/broad-core-services
 /src/billing/ @DataBiosphere/broad-core-services
 /src/groups/ @DataBiosphere/broad-core-services
-/src/pages/EnvironmentsPage/ @DataBiosphere/broad-interactive-analysis
+/src/pages/EnvironmentsPage/ @DataBiosphere/dsp-analysis
 /src/constants/datasets.js @DataBiosphere/data-explorer-eng
 /src/import-data/ @DataBiosphere/data-explorer-eng @DataBiosphere/broad-core-services
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
-/src/libs/ajax/Apps.ts @DataBiosphere/broad-interactive-analysis
-/src/libs/ajax/Runtimes.ts @DataBiosphere/broad-interactive-analysis
-/src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/Apps.ts @DataBiosphere/dsp-analysis
+/src/libs/ajax/Runtimes.ts @DataBiosphere/dsp-analysis
+/src/libs/ajax/AzureStorage.js @DataBiosphere/dsp-analysis
 /src/libs/ajax/billing/ @DataBiosphere/broad-core-services
-/src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/GoogleStorage.js @DataBiosphere/dsp-analysis
 /src/libs/ajax/Groups.ts @DataBiosphere/broad-core-services
 /src/libs/ajax/Catalog.ts @DataBiosphere/data-explorer-eng
-/src/libs/ajax/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
+/src/libs/ajax/workflows-app/ @DataBiosphere/dsp-analysis
 /src/libs/ajax/workspaces/ @DataBiosphere/broad-core-services
 /src/pages/library/DataBrowser* @DataBiosphere/data-explorer-eng
 /src/pages/library/Datasets* @DataBiosphere/data-explorer-eng
@@ -28,15 +28,15 @@
 /src/pages/groups/ @DataBiosphere/broad-core-services
 /src/pages/workspaces/* @DataBiosphere/broad-core-services
 /src/profile/notification-settings/* @DataBiosphere/broad-core-services
-/src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
+/src/workflows-app/ @DataBiosphere/dsp-analysis
 /src/workspace-data/ @DataBiosphere/broad-core-services
 /src/workspaces/ @DataBiosphere/broad-core-services
 /integration-tests/tests/billing-projects.js @DataBiosphere/broad-core-services
 /integration-tests/tests/delete-orphaned-workspaces.js @DataBiosphere/broad-core-services
-/integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
-/integration-tests/tests/run-analysis-azure.js @DataBiosphere/broad-interactive-analysis
-/integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
-/integration-tests/tests/analysis-context-bar.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/run-analysis.js @DataBiosphere/dsp-analysis
+/integration-tests/tests/run-analysis-azure.js @DataBiosphere/dsp-analysis
+/integration-tests/tests/run-rstudio.js @DataBiosphere/dsp-analysis
+/integration-tests/tests/analysis-context-bar.js @DataBiosphere/dsp-analysis
 /integration-tests/tests/export-*-dataset-to-workspace.js @DataBiosphere/data-explorer-eng
 /integration-tests/tests/preview-dataset.js @DataBiosphere/data-explorer-eng
 /integration-tests/tests/request-access.js @DataBiosphere/data-explorer-eng
