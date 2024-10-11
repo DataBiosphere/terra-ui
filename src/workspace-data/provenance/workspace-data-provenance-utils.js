@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { parseGsUri } from 'src/components/data/data-utils';
 import { Ajax } from 'src/libs/ajax';
 import { reportError } from 'src/libs/error';
+import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { validate as validateUUID } from 'uuid';
@@ -170,6 +171,11 @@ export const getFileProvenance = async (workspace, fileUrl, { signal } = {}) => 
   };
 };
 
+export const getFileProtocol = (fileUrl) => {
+  const protocolSeparator = fileUrl.indexOf(':');
+  return protocolSeparator > 0 ? fileUrl.substr(0, protocolSeparator) : 'unknown';
+};
+
 export const useFileProvenance = (workspace, fileUrl) => {
   const signal = useCancellation();
   const [loading, setLoading] = useState(true);
@@ -180,13 +186,26 @@ export const useFileProvenance = (workspace, fileUrl) => {
     const loadFileProvenance = async () => {
       setError(null);
       setLoading(true);
+      const protocol = getFileProtocol(fileUrl); // for mixpanel event
+      let success = true;
+      let provenanceResultType = 'n/a';
       try {
-        setFileProvenance(await getFileProvenance(workspace, fileUrl, { signal }));
+        const provenanceResult = await getFileProvenance(workspace, fileUrl, { signal });
+        provenanceResultType = provenanceResult?.type;
+        setFileProvenance(provenanceResult);
       } catch (error) {
         setError(error);
         reportError('Error loading file provenance', error);
+        success = false;
       } finally {
         setLoading(false);
+        Ajax().Metrics.captureEvent(Events.provenanceFile, {
+          workspaceNamespace: workspace?.workspace?.namespace,
+          workspaceName: workspace?.workspace?.name,
+          fileProtocol: protocol,
+          provenance: provenanceResultType,
+          success,
+        });
       }
     };
 
