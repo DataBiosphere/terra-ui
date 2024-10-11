@@ -51,6 +51,19 @@ export const Methods = (signal?: AbortSignal) => ({
         return res.json();
       },
 
+      permissions: async () => {
+        const res = await fetchOrchestration(`api/${root}/permissions`, _.merge(authOpts(), { signal }));
+        return res.json();
+      },
+
+      setPermissions: async (payload) => {
+        const res = await fetchOrchestration(
+          `api/${root}/permissions`,
+          _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }])
+        );
+        return res.json();
+      },
+
       allConfigs: async () => {
         const res = await fetchAgora(`methods/${namespace}/${name}/configurations`, _.merge(authOpts(), { signal }));
         return res.json();
