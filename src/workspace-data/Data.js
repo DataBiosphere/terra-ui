@@ -22,7 +22,6 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -408,26 +407,25 @@ const DataTableActions = ({
               },
               'Delete table'
             ),
-          isFeaturePreviewEnabled('data-table-versioning') &&
-            h(Fragment, [
-              h(MenuDivider),
-              h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
-              h(
-                MenuButton,
-                {
-                  onClick: () => {
-                    onToggleVersionHistory(!isShowingVersionHistory);
-                    if (!isShowingVersionHistory) {
-                      Ajax().Metrics.captureEvent(Events.dataTableVersioningViewVersionHistory, {
-                        ...extractWorkspaceDetails(workspace.workspace),
-                        tableName,
-                      });
-                    }
-                  },
+          h(Fragment, [
+            h(MenuDivider),
+            h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
+            h(
+              MenuButton,
+              {
+                onClick: () => {
+                  onToggleVersionHistory(!isShowingVersionHistory);
+                  if (!isShowingVersionHistory) {
+                    Ajax().Metrics.captureEvent(Events.dataTableVersioningViewVersionHistory, {
+                      ...extractWorkspaceDetails(workspace.workspace),
+                      tableName,
+                    });
+                  }
                 },
-                [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`]
-              ),
-            ]),
+              },
+              [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`]
+            ),
+          ]),
         ]),
       },
       [
