@@ -87,6 +87,8 @@ const eventsList = {
   notificationToggle: 'notification:toggle',
   pageView: 'page:view',
   permissionsSynchronizationDelay: 'permissions:propagationDelay',
+  provenanceColumn: 'provenance:column',
+  provenanceFile: 'provenance:file',
   resourceLeave: 'resource:leave',
   uploaderCreateCollection: 'uploader:collection:create',
   uploaderUploadMetadata: 'uploader:metadata:upload',
