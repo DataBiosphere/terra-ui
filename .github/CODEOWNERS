@@ -1,22 +1,22 @@
 # Each line is a file pattern followed by one or more owners.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
-/src/analysis @DataBiosphere/broad-interactive-analysis
+/src/analysis @DataBiosphere/dsp-analysis
 /src/billing-core/ @DataBiosphere/broadworkspaces-terra-ui
 /src/billing/ @DataBiosphere/broadworkspaces-terra-ui
 /src/groups/ @DataBiosphere/broadworkspaces-terra-ui
-/src/pages/EnvironmentsPage/ @DataBiosphere/broad-interactive-analysis
+/src/pages/EnvironmentsPage/ @DataBiosphere/dsp-analysis
 /src/constants/datasets.js @DataBiosphere/data-explorer-eng
 /src/import-data/ @DataBiosphere/data-explorer-eng @DataBiosphere/analysisjourneys
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
-/src/libs/ajax/Apps.ts @DataBiosphere/broad-interactive-analysis
-/src/libs/ajax/Runtimes.ts @DataBiosphere/broad-interactive-analysis
-/src/libs/ajax/AzureStorage.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/Apps.ts @DataBiosphere/dsp-analysis
+/src/libs/ajax/Runtimes.ts @DataBiosphere/dsp-analysis
+/src/libs/ajax/AzureStorage.js @DataBiosphere/dsp-analysis
 /src/libs/ajax/billing/ @DataBiosphere/broadworkspaces-terra-ui
-/src/libs/ajax/GoogleStorage.js @DataBiosphere/broad-interactive-analysis
+/src/libs/ajax/GoogleStorage.js @DataBiosphere/dsp-analysis
 /src/libs/ajax/Groups.ts @DataBiosphere/broadworkspaces-terra-ui
 /src/libs/ajax/Catalog.ts @DataBiosphere/data-explorer-eng
-/src/libs/ajax/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
+/src/libs/ajax/workflows-app/ @DataBiosphere/dsp-analysis
 /src/libs/ajax/workspaces/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/library/DataBrowser* @DataBiosphere/data-explorer-eng
 /src/pages/library/Datasets* @DataBiosphere/data-explorer-eng
@@ -28,15 +28,15 @@
 /src/pages/groups/ @DataBiosphere/broadworkspaces-terra-ui
 /src/pages/workspaces/* @DataBiosphere/broadworkspaces-terra-ui
 /src/profile/notification-settings/* @DataBiosphere/broadworkspaces-terra-ui
-/src/workflows-app/ @DataBiosphere/broad-workflow-management @DataBiosphere/broad-workflow-execution
+/src/workflows-app/ @DataBiosphere/dsp-analysis
 /src/workspace-data/ @DataBiosphere/analysisjourneys
 /src/workspaces/ @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/billing-projects.js @DataBiosphere/broadworkspaces-terra-ui
 /integration-tests/tests/delete-orphaned-workspaces.js @DataBiosphere/broadworkspaces-terra-ui
-/integration-tests/tests/run-analysis.js @DataBiosphere/broad-interactive-analysis
-/integration-tests/tests/run-analysis-azure.js @DataBiosphere/broad-interactive-analysis
-/integration-tests/tests/run-rstudio.js @DataBiosphere/broad-interactive-analysis
-/integration-tests/tests/analysis-context-bar.js @DataBiosphere/broad-interactive-analysis
+/integration-tests/tests/run-analysis.js @DataBiosphere/dsp-analysis
+/integration-tests/tests/run-analysis-azure.js @DataBiosphere/dsp-analysis
+/integration-tests/tests/run-rstudio.js @DataBiosphere/dsp-analysis
+/integration-tests/tests/analysis-context-bar.js @DataBiosphere/dsp-analysis
 /integration-tests/tests/export-*-dataset-to-workspace.js @DataBiosphere/data-explorer-eng
 /integration-tests/tests/preview-dataset.js @DataBiosphere/data-explorer-eng
 /integration-tests/tests/request-access.js @DataBiosphere/data-explorer-eng
