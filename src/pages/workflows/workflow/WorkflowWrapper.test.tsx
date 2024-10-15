@@ -1,7 +1,7 @@
 import { delay } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
-import _ from 'lodash';
+import _ from 'lodash/fp';
 import React from 'react';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { Ajax, AjaxContract } from 'src/libs/ajax';
@@ -13,7 +13,7 @@ import { forwardRefWithName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore, TerraUser, TerraUserState, userStore } from 'src/libs/state';
 import { WorkflowsContainer, wrapWorkflows } from 'src/pages/workflows/workflow/WorkflowWrapper';
 import { Snapshot } from 'src/snapshots/Snapshot';
-import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { AzureContext, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -50,6 +50,23 @@ const mockSnapshot: Snapshot = {
   synopsis: '',
 };
 
+const mockSnapshotWithAdditionalOwners: Snapshot = {
+  managers: ['hello@world.org', 'new@owner.com'],
+  name: 'testname',
+  createDate: '2024-09-04T15:37:57Z',
+  documentation: '',
+  entityType: 'Workflow',
+  snapshotComment: '',
+  snapshotId: 1,
+  namespace: 'testnamespace',
+  payload:
+    // eslint-disable-next-line no-template-curly-in-string
+    'task echo_files {\\n  String? input1\\n  String? input2\\n  String? input3\\n  \\n  output {\\n    String out = read_string(stdout())\\n  }\\n\\n  command {\\n    echo \\"result: ${input1} ${input2} ${input3}\\"\\n  }\\n\\n  runtime {\\n    docker: \\"ubuntu:latest\\"\\n  }\\n}\\n\\nworkflow echo_strings {\\n  call echo_files\\n}',
+  url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/sschu/echo-strings-test/1',
+  public: false,
+  synopsis: '',
+};
+
 const mockDeleteSnapshot: Snapshot = {
   managers: ['revali@gale.com', 'hello@WORLD.org', 'sam@i.am'],
   name: 'testname',
@@ -67,6 +84,17 @@ const mockDeleteSnapshot: Snapshot = {
   synopsis: '',
 };
 
+const mockPermissions = [
+  {
+    role: 'OWNER',
+    user: 'user1@foo.com',
+  },
+  {
+    role: 'READER',
+    user: 'user2@bar.com',
+  },
+];
+
 type ErrorExports = typeof import('src/libs/error');
 jest.mock('src/libs/error', (): ErrorExports => {
   const errorModule = jest.requireActual('src/libs/error');
@@ -81,8 +109,8 @@ type ListAjaxContract = MethodsAjaxContract['list'];
 type MethodAjaxContract = MethodsAjaxContract['method'];
 
 interface AjaxMocks {
-  listImpl?: jest.Mock;
-  getImpl?: jest.Mock;
+  listImpl?: jest.Mock<Promise<Snapshot[]>>;
+  getImpl?: jest.Mock<Promise<Snapshot>, []>;
   deleteImpl?: jest.Mock;
 }
 
@@ -90,17 +118,20 @@ const defaultListImpl = jest.fn();
 const defaultGetImpl = (namespace) =>
   jest.fn().mockResolvedValue(namespace === 'testnamespace' ? mockSnapshot : mockDeleteSnapshot);
 const defaultDeleteImpl = jest.fn();
+const setPermissionsMock = jest.fn();
 
 const mockAjax = (mocks: AjaxMocks = {}) => {
   const { listImpl, getImpl, deleteImpl } = mocks;
   asMockedFn(Ajax).mockReturnValue({
     Methods: {
       list: (listImpl || defaultListImpl) as ListAjaxContract,
-      method: jest.fn((namespace) => {
-        return {
+      method: jest.fn((namespace, name, snapshotId) => {
+        return partial<ReturnType<MethodAjaxContract>>({
           get: getImpl || defaultGetImpl(namespace),
           delete: deleteImpl || defaultDeleteImpl,
-        } as Partial<ReturnType<MethodAjaxContract>>;
+          permissions: jest.fn().mockResolvedValue(mockPermissions),
+          setPermissions: () => setPermissionsMock(namespace, name, snapshotId),
+        });
       }) as MethodAjaxContract,
     } as MethodsAjaxContract,
   } as AjaxContract);
@@ -220,6 +251,108 @@ const snapshotStoreInitialValue = {
   synopsis: '',
   url: '',
 };
+
+describe('workflow wrapper', () => {
+  it('displays the method not found page if a method does not exist or the user does not have access', async () => {
+    // Arrange
+    mockAjax({ listImpl: jest.fn().mockResolvedValue([]) });
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
+
+    // Act
+    await act(async () => {
+      render(
+        <MockWrappedWorkflowComponent
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display an error toast
+    expect(errorWatcher).not.toHaveBeenCalled();
+
+    // should not display the tab bar or children
+    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should only display the 404 error page, with the correct info filled in
+    expect(screen.getByText('Could not display method')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'You cannot access this method because either it does not exist or you do not have access to it.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('hello@world.org')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'To view a snapshot of an existing method, an owner of the snapshot must give you permission to view it or make it publicly readable.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('The method may also have been deleted by one of its owners.')).toBeInTheDocument();
+
+    const returnToMethodsListButton = screen.getByRole('link', { name: 'Return to Methods List' });
+    expect(returnToMethodsListButton).toBeInTheDocument();
+    expect(returnToMethodsListButton).toHaveAttribute('href', '#workflows');
+  });
+
+  it('displays an error toast when there is an unexpected error loading a method', async () => {
+    // Arrange
+    mockAjax({
+      listImpl: jest.fn(() => {
+        throw new Error('BOOM');
+      }),
+    });
+
+    // Act
+    await act(async () => {
+      render(
+        <MockWrappedWorkflowComponent
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    // Assert
+
+    // should not display the loading spinner
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).not.toBeInTheDocument();
+
+    // should not display the tab bar or children
+    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
+    expect(screen.queryByText('children')).not.toBeInTheDocument();
+
+    // should not display the 404 error page
+    expect(screen.queryByText('Could not display method')).not.toBeInTheDocument();
+    expect(screen.queryByText('Could not display snapshot')).not.toBeInTheDocument();
+
+    // should only display an error toast
+    expect(errorWatcher).toHaveBeenCalledWith('Error loading method', expect.anything());
+  });
+});
 
 describe('workflows container', () => {
   // Keep this test first to avoid potential issues with Jest and stores
@@ -440,106 +573,6 @@ describe('workflows container', () => {
 
     // Assert
     expect(errorWatcher).toHaveBeenCalledWith('Error deleting snapshot', expect.anything());
-  });
-
-  it('displays the method not found page if a method does not exist or the user does not have access', async () => {
-    // Arrange
-    mockAjax({ listImpl: jest.fn().mockResolvedValue([]) });
-
-    // set the user's email
-    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hello@world.org')));
-
-    // Act
-    await act(async () => {
-      render(
-        <MockWrappedWorkflowComponent
-          namespace={mockSnapshot.namespace}
-          name={mockSnapshot.name}
-          snapshotId={mockSnapshot.snapshotId}
-          tabName='dashboard'
-        />
-      );
-    });
-
-    // Assert
-
-    // should not display the loading spinner
-    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
-    expect(spinner).not.toBeInTheDocument();
-
-    // should not display an error toast
-    expect(errorWatcher).not.toHaveBeenCalled();
-
-    // should not display the tab bar or children
-    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
-    expect(screen.queryByText('children')).not.toBeInTheDocument();
-
-    // should only display the 404 error page, with the correct info filled in
-    expect(screen.getByText('Could not display method')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'You cannot access this method because either it does not exist or you do not have access to it.'
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByText('hello@world.org')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'To view a snapshot of an existing method, an owner of the snapshot must give you permission to view it or make it publicly readable.'
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByText('The method may also have been deleted by one of its owners.')).toBeInTheDocument();
-
-    const returnToMethodsListButton = screen.getByRole('link', { name: 'Return to Methods List' });
-    expect(returnToMethodsListButton).toBeInTheDocument();
-    expect(returnToMethodsListButton).toHaveAttribute('href', '#workflows');
-  });
-
-  it('displays an error toast when there is an unexpected error loading a method', async () => {
-    // Arrange
-    mockAjax({
-      listImpl: jest.fn(() => {
-        throw new Error('BOOM');
-      }),
-    });
-
-    // Act
-    await act(async () => {
-      render(
-        <MockWrappedWorkflowComponent
-          namespace={mockSnapshot.namespace}
-          name={mockSnapshot.name}
-          snapshotId={mockSnapshot.snapshotId}
-          tabName='dashboard'
-        />
-      );
-    });
-
-    // Assert
-
-    // should not display the loading spinner
-    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
-    expect(spinner).not.toBeInTheDocument();
-
-    // should not display the tab bar or children
-    expect(screen.queryByText(/dashboard/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/wdl/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/snapshot:/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(`${mockSnapshot.snapshotId}`)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /export to workspace/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Snapshot action menu' })).not.toBeInTheDocument();
-    expect(screen.queryByText('children')).not.toBeInTheDocument();
-
-    // should not display the 404 error page
-    expect(screen.queryByText('Could not display method')).not.toBeInTheDocument();
-    expect(screen.queryByText('Could not display snapshot')).not.toBeInTheDocument();
-
-    // should only display an error toast
-    expect(errorWatcher).toHaveBeenCalledWith('Error loading method', expect.anything());
   });
 
   it('displays the snapshot not found page if a snapshot does not exist or the user does not have access', async () => {
@@ -840,5 +873,129 @@ describe('workflows container', () => {
       workflowNamespace: mockSnapshot.namespace,
       workflowName: 'newname',
     });
+  });
+
+  it('renders edit permissions modal', async () => {
+    // Arrange
+    mockAjax();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
+
+    // Assert
+    expect(screen.getByText('Edit Snapshot Permissions'));
+  });
+
+  it('hides edit permissions modal when it is dismissed', async () => {
+    // Arrange
+    mockAjax();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Assert
+    expect(screen.queryByText('Edit Snapshot Permissions')).not.toBeInTheDocument();
+  });
+
+  it("allows the currently displayed snapshot's permissions to be edited", async () => {
+    // Arrange
+    mockAjax();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    // Assert
+    expect(setPermissionsMock).toHaveBeenCalledTimes(1);
+    expect(setPermissionsMock).toHaveBeenCalledWith(mockSnapshot.namespace, mockSnapshot.name, mockSnapshot.snapshotId);
+  });
+
+  it('reloads the displayed snapshot after its permissions are edited', async () => {
+    // Arrange
+    mockAjax();
+
+    // set the user's email
+    jest.spyOn(userStore, 'get').mockImplementation(jest.fn().mockReturnValue(mockUserState('hElLo@world.org')));
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(
+        <WorkflowsContainer
+          namespace={mockSnapshot.namespace}
+          name={mockSnapshot.name}
+          snapshotId={`${mockSnapshot.snapshotId}`}
+          tabName='dashboard'
+        />
+      );
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Snapshot action menu' }));
+    await user.click(screen.getByRole('button', { name: 'Edit snapshot permissions' }));
+
+    // Simulate the snapshot being updated with new owners in the backend when
+    // the save button is pressed
+    mockAjax({
+      getImpl: jest.fn().mockResolvedValue(mockSnapshotWithAdditionalOwners),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    // Assert
+    expect(snapshotStore.get().managers).toEqual(mockSnapshotWithAdditionalOwners.managers);
+    expect(snapshotStore.get().public).toEqual(mockSnapshotWithAdditionalOwners.public);
   });
 });

@@ -22,7 +22,6 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -408,26 +407,25 @@ const DataTableActions = ({
               },
               'Delete table'
             ),
-          isFeaturePreviewEnabled('data-table-versioning') &&
-            h(Fragment, [
-              h(MenuDivider),
-              h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
-              h(
-                MenuButton,
-                {
-                  onClick: () => {
-                    onToggleVersionHistory(!isShowingVersionHistory);
-                    if (!isShowingVersionHistory) {
-                      Ajax().Metrics.captureEvent(Events.dataTableVersioningViewVersionHistory, {
-                        ...extractWorkspaceDetails(workspace.workspace),
-                        tableName,
-                      });
-                    }
-                  },
+          h(Fragment, [
+            h(MenuDivider),
+            h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
+            h(
+              MenuButton,
+              {
+                onClick: () => {
+                  onToggleVersionHistory(!isShowingVersionHistory);
+                  if (!isShowingVersionHistory) {
+                    Ajax().Metrics.captureEvent(Events.dataTableVersioningViewVersionHistory, {
+                      ...extractWorkspaceDetails(workspace.workspace),
+                      tableName,
+                    });
+                  }
                 },
-                [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`]
-              ),
-            ]),
+              },
+              [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`]
+            ),
+          ]),
         ]),
       },
       [
@@ -504,29 +502,6 @@ const DataTableActions = ({
         }),
       }),
   ]);
-};
-
-const DataTableFeaturePreviewFeedbackBanner = () => {
-  const isDataTableProvenanceEnabled = isFeaturePreviewEnabled('data-table-provenance');
-  const isDataTableVersioningEnabled = isFeaturePreviewEnabled('data-table-versioning');
-
-  const label = _.join(' and ', _.compact([isDataTableVersioningEnabled && 'versioning', isDataTableProvenanceEnabled && 'provenance']));
-  const feedbackUrl = `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(`Feedback on data table ${label}`)}`;
-
-  return (
-    (isDataTableProvenanceEnabled || isDataTableVersioningEnabled) &&
-    div(
-      {
-        style: {
-          padding: '1rem',
-          borderBottom: `1px solid ${colors.accent()}`,
-          background: '#fff',
-          textAlign: 'center',
-        },
-      },
-      [h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, [`Provide feedback on data table ${label}`])]
-    )
-  );
 };
 
 const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
@@ -1235,8 +1210,6 @@ export const WorkspaceData = _.flow(
             ]),
             h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
             div({ style: styles.tableViewPanel }, [
-              _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) &&
-                h(DataTableFeaturePreviewFeedbackBanner),
               Utils.switchCase(
                 selectedData?.type,
                 [

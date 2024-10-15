@@ -11,9 +11,16 @@ export interface SnapshotActionMenuProps {
 
   /**
    * Whether the user is an owner of the workflow snapshot the actions in the
-   * menu are for. Controls whether the following actions are enabled: delete
+   * menu are for. Controls whether the following actions are enabled: edit
+   * permissions, delete snapshot
    */
   isSnapshotOwner: boolean;
+
+  /**
+   * The action to be performed if the "Edit snapshot permissions" button is
+   * pressed.
+   */
+  onEditPermissions: () => void;
 
   /** The action to be performed if the "Delete snapshot" button is pressed. */
   onDelete: () => void;
@@ -23,23 +30,34 @@ export interface SnapshotActionMenuProps {
  * A kebab (vertical three-dot) menu that displays buttons to perform actions on
  * a workflow snapshot.
  *
- * Currently supported actions: delete
+ * Currently supported actions: edit permissions, delete snapshot
  */
 const SnapshotActionMenu = (props: SnapshotActionMenuProps): ReactNode => {
-  const { disabled, isSnapshotOwner, onDelete } = props;
+  const { disabled, isSnapshotOwner, onEditPermissions, onDelete } = props;
 
   const notSnapshotOwnerTooltip = 'You must be an owner of this snapshot';
 
   const menuContent = (
-    <MenuButton
-      disabled={!isSnapshotOwner}
-      tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
-      tooltipSide='left'
-      onClick={onDelete}
-    >
-      {makeMenuIcon('trash')}
-      Delete snapshot
-    </MenuButton>
+    <>
+      <MenuButton
+        disabled={!isSnapshotOwner}
+        tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
+        tooltipSide='left'
+        onClick={onEditPermissions}
+      >
+        {makeMenuIcon('cog')}
+        Edit snapshot permissions
+      </MenuButton>
+      <MenuButton
+        disabled={!isSnapshotOwner}
+        tooltip={!isSnapshotOwner && notSnapshotOwnerTooltip}
+        tooltipSide='left'
+        onClick={onDelete}
+      >
+        {makeMenuIcon('trash')}
+        Delete snapshot
+      </MenuButton>
+    </>
   );
 
   return (
