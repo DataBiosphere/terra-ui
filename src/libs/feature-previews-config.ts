@@ -4,7 +4,7 @@ export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
 export const FIRECLOUD_UI_MIGRATION = 'firecloudUiMigration';
-export const AXIN_DATASET_CARD = 'axinDatasetCard';
+export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
 export const GCP_BUCKET_LIFECYCLE_RULES = 'gcpBucketLifecycleRules';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
@@ -51,7 +51,9 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description:
       'Enabling this feature will allow you to save uniquely named versions of data tables. These saved versions will appear in the Data tab and can be restored at any time.',
     groups: ['preview-data-versioning-and-provenance'],
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on data table versioning')}`,
+    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on data table versioning'
+    )}`,
   },
   {
     id: 'data-table-provenance',
@@ -59,7 +61,9 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description:
       'Enabling this feature will allow you to view information about the workflow that generated data table columns and files.',
     groups: ['preview-data-versioning-and-provenance'],
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on data table provenance')}`,
+    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
+      'Feedback on data table provenance'
+    )}`,
   },
   {
     id: JUPYTERLAB_GCP_FEATURE_ID,
@@ -67,15 +71,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     description: 'Enabling this feature will allow you to launch notebooks using JupyterLab in GCP workspaces.',
     groups: ['preview-jupyterlab-gcp'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (GCP)')}`,
-  },
-  {
-    id: 'workspace-files',
-    title: 'Workspace Files Browser',
-    description: 'Enabling this feature will allow you to use the new workspace files browser.',
-    groups: ['preview-workspace-files'],
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on workspace files browser'
-    )}`,
   },
   {
     id: HAIL_BATCH_AZURE_FEATURE_ID,
@@ -89,7 +84,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Azure PFB Import',
     description: 'Enabling this feature will allow PFB import into Azure workspaces.',
     groups: ['preview-azure-pfb-import'],
-    feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure PFB Import'
     )}`,
   },
@@ -98,7 +93,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'Azure TDR Import',
     description: 'Enabling this feature will allow importing TDR snapshots into Azure workspaces.',
     groups: ['preview-azure-tdr-import'],
-    feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on Azure TDR snapshot Import'
     )}`,
   },
@@ -111,11 +106,12 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     )}`,
   },
   {
-    id: AXIN_DATASET_CARD,
-    title: 'AXIN Dataset Card',
-    description: 'Enabling this feature will show the card for AnalytiXIN in the Datasets tab in the Library.',
+    id: COHORT_BUILDER_CARD,
+    title: 'Cohort Builder Card',
+    description:
+      'Enabling this feature will show the card for the demo cohort builder in the Datasets tab in the Library.',
     feedbackUrl: `mailto:dsp-data-exploration@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Axin Dataset Card'
+      'Feedback on Cohort Builder Card'
     )}`,
   },
   {
@@ -123,7 +119,7 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     title: 'GCP Workspace Bucket Lifecycle Rules',
     description:
       'Enabling this feature will allow GCP bucket lifecycle rules to be set via the Workspace Settings dialog.',
-    feedbackUrl: `mailto:dsp-workspaces@broadinstitute.org?subject=${encodeURIComponent(
+    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
       'Feedback on GCP Bucket Lifecycle Rules'
     )}`,
   },

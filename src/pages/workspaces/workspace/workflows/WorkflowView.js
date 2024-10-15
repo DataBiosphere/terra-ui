@@ -26,8 +26,12 @@ import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
 import StepButtons from 'src/components/StepButtons';
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table';
 import WDLViewer from 'src/components/WDLViewer';
-import { Ajax } from 'src/libs/ajax';
+import { Dockstore } from 'src/libs/ajax/Dockstore';
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import { Methods } from 'src/libs/ajax/methods/Methods';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { makeExportWorkflowFromWorkspaceProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -265,7 +269,7 @@ const BucketContentModal = ({
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading bucket data')
   )(async (newPrefix = prefix) => {
-    const { items, prefixes: newPrefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, newPrefix);
+    const { items, prefixes: newPrefixes } = await GoogleStorage(signal).list(googleProject, bucketName, newPrefix);
     setObjects(items);
     setPrefixes(newPrefixes);
     setPrefix(newPrefix);
@@ -507,7 +511,7 @@ export const WorkflowView = _.flow(
                   } = modifiedConfig;
                   // will only match if the current root entity type comes from a snapshot
                   const snapshot = _.find({ metadata: { name: modifiedConfig.dataReferenceName } }, availableSnapshots);
-                  Ajax().Metrics.captureEvent(Events.workflowLaunch, {
+                  void Metrics().captureEvent(Events.workflowLaunch, {
                     ...extractWorkspaceDetails(workspace),
                     snapshotId: snapshot?.reference.snapshot,
                     referenceId: snapshot?.referenceId,
@@ -536,7 +540,7 @@ export const WorkflowView = _.flow(
 
       this.setState({ snapshotReferenceError: undefined });
       try {
-        return await Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).validate();
+        return await Workspaces(signal).workspace(namespace, name).methodConfig(workflowNamespace, workflowName).validate();
       } catch (e) {
         if (e.status === 404) {
           const errmsg = await e.text();
@@ -555,7 +559,7 @@ export const WorkflowView = _.flow(
       const { namespace, name, signal } = this.props;
 
       try {
-        return await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName);
+        return await Workspaces(signal).workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName);
       } catch (error) {
         return undefined;
       }
@@ -575,7 +579,7 @@ export const WorkflowView = _.flow(
       } = this.props;
 
       try {
-        const ws = Ajax(signal).Workspaces.workspace(namespace, name);
+        const ws = Workspaces(signal).workspace(namespace, name);
 
         const [entityMetadata, validationResponse, config] = await Promise.all([
           ws.entityMetadata(),
@@ -587,11 +591,11 @@ export const WorkflowView = _.flow(
         } = config;
         const isRedacted = !validationResponse;
 
-        const inputsOutputs = isRedacted ? {} : await Ajax(signal).Methods.configInputsOutputs(config);
+        const inputsOutputs = isRedacted ? {} : await Methods(signal).configInputsOutputs(config);
         const selection = workflowSelectionStore.get();
         const readSelection = selectionKey && selection.key === selectionKey;
 
-        const { gcpDataRepoSnapshots: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0);
+        const { gcpDataRepoSnapshots: snapshots } = await Workspaces(signal).workspace(namespace, name).listSnapshots(1000, 0);
         const snapshotMetadata = _.map('metadata', snapshots);
 
         // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
@@ -632,12 +636,12 @@ export const WorkflowView = _.flow(
         });
 
         if (sourceRepo === 'agora') {
-          const methods = await Ajax(signal).Methods.list({ namespace: methodNamespace, name: methodName });
+          const methods = await Methods(signal).list({ namespace: methodNamespace, name: methodName });
           const snapshotIds = _.map('snapshotId', methods);
 
           this.setState({ versionIds: snapshotIds });
         } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
-          const versions = await Ajax(signal).Dockstore.getVersions({ path: methodPath, isTool: sourceRepo === 'dockstoretools' });
+          const versions = await Dockstore(signal).getVersions({ path: methodPath, isTool: sourceRepo === 'dockstoretools' });
           const versionIds = _.map('name', versions);
 
           this.setState({ versionIds });
@@ -728,11 +732,11 @@ export const WorkflowView = _.flow(
       try {
         if (sourceRepo === 'agora') {
           if (!currentSnapRedacted) {
-            const { synopsis, documentation, payload } = await Ajax(signal).Methods.method(methodNamespace, methodName, methodVersion).get();
+            const { synopsis, documentation, payload } = await Methods(signal).method(methodNamespace, methodName, methodVersion).get();
             this.setState({ synopsis, documentation, wdl: payload });
           }
         } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
-          const wdl = await Ajax(signal).Dockstore.getWdl({ path: methodPath, version: methodVersion, isTool: sourceRepo === 'dockstoretools' });
+          const wdl = await Dockstore(signal).getWdl({ path: methodPath, version: methodVersion, isTool: sourceRepo === 'dockstoretools' });
           this.setState({ wdl });
         } else {
           throw new Error('unknown sourceRepo');
@@ -780,8 +784,8 @@ export const WorkflowView = _.flow(
         },
         currentSnapRedacted,
       } = this.state;
-      const config = await Ajax(signal).Methods.template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId });
-      const modifiedInputsOutputs = await Ajax(signal).Methods.configInputsOutputs(config);
+      const config = await Methods(signal).template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId });
+      const modifiedInputsOutputs = await Methods(signal).configInputsOutputs(config);
       this.setState({ modifiedInputsOutputs, savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false });
       this.setState(_.update('modifiedConfig', _.flow(_.set('methodRepoMethod', config.methodRepoMethod), filterConfigIO(modifiedInputsOutputs))));
       this.fetchInfo(config);
@@ -920,7 +924,7 @@ export const WorkflowView = _.flow(
               ]),
               currentSnapRedacted &&
                 div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
-                  'You do not have access to this workflow, or this snapshot has been removed. To use this workflow, contact the owner to request access, or select another snapshot.',
+                  'You do not have access to this workflow, or this snapshot has been deleted. To use this workflow, contact the owner to request access, or select another snapshot.',
                 ]),
               h(IdContainer, [
                 (id) =>
@@ -1009,8 +1013,8 @@ export const WorkflowView = _.flow(
                         onChange: async ({ value, source }) => {
                           this.setState({ snapshotReferenceError: undefined });
                           if (source === 'snapshot') {
-                            const selectedSnapshotEntityMetadata = await Ajax(signal)
-                              .Workspaces.workspace(namespace, workspaceName)
+                            const selectedSnapshotEntityMetadata = await Workspaces(signal)
+                              .workspace(namespace, workspaceName)
                               .snapshotEntityMetadata(workspace.googleProject, value);
 
                             this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value));
@@ -1271,7 +1275,7 @@ export const WorkflowView = _.flow(
                   {
                     style: { marginLeft: '1rem' },
                     disabled: !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
-                    tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
+                    tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was deleted.'),
                     ...WorkspaceUtils.getWorkspaceAnalysisControlProps(ws),
                     onClick: () => this.setState({ launching: true }),
                   },
@@ -1350,10 +1354,7 @@ export const WorkflowView = _.flow(
                 this.setState({ deleting: false, updatingConfig: true });
 
                 try {
-                  await Ajax()
-                    .Workspaces.workspace(workspace.namespace, workspace.name)
-                    .methodConfig(savedConfig.namespace, savedConfig.name)
-                    .delete();
+                  await Workspaces().workspace(workspace.namespace, workspace.name).methodConfig(savedConfig.namespace, savedConfig.name).delete();
 
                   Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace));
                 } catch (err) {
@@ -1398,7 +1399,7 @@ export const WorkflowView = _.flow(
         const {
           methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
         } = modifiedConfig;
-        Ajax().Metrics.captureEvent(Events.workflowUploadIO, {
+        void Metrics().captureEvent(Events.workflowUploadIO, {
           ...extractWorkspaceDetails(workspace.workspace),
           inputsOrOutputs: key,
           methodVersion,
@@ -1425,7 +1426,7 @@ export const WorkflowView = _.flow(
       const {
         methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
       } = modifiedConfig;
-      Ajax().Metrics.captureEvent(Events.workflowClearIO, {
+      void Metrics().captureEvent(Events.workflowClearIO, {
         ...extractWorkspaceDetails(workspace.workspace),
         inputsOrOutputs: key,
         methodVersion,
@@ -1572,7 +1573,7 @@ export const WorkflowView = _.flow(
                         const {
                           methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
                         } = modifiedConfig;
-                        Ajax().Metrics.captureEvent(Events.workflowUseDefaultOutputs, {
+                        void Metrics().captureEvent(Events.workflowUseDefaultOutputs, {
                           ...extractWorkspaceDetails(workspace.workspace),
                           methodVersion,
                           sourceRepo,
@@ -1604,8 +1605,8 @@ export const WorkflowView = _.flow(
           _.update('outputs', this.isSingle() ? () => ({}) : _.mapValues(_.trim))
         );
 
-        const validationResponse = await Ajax()
-          .Workspaces.workspace(namespace, name)
+        const validationResponse = await Workspaces()
+          .workspace(namespace, name)
           .methodConfig(workflowNamespace, workflowName)
           .save(trimInputOutput(modifiedConfig));
 

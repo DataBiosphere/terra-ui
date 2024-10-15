@@ -3,9 +3,10 @@ import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchAgora, fetchOrchestration, fetchRawls } from 'src/libs/ajax/ajax-common';
+import { Snapshot } from 'src/snapshots/Snapshot';
 
 export const Methods = (signal?: AbortSignal) => ({
-  list: async (params) => {
+  list: async (params): Promise<Snapshot[]> => {
     const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
@@ -43,13 +44,31 @@ export const Methods = (signal?: AbortSignal) => ({
     const root = `methods/${namespace}/${name}/${snapshotId}`;
 
     return {
-      get: async () => {
+      get: async (): Promise<Snapshot> => {
         const res = await fetchAgora(root, _.merge(authOpts(), { signal }));
+        return res.json();
+      },
+
+      delete: async () => {
+        const res = await fetchOrchestration(`api/${root}`, _.merge(authOpts(), { signal, method: 'DELETE' }));
         return res.json();
       },
 
       configs: async () => {
         const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }));
+        return res.json();
+      },
+
+      permissions: async () => {
+        const res = await fetchOrchestration(`api/${root}/permissions`, _.merge(authOpts(), { signal }));
+        return res.json();
+      },
+
+      setPermissions: async (payload) => {
+        const res = await fetchOrchestration(
+          `api/${root}/permissions`,
+          _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }])
+        );
         return res.json();
       },
 

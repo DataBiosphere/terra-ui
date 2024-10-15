@@ -1,18 +1,26 @@
 import { ButtonPrimary, Select, useUniqueId } from '@terra-ui-packages/components';
+import { withErrorHandling } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, PropsWithChildren, ReactNode, useState } from 'react';
-import { div, h, label } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, label, p, span, strong } from 'react-hyperscript-helpers';
+import { spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { centeredSpinner } from 'src/components/icons';
 import { TabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
 import { makeExportWorkflowFromMethodsRepoProvider } from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
+import { ErrorCallback, withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils';
-import { snapshotsListStore, snapshotStore } from 'src/libs/state';
+import { getTerraUser, snapshotsListStore, snapshotStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
+import * as Utils from 'src/libs/utils';
+import { withBusyState } from 'src/libs/utils';
+import { PermissionsModal } from 'src/pages/workflows/workflow/common/PermissionsModal';
+import { Snapshot } from 'src/snapshots/Snapshot';
+import DeleteSnapshotModal from 'src/workflows/modals/DeleteSnapshotModal';
 import ExportWorkflowModal from 'src/workflows/modals/ExportWorkflowModal';
+import SnapshotActionMenu from 'src/workflows/SnapshotActionMenu';
 import { isGoogleWorkspace, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
@@ -40,6 +48,10 @@ interface WrappedComponentProps {
   name: string;
 }
 
+interface NotFoundMessageProps {
+  subject: 'snapshot' | 'method';
+}
+
 type WrappedWorkflowComponent = (props: WrappedComponentProps) => ReactNode;
 
 export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
@@ -48,19 +60,31 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
     const Wrapper = (props: WorkflowWrapperProps) => {
       const { namespace, name, snapshotId } = props;
       const signal = useCancellation();
-      const cachedSnapshotsList = useStore(snapshotsListStore);
-      const snapshotsList =
+      const [busy, setBusy] = useState<boolean>(false);
+      const [methodNotFound, setMethodNotFound] = useState<boolean>(false);
+
+      const cachedSnapshotsList: Snapshot[] | undefined = useStore(snapshotsListStore);
+      const snapshotsList: Snapshot[] | undefined =
         cachedSnapshotsList && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedSnapshotsList[0]))
           ? cachedSnapshotsList
           : undefined;
 
-      useOnMount(() => {
-        const loadSnapshots = async () => {
-          snapshotsListStore.set(snapshotsList || (await Ajax(signal).Methods.list({ namespace, name })));
-        };
+      const doSnapshotsListLoad = async () => {
+        const loadedSnapshots: Snapshot[] = snapshotsList || (await Ajax(signal).Methods.list({ namespace, name }));
+        snapshotsListStore.set(loadedSnapshots);
+        if (_.isEmpty(loadedSnapshots)) {
+          setMethodNotFound(true);
+        }
+      };
 
+      const loadSnapshotsList = _.flow(
+        withErrorReporting('Error loading method'),
+        withBusyState(setBusy)
+      )(doSnapshotsListLoad);
+
+      useOnMount(() => {
         if (!snapshotsList) {
-          loadSnapshots();
+          loadSnapshotsList();
         }
       });
 
@@ -71,30 +95,38 @@ export const wrapWorkflows = (opts: WrapWorkflowOptions) => {
             div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`${namespace}/${name}`]),
           ]),
         ]),
-        div({ role: 'main', style: { flex: 1, display: 'flex', flexFlow: 'column nowrap' } }, [
-          snapshotsList
-            ? h(WorkflowsContainer, { namespace, name, snapshotId, tabName: activeTab }, [
-                h(WrappedComponent, { ...props }),
-              ])
-            : centeredSpinner(),
-        ]),
+        busy && spinnerOverlay,
+        methodNotFound && h(NotFoundMessage, { subject: 'method' }),
+        snapshotsList &&
+          div({ role: 'main', style: { flex: 1, display: 'flex', flexFlow: 'column nowrap' } }, [
+            h(WorkflowsContainer, { namespace, name, snapshotId, tabName: activeTab }, [
+              h(WrappedComponent, { ...props }),
+            ]),
+          ]),
       ]);
     };
     return withDisplayName('wrapWorkflows', Wrapper);
   };
 };
 
+// Exported for testing - should only be used directly by wrapWorkflows
 export const WorkflowsContainer = (props: WorkflowContainerProps) => {
   const { namespace, name, snapshotId, tabName, children } = props;
   const signal = useCancellation();
-  const cachedSnapshotsList: any = useStore(snapshotsListStore);
-  const cachedSnapshot = useStore(snapshotStore);
-  const [exportingWorkflow, setExportingWorkflow] = useState<boolean>(false);
+  const cachedSnapshotsList: Snapshot[] | undefined = useStore(snapshotsListStore);
+  const cachedSnapshot: Snapshot = useStore(snapshotStore);
+  // wrapWorkflows will not render this component if cachedSnapshotsList is undefined or empty
   // @ts-ignore
   const selectedSnapshot: number = snapshotId * 1 || _.last(cachedSnapshotsList).snapshotId;
   const snapshotLabelId = useUniqueId();
 
-  const snapshot =
+  const [snapshotNotFound, setSnapshotNotFound] = useState<boolean>(false);
+  const [exportingWorkflow, setExportingWorkflow] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
+  const [permissionsModalOpen, setPermissionsModalOpen] = useState<boolean>(false);
+
+  const snapshot: Snapshot | undefined =
     cachedSnapshot &&
     _.isEqual(
       { namespace, name, snapshotId: selectedSnapshot },
@@ -103,11 +135,30 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
       ? cachedSnapshot
       : undefined;
 
-  useOnMount(() => {
-    const loadSnapshot = async () => {
-      snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
-    };
+  const isSnapshotOwner: boolean = _.includes(
+    getTerraUser().email?.toLowerCase(),
+    _.map(_.toLower, snapshot?.managers)
+  );
 
+  const doSnapshotLoad = async () => {
+    snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get());
+  };
+
+  const checkForSnapshotNotFound: ErrorCallback = (error: unknown) => {
+    if (error instanceof Response && error.status === 404) {
+      setSnapshotNotFound(true);
+    } else {
+      throw error;
+    }
+  };
+
+  const loadSnapshot = _.flow(
+    withErrorHandling(checkForSnapshotNotFound),
+    withErrorReporting('Error loading snapshot'),
+    withBusyState(setBusy)
+  )(doSnapshotLoad);
+
+  useOnMount(() => {
     if (!snapshot) {
       loadSnapshot();
     }
@@ -121,40 +172,78 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
     }
   });
 
+  const deleteSnapshot = async () => {
+    await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).delete();
+
+    // Replace the current history entry linking to the method details page of a
+    // specific snapshot, like /#workflows/sschu/echo-strings-test/29, with an
+    // entry with the corresponding link without the snapshot ID, like
+    // /#workflows/sschu/echo-strings-test
+    // This way, if the user presses the back button after deleting a
+    // method snapshot, they will be automatically redirected to the most recent
+    // snapshot that still exists of the same method
+    window.history.replaceState({}, '', Nav.getLink('workflow-dashboard', { namespace, name }));
+
+    // Clear the cache of the snapshot that was just deleted so that if the user
+    // manually navigates to the URL for that snapshot, outdated information
+    // will not be shown
+    snapshotStore.reset();
+
+    // Clear the cached snapshot list for this method since the list now
+    // contains a deleted snapshot - this way, if the user clicks on this
+    // method in the methods list (or presses the back button), they will be
+    // redirected to the most recent snapshot that still exists, rather than the
+    // snapshot that was just deleted
+    snapshotsListStore.reset();
+  };
+
   return h(Fragment, [
-    h(
-      TabBar,
-      {
-        'aria-label': 'workflow menu',
-        activeTab: tabName,
-        tabNames: ['dashboard', 'wdl'],
-        displayNames: { configs: 'configurations' },
-        getHref: (currentTab) =>
-          Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
-      },
-      [
-        label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
-        div({ style: { width: 100 } }, [
-          h(Select, {
-            id: snapshotLabelId,
-            value: selectedSnapshot,
-            isSearchable: false,
-            options: _.map('snapshotId', cachedSnapshotsList),
-            onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
-          }),
-        ]),
-        h(
-          ButtonPrimary,
-          {
-            style: { marginLeft: '1rem' },
-            onClick: () => {
-              setExportingWorkflow(true);
+    (snapshot || snapshotNotFound) &&
+      h(
+        TabBar,
+        {
+          'aria-label': 'workflow menu',
+          activeTab: tabName,
+          tabNames: ['dashboard', 'wdl'],
+          getHref: (currentTab) =>
+            Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot }),
+        },
+        [
+          label({ htmlFor: snapshotLabelId, style: { marginRight: '1rem' } }, ['Snapshot:']),
+          div({ style: { width: 100 } }, [
+            h(Select, {
+              id: snapshotLabelId,
+              value: selectedSnapshot,
+              // Only used if the selected snapshot cannot be found
+              placeholder: selectedSnapshot,
+              isSearchable: false,
+              options: _.map('snapshotId', cachedSnapshotsList),
+              // Gives dropdown click precedence over elements underneath
+              menuPortalTarget: document.body,
+              onChange: ({ value }: any) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value }),
+            }),
+          ]),
+          h(
+            ButtonPrimary,
+            {
+              disabled: !snapshot,
+              style: { marginLeft: '1rem' },
+              onClick: () => {
+                setExportingWorkflow(true);
+              },
             },
-          },
-          ['Export to Workspace']
-        ),
-      ]
-    ),
+            ['Export to Workspace']
+          ),
+          div({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
+            h(SnapshotActionMenu, {
+              disabled: !snapshot,
+              isSnapshotOwner,
+              onEditPermissions: () => setPermissionsModalOpen(true),
+              onDelete: () => setShowDeleteModal(true),
+            }),
+          ]),
+        ]
+      ),
     exportingWorkflow &&
       h(ExportWorkflowModal, {
         defaultWorkflowName: name,
@@ -177,6 +266,66 @@ export const WorkflowsContainer = (props: WorkflowContainerProps) => {
           }),
         onDismiss: () => setExportingWorkflow(false),
       }),
-    snapshot ? div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]) : centeredSpinner(),
+    showDeleteModal &&
+      h(DeleteSnapshotModal, {
+        namespace,
+        name,
+        snapshotId: `${selectedSnapshot}`,
+        onConfirm: _.flow(
+          Utils.withBusyState(setBusy),
+          withErrorReporting('Error deleting snapshot')
+        )(async () => {
+          setShowDeleteModal(false);
+          await deleteSnapshot();
+          Nav.goToPath('workflows');
+        }),
+        onDismiss: () => setShowDeleteModal(false),
+      }),
+    permissionsModalOpen &&
+      h(PermissionsModal, {
+        snapshotOrNamespace: 'Snapshot',
+        namespace,
+        name,
+        selectedSnapshot,
+        setPermissionsModalOpen,
+        refresh: loadSnapshot,
+      }),
+    busy && spinnerOverlay,
+    snapshotNotFound && h(NotFoundMessage, { subject: 'snapshot' }),
+    snapshot && div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [children]),
+  ]);
+};
+
+const NotFoundMessage = (props: NotFoundMessageProps) => {
+  const { subject } = props;
+  const isMethodMessage = subject === 'method';
+  const fullSubject = isMethodMessage ? subject : 'method snapshot';
+
+  const suggestedAction = isMethodMessage
+    ? h(
+        ButtonPrimary,
+        {
+          href: Nav.getLink('workflows'),
+        },
+        ['Return to Methods List']
+      )
+    : p([strong(['Please select a different snapshot from the dropdown above.'])]);
+
+  return div({ style: { padding: '2rem', flexGrow: 1 } }, [
+    h2([`Could not display ${subject}`]),
+    p([`You cannot access this ${fullSubject} because either it does not exist or you do not have access to it.`]),
+    h3(['Troubleshooting access:']),
+    p([
+      'You are currently logged in as ',
+      span({ style: { fontWeight: 600 } }, [getTerraUser().email]),
+      '. You may have access with a different account.',
+    ]),
+    p([
+      `To view ${
+        isMethodMessage ? 'a snapshot of an existing method' : 'an existing method snapshot'
+      }, an owner of the snapshot must give you permission to view it or make it publicly readable.`,
+    ]),
+    p([`The ${subject} may also have been deleted by one of its owners.`]),
+    suggestedAction,
   ]);
 };

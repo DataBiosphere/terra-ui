@@ -50,8 +50,9 @@ import galaxyLogo from 'src/images/galaxy-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
-import { Ajax } from 'src/libs/ajax';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -316,10 +317,10 @@ const AnalysisCard = ({
     ]
   );
 
+  const launchAnalysis = () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName });
   // the flex values for columns here correspond to the flex values in the header
   const artifactName = div(
     {
-      onClick: () => Nav.goToPath(analysisLauncherTabName, { namespace, name: workspaceName, analysisName }),
       title: getFileName(name),
       role: 'cell',
       style: {
@@ -330,7 +331,7 @@ const AnalysisCard = ({
         ...centerColumnFlex,
       },
     },
-    [getFileName(name)]
+    [h(Clickable, { onClick: launchAnalysis }, [getFileName(name)])]
   );
 
   const toolLogos: Record<RuntimeToolLabel, string> = {
@@ -514,8 +515,8 @@ export const BaseAnalyses = (
       setCurrentUserHash(currentUserHash);
       setPotentialLockers(potentialLockers);
 
-      const fileTransfers: any[] = await Ajax(signal)
-        .Workspaces.workspace(workspaceInfo.namespace, workspaceInfo.name)
+      const fileTransfers: any[] = await Workspaces(signal)
+        .workspace(workspaceInfo.namespace, workspaceInfo.name)
         .listActiveFileTransfers();
       setActiveFileTransfers(!_.isEmpty(fileTransfers));
     });
@@ -574,7 +575,7 @@ export const BaseAnalyses = (
                     onChange: (value) => {
                       setEnableJupyterLabGCP(value);
                       setLocalPref(enableJupyterLabPersistenceId, value);
-                      Ajax().Metrics.captureEvent(Events.analysisToggleJupyterLabGCP, {
+                      Metrics().captureEvent(Events.analysisToggleJupyterLabGCP, {
                         ...extractWorkspaceDetails(workspaceInfo),
                         enabled: value,
                       });

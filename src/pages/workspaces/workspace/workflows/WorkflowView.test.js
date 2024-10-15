@@ -2,7 +2,11 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Methods } from 'src/libs/ajax/methods/Methods';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
@@ -11,6 +15,15 @@ import { WorkflowView } from 'src/pages/workspaces/workspace/workflows/WorkflowV
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax');
+
+jest.mock('src/libs/ajax/Dockstore');
+jest.mock('src/libs/ajax/GoogleStorage');
+jest.mock('src/libs/ajax/leonardo/Apps');
+jest.mock('src/libs/ajax/leonardo/Runtimes');
+jest.mock('src/libs/ajax/methods/Methods');
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
+
 jest.mock('src/libs/nav', () => ({
   getCurrentUrl: jest.fn().mockReturnValue(new URL('https://app.terra.bio')),
   getLink: jest.fn(),
@@ -237,60 +250,49 @@ describe('Workflow View (GCP)', () => {
   };
   const mockLaunchResponse = jest.fn(() => Promise.resolve({ submissionId: 'abc123', ...initializedGoogleWorkspace.workspaceId }));
 
-  const renderWorkflowView = () => {
+  const mockDefaultAjax = () => {
+    Methods.mockReturnValue({
+      list: jest.fn(() => Promise.resolve(methodList)),
+      method: () => ({
+        get: jest.fn(() => Promise.resolve(mockAgoraResponse)),
+      }),
+      configInputsOutputs: jest.fn(() => Promise.resolve(mockConfigInputOutputs)),
+    });
+    Workspaces.mockReturnValue({
+      workspace: (_namespace, _name) => ({
+        details: jest.fn().mockResolvedValue(initializedGoogleWorkspace),
+        entityMetadata: jest.fn().mockReturnValue(entityMetadata),
+        listSnapshots: jest.fn().mockResolvedValue({
+          gcpDataRepoSnapshots: [],
+        }),
+        checkBucketReadAccess: jest.fn(),
+        storageCostEstimate: jest.fn(),
+        bucketUsage: jest.fn(),
+        checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
+        methodConfig: () => ({
+          save: jest.fn().mockReturnValue(mockSave),
+          validate: jest.fn().mockReturnValue(mockValidate),
+          get: jest.fn().mockResolvedValue({
+            methodRepoMethod: {
+              methodNamespace: 'gatk',
+              methodName: 'echo_to_file',
+              sourceRepo: 'agora',
+              methodUri: 'agora://gatk/echo_to_file/12',
+              methodVersion: 12,
+            },
+            rootEntityType: 'sra',
+            name: 'echo_to_file-configured',
+          }),
+        }),
+      }),
+    });
+    Apps.mockReturnValue({ list: jest.fn().mockReturnValue([]) });
+    Runtimes.mockReturnValue({ listV2: jest.fn() });
     asMockedFn(leoDiskProvider.list).mockImplementation(jest.fn());
-    Ajax.mockImplementation(() => ({
-      Methods: {
-        list: jest.fn(() => Promise.resolve(methodList)),
-        method: () => ({
-          get: jest.fn(() => Promise.resolve(mockAgoraResponse)),
-        }),
-        configInputsOutputs: jest.fn(() => Promise.resolve(mockConfigInputOutputs)),
-      },
-      Workspaces: {
-        workspace: (_namespace, _name) => ({
-          details: jest.fn().mockResolvedValue(initializedGoogleWorkspace),
-          entityMetadata: jest.fn().mockReturnValue(entityMetadata),
-          listSnapshots: jest.fn().mockResolvedValue({
-            gcpDataRepoSnapshots: [],
-          }),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: jest.fn(),
-          checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
-          methodConfig: () => ({
-            save: jest.fn().mockReturnValue(mockSave),
-            validate: jest.fn().mockReturnValue(mockValidate),
-            get: jest.fn().mockResolvedValue({
-              methodRepoMethod: {
-                methodNamespace: 'gatk',
-                methodName: 'echo_to_file',
-                sourceRepo: 'agora',
-                methodUri: 'agora://gatk/echo_to_file/12',
-                methodVersion: 12,
-              },
-              rootEntityType: 'sra',
-              name: 'echo_to_file-configured',
-            }),
-          }),
-        }),
-      },
-      Disks: {
-        disksV1: () => ({
-          list: jest.fn(),
-        }),
-      },
-      Runtimes: {
-        listV2: jest.fn(),
-      },
-      Apps: {
-        list: jest.fn().mockReturnValue([]),
-      },
-    }));
   };
 
   it('view workflow in workspace from mock import', async () => {
-    renderWorkflowView();
+    mockDefaultAjax();
 
     // Act
     await act(async () => {
@@ -312,7 +314,7 @@ describe('Workflow View (GCP)', () => {
     const namespace = 'gatk';
     const name = 'echo_to_file-configured';
 
-    renderWorkflowView();
+    mockDefaultAjax();
 
     // Act
     await act(async () => {
@@ -403,7 +405,7 @@ describe('Workflow View (GCP)', () => {
     const namespace = 'gatk';
     const name = 'echo_to_file-configured';
 
-    renderWorkflowView();
+    mockDefaultAjax();
 
     // Act
     await act(async () => {
@@ -425,7 +427,7 @@ describe('Workflow View (GCP)', () => {
     const namespace = 'gatk';
     const name = 'echo_to_file-configured';
 
-    renderWorkflowView();
+    mockDefaultAjax();
 
     // Act
     await act(async () => {
@@ -461,7 +463,7 @@ describe('Workflow View (GCP)', () => {
     const namespace = 'gatk';
     const name = 'echo_to_file-configured';
 
-    renderWorkflowView();
+    mockDefaultAjax();
 
     getLocalPref.mockReturnValue({ useReferenceDisks: true, ignoreEmptyOutputs: true });
 
@@ -485,7 +487,7 @@ describe('Workflow View (GCP)', () => {
     const namespace = 'gatk';
     const name = 'echo_to_file-configured';
 
-    renderWorkflowView();
+    mockDefaultAjax();
 
     getLocalPref.mockReturnValue({ useReferenceDisks: true, ignoreEmptyOutputs: true });
 
@@ -529,7 +531,7 @@ describe('Workflow View (GCP)', () => {
 
     getLocalPref.mockReturnValue(undefined);
 
-    renderWorkflowView();
+    mockDefaultAjax();
 
     // Act
     await act(async () => {

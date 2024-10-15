@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { CloudPlatform } from 'src/billing-core/models';
 import { Select } from 'src/components/common';
 import { DelayedSearchInput } from 'src/components/input';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useInstance } from 'src/libs/react-utils';
@@ -49,7 +49,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         onBlur: (_) => {
           if (keywordLastEvented !== lastKeywordSearched) {
             keywordLastEvented = lastKeywordSearched;
-            Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'keyword', option: keywordLastEvented });
+            void Metrics().captureEvent(Events.workspaceListFilter, { filter: 'keyword', option: keywordLastEvented });
           }
         },
         value: filters.keywordFilter,
@@ -65,7 +65,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         'aria-label': 'Filter by tags',
         onChange: (data) => {
           const option = _.map('value', data);
-          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'tags', option });
+          void Metrics().captureEvent(Events.workspaceListFilter, { filter: 'tags', option });
           Nav.updateSearch({ ...query, tagsFilter: option });
         },
       }),
@@ -80,7 +80,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         value: filters.accessLevels,
         onChange: (data) => {
           const option = _.map('value', data);
-          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'access', option });
+          void Metrics().captureEvent(Events.workspaceListFilter, { filter: 'access', option });
           Nav.updateSearch({ ...query, accessLevelsFilter: option });
         },
         options: [...workspaceAccessLevels], // need to re-create the list otherwise the readonly type of workspaceAccessLevels conflicts with the type of options
@@ -97,7 +97,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         hideSelectedOptions: true,
         onChange: (data) => {
           const option = data?.value || undefined;
-          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'billingProject', option });
+          void Metrics().captureEvent(Events.workspaceListFilter, { filter: 'billingProject', option });
           Nav.updateSearch({ ...query, projectsFilter: option });
         },
         options: _.flow(_.map('workspace.namespace'), _.uniq, _.sortBy(_.identity))(workspaces),
@@ -113,7 +113,7 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         hideSelectedOptions: true,
         onChange: (data) => {
           const option = data?.value || undefined;
-          Ajax().Metrics.captureEvent(Events.workspaceListFilter, { filter: 'cloudPlatform', option });
+          void Metrics().captureEvent(Events.workspaceListFilter, { filter: 'cloudPlatform', option });
           Nav.updateSearch({ ...query, cloudPlatform: option });
         },
         options: _.sortBy((cloudProvider) => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),

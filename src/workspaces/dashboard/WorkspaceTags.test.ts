@@ -1,22 +1,15 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceTags } from 'src/workspaces/dashboard/WorkspaceTags';
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxExports = typeof import('src/libs/ajax');
-
-jest.mock('src/libs/ajax', (): AjaxExports => {
-  return {
-    ...jest.requireActual('src/libs/ajax'),
-    Ajax: jest.fn(),
-  };
-});
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 // set the collapsable panel to be open
 jest.mock('src/libs/prefs', (): typeof import('src/libs/prefs') => ({
@@ -65,16 +58,18 @@ describe('WorkspaceTags', () => {
     const addedTag = 'new tag';
     const mockAddTagsFn = jest.fn().mockResolvedValue([...initialTags, addedTag]);
     const mockCaptureEvent = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Metrics: { captureEvent: mockCaptureEvent } as Partial<AjaxContract['Metrics']>,
-      Workspaces: {
+    asMockedFn(Metrics).mockReturnValue(
+      partial<MetricsContract>({
+        captureEvent: mockCaptureEvent,
+      })
+    );
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
         // the tags select component still calls this
         getTags: jest.fn().mockResolvedValue([initialTags]),
-        workspace: jest.fn().mockReturnValue({
-          addTag: mockAddTagsFn,
-        }),
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+        workspace: jest.fn().mockReturnValue({ addTag: mockAddTagsFn }),
+      })
+    );
     const user = userEvent.setup();
 
     // Act
@@ -126,16 +121,18 @@ describe('WorkspaceTags', () => {
     const initialTags = [remainingTag, deletingTag];
     const mockDeleteTagsFn = jest.fn().mockResolvedValue([remainingTag]);
     const mockCaptureEvent = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Metrics: { captureEvent: mockCaptureEvent } as Partial<AjaxContract['Metrics']>,
-      Workspaces: {
+    asMockedFn(Metrics).mockReturnValue(
+      partial<MetricsContract>({
+        captureEvent: mockCaptureEvent,
+      })
+    );
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
         // the tags select component still calls this
         getTags: jest.fn().mockResolvedValue([]),
-        workspace: jest.fn().mockReturnValue({
-          deleteTag: mockDeleteTagsFn,
-        }),
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+        workspace: jest.fn().mockReturnValue({ deleteTag: mockDeleteTagsFn }),
+      })
+    );
     const user = userEvent.setup();
 
     // Act

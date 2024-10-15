@@ -7,7 +7,8 @@ import { appAccessScopes, appToolLabels, appTools } from 'src/analysis/utils/too
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
-import { Ajax } from 'src/libs/ajax';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useStore, withDisplayName } from 'src/libs/react-utils';
@@ -50,21 +51,11 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
       withErrorReportingInModal('Error creating Cromwell', onError)
     )(async () => {
       if (isAzureWorkspace(workspace)) {
-        await Ajax().Apps.createAppV2(
-          generateAppName(),
-          workspace.workspace.workspaceId,
-          appToolLabels.WORKFLOWS_APP,
-          appAccessScopes.WORKSPACE_SHARED
-        );
-        await Ajax().Apps.createAppV2(
-          generateAppName(),
-          workspace.workspace.workspaceId,
-          appToolLabels.CROMWELL_RUNNER_APP,
-          appAccessScopes.USER_PRIVATE
-        );
+        await Apps().createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.WORKFLOWS_APP, appAccessScopes.WORKSPACE_SHARED);
+        await Apps().createAppV2(generateAppName(), workspace.workspace.workspaceId, appToolLabels.CROMWELL_RUNNER_APP, appAccessScopes.USER_PRIVATE);
       } else {
-        await Ajax()
-          .Apps.app(googleProject, generateAppName())
+        await Apps()
+          .app(googleProject, generateAppName())
           .create({
             defaultKubernetesRuntimeConfig,
             diskName: currentDataDisk ? currentDataDisk.name : generatePersistentDiskName(),
@@ -76,7 +67,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
           });
       }
 
-      await Ajax().Metrics.captureEvent(Events.applicationCreate, { app: appTools.CROMWELL.label, ...extractWorkspaceDetails(workspace) });
+      await Metrics().captureEvent(Events.applicationCreate, { app: appTools.CROMWELL.label, ...extractWorkspaceDetails(workspace) });
       return onSuccess();
     });
 
@@ -100,7 +91,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
               tooltip: Utils.cond([cookieReady, () => 'Open'], [Utils.DEFAULT, () => 'Please wait until Cromwell is running']),
               onClick: () => {
                 onDismiss();
-                Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
+                Metrics().captureEvent(Events.applicationLaunch, { app: appTools.CROMWELL.label });
               },
             },
             ['Open Cromwell']

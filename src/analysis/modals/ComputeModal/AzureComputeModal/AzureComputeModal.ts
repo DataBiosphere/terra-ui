@@ -24,10 +24,11 @@ import { getResourceLimits } from 'src/billing-core/resource-limits';
 import { ButtonOutline, ButtonPrimary, Side, spinnerOverlay } from 'src/components/common';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
-import { Ajax } from 'src/libs/ajax';
 import { isAzureConfig, isAzureDiskType } from 'src/libs/ajax/leonardo/models/runtime-config-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import {
   azureMachineTypes,
   defaultAzureComputeConfig,
@@ -92,7 +93,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
 
   // Lifecycle
   useEffect(() => {
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+    Metrics().captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentRuntime,
       ...extractWorkspaceDetails(workspace.workspace),
     });
@@ -104,7 +105,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
       Utils.withBusyState(setLoading)
     )(async () => {
       const runtimeDetails = currentRuntime
-        ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details()
+        ? await Runtimes().runtimeV2(workspaceId, currentRuntime.runtimeName).details()
         : undefined;
       setCurrentRuntimeDetails(runtimeDetails);
       setComputeConfig({
@@ -268,7 +269,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
     );
 
     // TODO: IA-4163 When update is available include existingRuntime in metrics.
-    Ajax().Metrics.captureEvent(Events[metricsEvent], {
+    Metrics().captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(workspace),
       ..._.mapKeys((key) => `desiredRuntime_${key}`, computeConfig),
       desiredRuntime_region: computeConfig.region,
@@ -300,7 +301,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
               doesRuntimeExist(),
               () =>
                 currentRuntime
-                  ? Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)
+                  ? Runtimes().runtimeV2(workspaceId, currentRuntime.runtimeName).delete(deleteDiskSelected)
                   : {},
             ], // delete runtime
             [
@@ -318,8 +319,8 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName },
           };
 
-          return Ajax()
-            .Runtimes.runtimeV2(workspaceId, generateRuntimeName())
+          return Runtimes()
+            .runtimeV2(workspaceId, generateRuntimeName())
             .create(
               {
                 autopauseThreshold: computeConfig.autopauseThreshold,
@@ -370,7 +371,7 @@ export const AzureComputeModalBase = (props: AzureComputeModalBaseProps): ReactN
           persistentDiskExists,
           onClickAbout: () => {
             setViewMode('aboutPersistentDisk');
-            Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.AZURE });
+            Metrics().captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.AZURE });
           },
           persistentDiskSize: computeConfig.persistentDiskSize,
           persistentDiskType: computeConfig.persistentDiskType,

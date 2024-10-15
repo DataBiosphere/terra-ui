@@ -2,10 +2,10 @@ import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { NotificationType } from '@terra-ui-packages/notifications';
 import { waitFor } from '@testing-library/react';
 import React from 'react';
-import { Ajax } from 'src/libs/ajax';
+import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { cloningWorkspacesStore } from 'src/libs/state';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace } from 'src/testing/workspace-fixtures';
 import {
   notifyNewWorkspaceClone,
@@ -14,15 +14,7 @@ import {
 import { WORKSPACE_UPDATE_POLLING_INTERVAL } from 'src/workspaces/common/state/useWorkspaceStatePolling';
 import { WorkspaceInfo, WorkspaceState, WorkspaceWrapper } from 'src/workspaces/utils';
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxWorkspacesContract = AjaxContract['Workspaces'];
-
-jest.mock('src/libs/ajax', (): typeof import('src/libs/ajax') => {
-  return {
-    ...jest.requireActual('src/libs/ajax'),
-    Ajax: jest.fn(),
-  };
-});
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 type NotificationExports = typeof import('src/libs/notifications');
 jest.mock<NotificationExports>(
@@ -95,15 +87,11 @@ describe('useCloningWorkspaceNotifications', () => {
         },
       };
       const mockDetailsFn = jest.fn().mockResolvedValue(update);
-      const mockAjax: DeepPartial<AjaxContract> = {
-        Workspaces: {
-          workspace: () =>
-            ({
-              details: mockDetailsFn,
-            } as Partial<AjaxWorkspacesContract['workspace']>),
-        },
-      };
-      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+      asMockedFn(Workspaces).mockReturnValue(
+        partial<WorkspacesAjaxContract>({
+          workspace: () => partial<WorkspaceContract>({ details: mockDetailsFn }),
+        })
+      );
 
       // Act
       render(<CloningTestComponent />);
@@ -136,12 +124,11 @@ describe('useCloningWorkspaceNotifications', () => {
         },
       };
       const mockDetailsFn = jest.fn().mockImplementation(() => Promise.resolve(update));
-      const mockAjax: DeepPartial<AjaxContract> = {
-        Workspaces: {
-          workspace: () => ({ details: mockDetailsFn }),
-        },
-      };
-      asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+      asMockedFn(Workspaces).mockReturnValue(
+        partial<WorkspacesAjaxContract>({
+          workspace: () => partial<WorkspaceContract>({ details: mockDetailsFn }),
+        })
+      );
       jest.useFakeTimers();
       // Act
       render(<CloningTestComponent />);
@@ -170,15 +157,11 @@ describe('useCloningWorkspaceNotifications', () => {
       },
     };
     const mockDetailsFn = jest.fn().mockResolvedValue(update);
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () =>
-          ({
-            details: mockDetailsFn,
-          } as Partial<AjaxWorkspacesContract['workspace']>),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () => partial<WorkspaceContract>({ details: mockDetailsFn }),
+      })
+    );
     jest.useFakeTimers();
 
     // Act

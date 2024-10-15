@@ -81,6 +81,10 @@ describe('disableFirstBucketDeletionRule', () => {
     // Assert
     expect(result).toEqual([
       {
+        settingType: 'SeparateSubmissionFinalOutputs',
+        config: { enabled: false },
+      },
+      {
         settingType: 'GcpBucketLifecycle',
         config: {
           rules: [
@@ -149,6 +153,10 @@ describe('disableFirstBucketDeletionRule', () => {
 
     // Assert
     expect(result).toEqual([
+      {
+        settingType: 'SeparateSubmissionFinalOutputs',
+        config: { enabled: false },
+      },
       {
         settingType: 'GcpBucketLifecycle',
         config: {
@@ -228,6 +236,10 @@ describe('modifyFirstBucketDeletionRule', () => {
 
     // Assert
     expect(result).toEqual([
+      {
+        settingType: 'SeparateSubmissionFinalOutputs',
+        config: { enabled: true },
+      },
       {
         settingType: 'GcpBucketLifecycle',
         config: {
@@ -324,6 +336,10 @@ describe('modifyFirstBucketDeletionRule', () => {
 
     // Assert
     expect(result).toEqual([
+      {
+        settingType: 'SeparateSubmissionFinalOutputs',
+        config: { enabled: true },
+      },
       {
         settingType: 'GcpBucketLifecycle',
         config: {

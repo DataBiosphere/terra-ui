@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { useState } from 'react';
-import { Ajax } from 'src/libs/ajax';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
@@ -18,7 +18,7 @@ export const useWorkspaceDetails = (workspaceName: { namespace: string; name: st
     withErrorReporting('Error loading workspace details'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws: Workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details(fields);
+    const ws: Workspace = await Workspaces(signal).workspace(namespace, name).details(fields);
     setWorkspace(ws);
   });
 
