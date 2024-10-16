@@ -15,20 +15,21 @@ import validate from 'validate.js';
 interface WorkflowModalProps {
   setCreateWorkflowModalOpen: (x: boolean) => void;
   title: string;
-  namespace: string;
-  name: string;
-  synopsis: string;
-  documentation: string;
-  snapshotComment: string;
+  defaultNamespace?: string;
+  defaultName?: string;
+  defaultSynopsis?: string;
+  defaultDocumentation?: string;
+  defaultSnapshotComment?: string;
   buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
-  wdl: string;
-  buttonAction: () => Promise<void>;
-  setWorkflowNamespace: (value: string) => void;
-  setWorkflowName: (value: string) => void;
-  setWorkflowSynopsis: (value: string) => void;
-  setWorkflowDocumentation: (value: string) => void;
-  setSnapshotComment: (value: string) => void;
-  setWdl: (value: string) => void;
+  defaultWdl?: string;
+  buttonAction: (
+    workflowNamespace: string,
+    workflowName: string,
+    workflowWdl: string,
+    workflowDocumentation: string,
+    workflowSynopsis: string,
+    snapshotComment: string
+  ) => Promise<void>;
 }
 
 interface NamespaceNameSectionProps {
@@ -243,21 +244,22 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
   const {
     setCreateWorkflowModalOpen,
     title,
-    namespace,
-    name,
+    defaultNamespace,
+    defaultName,
     buttonActionName,
-    synopsis,
-    documentation,
+    defaultSynopsis,
+    defaultDocumentation,
     buttonAction,
-    setWorkflowNamespace,
-    setWorkflowName,
-    setWorkflowSynopsis,
-    setWorkflowDocumentation,
-    snapshotComment,
-    setSnapshotComment,
-    wdl,
-    setWdl,
+    defaultSnapshotComment,
+    defaultWdl,
   } = props;
+
+  const [namespace, setNamespace] = useState<string>(defaultNamespace || '');
+  const [name, setName] = useState<string>(defaultName || '');
+  const [wdl, setWdl] = useState<string>(defaultWdl || '');
+  const [documentation, setDocumentation] = useState<string>(defaultDocumentation || '');
+  const [synopsis, setSynopsis] = useState<string>(defaultSynopsis || '');
+  const [snapshotComment, setSnapshotComment] = useState<string>(defaultSnapshotComment || '');
 
   const [busy, setBusy] = useState<boolean>(false);
   const [submissionError, setSubmissionError] = useState<any>(null);
@@ -269,7 +271,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
 
   const onSubmitWorkflow = withBusyState(setBusy, async () => {
     try {
-      await buttonAction();
+      await buttonAction(namespace, name, wdl, documentation, synopsis, snapshotComment);
     } catch (error) {
       setSubmissionError(error instanceof Response ? await error.text() : error);
     }
@@ -288,15 +290,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
 
   return (
     <Modal
-      onDismiss={() => {
-        setCreateWorkflowModalOpen(false);
-        setWorkflowNamespace('');
-        setWorkflowName('');
-        setWdl('');
-        setWorkflowDocumentation('');
-        setWorkflowSynopsis('');
-        setSnapshotComment('');
-      }}
+      onDismiss={() => setCreateWorkflowModalOpen(false)}
       title={title}
       width='75rem'
       okButton={submitWorkflowButton}
@@ -306,18 +300,18 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
           <NamespaceNameSection
             namespace={namespace}
             name={name}
-            setWorkflowNamespace={setWorkflowNamespace}
-            setWorkflowName={setWorkflowName}
+            setWorkflowNamespace={setNamespace}
+            setWorkflowName={setName}
             errors={validationErrors}
           />
         </div>
         <div style={{ paddingTop: '1.5rem' }}>
           <WdlBoxSection wdlPayload={wdl} setWdlPayload={setWdl} />
         </div>
-        <DocumentationSection documentation={documentation} setWorkflowDocumentation={setWorkflowDocumentation} />
+        <DocumentationSection documentation={documentation} setWorkflowDocumentation={setDocumentation} />
         <SynopsisSnapshotSection
           synopsis={synopsis}
-          setWorkflowSynopsis={setWorkflowSynopsis}
+          setWorkflowSynopsis={setSynopsis}
           errors={validationErrors}
           snapshotComment={snapshotComment}
           setSnapshotComment={setSnapshotComment}
