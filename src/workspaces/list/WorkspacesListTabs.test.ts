@@ -1,7 +1,7 @@
-import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import Events from 'src/libs/events';
 import { updateSearch, useRoute } from 'src/libs/nav';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -34,16 +34,7 @@ jest.mock(
   })
 );
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
-jest.mock('src/libs/ajax');
-
-asMockedFn(Ajax).mockImplementation(
-  () =>
-    ({
-      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
-    } as Partial<AjaxContract> as AjaxContract)
-);
+jest.mock('src/libs/ajax/Metrics');
 
 describe('The filterWorkspaces method', () => {
   it('should filter based on name', () => {
@@ -272,6 +263,10 @@ describe('The filterWorkspaces method', () => {
 });
 
 describe('The WorkspacesListTabs component', () => {
+  beforeAll(() => {
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
+  });
+
   it('should render the workspaces of the current tab', () => {
     // Arrange
     const workspaces: CategorizedWorkspaces = {
@@ -413,12 +408,7 @@ describe('The WorkspacesListTabs component', () => {
     asMockedFn(updateSearch);
 
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
 
     // Act
     const refreshWorkspaces = jest.fn();

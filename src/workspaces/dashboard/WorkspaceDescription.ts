@@ -6,7 +6,8 @@ import { div, h } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Style from 'src/libs/style';
@@ -34,9 +35,9 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
   const save = withBusyState(setSaving, async (): Promise<void> => {
     try {
       const { namespace, name } = workspace.workspace;
-      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editedDescription });
+      await Workspaces().workspace(namespace, name).shallowMergeNewAttributes({ description: editedDescription });
       refreshWorkspace();
-      Ajax().Metrics.captureEvent(Events.workspaceDashboardSaveDescription, extractWorkspaceDetails(workspace));
+      void Metrics().captureEvent(Events.workspaceDashboardSaveDescription, extractWorkspaceDetails(workspace));
     } catch (error) {
       reportError('Error saving workspace', error);
     } finally {
@@ -56,7 +57,7 @@ export const WorkspaceDescription = (props: WorkspaceDescriptionProps): ReactNod
             tooltip: canEdit ? 'Edit description' : editErrorMessage,
             onClick: () => {
               setEditedDescription(description);
-              Ajax().Metrics.captureEvent(Events.workspaceDashboardEditDescription, extractWorkspaceDetails(workspace));
+              void Metrics().captureEvent(Events.workspaceDashboardEditDescription, extractWorkspaceDetails(workspace));
             },
           },
           [icon('edit')]

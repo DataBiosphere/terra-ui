@@ -1,10 +1,10 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
@@ -16,15 +16,8 @@ import {
 import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { CloudInformation } from 'src/workspaces/dashboard/CloudInformation';
 
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxExports = typeof import('src/libs/ajax');
-
-jest.mock('src/libs/ajax', (): AjaxExports => {
-  return {
-    ...jest.requireActual('src/libs/ajax'),
-    Ajax: jest.fn(),
-  };
-});
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 type ClipboardPolyfillExports = typeof import('clipboard-polyfill/text');
 jest.mock('clipboard-polyfill/text', (): ClipboardPolyfillExports => {
@@ -70,14 +63,15 @@ describe('CloudInformation', () => {
     // Arrange
     const mockBucketUsage = jest.fn();
     const mockStorageCostEstimate = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Workspaces: {
-        workspace: jest.fn().mockReturnValue({
-          storageCostEstimate: mockStorageCostEstimate,
-          bucketUsage: mockBucketUsage,
-        }),
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimate: mockStorageCostEstimate,
+            bucketUsage: mockBucketUsage,
+          }),
+      })
+    );
 
     // Act
     render(
@@ -98,14 +92,15 @@ describe('CloudInformation', () => {
       estimate: '1 million dollars',
       lastUpdated: '2023-12-01',
     });
-    asMockedFn(Ajax).mockReturnValue({
-      Workspaces: {
-        workspace: jest.fn().mockReturnValue({
-          storageCostEstimate: mockStorageCostEstimate,
-          bucketUsage: mockBucketUsage,
-        }),
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimate: mockStorageCostEstimate,
+            bucketUsage: mockBucketUsage,
+          }),
+      })
+    );
 
     // Act
     await act(() =>
@@ -131,15 +126,16 @@ describe('CloudInformation', () => {
     const captureEvent = jest.fn();
     const mockBucketUsage = jest.fn();
     const mockStorageCostEstimate = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Workspaces: {
-        workspace: jest.fn().mockReturnValue({
-          storageCostEstimate: mockStorageCostEstimate,
-          bucketUsage: mockBucketUsage,
-        }),
-      },
-      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimate: mockStorageCostEstimate,
+            bucketUsage: mockBucketUsage,
+          }),
+      })
+    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
 
     await act(() =>
       render(
@@ -191,14 +187,15 @@ describe('CloudInformation', () => {
       estimate: '2 dollars',
       lastUpdated: '2024-07-15',
     });
-    asMockedFn(Ajax).mockReturnValue({
-      Workspaces: {
-        workspace: jest.fn().mockReturnValue({
-          storageCostEstimate: mockStorageCostEstimate,
-          bucketUsage: mockBucketUsage,
-        }),
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimate: mockStorageCostEstimate,
+            bucketUsage: mockBucketUsage,
+          }),
+      })
+    );
 
     // Act
     render(
@@ -215,11 +212,11 @@ describe('CloudInformation', () => {
   it('displays bucket size for users with reader access', async () => {
     // Arrange
     const mockBucketUsage = jest.fn().mockResolvedValue({ usageInBytes: 50, lastUpdated: '2024-07-26' });
-    asMockedFn(Ajax).mockReturnValue({
-      Workspaces: {
-        workspace: jest.fn().mockReturnValue({ bucketUsage: mockBucketUsage }),
-      },
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () => partial<WorkspaceContract>({ bucketUsage: mockBucketUsage }),
+      })
+    );
 
     // Act
     await act(() =>

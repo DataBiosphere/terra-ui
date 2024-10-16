@@ -1,24 +1,21 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { div, h } from 'react-hyperscript-helpers';
 import { MarkdownEditor } from 'src/components/markdown';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceDescription } from 'src/workspaces/dashboard/WorkspaceDescription';
 import { canEditWorkspace } from 'src/workspaces/utils';
 
 jest.mock('src/libs/error');
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
-jest.mock('src/libs/ajax', () => ({
-  Ajax: jest.fn(),
-}));
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 type MockErrorExports = typeof import('src/libs/error.mock');
 jest.mock('src/libs/error', () => {
@@ -90,9 +87,7 @@ describe('WorkspaceDescription', () => {
     const user = userEvent.setup();
     asMockedFn(canEditWorkspace).mockReturnValue({ value: true });
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
 
     const props = {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description: undefined } } }),
@@ -122,9 +117,7 @@ describe('WorkspaceDescription', () => {
     // Arrange
     const user = userEvent.setup();
     asMockedFn(canEditWorkspace).mockReturnValue({ value: true });
-    asMockedFn(Ajax).mockReturnValue({
-      Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
     const description = 'this is a very descriptive decription';
     const props = {
       workspace: _.merge(defaultGoogleWorkspace, { workspace: { attributes: { description } } }),
@@ -155,14 +148,15 @@ describe('WorkspaceDescription', () => {
     };
     const mockShallowMergeNewAttributes = jest.fn().mockResolvedValue({});
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockReturnValue({
-      Workspaces: {
-        workspace: jest.fn().mockReturnValue({
-          shallowMergeNewAttributes: mockShallowMergeNewAttributes,
-        }),
-      },
-      Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-    } as DeepPartial<AjaxContract> as AjaxContract);
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            shallowMergeNewAttributes: mockShallowMergeNewAttributes,
+          }),
+      })
+    );
     const newDescription = 'the description the user edited';
 
     let onChange;
