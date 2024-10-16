@@ -289,7 +289,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
         )}
         {createWorkflowModalOpen && (
           <WorkflowModal
-            setCreateWorkflowModalOpen={setCreateWorkflowModalOpen}
+            onDismiss={() => setCreateWorkflowModalOpen(false)}
             title='Create New Method'
             buttonActionName='Upload'
             buttonAction={uploadWorkflow}

@@ -13,7 +13,7 @@ import { WDLEditor } from 'src/pages/workflows/common/WDLEditor';
 import validate from 'validate.js';
 
 interface WorkflowModalProps {
-  setCreateWorkflowModalOpen: (x: boolean) => void;
+  onDismiss: () => void;
   title: string;
   defaultNamespace?: string;
   defaultName?: string;
@@ -242,7 +242,7 @@ const DocumentationSection = (props: WorkflowDocumentationProps) => {
 
 export const WorkflowModal = (props: WorkflowModalProps) => {
   const {
-    setCreateWorkflowModalOpen,
+    onDismiss,
     title,
     defaultNamespace,
     defaultName,
@@ -289,12 +289,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
   );
 
   return (
-    <Modal
-      onDismiss={() => setCreateWorkflowModalOpen(false)}
-      title={title}
-      width='75rem'
-      okButton={submitWorkflowButton}
-    >
+    <Modal onDismiss={onDismiss} title={title} width='75rem' okButton={submitWorkflowButton}>
       <div style={{ padding: '0.5rem 0' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
           <NamespaceNameSection
