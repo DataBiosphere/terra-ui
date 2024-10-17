@@ -11,8 +11,8 @@
       "id": "C53JYBV9A"
     },
     {
-      "name": "ia-notification-test",
-      "id": "C03ATF4QXEV",
+      "name": "dsp-analysis-non-prod-alerts",
+      "id": "C07RX0CJV0D",
       "tests": [
         {
           "name": "run-analysis"
@@ -25,13 +25,7 @@
         },
         {
           "name": "run-analysis-azure"
-        }
-      ]
-    },
-    {
-      "name": "cromwell_jenkins_ci_errors",
-      "id": "C01AG7GEJ3D",
-      "tests": [
+        },
         {
           "name": "find-workflow"
         },
@@ -40,6 +34,9 @@
         },
         {
           "name": "run-workflow"
+        },
+        {
+          "name": "preview-drs-uri"
         }
       ]
     },
