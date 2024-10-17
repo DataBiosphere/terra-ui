@@ -10,6 +10,7 @@ import { TabBar } from 'src/components/tabBars';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
+import { MethodResponse } from 'src/libs/ajax/methods/methods-models';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -173,7 +174,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
     workflowDocumentation: string,
     workflowSynopsis: string,
     snapshotComment: string
-  ): Promise<void> => {
+  ): Promise<MethodResponse> => {
     const workflowPayload = {
       namespace: workflowNamespace,
       name: workflowName,
@@ -184,13 +185,15 @@ export const WorkflowList = (props: WorkflowListProps) => {
       entityType: 'Workflow', // Currently not supporting task creation
     };
 
-    const { namespace, name, snapshotId } = await Ajax(signal).Methods.postMethods(workflowPayload);
+    return await Ajax(signal).Methods.postMethods(workflowPayload);
+  };
+
+  const navigateToWorkflow = (namespace: string, name: string, snapshotId: number) =>
     Nav.goToPath('workflow-dashboard', {
       namespace,
       name,
       snapshotId,
     });
-  };
 
   // Gets the sort key of a method definition based on the currently
   // selected sort field such that numeric fields are sorted numerically
@@ -293,6 +296,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
             title='Create New Method'
             buttonActionName='Upload'
             buttonAction={uploadWorkflow}
+            onSuccess={navigateToWorkflow}
           />
         )}
       </main>

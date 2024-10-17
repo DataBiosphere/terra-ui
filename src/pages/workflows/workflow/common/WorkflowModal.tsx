@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import ErrorView from 'src/components/ErrorView';
 import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
+import { MethodResponse } from 'src/libs/ajax/methods/methods-models';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
@@ -29,7 +30,8 @@ interface WorkflowModalProps {
     workflowDocumentation: string,
     workflowSynopsis: string,
     snapshotComment: string
-  ) => Promise<void>;
+  ) => Promise<MethodResponse>;
+  onSuccess?: (namespace: string, name: string, snapshotId: number) => void;
 }
 
 interface NamespaceNameSectionProps {
@@ -252,6 +254,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     buttonAction,
     defaultSnapshotComment,
     defaultWdl,
+    onSuccess,
   } = props;
 
   const [namespace, setNamespace] = useState<string>(defaultNamespace || '');
@@ -271,7 +274,12 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
 
   const onSubmitWorkflow = withBusyState(setBusy, async () => {
     try {
-      await buttonAction(namespace, name, wdl, documentation, synopsis, snapshotComment);
+      const {
+        namespace: createdWorkflowNamespace,
+        name: createdWorkflowName,
+        snapshotId: createdWorkflowSnapshotId,
+      } = await buttonAction(namespace, name, wdl, documentation, synopsis, snapshotComment);
+      onSuccess?.(createdWorkflowNamespace, createdWorkflowName, createdWorkflowSnapshotId);
     } catch (error) {
       setSubmissionError(error instanceof Response ? await error.text() : error);
     }
