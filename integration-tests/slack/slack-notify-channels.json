@@ -34,9 +34,6 @@
         },
         {
           "name": "run-workflow"
-        },
-        {
-          "name": "preview-drs-uri"
         }
       ]
     },
@@ -61,6 +58,9 @@
         },
         {
           "name": "request-access"
+        },
+        {
+          "name": "preview-drs-uri"
         }
       ]
     },
