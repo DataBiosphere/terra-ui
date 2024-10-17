@@ -8,7 +8,7 @@ interface ChartLabel {
 export interface ChartSeries {
   name?: string;
   colorByPoint?: boolean;
-  data: number[] | number[][];
+  data: any /* number[] | number[][] */;
 }
 
 export interface CohortDemographics {
