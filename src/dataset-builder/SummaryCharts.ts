@@ -33,7 +33,7 @@ export function generateGenderChartOptions() {
     series: [
       {
         colorByPoint: true,
-        data: [[28], [31], [11], [10], [6], [14]],
+        data: [28, 31, 11, 10, 6, 14],
       },
     ],
     title: 'Gender Identity',
@@ -59,7 +59,7 @@ export function generateRaceChartOptions() {
     series: [
       {
         colorByPoint: true,
-        data: [[24], [18], [16], [8], [27], [5], [2]],
+        data: [24, 18, 16, 8, 27, 5, 2],
       },
     ],
     title: 'Race',
