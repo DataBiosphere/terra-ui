@@ -9,7 +9,7 @@ import { testSnapshotBuilderSettings } from './TestConstants';
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn(),
-  useRoute: jest.fn(),
+  useRoute: jest.fn().mockReturnValue({ query: {} }),
 }));
 
 jest.mock('src/libs/ajax/GoogleStorage');
