@@ -10,7 +10,7 @@ import { TabBar } from 'src/components/tabBars';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { TopBar } from 'src/components/TopBar';
 import { Ajax } from 'src/libs/ajax';
-import { MethodResponse } from 'src/libs/ajax/methods/methods-models';
+import { createMethodProvider } from 'src/libs/ajax/methods/providers/CreateMethodProvider';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -167,27 +167,6 @@ export const WorkflowList = (props: WorkflowListProps) => {
     loadWorkflows();
   });
 
-  const uploadWorkflow = async (
-    workflowNamespace: string,
-    workflowName: string,
-    workflowWdl: string,
-    workflowDocumentation: string,
-    workflowSynopsis: string,
-    snapshotComment: string
-  ): Promise<MethodResponse> => {
-    const workflowPayload = {
-      namespace: workflowNamespace,
-      name: workflowName,
-      synopsis: workflowSynopsis,
-      snapshotComment,
-      documentation: workflowDocumentation,
-      payload: workflowWdl,
-      entityType: 'Workflow', // Currently not supporting task creation
-    };
-
-    return await Ajax(signal).Methods.postMethods(workflowPayload);
-  };
-
   const navigateToWorkflow = (namespace: string, name: string, snapshotId: number) =>
     Nav.goToPath('workflow-dashboard', {
       namespace,
@@ -295,7 +274,7 @@ export const WorkflowList = (props: WorkflowListProps) => {
             onDismiss={() => setCreateWorkflowModalOpen(false)}
             title='Create New Method'
             buttonActionName='Upload'
-            buttonAction={uploadWorkflow}
+            createMethodProvider={createMethodProvider}
             onSuccess={navigateToWorkflow}
           />
         )}

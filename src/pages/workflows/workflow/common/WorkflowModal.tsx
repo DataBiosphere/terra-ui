@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import ErrorView from 'src/components/ErrorView';
 import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
-import { MethodResponse } from 'src/libs/ajax/methods/methods-models';
+import { CreateMethodProvider } from 'src/libs/ajax/methods/providers/CreateMethodProvider';
 import colors from 'src/libs/colors';
 import { FormLabel } from 'src/libs/forms';
 import * as Utils from 'src/libs/utils';
@@ -23,14 +23,7 @@ interface WorkflowModalProps {
   defaultSnapshotComment?: string;
   buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
   defaultWdl?: string;
-  buttonAction: (
-    workflowNamespace: string,
-    workflowName: string,
-    workflowWdl: string,
-    workflowDocumentation: string,
-    workflowSynopsis: string,
-    snapshotComment: string
-  ) => Promise<MethodResponse>;
+  createMethodProvider: CreateMethodProvider;
   onSuccess?: (namespace: string, name: string, snapshotId: number) => void;
 }
 
@@ -251,7 +244,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     buttonActionName,
     defaultSynopsis,
     defaultDocumentation,
-    buttonAction,
+    createMethodProvider,
     defaultSnapshotComment,
     defaultWdl,
     onSuccess,
@@ -278,7 +271,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         namespace: createdWorkflowNamespace,
         name: createdWorkflowName,
         snapshotId: createdWorkflowSnapshotId,
-      } = await buttonAction(namespace, name, wdl, documentation, synopsis, snapshotComment);
+      } = await createMethodProvider.create(namespace, name, wdl, documentation, synopsis, snapshotComment);
       onSuccess?.(createdWorkflowNamespace, createdWorkflowName, createdWorkflowSnapshotId);
     } catch (error) {
       setSubmissionError(error instanceof Response ? await error.text() : error);
