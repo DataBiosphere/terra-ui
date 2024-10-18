@@ -5,11 +5,11 @@ import { asMockedFn, partial } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax/methods/Methods');
 
-type MethodsAjaxNeeds = Pick<MethodsAjaxContract, 'postMethods'>;
+type MethodsAjaxNeeds = Pick<MethodsAjaxContract, 'postMethod'>;
 
 const mockMethodsNeeds = (): MethodsAjaxNeeds => {
   const partialMethods: MethodsAjaxNeeds = {
-    postMethods: jest.fn(),
+    postMethod: jest.fn(),
   };
   asMockedFn(Methods).mockReturnValue(partial<MethodsAjaxContract>(partialMethods));
 
@@ -33,7 +33,7 @@ describe('create method provider', () => {
   it('handles create call', async () => {
     // Arrange
     const methodsMock = mockMethodsNeeds();
-    asMockedFn(methodsMock.postMethods).mockResolvedValue(mockMethodResponse);
+    asMockedFn(methodsMock.postMethod).mockResolvedValue(mockMethodResponse);
     const signal = new window.AbortController().signal;
 
     // Act
@@ -50,8 +50,8 @@ describe('create method provider', () => {
     // Assert
     expect(Methods).toBeCalledTimes(1);
     expect(Methods).toBeCalledWith(signal);
-    expect(methodsMock.postMethods).toBeCalledTimes(1);
-    expect(methodsMock.postMethods).toBeCalledWith({
+    expect(methodsMock.postMethod).toBeCalledTimes(1);
+    expect(methodsMock.postMethod).toBeCalledWith({
       namespace: 'input-namespace',
       name: 'input-name',
       payload: 'workflow input {}',

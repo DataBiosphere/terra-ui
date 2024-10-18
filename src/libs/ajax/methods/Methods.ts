@@ -33,7 +33,7 @@ export const Methods = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  postMethods: async (method: MethodQuery): Promise<MethodResponse> => {
+  postMethod: async (method: MethodQuery): Promise<MethodResponse> => {
     const res = await fetchOrchestration(
       'api/methods',
       _.mergeAll([authOpts(), jsonBody(method), { signal, method: 'POST' }])

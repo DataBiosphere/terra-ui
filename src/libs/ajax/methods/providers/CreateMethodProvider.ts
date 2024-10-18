@@ -36,6 +36,6 @@ export const createMethodProvider: CreateMethodProvider = {
       entityType: 'Workflow',
     };
 
-    return await Methods(signal).postMethods(workflowPayload);
+    return await Methods(signal).postMethod(workflowPayload);
   },
 };
