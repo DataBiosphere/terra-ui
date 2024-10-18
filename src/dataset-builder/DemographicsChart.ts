@@ -7,6 +7,7 @@ interface ChartLabel {
 }
 export interface ChartSeries {
   name?: string;
+  colorByPoint?: boolean;
   data: number[];
 }
 
@@ -18,6 +19,7 @@ export interface CohortDemographics {
   height: string;
   legendEnabled: boolean;
   showSeriesName: boolean;
+  type: string;
 }
 export function chartOptions(cohortDemographics: CohortDemographics) {
   return {
@@ -26,7 +28,7 @@ export function chartOptions(cohortDemographics: CohortDemographics) {
       spacingRight: 30,
       height: cohortDemographics.height,
       style: { fontFamily: 'inherit' },
-      type: 'bar',
+      type: cohortDemographics.type,
     },
     legend: { enabled: cohortDemographics.legendEnabled },
     plotOptions: { series: { stacking: 'normal' } },
@@ -91,6 +93,7 @@ export function generateCohortAgeData(series) {
     height: '250rem',
     legendEnabled: false,
     showSeriesName: false,
+    type: 'bar',
   };
 }
 
@@ -125,6 +128,7 @@ export function generateCohortDemographicData(series) {
     height: '500rem',
     legendEnabled: true,
     showSeriesName: true,
+    type: 'bar',
   };
 }
 

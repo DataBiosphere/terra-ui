@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { DataRepo, DataRepoContract, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
+import { useRoute } from 'src/libs/nav';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { DatasetBuilderDetails } from './DatasetBuilderDetails';
@@ -9,7 +10,7 @@ import { testSnapshotBuilderSettings } from './TestConstants';
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn(),
-  useRoute: jest.fn(),
+  useRoute: jest.fn().mockReturnValue({ query: {} }),
 }));
 
 jest.mock('src/libs/ajax/GoogleStorage');
@@ -53,5 +54,37 @@ describe('DatasetBuilderDetails', () => {
     // Assert
     expect(await screen.findByText(testSnapshotBuilderSettings().name)).toBeTruthy();
     expect(await screen.findByText('Learn how to gain access')).toBeTruthy();
+  });
+
+  it('renders the categories and visualizations tabs', async () => {
+    // Arrange
+    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
+    render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
+    // Assert
+    expect(await screen.findByText('Data Categories')).toBeTruthy();
+    expect(await screen.findByText('Participant Visualizations')).toBeTruthy();
+  });
+
+  it('defaults to the categories tab and renders the dataset summary stats', async () => {
+    // Arrange
+    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
+    render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
+    asMockedFn(useRoute).mockImplementation(() => ({ query: {} }));
+    // Assert
+    expect(await screen.findByText('EHR Domains')).toBeTruthy();
+  });
+
+  it('renders the visualization graphs on the visualization tab', async () => {
+    // Arrange
+    mockWithValues(testSnapshotBuilderSettings(), ['aggregate_data_reader']);
+    render(h(DatasetBuilderDetails, { snapshotId: 'id' }));
+    asMockedFn(useRoute).mockImplementation(() => ({ query: { tab: 'visualizations' } }));
+    // Assert
+    expect(await screen.findAllByText('Age')).toBeTruthy();
+    expect(await screen.findAllByText('Gender Identity')).toBeTruthy();
+    expect(await screen.findAllByText('Race')).toBeTruthy();
+    expect(await screen.findAllByText('Top 10 Conditions')).toBeTruthy();
+    expect(await screen.findAllByText('Top 10 Drugs')).toBeTruthy();
+    expect(await screen.findAllByText('Top 10 Procedures')).toBeTruthy();
   });
 });
