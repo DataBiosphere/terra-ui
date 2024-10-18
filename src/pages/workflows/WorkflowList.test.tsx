@@ -1,4 +1,4 @@
-import { delay } from '@terra-ui-packages/core-utils';
+import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import _ from 'lodash/fp';
@@ -18,6 +18,7 @@ jest.mock('src/libs/notifications');
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getLink: jest.fn(() => '#workflows'),
+  goToPath: jest.fn(),
 }));
 
 // Space for tables is rendered based on the available space. In unit tests, there is no available space, and so we must mock out the space needed to get the data table to render.
@@ -42,7 +43,9 @@ jest.mock('react-virtualized', () => {
 });
 
 const mockMethods = (methods: MethodDefinition[]): Partial<MethodsAjaxContract> => {
-  return { definitions: jest.fn(() => Promise.resolve(methods)) };
+  return {
+    definitions: jest.fn(() => Promise.resolve(methods)),
+  };
 };
 
 const mockAjax = (methods: MethodDefinition[]): Partial<AjaxContract> => {
@@ -831,6 +834,35 @@ describe('workflows table', () => {
     expect(screen.getByText('method-name')).toHaveAttribute('href', '/workflow-dashboard/test-namespace/method-name');
   });
 
+  it('shows a loading spinner while the workflows are loading', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => {
+      return {
+        Methods: {
+          definitions: jest.fn(async () => {
+            await delay(100);
+            return Promise.resolve([]);
+          }) as Partial<MethodsAjaxContract>,
+        } as MethodsAjaxContract,
+      } as AjaxContract;
+    });
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    // Assert
+    const spinner = document.querySelector('[data-icon="loadingSpinner"]');
+    expect(spinner).toBeInTheDocument();
+
+    // Act
+    await act(async () => await delay(200));
+
+    // Assert
+    expect(spinner).not.toBeInTheDocument();
+  });
+
   it('handles errors loading workflows', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(() => {
@@ -857,6 +889,62 @@ describe('workflows table', () => {
 
     expect(screen.getByText('Nothing to display')).toBeInTheDocument();
     expect(notify).toHaveBeenCalledWith('error', 'Error loading workflows', expect.anything());
+  });
+});
+
+describe('create new workflow button', () => {
+  it('uploads a new workflow', async () => {
+    const mockCreateMethodResp = {
+      namespace: 'testing',
+      name: 'get-resp',
+      synopsis: '',
+      snapshotComment: '',
+      documentation: '',
+      payload:
+        'version 1.0\n\ntask test_equality {\n\n  command {\n    echo "hi!"\n  }\n\n  Array[Pair[String, Int]] test = [ (1, 1), ("two", 2), ("three", 3) ]\n\n  output {\n    Array[Pair[String, Int]] testOut = test\n  }\n\n  meta {\n    volatile: true\n  }\n  \n  runtime {\n    docker: "ubuntu:latest"\n    maxRetries: 5\n  }\n}\n\nworkflow eqality_testing {\n  call test_equality\n  output {\n    Array[Pair[String, Int]] s1 = test_equality.testOut\n  }\n}\n',
+      entityType: 'Workflow',
+    };
+    // Act
+    const mockAjax: DeepPartial<AjaxContract> = {
+      Methods: {
+        postMethods: jest.fn().mockReturnValue(Promise.resolve(mockCreateMethodResp)),
+      },
+    };
+    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    // Assert
+    const createWorkflowButton = screen.getByRole('button', { name: 'Create New Method' });
+    fireEvent.click(createWorkflowButton);
+
+    const newMethodText = screen.getAllByText('Create New Method');
+    const modalTitle = newMethodText[1];
+    expect(modalTitle).toBeInTheDocument();
+
+    // Get text areas in modal
+    const textBoxes = screen.getAllByRole('textbox');
+    const namespaceTextBox = textBoxes[0];
+    expect(namespaceTextBox).toHaveAttribute('id', 'namespace-input');
+    fireEvent.change(namespaceTextBox, { target: { value: 'test namespace' } });
+
+    const nameTextBox = textBoxes[1];
+    expect(nameTextBox).toHaveAttribute('id', 'name-input');
+    fireEvent.change(nameTextBox, { target: { value: 'test name' } });
+
+    const wdlBox = document.getElementsByClassName('wdl-editor')[0];
+    wdlBox.innerHTML = 'wdl text'; // manually setting the WDL box text because of 'Loading' message in monaco-editor
+
+    const uploadButton = screen.getByRole('button', { name: 'Upload' });
+    await fireEvent.click(uploadButton);
+
+    expect(Nav.goToPath).toHaveBeenCalledWith('workflow-dashboard', {
+      name: 'get-resp',
+      namespace: 'testing',
+      snapshotId: undefined,
+    });
   });
 });
 
