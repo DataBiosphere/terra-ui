@@ -131,7 +131,7 @@
     "eslint-plugin-storybook": "^0.6.15",
     "husky": "^7.0.2",
     "ignore": "^5.2.4",
-    "jest": "^27.4.3",
+    "jest": "^28.1.1",
     "jest-axe": "^6.0.0",
     "jest-html-reporter": "^3.10.2",
     "jscodeshift": "^0.15.1",
