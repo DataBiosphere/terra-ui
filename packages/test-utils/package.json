@@ -27,7 +27,7 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@babel/template": "^7.22.15",
-    "@testing-library/jest-dom": "^6.6.2",
+    "@testing-library/jest-dom": "^5.17.0",
     "babel-jest": "^27.4.2",
     "babel-preset-react-app": "^10.0.1",
     "blob-polyfill": "^7.0.20220408",
