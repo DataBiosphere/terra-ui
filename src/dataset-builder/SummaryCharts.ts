@@ -23,17 +23,15 @@ export function generateAgeChartOptions() {
 export function generateGenderChartOptions() {
   return {
     categories: [
-      { short: 'Man' },
-      { short: 'Woman' },
-      { short: 'Nonbinary' },
-      { short: 'Transgender' },
-      { short: 'Other' },
+      { short: 'Female' },
+      { short: 'Male' },
+      { short: 'Other', long: 'Nonbinary, 2 Spirit, Genderqueer, etc.' },
       { short: 'Prefer not to Say' },
     ],
     series: [
       {
         colorByPoint: true,
-        data: [28, 31, 11, 10, 6, 14],
+        data: [36, 38, 22, 4],
       },
     ],
     title: 'Gender Identity',
@@ -49,17 +47,17 @@ export function generateRaceChartOptions() {
   return {
     categories: [
       { short: 'White' },
-      { short: 'Black, African American' },
-      { short: 'Hispanic or Latino' },
+      { short: 'Black or African American' },
       { short: 'Asian' },
+      { short: 'Pacific Islander' },
+      { short: 'Native American' },
       { short: 'More than one' },
-      { short: 'Other' },
       { short: 'Prefer not to Say' },
     ],
     series: [
       {
         colorByPoint: true,
-        data: [24, 18, 16, 8, 27, 5, 2],
+        data: [30, 25, 20, 8, 6, 10, 1],
       },
     ],
     title: 'Race',
