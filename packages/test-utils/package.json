@@ -36,6 +36,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^28.1.1",
     "jest-axe": "^6.0.0",
+    "jest-environment-jsdom": "^29.7.0",
     "jest-fail-on-console": "^3.1.1",
     "jest-watch-typeahead": "^1.0.0",
     "whatwg-fetch": "^3.6.2"
