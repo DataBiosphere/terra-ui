@@ -14,17 +14,17 @@ import { WDLEditor } from 'src/pages/workflows/common/WDLEditor';
 import validate from 'validate.js';
 
 interface WorkflowModalProps {
-  onDismiss: () => void;
   title: string;
+  buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
   defaultNamespace?: string;
   defaultName?: string;
-  defaultSynopsis?: string;
-  defaultDocumentation?: string;
-  defaultSnapshotComment?: string;
-  buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
   defaultWdl?: string;
+  defaultDocumentation?: string;
+  defaultSynopsis?: string;
+  defaultSnapshotComment?: string;
   createMethodProvider: CreateMethodProvider;
   onSuccess?: (namespace: string, name: string, snapshotId: number) => void;
+  onDismiss: () => void;
 }
 
 interface NamespaceNameSectionProps {
@@ -37,21 +37,21 @@ interface NamespaceNameSectionProps {
 
 interface SynopsisSnapshotSectionProps {
   synopsis: string;
-  setWorkflowSynopsis: (value: string) => void;
-  errors: any;
   snapshotComment: string;
+  setWorkflowSynopsis: (value: string) => void;
   setSnapshotComment: (value: string) => void;
+  errors: any;
 }
 
-type WdlBoxSectionProps = {
+interface WdlBoxSectionProps {
   wdlPayload: string;
   setWdlPayload: (value: string) => void;
-};
+}
 
-type WorkflowDocumentationProps = {
+interface DocumentationSectionProps {
   documentation: string;
   setWorkflowDocumentation: (value: string) => void;
-};
+}
 
 validate.validators.maxNamespaceNameCombinedLength = <OtherFieldName extends string>(
   value: string,
@@ -149,7 +149,7 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
 };
 
 const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
-  const { synopsis, setWorkflowSynopsis, errors, snapshotComment, setSnapshotComment } = props;
+  const { synopsis, snapshotComment, setWorkflowSynopsis, setSnapshotComment, errors } = props;
   const [synopsisModified, setSynopsisModified] = useState<boolean>(false);
 
   const synopsisInputId = useUniqueId();
@@ -217,7 +217,7 @@ const WdlBoxSection = (props: WdlBoxSectionProps) => {
   );
 };
 
-const DocumentationSection = (props: WorkflowDocumentationProps) => {
+const DocumentationSection = (props: DocumentationSectionProps) => {
   const { documentation, setWorkflowDocumentation } = props;
 
   const documentationInputId = useUniqueId();
@@ -237,17 +237,17 @@ const DocumentationSection = (props: WorkflowDocumentationProps) => {
 
 export const WorkflowModal = (props: WorkflowModalProps) => {
   const {
-    onDismiss,
     title,
+    buttonActionName,
     defaultNamespace,
     defaultName,
-    buttonActionName,
-    defaultSynopsis,
-    defaultDocumentation,
-    createMethodProvider,
-    defaultSnapshotComment,
     defaultWdl,
+    defaultDocumentation,
+    defaultSynopsis,
+    defaultSnapshotComment,
+    createMethodProvider,
     onSuccess,
+    onDismiss,
   } = props;
 
   const [namespace, setNamespace] = useState<string>(defaultNamespace || '');
@@ -307,10 +307,10 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         <DocumentationSection documentation={documentation} setWorkflowDocumentation={setDocumentation} />
         <SynopsisSnapshotSection
           synopsis={synopsis}
-          setWorkflowSynopsis={setSynopsis}
-          errors={validationErrors}
           snapshotComment={snapshotComment}
+          setWorkflowSynopsis={setSynopsis}
           setSnapshotComment={setSnapshotComment}
+          errors={validationErrors}
         />
         {busy && <SpinnerOverlay />}
         {submissionError && <ErrorView error={submissionError} />}
