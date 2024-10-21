@@ -23,7 +23,7 @@ interface WorkflowModalProps {
   defaultSynopsis?: string;
   defaultSnapshotComment?: string;
   createMethodProvider: CreateMethodProvider;
-  onSuccess?: (namespace: string, name: string, snapshotId: number) => void;
+  onSuccess: (namespace: string, name: string, snapshotId: number) => void;
   onDismiss: () => void;
 }
 
@@ -272,7 +272,7 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
         name: createdWorkflowName,
         snapshotId: createdWorkflowSnapshotId,
       } = await createMethodProvider.create(namespace, name, wdl, documentation, synopsis, snapshotComment);
-      onSuccess?.(createdWorkflowNamespace, createdWorkflowName, createdWorkflowSnapshotId);
+      onSuccess(createdWorkflowNamespace, createdWorkflowName, createdWorkflowSnapshotId);
     } catch (error) {
       setSubmissionError(error instanceof Response ? await error.text() : error);
     }
