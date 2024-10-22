@@ -307,12 +307,12 @@ export const WorkflowModal = (props: WorkflowModalProps) => {
     onDismiss,
   } = props;
 
-  const [namespace, setNamespace] = useState<string>(defaultNamespace || '');
-  const [name, setName] = useState<string>(defaultName || '');
-  const [wdl, setWdl] = useState<string>(defaultWdl || '');
-  const [documentation, setDocumentation] = useState<string>(defaultDocumentation || '');
-  const [synopsis, setSynopsis] = useState<string>(defaultSynopsis || '');
-  const [snapshotComment, setSnapshotComment] = useState<string>(defaultSnapshotComment || '');
+  const [namespace, setNamespace] = useState<string>(defaultNamespace ?? '');
+  const [name, setName] = useState<string>(defaultName ?? '');
+  const [wdl, setWdl] = useState<string>(defaultWdl ?? '');
+  const [documentation, setDocumentation] = useState<string>(defaultDocumentation ?? '');
+  const [synopsis, setSynopsis] = useState<string>(defaultSynopsis ?? '');
+  const [snapshotComment, setSnapshotComment] = useState<string>(defaultSnapshotComment ?? '');
 
   const [busy, setBusy] = useState<boolean>(false);
   const [submissionError, setSubmissionError] = useState<any>(null);
