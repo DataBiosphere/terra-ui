@@ -6,6 +6,6 @@ module.exports = {
     slowMo: process.env.SLOW === 'true' ? 250 : undefined,
     defaultViewport: { width: 1200, height: 800 },
     protocolTimeout: 720_000, // 12 minutes
-    args: [],
+    args: ['--flag-switches-begin', '--disable-features=TrackingProtection3pcd', '--flag-switches-end'],
   },
 };
