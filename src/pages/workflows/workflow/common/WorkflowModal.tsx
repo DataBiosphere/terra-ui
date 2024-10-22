@@ -174,7 +174,7 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
                 setNamespaceModified(true);
               },
             }}
-            error={Utils.summarizeErrors(namespaceModified && errors?.namespace)}
+            error={Utils.summarizeErrors((namespaceModified || namespace) && errors?.namespace)}
           />
         </div>
       </div>
@@ -192,7 +192,7 @@ const NamespaceNameSection = (props: NamespaceNameSectionProps) => {
                 setNameModified(true);
               },
             }}
-            error={Utils.summarizeErrors(nameModified && errors?.name)}
+            error={Utils.summarizeErrors((nameModified || name) && errors?.name)}
           />
         </div>
       </div>
@@ -221,7 +221,7 @@ const SynopsisSnapshotSection = (props: SynopsisSnapshotSectionProps) => {
                 setSynopsisModified(true);
               },
             }}
-            error={Utils.summarizeErrors(synopsisModified && errors?.synopsis)}
+            error={Utils.summarizeErrors((synopsisModified || synopsis) && errors?.synopsis)}
           />
         </div>
       </div>
