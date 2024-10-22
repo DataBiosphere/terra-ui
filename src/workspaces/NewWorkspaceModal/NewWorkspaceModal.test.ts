@@ -48,7 +48,6 @@ import {
 import NewWorkspaceModal from './NewWorkspaceModal';
 
 jest.mock('src/libs/ajax/AzureStorage');
-jest.mock('src/libs/ajax/AzureStorage');
 jest.mock('src/libs/ajax/billing/Billing');
 jest.mock('src/libs/ajax/firecloud/FirecloudBucket');
 jest.mock('src/libs/ajax/Groups');
