@@ -4254,6 +4254,7 @@ __metadata:
     "@types/react": ^18.2.15
     "@types/testing-library__jest-dom": ^5.14.9
     jest: ^28.1.1
+    jest-environment-jsdom: ^29.7.0
     lodash: ^4.17.21
     react: 18.2.0
     react-dom: 18.2.0
@@ -4303,6 +4304,7 @@ __metadata:
     "@types/testing-library__jest-dom": ^5.14.9
     color: ^4.0.1
     jest: ^28.1.1
+    jest-environment-jsdom: ^29.7.0
     lodash: ^4.17.21
     react: 18.2.0
     react-dom: 18.2.0
@@ -4330,6 +4332,7 @@ __metadata:
     "@types/lodash": ^4.14.184
     check-dts: ^0.7.2
     jest: ^28.1.1
+    jest-environment-jsdom: ^29.7.0
     lodash: ^4.17.21
     typescript: ~5.1.6
     vite: ^5.2.11
@@ -4344,6 +4347,7 @@ __metadata:
     "@terra-ui-packages/test-utils": ^1.0.0
     "@types/jest": ^28.1.8
     jest: ^28.1.1
+    jest-environment-jsdom: ^29.7.0
     typescript: ~5.1.6
     vite: ^5.2.11
   languageName: unknown
@@ -4359,6 +4363,7 @@ __metadata:
     "@types/jest": ^28.1.8
     "@types/qs": ^6.9.15
     jest: ^28.1.1
+    jest-environment-jsdom: ^29.7.0
     qs: ^6.10.1
     typescript: ~5.1.6
     vite: ^5.2.11
@@ -4381,6 +4386,7 @@ __metadata:
     "@types/react": ^18.2.15
     "@types/testing-library__jest-dom": ^5.14.9
     jest: ^28.1.1
+    jest-environment-jsdom: ^29.7.0
     lodash: ^4.17.21
     react: 18.2.0
     react-dom: 18.2.0
@@ -16349,6 +16355,7 @@ __metadata:
     igv: 2.11.2
     jest: ^28.1.1
     jest-axe: ^6.0.0
+    jest-environment-jsdom: ^29.7.0
     jest-html-reporter: ^3.10.2
     jscodeshift: ^0.15.1
     jszip: ^3.10.1

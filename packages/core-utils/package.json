@@ -33,6 +33,7 @@
     "@types/lodash": "^4.14.184",
     "check-dts": "^0.7.2",
     "jest": "^28.1.1",
+    "jest-environment-jsdom": "^29.7.0",
     "typescript": "~5.1.6",
     "vite": "^5.2.11"
   }

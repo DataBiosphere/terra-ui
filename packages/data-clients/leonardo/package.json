@@ -32,6 +32,7 @@
     "@types/jest": "^28.1.8",
     "@types/qs": "^6.9.15",
     "jest": "^28.1.1",
+    "jest-environment-jsdom": "^29.7.0",
     "typescript": "~5.1.6",
     "vite": "^5.2.11"
   }
