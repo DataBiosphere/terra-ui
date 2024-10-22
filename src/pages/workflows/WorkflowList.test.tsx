@@ -943,7 +943,7 @@ describe('create workflow modal', () => {
     expect(
       within(createWorkflowModal).getByRole('textbox', { name: 'Synopsis (80 characters max)' })
     ).toHaveDisplayValue('');
-    expect(within(createWorkflowModal).getByRole('textbox', { name: 'Snapshot Comment' })).toHaveDisplayValue('');
+    expect(within(createWorkflowModal).getByRole('textbox', { name: 'Snapshot comment' })).toHaveDisplayValue('');
   });
 
   it('uploads a new workflow and navigates to its workflow details page', async () => {
@@ -968,7 +968,7 @@ describe('create workflow modal', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Synopsis (80 characters max)' }), {
       target: { value: 'my synopsis' },
     });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Snapshot Comment' }), { target: { value: 'comment' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Snapshot comment' }), { target: { value: 'comment' } });
 
     await user.click(screen.getByRole('button', { name: 'Upload' }));
 

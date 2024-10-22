@@ -67,7 +67,7 @@ describe('WorkflowModal', () => {
     expect(screen.getByRole('button', { name: 'Load WDL from file' }));
     expect(screen.getByText('Documentation'));
     expect(screen.getByText('Synopsis (80 characters max)'));
-    expect(screen.getByText('Snapshot Comment'));
+    expect(screen.getByText('Snapshot comment'));
     expect(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('button', { name: 'Upload' }));
 
@@ -76,7 +76,7 @@ describe('WorkflowModal', () => {
     expect(screen.getByTestId('wdl editor')).toHaveDisplayValue('');
     expect(screen.getByRole('textbox', { name: 'Documentation' })).toHaveDisplayValue('');
     expect(screen.getByRole('textbox', { name: 'Synopsis (80 characters max)' })).toHaveDisplayValue('');
-    expect(screen.getByRole('textbox', { name: 'Snapshot Comment' })).toHaveDisplayValue('');
+    expect(screen.getByRole('textbox', { name: 'Snapshot comment' })).toHaveDisplayValue('');
   });
 
   it('shows an error and disables the action button when the namespace and name inputs are empty', async () => {
@@ -313,7 +313,7 @@ describe('WorkflowModal', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Synopsis (80 characters max)' }), {
       target: { value: 'new synopsis' },
     });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Snapshot Comment' }), { target: { value: 'new comment' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Snapshot comment' }), { target: { value: 'new comment' } });
 
     await user.click(screen.getByRole('button', { name: 'Upload' }));
 
@@ -363,7 +363,7 @@ describe('WorkflowModal', () => {
     expect(screen.getByTestId('wdl editor')).toHaveDisplayValue('workflow hi {}');
     expect(screen.getByRole('textbox', { name: 'Documentation' })).toHaveDisplayValue('test docs');
     expect(screen.getByRole('textbox', { name: 'Synopsis (80 characters max)' })).toHaveDisplayValue('test synopsis');
-    expect(screen.getByRole('textbox', { name: 'Snapshot Comment' })).toHaveDisplayValue('test comment');
+    expect(screen.getByRole('textbox', { name: 'Snapshot comment' })).toHaveDisplayValue('test comment');
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Upload' }));
