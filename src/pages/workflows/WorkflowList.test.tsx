@@ -17,7 +17,7 @@ jest.mock('src/libs/ajax');
 jest.mock('src/libs/notifications');
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
-  getLink: jest.fn(() => '#workflows'),
+  getLink: jest.fn(() => '#methods'),
 }));
 
 // Space for tables is rendered based on the available space. In unit tests, there is no available space, and so we must mock out the space needed to get the data table to render.
@@ -185,11 +185,11 @@ describe('workflows table', () => {
     });
 
     // Assert
-    expect(screen.getByPlaceholderText('SEARCH WORKFLOWS')).toBeInTheDocument();
-    expect(screen.getByText('My Workflows (0)')).toBeInTheDocument();
-    expect(screen.getByText('Public Workflows (0)')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('SEARCH METHODS')).toBeInTheDocument();
+    expect(screen.getByText('My Methods (0)')).toBeInTheDocument();
+    expect(screen.getByText('Public Methods (0)')).toBeInTheDocument();
 
-    expect(screen.queryByText('Featured Workflows')).not.toBeInTheDocument();
+    expect(screen.queryByText('Featured Methods')).not.toBeInTheDocument();
   });
 
   it('renders the workflows table with method information', async () => {
@@ -209,7 +209,7 @@ describe('workflows table', () => {
 
     const headers: HTMLElement[] = within(table).getAllByRole('columnheader');
     expect(headers).toHaveLength(4);
-    expect(headers[0]).toHaveTextContent('Workflow');
+    expect(headers[0]).toHaveTextContent('Method');
     expect(headers[1]).toHaveTextContent('Synopsis');
     expect(headers[2]).toHaveTextContent('Owners');
     expect(headers[3]).toHaveTextContent('Snapshots');
@@ -243,7 +243,7 @@ describe('workflows table', () => {
     expect(screen.queryByText('daruk method')).not.toBeInTheDocument();
   });
 
-  it('displays only my workflows in the my workflows tab', async () => {
+  it('displays only my workflows in the my methods tab', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
       () => mockAjax([darukMethod, revaliMethod, revaliPrivateMethod]) as AjaxContract
@@ -281,7 +281,7 @@ describe('workflows table', () => {
     expect(screen.queryByText('ganon private method')).not.toBeInTheDocument();
   });
 
-  it('displays only public workflows in the public workflows tab', async () => {
+  it('displays only public workflows in the public methods tab', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
       () => mockAjax([darukMethod, revaliMethod, ganonPrivateMethod]) as AjaxContract
@@ -317,8 +317,8 @@ describe('workflows table', () => {
       });
 
       // Assert
-      expect(screen.getByText(`My Workflows (${myMethodsCount})`)).toBeInTheDocument();
-      expect(screen.getByText(`Public Workflows (${publicMethodsCount})`)).toBeInTheDocument();
+      expect(screen.getByText(`My Methods (${myMethodsCount})`)).toBeInTheDocument();
+      expect(screen.getByText(`Public Methods (${publicMethodsCount})`)).toBeInTheDocument();
     }
   );
 
@@ -339,10 +339,10 @@ describe('workflows table', () => {
     // Assert
 
     // currently selected tab - count based on filter
-    expect(screen.getByText('My Workflows (1)')).toBeInTheDocument();
+    expect(screen.getByText('My Methods (1)')).toBeInTheDocument();
 
     // other tab - count not based on filter
-    expect(screen.getByText('Public Workflows (3)')).toBeInTheDocument();
+    expect(screen.getByText('Public Methods (3)')).toBeInTheDocument();
   });
 
   it('filters workflows by namespace', async () => {
@@ -409,8 +409,8 @@ describe('workflows table', () => {
       render(<WorkflowList queryParams={{ filter: 'test' }} />);
     });
 
-    await user.click(screen.getByText('Public Workflows (2)'));
-    await user.click(screen.getByText('My Workflows (0)'));
+    await user.click(screen.getByText('Public Methods (2)'));
+    await user.click(screen.getByText('My Methods (0)'));
 
     // Assert
     expect(navHistoryReplace).toHaveBeenCalledTimes(2);
@@ -431,7 +431,7 @@ describe('workflows table', () => {
       render(<WorkflowList />);
     });
 
-    fireEvent.change(screen.getByPlaceholderText('SEARCH WORKFLOWS'), { target: { value: 'mysearch' } });
+    fireEvent.change(screen.getByPlaceholderText('SEARCH METHODS'), { target: { value: 'mysearch' } });
     await act(() => delay(300)); // debounced search
 
     // Assert
@@ -452,7 +452,7 @@ describe('workflows table', () => {
     expect(screen.getByRole('searchbox')).toHaveProperty('value', 'testfilter');
   });
 
-  it('sorts by workflow ascending by default', async () => {
+  it('sorts by method ascending by default', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
       () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
@@ -467,7 +467,7 @@ describe('workflows table', () => {
     checkOrder('daruk method', 'revali method', 'revali method 2', 'sorting method');
   });
 
-  it('sorts by workflow descending', async () => {
+  it('sorts by method descending', async () => {
     // Arrange
     asMockedFn(Ajax).mockImplementation(
       () => mockAjax([sortingMethod, darukMethod, revaliMethod, revaliMethod2]) as AjaxContract
@@ -480,7 +480,7 @@ describe('workflows table', () => {
       render(<WorkflowList queryParams={{ tab: 'public' }} />);
     });
 
-    await user.click(screen.getByText('Workflow'));
+    await user.click(screen.getByText('Method'));
 
     // Assert
     checkOrder('sorting method', 'revali method 2', 'revali method', 'daruk method');
@@ -695,14 +695,14 @@ describe('workflows table', () => {
     expect(screen.getByText('11 - 13 of 13')).toBeInTheDocument();
 
     // Act
-    await user.click(screen.getByText('Public Workflows (13)'));
+    await user.click(screen.getByText('Public Methods (13)'));
 
     // Assert
 
     // Note: the total workflow count (13) is actually still from
     // the previous tab just in the test because Nav cannot be
     // mocked properly to actually switch tabs when the public
-    // workflows tab is clicked
+    // methods tab is clicked
     expect(screen.getByText('1 - 10 of 13')).toBeInTheDocument();
   });
 
@@ -727,7 +727,7 @@ describe('workflows table', () => {
     expect(screen.getByText('11 - 13 of 13')).toBeInTheDocument();
 
     // Act
-    fireEvent.change(screen.getByPlaceholderText('SEARCH WORKFLOWS'), { target: { value: 'method' } });
+    fireEvent.change(screen.getByPlaceholderText('SEARCH METHODS'), { target: { value: 'method' } });
     await act(() => delay(300)); // debounced search
 
     // Assert
@@ -852,11 +852,11 @@ describe('workflows table', () => {
 
     // tabs should not display method counts because their
     // true values are not known
-    expect(screen.getByText('My Workflows')).toBeInTheDocument();
-    expect(screen.getByText('Public Workflows')).toBeInTheDocument();
+    expect(screen.getByText('My Methods')).toBeInTheDocument();
+    expect(screen.getByText('Public Methods')).toBeInTheDocument();
 
     expect(screen.getByText('Nothing to display')).toBeInTheDocument();
-    expect(notify).toHaveBeenCalledWith('error', 'Error loading workflows', expect.anything());
+    expect(notify).toHaveBeenCalledWith('error', 'Error loading methods', expect.anything());
   });
 });
 
