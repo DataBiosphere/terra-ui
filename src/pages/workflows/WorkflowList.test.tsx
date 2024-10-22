@@ -1,10 +1,12 @@
-import { DeepPartial, delay } from '@terra-ui-packages/core-utils';
+import { delay } from '@terra-ui-packages/core-utils';
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import userEvent, { UserEvent } from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import React from 'react';
 import { Ajax, AjaxContract } from 'src/libs/ajax';
 import { MethodsAjaxContract } from 'src/libs/ajax/methods/Methods';
+import { MethodResponse } from 'src/libs/ajax/methods/methods-models';
+import { createMethodProvider } from 'src/libs/ajax/methods/providers/CreateMethodProvider';
 import * as Nav from 'src/libs/nav';
 import { getLink } from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -20,6 +22,14 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn(() => '#workflows'),
   goToPath: jest.fn(),
 }));
+
+type WDLEditorExports = typeof import('src/pages/workflows/common/WDLEditor');
+jest.mock('src/pages/workflows/common/WDLEditor', (): WDLEditorExports => {
+  const mockWDLEditorModule = jest.requireActual('src/pages/workflows/common/WDLEditor.mock');
+  return {
+    WDLEditor: mockWDLEditorModule.MockWDLEditor,
+  };
+});
 
 // Space for tables is rendered based on the available space. In unit tests, there is no available space, and so we must mock out the space needed to get the data table to render.
 jest.mock('react-virtualized', () => {
@@ -44,7 +54,7 @@ jest.mock('react-virtualized', () => {
 
 const mockMethods = (methods: MethodDefinition[]): Partial<MethodsAjaxContract> => {
   return {
-    definitions: jest.fn(() => Promise.resolve(methods)),
+    definitions: jest.fn().mockResolvedValue(methods),
   };
 };
 
@@ -56,6 +66,19 @@ const mockUser = (email: string): Partial<TerraUser> => ({ email });
 
 const mockUserState = (email: string): Partial<TerraUserState> => {
   return { terraUser: mockUser(email) as TerraUser };
+};
+
+const mockCreateMethodResponse: MethodResponse = {
+  name: 'response-name',
+  createDate: '2024-01-01T15:41:38Z',
+  documentation: 'response docs',
+  synopsis: 'response synopsis',
+  entityType: 'Workflow',
+  snapshotComment: 'response comment',
+  snapshotId: 1,
+  namespace: 'response-namespace',
+  payload: 'workflow response {}',
+  url: 'http://agora.dsde-dev.broadinstitute.org/api/v1/methods/sschu/response-test/1',
 };
 
 const darukMethod: MethodDefinition = {
@@ -892,59 +915,89 @@ describe('workflows table', () => {
   });
 });
 
-describe('create new workflow button', () => {
-  it('uploads a new workflow', async () => {
-    const mockCreateMethodResp = {
-      namespace: 'testing',
-      name: 'get-resp',
-      synopsis: '',
-      snapshotComment: '',
-      documentation: '',
-      payload:
-        'version 1.0\n\ntask test_equality {\n\n  command {\n    echo "hi!"\n  }\n\n  Array[Pair[String, Int]] test = [ (1, 1), ("two", 2), ("three", 3) ]\n\n  output {\n    Array[Pair[String, Int]] testOut = test\n  }\n\n  meta {\n    volatile: true\n  }\n  \n  runtime {\n    docker: "ubuntu:latest"\n    maxRetries: 5\n  }\n}\n\nworkflow eqality_testing {\n  call test_equality\n  output {\n    Array[Pair[String, Int]] s1 = test_equality.testOut\n  }\n}\n',
-      entityType: 'Workflow',
-    };
-    // Act
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Methods: {
-        postMethods: jest.fn().mockReturnValue(Promise.resolve(mockCreateMethodResp)),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+describe('create workflow modal', () => {
+  it('appears with the correct text and blank inputs when you press the create new method button', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax([]) as AjaxContract);
 
+    const user: UserEvent = userEvent.setup();
+
+    // Act
     await act(async () => {
       render(<WorkflowList />);
     });
 
+    await user.click(screen.getByRole('button', { name: 'Create New Method' }));
+
     // Assert
-    const createWorkflowButton = screen.getByRole('button', { name: 'Create New Method' });
-    fireEvent.click(createWorkflowButton);
+    const createWorkflowModal = screen.getByRole('dialog', { name: 'Create New Method' });
 
-    const newMethodText = screen.getAllByText('Create New Method');
-    const modalTitle = newMethodText[1];
-    expect(modalTitle).toBeInTheDocument();
+    expect(createWorkflowModal).toBeInTheDocument();
+    expect(within(createWorkflowModal).getByText('Create New Method')).toBeInTheDocument();
+    expect(within(createWorkflowModal).getByRole('button', { name: 'Upload' })).toBeInTheDocument();
 
-    // Get text areas in modal
-    const textBoxes = screen.getAllByRole('textbox');
-    const namespaceTextBox = textBoxes[0];
-    expect(namespaceTextBox).toHaveAttribute('id', 'namespace-input');
-    fireEvent.change(namespaceTextBox, { target: { value: 'test namespace' } });
+    expect(within(createWorkflowModal).getByRole('textbox', { name: 'Namespace *' })).toHaveDisplayValue('');
+    expect(within(createWorkflowModal).getByRole('textbox', { name: 'Name *' })).toHaveDisplayValue('');
+    expect(within(createWorkflowModal).getByTestId('wdl editor')).toHaveDisplayValue('');
+    expect(within(createWorkflowModal).getByRole('textbox', { name: 'Documentation' })).toHaveDisplayValue('');
+    expect(
+      within(createWorkflowModal).getByRole('textbox', { name: 'Synopsis (80 characters max)' })
+    ).toHaveDisplayValue('');
+    expect(within(createWorkflowModal).getByRole('textbox', { name: 'Snapshot Comment' })).toHaveDisplayValue('');
+  });
 
-    const nameTextBox = textBoxes[1];
-    expect(nameTextBox).toHaveAttribute('id', 'name-input');
-    fireEvent.change(nameTextBox, { target: { value: 'test name' } });
+  it('uploads a new workflow and navigates to its workflow details page', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax([]) as AjaxContract);
 
-    const wdlBox = document.getElementsByClassName('wdl-editor')[0];
-    wdlBox.innerHTML = 'wdl text'; // manually setting the WDL box text because of 'Loading' message in monaco-editor
+    jest.spyOn(createMethodProvider, 'create').mockResolvedValue(mockCreateMethodResponse);
 
-    const uploadButton = screen.getByRole('button', { name: 'Upload' });
-    await fireEvent.click(uploadButton);
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Create New Method' }));
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Namespace *' }), { target: { value: 'testnamespace' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Name *' }), { target: { value: 'testname' } });
+    fireEvent.change(screen.getByTestId('wdl editor'), { target: { value: 'workflow hi {}' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Documentation' }), { target: { value: 'docs' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Synopsis (80 characters max)' }), {
+      target: { value: 'my synopsis' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Snapshot Comment' }), { target: { value: 'comment' } });
+
+    await user.click(screen.getByRole('button', { name: 'Upload' }));
+
+    // Assert
+    expect(createMethodProvider.create).toHaveBeenCalled();
 
     expect(Nav.goToPath).toHaveBeenCalledWith('workflow-dashboard', {
-      name: 'get-resp',
-      namespace: 'testing',
-      snapshotId: undefined,
+      name: 'response-name',
+      namespace: 'response-namespace',
+      snapshotId: 1,
     });
+  });
+
+  it('closes when you press the cancel button', async () => {
+    // Arrange
+    asMockedFn(Ajax).mockImplementation(() => mockAjax([]) as AjaxContract);
+
+    const user: UserEvent = userEvent.setup();
+
+    // Act
+    await act(async () => {
+      render(<WorkflowList />);
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Create New Method' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Create New Method' })).not.toBeInTheDocument();
   });
 });
 
