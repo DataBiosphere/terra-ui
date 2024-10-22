@@ -1039,7 +1039,6 @@ export const ColumnSettings = forwardRef(({ columnSettings, onChange }, ref) => 
   const updateItems = (modifiedItems) => {
     setItems(modifiedItems);
     onChange(modifiedItems);
-    // return modifiedItems;
   };
 
   const toggleVisibility = (index) => {

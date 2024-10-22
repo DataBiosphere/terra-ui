@@ -332,24 +332,15 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
   ]);
 };
 
-// export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings: initialColumnSettings, onChange, ...otherProps }) => {
 export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange, ...otherProps }) => {
-  // const [columnSettings, setColumnSettings] = useState(initialColumnSettings);
   const columnSettingsRef = useRef();
 
+  // This will update the state of the ColumnSettings component currently in use
   const updateColumnSettings = (newColumnSettings) => {
     if (columnSettingsRef.current) {
       columnSettingsRef.current.updateItems(newColumnSettings);
     }
   };
-
-  // const handleColumnSettingsChange = (modifiedItems) => {
-  //   setColumnSettings(modifiedItems);
-  //   if (onChange) {
-  //     console.log('onchange');
-  //     onChange(modifiedItems);
-  //   }
-  // };
 
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
     div({ style: { flex: '1 1 0' } }, [
@@ -357,13 +348,6 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
         ref: columnSettingsRef,
         columnSettings,
         onChange,
-        // onChange: handleColumnSettingsChange,
-        // onChange: (modifiedItems) => {
-        //   // setColumnSettings(modifiedItems);
-        //   console.log(modifiedItems);
-        //   const result = onChange(columnSettings);
-        //   console.log('result', result);
-        // },
       }),
     ]),
     div(

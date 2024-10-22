@@ -346,7 +346,6 @@ const DataTable = (props) => {
 
   // Render
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType]?.attributeNames);
-  // const [columnSettings, setColumnSettings] = useState(applyColumnSettings(columnState, entityMetadata[entityType]?.attributeNames));
 
   const nameWidth = columnWidths.name || 150;
 
@@ -753,10 +752,6 @@ const DataTable = (props) => {
             workspace,
             columnSettings: updatingColumnSettings,
             onChange: setUpdatingColumnSettings,
-            // onChange: (newColumnSettings) => {
-            //   setUpdatingColumnSettings(newColumnSettings);
-            //   setColumnSettings(newColumnSettings);
-            // },
           }),
         ]
       ),
