@@ -16,7 +16,7 @@ const {
   getAnimatedDrawer,
   input,
   noSpinnersAfter,
-  waitForNoModal,
+  waitForNoModalDrawer,
   waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -50,10 +50,10 @@ const testRunRStudioFn = _.flowRight(
     timeout: Millis.ofMinute,
   });
   await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${rFileName}.Rmd"]`);
+  await click(page, clickable({ textContains: `${rFileName}.Rmd` }));
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
   await waitForNoSpinners(page);
@@ -63,7 +63,7 @@ const testRunRStudioFn = _.flowRight(
     action: () => click(page, clickable({ textContains: 'Open' })),
   });
   await click(page, clickable({ text: 'Create' }));
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Wait for env to begin creating
   await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: Millis.ofMinutes(2) });
@@ -90,7 +90,7 @@ const testRunRStudioFn = _.flowRight(
   await delay(Millis.ofSeconds(3));
   await fillIn(frame, '//textarea', 'x=1;x');
   await page.keyboard.press('Enter');
-  await findText(frame, '[1] 1');
+  await frame.$$('xpath///*[contains(normalize-space(.),"[1] 1")]');
 
   await dismissInfoNotifications(page);
 

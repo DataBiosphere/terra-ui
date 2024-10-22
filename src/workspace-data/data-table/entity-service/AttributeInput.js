@@ -88,7 +88,8 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
     ['reference', () => ({ entityName: '', entityType: referenceEntityType })],
     ['number', () => 0],
     ['boolean', () => false],
-    ['json', () => ({})]
+    ['json', () => ({})],
+    ['array', () => []]
   );
 };
 
@@ -107,14 +108,14 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue
   const focusLastListItemInput = useRef(false);
   const lastListItemInput = useRef(null);
   useEffect(() => {
-    if (!isList) {
+    if (!isList || attributeType === 'array') {
       lastListItemInput.current = null;
     }
     if (focusLastListItemInput.current && lastListItemInput.current) {
       lastListItemInput.current.focus();
       focusLastListItemInput.current = false;
     }
-  }, [attributeValue, isList]);
+  }, [attributeValue, isList, attributeType]);
 
   return h(Fragment, [
     h(AttributeTypeInput, {

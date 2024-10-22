@@ -5,7 +5,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useWorkspaceDetails } from 'src/workspaces/common/state/useWorkspaceDetails';
 import {
@@ -183,7 +183,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   );
 
   const menuClicked = (action: string) => {
-    Ajax().Metrics.captureEvent(Events.workspaceMenu, {
+    void Metrics().captureEvent(Events.workspaceMenu, {
       action,
       origin,
       ...extractWorkspaceDetails({

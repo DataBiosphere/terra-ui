@@ -28,7 +28,6 @@ import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-provide
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
@@ -528,19 +527,17 @@ const EntitiesContent = ({
             borderBottom: `1px solid ${colors.grey(0.4)}`,
           },
           border: false,
-          extraColumnActions: isFeaturePreviewEnabled('data-table-provenance')
-            ? (columnName) => [
-                {
-                  label: 'Show Provenance',
-                  onClick: () => {
-                    if (!(loadingColumnProvenance || columnProvenance)) {
-                      loadColumnProvenance();
-                    }
-                    setShowColumnProvenance(columnName);
-                  },
-                },
-              ]
-            : undefined,
+          extraColumnActions: (columnName) => [
+            {
+              label: 'Show Provenance',
+              onClick: () => {
+                if (!(loadingColumnProvenance || columnProvenance)) {
+                  loadColumnProvenance();
+                }
+                setShowColumnProvenance(columnName);
+              },
+            },
+          ],
         }),
         addingEntity &&
           h(AddEntityModal, {
@@ -627,13 +624,34 @@ const EntitiesContent = ({
             [
               Utils.cond(
                 [loadingColumnProvenance, () => p([h(Spinner, { size: 12, style: { marginRight: '1ch' } }), 'Loading provenance...'])],
-                [columnProvenanceError, () => p(['Error loading column provenance'])],
-                () =>
-                  h(DataTableColumnProvenance, {
+                [
+                  columnProvenanceError,
+                  () => {
+                    Ajax().Metrics.captureEvent(Events.provenanceColumn, {
+                      workspaceNamespace: workspace?.workspace?.namespace,
+                      workspaceName: workspace?.workspace?.name,
+                      entityType: entityKey,
+                      column: showColumnProvenance,
+                      success: false,
+                    });
+                    return p(['Error loading column provenance']);
+                  },
+                ],
+                () => {
+                  Ajax().Metrics.captureEvent(Events.provenanceColumn, {
+                    workspaceNamespace: workspace?.workspace?.namespace,
+                    workspaceName: workspace?.workspace?.name,
+                    entityType: entityKey,
+                    column: showColumnProvenance,
+                    numSubmissions: columnProvenance[showColumnProvenance] ? columnProvenance[showColumnProvenance].length : 0,
+                    success: true,
+                  });
+                  return h(DataTableColumnProvenance, {
                     workspace,
                     column: showColumnProvenance,
                     provenance: columnProvenance[showColumnProvenance],
-                  })
+                  });
+                }
               ),
             ]
           ),

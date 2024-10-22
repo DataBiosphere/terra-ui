@@ -546,4 +546,11 @@ describe('CohortEditor', () => {
       )
     );
   });
+
+  it('renders total cohort count', async () => {
+    // Arrange
+    showCohortEditor();
+    // Assert
+    expect(await screen.findByText('Total participant count: 0', { exact: false })).toBeTruthy();
+  });
 });

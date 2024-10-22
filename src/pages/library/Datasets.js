@@ -5,7 +5,6 @@ import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { libraryTopMatter } from 'src/components/library-common';
 import { Browser } from 'src/data-catalog/DataBrowser';
-import axinLogo from 'src/images/brands/analytiXin/analytixin-logo-color.svg';
 import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png';
 import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png';
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png';
@@ -23,12 +22,11 @@ import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg';
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png';
 import { Ajax } from 'src/libs/ajax';
 import { getEnabledBrand } from 'src/libs/brand-utils';
-import { brands } from 'src/libs/brands';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { AXIN_DATASET_CARD } from 'src/libs/feature-previews-config';
+import { COHORT_BUILDER_CARD } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import * as Style from 'src/libs/style';
@@ -244,22 +242,14 @@ const amppd = () =>
     ]
   );
 
-const axin = () =>
+const cohortBuilder = () =>
   h(
     Participant,
     {
-      logo: { src: axinLogo, alt: 'AnalytiXIN logo', height: '55%' },
-      title: 'AnalytiX Indiana Health Dataset',
+      logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
+      title: 'Cohort Builder Demo',
       description: h(Fragment, [
-        'The ',
-        h(Link, { href: 'https://analytixindiana.com', ...Utils.newTabLinkProps }, 'AnalytiXIN life sciences health data asset (HDA)'),
-        ` has been designed through a working
-        collaboration involving Eli Lilly and Company, IU Health, the Indiana Biobank within the
-        IU School of Medicine, the Indiana Health Information Exchange, and other partners to build
-        a shared health-data platform linking consented clinical and genomic patient data. This
-        collaboration is further leveraging the Broad Institute’s technical and genomic
-        infrastructure to accelerate the build-out as well as connect to broader national
-        initiatives such as the National Institutes of Health All of Us research program.`,
+        'The cohort builder is an alpha feature in Terra, currently being designed and build for use to help with subsetting large datasets. This card takes you to a demo dataset for use in demoing and exploring the alpha cohort builder.',
       ]),
       sizeText: 'Participants: > 35,000',
     },
@@ -267,12 +257,14 @@ const axin = () =>
       h(
         ButtonPrimary,
         {
-          'aria-label': 'View AnalytiXIN details',
+          'aria-label': 'View Cohort Builder Demo',
           tooltip: 'View details about this dataset',
-          href: Nav.getLink('dataset-builder-details', { snapshotId: brands.analytixin.datasetBuilderSnapshotId }),
-          onClick: () => captureBrowseDataEvent('AXIN'),
+          href: Nav.getLink('dataset-builder-details', {
+            snapshotId: getConfig().terraDeploymentEnv === 'dev' ? 'c3eb4708-444f-4cbf-a32c-0d3bb93d4819' : '1f2c98d2-ccec-410e-8242-d995f9aa2ec6',
+          }),
+          onClick: () => captureBrowseDataEvent('Cohort Builder'),
         },
-        ['View AnalytiXIN details']
+        ['View Cohort Builder Demo']
       ),
     ]
   );
@@ -674,7 +666,7 @@ export const Datasets = () => {
           thousandGenomesHighCoverage(),
           thousandGenomesLowCoverage(),
           amppd(),
-          isFeaturePreviewEnabled(AXIN_DATASET_CARD) && axin(),
+          isFeaturePreviewEnabled(COHORT_BUILDER_CARD) && cohortBuilder(),
           baseline(),
           ccdg(),
           cmg(),

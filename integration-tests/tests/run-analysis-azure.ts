@@ -21,7 +21,7 @@ const {
   getAnimatedDrawer,
   input,
   noSpinnersAfter,
-  waitForNoModal,
+  waitForNoModalDrawer,
   waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -51,10 +51,10 @@ const testRunAnalysisAzure = _.flowRight(
     timeout: Millis.ofMinute,
   });
   await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${notebookName}.ipynb"]`);
+  await click(page, clickable({ textContains: `${notebookName}.ipynb` }));
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
   await waitForNoSpinners(page);
@@ -63,7 +63,7 @@ const testRunAnalysisAzure = _.flowRight(
   await click(page, clickable({ textContains: 'Open' }));
   await findText(page, 'Azure Cloud Environment');
   await click(page, clickable({ textContains: 'Create' }));
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Wait for env to begin creating
   await findElement(page, clickable({ textContains: 'JupyterLab Environment' }));

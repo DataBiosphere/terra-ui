@@ -16,7 +16,7 @@ const {
   getAnimatedDrawer,
   input,
   noSpinnersAfter,
-  waitForNoModal,
+  waitForNoModalDrawer,
   waitForNoSpinners,
 } = require('../utils/integration-utils');
 const { registerTest } = require('../utils/jest-utils');
@@ -47,10 +47,10 @@ const testRunAnalysisFn = _.flowRight(
     timeout: Millis.ofMinute,
   });
   await click(page, clickable({ textContains: 'Close' }), { timeout: Millis.ofMinute });
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Navigate to analysis launcher
-  await click(page, `//*[@title="${notebookName}.ipynb"]`);
+  await click(page, clickable({ textContains: `${notebookName}.ipynb` }));
   await dismissInfoNotifications(page);
   await findText(page, 'PREVIEW (READ-ONLY)');
   await waitForNoSpinners(page);
@@ -61,7 +61,7 @@ const testRunAnalysisFn = _.flowRight(
   });
   await findText(page, 'Jupyter Cloud Environment');
   await click(page, clickable({ text: 'Create' }));
-  await waitForNoModal(page);
+  await waitForNoModalDrawer(page);
 
   // Wait for env to begin creating
   await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: Millis.ofSeconds(40) });
@@ -88,7 +88,7 @@ const testRunAnalysisFn = _.flowRight(
   await delay(Millis.ofSeconds(3));
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)');
   await click(frame, clickable({ text: 'Run' }));
-  await findText(frame, '123456789099886419754209');
+  await frame.$$('xpath///*[contains(normalize-space(.),"123456789099886419754209")]');
 
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }));

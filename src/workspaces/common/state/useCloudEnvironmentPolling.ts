@@ -2,9 +2,9 @@ import _ from 'lodash/fp';
 import { useEffect, useRef, useState } from 'react';
 import { getDiskAppType } from 'src/analysis/utils/app-utils';
 import { getConvertedRuntimeStatus, getCurrentRuntime } from 'src/analysis/utils/runtime-utils';
-import { Ajax } from 'src/libs/ajax';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { leoDiskProvider, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 
@@ -58,7 +58,7 @@ export const useCloudEnvironmentPolling = (
           },
           { signal: controller.current.signal }
         ),
-        Ajax(controller.current.signal).Runtimes.listV2(cloudEnvFilters),
+        Runtimes(controller.current.signal).listV2(cloudEnvFilters),
       ]);
 
       setRuntimes(newRuntimes);

@@ -1,15 +1,27 @@
 import { useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { div, h, h1, h3 } from 'react-hyperscript-helpers';
+import Chart from 'src/components/Chart';
 import { ButtonOutline, spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { MarkdownViewer } from 'src/components/markdown';
+import { SimpleTabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
+import { chartOptions } from 'src/dataset-builder/DemographicsChart';
+import {
+  generateAgeChartOptions,
+  generateGenderChartOptions,
+  generateRaceChartOptions,
+  generateTopConditionsChartOptions,
+  generateTopDrugsChartOptions,
+  generateTopProceduresChartOptions,
+} from 'src/dataset-builder/SummaryCharts';
 import { DataRepo, SnapshotBuilderSettings } from 'src/libs/ajax/DataRepo';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { useOnMount } from 'src/libs/react-utils';
+import * as Utils from 'src/libs/utils';
 
 import { DatasetBuilderBreadcrumbs } from './Breadcrumbs';
 
@@ -65,7 +77,26 @@ interface DatasetBuilderDetailsProps {
   snapshotId: string;
 }
 
+const ageChart = generateAgeChartOptions();
+
+const genderChart = generateGenderChartOptions();
+
+const raceChart = generateRaceChartOptions();
+
+const topConditionsChart = generateTopConditionsChartOptions();
+
+const topDrugsChart = generateTopDrugsChartOptions();
+
+const topProceduresChart = generateTopProceduresChartOptions();
+
 export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps) => {
+  const { query } = Nav.useRoute();
+  const tab: string = query.tab || 'categories';
+  const tabs = [
+    { key: 'categories', title: 'Data Categories' },
+    { key: 'visualizations', title: 'Participant Visualizations' },
+  ] as const;
+
   const [snapshotBuilderSettings, loadSnapshotBuilderSettings] = useLoadedData<SnapshotBuilderSettings>();
   const [snapshotRoles, loadSnapshotRoles] = useLoadedData<string[]>();
   const hasAggregateDataViewerAccess =
@@ -85,6 +116,8 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
       )
     );
   });
+
+  const chartStyling = { display: 'flex', justifyContent: 'space-around', paddingTop: 16 };
 
   return snapshotBuilderSettings.status === 'Ready' && snapshotRoles.status === 'Ready'
     ? h(FooterWrapper, [
@@ -116,10 +149,48 @@ export const DatasetBuilderDetails = ({ snapshotId }: DatasetBuilderDetailsProps
               ]),
             ]),
           ]),
-          h(TileDisplay, {
-            title: 'EHR Domains',
-            displayInformation: snapshotBuilderSettings.state.domainOptions,
-          }),
+          h(
+            SimpleTabBar,
+            {
+              'aria-label': 'dataset builder menu',
+              value: tab,
+              onChange: (newTab) => {
+                Nav.updateSearch({ ...query, tab: newTab });
+              },
+              tabs,
+            },
+            [
+              Utils.switchCase(
+                tab,
+                [
+                  'categories',
+                  () =>
+                    h(TileDisplay, {
+                      title: 'EHR Domains',
+                      displayInformation: snapshotBuilderSettings.state.domainOptions,
+                    }),
+                ],
+                [
+                  'visualizations',
+                  () =>
+                    div({}, [
+                      div({ style: chartStyling }, [
+                        h(Chart, { options: chartOptions(ageChart) }),
+                        h(Chart, { options: chartOptions(genderChart) }),
+                      ]),
+                      div({ style: chartStyling }, [
+                        h(Chart, { options: chartOptions(raceChart) }),
+                        h(Chart, { options: chartOptions(topConditionsChart) }),
+                      ]),
+                      div({ style: chartStyling }, [
+                        h(Chart, { options: chartOptions(topDrugsChart) }),
+                        h(Chart, { options: chartOptions(topProceduresChart) }),
+                      ]),
+                    ]),
+                ]
+              ),
+            ]
+          ),
         ]),
       ])
     : spinnerOverlay;

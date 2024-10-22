@@ -3,7 +3,7 @@ import { h } from 'react-hyperscript-helpers';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { TooltipCell } from 'src/components/table';
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
 import Events, { EventWorkspaceDetails } from 'src/libs/events';
 import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
@@ -41,7 +41,7 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
         text: azureContext.managedResourceGroupId,
         style: { marginLeft: '0.25rem' },
         onClick: (_) => {
-          Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyResourceGroup, {
+          void Metrics().captureEvent(Events.workspaceDashboardCopyResourceGroup, {
             ...eventWorkspaceDetails,
           });
         },
@@ -54,7 +54,7 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
         text: storageDetails.azureContainerUrl || '',
         style: { marginLeft: '0.25rem' },
         onClick: (_) => {
-          Ajax().Metrics.captureEvent(Events.workspaceDashboardCopyStorageContainerUrl, {
+          void Metrics().captureEvent(Events.workspaceDashboardCopyStorageContainerUrl, {
             ...eventWorkspaceDetails,
           });
         },
@@ -67,7 +67,7 @@ export const AzureStorageDetails = (props: AzureStorageDetailsProps): ReactNode 
         text: storageDetails.azureContainerSasUrl || '',
         style: { marginLeft: '0.25rem' },
         onClick: (_) => {
-          Ajax().Metrics.captureEvent(Events.workspaceDashboardCopySASUrl, {
+          void Metrics().captureEvent(Events.workspaceDashboardCopySASUrl, {
             ...eventWorkspaceDetails,
           });
         },

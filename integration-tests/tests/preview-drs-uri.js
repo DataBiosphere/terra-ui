@@ -13,7 +13,6 @@ const {
   waitForNoSpinners,
   input,
   signIntoTerra,
-  noSpinnersAfter,
 } = require('../utils/integration-utils');
 
 const testPreviewDrsUriFn = _.flow(
@@ -28,25 +27,36 @@ const testPreviewDrsUriFn = _.flow(
     },
   };
 
+  console.log('signing in...');
   await signIntoTerra(page, { token, testUrl });
 
+  console.log('creating entity...');
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity);
 
+  console.log('listing workspaces...');
   await click(page, clickable({ textContains: 'View Workspaces' }));
   await waitForNoSpinners(page);
+
+  console.log('opening test workspace...');
   await fillIn(page, input({ placeholder: 'Search by name, project, or bucket' }), workspaceName);
   await click(page, clickable({ textContains: workspaceName }), { timeout: Millis.ofMinute });
+  await findText(page, 'About the workspace');
 
-  await noSpinnersAfter(page, {
-    action: () => click(page, navChild('data')),
-  });
-
+  // Wait for the "test_entity" link to appear.
   // Loading the workspace page now means we need to make a Google API call to
-  // fetch the GCS bucket location. Wait a bit for it.
-  await waitForNoSpinners(page);
+  // fetch the GCS bucket location, which takes a while; we don't need to wait for
+  // all spinners to disapper.
+  console.log('opening Data tab...');
+  await click(page, navChild('data'));
+  await findText(page, `${testEntity.entityType}`);
+
+  console.log('opening data table...');
   await click(page, clickable({ textContains: testEntity.entityType }));
+  console.log('opening preview for entity...');
   await click(page, elementInDataTableRow(testEntity.name, testEntity.attributes.file_uri));
+  console.log('waiting for no spinners in preview modal...');
   await waitForNoSpinners(page);
+  console.log('verifying text in preview modal...');
   await findText(page, 'Filename');
   await findText(page, 'File size');
 });

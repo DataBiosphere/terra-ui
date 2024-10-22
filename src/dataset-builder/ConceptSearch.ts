@@ -1,7 +1,7 @@
-import { Spinner, useLoadedData } from '@terra-ui-packages/components';
+import { ExternalLink, PopupTrigger, Spinner, useLoadedData } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
-import { div, h, h2, strong } from 'react-hyperscript-helpers';
+import { div, h, h2, p, strong } from 'react-hyperscript-helpers';
 import { LabeledCheckbox, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { TextInput, withDebouncedChange } from 'src/components/input';
@@ -64,20 +64,60 @@ export const ConceptSearch = (props: ConceptSearchProps) => {
     ? `Top ${conceptsLength} results for ${domainOption.name}`
     : 'Loading data table';
 
+  const columnHeadersInfoSpacing = { marginTop: 4, marginBottom: 24 };
+
   const conceptTableText = () => {
     return div(
       {
         style: {
           display: 'flex',
           alignItems: 'center',
-          padding: '2rem 0 0 2rem',
+          padding: '2rem 2rem 0 2rem',
           fontWeight: 800,
           height: '3.5rem',
+          justifyContent: 'space-between',
         },
       },
       [
-        searchText.length > 2 ? conceptTableTextForSearch : conceptTableTextForNoSearch,
-        ...(conceptsReady ? [] : [h(Spinner, { size: 20, style: { marginLeft: '1rem' } })]),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          searchText.length > 2 ? conceptTableTextForSearch : conceptTableTextForNoSearch,
+          ...(conceptsReady ? [] : [h(Spinner, { size: 20, style: { marginLeft: '1rem' } })]),
+        ]),
+        div({ style: { display: 'flex', paddingLeft: 10 } }, [
+          h(
+            PopupTrigger,
+            {
+              side: 'right-aligned-bottom',
+              content: div({ style: { padding: 16, overflowWrap: 'break-word', width: '30rem' } }, [
+                strong(['Concept name:']),
+                p({ style: columnHeadersInfoSpacing }, [
+                  'A descriptive label for each Concept across all domains from the OMOP CDM.',
+                ]),
+                strong(['Concept ID:']),
+                p({ style: columnHeadersInfoSpacing }, [
+                  'A unique identifier for each Concept across all domains from the OMOP CDM.',
+                ]),
+                strong(['Code:']),
+                p({ style: columnHeadersInfoSpacing }, [
+                  'Represents the identifier of the Concept in the source vocabulary, such as SNOMED-CT concept IDs, RxNorm RXCUIs etc. Note that concept codes are not unique across vocabularies.',
+                ]),
+                strong(['# Participants']),
+                p({ style: columnHeadersInfoSpacing }, [
+                  'The total number of unique participants in the dataset who are associated with or have exhibited this specific concept.',
+                ]),
+                p([
+                  'Learn more about the ',
+                  h(
+                    ExternalLink,
+                    { style: { textDecoration: 'underline' }, href: 'https://www.ohdsi.org/data-standardization/' },
+                    ['OMOP Common Data Model']
+                  ),
+                ]),
+              ]),
+            },
+            [h(Link, { style: { textDecoration: 'underline' } }, ['Column Headers Defined', icon('caretDown')])]
+          ),
+        ]),
       ]
     );
   };

@@ -11,7 +11,6 @@ import { Link } from 'src/components/common';
 import { parseGsUri } from 'src/components/data/data-utils';
 import { Ajax } from 'src/libs/ajax';
 import colors from 'src/libs/colors';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
@@ -186,8 +185,7 @@ export const UriViewer = _.flow(
         [
           timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
           updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())]),
-          isFeaturePreviewEnabled('data-table-provenance') &&
-            els.cell([els.label('Where did this file come from?'), els.data([h(FileProvenance, { workspace, fileUrl: uri })])]),
+          els.cell([els.label('Where did this file come from?'), els.data([h(FileProvenance, { workspace, fileUrl: uri })])]),
         ]
       )
     );

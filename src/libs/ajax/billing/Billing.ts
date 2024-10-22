@@ -12,6 +12,7 @@ import {
   GoogleBillingAccount,
   SpendReport,
 } from 'src/libs/ajax/billing/billing-models';
+import { SupportSummary } from 'src/support/SupportResourceType';
 
 export const Billing = (signal?: AbortSignal) => ({
   listProjects: async (): Promise<BillingProject[]> => {
@@ -22,6 +23,11 @@ export const Billing = (signal?: AbortSignal) => ({
   getProject: async (projectName: string): Promise<BillingProject> => {
     const route = `billing/v2/${projectName}`;
     const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'GET' }));
+    return res.json();
+  },
+
+  adminGetProject: async (projectName: string): Promise<SupportSummary> => {
+    const res = await fetchRawls(`admin/billing/${projectName}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 

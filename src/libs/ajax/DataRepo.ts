@@ -2,6 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import * as _ from 'lodash/fp';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchDataRepo } from 'src/libs/ajax/ajax-common';
+import { SupportSummary } from 'src/support/SupportResourceType';
 
 /** API types represent the data of UI types in the format expected by the backend.
  * They are generally subsets or mappings of the UI types. */
@@ -207,6 +208,10 @@ export type SnapshotAccessRequest = {
 };
 
 export interface DataRepoContract {
+  admin: () => {
+    adminRetrieveSnapshot: (snapshotId: string) => Promise<SupportSummary>;
+    adminRetrieveDataset: (datasetId: string) => Promise<SupportSummary>;
+  };
   snapshotAccessRequest: () => {
     createSnapshotAccessRequest: (request: SnapshotAccessRequest) => Promise<SnapshotAccessRequestResponse>;
     getSnapshotAccessRequestDetails: (id: string) => Promise<SnapshotAccessRequestDetailsResponse>;
@@ -241,6 +246,12 @@ const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, js
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
+  admin: () => {
+    return {
+      adminRetrieveSnapshot: async (snapshotId: string) => callDataRepo(`admin/v1/snapshots/${snapshotId}`, signal),
+      adminRetrieveDataset: async (datasetId: string) => callDataRepo(`admin/v1/datasets/${datasetId}`, signal),
+    };
+  },
   snapshotAccessRequest: () => {
     return {
       createSnapshotAccessRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>

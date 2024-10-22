@@ -4,7 +4,7 @@ import _ from 'lodash/fp';
 import { ReactNode, useEffect, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
-import { Ajax } from 'src/libs/ajax';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
@@ -27,7 +27,7 @@ export const OwnerNotice = (props: OwnerNoticeProps): ReactNode => {
   useEffect(() => {
     const { namespace, name } = workspace.workspace;
     const loadAcl = withErrorReporting('Error loading ACL')(async () => {
-      const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl();
+      const { acl } = await Workspaces(signal).workspace(namespace, name).getAcl();
       setAcl(acl);
     });
 

@@ -40,14 +40,14 @@ import galaxyLogo from 'src/images/galaxy-project-logo-square.png';
 import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png';
-import { Ajax } from 'src/libs/ajax';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -353,14 +353,14 @@ export const ContextBar = ({
               tooltipSide: 'left',
               href: terminalLaunchLink,
               onClick: withErrorReporting('Error starting runtime')(async () => {
-                await Ajax().Metrics.captureEvent(Events.analysisLaunch, {
+                await Metrics().captureEvent(Events.analysisLaunch, {
                   origin: 'contextBar',
                   application: 'terminal',
                   workspaceName: name,
                   namespace,
                 });
                 if (currentRuntime?.status === 'Stopped') {
-                  await Ajax().Runtimes.runtimeWrapper(currentRuntime).start();
+                  await Runtimes().runtimeWrapper(currentRuntime).start();
                 }
               }),
               tooltip: 'Terminal',
@@ -370,20 +370,19 @@ export const ContextBar = ({
             },
             [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])]
           ),
-        (isAzureWorkspace(workspace) || isFeaturePreviewEnabled('workspace-files')) &&
-          h(
-            Clickable,
-            {
-              style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
-              hover: contextBarStyles.hover,
-              tooltipSide: 'left',
-              href: Nav.getLink('workspace-files', { namespace, name }),
-              tooltip: 'Browse workspace files',
-              tooltipDelay: 100,
-              useTooltipAsLabel: false,
-            },
-            [icon('folderSolid', { size: 40 }), span({ className: 'sr-only' }, ['Workspace files'])]
-          ),
+        h(
+          Clickable,
+          {
+            style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
+            hover: contextBarStyles.hover,
+            tooltipSide: 'left',
+            href: Nav.getLink('workspace-files', { namespace, name }),
+            tooltip: 'Browse workspace files',
+            tooltipDelay: 100,
+            useTooltipAsLabel: false,
+          },
+          [icon('folderSolid', { size: 40 }), span({ className: 'sr-only' }, ['Workspace files'])]
+        ),
       ]),
     ]),
   ]);

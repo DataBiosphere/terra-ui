@@ -15,11 +15,9 @@ import {
 } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { ComputeImage, useComputeImages } from 'src/analysis/useComputeImages';
 import { runtimeToolLabels, runtimeTools, terraSupportedRuntimeImageIds } from 'src/analysis/utils/tool-utils';
-import { Ajax } from 'src/libs/ajax';
 import { ComputeImageRaw } from 'src/libs/ajax/compute-image-providers/ComputeImageProvider';
 import { GetRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 type UseComputeImagesExport = typeof import('src/analysis/useComputeImages');
 jest.mock(
@@ -30,7 +28,7 @@ jest.mock(
   })
 );
 
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 const defaultComputeImageStore = {
   refresh: () => Promise.resolve(),
@@ -44,22 +42,6 @@ const defaultGcpComputeImageSectionProps: GcpComputeImageSectionProps = {
   currentRuntime: {
     runtimeImages: (generateTestGetGoogleRuntime() as Pick<GetRuntimeItem, 'runtimeImages'>).runtimeImages,
   },
-};
-
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxOuterWorkspacesContract = AjaxContract['Workspaces'];
-type AjaxInnerWorkspacesContract = AjaxContract['Workspaces']['workspace'];
-
-const mockInnerWorkspaces = jest.fn().mockReturnValue({
-  googleProject: defaultGoogleWorkspace.workspace.googleProject,
-  cloudPlatform: defaultGoogleWorkspace.workspace.cloudPlatform,
-}) as AjaxInnerWorkspacesContract;
-const mockOuterWorkspaces: Partial<AjaxOuterWorkspacesContract> = {
-  workspace: mockInnerWorkspaces,
-};
-
-const mockAjax: Partial<AjaxContract> = {
-  Workspaces: mockOuterWorkspaces as AjaxOuterWorkspacesContract,
 };
 
 const jupyterImageIds = runtimeTools.Jupyter.imageIds;
@@ -81,7 +63,6 @@ describe('GcpComputeImageSection', () => {
   beforeEach(() => {
     // Arrange
     asMockedFn(useComputeImages).mockReturnValue(defaultComputeImageStore);
-    asMockedFn(Ajax).mockReturnValue(mockAjax as AjaxContract);
     asMockedFn(mockOnSelect).mockImplementation();
   });
 

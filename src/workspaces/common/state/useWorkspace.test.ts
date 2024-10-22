@@ -1,10 +1,10 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act } from '@testing-library/react';
 import _ from 'lodash/fp';
-import { Ajax } from 'src/libs/ajax';
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
 import * as GoogleStorage from 'src/libs/ajax/GoogleStorage';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import * as Notifications from 'src/libs/notifications';
 import { InitializedWorkspaceWrapper, workspaceStore } from 'src/libs/state';
 import { renderHookInAct } from 'src/testing/test-utils';
@@ -17,10 +17,8 @@ import {
 } from 'src/workspaces/common/state/useWorkspace';
 
 jest.mock('src/libs/ajax/AzureStorage');
-
-type AjaxExports = typeof import('src/libs/ajax');
-jest.mock('src/libs/ajax');
-type AjaxContract = ReturnType<AjaxExports['Ajax']>;
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 jest.mock('src/libs/notifications');
 
@@ -147,14 +145,14 @@ describe('useWorkspace', () => {
 
   it('can initialize from a Google workspace in workspaceStore', async () => {
     // Arrange
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+          }),
+      })
+    );
 
     workspaceStore.set(initializedGoogleWorkspace);
     const expectedStorageDetails = _.merge(
@@ -179,14 +177,14 @@ describe('useWorkspace', () => {
 
   it('can initialize from a requester pays Google workspace in workspaceStore', async () => {
     // Arrange
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: () => Promise.reject(new Response('Mock requester pays error', { status: 400 })),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            checkBucketLocation: () => Promise.reject(new Response('Mock requester pays error', { status: 400 })),
+          }),
+      })
+    );
 
     workspaceStore.set(initializedGoogleWorkspace);
     // Calling to get the bucket location fails, default options remain except for indication of error state.
@@ -270,17 +268,17 @@ describe('useWorkspace', () => {
       defaultAzureStorageOptions
     );
 
-    const successMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: jest.fn(),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => successMockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+            checkBucketReadAccess: jest.fn(),
+            storageCostEstimate: jest.fn(),
+            bucketUsage: jest.fn(),
+          }),
+      })
+    );
 
     // Act
     await act(async () => {
@@ -297,15 +295,15 @@ describe('useWorkspace', () => {
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
 
-    const errorMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 })),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 })),
+          }),
+      })
+    );
 
     // Verify initial failure based on error mock.
     const { result } = await verifyGooglePermissionsFailure();
@@ -319,18 +317,16 @@ describe('useWorkspace', () => {
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
     const captureEventFn = jest.fn();
-    const errorMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 })),
-        }),
-      },
-      Metrics: {
-        captureEvent: captureEventFn,
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: captureEventFn }));
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketReadAccess: () => Promise.reject(new Response('Mock permissions error', { status: 500 })),
+          }),
+      })
+    );
 
     // Verify initial failure does not fire event
     await verifyGooglePermissionsFailure();
@@ -354,18 +350,19 @@ describe('useWorkspace', () => {
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
 
-    const errorMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: () => Promise.reject(new Response('Mock storage cost estimate error', { status: 500 })),
-          bucketUsage: jest.fn(),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+            checkBucketReadAccess: jest.fn(),
+            storageCostEstimate: () =>
+              Promise.reject(new Response('Mock storage cost estimate error', { status: 500 })),
+            bucketUsage: jest.fn(),
+          }),
+      })
+    );
 
     // Verify initial failure based on error mock.
     const { result } = await verifyGooglePermissionsFailure();
@@ -379,18 +376,18 @@ describe('useWorkspace', () => {
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
 
-    const errorMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: () => Promise.reject(new Response('Mock bucket usage error', { status: 500 })),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+            checkBucketReadAccess: jest.fn(),
+            storageCostEstimate: jest.fn(),
+            bucketUsage: () => Promise.reject(new Response('Mock bucket usage error', { status: 500 })),
+          }),
+      })
+    );
 
     // Verify initial failure based on error mock.
     const { result } = await verifyGooglePermissionsFailure();
@@ -404,18 +401,18 @@ describe('useWorkspace', () => {
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
 
-    const errorMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: () => Promise.reject(new Response('Mock check bucket location', { status: 500 })),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: jest.fn(),
-          bucketUsage: jest.fn(),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => errorMockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketLocation: () => Promise.reject(new Response('Mock check bucket location', { status: 500 })),
+            checkBucketReadAccess: jest.fn(),
+            storageCostEstimate: jest.fn(),
+            bucketUsage: jest.fn(),
+          }),
+      })
+    );
 
     // Verify initial failure based on error mock.
     const { result } = await verifyGooglePermissionsFailure('ERROR');
@@ -433,18 +430,18 @@ describe('useWorkspace', () => {
 
     // checkBucketAccess and checkBucketLocation succeed, but calls that should only be executed if
     // user has writer permission throw errors (to verify that they aren't called).
-    const successMockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-          storageCostEstimate: () => Promise.reject(new Response('Should not call', { status: 500 })),
-          bucketUsage: () => Promise.reject(new Response('Should not call', { status: 500 })),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => successMockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+            checkBucketReadAccess: jest.fn(),
+            storageCostEstimate: () => Promise.reject(new Response('Should not call', { status: 500 })),
+            bucketUsage: () => Promise.reject(new Response('Should not call', { status: 500 })),
+          }),
+      })
+    );
 
     const expectedAllSyncedDetails = _.merge(
       {
@@ -470,15 +467,15 @@ describe('useWorkspace', () => {
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedGoogleWorkspace;
 
     // Throw error from checkBucketReadAccess
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketReadAccess: () => Promise.reject(new Response('Mock requester pays error', { status: 500 })),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketReadAccess: () => Promise.reject(new Response('Mock requester pays error', { status: 500 })),
+          }),
+      })
+    );
 
     // Will not attempt to retrieve storage details due to requester pays
     const expectedStorageDetails = _.merge(
@@ -508,14 +505,14 @@ describe('useWorkspace', () => {
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = initializedAzureWorkspace;
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          }),
+      })
+    );
 
     const errorAzureStorageMock: Partial<AzureStorageContract> = {
       details: () => Promise.reject(new Response('Mock container error', { status: 500 })),
@@ -579,14 +576,14 @@ describe('useWorkspace', () => {
     // remove workspaceInitialized because the server response does not include this information
     const { workspaceInitialized, ...serverWorkspaceResponse } = uninitializedAzureWorkspace;
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+          }),
+      })
+    );
 
     // Because we are mocking the "clone" workflow for an Azure workspace, we expect the first
     // call for Azure storage details after changing namespace/name to fail.
@@ -654,14 +651,14 @@ describe('useWorkspace', () => {
 
   it('returns an access error if workspace details throws a 404', async () => {
     // Arrange
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: () => Promise.reject(new Response('Mock access error', { status: 404 })),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: () => Promise.reject(new Response('Mock access error', { status: 404 })),
+          }),
+      })
+    );
 
     // Act
     const { result } = await renderHookInAct(() => useWorkspace('testNamespace', 'testName'));
@@ -681,16 +678,16 @@ describe('useWorkspace', () => {
 
     const expectedWorkspaceResponse = _.merge(_.clone(serverWorkspaceResponse), { workspaceInitialized: true });
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+            checkBucketReadAccess: jest.fn(),
+          }),
+      })
+    );
 
     const expectStorageDetails = _.merge(
       {
@@ -723,16 +720,16 @@ describe('useWorkspace', () => {
 
     const expectedWorkspaceResponse = _.merge(_.clone(serverWorkspaceResponse), { workspaceInitialized: true });
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
-        workspace: () => ({
-          details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
-          checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
-          checkBucketReadAccess: jest.fn(),
-        }),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            details: jest.fn().mockResolvedValue(serverWorkspaceResponse),
+            checkBucketLocation: jest.fn().mockResolvedValue(bucketLocationResponse),
+            checkBucketReadAccess: jest.fn(),
+          }),
+      })
+    );
 
     const expectStorageDetails = _.merge(
       {

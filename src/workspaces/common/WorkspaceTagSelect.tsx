@@ -2,8 +2,8 @@ import debouncePromise from 'debounce-promise';
 import _ from 'lodash/fp';
 import React from 'react';
 import { AsyncCreatableSelect } from 'src/components/common';
-import { Ajax } from 'src/libs/ajax';
 import { WorkspaceTag } from 'src/libs/ajax/workspaces/workspace-models';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useInstance } from 'src/libs/react-utils';
 
@@ -24,7 +24,7 @@ export const WorkspaceTagSelect = <isMulti extends boolean>(props: WorkspaceTagS
         return _.map((matchingTag: WorkspaceTag): WorkspaceTagSelectOption => {
           const { tag, count } = matchingTag;
           return { value: tag, label: `${tag} (${count})` };
-        }, await Ajax(signal).Workspaces.getTags(text, 10));
+        }, await Workspaces(signal).getTags(text, 10));
       }),
       250
     )

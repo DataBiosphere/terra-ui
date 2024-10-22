@@ -1,10 +1,9 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { screen, waitFor, within } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { goToPath } from 'src/libs/nav';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
 import { WORKSPACE_UPDATE_POLLING_INTERVAL } from 'src/workspaces/common/state/useWorkspaceStatePolling';
@@ -21,16 +20,9 @@ jest.mock(
   })
 );
 
-type AjaxExports = typeof import('src/libs/ajax');
-type AjaxContract = ReturnType<typeof Ajax>;
-type AjaxWorkspacesContract = AjaxContract['Workspaces'];
-
-jest.mock('src/libs/ajax', (): AjaxExports => {
-  return {
-    ...jest.requireActual('src/libs/ajax'),
-    Ajax: jest.fn(),
-  };
-});
+jest.mock('src/libs/ajax/AzureStorage');
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 type StateExports = typeof import('src/libs/state');
 jest.mock<StateExports>(
@@ -128,15 +120,14 @@ describe('WorkspaceContainer', () => {
 
     const mockDetailsFn = jest.fn();
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
         workspace: () =>
-          ({
+          partial<WorkspaceContract>({
             details: mockDetailsFn,
-          } as Partial<AjaxWorkspacesContract['workspace']>),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+          }),
+      })
+    );
 
     const workspace: InitializedWorkspaceWrapper = {
       ...defaultAzureWorkspace,
@@ -186,15 +177,14 @@ describe('WorkspaceContainer', () => {
     };
     const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: 'Deleting' } });
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
         workspace: () =>
-          ({
+          partial<WorkspaceContract>({
             details: mockDetailsFn,
-          } as Partial<AjaxWorkspacesContract['workspace']>),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+          }),
+      })
+    );
 
     const props = {
       namespace: workspace.workspace.namespace,
@@ -239,15 +229,14 @@ describe('WorkspaceContainer', () => {
     // Arrange
     const mockDetailsFn = jest.fn().mockRejectedValue(new Response(null, { status: 404 }));
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
         workspace: () =>
-          ({
+          partial<WorkspaceContract>({
             details: mockDetailsFn,
-          } as Partial<AjaxWorkspacesContract['workspace']>),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+          }),
+      })
+    );
 
     const workspace: InitializedWorkspaceWrapper = {
       ...defaultAzureWorkspace,
@@ -310,15 +299,14 @@ describe('WorkspaceContainer', () => {
     const errorMessage = 'this is an error message';
     const mockDetailsFn = jest.fn().mockResolvedValue({ workspace: { state: 'DeleteFailed', errorMessage } });
 
-    const mockAjax: DeepPartial<AjaxContract> = {
-      Workspaces: {
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
         workspace: () =>
-          ({
+          partial<WorkspaceContract>({
             details: mockDetailsFn,
-          } as Partial<AjaxWorkspacesContract['workspace']>),
-      },
-    };
-    asMockedFn(Ajax).mockImplementation(() => mockAjax as AjaxContract);
+          }),
+      })
+    );
 
     const workspace: InitializedWorkspaceWrapper = {
       ...defaultAzureWorkspace,

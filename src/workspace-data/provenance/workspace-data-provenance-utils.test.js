@@ -1,6 +1,7 @@
+import _ from 'lodash/fp';
 import { Ajax } from 'src/libs/ajax';
 
-import { fileProvenanceTypes, getFileProvenance } from './workspace-data-provenance-utils';
+import { fileProvenanceTypes, getFileProtocol, getFileProvenance } from './workspace-data-provenance-utils';
 
 jest.mock('src/libs/ajax');
 
@@ -118,4 +119,23 @@ describe('getFileProvenance', () => {
       workflowId: '78f61618-30e6-4405-baf3-2ef2e576a3a3',
     });
   });
+});
+
+describe('getFileProtocol', () => {
+  const testCases = [
+    { input: 'gs://dir1/dir2/my-file.ext', expected: 'gs' },
+    { input: 'drs://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce', expected: 'drs' },
+    { input: 'dos://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce', expected: 'dos' },
+    { input: 'https://foo.blob.core.windows.net/testContainer/file1.txt', expected: 'https' },
+    { input: 'http://foo.blob.core.windows.net/testContainer/file1.txt', expected: 'http' },
+    { input: 'ftp://why/would/you/use/ftp', expected: 'ftp' },
+    { input: 'relative/file', expected: 'unknown' },
+    { input: '', expected: 'unknown' },
+  ];
+
+  _.forEach(({ input, expected }) => {
+    it(`calculates protocol ${expected} for input ${input}`, () => {
+      expect(getFileProtocol(input)).toEqual(expected);
+    });
+  }, testCases);
 });

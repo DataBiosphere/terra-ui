@@ -6,13 +6,13 @@ import { galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/anal
 import { AnalysisFile, getFileFromPath } from 'src/analysis/useAnalysisFiles';
 import { AbsolutePath } from 'src/analysis/utils/file-utils';
 import { tools } from 'src/analysis/utils/tool-utils';
-import { Ajax } from 'src/libs/ajax';
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { reportError } from 'src/libs/error';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { HAIL_BATCH_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal';
@@ -48,7 +48,7 @@ const defaultAzureModalProps: AnalysisModalProps = {
 };
 
 jest.mock('src/libs/ajax/GoogleStorage');
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
 
 jest.mock('src/libs/error', () => ({
   ...jest.requireActual('src/libs/error'),
@@ -70,18 +70,17 @@ jest.mock('src/analysis/utils/file-utils', (): FileUtilsExports => {
 
 jest.mock('src/libs/feature-previews');
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
 describe('AnalysisModal', () => {
   beforeEach(() => {
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Buckets: {
-            getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
-          } as Partial<AjaxContract['Buckets']>,
-          Metrics: { captureEvent: jest.fn() } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
+    asMockedFn(GoogleStorage).mockImplementation(() =>
+      partial<GoogleStorageContract>({
+        getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }),
+      })
+    );
+    asMockedFn(Metrics).mockImplementation(() =>
+      partial<MetricsContract>({
+        captureEvent: jest.fn(),
+      })
     );
   });
 

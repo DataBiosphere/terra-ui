@@ -5,7 +5,8 @@ import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { getRegionInfo } from 'src/components/region-common';
 import { TooltipCell } from 'src/components/table';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
@@ -37,8 +38,8 @@ export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })((props
       const {
         workspace: { namespace, name, googleProject, bucketName },
       } = workspace;
-      const response = await Ajax(signal)
-        .Workspaces.workspace(namespace, name)
+      const response = await Workspaces(signal)
+        .workspace(namespace, name)
         .checkBucketLocation(googleProject, bucketName);
       setBucketLocation(response);
     } catch (error) {
@@ -94,7 +95,7 @@ export const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })((props
             style: { height: '1rem', marginLeft: '1ch' },
             onClick: () => {
               setShowRequesterPaysModal(true);
-              Ajax().Metrics.captureEvent(
+              void Metrics().captureEvent(
                 Events.workspaceDashboardBucketRequesterPays,
                 extractWorkspaceDetails(workspace)
               );

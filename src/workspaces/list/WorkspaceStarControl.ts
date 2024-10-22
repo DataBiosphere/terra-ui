@@ -4,7 +4,8 @@ import { ReactNode, useState } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { User } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -37,7 +38,7 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
   const maxStarredWorkspacesReached = _.size(stars) >= MAX_STARRED_WORKSPACES;
 
   const refreshStarredWorkspacesList = async () => {
-    const { starredWorkspaces } = await Ajax().User.profile.get();
+    const { starredWorkspaces } = await User().profile.get();
     return _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces);
   };
 
@@ -49,8 +50,8 @@ export const WorkspaceStarControl = (props: WorkspaceStarControlProps): ReactNod
     const updatedWorkspaceIds = star
       ? _.concat(refreshedStarredWorkspaceList, [workspaceId])
       : _.without([workspaceId], refreshedStarredWorkspaceList);
-    await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) });
-    Ajax().Metrics.captureEvent(Events.workspaceStar, {
+    await User().profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) });
+    void Metrics().captureEvent(Events.workspaceStar, {
       workspaceId,
       starred: star,
       ...extractWorkspaceDetails(props.workspace.workspace),

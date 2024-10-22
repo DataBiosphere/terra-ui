@@ -40,7 +40,7 @@ const billingProjectsPage = (testPage, testUrl) => {
 
     assertChartValue: async (number, workspaceName, category, cost) => {
       // This checks the accessible text for chart values.
-      await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${number}. Workspace ${workspaceName}, ${category}: ${cost}.")]`);
+      await testPage.waitForSelector(`[role="img"][aria-label*="${number}. Workspace ${workspaceName}, ${category}: ${cost}."]`);
     },
   };
 };

@@ -1,7 +1,7 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { useEffect, useRef } from 'react';
-import { Ajax } from 'src/libs/ajax';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
 import { pollWithCancellation } from 'src/libs/utils';
 import { BaseWorkspaceInfo, WorkspaceInfo, WorkspaceState, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
@@ -47,8 +47,8 @@ const checkWorkspaceState = async (
 ): Promise<WorkspaceUpdate | undefined> => {
   const startingState = workspace.state;
   try {
-    const wsResp: Workspace = await Ajax(signal)
-      .Workspaces.workspace(workspace.namespace, workspace.name)
+    const wsResp: Workspace = await Workspaces(signal)
+      .workspace(workspace.namespace, workspace.name)
       .details(['workspace.state', 'workspace.errorMessage']);
     const state = wsResp.workspace.state;
 

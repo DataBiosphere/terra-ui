@@ -147,6 +147,37 @@ describe('notify', () => {
     // Assert
     screen.getByText('Things went BOOM!');
   });
+
+  it('renders navigation buttons if needed', () => {
+    // Arrange
+    notify('error', 'Test notification', {
+      id: 'test-notification',
+      message: 'first message',
+    });
+    notify('error', 'Test notification', {
+      id: 'test-notification',
+      message: 'second message',
+    });
+    render(<div>{notificationContent}</div>);
+
+    // Act and Assert
+    screen.getByText('first message');
+    screen.getByText('1/2');
+    const nextButton = screen.getByLabelText('Next notification');
+    const previousButton = screen.getByLabelText('Previous notification');
+    expect(nextButton).toHaveAttribute('aria-disabled', 'false');
+    expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+
+    fireEvent.click(nextButton);
+    screen.getByText('second message');
+    screen.getByText('2/2');
+    expect(nextButton).toHaveAttribute('aria-disabled', 'true');
+    expect(previousButton).toHaveAttribute('aria-disabled', 'false');
+
+    fireEvent.click(previousButton);
+    screen.getByText('first message');
+    screen.getByText('1/2');
+  });
 });
 
 describe('clearNotification', () => {

@@ -13,13 +13,14 @@ export interface Position {
   left: number;
 }
 
-export type Side = 'top' | 'right' | 'bottom' | 'left';
+export type Side = 'top' | 'right' | 'bottom' | 'left' | 'right-aligned-bottom';
 
 export const sideOptions: Record<Side, Side> = {
   top: 'top',
   right: 'right',
   bottom: 'bottom',
   left: 'left',
+  'right-aligned-bottom': 'right-aligned-bottom',
 };
 
 export interface ComputePopupPositionArgs {
@@ -70,6 +71,8 @@ export const computePopupPosition = (args: ComputePopupPositionArgs): ComputePop
         return { top: targetPosition.bottom + gap, left };
       case 'left':
         return { left: targetPosition.left - elementSize.width - gap, top };
+      case 'right-aligned-bottom':
+        return { left: targetPosition.right - elementSize.width, top: targetPosition.bottom + gap };
       default:
         throw new Error('Invalid side');
     }
@@ -89,6 +92,8 @@ export const computePopupPosition = (args: ComputePopupPositionArgs): ComputePop
         return position.top + elementSize.height >= viewportSize.height ? 'top' : 'bottom';
       case 'left':
         return position.left < 0 ? 'right' : 'left';
+      case 'right-aligned-bottom':
+        return 'right-aligned-bottom'; // don't flip
       default:
         throw new Error('Invalid side');
     }

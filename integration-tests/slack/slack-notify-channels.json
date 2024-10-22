@@ -11,8 +11,8 @@
       "id": "C53JYBV9A"
     },
     {
-      "name": "ia-notification-test",
-      "id": "C03ATF4QXEV",
+      "name": "dsp-analysis-non-prod-alerts",
+      "id": "C07RX0CJV0D",
       "tests": [
         {
           "name": "run-analysis"
@@ -25,13 +25,7 @@
         },
         {
           "name": "run-analysis-azure"
-        }
-      ]
-    },
-    {
-      "name": "cromwell_jenkins_ci_errors",
-      "id": "C01AG7GEJ3D",
-      "tests": [
+        },
         {
           "name": "find-workflow"
         },
@@ -40,18 +34,6 @@
         },
         {
           "name": "run-workflow"
-        }
-      ]
-    },
-    {
-      "name": "dsp-workspaces-test-alerts",
-      "id": "C03F21QEWV7",
-      "tests": [
-        {
-          "name": "billing-projects"
-        },
-        {
-          "name": "delete-orphaned-workspaces"
         }
       ]
     },
@@ -76,24 +58,15 @@
         },
         {
           "name": "request-access"
-        }
-      ]
-    },
-    {
-      "name": "identiteam-alerts",
-      "id": "C03HV2AD20N",
-      "tests": [
-        {
-          "name": "register-user"
         },
         {
-          "name": "request-access"
+          "name": "preview-drs-uri"
         }
       ]
     },
     {
-      "name": "dsp-analysis-journeys-alerts",
-      "id": "C031KGQUVB4",
+      "name": "dsp-core-services-alerts",
+      "id": "C07Q8H7F8LV",
       "tests": [
         {
           "name": "import-cohort-data"
@@ -103,6 +76,18 @@
         },
         {
           "name": "import-tdr-snapshot"
+        },
+        {
+          "name": "billing-projects"
+        },
+        {
+          "name": "delete-orphaned-workspaces"
+        },
+        {
+          "name": "register-user"
+        },
+        {
+          "name": "request-access"
         }
       ]
     }

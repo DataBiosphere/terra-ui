@@ -4,10 +4,10 @@ import * as clipboard from 'clipboard-polyfill/text';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { dl, h } from 'react-hyperscript-helpers';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { azureRegions } from 'src/libs/azure-regions';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
   defaultAzureStorageOptions,
   defaultAzureWorkspace,
@@ -15,9 +15,7 @@ import {
 } from 'src/testing/workspace-fixtures';
 import { AzureStorageDetails, AzureStorageDetailsProps } from 'src/workspaces/dashboard/AzureStorageDetails';
 
-type AjaxContract = ReturnType<typeof Ajax>;
-
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
 
 type ClipboardPolyfillExports = typeof import('clipboard-polyfill/text');
 jest.mock('clipboard-polyfill/text', (): ClipboardPolyfillExports => {
@@ -87,12 +85,7 @@ describe('AzureStorageDetails', () => {
     // Arrange
     const user = userEvent.setup();
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
     render(dl([h(AzureStorageDetails, azureStorageDetailsProps)]));
 
     // Act
@@ -108,12 +101,8 @@ describe('AzureStorageDetails', () => {
     // Arrange
     const user = userEvent.setup();
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
+
     render(dl([h(AzureStorageDetails, azureStorageDetailsProps)]));
 
     // Act
@@ -129,12 +118,8 @@ describe('AzureStorageDetails', () => {
     // Arrange
     const user = userEvent.setup();
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-        } as Partial<AjaxContract> as AjaxContract)
-    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
+
     render(dl([h(AzureStorageDetails, azureStorageDetailsProps)]));
 
     // Act

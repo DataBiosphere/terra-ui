@@ -1,11 +1,11 @@
-import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { Ajax, AjaxContract } from 'src/libs/ajax';
-import { WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
@@ -17,7 +17,8 @@ import {
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
 import { GoogleWorkspace } from 'src/workspaces/utils';
 
-jest.mock('src/libs/ajax');
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 jest.mock('src/libs/notifications');
 
@@ -107,19 +108,16 @@ describe('BucketLocation', () => {
         defaultAzureStorageOptions,
       ]),
     };
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Workspaces: {
-            workspace: () =>
-              ({
-                checkBucketLocation: jest.fn().mockResolvedValue({
-                  location: 'bermuda',
-                  locationType: 'triangle',
-                }),
-              } as Partial<ReturnType<WorkspacesAjaxContract['workspace']>>),
-          } as Partial<WorkspacesAjaxContract>,
-        } as Partial<AjaxContract> as AjaxContract)
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            checkBucketLocation: jest.fn().mockResolvedValue({
+              location: 'bermuda',
+              locationType: 'triangle',
+            }),
+          }),
+      })
     );
 
     // Act
@@ -142,18 +140,16 @@ describe('BucketLocation', () => {
       ]),
     };
     const captureEvent = jest.fn();
-    asMockedFn(Ajax).mockImplementation(
-      () =>
-        ({
-          Metrics: { captureEvent } as Partial<AjaxContract['Metrics']>,
-          Workspaces: {
-            workspace: () =>
-              ({
-                checkBucketLocation: () => Promise.reject(mockBucketRequesterPaysError),
-              } as Partial<ReturnType<WorkspacesAjaxContract['workspace']>>),
-          } as Partial<WorkspacesAjaxContract>,
-        } as Partial<AjaxContract> as AjaxContract)
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            checkBucketLocation: () => Promise.reject(mockBucketRequesterPaysError),
+          }),
+      })
     );
+
     // Act
     await act(async () => { render(h(BucketLocation, props)) }) //eslint-disable-line
 

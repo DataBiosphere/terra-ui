@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { Link } from 'src/components/common';
 import { FlexTable, HeaderRenderer } from 'src/components/table';
-import { Ajax } from 'src/libs/ajax';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { getLink } from 'src/libs/nav';
@@ -183,7 +183,7 @@ const NameCell = (props: CellProps): ReactNode => {
           href={canView ? getLink('workspace-dashboard', { namespace, name }) : undefined}
           onClick={() => {
             canAccessWorkspace();
-            !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace));
+            !!canView && void Metrics().captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace));
           }}
           tooltip={!canView && 'You do not have access to this workspace. Select the workspace to learn about options.'}
           tooltipSide='right'

@@ -5,7 +5,7 @@ export interface Snapshot {
   documentation?: string;
   entityType: string;
   snapshotComment: string;
-  snapshotId: string;
+  snapshotId: number;
   namespace: string;
   payload: string;
   url: string;

@@ -2,12 +2,20 @@ import { formatDate } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
 import { b, div, fieldset, h, label, legend, p, span, strong } from 'react-hyperscript-helpers';
-import { buildExistingEnvironmentConfig } from 'src/analysis/modal-utils';
 import { AboutPersistentDiskView } from 'src/analysis/modals/ComputeModal/AboutPersistentDiskView';
 import { GcpComputeImageSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeImageSection';
 import { GcpPersistentDiskSection } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpPersistentDiskSection';
 import { DeleteDiskChoices } from 'src/analysis/modals/DeleteDiskChoices';
 import { DeleteEnvironment } from 'src/analysis/modals/DeleteEnvironment';
+import {
+  buildDesiredEnvironmentConfig,
+  buildExistingEnvironmentConfig,
+  isDataproc,
+  isDataprocCluster,
+  isGce,
+  runtimeTypes,
+  shouldUsePersistentDisk,
+} from 'src/analysis/modals/modal-utils';
 import { WarningTitle } from 'src/analysis/modals/WarningTitle';
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/analysis/runtime-common-text';
 import { getPersistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/analysis/utils/cost-utils';
@@ -40,7 +48,6 @@ import {
   getValidGpuOptions,
   getValidGpuTypesForZone,
   isAutopauseEnabled,
-  runtimeTypes,
 } from 'src/analysis/utils/runtime-utils';
 import { getToolLabelFromCloudEnv, runtimeToolLabels } from 'src/analysis/utils/tool-utils';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -52,8 +59,9 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common';
 import TitleBar from 'src/components/TitleBar';
-import { Ajax } from 'src/libs/ajax';
 import { leoDiskProvider, pdTypeFromDiskType } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
+import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error';
@@ -198,15 +206,6 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
 };
 // Auxiliary components -- end
 
-// Auxiliary functions -- begin
-const isGce = (runtimeType) => runtimeType === runtimeTypes.gceVm;
-
-const isDataproc = (runtimeType) => runtimeType === runtimeTypes.dataprocSingleNode || runtimeType === runtimeTypes.dataprocCluster;
-
-const isDataprocCluster = (runtimeType) => runtimeType === runtimeTypes.dataprocCluster;
-
-const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) =>
-  isGce(runtimeType) && (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected);
 // Auxiliary functions -- end
 
 export const GcpComputeModalBase = ({
@@ -327,8 +326,8 @@ export const GcpComputeModalBase = ({
     sendCloudEnvironmentMetrics();
 
     if (shouldDeleteRuntime) {
-      await Ajax()
-        .Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName)
+      await Runtimes()
+        .runtime(googleProject, currentRuntimeDetails.runtimeName)
         .delete(hasAttachedDisk() && shouldDeletePersistentDisk);
     }
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
@@ -361,7 +360,7 @@ export const GcpComputeModalBase = ({
       if (shouldUpdateRuntime) {
         const updateRuntimeConfig = _.merge(shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {}, runtimeConfig);
 
-        await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({
+        await Runtimes().runtime(googleProject, currentRuntimeDetails.runtimeName).update({
           runtimeConfig: updateRuntimeConfig,
           autopauseThreshold: computeConfig.autopauseThreshold,
         });
@@ -391,8 +390,8 @@ export const GcpComputeModalBase = ({
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig };
-        await Ajax()
-          .Runtimes.runtime(googleProject, generateRuntimeName())
+        await Runtimes()
+          .runtime(googleProject, generateRuntimeName())
           .create({
             runtimeConfig: createRuntimeConfig,
             autopauseThreshold: computeConfig.autopauseThreshold,
@@ -471,67 +470,19 @@ export const GcpComputeModalBase = ({
   const getExistingEnvironmentConfig = () =>
     buildExistingEnvironmentConfig(computeConfig, currentRuntimeDetails, currentPersistentDiskDetails, isDataproc(runtimeType));
 
-  const getDesiredEnvironmentConfig = () => {
-    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig();
-    const cloudService = isDataproc(runtimeType) ? cloudServices.DATAPROC : cloudServices.GCE;
-    const desiredNumberOfWorkers = isDataprocCluster(runtimeType) ? computeConfig.numberOfWorkers : 0;
+  const getDesiredEnvironmentParams = () => ({
+    desiredRuntimeType: runtimeType,
+    timeoutInMinutes,
+    deleteDiskSelected,
+    upgradeDiskSelected,
+    jupyterUserScriptUri,
+    isCustomSelectedImage,
+    customImageUrl,
+    selectedImage,
+  });
 
-    return {
-      hasGpu: computeConfig.hasGpu,
-      autopauseThreshold: computeConfig.autopauseThreshold,
-      runtime: Utils.cond(
-        [
-          viewMode !== 'deleteEnvironment',
-          () => {
-            return {
-              cloudService,
-              toolDockerImage: isCustomSelectedImage ? customImageUrl : selectedImage?.url,
-              tool: selectedImage?.toolLabel ?? getToolLabelFromCloudEnv(existingRuntime),
-              ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {}),
-              ...(timeoutInMinutes ? { timeoutInMinutes } : {}),
-              ...(cloudService === cloudServices.GCE
-                ? {
-                    zone: computeConfig.computeZone,
-                    region: computeConfig.computeRegion,
-                    machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolLabelFromCloudEnv(existingRuntime)),
-                    ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
-                    bootDiskSize: computeConfig.bootDiskSize,
-                    ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
-                      ? {
-                          persistentDiskAttached: true,
-                        }
-                      : {
-                          diskSize: computeConfig.masterDiskSize,
-                        }),
-                  }
-                : {
-                    region: computeConfig.computeRegion,
-                    masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
-                    masterDiskSize: computeConfig.masterDiskSize,
-                    numberOfWorkers: desiredNumberOfWorkers,
-                    componentGatewayEnabled: computeConfig.componentGatewayEnabled,
-                    ...(desiredNumberOfWorkers && {
-                      numberOfPreemptibleWorkers: computeConfig.numberOfPreemptibleWorkers,
-                      workerMachineType: computeConfig.workerMachineType || defaultDataprocMachineType,
-                      workerDiskSize: computeConfig.workerDiskSize,
-                    }),
-                  }),
-            };
-          },
-        ],
-        [!deleteDiskSelected || existingRuntime?.persistentDiskAttached, () => undefined],
-        () => existingRuntime
-      ),
-      persistentDisk: Utils.cond(
-        [deleteDiskSelected, () => undefined],
-        [
-          viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected),
-          () => ({ size: computeConfig.diskSize, diskType: computeConfig.diskType }),
-        ],
-        () => existingPersistentDisk
-      ),
-    };
-  };
+  // TODO: converge type with getExistingEnvironmentConfig
+  const getDesiredEnvironmentConfig = () => buildDesiredEnvironmentConfig(getExistingEnvironmentConfig(), viewMode, getDesiredEnvironmentParams());
 
   /**
    * Transforms the new environment config into the shape of a disk returned
@@ -662,7 +613,7 @@ export const GcpComputeModalBase = ({
       () => 'cloudEnvironmentCreate'
     );
 
-    Ajax().Metrics.captureEvent(Events[metricsEvent], {
+    Metrics().captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(getWorkspaceObject()),
       ..._.mapKeys((key) => `desiredRuntime_${key}`, desiredRuntime),
       desiredRuntime_exists: !!desiredRuntime,
@@ -766,7 +717,7 @@ export const GcpComputeModalBase = ({
 
   // Lifecycle
   useEffect(() => {
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+    Metrics().captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentRuntime,
       ...extractWorkspaceDetails(workspace?.workspace),
     });
@@ -779,7 +730,7 @@ export const GcpComputeModalBase = ({
       Utils.withBusyState(setLoading)
     )(async () => {
       const [runtimeDetails, persistentDiskDetails] = await Promise.all([
-        currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
+        currentRuntime ? Runtimes().runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         currentDisk ? leoDiskProvider.details(currentDisk) : null,
       ]);
       const diskTypeName = persistentDiskDetails?.diskType?.value ?? persistentDiskDetails?.diskType;
@@ -1624,7 +1575,7 @@ export const GcpComputeModalBase = ({
             updateComputeConfig,
             onClickAbout: () => {
               setViewMode('aboutPersistentDisk');
-              Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+              Metrics().captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
             },
             cloudPlatform,
             tool,
@@ -1639,7 +1590,7 @@ export const GcpComputeModalBase = ({
                 {
                   onClick: () => {
                     setViewMode('aboutPersistentDisk');
-                    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
+                    Metrics().captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
                   },
                 },
                 ['Learn more about Persistent disks and where your disk is mounted']

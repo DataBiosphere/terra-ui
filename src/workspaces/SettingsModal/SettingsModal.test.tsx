@@ -1,11 +1,11 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { screen } from '@testing-library/react';
-import { act } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import React from 'react';
 import { Ajax } from 'src/libs/ajax';
+import { SeparateSubmissionFinalOutputsSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { GCP_BUCKET_LIFECYCLE_RULES } from 'src/libs/feature-previews-config';
@@ -14,6 +14,7 @@ import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspa
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import {
   BucketLifecycleSetting,
+  RequesterPaysSetting,
   secondsInADay,
   softDeleteDefaultRetention,
   SoftDeleteSetting,
@@ -103,6 +104,26 @@ describe('SettingsModal', () => {
     config: { retentionDurationInSeconds: softDeleteDefaultRetention },
   };
 
+  const requesterPaysEnabledSetting: RequesterPaysSetting = {
+    settingType: 'GcpBucketRequesterPays',
+    config: { enabled: true },
+  };
+
+  const requesterPaysDisabledSetting: RequesterPaysSetting = {
+    settingType: 'GcpBucketRequesterPays',
+    config: { enabled: false },
+  };
+
+  const separateSubmissionOutputsDisabledSetting: SeparateSubmissionFinalOutputsSetting = {
+    settingType: 'SeparateSubmissionFinalOutputs',
+    config: { enabled: false },
+  };
+
+  const separateSubmissionOutputsEnabledSetting: SeparateSubmissionFinalOutputsSetting = {
+    settingType: 'SeparateSubmissionFinalOutputs',
+    config: { enabled: true },
+  };
+
   const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
     jest.resetAllMocks();
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -164,7 +185,7 @@ describe('SettingsModal', () => {
     // Assert
     expect(onDismiss).toHaveBeenCalled();
     expect(captureEvent).not.toHaveBeenCalled();
-    // On save we do persist the default soft delete setting so it now explicit.
+    // On save we do persist the default soft delete setting so it is now explicit.
     expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
   });
 
@@ -266,7 +287,11 @@ describe('SettingsModal', () => {
       expect(prefixInput.getSelectedOptions()).toEqual([suggestedPrefixes.allObjects]);
       expect(prefixInput.inputElement).not.toHaveAttribute('disabled');
       const allOptions = await prefixInput.getOptions();
-      expect(allOptions).toEqual([suggestedPrefixes.submissions, suggestedPrefixes.submissionIntermediaries]);
+      expect(allOptions).toEqual([
+        suggestedPrefixes.submissionIntermediaries,
+        suggestedPrefixes.submissionFinalOutputs,
+        suggestedPrefixes.submissions,
+      ]);
 
       const daysInput = getDays();
       expect(daysInput).toHaveValue(4);
@@ -356,7 +381,11 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting, noLifecycleRules]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([
+        defaultSoftDeleteSetting,
+        separateSubmissionOutputsDisabledSetting,
+        noLifecycleRules,
+      ]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBucketLifecycle, {
         enabled: false,
         prefix: null,
@@ -391,6 +420,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsDisabledSetting,
         {
           config: {
             rules: [
@@ -437,6 +467,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsEnabledSetting,
         {
           config: {
             rules: [
@@ -491,6 +522,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsEnabledSetting,
         {
           config: {
             rules: [
@@ -548,6 +580,7 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
         defaultSoftDeleteSetting,
+        separateSubmissionOutputsEnabledSetting,
         {
           config: {
             rules: [
@@ -724,6 +757,131 @@ describe('SettingsModal', () => {
       expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
       // An above case captures testing that there is no event if Save is pressed and the user initially
       // had no soft delete setting (although the default setting is then persisted).
+      expect(captureEvent).not.toHaveBeenCalledWith();
+    });
+  });
+
+  describe('Requester Pays Settings', () => {
+    const getRequesterPaysToggle = () => screen.getByLabelText('Requester Pays:');
+
+    it('renders the option as disabled if the user is not an owner', async () => {
+      // Arrange
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getRequesterPaysToggle()).toBeDisabled();
+    });
+
+    it('renders the option as off if no settings exist', async () => {
+      // Arrange
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getRequesterPaysToggle()).not.toBeChecked();
+    });
+
+    it('renders the option as off if requester pays is disabled', async () => {
+      // Arrange
+      setup([requesterPaysDisabledSetting], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getRequesterPaysToggle()).not.toBeChecked();
+    });
+
+    it('renders the option as on if requester pays is enabled', async () => {
+      // Arrange
+      setup([requesterPaysEnabledSetting], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getRequesterPaysToggle()).toBeChecked();
+    });
+
+    it('supports disabling requester pays', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([requesterPaysEnabledSetting], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const toggle = getRequesterPaysToggle();
+      expect(toggle).toBeChecked();
+      await user.click(toggle);
+      expect(toggle).not.toBeChecked();
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysDisabledSetting, defaultSoftDeleteSetting]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsRequesterPays, {
+        enabled: false,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
+    });
+
+    it('supports enabling requester pays', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const toggle = getRequesterPaysToggle();
+      expect(toggle).not.toBeChecked();
+      await user.click(toggle);
+      expect(toggle).toBeChecked();
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsRequesterPays, {
+        enabled: true,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
+    });
+
+    it('does not event if requester pays did not change', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([requesterPaysEnabledSetting], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
     });
   });
