@@ -13,17 +13,67 @@ import { withBusyState } from 'src/libs/utils';
 import { WDLEditor } from 'src/pages/workflows/common/WDLEditor';
 import validate from 'validate.js';
 
-interface WorkflowModalProps {
+export interface WorkflowModalProps {
+  /** The title to be shown at the top of the modal. */
   title: string;
-  buttonActionName: string; // name of the primary button i.e. 'save' or 'upload'
+
+  /** The text to be shown on the primary button of the modal. */
+  buttonActionName: string;
+
+  /**
+   * The default value to be prefilled in the namespace input. If not present,
+   * the input will initially be blank.
+   */
   defaultNamespace?: string;
+
+  /**
+   * The default value to be prefilled in the name input. If not present, the
+   * input will initially be blank.
+   */
   defaultName?: string;
+
+  /**
+   * The default value to be prefilled in the WDL input. If not present, the
+   * input will initially be blank.
+   */
   defaultWdl?: string;
+
+  /**
+   * The default value to be prefilled in the documentation input. If not
+   * present, the input will initially be blank.
+   */
   defaultDocumentation?: string;
+
+  /**
+   * The default value to be prefilled in the synopsis input. If not present,
+   * the input will initially be blank.
+   */
   defaultSynopsis?: string;
+
+  /**
+   * The default value to be prefilled in the snapshot comment input. If not
+   * present, the input will initially be blank.
+   */
   defaultSnapshotComment?: string;
+
+  /**
+   * Provides a function to make an API call to perform the create method
+   * operation. The create function provided is called with the information
+   * inputted into the modal.
+   */
   createMethodProvider: CreateMethodProvider;
+
+  /**
+   * The function to be called with the namespace, name, and snapshot ID of the
+   * created method snapshot after the user presses the primary modal button and
+   * the triggered operation successfully completes.
+   */
   onSuccess: (namespace: string, name: string, snapshotId: number) => void;
+
+  /**
+   * Called when the underlying modal is dismissed (e.g., when the Cancel button
+   * is pressed or the user clicks outside the modal).
+   */
   onDismiss: () => void;
 }
 
@@ -53,6 +103,8 @@ interface DocumentationSectionProps {
   setWorkflowDocumentation: (value: string) => void;
 }
 
+// Custom validator used to ensure that the namespace and name input values do
+// not exceed their maximum combined length
 validate.validators.maxNamespaceNameCombinedLength = <OtherFieldName extends string>(
   value: string,
   options: { otherField: OtherFieldName },
@@ -60,7 +112,7 @@ validate.validators.maxNamespaceNameCombinedLength = <OtherFieldName extends str
   attributes: Record<OtherFieldName, string>
 ): string | null =>
   value.length + attributes[options.otherField].length > 250
-    ? '^Namespace and name are too long (maximum is 250 characters total)' // ^ prevents attribute from being prepended
+    ? '^Namespace and name are too long (maximum is 250 characters total)' // ^ character prevents attribute from being prepended
     : null;
 
 const constraints = {
@@ -235,6 +287,11 @@ const DocumentationSection = (props: DocumentationSectionProps) => {
   );
 };
 
+/**
+ * A customizable component for inputting workflow information - namespace,
+ * name, WDL, documentation, synopsis, and snapshot comment - to facilitate
+ * creating, editing, or cloning a method snapshot.
+ */
 export const WorkflowModal = (props: WorkflowModalProps) => {
   const {
     title,
