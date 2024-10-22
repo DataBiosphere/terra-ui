@@ -32,6 +32,15 @@ export const supportResources: SupportResourceType[] = [
     resourceType: 'billing-project',
     loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().Billing.adminGetProject(id.resourceId),
   },
-  { displayName: 'Dataset', resourceType: 'dataset', loadSupportSummaryFn: undefined },
-  { displayName: 'Snapshot', resourceType: 'datasnapshot', loadSupportSummaryFn: undefined },
+  {
+    displayName: 'Dataset',
+    resourceType: 'dataset',
+    loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Ajax().DataRepo.admin().adminRetrieveDataset(id.resourceId),
+  },
+  {
+    displayName: 'Snapshot',
+    resourceType: 'datasnapshot',
+    loadSupportSummaryFn: (id: FullyQualifiedResourceId) =>
+      Ajax().DataRepo.admin().adminRetrieveSnapshot(id.resourceId),
+  },
 ].sort((a, b) => a.displayName.localeCompare(b.displayName));

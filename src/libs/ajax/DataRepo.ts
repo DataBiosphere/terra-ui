@@ -207,6 +207,10 @@ export type SnapshotAccessRequest = {
 };
 
 export interface DataRepoContract {
+  admin: () => {
+    adminRetrieveSnapshot: (snapshotId: string) => Promise<Snapshot>;
+    adminRetrieveDataset: (datasetId: string) => Promise<SnapshotDataset>;
+  };
   snapshotAccessRequest: () => {
     createSnapshotAccessRequest: (request: SnapshotAccessRequest) => Promise<SnapshotAccessRequestResponse>;
     getSnapshotAccessRequestDetails: (id: string) => Promise<SnapshotAccessRequestDetailsResponse>;
@@ -241,6 +245,12 @@ const callDataRepoPost = async (url: string, signal: AbortSignal | undefined, js
 };
 
 export const DataRepo = (signal?: AbortSignal): DataRepoContract => ({
+  admin: () => {
+    return {
+      adminRetrieveSnapshot: async (snapshotId: string) => callDataRepo(`admin/v1/snapshots/${snapshotId}`, signal),
+      adminRetrieveDataset: async (datasetId: string) => callDataRepo(`admin/v1/datasets/${datasetId}`, signal),
+    };
+  },
   snapshotAccessRequest: () => {
     return {
       createSnapshotAccessRequest: async (request: SnapshotAccessRequest): Promise<SnapshotAccessRequestResponse> =>
