@@ -11,6 +11,10 @@ module.exports = {
     //    If Terra no longer requires third-party cookies, or if we upgrade puppeteer/Chrome to a version that
     //    allows 3p cookies, remove this exception.
     //    For flag info, see https://developers.google.com/privacy-sandbox/cookies/prepare/test-for-breakage
-    args: ['--flag-switches-begin', '--disable-features=TrackingProtection3pcd', '--flag-switches-end'],
+    args: [
+      '--flag-switches-begin',
+      '--disable-features=TrackingProtection3pcd,SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure',
+      '--flag-switches-end',
+    ],
   },
 };
