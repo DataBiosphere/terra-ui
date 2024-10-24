@@ -127,11 +127,11 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       await Workspaces().workspace(namespace, name).updateAcl(aclUpdates);
       !!numAdditions && void Metrics().captureEvent(Events.workspaceShare, { ...eventData, success: true });
       if (!currentTerraSupportAccessLevel && newTerraSupportAccessLevel) {
-        Metrics().captureEvent(Events.workspaceShareWithSupport, extractWorkspaceDetails(workspace.workspace));
+        void Metrics().captureEvent(Events.workspaceShareWithSupport, extractWorkspaceDetails(workspace.workspace));
       }
       onDismiss();
     } catch (error: any) {
-      !!numAdditions && Metrics().captureEvent(Events.workspaceShare, { ...eventData, success: false });
+      !!numAdditions && void Metrics().captureEvent(Events.workspaceShare, { ...eventData, success: false });
       setUpdateError(await error.text());
     }
   });
