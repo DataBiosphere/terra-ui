@@ -291,7 +291,7 @@ export const NewWorkspaceModal = withDisplayName(
             .workspace(namespace!, cloneWorkspace.workspace.name)
             .checkBucketLocation()
             .then(({ location }) => {
-              // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
+              // For current phased regionality release, we only allow US workspace buckets.
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
               setSourceGcpWorkspaceRegion(location);
             })

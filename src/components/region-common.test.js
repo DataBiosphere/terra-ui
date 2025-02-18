@@ -47,14 +47,14 @@ describe('getRegionInfo', () => {
 });
 
 describe('availableBucketRegions', () => {
-  it('For current phased release of regionality only supporting US-CENTRAL1 and NORTHAMERICA-NORTHEAST1 buckets.', () => {
-    expect(availableBucketRegions).toStrictEqual([usCentral, montreal]);
+  it('For current phased release of regionality only supporting US-CENTRAL1 buckets.', () => {
+    expect(availableBucketRegions).toStrictEqual([usCentral]);
   });
 });
 
 describe('isSupportedBucketLocation', () => {
-  it('Montreal is supported as a bucket location', () => {
-    expect(isSupportedBucketLocation(montreal.value)).toBeTruthy();
+  it('Montreal is NOT yet supported as a bucket location', () => {
+    expect(isSupportedBucketLocation(montreal.value)).toBeFalsy();
   });
   it('Australia is NOT yet supported as a bucket location', () => {
     expect(isSupportedBucketLocation('AUSTRALIA-SOUTHEAST1')).toBeFalsy();
