@@ -1361,7 +1361,7 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('shows egress warnings for cloning GCP workspaces', () => {
-    it('shows a message if the destination bucket location is in a different region', async () => {
+    it('shows no message if the destination bucket location is in same region', async () => {
       // Arrange
       const user = userEvent.setup();
       setup({ billingProjects: [gcpBillingProject] });
@@ -1384,16 +1384,12 @@ describe('NewWorkspaceModal', () => {
 
       // Verify warning doesn't show initially
       expect(screen.queryByText(egressWarning)).toBeNull();
-      // Select a different bucket location from the source workspace one.
-      const montrealLocation = screen.getByText('northamerica-northeast1 (Montreal)');
-      await user.click(montrealLocation);
+      // Select a default bucket location from the source workspace one.
+      const defaultLocation = screen.getByRole('option', { name: 'us-central1 (Iowa) (default)' });
+      await user.click(defaultLocation);
 
       // Assert
-      // Have to use textContent to work around bolded sections of text.
-      const warning = screen.getByText('Copying data from', { exact: false });
-      expect(warning.textContent).toEqual(
-        'Copying data from us-central1 (Iowa) to northamerica-northeast1 (Montreal) may incur network egress charges.'
-      );
+      expect(screen.queryByText(egressWarning)).toBeNull(); // No warning if the source and destination are the same.
     });
 
     it.each([
