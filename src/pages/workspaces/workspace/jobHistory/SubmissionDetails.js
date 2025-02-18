@@ -528,7 +528,6 @@ const SubmissionDetails = _.flow(
               ]),
               makeSection('Submitted by', [div([submitter]), Utils.makeCompleteDate(submissionDate)]),
               makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
-              makeSection('Per Workflow Cost Limit', [perWorkflowCostCap ? Utils.formatUSD(perWorkflowCostCap) : 'N/A']),
               makeSection('Data Entity', [div([entityName]), div([entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
@@ -539,6 +538,7 @@ const SubmissionDetails = _.flow(
                   text: submissionRoot.split('/').pop(),
                 }),
               ]),
+              makeSection('Per Workflow Cost Limit', [perWorkflowCostCap ? Utils.formatUSD(perWorkflowCostCap) : 'N/A']),
               makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
               makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled']),
               makeSection('Use Reference Disks', [useReferenceDisks ? 'Enabled' : 'Disabled']),
