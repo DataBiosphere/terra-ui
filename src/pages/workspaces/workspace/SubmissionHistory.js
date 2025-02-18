@@ -117,7 +117,7 @@ const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
       Link,
       {
         ...Utils.newTabLinkProps,
-        href: 'https://support.terra.bio/hc/en-us/articles/360027920592',
+        href: 'https://support.terra.bio/hc/en-us/articles/360037096272',
       },
       ['What is a submission?']
     ),
