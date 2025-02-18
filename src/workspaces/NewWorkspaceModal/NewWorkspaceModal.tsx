@@ -126,7 +126,7 @@ export const NewWorkspaceModal = withDisplayName(
     const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
     const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
     const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
-    const [_isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
+    const [, setIsAlphaRegionalityUser] = useState(false);
     const [phiTracking, setPhiTracking] = useState<boolean | undefined>(undefined);
     const signal = useCancellation();
 
