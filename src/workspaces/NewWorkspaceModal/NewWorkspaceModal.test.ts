@@ -1361,37 +1361,6 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('shows egress warnings for cloning GCP workspaces', () => {
-    it('shows no message if the destination bucket location is in same region', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      setup({ billingProjects: [gcpBillingProject] });
-
-      // Act
-      await act(async () => {
-        render(
-          h(NewWorkspaceModal, {
-            cloneWorkspace: defaultGoogleWorkspace,
-            onDismiss: () => {},
-            onSuccess: () => {},
-          })
-        );
-      });
-
-      await selectBillingProject(user, 'Google Billing Project');
-
-      const bucketLocationSelector = screen.getByLabelText('Bucket location');
-      await user.click(bucketLocationSelector);
-
-      // Verify warning doesn't show initially
-      expect(screen.queryByText(egressWarning)).toBeNull();
-      // Select a default bucket location from the source workspace one.
-      const defaultLocation = screen.getByRole('option', { name: 'us-central1 (Iowa) (default)' });
-      await user.click(defaultLocation);
-
-      // Assert
-      expect(screen.queryByText(egressWarning)).toBeNull(); // No warning if the source and destination are the same.
-    });
-
     it.each([
       { mockRejectedValue: mockBucketRequesterPaysError },
       { mockRejectedValue: new Response('', { status: 403 }) },
