@@ -16,8 +16,8 @@ import {
   VirtualizedSelect,
 } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
-import { TextArea, TextInput, ValidatedInput } from 'src/components/input';
-import { isSupportedBucketLocation } from 'src/components/region-common';
+import { TextArea, ValidatedInput } from 'src/components/input';
+import { allRegions, availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -126,7 +126,7 @@ export const NewWorkspaceModal = withDisplayName(
     const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
     const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
     const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
-    const [, setIsAlphaRegionalityUser] = useState(false);
+    const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const [phiTracking, setPhiTracking] = useState<boolean | undefined>(undefined);
     const signal = useCancellation();
 
@@ -567,10 +567,7 @@ export const NewWorkspaceModal = withDisplayName(
                         <FormLabel htmlFor={id}>
                           Bucket location
                           <InfoBox style={{ marginLeft: '0.25rem' }}>
-                            A bucket location can only be set when creating a workspace. Once set, it cannot be changed.
-                            A cloned workspace will automatically inherit the bucket location from the original
-                            workspace but this may be changed at clone time.
-                            <p>
+                            <p style={{ marginTop: '0.2rem' }}>
                               By default, workflow and Cloud Environments will run in the same region as the workspace
                               bucket. Changing bucket or Cloud Environment locations from the defaults can lead to
                               network egress charges.
@@ -583,7 +580,13 @@ export const NewWorkspaceModal = withDisplayName(
                             </Link>
                           </InfoBox>
                         </FormLabel>
-                        <TextInput id={id} defaultValue={bucketLocation} readOnly />
+                        <Select<string>
+                          isDisabled
+                          id={id}
+                          value={bucketLocation}
+                          onChange={(opt) => setBucketLocation(opt!.value)}
+                          options={isAlphaRegionalityUser ? allRegions : availableBucketRegions}
+                        />
                       </>
                     )}
                   </IdContainer>
