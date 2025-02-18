@@ -1,13 +1,15 @@
 import { UserManager } from 'oidc-client-ts';
+import React from 'react';
 import { div, img } from 'react-hyperscript-helpers';
 import { getOidcConfig } from 'src/auth/oidc-broker';
+import { getCurrentLocation } from 'src/libs/nav/location-utils';
 import { useOnMount } from 'src/libs/react-utils';
 
-const RedirectFromOAuth = () => {
+export const RedirectFromOAuth: React.FC = (): React.ReactNode => {
   const userManager: UserManager = new UserManager(getOidcConfig());
 
-  const url = window.location.href;
-  const isSilent = window.location.pathname.startsWith('/redirect-from-oauth-silent');
+  const url = getCurrentLocation().href;
+  const isSilent = getCurrentLocation().pathname.startsWith('/redirect-from-oauth-silent');
   useOnMount(() => {
     if (isSilent) {
       userManager.signinSilentCallback(url);
@@ -33,5 +35,3 @@ const RedirectFromOAuth = () => {
     }),
   ]);
 };
-
-export default RedirectFromOAuth;
