@@ -172,7 +172,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                           filteredWorkflows[rowIndex].costType === 'Estimated' ? 'Estimated' : 'Final cost',
                         ]);
 
-                  return div({ style: { verticalAlign: 'middle', height: '18px' } }, [costElement, costTypeElement]);
+                  return div({ style: { verticalAlign: 'middle', height: '16px' } }, [costElement, costTypeElement]);
                 },
               },
               {
