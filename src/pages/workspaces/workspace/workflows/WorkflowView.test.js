@@ -694,4 +694,32 @@ describe('Workflow View (GCP)', () => {
     // check that workflow cost capping is shown
     expect(screen.queryByText('Set cost limit per workflow (BETA)')).not.toBeNull();
   });
+
+  it('updates perWorkflowCostCap state on input change', async () => {
+    // Arrange
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    mockDefaultAjax();
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    const costCapInput = screen.getByPlaceholderText('Example: 1.00');
+    expect(costCapInput).toBeInTheDocument();
+
+    // Assert initial state
+    expect(costCapInput).toHaveValue(null);
+
+    // Act
+    await user.type(costCapInput, '123.456');
+
+    // Assert updated state
+    expect(Number(costCapInput.value)).toBeCloseTo(123.456, 2);
+  });
 });
