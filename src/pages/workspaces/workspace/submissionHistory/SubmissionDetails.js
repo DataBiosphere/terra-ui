@@ -154,7 +154,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const { status } = filteredWorkflows[rowIndex];
-                  return div({ style: { display: 'flex' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status]);
+                  return div({ style: { display: 'flex', alignItems: 'center' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status]);
                 },
               },
               {
@@ -172,7 +172,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                           filteredWorkflows[rowIndex].costType === 'Estimated' ? 'Estimated' : 'Final cost',
                         ]);
 
-                  return div({ style: { verticalAlign: 'middle', height: '16px' } }, [costElement, costTypeElement]);
+                  return div({ style: { alignItems: 'center', height: '16px' } }, [costElement, costTypeElement]);
                 },
               },
               {
