@@ -1361,41 +1361,6 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('shows egress warnings for cloning GCP workspaces', () => {
-    it('shows a message if the destination bucket location is in a different region', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      setup({ billingProjects: [gcpBillingProject] });
-
-      // Act
-      await act(async () => {
-        render(
-          h(NewWorkspaceModal, {
-            cloneWorkspace: defaultGoogleWorkspace,
-            onDismiss: () => {},
-            onSuccess: () => {},
-          })
-        );
-      });
-
-      await selectBillingProject(user, 'Google Billing Project');
-
-      const bucketLocationSelector = screen.getByLabelText('Bucket location');
-      await user.click(bucketLocationSelector);
-
-      // Verify warning doesn't show initially
-      expect(screen.queryByText(egressWarning)).toBeNull();
-      // Select a different bucket location from the source workspace one.
-      const montrealLocation = screen.getByText('northamerica-northeast1 (Montreal)');
-      await user.click(montrealLocation);
-
-      // Assert
-      // Have to use textContent to work around bolded sections of text.
-      const warning = screen.getByText('Copying data from', { exact: false });
-      expect(warning.textContent).toEqual(
-        'Copying data from us-central1 (Iowa) to northamerica-northeast1 (Montreal) may incur network egress charges.'
-      );
-    });
-
     it.each([
       { mockRejectedValue: mockBucketRequesterPaysError },
       { mockRejectedValue: new Response('', { status: 403 }) },

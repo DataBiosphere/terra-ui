@@ -291,7 +291,7 @@ export const NewWorkspaceModal = withDisplayName(
             .workspace(namespace!, cloneWorkspace.workspace.name)
             .checkBucketLocation()
             .then(({ location }) => {
-              // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
+              // For current phased regionality release, we only allow US workspace buckets.
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
               setSourceGcpWorkspaceRegion(location);
             })
@@ -567,10 +567,7 @@ export const NewWorkspaceModal = withDisplayName(
                         <FormLabel htmlFor={id}>
                           Bucket location
                           <InfoBox style={{ marginLeft: '0.25rem' }}>
-                            A bucket location can only be set when creating a workspace. Once set, it cannot be changed.
-                            A cloned workspace will automatically inherit the bucket location from the original
-                            workspace but this may be changed at clone time.
-                            <p>
+                            <p style={{ marginTop: '0.2rem' }}>
                               By default, workflow and Cloud Environments will run in the same region as the workspace
                               bucket. Changing bucket or Cloud Environment locations from the defaults can lead to
                               network egress charges.
@@ -584,6 +581,7 @@ export const NewWorkspaceModal = withDisplayName(
                           </InfoBox>
                         </FormLabel>
                         <Select<string>
+                          isDisabled
                           id={id}
                           value={bucketLocation}
                           onChange={(opt) => setBucketLocation(opt!.value)}
