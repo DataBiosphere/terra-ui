@@ -163,7 +163,16 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
                 cellRenderer: ({ rowIndex }) => {
                   const cost = filteredWorkflows[rowIndex].cost;
-                  return typeof cost === 'number' ? h(TextCell, [Utils.formatUSD(cost || 0)]) : cost;
+                  const costElement = typeof cost === 'number' ? h(TextCell, [Utils.formatUSD(cost || 0)]) : cost;
+
+                  const costTypeElement =
+                    cost === 'n/a' || cost === 'N/A'
+                      ? undefined
+                      : div({ style: { fontSize: 10, display: 'block', marginTop: '2px' } }, [
+                          filteredWorkflows[rowIndex].costType === 'Estimated' ? 'Estimated' : 'Final cost',
+                        ]);
+
+                  return div({ style: { verticalAlign: 'middle', height: '18px' } }, [costElement, costTypeElement]);
                 },
               },
               {
