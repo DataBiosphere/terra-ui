@@ -322,11 +322,19 @@ const WorkflowDashboard = _.flow(
   ]);
 });
 
+const workflowDashboardRoute = {
+  name: 'workspace-workflow-dashboard',
+  component: WorkflowDashboard,
+  title: ({ name }) => `${name} - Workflow Dashboard`,
+};
+
 export const navPaths = [
   {
-    name: 'workspace-workflow-dashboard',
+    ...workflowDashboardRoute,
     path: '/workspaces/:namespace/:name/submission_history/:submissionId/:workflowId',
-    component: WorkflowDashboard,
-    title: ({ name }) => `${name} - Workflow Dashboard`,
+  },
+  {
+    ...workflowDashboardRoute,
+    path: '/workspaces/:namespace/:name/job_history/:submissionId/:workflowId',
   },
 ];

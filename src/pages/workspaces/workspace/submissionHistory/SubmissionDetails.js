@@ -571,11 +571,19 @@ const SubmissionDetails = _.flow(
   ]);
 });
 
+const submissionDetailsRoute = {
+  name: 'workspace-submission-details',
+  component: SubmissionDetails,
+  title: ({ name }) => `${name} - Submission Details`,
+};
+
 export const navPaths = [
   {
-    name: 'workspace-submission-details',
+    ...submissionDetailsRoute,
     path: '/workspaces/:namespace/:name/submission_history/:submissionId',
-    component: SubmissionDetails,
-    title: ({ name }) => `${name} - Submission Details`,
+  },
+  {
+    ...submissionDetailsRoute,
+    path: '/workspaces/:namespace/:name/job_history/:submissionId',
   },
 ];

@@ -480,11 +480,19 @@ const SubmissionHistory = _.flow(
   ]);
 });
 
+const submissionHistoryRoute = {
+  name: 'workspace-submission-history',
+  component: SubmissionHistory,
+  title: ({ name }) => `${name} - Submission History`,
+};
+
 export const navPaths = [
   {
-    name: 'workspace-submission-history',
+    ...submissionHistoryRoute,
     path: '/workspaces/:namespace/:name/submission_history',
-    component: SubmissionHistory,
-    title: ({ name }) => `${name} - Submission History`,
+  },
+  {
+    ...submissionHistoryRoute,
+    path: '/workspaces/:namespace/:name/job_history',
   },
 ];
