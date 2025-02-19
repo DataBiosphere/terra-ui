@@ -1,5 +1,6 @@
 import { delay } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { act } from 'react-dom/test-utils';
 
 import { showOAuthRedirect } from './oauth-redirect-loader';
 import { RedirectFromOAuth } from './RedirectFromOAuth';
@@ -13,8 +14,10 @@ describe('showOAuthRedirect', () => {
   });
   it('mounts redirect visual component to ui root', async () => {
     // Act
-    showOAuthRedirect();
-    await delay(100);
+    await act(async () => {
+      showOAuthRedirect();
+      await delay(100);
+    });
 
     // Assert
     // auth redirect page component called for rendering
