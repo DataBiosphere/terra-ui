@@ -1146,7 +1146,7 @@ export const WorkflowView = _.flow(
                         min: 0.01,
                         max: 9999999999.99,
                         placeholder: 'Example: 1.00',
-                        onChange: (v) => this.setState({ perWorkflowCostCap: v ? v.toFixed(2) : undefined }),
+                        onChange: (v) => this.setState({ perWorkflowCostCap: v ? v.toFixed(2) : '' }),
                         style: { fontSize: 12, marginTop: '0.5rem', width: '100%', marginLeft: '0.1rem' },
                       }),
                     ]),
