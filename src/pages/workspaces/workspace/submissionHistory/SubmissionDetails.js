@@ -354,6 +354,11 @@ const SubmissionDetails = _.flow(
 
   const signal = useCancellation();
 
+  // Redirect to submission history url
+  useEffect(() => {
+    window.location.hash = window.location.hash.replace('job_history', 'submission_history');
+  }, []);
+
   /*
    * Data fetchers
    */

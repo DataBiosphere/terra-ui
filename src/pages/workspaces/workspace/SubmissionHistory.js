@@ -1,6 +1,6 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useImperativeHandle, useRef, useState } from 'react';
+import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
@@ -142,6 +142,11 @@ const SubmissionHistory = _.flow(
 
   const scheduledRefresh = useRef();
   const signal = useCancellation();
+
+  // Redirect to submission history url
+  useEffect(() => {
+    window.location.hash = window.location.hash.replace('job_history', 'submission_history');
+  }, []);
 
   // Helpers
   const refresh = Utils.withBusyState(setLoading, async () => {
