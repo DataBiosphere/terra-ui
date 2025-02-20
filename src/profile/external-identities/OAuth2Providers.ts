@@ -1,4 +1,6 @@
+import React from 'react';
 import { getConfig } from 'src/libs/config';
+import { tooltipMessages } from 'src/profile/external-identities/TooltipMessages';
 
 export type OAuth2ProviderKey = 'github' | 'ras' | 'era-commons' | 'fence' | 'dcf-fence' | 'kids-first' | 'anvil';
 export type OAuth2Callback =
@@ -17,6 +19,7 @@ export type OAuth2Provider = {
   supportsAccessToken: boolean;
   supportsIdToken: boolean;
   isFence: boolean;
+  toolTip?: React.ReactElement;
 };
 
 const createRedirectUri = (callback: OAuth2Callback['link']) => {
@@ -40,7 +43,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
     case 'ras':
       return {
         key: providerKey,
-        name: 'RAS',
+        name: 'NIH Researcher Auth Service (RAS)',
         short: 'RAS',
         queryParams: {
           scopes: ['openid', 'email', 'ga4gh_passport_v1'],
@@ -49,6 +52,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: false,
         supportsIdToken: false, // turning off clipboard copying for now.
         isFence: false,
+        toolTip: tooltipMessages.ras,
       };
     case 'era-commons':
       return {
@@ -74,6 +78,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: true,
+        toolTip: tooltipMessages.fence,
       };
     case 'dcf-fence':
       return {
@@ -86,6 +91,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: true,
+        toolTip: tooltipMessages.dcf_fence,
       };
     case 'kids-first':
       return {
@@ -98,6 +104,7 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: true,
+        toolTip: tooltipMessages.kids_first,
       };
     case 'anvil':
       return {
