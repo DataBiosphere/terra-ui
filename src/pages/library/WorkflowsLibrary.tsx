@@ -52,6 +52,7 @@ interface WorkflowSourceBoxProps {
   title: string;
   description: string;
   url: string;
+  openInNewTab: boolean;
   logoFilePath: string;
   metricsEventName: MetricsEventName;
 }
@@ -62,7 +63,7 @@ const WorkflowSourceBox = (props: WorkflowSourceBoxProps) => {
   };
 
   return (
-    <Clickable href={props.url} {...Utils.newTabLinkProps} onClick={() => sendMetrics()}>
+    <Clickable href={props.url} {...(props.openInNewTab ? Utils.newTabLinkProps : {})} onClick={() => sendMetrics()}>
       <div
         style={{
           width: 400,
@@ -81,10 +82,11 @@ const WorkflowSourceBox = (props: WorkflowSourceBoxProps) => {
           </div>
           <p style={{ height: '55px' }}>{props.description}</p>
           <div style={{ bottom: 0 }}>
-            {icon('pop-out', {
-              size: 18,
-              style: { color: colors.accent(1) },
-            })}
+            {props.openInNewTab &&
+              icon('pop-out', {
+                size: 18,
+                style: { color: colors.accent(1) },
+              })}
           </div>
         </div>
       </div>
@@ -153,6 +155,7 @@ export const WorkflowsLibrary = () => {
                     title='Dockstore.org'
                     description='A community repository of public workflows that offers publishing features and automatic integration with GitHub.'
                     url={dockstoreUrl}
+                    openInNewTab
                     logoFilePath={dockstoreLogo}
                     metricsEventName={Events.libraryWorkflowsDockstore}
                   />
@@ -162,6 +165,7 @@ export const WorkflowsLibrary = () => {
                     title='Terra Workflow Repository'
                     description='A repository of WDL workflows that offers quick hosting of public and private workflows.'
                     url={workflowsRepoUrl}
+                    openInNewTab={false}
                     logoFilePath={workflowsRepoLogo}
                     metricsEventName={Events.libraryWorkflowsTerraRepo}
                   />

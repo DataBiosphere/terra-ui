@@ -1,6 +1,6 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useImperativeHandle, useRef, useState } from 'react';
+import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
@@ -142,6 +142,11 @@ const SubmissionHistory = _.flow(
 
   const scheduledRefresh = useRef();
   const signal = useCancellation();
+
+  // Redirect to submission history url
+  useEffect(() => {
+    window.location.hash = window.location.hash.replace('job_history', 'submission_history');
+  }, []);
 
   // Helpers
   const refresh = Utils.withBusyState(setLoading, async () => {
@@ -480,11 +485,19 @@ const SubmissionHistory = _.flow(
   ]);
 });
 
+const submissionHistoryRoute = {
+  name: 'workspace-submission-history',
+  component: SubmissionHistory,
+  title: ({ name }) => `${name} - Submission History`,
+};
+
 export const navPaths = [
   {
-    name: 'workspace-submission-history',
+    ...submissionHistoryRoute,
     path: '/workspaces/:namespace/:name/submission_history',
-    component: SubmissionHistory,
-    title: ({ name }) => `${name} - Submission History`,
+  },
+  {
+    ...submissionHistoryRoute,
+    path: '/workspaces/:namespace/:name/job_history',
   },
 ];
