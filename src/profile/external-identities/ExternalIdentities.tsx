@@ -12,12 +12,15 @@ type ExternalIdentitiesProps = {
 
 export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode => {
   const { queryParams } = props;
+  const providers = getConfig().externalCreds?.providers || [];
+  const hasRas = providers.includes('ras');
+  const filteredProviders = hasRas ? providers.filter((p: string) => p !== 'era-commons') : providers;
+
   return (
     <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
-      {getConfig()
-        .externalCreds?.providers.filter(
-          (p: any) => p !== 'github' || userHasAccessToEnterpriseFeature('github-account-linking')
-        )
+      {!hasRas && <NihAccount nihToken={queryParams?.['nih-username-token']} />}
+      {filteredProviders
+        .filter((p: any) => p !== 'github' || userHasAccessToEnterpriseFeature('github-account-linking'))
         .map((providerKey: OAuth2ProviderKey) => (
           <OAuth2Account
             key={`oauth2link-${providerKey}`}
@@ -25,7 +28,6 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
             provider={oauth2Provider(providerKey)}
           />
         ))}
-      <NihAccount nihToken={queryParams?.['nih-username-token']} />
     </PageBox>
   );
 };
