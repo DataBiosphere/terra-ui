@@ -12,23 +12,22 @@ type ExternalIdentitiesProps = {
 
 export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode => {
   const { queryParams } = props;
+  const providers = getConfig().externalCreds?.providers || [];
+  const hasRas = providers.includes('ras');
+  const filteredProviders = providers.filter(
+    (p: any) => p !== 'github' || userHasAccessToEnterpriseFeature('github-account-linking')
+  );
 
   return (
     <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
-      <NihAccount nihToken={queryParams?.['nih-username-token']} />
-      {getConfig()
-        .externalCreds?.providers.filter((p) => p !== 'github')
-        .map((providerKey: OAuth2ProviderKey) => (
-          <OAuth2Account
-            key={`oauth2link-${providerKey}`}
-            queryParams={queryParams}
-            provider={oauth2Provider(providerKey)}
-          />
-        ))}
-      {getConfig().externalCreds?.providers.includes('github') &&
-        userHasAccessToEnterpriseFeature('github-account-linking') && (
-          <OAuth2Account key='oauth2link-github}' queryParams={queryParams} provider={oauth2Provider('github')} />
-        )}
+      {!hasRas && <NihAccount nihToken={queryParams?.['nih-username-token']} />}
+      {filteredProviders.map((providerKey: OAuth2ProviderKey) => (
+        <OAuth2Account
+          key={`oauth2link-${providerKey}`}
+          queryParams={queryParams}
+          provider={oauth2Provider(providerKey)}
+        />
+      ))}
     </PageBox>
   );
 };
