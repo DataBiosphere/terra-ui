@@ -52,4 +52,25 @@ describe('ExternalIdentities', () => {
       expect(screen.queryByText('GitHub')).toBeNull();
     });
   });
+  it('sorts providers based on desiredOrder', async () => {
+    // Arrange
+    const desiredOrder = ['ras', 'era-commons', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'github'];
+    asMockedFn(getConfig).mockReturnValue({ externalCreds: { providers: desiredOrder } });
+
+    // Act
+    render(<ExternalIdentities queryParams={{}} />);
+
+    // Assert
+    const mainElement = screen.getByRole('main');
+    const providerElements = Array.from(mainElement.querySelectorAll('div')).map((div) => div.textContent);
+
+    expect(providerElements).toHaveLength(desiredOrder.length);
+    expect(providerElements[0]).toBe('Nih Account');
+    expect(providerElements[1]).toBe('NIH Researcher Auth Service (RAS)');
+    expect(providerElements[2]).toBe('eRA Commons');
+    expect(providerElements[3]).toBe('NHLBI BioData Catalyst Framework Services');
+    expect(providerElements[4]).toBe('NCI CRDC Framework Services');
+    expect(providerElements[5]).toBe('Kids First DRC Framework Services');
+    expect(providerElements[6]).toBe('NHGRI AnVIL Data Commons Framework Services');
+  });
 });

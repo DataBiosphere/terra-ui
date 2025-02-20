@@ -83,6 +83,29 @@ describe('OAuth2Account', () => {
       expect(getAuthorizationUrlFn).not.toHaveBeenCalled();
       expect(await axe(container)).toHaveNoViolations();
     });
+    it('displays the tooltip when provider.toolTip is defined', async () => {
+      // Arrange
+      const testProviderWithTooltip = {
+        key: 'github',
+        name: 'Test Provider',
+        short: 'Test',
+        queryParams: {
+          redirectUri: 'localhost/oauth_callback',
+        },
+        supportsAccessToken: true,
+        supportsIdToken: false,
+        isFence: false,
+        toolTip: <span>This is a tooltip</span>,
+      } as OAuth2Provider;
+      render(<OAuth2Account queryParams={{}} provider={testProviderWithTooltip} />);
+
+      // Act
+      const tooltipTrigger = screen.getByRole('button', { name: 'More info' });
+      await userEvent.click(tooltipTrigger);
+
+      // Assert
+      expect(screen.getByText('This is a tooltip')).toBeInTheDocument();
+    });
   });
   describe('When the link account button is clicked', () => {
     it('reaches out to ECM to get an authorization url and opens a new window/tab', async () => {
