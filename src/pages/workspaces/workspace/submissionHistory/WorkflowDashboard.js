@@ -1,6 +1,6 @@
 import ReactJson from '@microlink/react-json-view';
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -92,6 +92,11 @@ const WorkflowDashboard = _.flow(
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
+
+  // Redirect to submission history url
+  useEffect(() => {
+    window.location.hash = window.location.hash.replace('job_history', 'submission_history');
+  }, []);
 
   /*
    * Data fetchers
@@ -322,11 +327,19 @@ const WorkflowDashboard = _.flow(
   ]);
 });
 
+const workflowDashboardRoute = {
+  name: 'workspace-workflow-dashboard',
+  component: WorkflowDashboard,
+  title: ({ name }) => `${name} - Workflow Dashboard`,
+};
+
 export const navPaths = [
   {
-    name: 'workspace-workflow-dashboard',
+    ...workflowDashboardRoute,
     path: '/workspaces/:namespace/:name/submission_history/:submissionId/:workflowId',
-    component: WorkflowDashboard,
-    title: ({ name }) => `${name} - Workflow Dashboard`,
+  },
+  {
+    ...workflowDashboardRoute,
+    path: '/workspaces/:namespace/:name/job_history/:submissionId/:workflowId',
   },
 ];

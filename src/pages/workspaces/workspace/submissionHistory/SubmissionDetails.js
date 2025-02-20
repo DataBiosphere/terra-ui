@@ -354,6 +354,11 @@ const SubmissionDetails = _.flow(
 
   const signal = useCancellation();
 
+  // Redirect to submission history url
+  useEffect(() => {
+    window.location.hash = window.location.hash.replace('job_history', 'submission_history');
+  }, []);
+
   /*
    * Data fetchers
    */
@@ -571,11 +576,19 @@ const SubmissionDetails = _.flow(
   ]);
 });
 
+const submissionDetailsRoute = {
+  name: 'workspace-submission-details',
+  component: SubmissionDetails,
+  title: ({ name }) => `${name} - Submission Details`,
+};
+
 export const navPaths = [
   {
-    name: 'workspace-submission-details',
+    ...submissionDetailsRoute,
     path: '/workspaces/:namespace/:name/submission_history/:submissionId',
-    component: SubmissionDetails,
-    title: ({ name }) => `${name} - Submission Details`,
+  },
+  {
+    ...submissionDetailsRoute,
+    path: '/workspaces/:namespace/:name/job_history/:submissionId',
   },
 ];
