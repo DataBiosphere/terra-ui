@@ -15,7 +15,9 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
   return (
     <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
       {getConfig()
-        .externalCreds?.providers.filter((p: any) => p !== 'github')
+        .externalCreds?.providers.filter(
+          (p: any) => p !== 'github' || userHasAccessToEnterpriseFeature('github-account-linking')
+        )
         .map((providerKey: OAuth2ProviderKey) => (
           <OAuth2Account
             key={`oauth2link-${providerKey}`}
@@ -23,10 +25,6 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
             provider={oauth2Provider(providerKey)}
           />
         ))}
-      {getConfig().externalCreds?.providers.includes('github') &&
-        userHasAccessToEnterpriseFeature('github-account-linking') && (
-          <OAuth2Account key='oauth2link-github}' queryParams={queryParams} provider={oauth2Provider('github')} />
-        )}
       <NihAccount nihToken={queryParams?.['nih-username-token']} />
     </PageBox>
   );
