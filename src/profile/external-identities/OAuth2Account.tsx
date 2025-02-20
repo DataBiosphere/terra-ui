@@ -96,7 +96,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
       <div style={styles.idLink.linkContentTop(false)}>
         <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>
           {provider.name}
-          {provider.toolTip && <InfoBox style={{ marginLeft: '0.2rem' }}>{provider.toolTip}</InfoBox>}
+          {provider.toolTip && <InfoBox style={{ marginLeft: '0.5rem' }}>{provider.toolTip}</InfoBox>}
         </h3>
         {isLinking && <SpacedSpinner>Loading account status...</SpacedSpinner>}
         {!externalUserId && (
