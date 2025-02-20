@@ -1,6 +1,7 @@
-import React from 'react';
+import { Link } from '@terra-ui-packages/components';
+import React, { Fragment } from 'react';
+import { h } from 'react-hyperscript-helpers';
 import { getConfig } from 'src/libs/config';
-import { tooltipMessages } from 'src/profile/external-identities/TooltipMessages';
 
 export type OAuth2ProviderKey = 'github' | 'ras' | 'era-commons' | 'fence' | 'dcf-fence' | 'kids-first' | 'anvil';
 export type OAuth2Callback =
@@ -24,6 +25,11 @@ export type OAuth2Provider = {
 
 const createRedirectUri = (callback: OAuth2Callback['link']) => {
   return `${window.location.origin}/${callback}`;
+};
+
+const toolTipLinkProps = {
+  style: { textDecoration: 'underline' },
+  target: '_blank',
 };
 
 export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider => {
@@ -52,7 +58,11 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: false,
         supportsIdToken: false, // turning off clipboard copying for now.
         isFence: false,
-        toolTip: tooltipMessages.ras,
+        toolTip: h(Fragment, [
+          'Linking with RAS will allow Terra to automatically determine if you can access controlled datasets hosted in Terra based on your valid passport visas or your valid dbGaP applications via eRA Commons. Terra currently supports RAS authentication for AnVIL. Visit ',
+          h(Link, { href: 'https://anvilproject.org/', ...toolTipLinkProps }, ['AnVIL Portal']),
+          ' to see what datasets are available.',
+        ]),
       };
     case 'era-commons':
       return {
@@ -78,7 +88,13 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: true,
-        toolTip: tooltipMessages.fence,
+        toolTip: h(Fragment, [
+          'Linking with NHLBI BDC will allow Terra to automatically determine if you can access controlled datasets hosted on the Gen3 platform. Visit ',
+          h(Link, { href: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/', ...toolTipLinkProps }, [
+            'NHLBI BioData Catalyst',
+          ]),
+          ' to see what datasets are available.',
+        ]),
       };
     case 'dcf-fence':
       return {
@@ -91,7 +107,13 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: true,
-        toolTip: tooltipMessages.dcf_fence,
+        toolTip: h(Fragment, [
+          'Linking with NCI CRDC will allow Terra to automatically determine if you can access controlled datasets hosted on the Gen3 platform. Visit ',
+          h(Link, { href: 'https://nci-crdc.datacommons.io/', ...toolTipLinkProps }, [
+            'NCI Data Commons Framework Services',
+          ]),
+          ' to see what datasets are available.',
+        ]),
       };
     case 'kids-first':
       return {
@@ -104,7 +126,11 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: true,
-        toolTip: tooltipMessages.kids_first,
+        toolTip: h(Fragment, [
+          'Linking with Kids First DRC will allow Terra to automatically determine if you can access controlled datasets hosted on the Gen3 platform. Visit ',
+          h(Link, { href: 'https://data.kidsfirstdrc.org/', ...toolTipLinkProps }, ['Kids First Data Catalog Portal']),
+          ' to see what datasets are available.',
+        ]),
       };
     case 'anvil':
       return {
