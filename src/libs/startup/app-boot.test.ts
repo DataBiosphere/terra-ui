@@ -10,10 +10,6 @@ jest.mock('src/libs/startup/app-loader');
 jest.mock('src/auth/app-load/oauth-redirect-loader');
 
 const setLocation = (url: URL | Location) => {
-  // Object.defineProperty(window, 'location', {
-  //   value: url,
-  //   configurable: true
-  // });
   asMockedFn(getCurrentLocation).mockReturnValue(url as unknown as Location);
 };
 
