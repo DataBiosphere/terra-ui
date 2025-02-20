@@ -12,22 +12,10 @@ type ExternalIdentitiesProps = {
 
 export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode => {
   const { queryParams } = props;
-  const providers = getConfig().externalCreds?.providers;
-  const desiredOrder: OAuth2ProviderKey[] = [
-    'ras',
-    'fence',
-    'dcf-fence',
-    'kids-first',
-    'anvil',
-    'github',
-    'era-commons',
-  ];
-  const sortedProviders = providers.sort((a: any, b: any) => desiredOrder.indexOf(a) - desiredOrder.indexOf(b));
-
   return (
     <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
-      {sortedProviders
-        .filter((p: any) => p !== 'github')
+      {getConfig()
+        .externalCreds?.providers.filter((p: any) => p !== 'github')
         .map((providerKey: OAuth2ProviderKey) => (
           <OAuth2Account
             key={`oauth2link-${providerKey}`}
@@ -35,9 +23,10 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
             provider={oauth2Provider(providerKey)}
           />
         ))}
-      {sortedProviders.includes('github') && userHasAccessToEnterpriseFeature('github-account-linking') && (
-        <OAuth2Account key='oauth2link-github}' queryParams={queryParams} provider={oauth2Provider('github')} />
-      )}
+      {getConfig().externalCreds?.providers.includes('github') &&
+        userHasAccessToEnterpriseFeature('github-account-linking') && (
+          <OAuth2Account key='oauth2link-github}' queryParams={queryParams} provider={oauth2Provider('github')} />
+        )}
       <NihAccount nihToken={queryParams?.['nih-username-token']} />
     </PageBox>
   );

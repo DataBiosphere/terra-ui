@@ -65,11 +65,11 @@ describe('ExternalIdentities', () => {
     const actualProviderElements = Array.from(mainElement.querySelectorAll('div')).map((div) => div.textContent);
     const expectedProviderElements = [
       'NIH Researcher Auth Service (RAS)',
+      'eRA Commons',
       'NHLBI BioData Catalyst Framework Services',
       'NCI CRDC Framework Services',
       'Kids First DRC Framework Services',
       'NHGRI AnVIL Data Commons Framework Services',
-      'eRA Commons',
       'Nih Account',
     ];
     expect(actualProviderElements).toHaveLength(desiredOrder.length);
