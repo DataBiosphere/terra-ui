@@ -15,18 +15,17 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
   const providers = getConfig().externalCreds?.providers;
   const desiredOrder: OAuth2ProviderKey[] = [
     'ras',
-    'era-commons',
     'fence',
     'dcf-fence',
     'kids-first',
     'anvil',
     'github',
+    'era-commons',
   ];
   const sortedProviders = providers.sort((a: any, b: any) => desiredOrder.indexOf(a) - desiredOrder.indexOf(b));
 
   return (
     <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
-      <NihAccount nihToken={queryParams?.['nih-username-token']} />
       {sortedProviders
         .filter((p: any) => p !== 'github')
         .map((providerKey: OAuth2ProviderKey) => (
@@ -39,6 +38,7 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
       {sortedProviders.includes('github') && userHasAccessToEnterpriseFeature('github-account-linking') && (
         <OAuth2Account key='oauth2link-github}' queryParams={queryParams} provider={oauth2Provider('github')} />
       )}
+      <NihAccount nihToken={queryParams?.['nih-username-token']} />
     </PageBox>
   );
 };

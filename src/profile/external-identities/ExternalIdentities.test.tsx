@@ -65,12 +65,12 @@ describe('ExternalIdentities', () => {
     const providerElements = Array.from(mainElement.querySelectorAll('div')).map((div) => div.textContent);
 
     expect(providerElements).toHaveLength(desiredOrder.length);
-    expect(providerElements[0]).toBe('Nih Account');
-    expect(providerElements[1]).toBe('NIH Researcher Auth Service (RAS)');
-    expect(providerElements[2]).toBe('eRA Commons');
-    expect(providerElements[3]).toBe('NHLBI BioData Catalyst Framework Services');
-    expect(providerElements[4]).toBe('NCI CRDC Framework Services');
-    expect(providerElements[5]).toBe('Kids First DRC Framework Services');
-    expect(providerElements[6]).toBe('NHGRI AnVIL Data Commons Framework Services');
+    expect(providerElements[0]).toBe('NIH Researcher Auth Service (RAS)');
+    expect(providerElements[1]).toBe('NHLBI BioData Catalyst Framework Services');
+    expect(providerElements[2]).toBe('NCI CRDC Framework Services');
+    expect(providerElements[3]).toBe('Kids First DRC Framework Services');
+    expect(providerElements[4]).toBe('NHGRI AnVIL Data Commons Framework Services');
+    expect(providerElements[5]).toBe('eRA Commons');
+    expect(providerElements[6]).toBe('Nih Account');
   });
 });
