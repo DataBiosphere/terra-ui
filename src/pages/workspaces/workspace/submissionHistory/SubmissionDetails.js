@@ -169,7 +169,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                     cost === 'n/a' || cost === 'N/A'
                       ? undefined
                       : div({ style: { fontSize: 10, display: 'block', marginTop: '2px' } }, [
-                          filteredWorkflows[rowIndex].costType === 'Estimated' ? 'Estimated' : 'Final cost',
+                          filteredWorkflows[rowIndex].costType === 'Estimated' ? 'Estimated' : 'Actual cost',
                         ]);
 
                   return div({ style: { alignItems: 'center', height: '16px' } }, [costElement, costTypeElement]);
