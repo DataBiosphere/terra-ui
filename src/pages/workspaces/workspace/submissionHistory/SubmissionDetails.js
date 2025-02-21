@@ -154,7 +154,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const { status } = filteredWorkflows[rowIndex];
-                  return div({ style: { display: 'flex' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status]);
+                  return div({ style: { display: 'flex', alignItems: 'center' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status]);
                 },
               },
               {
@@ -163,7 +163,16 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                 headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
                 cellRenderer: ({ rowIndex }) => {
                   const cost = filteredWorkflows[rowIndex].cost;
-                  return typeof cost === 'number' ? h(TextCell, [Utils.formatUSD(cost || 0)]) : cost;
+                  const costElement = typeof cost === 'number' ? h(TextCell, [Utils.formatUSD(cost || 0)]) : cost;
+
+                  const costTypeElement =
+                    cost === 'n/a' || cost === 'N/A'
+                      ? undefined
+                      : div({ style: { fontSize: 10, display: 'block', marginTop: '2px' } }, [
+                          filteredWorkflows[rowIndex].costType === 'Estimated' ? 'Estimated' : 'Actual cost',
+                        ]);
+
+                  return div({ style: { alignItems: 'center', height: '16px' } }, [costElement, costTypeElement]);
                 },
               },
               {
