@@ -466,7 +466,7 @@ const SubmissionDetails = _.flow(
   const firstLine = _.flow(_.split('\n'), (lines) => (lines.length > 1 ? `${lines[0]} ...` : lines[0]));
 
   /**
-   *
+   * Does any workflow in this submission use an estimated cost?
    */
   const hasWorkflowCostEstimates = _.includes(
     'Estimated',
