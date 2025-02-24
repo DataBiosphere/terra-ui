@@ -465,6 +465,14 @@ const SubmissionDetails = _.flow(
    */
   const firstLine = _.flow(_.split('\n'), (lines) => (lines.length > 1 ? `${lines[0]} ...` : lines[0]));
 
+  /**
+   *
+   */
+  const hasWorkflowCostEstimates = _.includes(
+    'Estimated',
+    _.map((w) => w.costType, workflows)
+  );
+
   /*
    * Page render
    */
@@ -547,7 +555,7 @@ const SubmissionDetails = _.flow(
                 ),
               ]),
               makeSection('Submitted by', [div([submitter]), Utils.makeCompleteDate(submissionDate)]),
-              makeSection('Total Run Cost', [cost ? `${Utils.formatUSD(cost)} Actual cost` : 'N/A']),
+              makeSection('Total Run Cost', [cost ? `${Utils.formatUSD(cost)} ${hasWorkflowCostEstimates ? 'Estimated ' : 'Actual'} cost` : 'N/A']),
               makeSection('Data Entity', [div([entityName]), div([entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
