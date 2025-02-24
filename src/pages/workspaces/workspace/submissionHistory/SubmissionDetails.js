@@ -3,7 +3,7 @@ import { delay } from '@terra-ui-packages/core-utils';
 import { differenceInDays, parseISO } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { Fragment, useEffect, useState } from 'react';
-import { div, h, h4 } from 'react-hyperscript-helpers';
+import { b, div, h, h4 } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -28,6 +28,8 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
@@ -77,7 +79,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
   const {
     workspace: { namespace, name },
   } = workspace;
-  const { submissionId, submissionRoot, workflows = [] } = submission;
+  const { perWorkflowCostCap, submissionId, submissionRoot, workflows = [] } = submission;
 
   const [statusFilter, setStatusFilter] = useState([]);
   const [textFilter, setTextFilter] = useState('');
@@ -116,6 +118,11 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
         }),
       ]),
       h(Link, { onClick: () => downloadWorkflows(filteredWorkflows, submissionId) }, ['Download TSV']),
+      isFeaturePreviewEnabled(PREVIEW_COST_CAPPING) &&
+        div({ style: { marginLeft: 'auto' } }, [
+          b({}, ['Per Workflow Cost Limit: ']),
+          perWorkflowCostCap ? Utils.formatUSD(perWorkflowCostCap) : 'N/A',
+        ]),
     ]),
     // 48px is based on the default row height of FlexTable
     div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * tableRowHeight}px` } }, [
@@ -540,7 +547,7 @@ const SubmissionDetails = _.flow(
                 ),
               ]),
               makeSection('Submitted by', [div([submitter]), Utils.makeCompleteDate(submissionDate)]),
-              makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
+              makeSection('Total Run Cost', [cost ? `${Utils.formatUSD(cost)} Actual cost` : 'N/A']),
               makeSection('Data Entity', [div([entityName]), div([entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
