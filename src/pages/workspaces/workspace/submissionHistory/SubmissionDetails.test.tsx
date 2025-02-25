@@ -31,7 +31,7 @@ describe('Route Accessibility', () => {
   });
 });
 
-describe('Cost Capping', () => {
+describe('Cost Threshold', () => {
   const testGoogleWorkspace = {
     accessLevel: 'OWNER',
     owners: ['groot@gmail.com'],
@@ -90,7 +90,7 @@ describe('Cost Capping', () => {
     validOutputs: ['echo_strings.echo_to_file.out'],
   };
 
-  test('should render the Cost Capping feature when enabled', () => {
+  test('should render the Cost Threshold when enabled', () => {
     // Arrange
     asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
 
@@ -101,7 +101,7 @@ describe('Cost Capping', () => {
     expect(screen.getByText('Per Workflow Cost Threshold:')).toBeInTheDocument();
   });
 
-  test('should not render the Cost Capping feature when disabled', () => {
+  test('should not render the Cost Threshold when disabled', () => {
     // Arrange
     asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
 
