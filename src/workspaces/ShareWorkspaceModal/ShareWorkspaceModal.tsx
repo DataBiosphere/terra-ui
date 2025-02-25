@@ -5,8 +5,6 @@ import { validateUserEmails } from 'src/billing/utils';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { EmailSelect } from 'src/groups/Members/EmailSelect';
-import { Groups } from 'src/libs/ajax/Groups';
-import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { reportError } from 'src/libs/error';
@@ -45,8 +43,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   };
 
   // State
-  const [shareSuggestions, setShareSuggestions] = useState<string[]>([]);
-  const [groups, setGroups] = useState<CurrentUserGroupMembership[]>([]);
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
   const [searchValues, setSearchValues] = useState<string[]>([]);
   const [acl, setAcl] = useState<WorkspaceAcl>([]);
@@ -59,23 +55,15 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
 
   const signal = useCancellation();
 
-  const enableShareLog = false; // Set "true" to enable suggestions
-
   // Lifecycle
   useOnMount(() => {
     const load = async () => {
       try {
-        const [{ acl }, shareSuggestions, groups] = await Promise.all([
-          Workspaces(signal).workspace(namespace, name).getAcl(),
-          Workspaces(signal).getShareLog(),
-          Groups(signal).list(),
-        ]);
+        const { acl } = await Workspaces(signal).workspace(namespace, name).getAcl();
 
         const fixedAcl: WorkspaceAcl = transformAcl(acl);
         setAcl(fixedAcl);
         setOriginalAcl(fixedAcl);
-        setGroups(groups);
-        setShareSuggestions(shareSuggestions);
         setLoaded(true);
       } catch (error) {
         onDismiss();
@@ -95,14 +83,6 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const searchValuesValid = !!errors;
   const aclEmails = _.map('email', acl);
 
-  const suggestions: string[] = _.flow(
-    _.map('groupEmail'),
-    _.concat(shareSuggestions),
-    (list) => _.difference(list, aclEmails),
-    _.uniq
-  )(groups);
-
-  const remainingSuggestions = enableShareLog ? _.difference(suggestions, _.map('email', acl)) : [];
   const addUserReminder =
     'Did you mean to add collaborators? Add them or clear the "User emails" field to save changes.';
 
@@ -159,7 +139,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         <div style={{ flexGrow: 2, width: '400px', alignSelf: 'flex-start' }}>
           <EmailSelect
             placeholder='Add people or groups'
-            options={cond([remainingSuggestions.length > 0, () => remainingSuggestions], () => [])}
+            options={[]}
             emails={searchValues}
             setEmails={setSearchValues}
           />
