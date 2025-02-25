@@ -1121,9 +1121,9 @@ export const WorkflowView = _.flow(
                   },
                   [
                     span([
-                      'Set cost limit per workflow (BETA) ',
+                      'Set cost threshold per workflow (BETA) ',
                       h(InfoBox, { style: { marginLeft: '0.1rem', whiteSpace: 'pre-line' } }, [
-                        'Important cost limit considerations:',
+                        'Important considerations:',
                         h('br'),
                         '1. Costs are in USD.',
                         h('br'),
@@ -1131,11 +1131,11 @@ export const WorkflowView = _.flow(
                         h('br'),
                         '3. Based on GCP list prices. Discounts are not included.',
                         h('br'),
-                        '4. GPU costs are not included (coming soon!).',
+                        '4. GPU costs are not included.',
                         h('br'),
-                        '5. Workflows may not terminate immediately upon hitting limit, plan for a margin of error.',
+                        '5. Workflows may not terminate immediately upon hitting threshold, plan for a margin of error.',
                         h('br'),
-                        '6. Workflow costs vary by input. Set a limit that considers variability.',
+                        '6. Workflow costs vary by input. Set a threshold that considers variability.',
                       ]),
                     ]),
                     div({ style: { display: 'flex', alignItems: 'center', marginLeft: '0rem', marginBottom: '0.5rem' } }, [
@@ -1149,6 +1149,9 @@ export const WorkflowView = _.flow(
                         onChange: (v) => this.setState({ perWorkflowCostCap: v ? v.toFixed(2) : '' }),
                         style: { fontSize: 12, marginTop: '0.5rem', width: '100%', marginLeft: '0.1rem' },
                       }),
+                    ]),
+                    h(Link, { href: this.getSupportLink('31269696049307'), ...Utils.newTabLinkProps }, [
+                      'Learn more about how Terra implements cost thresholds',
                     ]),
                   ]
                 ),
