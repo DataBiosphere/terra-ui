@@ -2,7 +2,6 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
-import { Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { NewMemberModal } from './NewMemberModal';
@@ -41,11 +40,6 @@ describe('NewMemberModal', () => {
   asMockedFn(Billing).mockReturnValue(
     partial<BillingContract>({
       addProjectUsers: jest.fn(),
-    })
-  );
-  asMockedFn(Workspaces).mockReturnValue(
-    partial<WorkspacesAjaxContract>({
-      getShareLog: jest.fn(async () => []),
     })
   );
   asMockedFn(Groups).mockReturnValue(

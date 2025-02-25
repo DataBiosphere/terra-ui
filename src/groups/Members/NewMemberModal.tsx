@@ -4,12 +4,10 @@ import React, { useState } from 'react';
 import { validateUserEmails } from 'src/billing/utils';
 import { EmailSelect } from 'src/groups/Members/EmailSelect';
 import { RoleSelect } from 'src/groups/Members/RoleSelect';
-import { Groups } from 'src/libs/ajax/Groups';
 import { User } from 'src/libs/ajax/User';
-import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation } from 'src/libs/react-utils';
 import { cond, summarizeErrors, withBusyState } from 'src/libs/utils';
 
 interface NewMemberModalProps {
@@ -35,7 +33,6 @@ export const NewMemberModal = (props: NewMemberModalProps) => {
     footer,
   } = props;
   const [userEmails, setUserEmails] = useState<string[]>([]);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [confirmAddUser, setConfirmAddUser] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [role, setRole] = useState<string>(memberLabel);
@@ -43,19 +40,6 @@ export const NewMemberModal = (props: NewMemberModalProps) => {
   const [busy, setBusy] = useState(false);
 
   const signal = useCancellation();
-
-  const enableShareLog = false; // Set "true" to enable suggestions
-
-  useOnMount(() => {
-    const loadData = withErrorReporting('Error looking up collaborators')(async () => {
-      const [shareSuggestions, groups] = await Promise.all([Workspaces(signal).getShareLog(), Groups(signal).list()]);
-
-      const suggestions = _.flow(_.map('groupEmail'), _.concat(shareSuggestions), _.uniq)(groups);
-
-      setSuggestions(suggestions);
-    });
-    enableShareLog && loadData();
-  });
 
   const submit = async () => {
     // only called by invite and add, which set busy & catch errors
@@ -130,7 +114,7 @@ export const NewMemberModal = (props: NewMemberModalProps) => {
       >
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5rem' }}>
           <div style={{ flex: 2, width: '500px', alignSelf: 'flex-start', marginTop: '0.75rem' }}>
-            <EmailSelect options={suggestions} emails={userEmails} setEmails={setUserEmails} />
+            <EmailSelect options={[]} emails={userEmails} setEmails={setUserEmails} />
           </div>
           <div style={{ flex: '1', alignSelf: 'flex-start' }}>
             <RoleSelect options={[memberLabel, adminLabel]} role={role} setRole={setRole} />

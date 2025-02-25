@@ -7,7 +7,6 @@ import { EmailSelect } from 'src/groups/Members/EmailSelect';
 import { Member } from 'src/groups/Members/MemberTable';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
-import { Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax/billing/Billing');
@@ -85,11 +84,6 @@ describe('Members', () => {
     const addProjectUsers: MockedFn<BillingContract['addProjectUsers']> = jest.fn();
     asMockedFn(Billing).mockReturnValue(partial<BillingContract>({ addProjectUsers }));
     // Next 2 mocks are needed for suggestions in the NewUserModal.
-    asMockedFn(Workspaces).mockReturnValue(
-      partial<WorkspacesAjaxContract>({
-        getShareLog: jest.fn(async () => []),
-      })
-    );
     asMockedFn(Groups).mockReturnValue(
       partial<GroupsContract>({
         list: jest.fn(async () => []),
