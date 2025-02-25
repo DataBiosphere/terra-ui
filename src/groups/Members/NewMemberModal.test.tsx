@@ -66,7 +66,7 @@ describe('NewMemberModal', () => {
   it('handles user input for emails and roles', async () => {
     // Arrange
     render(<NewMemberModal {...defaultProps} />);
-    const emailInput = screen.getByLabelText('Type or select user emails');
+    const emailInput = screen.getByLabelText('Type user emails separated by commas');
     const roleSelect = screen.getByLabelText('Select Role');
 
     // Act
@@ -87,13 +87,13 @@ describe('NewMemberModal', () => {
   it('submits valid data and calls addFunction', async () => {
     // Arrange
     render(<NewMemberModal {...defaultProps} />);
-    const emailInput = screen.getByLabelText('Type or select user emails');
+    const emailInput = screen.getByLabelText('Type user emails separated by commas');
     const addButton = screen.getByText('Add Users');
     const userEmails = ['test1@example.com', 'test2@example.com'];
     const userRole = 'Member';
 
     // Act
-    fireEvent.change(emailInput, { target: { value: userEmails } });
+    fireEvent.change(emailInput, { target: { value: userEmails.join(',') } });
     fireEvent.keyDown(emailInput, { key: 'Enter', code: 'Enter' });
     fireEvent.click(addButton);
 
@@ -114,7 +114,7 @@ describe('NewMemberModal', () => {
 
     render(<NewMemberModal {...defaultProps} />);
 
-    const emailInput = screen.getByLabelText('Type or select user emails');
+    const emailInput = screen.getByLabelText('Type user emails separated by commas');
     const addButton = screen.getByText('Add Users');
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
