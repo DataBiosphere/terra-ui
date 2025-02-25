@@ -191,13 +191,13 @@ const LaunchAnalysisModal = ({
           isFeaturePreviewEnabled(PREVIEW_COST_CAPPING) &&
             (perWorkflowCostCap !== ''
               ? li([
-                  `You set a cost limit of ${Utils.formatUSD(perWorkflowCostCap)} per workflow run`,
+                  `You set a cost threshold of ${Utils.formatUSD(perWorkflowCostCap)} per workflow run`,
                   h('br'),
                   `x ${entityCount} workflow runs = ${Utils.formatUSD(entityCount * perWorkflowCostCap)}`,
                   b(' approximate maximum'),
                   ' submission cost.',
                 ])
-              : li(['You did not set a cost limit.'])),
+              : li(['You did not set a cost threshold.'])),
         ]),
       ]),
       h(IdContainer, [
