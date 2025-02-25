@@ -1150,8 +1150,9 @@ export const WorkflowView = _.flow(
                         style: { fontSize: 12, marginTop: '0.5rem', width: '100%', marginLeft: '0.1rem' },
                       }),
                     ]),
-                    h(Link, { href: this.getSupportLink('31269696049307'), ...Utils.newTabLinkProps }, [
-                      'Learn more about how Terra implements cost thresholds',
+                    span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
+                      h(Link, { href: this.getSupportLink('31269696049307'), ...Utils.newTabLinkProps }, ['Learn more']),
+                      ' about how Terra implements cost thresholds',
                     ]),
                   ]
                 ),
