@@ -36,7 +36,6 @@ describe('the share workspace modal', () => {
 
   const mockAjax = (
     acl: RawWorkspaceAcl,
-    shareLog: string[],
     groups: CurrentUserGroupMembership[],
     updateAcl?: (aclUpdates: Partial<AccessEntry>[]) => Promise<any>
   ) => {
@@ -50,7 +49,6 @@ describe('the share workspace modal', () => {
             getAcl: jest.fn(() => Promise.resolve({ acl })),
             updateAcl: updateFn,
           }),
-        getShareLog: jest.fn(() => Promise.resolve(shareLog)),
       })
     );
     asMockedFn(Groups).mockReturnValue(
@@ -80,7 +78,7 @@ describe('the share workspace modal', () => {
         accessLevel: 'READER',
       },
     };
-    mockAjax(acl, [], []);
+    mockAjax(acl, []);
     render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
     const email1 = await screen.findByText('user1@test.com');
     expect(email1).not.toBeNull();
@@ -114,7 +112,7 @@ describe('the share workspace modal', () => {
       expect(user2?.accessLevel).toEqual('WRITER');
       return Promise.resolve({ success: true });
     });
-    mockAjax(acl, [], [], updateAcl);
+    mockAjax(acl, [], updateAcl);
 
     render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
@@ -159,7 +157,7 @@ describe('the share workspace modal', () => {
       const err = { text: () => Promise.resolve(expectedErrorText), message: expectedErrorText };
       throw err;
     });
-    mockAjax(acl, [], [], updateAcl);
+    mockAjax(acl, [], updateAcl);
     render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
 
     const permissionSelect = await screen.findByLabelText(`permissions for ${'user2@test.com'}`);
@@ -186,7 +184,7 @@ describe('the share workspace modal', () => {
 
   it('renders EmailSelect, AclInput, and Add button correctly', async () => {
     const acl: RawWorkspaceAcl = {};
-    mockAjax(acl, [], []);
+    mockAjax(acl, []);
     render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
 
     const emailSelect = await screen.findByLabelText('Add people or groups');
@@ -201,7 +199,7 @@ describe('the share workspace modal', () => {
 
   it('adds a new collaborator when Add button is clicked', async () => {
     const acl: RawWorkspaceAcl = {};
-    mockAjax(acl, [], []);
+    mockAjax(acl, []);
     render(<ShareWorkspaceModal workspace={workspace} onDismiss={jest.fn()} />);
 
     const emailSelect = await screen.findByLabelText('Add people or groups');
@@ -224,7 +222,7 @@ describe('the share workspace modal', () => {
   describe('the policy section for sharing workspaces', () => {
     const policyTitle = 'Security and controls on this workspace:';
     it('shows a policy section for Azure workspaces that have them', async () => {
-      mockAjax({}, [], [], jest.fn());
+      mockAjax({}, [], jest.fn());
       await act(async () => {
         render(<ShareWorkspaceModal workspace={protectedAzureWorkspace} onDismiss={jest.fn()} />);
       });
@@ -232,7 +230,7 @@ describe('the share workspace modal', () => {
     });
 
     it('shows a policy section for GCP workspaces that have them', async () => {
-      mockAjax({}, [], [], jest.fn());
+      mockAjax({}, [], jest.fn());
       await act(async () => {
         render(<ShareWorkspaceModal workspace={protectedGoogleWorkspace} onDismiss={jest.fn()} />);
       });
@@ -240,7 +238,7 @@ describe('the share workspace modal', () => {
     });
 
     it('does not show a policy section for Azure workspaces without them', async () => {
-      mockAjax({}, [], [], jest.fn());
+      mockAjax({}, [], jest.fn());
       await act(async () => {
         render(<ShareWorkspaceModal workspace={defaultAzureWorkspace} onDismiss={jest.fn()} />);
       });
