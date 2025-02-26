@@ -555,7 +555,7 @@ const SubmissionDetails = _.flow(
                 ),
               ]),
               makeSection('Submitted by', [div([submitter]), Utils.makeCompleteDate(submissionDate)]),
-              makeSection('Total Run Cost', [cost ? `${Utils.formatUSD(cost)} ${hasWorkflowCostEstimates ? 'Estimated ' : 'Actual'} cost` : 'N/A']),
+              makeSection('Total Run Cost', [cost ? `${Utils.formatUSD(cost)} ${hasWorkflowCostEstimates ? 'Estimated' : 'Actual'} cost` : 'N/A']),
               makeSection('Data Entity', [div([entityName]), div([entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
