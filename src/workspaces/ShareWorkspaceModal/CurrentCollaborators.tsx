@@ -3,7 +3,7 @@ import React, { CSSProperties, Dispatch, SetStateAction, useLayoutEffect, useRef
 import * as Style from 'src/libs/style';
 import { aclEntryIsTerraSupport, WorkspaceAcl } from 'src/workspaces/acl-utils';
 import { Collaborator } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
-import { BaseWorkspace } from 'src/workspaces/utils';
+import { WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 /**
  * Render a list of Collaborators of a workspace, and allow them to be modified or removed.
@@ -17,7 +17,8 @@ interface CurrentCollaboratorsProps {
   acl: WorkspaceAcl;
   setAcl: Dispatch<SetStateAction<WorkspaceAcl>>;
   originalAcl: WorkspaceAcl;
-  workspace: BaseWorkspace;
+  workspaceAccessLevel: WorkspaceAccessLevel;
+  isAzureWorkspace: boolean | undefined;
   lastAddedEmail?: string;
 }
 

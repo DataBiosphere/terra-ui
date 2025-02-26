@@ -3,6 +3,7 @@ import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
+import { validateUserEmails } from 'src/billing/utils';
 import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { supportsPhiTracking } from 'src/billing-core/utils';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
@@ -11,6 +12,7 @@ import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import { allRegions, availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
 import { TabBar } from 'src/components/tabBars';
+import { EmailSelect } from 'src/groups/Members/EmailSelect';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -31,6 +33,7 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { append, summarizeErrors } from 'src/libs/utils';
 import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgressWarning';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import {
@@ -48,6 +51,10 @@ import {
 import { LinkWithPopout } from 'src/workspaces/WorkspacePolicies/LinkWithPopout';
 import { WorkspacePolicies, WorkspacePoliciesProps } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
+
+import { AccessEntry, WorkspaceAcl } from '../acl-utils';
+import { AclInput } from '../ShareWorkspaceModal/Collaborator';
+import { CurrentCollaborators } from '../ShareWorkspaceModal/CurrentCollaborators';
 
 const constraints = {
   name: {
@@ -147,6 +154,7 @@ export const NewWorkspaceModal = withDisplayName(
           copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
           ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation }),
           enhancedBucketLogging,
+          addUsers: acl,
           ...(phiTracking && { policies: [phiTrackingPolicy] }),
         };
 
@@ -570,189 +578,86 @@ export const NewWorkspaceModal = withDisplayName(
     /** ******************** */
     // TODO more intelligently share this with ShareWorkspaceModal.tsx
 
-    // const defaultAcl: AccessEntry = {
-    //   email: '',
-    //   accessLevel: 'READER',
-    //   pending: false,
-    //   canShare: false,
-    //   canCompute: false,
-    // };
+    const defaultAcl: AccessEntry = {
+      email: '',
+      accessLevel: 'READER',
+      pending: false,
+      canShare: false,
+      canCompute: false,
+    };
 
     // State
-    // const [searchValues, setSearchValues] = useState<string[]>([]);
-    // const [acl, setAcl] = useState<WorkspaceAcl>([]);
-    // const [newAcl, setNewAcl] = useState<AccessEntry>(defaultAcl);
-    // const [loaded, setLoaded] = useState(false);
-    // const [working, setWorking] = useState(false);
-    // const [updateError, setUpdateError] = useState(undefined);
-    // const [lastAddedEmail, setLastAddedEmail] = useState<string | undefined>(undefined);
-    // const list = useRef<HTMLDivElement>(null);
+    const [searchValues, setSearchValues] = useState<string[]>([]);
+    const [acl, setAcl] = useState<WorkspaceAcl>([]);
+    const [newAcl, setNewAcl] = useState<AccessEntry>(defaultAcl);
+    const [lastAddedEmail, setLastAddedEmail] = useState<string | undefined>(undefined);
 
     // useLayoutEffect(() => {
     //   !!lastAddedEmail && list?.current?.scrollTo({ top: list?.current?.scrollHeight, behavior: 'smooth' });
     // }, [lastAddedEmail]);
 
     // // Render
-    // const sharingErrors = validateUserEmails(searchValues);
-    // const aclEmails = _.map('email', acl);
+    const sharingErrors = validateUserEmails(searchValues);
+    const aclEmails = _.map('email', acl);
 
-    // const addUserReminder =
-    //   'Did you mean to add collaborators? Add them or clear the "User emails" field to save changes.';
+    const addCollaborators = (collaboratorEmails: string[], collaboratorAcl: AccessEntry) => {
+      collaboratorEmails.forEach((collaboratorEmail: string) => {
+        if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
+          setAcl(append({ ...collaboratorAcl, email: collaboratorEmail } as AccessEntry));
+          setLastAddedEmail(collaboratorEmail);
+        }
+      });
+      // Clear the search values and new acl after adding collaborators
+      setSearchValues([]);
+      setNewAcl(defaultAcl);
+    };
 
-    // const addCollaborators = (collaboratorEmails: string[], collaboratorAcl: AccessEntry) => {
-    //   collaboratorEmails.forEach((collaboratorEmail: string) => {
-    //     if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
-    //       setAcl(append({ ...collaboratorAcl, email: collaboratorEmail } as AccessEntry));
-    //       setLastAddedEmail(collaboratorEmail);
-    //     }
-    //   });
-    //   // Clear the search values and new acl after adding collaborators
-    //   setSearchValues([]);
-    //   setNewAcl(defaultAcl);
-    // };
-
-    // const save = withBusyState(setWorking, async () => {
-    //   const aclEmails = _.map('email', acl);
-    //   const needsDelete = _.remove((entry) => aclEmails.includes(entry.email), originalAcl);
-    //   const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length;
-    //   const eventData = { numAdditions, ...extractWorkspaceDetails(workspace.workspace) };
-
-    //   // @ts-ignore
-    //   const aclUpdates: WorkspaceAclUpdate[] = [
-    //     ..._.flow(
-    //       _.remove({ accessLevel: 'PROJECT_OWNER' }),
-    //       _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))
-    //     )(acl),
-    //     ..._.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete),
-    //   ];
-    // });
-
-    // const sharingTab = (
-    //   <>
-    //     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }} />
-    //     <div style={{ flexGrow: 2, width: '400px', alignSelf: 'flex-start' }}>
-    //       <EmailSelect
-    //         placeholder='Add people or groups'
-    //         options={[]}
-    //         emails={searchValues}
-    //         setEmails={setSearchValues}
-    //       />
-    //     </div>
-    //   </>
-    // );
-
-    //       <div style={{ flexGrow: 1, alignSelf: 'stretch', marginTop: '1.4rem' }}>
-    //         <AclInput
-    //           aria-label='permissions for new collaborator'
-    //           value={newAcl}
-    //           onChange={setNewAcl}
-    //           disabled={false}
-    //           maxAccessLevel='READER'
-    //           isAzureWorkspace={false}
-    //           showRow={false}
-    //         />
-    //       </div>
-    //       <div style={{ flexGrow: 1, alignSelf: 'flex-start', marginTop: '1.65rem' }}>
-    //         <ButtonPrimary
-    //           disabled={!!sharingErrors}
-    //           tooltip={summarizeErrors(sharingErrors)}
-    //           onClick={() => addCollaborators(searchValues, newAcl)}
-    //         >
-    //           Add
-    //         </ButtonPrimary>
-    //       </div>
-    //     </div>
-    //     {!searchValuesValid && <p>{addUserReminder}</p>}
-    //     <>
-    //       <div style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>Current Collaborators</div>
-    //       <div
-    //         ref={list}
-    //         role='list'
-    //         style={{
-    //           margin: '0.5rem -1.25rem 0',
-    //           padding: '1rem 1.25rem',
-    //           maxHeight: 550,
-    //           overflowY: 'auto',
-    //           borderBottom: Style.standardLine,
-    //           borderTop: Style.standardLine,
-    //         }}
-    //       >
-    //         {_.flow(_.map((aclItem) => <Collaborator key={aclItem.email} aclItem={aclItem} {acl} />))(acl)}
-    //       </div>
-    //     </>
-    //   </>
-    //   // <WorkspacePolicies workspace={workspace} noCheckboxes />
-    //   // {
-    //   //   /* {!loaded && centeredSpinner()} */
-    //   // }
-    //   // {
-    //   //   updateError && (
-    //   //     <div style={{ marginTop: '1rem' }}>
-    //   //       <div>An error occurred:</div>
-    //   //       {updateError}
-    //   //     </div>
-    //   //   );
-    //   // }
-    //   // <div style={{ ...modalStyles.buttonRow, justifyContent: 'space-between' }}>
-    //   //   {/* <TooltipTrigger
-    //   //       content={cond(
-    //   //         [
-    //   //           !currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
-    //   //           () => 'Allow Terra Support to view this workspace',
-    //   //         ],
-    //   //         [
-    //   //           !currentTerraSupportAccessLevel && !!newTerraSupportAccessLevel,
-    //   //           () =>
-    //   //             `Saving will grant Terra Support ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
-    //   //         ],
-    //   //         [
-    //   //           !!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel,
-    //   //           () => "Saving will remove Terra Support's access to this workspace",
-    //   //         ],
-    //   //         [
-    //   //           currentTerraSupportAccessLevel !== newTerraSupportAccessLevel,
-    //   //           () =>
-    //   //             `Saving will change Terra Support's level of access to this workspace from ${_.toLower(
-    //   //               currentTerraSupportAccessLevel!
-    //   //             )} to ${_.toLower(newTerraSupportAccessLevel!)}`,
-    //   //         ],
-    //   //         [
-    //   //           currentTerraSupportAccessLevel === newTerraSupportAccessLevel,
-    //   //           () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel!)} access to this workspace`,
-    //   //         ]
-    //   //       )}
-    //   //     >
-    //   //       {/* eslint-disable jsx-a11y/label-has-associated-control */}
-    //   //   <label htmlFor={shareSupportId}>
-    //   //     <span style={{ marginRight: '1ch' }}>Share with Support</span>
-    //   //     <Switch
-    //   //       id={shareSupportId}
-    //   //       checked={!!newTerraSupportAccessLevel}
-    //   //       onLabel='Yes'
-    //   //       offLabel='No'
-    //   //       width={70}
-    //   //       onChange={(checked) => {
-    //   //         if (checked) {
-    //   //           addTerraSupportToAcl();
-    //   //         } else {
-    //   //           removeTerraSupportFromAcl();
-    //   //         }
-    //   //       }}
-    //   //     />
-    //   //   </label>
-    //   //   {/* </TooltipTrigger> */}
-    //   //   <span>
-    //   //     <ButtonSecondary style={{ marginRight: '1rem' }} onClick={onDismiss}>
-    //   //       Cancel
-    //   //     </ButtonSecondary>
-    //   //     <ButtonPrimary disabled={!searchValuesValid} tooltip={!searchValuesValid && addUserReminder} onClick={save}>
-    //   //       Save
-    //   //     </ButtonPrimary>
-    //   //   </span>
+    // TODO correct width
+    const sharingTab = (
+      <>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }} />
+        <div style={{ flexGrow: 2, width: '400px', alignSelf: 'flex-start' }}>
+          <EmailSelect
+            placeholder='Add people or groups'
+            options={[]}
+            emails={searchValues}
+            setEmails={setSearchValues}
+          />
+        </div>
+        <div style={{ flexGrow: 1, alignSelf: 'stretch', marginTop: '1.4rem' }}>
+          <AclInput
+            aria-label='permissions for new collaborator'
+            value={newAcl}
+            onChange={setNewAcl}
+            disabled={false}
+            maxAccessLevel='READER' // todo what goes here
+            isAzureWorkspace={false}
+            showRow={false}
+          />
+        </div>
+        <div style={{ flexGrow: 1, alignSelf: 'flex-start', marginTop: '1.65rem' }}>
+          <ButtonPrimary
+            disabled={!!sharingErrors}
+            tooltip={summarizeErrors(sharingErrors)}
+            onClick={() => addCollaborators(searchValues, newAcl)}
+          >
+            Add
+          </ButtonPrimary>
+        </div>
+        <CurrentCollaborators
+          acl={acl}
+          setAcl={setAcl}
+          originalAcl={acl}
+          lastAddedEmail={lastAddedEmail}
+          workspaceAccessLevel='OWNER'
+          isAzureWorkspace={false}
+        />
+      </>
+    );
 
     /** *************************** */
 
-    const sharingTab = <>TBD collab</>;
+    // const sharingTab = <>TBD collab</>;
 
     // TODO make this look right
     const securityTab = (
@@ -905,7 +810,7 @@ export const NewWorkspaceModal = withDisplayName(
                 )}
               </ButtonPrimary>
             }
-            width={550}
+            width={650}
             styles={{ modal: { height: 650 } }}
           >
             {creating ? (

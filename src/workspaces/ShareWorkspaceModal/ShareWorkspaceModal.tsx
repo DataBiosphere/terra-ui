@@ -28,10 +28,11 @@ import validate from 'validate.js';
 interface ShareWorkspaceModalProps {
   workspace: WorkspaceWrapper;
   onDismiss: () => void;
+  fullModal?: boolean;
 }
 
 const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWorkspaceModalProps) => {
-  const { onDismiss, workspace } = props;
+  const { onDismiss, workspace, fullModal = true } = props;
   const { namespace, name } = workspace.workspace;
 
   const defaultAcl: AccessEntry = {
@@ -133,8 +134,10 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
 
   const shareSupportId = useUniqueId('share-support');
 
-  return (
-    <Modal title='Share Workspace' width={720} showButtons={false} onDismiss={onDismiss}>
+  // searchValues, setSearchVallues, newAcl, setNewAcl, workspace.accessLevel, isAzureworkspace, errors, addCollaborators
+  // summarizeErrors, searchValuesValid, addUserReminder, acl, setAcl, originalAcl, lastAddedEmail
+  const innerShareWorkspaceContent = (
+    <>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
         <div style={{ flexGrow: 2, width: '400px', alignSelf: 'flex-start' }}>
           <EmailSelect
@@ -171,8 +174,15 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         setAcl={setAcl}
         originalAcl={originalAcl}
         lastAddedEmail={lastAddedEmail}
-        workspace={workspace}
+        workspaceAccessLevel={workspace.accessLevel}
+        isAzureWorkspace={isAzureWorkspace(workspace)}
       />
+    </>
+  );
+
+  return fullModal ? (
+    <Modal title='Share Workspace' width={720} showButtons={false} onDismiss={onDismiss}>
+      {innerShareWorkspaceContent}
       <WorkspacePolicies workspace={workspace} noCheckboxes />
       {!loaded && centeredSpinner()}
       {updateError && (
@@ -240,6 +250,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
       </div>
       {working && spinnerOverlay}
     </Modal>
+  ) : (
+    innerShareWorkspaceContent
   );
 };
 
