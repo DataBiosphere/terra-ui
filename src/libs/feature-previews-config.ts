@@ -117,12 +117,11 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
   },
   {
     id: PREVIEW_COST_CAPPING,
-    title: 'Workflow Cost Capping',
+    title: 'Workflow Cost Thresholds',
     description:
-      'Enabling this feature will show a new workflow configuration option to add a user-configurable cost cap to the workflow. Workflows will be terminated once they exceed the configured value.',
-    groups: ['preview-cost-capping'],
+      'Enabling this feature will show a new workflow configuration option to add a user-configurable cost threshold to the workflow. Workflows will be terminated once they exceed the configured value.',
     feedbackUrl: 'https://support.terra.bio/hc/en-us/articles/31269696049307',
-    lastUpdated: '12/6/2024',
+    lastUpdated: '2/28/2025',
   },
   {
     id: GCP_BATCH,

@@ -75,7 +75,7 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
 
 const tableRowHeight = flexTableDefaultRowHeight;
 
-const SubmissionWorkflowsTable = ({ workspace, submission }) => {
+export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
   const {
     workspace: { namespace, name },
   } = workspace;
@@ -120,7 +120,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
       h(Link, { onClick: () => downloadWorkflows(filteredWorkflows, submissionId) }, ['Download TSV']),
       isFeaturePreviewEnabled(PREVIEW_COST_CAPPING) &&
         div({ style: { marginLeft: 'auto' } }, [
-          b({}, ['Per Workflow Cost Limit: ']),
+          b({}, ['Per Workflow Cost Threshold: ']),
           perWorkflowCostCap ? Utils.formatUSD(perWorkflowCostCap) : 'N/A',
         ]),
     ]),

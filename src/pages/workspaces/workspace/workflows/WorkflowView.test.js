@@ -673,7 +673,7 @@ describe('Workflow View (GCP)', () => {
 
     // Assert
     // check that workflow cost capping is not shown
-    expect(screen.queryByText('Set cost limit per workflow (BETA)')).toBeNull();
+    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).toBeNull();
   });
 
   it('does show cost capping input if the feature flag is enabled', async () => {
@@ -692,7 +692,7 @@ describe('Workflow View (GCP)', () => {
 
     // Assert
     // check that workflow cost capping is shown
-    expect(screen.queryByText('Set cost limit per workflow (BETA)')).not.toBeNull();
+    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).not.toBeNull();
   });
 
   it('updates perWorkflowCostCap state on input change', async () => {

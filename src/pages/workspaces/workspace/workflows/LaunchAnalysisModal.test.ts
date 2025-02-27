@@ -29,7 +29,7 @@ describe('Launch Analysis Modal', () => {
     );
   };
 
-  it('reports workflow cost limit if set', async () => {
+  it('reports workflow cost threshold if set', async () => {
     // Arrange
 
     mockDefaultAjax();
@@ -96,7 +96,7 @@ describe('Launch Analysis Modal', () => {
     expect(screen.getByText('x 2 workflow runs = $20.00', { exact: false })).toBeInTheDocument();
   });
 
-  it('reports only number of submissions if no cost limit set', async () => {
+  it('reports only number of submissions if no cost threshold set', async () => {
     // Arrange
 
     mockDefaultAjax();
@@ -160,6 +160,6 @@ describe('Launch Analysis Modal', () => {
       screen.getByText('You are launching 2 workflow runs in this submission', { exact: false })
     ).toBeInTheDocument();
 
-    expect(screen.getByText('You did not set a cost limit', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('You did not set a cost threshold', { exact: false })).toBeInTheDocument();
   });
 });
