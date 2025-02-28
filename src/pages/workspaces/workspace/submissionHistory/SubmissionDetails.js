@@ -466,12 +466,10 @@ const SubmissionDetails = _.flow(
   const firstLine = _.flow(_.split('\n'), (lines) => (lines.length > 1 ? `${lines[0]} ...` : lines[0]));
 
   /**
-   * Does any workflow in this submission use an estimated cost?
+   * Does any workflow in this submission use an estimated cost? This is used to display "Estimated" or "Actual"
+   * for the total submission cost. If the workflow does not have a costType, it is considered estimated.
    */
-  const hasWorkflowCostEstimates = _.includes(
-    'Estimated',
-    _.map((w) => w.costType, workflows)
-  );
+  const hasWorkflowCostEstimates = _.some((w) => !('costType' in w) || w.costType === 'Estimated', workflows);
 
   /*
    * Page render
@@ -555,7 +553,9 @@ const SubmissionDetails = _.flow(
                 ),
               ]),
               makeSection('Submitted by', [div([submitter]), Utils.makeCompleteDate(submissionDate)]),
-              makeSection('Total Run Cost', [cost ? `${Utils.formatUSD(cost)} ${hasWorkflowCostEstimates ? 'Estimated' : 'Actual'} cost` : 'N/A']),
+              makeSection('Total Run Cost', [
+                typeof cost === 'number' ? `${Utils.formatUSD(cost)} ${hasWorkflowCostEstimates ? 'Estimated' : 'Actual'} cost` : 'N/A',
+              ]),
               makeSection('Data Entity', [div([entityName]), div([entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
