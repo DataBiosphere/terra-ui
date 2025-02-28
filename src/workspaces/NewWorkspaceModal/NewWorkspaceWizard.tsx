@@ -661,13 +661,13 @@ export const NewWorkspaceWizard = withDisplayName(
     const buttons = (
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
           padding: '-1 -1 rem',
           width: '90%',
           position: 'absolute',
           bottom: '1rem',
           ...modalStyles.buttonRow,
+          display: 'flex',
+          justifyContent: 'space-between',
         }}
       >
         <ButtonSecondary style={{ position: 'absolute', left: '1rem' }} onClick={onDismiss}>
