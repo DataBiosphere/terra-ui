@@ -2,11 +2,14 @@ import _ from 'lodash/fp';
 import { Fragment, ReactElement, ReactNode, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENHANCED_WORKSPACE_CREATION } from 'src/libs/feature-previews-config';
 import { withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
 import { canWrite, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 type WorkspaceImporterProps = {
@@ -73,7 +76,7 @@ export const WorkspaceImporter: (props: WorkspaceImporterProps) => ReactElement<
         ),
       ]),
       creatingWorkspace &&
-        h(NewWorkspaceModal, {
+        h(isFeaturePreviewEnabled(ENHANCED_WORKSPACE_CREATION) ? NewWorkspaceWizard : NewWorkspaceModal, {
           requiredAuthDomain: ad,
           workflowImport: true,
           onDismiss: () => setCreatingWorkspace(false),

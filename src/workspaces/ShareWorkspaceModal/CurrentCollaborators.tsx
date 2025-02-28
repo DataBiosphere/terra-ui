@@ -20,10 +20,11 @@ interface CurrentCollaboratorsProps {
   workspaceAccessLevel: WorkspaceAccessLevel;
   isAzureWorkspace: boolean | undefined;
   lastAddedEmail?: string;
+  listStyles?: CSSProperties;
 }
 
 export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props: CurrentCollaboratorsProps) => {
-  const { acl } = props;
+  const { acl, listStyles } = props;
   const list = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -33,7 +34,7 @@ export const CurrentCollaborators: React.FC<CurrentCollaboratorsProps> = (props:
   return (
     <>
       <div style={{ ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' }}>Current Collaborators</div>
-      <div ref={list} role='list' style={styles}>
+      <div ref={list} role='list' style={{ ...styles, ...listStyles }}>
         {_.flow(
           _.remove(aclEntryIsTerraSupport),
           _.map((aclItem) => <Collaborator key={aclItem.email} aclItem={aclItem} {...props} />)
