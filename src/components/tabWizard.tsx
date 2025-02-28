@@ -80,7 +80,7 @@ export function TabWizard({ activeTab, tabNames, displayNames = {}, getOnClick =
         <Clickable
           style={{ ...Style.tabBar.tab, ...(selected ? { fontWeight: 'bold' } : {}) }}
           hover={selected ? {} : { backgroundColor: terraSpecial(0.2) }}
-          onClick={getOnClick(currentTab)}
+          onClick={() => getOnClick(currentTab)}
         >
           <div
             style={{
