@@ -1,4 +1,12 @@
-import { ButtonSecondary, Icon, Modal, modalStyles, Switch, TooltipTrigger } from '@terra-ui-packages/components';
+import {
+  ButtonSecondary,
+  ExternalLink,
+  Icon,
+  Modal,
+  modalStyles,
+  Switch,
+  TooltipTrigger,
+} from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
@@ -540,74 +548,76 @@ export const NewWorkspaceWizard = withDisplayName(
     /** *************************** */
 
     const securityTab = (
-      <>
-        <div style={{ margin: '1rem 0.25rem 0.25rem 0' }}>
-          <IdContainer>
-            {(id) => (
-              <>
-                <FormLabel htmlFor={id}>Additional Security Options</FormLabel>
-                <p style={{ marginTop: '.25rem' }}>
-                  In order to ensure that only authorized Terra Users get access to a User’s Workspace you must select
-                  these options:
-                </p>
-              </>
-            )}
-          </IdContainer>
-          <IdContainer>
-            {(id) => (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  outline: 'solid',
-                  borderRadius: '5px',
-                  columnGap: '5%',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    width: '80%',
-                    justifyContent: 'space-between',
-                    padding: '1rem',
-                  }}
-                >
-                  <FormLabel htmlFor={id}>Enable Secure Monitoring</FormLabel>
-                  <p style={{ padding: '0.1rem' }}>
-                    Enhanced logging and monitoring are enabled to support the use of controlled-access data in this
-                    workspace.
-                  </p>
-                </div>
-                <div style={{ marginTop: '0.5rem', alignSelf: 'right', display: 'flex', alignItems: 'center' }}>
-                  <Switch
-                    onLabel=''
-                    offLabel=''
-                    onChange={() => {
-                      setEnhancedBucketLogging(!enhancedBucketLogging);
-                    }}
-                    checked={enhancedBucketLogging}
-                    width={40}
-                    height={20}
-                  />
-                </div>
-              </div>
-            )}
-          </IdContainer>
-        </div>
+      <div style={{ margin: '1rem 0.25rem 0.25rem 0' }}>
         <IdContainer>
           {(id) => (
             <>
-              <FormLabel htmlFor={id}>Authorization Domain</FormLabel>
+              <FormLabel htmlFor={id}>Additional Security Options</FormLabel>
+              <p style={{ marginTop: '.25rem', marginLeft: '0.25rem' }}>
+                In order to ensure that only authorized Terra Users get access to a User’s Workspace you must select
+                these options:
+              </p>
+            </>
+          )}
+        </IdContainer>
+        <IdContainer>
+          {(id) => (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                outline: 'solid',
+                borderRadius: '5px',
+                columnGap: '5%',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  width: '80%',
+                  justifyContent: 'space-between',
+                  padding: '1rem',
+                }}
+              >
+                <FormLabel htmlFor={id}>Enable Secure Monitoring</FormLabel>
+                <p style={{ padding: '0.1rem' }}>
+                  Enhanced logging and monitoring are enabled to support the use of controlled-access data in this
+                  workspace.
+                </p>
+              </div>
+              <div style={{ marginTop: '0.5rem', alignSelf: 'right', display: 'flex', alignItems: 'center' }}>
+                <Switch
+                  onLabel=''
+                  offLabel=''
+                  onChange={() => {
+                    setEnhancedBucketLogging(!enhancedBucketLogging);
+                  }}
+                  checked={enhancedBucketLogging || groups.length > 0}
+                  width={40}
+                  height={20}
+                  isDisabled={!!requireEnhancedBucketLogging || groups.length > 0}
+                />
+              </div>
+            </div>
+          )}
+        </IdContainer>
+        <IdContainer>
+          {(id) => (
+            <>
+              <FormLabel htmlFor={id}>Authorization Domain (optional)</FormLabel>
               <p style={{ marginLeft: '0.25rem' }}>
                 Authorization Domains restrict data access to only specified individuals in a group and are intended to
                 fulfill requirements you may have for data governed by a compliance standard, such as federal
                 controlled-access data or HIPAA protected data. They follow all workspace copies and cannot be removed.
                 <p>
                   For more details, see{' '}
-                  <Link href='https://support.terra.bio/hc/en-us/articles/360026775691' {...Utils.newTabLinkProps}>
+                  <ExternalLink
+                    href='https://support.terra.bio/hc/en-us/articles/360026775691'
+                    {...Utils.newTabLinkProps}
+                  >
                     When to use an Authorization Domain
-                  </Link>
+                  </ExternalLink>
                   .
                 </p>
               </p>
@@ -634,7 +644,7 @@ export const NewWorkspaceWizard = withDisplayName(
           )}
         </IdContainer>
         {renderPolicyAndWorkspaceInfo()}
-      </>
+      </div>
     );
 
     // TODO can i do this prettier with Utils.cond?
@@ -748,8 +758,8 @@ export const NewWorkspaceWizard = withDisplayName(
                   }}
                   style={{ textTransform: 'none', width: '90%' }}
                   getHref={() => {}}
-                  getOnClick={(currentTab) => (e) => {
-                    e.preventDefault();
+                  getOnClick={(currentTab) => {
+                    // e.preventDefault();
                     setActiveTab(currentTab);
                   }}
                 >

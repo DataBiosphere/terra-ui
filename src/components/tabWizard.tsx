@@ -80,7 +80,7 @@ export function TabWizard({ activeTab, tabNames, displayNames = {}, getOnClick =
         <Clickable
           style={{ ...Style.tabBar.tab, ...(selected ? { fontWeight: 'bold' } : {}) }}
           hover={selected ? {} : { backgroundColor: terraSpecial(0.2) }}
-          onClick={getOnClick(currentTab)}
+          onClick={() => getOnClick(currentTab)}
         >
           <div
             style={{
@@ -98,7 +98,7 @@ export function TabWizard({ activeTab, tabNames, displayNames = {}, getOnClick =
   const progressBarWidth = `${((tabNames.indexOf(activeTab) + 1) / tabNames.length) * 100}%`;
 
   return (
-    <div style={{ ...Style.tabBar.container, borderBottom: 'none', flexDirection: 'column' }}>
+    <div style={{ ...Style.tabBar.container, borderBottom: 'none', flexDirection: 'column', paddingRight: 'none' }}>
       <div
         role='navigation'
         aria-label={props['aria-label']} // duplicate the menu's label on the navigation element
