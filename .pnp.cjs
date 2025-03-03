@@ -125,7 +125,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\
             ["debounce-promise", "npm:3.1.2"],\
-            ["dompurify", "npm:2.5.6"],\
+            ["dompurify", "npm:3.2.4"],\
             ["downshift", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.1.7"],\
             ["easymde", "npm:2.16.1"],\
             ["eslint", "npm:8.11.0"],\
@@ -11382,10 +11382,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["dompurify", [\
-        ["npm:2.5.6", {\
-          "packageLocation": "./.yarn/cache/dompurify-npm-2.5.6-535512fe69-1d329fe799.zip/node_modules/dompurify/",\
+        ["npm:3.2.4", {\
+          "packageLocation": "./.yarn/cache/dompurify-npm-3.2.4-d8ea6c7c6a-7a299cbbfe.zip/node_modules/dompurify/",\
           "packageDependencies": [\
-            ["dompurify", "npm:2.5.6"]\
+            ["dompurify", "npm:3.2.4"],\
+            ["@types/trusted-types", "npm:2.0.7"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -21749,7 +21750,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\
             ["debounce-promise", "npm:3.1.2"],\
-            ["dompurify", "npm:2.5.6"],\
+            ["dompurify", "npm:3.2.4"],\
             ["downshift", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.1.7"],\
             ["easymde", "npm:2.16.1"],\
             ["eslint", "npm:8.11.0"],\
