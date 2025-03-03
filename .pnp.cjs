@@ -17281,10 +17281,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["nanoid", [\
-        ["npm:3.3.7", {\
-          "packageLocation": "./.yarn/cache/nanoid-npm-3.3.7-98824ba130-d36c427e53.zip/node_modules/nanoid/",\
+        ["npm:3.3.8", {\
+          "packageLocation": "./.yarn/cache/nanoid-npm-3.3.8-d22226208b-dfe0adbc0c.zip/node_modules/nanoid/",\
           "packageDependencies": [\
-            ["nanoid", "npm:3.3.7"]\
+            ["nanoid", "npm:3.3.8"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -18192,7 +18192,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/postcss-npm-8.4.47-2f4d4be1fa-f78440a9d8.zip/node_modules/postcss/",\
           "packageDependencies": [\
             ["postcss", "npm:8.4.47"],\
-            ["nanoid", "npm:3.3.7"],\
+            ["nanoid", "npm:3.3.8"],\
             ["picocolors", "npm:1.1.0"],\
             ["source-map-js", "npm:1.2.1"]\
           ],\
