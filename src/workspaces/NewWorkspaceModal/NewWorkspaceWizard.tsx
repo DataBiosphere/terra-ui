@@ -688,7 +688,7 @@ export const NewWorkspaceWizard = withDisplayName(
         <ButtonSecondary style={{ position: 'absolute', left: '1rem' }} onClick={onDismiss}>
           Cancel
         </ButtonSecondary>
-        <div style={{ display: 'flex', gap: '1rem', padding: '0 0 0 15rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', marginLeft: 'auto' }}>
           <ButtonSecondary
             style={{ padding: '0 1rem', marginLeft: '1rem', border: '1px solid', borderRadius: '5px' }}
             disabled={activeTab === 'basic' && errors}
