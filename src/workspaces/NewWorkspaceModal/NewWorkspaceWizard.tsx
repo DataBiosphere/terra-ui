@@ -596,7 +596,7 @@ export const NewWorkspaceWizard = withDisplayName(
                   checked={enhancedBucketLogging || groups.length > 0}
                   width={40}
                   height={20}
-                  isDisabled={!!requireEnhancedBucketLogging || groups.length > 0}
+                  disabled={!!requireEnhancedBucketLogging || groups.length > 0}
                 />
               </div>
             </div>
