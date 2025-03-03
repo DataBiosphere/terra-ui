@@ -113,7 +113,7 @@ describe('resolveRunningCromwellAppUrl', () => {
     const mockApps = [
       {
         ...appResponseCommonField,
-        appType: 'HAIL_BATCH',
+        appType: 'GALAXY',
         status: 'RUNNING',
         proxyUrls: {},
         auditInfo: {
