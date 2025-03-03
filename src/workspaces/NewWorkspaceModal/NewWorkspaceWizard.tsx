@@ -642,16 +642,21 @@ export const NewWorkspaceWizard = withDisplayName(
       if (activeTab === 'basic') {
         await create();
       } else if (activeTab === 'sharing') {
+        // TODO is there any data that needs to be included?
+        void Metrics().captureEvent(Events.workspaceCreateBasic);
         setActiveTab('basic');
       } else if (activeTab === 'security') {
+        void Metrics().captureEvent(Events.workspaceCreateSharing);
         setActiveTab('sharing');
       }
     };
 
     const handlePrimaryButtonClick = async () => {
       if (activeTab === 'basic') {
+        void Metrics().captureEvent(Events.workspaceCreateSharing);
         setActiveTab('sharing');
       } else if (activeTab === 'sharing') {
+        void Metrics().captureEvent(Events.workspaceCreateSecurity);
         setActiveTab('security');
       } else if (activeTab === 'security') {
         await create();
@@ -673,7 +678,7 @@ export const NewWorkspaceWizard = withDisplayName(
         <ButtonSecondary style={{ position: 'absolute', left: '1rem' }} onClick={onDismiss}>
           Cancel
         </ButtonSecondary>
-        <div style={{ display: 'flex', gap: '1rem', padding: '0 1rem', marginLeft: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', padding: '0 0 0 15rem' }}>
           <ButtonSecondary
             style={{ padding: '0 1rem', marginLeft: '1rem', border: '1px solid', borderRadius: '5px' }}
             disabled={activeTab === 'basic' && errors}
