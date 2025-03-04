@@ -17,7 +17,7 @@ import {
 } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
-import { allRegions, availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
+import { availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
@@ -30,8 +30,7 @@ import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
-import { reportErrorAndRethrow, withErrorReportingInModal } from 'src/libs/error';
+import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
@@ -126,7 +125,6 @@ export const NewWorkspaceModal = withDisplayName(
     const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
     const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
     const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
-    const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const [phiTracking, setPhiTracking] = useState<boolean | undefined>(undefined);
     const signal = useCancellation();
 
@@ -136,10 +134,6 @@ export const NewWorkspaceModal = withDisplayName(
         ...(cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : []),
         ...(requiredAuthDomain ? [requiredAuthDomain] : []),
       ]);
-
-    const loadAlphaRegionalityUser = reportErrorAndRethrow('Error loading regionality group membership')(async () => {
-      setIsAlphaRegionalityUser(await Groups(signal).group(getConfig().alphaRegionalityGroup).isMember());
-    });
 
     const create = async (): Promise<void> => {
       try {
@@ -382,7 +376,6 @@ export const NewWorkspaceModal = withDisplayName(
         setEnhancedBucketLogging(true);
       }
       loadData();
-      loadAlphaRegionalityUser();
     });
 
     // Render
@@ -585,7 +578,7 @@ export const NewWorkspaceModal = withDisplayName(
                           id={id}
                           value={bucketLocation}
                           onChange={(opt) => setBucketLocation(opt!.value)}
-                          options={isAlphaRegionalityUser ? allRegions : availableBucketRegions}
+                          options={availableBucketRegions}
                         />
                       </>
                     )}

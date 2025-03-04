@@ -21,7 +21,6 @@
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com",
   "workspaceManagerUrlRoot": "https://workspace.dsde-prod.broadinstitute.org",
-  "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-prod.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_prod",
