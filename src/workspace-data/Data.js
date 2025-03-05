@@ -1194,14 +1194,6 @@ export const WorkspaceData = _.flow(
                           },
                           ['Workspace Data']
                         ),
-                        div(
-                          // File Browser Banner
-                          { style: { padding: '1rem', margin: '0.75rem', backgroundColor: colors.dark(0.1), borderRadius: '0.5rem' } },
-                          [
-                            span({ style: { fontWeight: 'bold' } }, ['Looking for the Files folder?']),
-                            div(['Use the folder icon in the right side-bar to access the workspace Bucket directory.']),
-                          ]
-                        ),
                       ]
                     ),
                 ]),
