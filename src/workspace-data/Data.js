@@ -214,7 +214,7 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
         ),
     },
     [
-      !!children?.length &&
+      children &&
         div(
           {
             style: { display: 'flex', flexDirection: 'column', width: '100%' },
