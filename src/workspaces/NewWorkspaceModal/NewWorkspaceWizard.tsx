@@ -766,7 +766,9 @@ export const NewWorkspaceWizard = withDisplayName(
                   style={{ textTransform: 'none', width: '90%' }}
                   getHref={() => {}}
                   getOnClick={(currentTab) => {
-                    setActiveTab(currentTab);
+                    if (activeTab !== 'basic' || !errors) {
+                      setActiveTab(currentTab);
+                    }
                   }}
                 >
                   {null /* nothing to display at the end of the tab bar */}
