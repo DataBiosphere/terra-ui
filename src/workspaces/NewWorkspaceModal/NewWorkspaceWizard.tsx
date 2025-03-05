@@ -674,6 +674,16 @@ export const NewWorkspaceWizard = withDisplayName(
       }
     };
 
+    const getTooltip = () => {
+      if (activeTab === 'basic') {
+        if (errors) {
+          return Utils.summarizeErrors(errors);
+        }
+        return 'Allows you to quickly create workspace without any sharing or additional security options';
+      }
+      return undefined;
+    };
+
     const buttons = (
       <div
         style={{
@@ -693,18 +703,14 @@ export const NewWorkspaceWizard = withDisplayName(
           <ButtonSecondary
             style={{ padding: '0 1rem', marginLeft: '1rem', border: '1px solid', borderRadius: '5px' }}
             disabled={activeTab === 'basic' && errors}
-            tooltip={
-              activeTab === 'basic'
-                ? 'Allows you to quickly create workspace without any sharing or additional security options'
-                : undefined
-            } // TODO should i summarize errors if there are any?  And then not show the tooltip?
+            tooltip={getTooltip()}
             onClick={handleSecondaryButtonClick}
           >
             {Utils.cond([activeTab === 'basic', () => 'Quick create workspace'], () => 'Previous')}
           </ButtonSecondary>
           <ButtonPrimary
             style={{ padding: '0 1rem', marginLeft: '1rem' }}
-            disabled={activeTab === 'security' && errors}
+            disabled={errors}
             tooltip={activeTab === 'security' ? Utils.summarizeErrors(errors) : undefined}
             onClick={handlePrimaryButtonClick}
           >
@@ -760,7 +766,6 @@ export const NewWorkspaceWizard = withDisplayName(
                   style={{ textTransform: 'none', width: '90%' }}
                   getHref={() => {}}
                   getOnClick={(currentTab) => {
-                    // e.preventDefault();
                     setActiveTab(currentTab);
                   }}
                 >
