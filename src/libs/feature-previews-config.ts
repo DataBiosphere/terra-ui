@@ -1,6 +1,5 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
-export const HAIL_BATCH_AZURE_FEATURE_ID = 'hail-batch-azure';
 export const ENABLE_AZURE_PFB_IMPORT = 'enableAzurePfbImport';
 export const ENABLE_AZURE_TDR_IMPORT = 'enableAzureTdrImport';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
@@ -60,14 +59,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     groups: ['preview-jupyterlab-gcp'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (GCP)')}`,
     lastUpdated: '12/22/2022',
-  },
-  {
-    id: HAIL_BATCH_AZURE_FEATURE_ID,
-    title: 'Hail Batch App on Azure',
-    description: 'Enabling this feature will allow you to launch the Hail Batch app in Azure workspaces.',
-    groups: ['preview-hail-batch-azure'],
-    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on Hail Batch (Azure)')}`,
-    lastUpdated: '5/22/2023',
   },
   {
     id: ENABLE_AZURE_PFB_IMPORT,
