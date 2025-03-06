@@ -1,7 +1,7 @@
 import { InfoBox, Link } from '@terra-ui-packages/components';
 import { cond, formatUSD } from '@terra-ui-packages/core-utils';
 import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { div, dl, h } from 'react-hyperscript-helpers';
+import { br, div, dl, h, span } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { icon } from 'src/components/icons';
@@ -13,6 +13,7 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { formatBytes, newTabLinkProps } from 'src/libs/utils';
+import * as Utils from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
@@ -154,7 +155,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
         h(
           InfoRow,
           {
-            title: 'Estimated Storage Cost',
+            title: 'Estimated Bucket Cost',
             subtitle: cond(
               [!storageCost, () => 'Loading last updated...'],
               [
@@ -171,7 +172,23 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           [
             storageCost?.estimate || '$ ...',
             h(InfoBox, { style: { marginLeft: '1ch' }, side: 'top' }, [
-              'Based on list price. Does not include discounts.',
+              'Shows estimated cost of all objects in the bucket. Important considerations:',
+              h(br),
+              h(br),
+              '1. Only shows object storage costs. Operations charges and other storage-related charges are not included.',
+              h(br),
+              '2. Based on GCP list prices. Discounts are not included.',
+              h(br),
+              h(br),
+              span([
+                'For more accurate costs, set up ',
+                h(
+                  Link,
+                  { href: 'https://support.terra.bio/hc/en-us/articles/10026441196187', ...Utils.newTabLinkProps },
+                  ['spend reporting']
+                ),
+                ' to access reports for financial oversight and optimization of your cloud costs and resources.',
+              ]),
             ]),
           ]
         ),
