@@ -99,8 +99,7 @@ export function TabWizard({ activeTab, tabNames, displayNames = {}, getOnClick =
 
   return (
     <div style={{ ...Style.tabBar.container, borderBottom: 'none', flexDirection: 'column', paddingRight: 'none' }}>
-      <div
-        role='navigation'
+      <nav
         aria-label={props['aria-label']} // duplicate the menu's label on the navigation element
         aria-labelledby={props['aria-labelledby']}
         style={{ display: 'flex', flexGrow: 1, height: '100%' }}
@@ -112,7 +111,7 @@ export function TabWizard({ activeTab, tabNames, displayNames = {}, getOnClick =
         >
           {_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))}
         </HorizontalNavigation>
-      </div>
+      </nav>
       <div style={{ display: 'flex', flexGrow: 0, alignItems: 'center' }}>{children}</div>
       <div style={{ width: '100%', backgroundColor: '#e0e0e0', height: '4px', position: 'relative' }}>
         <div style={{ ...styles.tabWizard.progressBar, width: progressBarWidth }} />

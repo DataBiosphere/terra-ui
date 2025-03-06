@@ -113,7 +113,7 @@ export const NewWorkspaceWizard = withDisplayName(
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState<string>();
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
-    const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
+    const [sourceGCPWorkspaceRegion, setSourceGCPWorkspaceRegion] = useState<string>(defaultLocation);
     const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
     const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false);
     const [activeTab, setActiveTab] = useState<string>('basic');
@@ -228,7 +228,7 @@ export const NewWorkspaceWizard = withDisplayName(
             .then(({ location }) => {
               // For current phased regionality release, we only allow US workspace buckets.
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
-              setSourceGcpWorkspaceRegion(location);
+              setSourceGCPWorkspaceRegion(location);
             })
             .catch((_) => {
               // We cannot get the bucket location in a couple of scenarios:
@@ -307,48 +307,6 @@ export const NewWorkspaceWizard = withDisplayName(
     const endingNotice = renderNotice ? renderNotice({ selectedBillingProject }) : undefined;
 
     const renderPolicyAndWorkspaceInfo = () => {
-      // if (isAzureBillingProject() || (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace))) {
-      //   const workspacePoliciesProps: WorkspacePoliciesProps = {
-      //     workspace: cloneWorkspace,
-      //     billingProject: selectedBillingProject,
-      //     endingNotice: (
-      //       <div>
-      //         {endingNotice}
-      //         <div
-      //           style={{
-      //             display: 'grid',
-      //             gridTemplateColumns: 'auto auto',
-      //             fontWeight: 600,
-      //             paddingTop: endingNotice ? '1.0rem' : 0,
-      //           }}
-      //         >
-      //           <Icon icon='warning-standard' size={18} style={{ marginRight: '0.5rem', color: colors.warning() }} />
-      //           <div>
-      //             Creating a workspace may increase your infrastructure costs
-      //             <LinkWithPopout href='https://support.terra.bio/hc/en-us/articles/12029087819291'>
-      //               Learn more about cost and follow changes
-      //             </LinkWithPopout>
-      //             ,
-      //           </div>
-      //         </div>
-      //       </div>
-      //     ),
-      //   };
-      //   // Allow toggling PHI tracking if:
-      //   // 1. Creating a new workspace and the billing project supports PHI tracking.
-      //   // 2. Cloning a workspace without PHI tracking to a billing project that supports PHI tracking.
-      //   // Note: when cloning a workspace with PHI tracking already enabled, the policy is inherited and cannot be changed
-      //   if (
-      //     !!selectedBillingProject &&
-      //     supportsPhiTracking(selectedBillingProject) &&
-      //     (!cloneWorkspace || !hasPhiTrackingPolicy(cloneWorkspace))
-      //   ) {
-      //     workspacePoliciesProps.onTogglePhiTracking = (selected: boolean) => setPhiTracking(selected);
-      //     workspacePoliciesProps.togglePhiTrackingChecked = phiTracking;
-      //   }
-      //   return <WorkspacePolicies {...workspacePoliciesProps} />;
-      // }
-
       // If we display the Azure policy/workspace section, we render the optional notice within that block
       return endingNotice ? <div style={{ ...Style.elements.noticeContainer }}>{endingNotice}</div> : undefined;
     };
@@ -414,7 +372,7 @@ export const NewWorkspaceWizard = withDisplayName(
                     label: (
                       <TooltipTrigger content={invalidBillingAccount && invalidBillingAccountMsg} side='left'>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                          {cloudPlatform === 'GCP' && (
+                          {(cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') && ( // Leaving Azure in here so the icon displays
                             <CloudProviderIcon
                               key={projectName}
                               cloudProvider={cloudPlatform}
@@ -748,7 +706,7 @@ export const NewWorkspaceWizard = withDisplayName(
               </ButtonPrimary>
             }
             width={620}
-            styles={{ modal: { height: 650 } }}
+            styles={{ modal: { height: 675 } }}
           >
             {creating ? (
               <CreatingWorkspaceMessage />
