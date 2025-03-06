@@ -296,15 +296,14 @@ describe('NewWorkspaceWizard', () => {
         const securityTab = screen.getByText('3. Additional Security Options');
         await user.click(securityTab);
         // Assert
-        // getByText throws an error if the element is not found:
-        const checkbox = screen.getByRole('switch');
-        expect(checkbox).not.toHaveAttribute('disabled');
-        expect(checkbox).not.toBeChecked();
+        const secureMonitoringSwitch = screen.getByRole('switch');
+        expect(secureMonitoringSwitch).not.toHaveAttribute('disabled');
+        expect(secureMonitoringSwitch).not.toBeChecked();
 
         // Act
         if (selectCheckbox) {
-          await user.click(checkbox);
-          expect(checkbox).toBeChecked();
+          await user.click(secureMonitoringSwitch);
+          expect(secureMonitoringSwitch).toBeChecked();
         }
 
         const createWorkspaceButton = screen.getByRole('button', { name: 'Create workspace' });
@@ -341,6 +340,10 @@ describe('NewWorkspaceWizard', () => {
       });
 
       await selectBillingProject(user, 'Google Billing Project');
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
 
       const securityTab = screen.getByText('3. Additional Security Options');
       await user.click(securityTab);
@@ -352,9 +355,9 @@ describe('NewWorkspaceWizard', () => {
       await user.click(authDomain);
 
       // Assert
-      const checkbox = screen.getByRole('switch');
-      expect(checkbox).toHaveProperty('checked', true);
-      expect(checkbox).toHaveProperty('disabled', true);
+      const secureMonitoringSwitch = screen.getByRole('switch');
+      expect(secureMonitoringSwitch).toHaveProperty('checked', true);
+      expect(secureMonitoringSwitch).toHaveProperty('disabled', true);
     });
 
     it('does not let the user uncheck the option if cloning a GCP protected data workspace', async () => {
@@ -382,9 +385,9 @@ describe('NewWorkspaceWizard', () => {
       await user.click(securityTab);
 
       // Assert
-      const checkbox = screen.getByRole('switch');
-      expect(checkbox).toHaveProperty('checked', true);
-      expect(checkbox).toHaveProperty('disabled', true);
+      const secureMonitoringSwitch = screen.getByRole('switch');
+      expect(secureMonitoringSwitch).toHaveProperty('checked', true);
+      expect(secureMonitoringSwitch).toHaveProperty('disabled', true);
     });
 
     it('checks and disables the option if an auth domain is chosen', async () => {
@@ -402,6 +405,10 @@ describe('NewWorkspaceWizard', () => {
       });
 
       await selectBillingProject(user, 'Google Billing Project');
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
 
       const securityTab = screen.getByText('3. Additional Security Options');
       await user.click(securityTab);
@@ -413,9 +420,9 @@ describe('NewWorkspaceWizard', () => {
       await user.click(authDomain);
 
       // Assert
-      const checkbox = screen.getByRole('switch');
-      expect(checkbox).toHaveProperty('checked', true);
-      expect(checkbox).toHaveProperty('disabled', true);
+      const secureMonitoringSwitch = screen.getByRole('switch');
+      expect(secureMonitoringSwitch).toHaveProperty('checked', true);
+      expect(secureMonitoringSwitch).toHaveProperty('disabled', true);
     });
   });
 
