@@ -63,9 +63,9 @@ export const RenameTableModal = ({
       message: 'Table name is required',
     },
     format: {
-      pattern: '^(?!sys_)[a-z0-9_.-]*',
+      pattern: '^[a-z0-9_-]*',
       flags: 'i',
-      message: "Table name may only contain alphanumeric characters, underscores, dashes, and periods and cannot start with 'sys_'.",
+      message: 'Table name may only contain alphanumeric characters, underscores, and dashes.',
     },
   });
 
