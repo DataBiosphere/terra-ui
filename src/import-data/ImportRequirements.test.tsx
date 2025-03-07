@@ -10,10 +10,11 @@ import { ImportRequest } from './import-types';
 import { ImportRequirements } from './ImportRequirements';
 
 describe('ImportRequirements', () => {
-  it.each([{ importRequest: gcpTdrSnapshotImportRequest, expectedCloudPlatform: 'Google Cloud Platform' }] as {
-    importRequest: ImportRequest;
-    expectedCloudPlatform: string;
-  }[])('should show the required cloud platform if any', ({ importRequest, expectedCloudPlatform }) => {
+  it('should show the required cloud platform if any', () => {
+    // Arrange
+    const importRequest = gcpTdrSnapshotImportRequest;
+    const expectedCloudPlatform = 'Google Cloud Platform';
+
     // Act
     render(<ImportRequirements importRequest={importRequest} />);
 
