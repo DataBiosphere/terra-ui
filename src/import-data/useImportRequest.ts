@@ -2,8 +2,6 @@ import { delay } from '@terra-ui-packages/core-utils';
 import { useEffect, useState } from 'react';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources } from 'src/libs/ajax/SamResources';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 
 import {
@@ -111,10 +109,6 @@ const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Prom
     throw new Error('Unable to load snapshot.');
   }
 
-  if (snapshot.cloudPlatform === 'azure' && !isFeaturePreviewEnabled(ENABLE_AZURE_TDR_IMPORT)) {
-    throw new Error('Importing Azure snapshots is not supported.');
-  }
-
   return {
     type: 'tdr-snapshot-export',
     manifestUrl,
@@ -138,10 +132,6 @@ const getTDRSnapshotReferenceImportRequest = async (
     ]);
   } catch (err: unknown) {
     throw new Error('Unable to load snapshot.');
-  }
-
-  if (snapshot.cloudPlatform === 'azure') {
-    throw new Error('Importing by reference is not supported for Azure snapshots.');
   }
 
   return {
