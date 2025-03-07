@@ -45,12 +45,12 @@ const styles = {
 
 export interface Tab {
   name: string;
-  disabled: boolean;
+  disabled: () => boolean;
   displayName: string;
 }
 
 /**
- * Creates the primary tab bar for workspaces and workflows.
+ * Creates the tab bar for workspace creation.
  * Semantically, this is actually a menu of links rather than true tabs.
  *
  * @param activeTab The key of the active tab
@@ -63,6 +63,7 @@ export function TabWizard({ activeTab, tabs, getOnClick = _.noop, children, ...p
   const tabNames = _.map('name', tabs);
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab;
+    const isDisabled = currentTab.disabled(); // Call the lambda function to determine if the tab is disabled
 
     return (
       <span
@@ -82,8 +83,8 @@ export function TabWizard({ activeTab, tabs, getOnClick = _.noop, children, ...p
       >
         <Clickable
           style={{ ...Style.tabBar.tab, ...(selected ? { fontWeight: 'bold' } : {}) }}
-          hover={currentTab.disabled || selected ? {} : { backgroundColor: terraSpecial(0.2) }}
-          onClick={() => (!currentTab.disabled ? getOnClick(currentTab) : null)}
+          hover={isDisabled || selected ? {} : { backgroundColor: terraSpecial(0.2) }}
+          onClick={() => (!isDisabled ? getOnClick(currentTab) : null)}
         >
           <div
             style={{
