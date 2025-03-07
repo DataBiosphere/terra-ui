@@ -268,7 +268,7 @@ describe('NewWorkspaceModal', () => {
     // getByText throws an error if the element is not found:
     screen.getByText('Google Billing Project');
     // queryByText returns null if the element is not found:
-    expect(screen.queryByText('Importing directly into new Gcp workspaces is not currently supported.')).toBeNull();
+    expect(screen.queryByText('Importing directly into new Azure workspaces is not currently supported.')).toBeNull();
   });
 
   describe('handles the requireEnhancedBucketLogging option', () => {
