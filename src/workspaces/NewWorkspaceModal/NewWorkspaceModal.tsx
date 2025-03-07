@@ -1,10 +1,8 @@
 import { Icon, Modal, TooltipTrigger } from '@terra-ui-packages/components';
-import { delay } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
-import { AzureBillingProject, BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
-import { supportsPhiTracking } from 'src/billing-core/utils';
+import { BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import {
   ButtonPrimary,
@@ -18,17 +16,11 @@ import {
 import { InfoBox } from 'src/components/InfoBox';
 import { TextArea, ValidatedInput } from 'src/components/input';
 import { availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
-import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { Billing } from 'src/libs/ajax/billing/Billing';
-import { resolveWdsApp } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { CurrentUserGroupMembership, Groups } from 'src/libs/ajax/Groups';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
-import { getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
@@ -41,19 +33,13 @@ import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgress
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
 import {
   cloudProviderLabels,
-  hasPhiTrackingPolicy,
-  isAzureWorkspace,
   isGoogleWorkspace,
   isProtectedWorkspace,
-  phiTrackingPolicy,
-  protectedDataIcon,
   protectedDataLabel,
   protectedDataMessage,
   WorkspaceInfo,
   WorkspaceWrapper,
 } from 'src/workspaces/utils';
-import { LinkWithPopout } from 'src/workspaces/WorkspacePolicies/LinkWithPopout';
-import { WorkspacePolicies, WorkspacePoliciesProps } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
 const constraints = {
@@ -105,12 +91,9 @@ export const NewWorkspaceModal = withDisplayName(
     requireEnhancedBucketLogging,
     title,
     buttonText,
-    waitForServices,
-    workflowImport,
   }: NewWorkspaceModalProps) => {
     // State
     const [billingProjects, setBillingProjects] = useState<BillingProject[]>();
-    const [azureBillingProjectsExist, setAzureBillingProjectsExist] = useState(false);
     const [allGroups, setAllGroups] = useState<CurrentUserGroupMembership[]>();
     const [name, setName] = useState(cloneWorkspace ? `${cloneWorkspace.workspace.name} copy` : '');
     const [namespace, setNamespace] = useState(cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined);
@@ -122,10 +105,8 @@ export const NewWorkspaceModal = withDisplayName(
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState<string>();
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
-    const [sourceAzureWorkspaceRegion, setSourceAzureWorkspaceRegion] = useState<string>('');
     const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
     const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
-    const [phiTracking, setPhiTracking] = useState<boolean | undefined>(undefined);
     const signal = useCancellation();
 
     // Helpers
@@ -148,7 +129,6 @@ export const NewWorkspaceModal = withDisplayName(
           copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
           ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation }),
           enhancedBucketLogging,
-          ...(phiTracking && { policies: [phiTrackingPolicy] }),
         };
 
         const createdWorkspace = await Utils.cond(
@@ -165,12 +145,8 @@ export const NewWorkspaceModal = withDisplayName(
                   featuredList
                 ),
                 ...extractCrossWorkspaceDetails(cloneWorkspace!, { workspace }),
-                fromWorkspaceRegion: isAzureWorkspace(cloneWorkspace!)
-                  ? sourceAzureWorkspaceRegion
-                  : sourceGCPWorkspaceRegion,
-                toWorkspaceRegion: isAzureBillingProject(selectedBillingProject)
-                  ? selectedBillingProject.region
-                  : bucketLocation,
+                fromWorkspaceRegion: sourceGCPWorkspaceRegion,
+                toWorkspaceRegion: bucketLocation,
               };
               void Metrics().captureEvent(Events.workspaceClone, metricsData);
               return workspace;
@@ -180,56 +156,13 @@ export const NewWorkspaceModal = withDisplayName(
             const workspace = await Workspaces().create(body);
             const metricsData = {
               ...extractWorkspaceDetails(workspace),
-              region: isAzureBillingProject(selectedBillingProject) ? selectedBillingProject.region : bucketLocation,
+              region: bucketLocation,
             };
             void Metrics().captureEvent(Events.workspaceCreate, metricsData);
             return workspace;
           }
         );
 
-        if (getProjectCloudPlatform() === 'AZURE' && waitForServices?.wds) {
-          // WDS takes some time to start up, so there's no need to immediately start checking if it's running.
-          await delay(30000);
-
-          // Wait for the WDS app to be running.
-          const wds = await Utils.poll(
-            async () => {
-              const workspaceApps: ListAppItem[] = await Apps().listAppsV2(createdWorkspace.workspaceId);
-              const wdsApp = resolveWdsApp(workspaceApps);
-              if (wdsApp?.status === 'RUNNING') {
-                return { shouldContinue: false, result: wdsApp };
-              }
-              if (wdsApp?.status === 'ERROR') {
-                throw new Error('Failed to provision data services for new workspace.');
-              }
-              return { shouldContinue: true, result: null };
-            },
-            15000,
-            true
-          );
-
-          // Wait for the default WDS collection to exist.
-          const proxyUrl = wds!.proxyUrls.wds;
-          await Utils.poll(
-            async () => {
-              const collections: string[] = await WorkspaceData().listCollections(
-                proxyUrl,
-                createdWorkspace.workspaceId
-              );
-
-              // Explicitly check that a collection exists with the same ID as this workspace.
-              // It is by convention only that the workspace's ID is the same as its collection ID.
-              // We have to perform this check as long as this component relies on that convention,
-              // because the API itself isn't guaranteed to return a collection with the same ID as the workspace.
-              if (collections.includes(createdWorkspace.workspaceId)) {
-                return { shouldContinue: false, result: true };
-              }
-              return { shouldContinue: true, result: false };
-            },
-            5000,
-            true
-          );
-        }
         onSuccess(createdWorkspace);
       } catch (error: unknown) {
         const errorMessage = await (async () => {
@@ -259,13 +192,6 @@ export const NewWorkspaceModal = withDisplayName(
         Billing(signal)
           .listProjects()
           .then(_.filter({ status: 'Ready' }))
-          .then(
-            _.forEach((project: BillingProject) => {
-              if (isAzureBillingProject(project)) {
-                setAzureBillingProjectsExist(false);
-              }
-            })
-          )
           .then(_.filter((project: BillingProject) => isBillingProjectApplicable(project)))
           .then((projects: BillingProject[]) => {
             setBillingProjects(projects);
@@ -298,24 +224,8 @@ export const NewWorkspaceModal = withDisplayName(
               setSourceGCPWorkspaceRegionError(true);
               console.log('Error getting the source workspace bucket location'); // eslint-disable-line no-console
             }),
-        !!cloneWorkspace &&
-          isAzureWorkspace(cloneWorkspace) &&
-          AzureStorage(signal)
-            .containerInfo(cloneWorkspace.workspace.workspaceId)
-            .then(({ region }) => {
-              setSourceAzureWorkspaceRegion(region);
-            })
-            .catch((error) => {
-              // We don't want to block the user from cloning a workspace if we can't get the region.
-              // There is a known transitory state when workspaces are being cloned during which we cannot
-              // get the storage container region.
-              console.log(`Error getting Azure storage container region: ${error}`); // eslint-disable-line no-console
-            }),
       ])
     );
-
-    const isAzureBillingProject = (project?: BillingProject): project is AzureBillingProject =>
-      isCloudProviderBillingProject(project, 'AZURE');
 
     const isGoogleBillingProject = (project?: BillingProject): project is GCPBillingProject =>
       isCloudProviderBillingProject(project, 'GCP');
@@ -381,49 +291,6 @@ export const NewWorkspaceModal = withDisplayName(
     const endingNotice = renderNotice ? renderNotice({ selectedBillingProject }) : undefined;
 
     const renderPolicyAndWorkspaceInfo = () => {
-      if (isAzureBillingProject() || (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace))) {
-        const workspacePoliciesProps: WorkspacePoliciesProps = {
-          workspace: cloneWorkspace,
-          billingProject: selectedBillingProject,
-          endingNotice: (
-            <div>
-              {endingNotice}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'auto auto',
-                  fontWeight: 600,
-                  paddingTop: endingNotice ? '1.0rem' : 0,
-                }}
-              >
-                <Icon icon='warning-standard' size={18} style={{ marginRight: '0.5rem', color: colors.warning() }} />
-                <div>
-                  Creating a workspace may increase your infrastructure costs
-                  <LinkWithPopout href='https://support.terra.bio/hc/en-us/articles/12029087819291'>
-                    Learn more about cost and follow changes
-                  </LinkWithPopout>
-                  ,
-                </div>
-              </div>
-            </div>
-          ),
-        };
-        // Allow toggling PHI tracking if:
-        // 1. Creating a new workspace and the billing project supports PHI tracking.
-        // 2. Cloning a workspace without PHI tracking to a billing project that supports PHI tracking.
-        // Note: when cloning a workspace with PHI tracking already enabled, the policy is inherited and cannot be changed
-        if (
-          !!selectedBillingProject &&
-          supportsPhiTracking(selectedBillingProject) &&
-          (!cloneWorkspace || !hasPhiTrackingPolicy(cloneWorkspace))
-        ) {
-          workspacePoliciesProps.onTogglePhiTracking = (selected: boolean) => setPhiTracking(selected);
-          workspacePoliciesProps.togglePhiTrackingChecked = phiTracking;
-        }
-        return <WorkspacePolicies {...workspacePoliciesProps} />;
-      }
-
-      // If we display the Azure policy/workspace section, we render the optional notice within that block
       return endingNotice ? <div style={{ ...Style.elements.noticeContainer }}>{endingNotice}</div> : undefined;
     };
 
@@ -505,7 +372,7 @@ export const NewWorkspaceModal = withDisplayName(
                             label: (
                               <TooltipTrigger content={invalidBillingAccount && invalidBillingAccountMsg} side='left'>
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                                  {(cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') && (
+                                  {cloudPlatform === 'GCP' && (
                                     <CloudProviderIcon
                                       key={projectName}
                                       cloudProvider={cloudPlatform}
@@ -513,20 +380,6 @@ export const NewWorkspaceModal = withDisplayName(
                                     />
                                   )}
                                   {projectName}
-                                  {isAzureBillingProject(project) && project.region && (
-                                    <div key={`region-${projectName}`} style={{ marginLeft: '0.25rem' }}>
-                                      {`(${getRegionLabel(project.region)})`}
-                                    </div>
-                                  )}
-                                  {isAzureBillingProject(project) && project.protectedData && (
-                                    <Icon
-                                      icon={protectedDataIcon}
-                                      key={`protected-${projectName}`}
-                                      size={18}
-                                      style={{ marginLeft: '0.5rem' }}
-                                      aria-label={protectedDataLabel}
-                                    />
-                                  )}
                                 </div>
                               </TooltipTrigger>
                             ),
@@ -572,8 +425,6 @@ export const NewWorkspaceModal = withDisplayName(
                 {!!selectedBillingProject && !!cloneWorkspace && (
                   <CloneEgressWarning
                     sourceWorkspace={cloneWorkspace}
-                    sourceAzureWorkspaceRegion={sourceAzureWorkspaceRegion}
-                    selectedBillingProject={selectedBillingProject}
                     selectedGcpBucketLocation={bucketLocation}
                     sourceGCPWorkspaceRegion={sourceGCPWorkspaceRegion}
                     sourceGCPWorkspaceRegionError={sourceGCPWorkspaceRegionError}
@@ -670,17 +521,6 @@ export const NewWorkspaceModal = withDisplayName(
                   </IdContainer>
                 )}
                 {renderPolicyAndWorkspaceInfo()}
-                {workflowImport && azureBillingProjectsExist && (
-                  <div style={{ padding: '1.0rem', display: 'flex' }}>
-                    <Icon icon='info-circle' size={16} style={{ marginRight: '0.5rem', color: colors.accent() }} />,
-                    <div>
-                      Importing directly into new Azure workspaces is not currently supported. To create a new workspace
-                      with an Azure billing project, visit the main
-                      <Link href={Nav.getLink('workspaces')}>Workspaces</Link>
-                      page.
-                    </div>
-                  </div>
-                )}
                 {createError && <div style={{ marginTop: '1rem', color: colors.danger() }}>{createError}</div>}
               </>
             )}
