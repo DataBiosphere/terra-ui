@@ -134,6 +134,10 @@ const getTDRSnapshotReferenceImportRequest = async (
     throw new Error('Unable to load snapshot.');
   }
 
+  if (snapshot.cloudPlatform !== 'gcp') {
+    throw new Error('Importing by reference is not supported for non-gcp snapshots.');
+  }
+
   return {
     type: 'tdr-snapshot-reference',
     snapshot,
