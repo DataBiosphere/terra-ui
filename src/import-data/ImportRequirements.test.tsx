@@ -3,7 +3,6 @@ import React from 'react';
 
 import {
   anvilPfbImportRequests,
-  azureTdrSnapshotImportRequest,
   gcpTdrSnapshotImportRequest,
   protectedGcpTdrSnapshotImportRequest,
 } from './__fixtures__/import-request-fixtures';
@@ -11,19 +10,16 @@ import { ImportRequest } from './import-types';
 import { ImportRequirements } from './ImportRequirements';
 
 describe('ImportRequirements', () => {
-  it.each([
-    { importRequest: azureTdrSnapshotImportRequest, expectedCloudPlatform: 'Microsoft Azure' },
-    { importRequest: gcpTdrSnapshotImportRequest, expectedCloudPlatform: 'Google Cloud Platform' },
-  ] as { importRequest: ImportRequest; expectedCloudPlatform: string }[])(
-    'should show the required cloud platform if any',
-    ({ importRequest, expectedCloudPlatform }) => {
-      // Act
-      render(<ImportRequirements importRequest={importRequest} />);
+  it.each([{ importRequest: gcpTdrSnapshotImportRequest, expectedCloudPlatform: 'Google Cloud Platform' }] as {
+    importRequest: ImportRequest;
+    expectedCloudPlatform: string;
+  }[])('should show the required cloud platform if any', ({ importRequest, expectedCloudPlatform }) => {
+    // Act
+    render(<ImportRequirements importRequest={importRequest} />);
 
-      // Assert
-      screen.getByText(`Requires a ${expectedCloudPlatform} destination workspace.`);
-    }
-  );
+    // Assert
+    screen.getByText(`Requires a ${expectedCloudPlatform} destination workspace.`);
+  });
 
   it.each([
     { importRequest: protectedGcpTdrSnapshotImportRequest, requirementExpected: true },
@@ -44,9 +40,9 @@ describe('ImportRequirements', () => {
   );
 
   it.each([
-    { importRequest: azureTdrSnapshotImportRequest, requirementExpected: false },
+    { importRequest: gcpTdrSnapshotImportRequest, requirementExpected: false },
     {
-      importRequest: { ...azureTdrSnapshotImportRequest, snapshotAccessControls: ['example-group'] },
+      importRequest: { ...gcpTdrSnapshotImportRequest, snapshotAccessControls: ['example-group'] },
       requirementExpected: true,
     },
     { importRequest: anvilPfbImportRequests[0], requirementExpected: true },
