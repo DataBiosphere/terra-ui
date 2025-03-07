@@ -372,7 +372,7 @@ export const NewWorkspaceWizard = withDisplayName(
                     label: (
                       <TooltipTrigger content={invalidBillingAccount && invalidBillingAccountMsg} side='left'>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                          {(cloudPlatform === 'GCP' || cloudPlatform === 'AZURE') && ( // Leaving Azure in here so the icon displays
+                          {cloudPlatform === 'GCP' && (
                             <CloudProviderIcon
                               key={projectName}
                               cloudProvider={cloudPlatform}
@@ -386,7 +386,7 @@ export const NewWorkspaceWizard = withDisplayName(
                     value: projectName,
                     isDisabled: invalidBillingAccount,
                   };
-                }, _.sortBy('projectName', billingProjects))}
+                }, _.sortBy('projectName', _.filter({ cloudPlatform: 'GCP' }, billingProjects)))}
               />
             </>
           )}
@@ -606,31 +606,56 @@ export const NewWorkspaceWizard = withDisplayName(
       </div>
     );
 
-    // TODO can i do this prettier with Utils.cond?
-    const handleSecondaryButtonClick = async () => {
-      if (activeTab === 'basic') {
-        await create();
-      } else if (activeTab === 'sharing') {
-        // TODO is there any data that needs to be included?
-        void Metrics().captureEvent(Events.workspaceCreateBasic);
-        setActiveTab('basic');
-      } else if (activeTab === 'security') {
-        void Metrics().captureEvent(Events.workspaceCreateSharing);
-        setActiveTab('sharing');
-      }
-    };
+    const handleSecondaryButtonClick = async () =>
+      Utils.switchCase(
+        activeTab,
+        ['basic', async () => await create()],
+        [
+          'sharing',
+          async () => {
+            // TODO is there any data that needs to be included?
+            void Metrics().captureEvent(Events.workspaceCreateBasic);
+            setActiveTab('basic');
+            return Promise.resolve();
+          },
+        ],
+        [
+          'security',
+          async () => {
+            void Metrics().captureEvent(Events.workspaceCreateSharing);
+            setActiveTab('sharing');
+            return Promise.resolve();
+          },
+        ]
+      );
 
-    const handlePrimaryButtonClick = async () => {
-      if (activeTab === 'basic') {
-        void Metrics().captureEvent(Events.workspaceCreateSharing);
-        setActiveTab('sharing');
-      } else if (activeTab === 'sharing') {
-        void Metrics().captureEvent(Events.workspaceCreateSecurity);
-        setActiveTab('security');
-      } else if (activeTab === 'security') {
-        await create();
-      }
-    };
+    const handlePrimaryButtonClick = async () =>
+      Utils.switchCase(
+        activeTab,
+        [
+          'basic',
+          async () => {
+            void Metrics().captureEvent(Events.workspaceCreateSharing);
+            setActiveTab('sharing');
+            return Promise.resolve();
+          },
+        ],
+        [
+          'sharing',
+          async () => {
+            // TODO is there any data that needs to be included?
+            void Metrics().captureEvent(Events.workspaceCreateSecurity);
+            setActiveTab('security');
+            return Promise.resolve();
+          },
+        ],
+        [
+          'security',
+          async () => {
+            await create();
+          },
+        ]
+      );
 
     const getTooltip = () => {
       if (activeTab === 'basic') {
@@ -715,17 +740,19 @@ export const NewWorkspaceWizard = withDisplayName(
                 <TabWizard
                   aria-label='create workspace wizard'
                   activeTab={activeTab}
-                  tabNames={['basic', 'sharing', 'security']}
-                  tabsDisabled={[false, activeTab === 'basic' && !!errors, activeTab === 'basic' && !!errors]}
-                  displayNames={{
-                    basic: '1. Basic Information and Billing',
-                    sharing: '2. Sharing',
-                    security: '3. Additional Security Options',
-                  }}
+                  tabs={[
+                    { name: 'basic', displayName: '1. Basic Information and Billing', disabled: false },
+                    { name: 'sharing', displayName: '2. Sharing', disabled: activeTab === 'basic' && !!errors },
+                    {
+                      name: 'security',
+                      displayName: '3. Additional Security Options',
+                      disabled: activeTab === 'basic' && !!errors,
+                    },
+                  ]}
                   style={{ textTransform: 'none', width: '90%' }}
                   getHref={() => {}}
                   getOnClick={(currentTab) => {
-                    setActiveTab(currentTab);
+                    setActiveTab(currentTab.name);
                   }}
                 >
                   {null /* nothing to display at the end of the tab bar */}

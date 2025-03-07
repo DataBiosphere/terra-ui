@@ -1,5 +1,4 @@
 import _ from 'lodash/fp';
-import PropTypes from 'prop-types';
 import React from 'react';
 import { Clickable } from 'src/components/common';
 import { HorizontalNavigation } from 'src/components/keyboard-nav';
@@ -44,36 +43,32 @@ const styles = {
   },
 };
 
+export interface Tab {
+  name: string;
+  disabled: boolean;
+  displayName: string;
+}
+
 /**
  * Creates the primary tab bar for workspaces and workflows.
  * Semantically, this is actually a menu of links rather than true tabs.
  *
  * @param activeTab The key of the active tab
- * @param tabNames An array of keys for each tab
- * @param displayNames An optional mapping of display names for each tab (otherwise the keys will be displayed)
+ * @param tabs An array of Tabs
  * @param getOnClick An optional click handler function, given the current tab
- * @param aria-label The ARIA label for the menu, which is required for accessibility
- * @param tabProps Optionally, properties to add to each tab
  * @param children Children, which will be appended to the end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
-export function TabWizard({
-  activeTab,
-  tabNames,
-  tabsDisabled = [false, false, false],
-  displayNames = {},
-  getOnClick = _.noop,
-  children,
-  ...props
-}) {
+export function TabWizard({ activeTab, tabs, getOnClick = _.noop, children, ...props }) {
+  const tabNames = _.map('name', tabs);
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab;
 
     return (
       <span
-        key={currentTab}
+        key={currentTab.name}
         role='menuitem'
-        aria-setsize={tabNames.length}
+        aria-setsize={tabs.length}
         aria-posinset={i + 1} // The first tab is 1
         aria-current={selected ? 'location' : undefined}
         style={{
@@ -87,8 +82,8 @@ export function TabWizard({
       >
         <Clickable
           style={{ ...Style.tabBar.tab, ...(selected ? { fontWeight: 'bold' } : {}) }}
-          hover={tabsDisabled[i] || selected ? {} : { backgroundColor: terraSpecial(0.2) }}
-          onClick={() => (!tabsDisabled[i] ? getOnClick(currentTab) : null)}
+          hover={currentTab.disabled || selected ? {} : { backgroundColor: terraSpecial(0.2) }}
+          onClick={() => (!currentTab.disabled ? getOnClick(currentTab) : null)}
         >
           <div
             style={{
@@ -96,14 +91,14 @@ export function TabWizard({
               marginBottom: selected ? -Style.tabBar.active.borderBottomWidth : undefined,
             }}
           >
-            {displayNames[currentTab] || currentTab}
+            {currentTab.displayName || currentTab}
           </div>
         </Clickable>
       </span>
     );
   };
 
-  const progressBarWidth = `${((tabNames.indexOf(activeTab) + 1) / tabNames.length) * 100}%`;
+  const progressBarWidth = `${((tabNames.indexOf(activeTab) + 1) / tabs.length) * 100}%`;
 
   return (
     <div style={{ ...Style.tabBar.container, borderBottom: 'none', flexDirection: 'column', paddingRight: 'none' }}>
@@ -117,7 +112,7 @@ export function TabWizard({
           aria-orientation='horizontal'
           style={{ display: 'flex', flexDirection: 'row', textTransform: 'none' }}
         >
-          {_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))}
+          {_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabs))}
         </HorizontalNavigation>
       </nav>
       <div style={{ display: 'flex', flexGrow: 0, alignItems: 'center' }}>{children}</div>
@@ -127,11 +122,13 @@ export function TabWizard({
     </div>
   );
 }
-TabWizard.propTypes = {
-  activeTab: PropTypes.string,
-  tabNames: PropTypes.arrayOf(PropTypes.string).isRequired,
-  displayNames: PropTypes.object,
-  getOnClick: PropTypes.func,
-  tabProps: PropTypes.object,
-  id: PropTypes.string,
-};
+
+export interface TabWizardProps {
+  activeTab: Tab;
+  tabs: Tab[];
+  getOnClick: () => void;
+  tabProps: {
+    [key: string]: any;
+  };
+  id: string;
+}
