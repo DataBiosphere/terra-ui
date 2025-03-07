@@ -255,6 +255,9 @@ export const NewWorkspaceModal = withDisplayName(
       if (!isGoogleBillingProject(project)) {
         return false;
       }
+      if (!!cloneWorkspace && !isGoogleWorkspace(cloneWorkspace)) {
+        return false;
+      }
       if (!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace)) {
         return isGoogleBillingProject(project);
       }
