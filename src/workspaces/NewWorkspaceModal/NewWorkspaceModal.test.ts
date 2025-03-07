@@ -20,7 +20,11 @@ import {
 } from 'src/libs/ajax/workspaces/Workspaces';
 import Events from 'src/libs/events';
 import { goToPath } from 'src/libs/nav';
-import { gcpBillingProject } from 'src/testing/billing-project-fixtures';
+import {
+  azureBillingProject,
+  azureProtectedDataBillingProject,
+  gcpBillingProject,
+} from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import {
   defaultAzureWorkspace,
@@ -321,6 +325,45 @@ describe('NewWorkspaceModal', () => {
         expect(await getAvailableBillingProjects(user)).toEqual(expectedBillingProjects);
       }
     );
+  });
+
+  describe('filters billing projects when cloning a workspace ', () => {
+    it('Hides Azure billing projects when cloning a GCP workspace', async () => {
+      const user = userEvent.setup();
+      setup();
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: defaultGoogleWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      // Assert
+      expect(await getAvailableBillingProjects(user)).toEqual(['Google Billing Project']);
+    });
+
+    it('Hides All billing projects when cloning an Azure workspace', async () => {
+      setup({ billingProjects: [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject] });
+
+      // Act
+      await act(async () => {
+        render(
+          h(NewWorkspaceModal, {
+            cloneWorkspace: defaultAzureWorkspace,
+            onDismiss: () => {},
+            onSuccess: () => {},
+          })
+        );
+      });
+
+      // Assert
+      screen.getByText('You do not have a billing project that is able to clone this workspace.');
+    });
   });
 
   describe('decides when to show a policy section ', () => {
