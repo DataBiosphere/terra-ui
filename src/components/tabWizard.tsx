@@ -57,7 +57,15 @@ const styles = {
  * @param children Children, which will be appended to the end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
-export function TabWizard({ activeTab, tabNames, displayNames = {}, getOnClick = _.noop, children, ...props }) {
+export function TabWizard({
+  activeTab,
+  tabNames,
+  tabsDisabled = [false, false, false],
+  displayNames = {},
+  getOnClick = _.noop,
+  children,
+  ...props
+}) {
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab;
 
@@ -79,8 +87,8 @@ export function TabWizard({ activeTab, tabNames, displayNames = {}, getOnClick =
       >
         <Clickable
           style={{ ...Style.tabBar.tab, ...(selected ? { fontWeight: 'bold' } : {}) }}
-          hover={selected ? {} : { backgroundColor: terraSpecial(0.2) }}
-          onClick={() => getOnClick(currentTab)}
+          hover={tabsDisabled[i] || selected ? {} : { backgroundColor: terraSpecial(0.2) }}
+          onClick={() => (!tabsDisabled[i] ? getOnClick(currentTab) : null)}
         >
           <div
             style={{

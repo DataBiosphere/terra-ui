@@ -29,7 +29,6 @@ import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import NewWorkspaceWizard from './NewWorkspaceWizard';
 
-// jest.mock('src/libs/ajax/AzureStorage');
 jest.mock('src/libs/ajax/billing/Billing');
 jest.mock('src/libs/ajax/firecloud/FirecloudBucket');
 jest.mock('src/libs/ajax/Groups');
@@ -56,7 +55,6 @@ interface SetupOptions {
 interface SetupResult {
   captureEvent: jest.MockedFunction<MetricsContract['captureEvent']>;
   checkBucketLocation: jest.MockedFunction<WorkspaceContract['checkBucketLocation']>;
-  // containerInfo: jest.MockedFunction<AzureStorageContract['containerInfo']>;
   cloneWorkspace: jest.MockedFunction<WorkspaceV2Contract['clone']>;
   createWorkspace: jest.MockedFunction<WorkspacesAjaxContract['create']>;
   getWorkspaceDetails: jest.MockedFunction<WorkspaceContract['details']>;
@@ -203,7 +201,7 @@ describe('NewWorkspaceWizard', () => {
       const user = userEvent.setup();
       setup({ billingProjects: [] });
 
-      // Arrange
+      // Act
       await act(async () => {
         render(
           h(NewWorkspaceWizard, {
@@ -226,6 +224,7 @@ describe('NewWorkspaceWizard', () => {
     const user = userEvent.setup();
     setup({ billingProjects: [gcpBillingProject, { ...gcpBillingProject, projectName: 'Second Billing Project' }] });
 
+    // Act
     await act(async () => {
       render(
         h(NewWorkspaceWizard, {
@@ -277,6 +276,7 @@ describe('NewWorkspaceWizard', () => {
         const user = userEvent.setup();
         const { createWorkspace } = setup();
 
+        // Act
         await act(async () => {
           render(
             h(NewWorkspaceWizard, {
@@ -308,6 +308,7 @@ describe('NewWorkspaceWizard', () => {
 
         const createWorkspaceButton = screen.getByRole('button', { name: 'Create workspace' });
 
+        // Assert
         expect(createWorkspaceButton).not.toHaveAttribute('disabled');
         await user.click(createWorkspaceButton);
 
@@ -330,6 +331,7 @@ describe('NewWorkspaceWizard', () => {
       const user = userEvent.setup();
       setup({ billingProjects: [gcpBillingProject], groups: ['AuthDomain'] });
 
+      // Act
       await act(async () => {
         render(
           h(NewWorkspaceWizard, {
@@ -395,6 +397,7 @@ describe('NewWorkspaceWizard', () => {
       const user = userEvent.setup();
       setup({ billingProjects: [gcpBillingProject], groups: ['AuthDomain'] });
 
+      // Act
       await act(async () => {
         render(
           h(NewWorkspaceWizard, {

@@ -716,6 +716,7 @@ export const NewWorkspaceWizard = withDisplayName(
                   aria-label='create workspace wizard'
                   activeTab={activeTab}
                   tabNames={['basic', 'sharing', 'security']}
+                  tabsDisabled={[false, activeTab === 'basic' && !!errors, activeTab === 'basic' && !!errors]}
                   displayNames={{
                     basic: '1. Basic Information and Billing',
                     sharing: '2. Sharing',
@@ -724,9 +725,7 @@ export const NewWorkspaceWizard = withDisplayName(
                   style={{ textTransform: 'none', width: '90%' }}
                   getHref={() => {}}
                   getOnClick={(currentTab) => {
-                    if (activeTab !== 'basic' || !errors) {
-                      setActiveTab(currentTab);
-                    }
+                    setActiveTab(currentTab);
                   }}
                 >
                   {null /* nothing to display at the end of the tab bar */}
