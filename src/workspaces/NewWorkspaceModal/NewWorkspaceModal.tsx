@@ -262,7 +262,7 @@ export const NewWorkspaceModal = withDisplayName(
           .then(
             _.forEach((project: BillingProject) => {
               if (isAzureBillingProject(project)) {
-                setAzureBillingProjectsExist(true);
+                setAzureBillingProjectsExist(false);
               }
             })
           )
@@ -341,23 +341,8 @@ export const NewWorkspaceModal = withDisplayName(
       if (cloudPlatform && project.cloudPlatform !== cloudPlatform) {
         return false;
       }
-      if (workflowImport) {
-        return !isAzureBillingProject(project);
-      }
-      // If we aren't cloning a workspace and enhanced bucket logging is required, allow all GCP projects
-      // (user will be forced to select "Workspace will have protected data" for GCP projects)
-      // and Azure billing projects that support protected Data.
-      if (!cloneWorkspace && requireEnhancedBucketLogging && isAzureBillingProject(project)) {
-        return project.protectedData;
-      }
-      // Only support cloning a workspace to the same cloud platform. If this changes, also update
-      // the Events.workspaceClone event data.
-      if (!!cloneWorkspace && isAzureWorkspace(cloneWorkspace)) {
-        if (isAzureBillingProject(project)) {
-          const protectedOk = isProtectedWorkspace(cloneWorkspace) ? project.protectedData : true;
-          const phiTrackingOk = hasPhiTrackingPolicy(cloneWorkspace) ? supportsPhiTracking(project) : true;
-          return protectedOk && phiTrackingOk;
-        }
+      // Do not show Non-Google billing projects
+      if (!isGoogleBillingProject(project)) {
         return false;
       }
       if (!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace)) {
