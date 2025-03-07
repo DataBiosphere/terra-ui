@@ -1,6 +1,7 @@
 import {
   canWrite,
   getCloudProviderFromWorkspace,
+  isGoogleWorkspace,
   isOwner,
   isProtectedWorkspace,
   WorkspaceWrapper,
@@ -40,6 +41,11 @@ export const buildDestinationWorkspaceFilter = (
     // In order to update the workspace's access controls, the user must be an owner of the workspace.
     const importMayUpdateAccessControl = importWillUpdateAccessControl(importRequest, workspace) !== false;
     if (!canWrite(workspace.accessLevel) || (importMayUpdateAccessControl && !isOwner(workspace.accessLevel))) {
+      return false;
+    }
+
+    // Do not allow importing data into the non-Google workspace.
+    if (!isGoogleWorkspace(workspace)) {
       return false;
     }
 
