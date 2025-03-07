@@ -625,48 +625,44 @@ describe('NewWorkspaceModal', () => {
     });
   });
 
-  it.each([{ billingProjectName: gcpBillingProject.projectName, cloudPlatform: 'Gcp' }] as {
-    billingProjectName: string;
-    cloudPlatform: WorkspaceInfo['cloudPlatform'];
-  }[])(
-    'includes $cloudPlatform cloud platform from workspace response',
-    async ({ billingProjectName, cloudPlatform }) => {
-      // Arrange
-      const user = userEvent.setup();
+  it('includes Gcp cloud platform from workspace response', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const billingProjectName = gcpBillingProject.projectName;
+    const cloudPlatform = 'Gcp';
 
-      const createdWorkspace = mockWorkspaceDetails[cloudPlatform];
-      const { createWorkspace } = setup();
-      createWorkspace.mockResolvedValue(createdWorkspace);
+    const createdWorkspace = mockWorkspaceDetails[cloudPlatform];
+    const { createWorkspace } = setup();
+    createWorkspace.mockResolvedValue(createdWorkspace);
 
-      const onSuccess = jest.fn();
-      await act(async () => {
-        render(
-          h(NewWorkspaceModal, {
-            onSuccess,
-            onDismiss: () => {},
-          })
-        );
-      });
+    const onSuccess = jest.fn();
+    await act(async () => {
+      render(
+        h(NewWorkspaceModal, {
+          onSuccess,
+          onDismiss: () => {},
+        })
+      );
+    });
 
-      // Act
-      const workspaceNameInput = screen.getByLabelText('Workspace name *');
-      act(() => {
-        fireEvent.change(workspaceNameInput, { target: { value: createdWorkspace.name } });
-      });
+    // Act
+    const workspaceNameInput = screen.getByLabelText('Workspace name *');
+    act(() => {
+      fireEvent.change(workspaceNameInput, { target: { value: createdWorkspace.name } });
+    });
 
-      const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-      await projectSelect.selectOption(new RegExp(billingProjectName));
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    await projectSelect.selectOption(new RegExp(billingProjectName));
 
-      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
-      await user.click(createWorkspaceButton);
+    const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+    await user.click(createWorkspaceButton);
 
-      // Assert
-      expect(onSuccess).toHaveBeenCalledWith({
-        ...createdWorkspace,
-        cloudPlatform,
-      });
-    }
-  );
+    // Assert
+    expect(onSuccess).toHaveBeenCalledWith({
+      ...createdWorkspace,
+      cloudPlatform,
+    });
+  });
 
   describe('handles server errors responses from creating a workspace', () => {
     it.each([
