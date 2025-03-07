@@ -14,14 +14,9 @@ export const CreateBillingProjectControl = (props: CreateBillingProjectControlPr
       side='bottom'
       closeOnClick
       content={
-        <>
-          <MenuButton aria-haspopup='dialog' onClick={() => props.showCreateProjectModal('AZURE')}>
-            Azure Billing Project
-          </MenuButton>
-          <MenuButton aria-haspopup='dialog' onClick={() => props.showCreateProjectModal('GCP')}>
-            GCP Billing Project
-          </MenuButton>
-        </>
+        <MenuButton aria-haspopup='dialog' onClick={() => props.showCreateProjectModal('GCP')}>
+          GCP Billing Project
+        </MenuButton>
       }
     >
       <ButtonOutline aria-label='Create new billing project'>
