@@ -10,18 +10,6 @@ import { ImportRequest } from './import-types';
 import { ImportRequirements } from './ImportRequirements';
 
 describe('ImportRequirements', () => {
-  it('should show the required cloud platform if any', () => {
-    // Arrange
-    const importRequest = gcpTdrSnapshotImportRequest;
-    const expectedCloudPlatform = 'Google Cloud Platform';
-
-    // Act
-    render(<ImportRequirements importRequest={importRequest} />);
-
-    // Assert
-    screen.getByText(`Requires a ${expectedCloudPlatform} destination workspace.`);
-  });
-
   it.each([
     { importRequest: protectedGcpTdrSnapshotImportRequest, requirementExpected: true },
     { importRequest: gcpTdrSnapshotImportRequest, requirementExpected: false },

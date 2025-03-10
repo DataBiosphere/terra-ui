@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
-import { cloudProviderLabels } from 'src/workspaces/utils';
 
-import { getRequiredCloudPlatform, requiresSecurityMonitoring, sourceHasAccessControl } from './import-requirements';
+import { requiresSecurityMonitoring, sourceHasAccessControl } from './import-requirements';
 import { ImportRequest } from './import-types';
 
 export interface ImportRequirementsProps {
@@ -13,9 +12,8 @@ export const ImportRequirements = (props: ImportRequirementsProps): ReactNode =>
 
   const isSecurityMonitoringRequired = requiresSecurityMonitoring(importRequest);
   const hasAccessControl = sourceHasAccessControl(importRequest);
-  const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
 
-  const hasAnyRequirements = isSecurityMonitoringRequired || hasAccessControl !== false || requiredCloudPlatform;
+  const hasAnyRequirements = isSecurityMonitoringRequired || hasAccessControl !== false;
   if (!hasAnyRequirements) {
     return null;
   }
@@ -24,11 +22,6 @@ export const ImportRequirements = (props: ImportRequirementsProps): ReactNode =>
     <>
       <p>Your data selection:</p>
       <ul style={{ paddingLeft: '2ch' }}>
-        {requiredCloudPlatform && (
-          <li style={{ marginBottom: '0.5rem' }}>
-            Requires a {cloudProviderLabels[requiredCloudPlatform]} destination workspace.
-          </li>
-        )}
         {isSecurityMonitoringRequired && (
           <li style={{ marginBottom: '0.5rem' }}>
             Requires additional security monitoring on the destination workspace.
