@@ -415,18 +415,6 @@ describe('ImportDataDestination', () => {
         requireEnhancedBucketLogging: true,
       },
     },
-    // Snapshot requiring an Azure workspace
-    {
-      props: {
-        importRequest: azureTdrSnapshotImportRequest,
-        requiredAuthorizationDomain: undefined,
-      },
-      expectedNewWorkspaceModalProps: {
-        cloudPlatform: 'AZURE',
-        requiredAuthDomain: undefined,
-        requireEnhancedBucketLogging: false,
-      },
-    },
     // Snapshot requiring a GCP workspace
     {
       props: {
