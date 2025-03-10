@@ -3,7 +3,15 @@ import React, { Fragment } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { getConfig } from 'src/libs/config';
 
-export type OAuth2ProviderKey = 'github' | 'ras' | 'era-commons' | 'fence' | 'dcf-fence' | 'kids-first' | 'anvil';
+export type OAuth2ProviderKey =
+  | 'github'
+  | 'ras'
+  | 'era-commons'
+  | 'fence'
+  | 'dcf-fence'
+  | 'kids-first'
+  | 'anvil'
+  | 'sage';
 export type OAuth2Callback =
   | { name: 'oauth-callback'; link: 'oauth_callback' }
   | { name: 'ecm-callback'; link: 'ecm-callback' }
@@ -143,6 +151,18 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: true,
+      };
+    case 'sage':
+      return {
+        key: providerKey,
+        name: 'Sage Bionetworks',
+        short: 'Sage',
+        queryParams: {
+          redirectUri: createRedirectUri('ecm-callback'),
+        },
+        supportsAccessToken: true,
+        supportsIdToken: false,
+        isFence: false,
       };
     default:
       throw new Error(`Unknown OAuth2 provider key: ${providerKey}`);
