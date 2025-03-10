@@ -113,7 +113,7 @@ export function TabWizard({ activeTab, tabs, getOnClick = _.noop, children, ...p
           aria-orientation='horizontal'
           style={{ display: 'flex', flexDirection: 'row', textTransform: 'none' }}
         >
-          {_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabs))}
+          {_.map(([i, tab]) => navTab(i, tab), Utils.toIndexPairs(tabs))}
         </HorizontalNavigation>
       </nav>
       <div style={{ display: 'flex', flexGrow: 0, alignItems: 'center' }}>{children}</div>

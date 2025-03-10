@@ -446,8 +446,6 @@ export const NewWorkspaceWizard = withDisplayName(
                 {!!selectedBillingProject && !!cloneWorkspace && activeTab === 'basic' && (
                   <CloneEgressWarning
                     sourceWorkspace={cloneWorkspace}
-                    sourceAzureWorkspaceRegion=''
-                    selectedBillingProject={selectedBillingProject}
                     selectedGcpBucketLocation={bucketLocation}
                     sourceGCPWorkspaceRegion={sourceGCPWorkspaceRegion}
                     sourceGCPWorkspaceRegionError={sourceGCPWorkspaceRegionError}
