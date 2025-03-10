@@ -562,13 +562,9 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
 
     // Assert
     const menuItem = screen.getByText('Clone');
+    expect(menuItem).toHaveAttribute('disabled');
     await user.click(menuItem);
-    expect(onClone).toBeCalledWith([protectedDataPolicy], undefined, descriptionText, undefined);
-    expect(captureEvent).toHaveBeenCalledWith(Events.workspaceMenu, {
-      action: 'Clone',
-      origin: 'list',
-      ...extractWorkspaceDetails({ namespace, name, cloudPlatform: 'Azure' }),
-    });
+    expect(onClone).not.toBeCalled();
   });
 
   it('passes onShare the bucketName for a Google workspace', async () => {
