@@ -89,6 +89,18 @@ const generateSnapshotManifest = async (snapshotId: string): Promise<URL> => {
   return jobResult?.format?.parquet?.manifest;
 };
 
+/**
+ * Validate that the snapshot is on the GCP cloud platform.
+ *
+ * @param snapshot The snapshot to validate.
+ * @throws Will throw an error if the snapshot is not on the GCP cloud platform.
+ */
+const validateGcpSnapshot = (snapshot: Snapshot): void => {
+  if (snapshot.cloudPlatform !== 'gcp') {
+    throw new Error('Importing by reference is not supported for non-gcp snapshots.');
+  }
+};
+
 const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Promise<TDRSnapshotExportImportRequest> => {
   const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
   const syncPermissions = queryParams.tdrSyncPermissions === 'true';
@@ -108,6 +120,8 @@ const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Prom
   } catch (err: unknown) {
     throw new Error('Unable to load snapshot.');
   }
+
+  validateGcpSnapshot(snapshot);
 
   return {
     type: 'tdr-snapshot-export',
@@ -134,9 +148,7 @@ const getTDRSnapshotReferenceImportRequest = async (
     throw new Error('Unable to load snapshot.');
   }
 
-  if (snapshot.cloudPlatform !== 'gcp') {
-    throw new Error('Importing by reference is not supported for non-gcp snapshots.');
-  }
+  validateGcpSnapshot(snapshot);
 
   return {
     type: 'tdr-snapshot-reference',
