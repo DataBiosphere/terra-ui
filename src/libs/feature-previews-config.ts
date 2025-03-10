@@ -60,26 +60,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     lastUpdated: '12/22/2022',
   },
   {
-    id: ENABLE_AZURE_PFB_IMPORT,
-    title: 'Azure PFB Import',
-    description: 'Enabling this feature will allow PFB import into Azure workspaces.',
-    groups: ['preview-azure-pfb-import'],
-    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Azure PFB Import'
-    )}`,
-    lastUpdated: '11/15/2023',
-  },
-  {
-    id: ENABLE_AZURE_TDR_IMPORT,
-    title: 'Azure TDR Import',
-    description: 'Enabling this feature will allow importing TDR snapshots into Azure workspaces.',
-    groups: ['preview-azure-tdr-import'],
-    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
-      'Feedback on Azure TDR snapshot Import'
-    )}`,
-    lastUpdated: '12/1/2023',
-  },
-  {
     id: COHORT_BUILDER_CARD,
     title: 'Cohort Builder Card',
     description:

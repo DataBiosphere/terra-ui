@@ -1,16 +1,6 @@
-import {
-  canWrite,
-  getCloudProviderFromWorkspace,
-  isOwner,
-  isProtectedWorkspace,
-  WorkspaceWrapper,
-} from 'src/workspaces/utils';
+import { canWrite, isGoogleWorkspace, isOwner, isProtectedWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 
-import {
-  getRequiredCloudPlatform,
-  importWillUpdateAccessControl,
-  requiresSecurityMonitoring,
-} from './import-requirements';
+import { importWillUpdateAccessControl, requiresSecurityMonitoring } from './import-requirements';
 import { ImportRequest } from './import-types';
 
 export type ImportOptions = {
@@ -32,7 +22,6 @@ export const buildDestinationWorkspaceFilter = (
   const { requiredAuthorizationDomain } = importOptions;
 
   const importRequiresSecurityMonitoring = requiresSecurityMonitoring(importRequest);
-  const requiredCloudPlatform = getRequiredCloudPlatform(importRequest);
 
   return (workspace: WorkspaceWrapper): boolean => {
     // For all imports, the user must be able to write to the workspace to import data.
@@ -43,8 +32,8 @@ export const buildDestinationWorkspaceFilter = (
       return false;
     }
 
-    // If a cloud platform is required, the destination workspace must be on that cloud platform.
-    if (requiredCloudPlatform && getCloudProviderFromWorkspace(workspace) !== requiredCloudPlatform) {
+    // Do not allow importing data into the non-Google workspace.
+    if (!isGoogleWorkspace(workspace)) {
       return false;
     }
 
