@@ -1,0 +1,28 @@
+export type AppConfigSettings = typeof import('src/../public/config.json') &
+  Omit<typeof import('src/../public/build-info.json'), 'buildTimestamp'> & {
+    buildTimestamp: string | number;
+
+    cbasUrlRoot: string;
+    cromwellUrlRoot: string;
+    wdsUrlRoot: string;
+    brand: string;
+    workspaceId?: string;
+    googleClientId?: string;
+    isAxeEnabled?: boolean;
+    isCromwellAppVisible?: boolean;
+  };
+
+type LoadedConfig = { current?: AppConfigSettings };
+
+const nullConfig: LoadedConfig = { current: undefined };
+
+const loadedConfig: LoadedConfig = nullConfig;
+
+export const resetConfigStore = () => {
+  loadedConfig.current = nullConfig.current;
+};
+
+export const loadedConfigStore = (): AppConfigSettings | undefined => loadedConfig.current;
+export const setLoadedConfigStore = (value: AppConfigSettings) => {
+  loadedConfig.current = value;
+};

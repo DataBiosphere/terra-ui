@@ -17,7 +17,7 @@ import { Support } from 'src/libs/ajax/Support';
 import { User } from 'src/libs/ajax/User';
 import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
+import { getBuildTimestamp, getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { topBarLogo } from 'src/libs/logos';
@@ -403,7 +403,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   {...Utils.newTabLinkProps}
                   style={{ textDecoration: 'underline', marginLeft: '0.25rem' }}
                 >
-                  {new Date(parseInt(getConfig().buildTimestamp, 10)).toLocaleString()}
+                  {new Date(getBuildTimestamp()).toLocaleString()}
                 </Clickable>
               </div>
             </div>

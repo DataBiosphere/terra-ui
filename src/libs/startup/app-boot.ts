@@ -1,5 +1,5 @@
-import { loadedConfigStore } from 'src/configStore';
 import { getCurrentLocation } from 'src/libs/nav/location-utils';
+import { setLoadedConfigStore } from 'src/libs/startup/configStore';
 import { handleOldBrowsers } from 'src/libs/startup/outdated-browser-message';
 
 export const doAppBoot = async () => {
@@ -14,7 +14,7 @@ export const doAppBoot = async () => {
       fetch('/config.json').then((r) => r.json()),
       fetch('/build-info.json').then((r) => r.json()),
     ]);
-    loadedConfigStore.current = { ...config, ...buildInfo };
+    setLoadedConfigStore({ ...config, ...buildInfo });
 
     import('src/appLoader');
   };

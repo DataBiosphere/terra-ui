@@ -13,6 +13,7 @@ import {
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { CromwellApp, CromwellAppAjaxContract, WorkflowsContract } from 'src/libs/ajax/workflows-app/CromwellApp';
 import * as configStore from 'src/libs/config';
+import { AppConfigSettings } from 'src/libs/config';
 import Events from 'src/libs/events';
 import { makeCompleteDate } from 'src/libs/utils';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -568,7 +569,7 @@ describe('BaseRunDetails - render smoke test', () => {
   it('input/output modal file functions work as expected', () => {
     // Arrange
     const mockWorkspaceId = 'd4564046-bbba-495c-afec-14f7d3a8283a';
-    jest.spyOn(configStore, 'getConfig').mockReturnValue({ workspaceId: mockWorkspaceId });
+    jest.spyOn(configStore, 'getConfig').mockReturnValue(partial<AppConfigSettings>({ workspaceId: mockWorkspaceId }));
     const publicURI =
       'https://lza6bdb4ac5ff7bbc4bf6359.blob.core.windows.net/sc-fa554638-fc2b-42bd-b376-99db48fefd72/ref-sarscov2-NC_045512.2.fasta';
     const privateURI =

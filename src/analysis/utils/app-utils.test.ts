@@ -15,8 +15,8 @@ import {
 import { appToolLabels, appTools } from 'src/analysis/utils/tool-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
-import { getConfig } from 'src/libs/config';
-import { asMockedFn } from 'src/testing/test-utils';
+import { AppConfigSettings, getConfig } from 'src/libs/config';
+import { asMockedFn, partial } from 'src/testing/test-utils';
 import { cloudProviderTypes, WorkspaceInfo } from 'src/workspaces/utils';
 
 jest.mock('src/libs/config', () => ({
@@ -647,7 +647,7 @@ describe('doesWorkspaceSupportCromwellAppForUser', () => {
   ];
 
   beforeEach(() => {
-    asMockedFn(getConfig).mockReturnValue({ isProd: false });
+    asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ isProd: false }));
   });
 
   test.each(testCases)(
