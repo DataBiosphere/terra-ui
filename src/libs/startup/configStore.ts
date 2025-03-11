@@ -1,16 +1,23 @@
-export type AppConfigSettings = typeof import('src/../public/config.json') &
-  Omit<typeof import('src/../public/build-info.json'), 'buildTimestamp'> & {
-    buildTimestamp: string | number;
+export type AppConfigSettings = typeof import('src/../public/config.json') & {
+  /**
+   * injected from /public/build-info.json
+   */
+  gitRevision: string;
 
-    cbasUrlRoot: string;
-    cromwellUrlRoot: string;
-    wdsUrlRoot: string;
-    brand: string;
-    workspaceId?: string;
-    googleClientId?: string;
-    isAxeEnabled?: boolean;
-    isCromwellAppVisible?: boolean;
-  };
+  /**
+   * injected from /public/build-info.json
+   */
+  buildTimestamp: string | number;
+
+  cbasUrlRoot: string;
+  cromwellUrlRoot: string;
+  wdsUrlRoot: string;
+  brand: string;
+  workspaceId?: string;
+  googleClientId?: string;
+  isAxeEnabled?: boolean;
+  isCromwellAppVisible?: boolean;
+};
 
 type LoadedConfig = { current?: AppConfigSettings };
 
