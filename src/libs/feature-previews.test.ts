@@ -1,6 +1,6 @@
 import { CurrentUserGroupMembership, Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
-import { getConfig } from 'src/libs/config';
+import { AppConfigSettings, getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
 import { getAvailableFeaturePreviews, isFeaturePreviewEnabled, toggleFeaturePreview } from 'src/libs/feature-previews';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -32,7 +32,7 @@ jest.mock('src/libs/feature-previews-config', () => ({
 jest.mock('src/libs/prefs');
 
 beforeEach(() => {
-  asMockedFn(getConfig).mockReturnValue({ isProd: true });
+  asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ isProd: true }));
 });
 
 describe('isFeaturePreviewEnabled', () => {
@@ -159,7 +159,7 @@ describe('getAvailableFeaturePreviews', () => {
 
   it('should include all feature previews in non-production environments', async () => {
     // Arrange
-    asMockedFn(getConfig).mockReturnValue({ isProd: false });
+    asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ isProd: false }));
     asMockedFn(getLocalPref).mockReturnValue(false);
 
     asMockedFn(Groups).mockReturnValue(

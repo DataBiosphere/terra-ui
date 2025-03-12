@@ -1,6 +1,7 @@
 import { TooltipTrigger, useWindowDimensions } from '@terra-ui-packages/components';
 import Downshift from 'downshift';
 import _ from 'lodash/fp';
+import React from 'react';
 import { Fragment, useRef, useState } from 'react';
 import { div, h, input, textarea } from 'react-hyperscript-helpers';
 import TextAreaAutosize from 'react-textarea-autosize';
@@ -16,7 +17,7 @@ const styles = {
     height: '2.25rem',
     border: `1px solid ${colors.dark(0.55)}`,
     borderRadius: 4,
-  },
+  } satisfies React.CSSProperties,
   suggestionsContainer: {
     position: 'fixed',
     left: 0,
@@ -27,15 +28,16 @@ const styles = {
     margin: '0.5rem 0',
     borderRadius: 4,
     boxShadow: '0 0 1px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)',
-  },
-  suggestion: (isSelected) => ({
-    display: 'block',
-    lineHeight: '2.25rem',
-    paddingLeft: '1rem',
-    paddingRight: '1rem',
-    cursor: 'pointer',
-    backgroundColor: isSelected ? colors.light(0.4) : undefined,
-  }),
+  } satisfies React.CSSProperties,
+  suggestion: (isSelected: boolean) =>
+    ({
+      display: 'block',
+      lineHeight: '2.25rem',
+      paddingLeft: '1rem',
+      paddingRight: '1rem',
+      cursor: 'pointer',
+      backgroundColor: isSelected ? colors.light(0.4) : undefined,
+    } satisfies React.CSSProperties),
   textarea: {
     width: '100%',
     resize: 'none',
@@ -45,7 +47,7 @@ const styles = {
     fontWeight: 400,
     padding: '0.5rem 1rem',
     cursor: 'text',
-  },
+  } satisfies React.CSSProperties,
   validationError: {
     color: colors.danger(),
     fontSize: 11,
@@ -53,10 +55,10 @@ const styles = {
     textTransform: 'uppercase',
     marginLeft: '1rem',
     marginTop: '0.5rem',
-  },
+  } satisfies React.CSSProperties,
 };
 
-export const withDebouncedChange = (WrappedComponent) => {
+export const withDebouncedChange = (WrappedComponent: React.FC<any>) => {
   const Wrapper = ({ onChange, value, debounceMs = 250, ...props }) => {
     const [internalValue, setInternalValue] = useState();
     const getInternalValue = useGetter(internalValue);
@@ -79,7 +81,8 @@ export const withDebouncedChange = (WrappedComponent) => {
   return Wrapper;
 };
 
-export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
+export const TextInput = forwardRefWithName('TextInput', (allProps: any, ref) => {
+  const { onChange, nativeOnChange = false, ...props } = allProps;
   return input({
     ..._.merge(
       {
@@ -104,10 +107,10 @@ export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnCh
 
 export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
-  const inputEl = useRef();
+  const inputEl = useRef<HTMLInputElement>();
 
   useOnMount(() => {
-    inputEl.current.addEventListener('search', (e) => {
+    inputEl.current?.addEventListener('search', (e: any) => {
       setInternalValue(e.target.value);
       onChange(e.target.value);
     });
@@ -151,7 +154,8 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
   ]);
 };
 
-export const SearchInput = ({ value, onChange, ...props }) => {
+export const SearchInput = (allProps: any) => {
+  const { value, onChange, ...props } = allProps;
   return h(
     TextInput,
     _.merge(
@@ -175,67 +179,77 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 
 export const DelayedSearchInput = withDebouncedChange(SearchInput);
 
-export const NumberInput = forwardRefWithName(
-  'NumberInput',
-  ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }, ref) => {
-    const [internalValue, setInternalValue] = useState();
+export const NumberInput = forwardRefWithName('NumberInput', (allProps: any, ref) => {
+  const {
+    onChange,
+    onBlur,
+    min = -Infinity,
+    max = Infinity,
+    onlyInteger = false,
+    isClearable = true,
+    tooltip,
+    value,
+    ...props
+  } = allProps;
+  const [internalValue, setInternalValue] = useState();
 
-    const numberInputChild = div([
-      input({
-        ..._.merge(
-          {
-            type: 'number',
-            'aria-label': Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
-            className: 'focus-style',
-            min,
-            max,
-            value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
-            onChange: ({ target: { value: newValue } }) => {
-              setInternalValue(newValue);
-              // note: floor and clamp implicitly convert the value to a number
-              onChange(newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue));
-            },
-            onBlur: (...args) => {
-              onBlur && onBlur(...args);
-              setInternalValue(undefined);
-            },
-            style: {
-              ...styles.input,
-              width: '100%',
-              paddingLeft: '1rem',
-              paddingRight: '0.25rem',
-              fontWeight: 400,
-              fontSize: 14,
-              backgroundColor: props.disabled ? colors.dark(0.25) : undefined,
-            },
+  const numberInputChild = div([
+    input({
+      ..._.merge(
+        {
+          type: 'number',
+          'aria-label': Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
+          className: 'focus-style',
+          min,
+          max,
+          value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
+          onChange: ({ target: { value: newValue } }) => {
+            setInternalValue(newValue);
+            // note: floor and clamp implicitly convert the value to a number
+            onChange(
+              newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue)
+            );
           },
-          props
-        ),
-        // _.merge merges recursively, and thus does not set ref correctly.
-        ref,
-      }),
-    ]);
+          onBlur: (...args) => {
+            onBlur && onBlur(...args);
+            setInternalValue(undefined);
+          },
+          style: {
+            ...styles.input,
+            width: '100%',
+            paddingLeft: '1rem',
+            paddingRight: '0.25rem',
+            fontWeight: 400,
+            fontSize: 14,
+            backgroundColor: props.disabled ? colors.dark(0.25) : undefined,
+          },
+        },
+        props
+      ),
+      // _.merge merges recursively, and thus does not set ref correctly.
+      ref,
+    }),
+  ]);
 
-    if (tooltip) {
-      return h(TooltipTrigger, { content: tooltip, side: 'right' }, [numberInputChild]);
-    }
-    return numberInputChild;
+  if (tooltip) {
+    return h(TooltipTrigger, { content: tooltip, side: 'right' }, [numberInputChild]);
   }
-);
+  return numberInputChild;
+});
 
 /**
  * @param {object} props.inputProps
  * @param {object} [props.error] - error message content
  */
-export const ValidatedInput = ({ inputProps, width, error }) => {
+export const ValidatedInput = ({ inputProps, width, error }: any) => {
   return createValidatedInput({ inputProps, width, error }, null);
 };
 
-export const ValidatedInputWithRef = forwardRefWithName('ValidatedInput', ({ inputProps, width, error }, ref) => {
+export const ValidatedInputWithRef = forwardRefWithName('ValidatedInput', ({ inputProps, width, error }: any, ref) => {
   return createValidatedInput({ inputProps, width, error }, ref);
 });
 
-const createValidatedInput = ({ inputProps, width, error }, ref) => {
+const createValidatedInput = ({ inputProps, width, error }: any, ref) => {
   const props = _.merge(
     {
       style: error
@@ -281,7 +295,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
   const [target] = useDynamicPosition([{ id: targetId }]);
   const windowDimensions = useWindowDimensions();
 
-  const anchorToBottom = windowDimensions.height - target.bottom >= styles.suggestionsContainer.maxHeight;
+  const anchorToBottom = windowDimensions.height - (target.bottom ?? 0) >= styles.suggestionsContainer.maxHeight;
   const style = anchorToBottom
     ? {
         top: 0,
@@ -289,7 +303,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
       }
     : {
         bottom: 0,
-        transform: `translate(${target.left}px, -${windowDimensions.height - target.top}px)`,
+        transform: `translate(${target.left}px, -${windowDimensions.height - (target.top ?? 0)}px)`,
       };
 
   return h(PopupPortal, [
@@ -311,8 +325,8 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 const withAutocomplete = (WrappedComponent) =>
   forwardRefWithName(
     `withAutocomplete(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`,
-    (
-      {
+    (allProps: any, ref) => {
+      const {
         itemToString,
         value,
         onChange,
@@ -328,17 +342,17 @@ const withAutocomplete = (WrappedComponent) =>
         suggestionFilter = Utils.textMatch,
         placeholderText,
         ...props
-      },
-      ref
-    ) => {
-      const suggestions = _.filter(suggestionFilter(value), rawSuggestions);
-      const controlProps = itemToString ? { itemToString: (v) => (v ? itemToString(v) : value) } : { selectedItem: value };
+      } = allProps;
+      const suggestions: any = _.filter(suggestionFilter(value), rawSuggestions);
+      const controlProps = itemToString
+        ? { itemToString: (v) => (v ? itemToString(v) : value) }
+        : { selectedItem: value };
 
-      const inputEl = useRef();
-      const clearSelectionRef = useRef();
+      const inputEl = useRef<HTMLInputElement>();
+      const clearSelectionRef = useRef<Function>();
       useOnMount(() => {
-        inputEl.current?.addEventListener('search', (e) => {
-          !e.target.value && clearSelectionRef.current?.();
+        inputEl.current?.addEventListener('search', (e: any) => {
+          !e.target.value && clearSelectionRef!.current?.();
         });
       });
 
@@ -362,18 +376,33 @@ const withAutocomplete = (WrappedComponent) =>
           labelId,
         },
         [
-          ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, clearSelection, highlightedIndex }) => {
+          ({
+            getInputProps,
+            getMenuProps,
+            getItemProps,
+            isOpen,
+            openMenu,
+            toggleMenu,
+            clearSelection,
+            highlightedIndex,
+          }) => {
             clearSelectionRef.current = clearSelection;
             return div(
               {
                 'aria-controls': isOpen ? getMenuProps().id : labelId, // Required for screen readers switching focus to the menu when it opens
-                onFocus: openOnFocus ? openMenu : undefined,
+                onFocus: openOnFocus ? (openMenu as any) : undefined,
                 style: { width: style?.width || '100%', display: 'inline-flex', position: 'relative', outline: 'none' },
               },
               [
                 inputIcon &&
                   icon(inputIcon, {
-                    style: { transform: 'translateX(1.5rem)', alignSelf: 'center', color: colors.accent(), position: 'absolute', ...iconStyle },
+                    style: {
+                      transform: 'translateX(1.5rem)',
+                      alignSelf: 'center',
+                      color: colors.accent(),
+                      position: 'absolute',
+                      ...iconStyle,
+                    },
                     size: 18,
                   }),
                 h(
@@ -418,7 +447,12 @@ const withAutocomplete = (WrappedComponent) =>
                           div(
                             {
                               role: 'option', // Required for screen readers to announce the placeholder text
-                              style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) },
+                              style: {
+                                textAlign: 'center',
+                                paddingTop: '0.75rem',
+                                height: '2.5rem',
+                                color: colors.dark(0.8),
+                              },
                             },
                             [placeholderText]
                           ),
@@ -438,7 +472,7 @@ const withAutocomplete = (WrappedComponent) =>
                             );
                           }, Utils.toIndexPairs(suggestions)),
                       ]
-                    )
+                    ) || []
                   ),
               ]
             );
@@ -460,9 +494,10 @@ export const AutocompleteTextInput = withAutocomplete(TextInput);
 
 export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput);
 
-export const TextArea = forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
+export const TextArea = forwardRefWithName('TextArea', (allProps: any, ref) => {
+  const { onChange, autosize = false, nativeOnChange = false, ...props } = allProps;
   return h(
-    autosize ? TextAreaAutosize : 'textarea',
+    autosize ? TextAreaAutosize : ('textarea' as any),
     _.merge(
       {
         ref,
@@ -497,7 +532,8 @@ export const ValidatedTextArea = ({ inputProps, error }) => {
 
 export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea));
 
-export const PasteOnlyInput = ({ onPaste, ...props }) => {
+export const PasteOnlyInput = (allProps: any) => {
+  const { onPaste, ...props } = allProps;
   return textarea(
     _.merge(
       {

@@ -1,11 +1,11 @@
 import { addDays, addHours, setMilliseconds } from 'date-fns/fp';
 import _ from 'lodash/fp';
 import { ReactElement } from 'react';
-import { getConfig } from 'src/libs/config';
+import { AppConfigSettings, getConfig } from 'src/libs/config';
 import { getLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import * as Nav from 'src/libs/nav';
 import { AuthState } from 'src/libs/state';
-import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/auth/auth', () => {
   return {
@@ -104,7 +104,11 @@ describe('getLinkExpirationAlerts', () => {
   describe('fence links', () => {
     beforeEach(() => {
       jest.spyOn(Nav, 'getLink').mockReturnValue('fence-callback');
-      asMockedFn(getConfig).mockReturnValue({ externalCreds: { providers: ['fence'], urlRoot: 'https/foo.bar.com' } });
+      asMockedFn(getConfig).mockReturnValue(
+        partial<AppConfigSettings>({
+          externalCreds: { providers: ['fence'], urlRoot: 'https/foo.bar.com' },
+        })
+      );
     });
 
     it('includes alert if link has expired', () => {
