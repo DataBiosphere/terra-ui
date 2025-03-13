@@ -383,31 +383,6 @@ const encode = () =>
     ]
   );
 
-const fcDataLib = () =>
-  h(
-    Participant,
-    {
-      logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
-      title: 'Broad Dataset Workspace Library',
-      description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
-   are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
-      sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')]),
-    },
-    [
-      h(
-        ButtonPrimary,
-        {
-          'aria-label': 'Browse Broad Institute datasets',
-          tooltip: 'Search for dataset workspaces',
-          href: `${getConfig().duosUrlRoot}/datalibrary/firecloud`,
-          onClick: () => captureBrowseDataEvent('Broad Institute Datasets'),
-          ...Utils.newTabLinkProps,
-        },
-        ['Browse Datasets']
-      ),
-    ]
-  );
-
 const framingham = () =>
   h(
     Participant,
@@ -670,7 +645,6 @@ export const Datasets = () => {
           ccdg(),
           cmg(),
           encode(),
-          fcDataLib(),
           framingham(),
           gp2(),
           hca(),
