@@ -201,7 +201,7 @@ const fillIn = async (page, xpath, text, options) => {
   // unnecessary renders. It is to check that some specific critical paths through the application
   // (Critical User Journeys) are not broken. Therefore, we'll delay briefly here instead of
   // charging forward at a super-human pace.
-  return delay(Millis.of(300)); // withDebouncedChange in input.js specifies 250ms, so waiting longer than that
+  return delay(Millis.of(300)); // withDebouncedChange in input.ts specifies 250ms, so waiting longer than that
 };
 
 // Replace pre-existing value

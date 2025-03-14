@@ -108,6 +108,7 @@ describe('CloudInformation', () => {
     // Assert
     expect(screen.getByTitle('Google Cloud Platform')).not.toBeNull;
     // Cost estimate
+    expect(screen.getByText('Estimated Bucket Cost')).not.toBeNull();
     expect(screen.getAllByText('Updated on 12/1/2023')).not.toBeNull();
     expect(screen.getByText('$1,000,000.00')).not.toBeNull();
     // Bucket usage
@@ -195,7 +196,14 @@ describe('CloudInformation', () => {
     await user.click(screen.getByLabelText('More info'));
 
     // Assert
-    expect(screen.getAllByText('Based on list price. Does not include discounts.')).not.toBeNull();
+    expect(screen.getByText(/Only shows object storage costs/i)).toBeInTheDocument();
+    expect(screen.getByText(/Based on GCP list prices/i)).toBeInTheDocument();
+
+    // Clicking the info button again should hide the tooltip
+    await user.click(screen.getByLabelText('More info'));
+
+    // Expect the tooltip content to disappear
+    expect(screen.queryByText(/Only shows object storage costs/i)).not.toBeInTheDocument();
   });
 
   it('displays bucket size for users with reader access', async () => {

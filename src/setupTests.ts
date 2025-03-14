@@ -25,8 +25,13 @@ jest.mock('src/components/common/VirtualizedSelectAutoSizer', (): VirtualizedSel
   };
 });
 
-jest.mock('src/configStore', () => ({
-  loadedConfigStore: { current: { jest: true } },
-}));
+type ConfigStoreExports = typeof import('src/libs/startup/configStore');
+jest.mock('src/libs/startup/configStore', (): ConfigStoreExports => {
+  return {
+    loadedConfigStore: jest.fn(() => ({ brand: 'terra' } as ReturnType<ConfigStoreExports['loadedConfigStore']>)),
+    setLoadedConfigStore: jest.fn(),
+    resetConfigStore: jest.fn(),
+  };
+});
 
 export {};

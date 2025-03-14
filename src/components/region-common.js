@@ -173,12 +173,16 @@ export const locationTypes = {
 };
 
 export const allRegions = [
-  // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
-  // This is to avoid creating within-country silos of life sciences community data.
-  // So for US, Canada and Japan, we are restricting to one region.
   // For more information, see https://support.terra.bio/hc/en-us/articles/360060777272-US-regional-versus-Multi-regional-US-buckets-trade-offs
   { value: 'US-CENTRAL1', label: 'us-central1 (Iowa) (default)', locationType: locationTypes.region },
   { value: 'US', label: 'US multi-regional', locationType: locationTypes.multiRegion },
+  { value: 'US-EAST1', label: 'us-east1 (South Carolina)', locationType: locationTypes.region },
+  { value: 'US-EAST4', label: 'us-east4 (Virginia)', locationType: locationTypes.region },
+  { value: 'US-WEST1', label: 'us-west1 (Oregon)', locationType: locationTypes.region },
+  { value: 'US-WEST2', label: 'us-west2 (California)', locationType: locationTypes.region },
+  { value: 'US-WEST3', label: 'us-west3 (Utah)', locationType: locationTypes.region },
+  { value: 'US-WEST4', label: 'us-west4 (Nevada)', locationType: locationTypes.region },
+  { value: 'NORTHAMERICA-NORTHEAST2', label: 'northamerica-northeast2 (Ontario)', locationType: locationTypes.region },
   { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: locationTypes.region },
   { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: locationTypes.region },
   { value: 'EUROPE-CENTRAL2', label: 'europe-central2 (Warsaw)', locationType: locationTypes.region },
@@ -196,6 +200,7 @@ export const allRegions = [
   { value: 'ASIA-SOUTHEAST1', label: 'asia-southeast1 (Singapore)', locationType: locationTypes.region },
   { value: 'ASIA-SOUTHEAST2', label: 'asia-southeast2 (Jakarta)', locationType: locationTypes.region },
   { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: locationTypes.region },
+  { value: 'ASIA-NORTHEAST2', label: 'asia-northeast1 (Osaka)', locationType: locationTypes.region },
 ];
 
 export const getLocationInfo = (location) => _.find({ value: location.toUpperCase() }, allRegions);

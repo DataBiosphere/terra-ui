@@ -1,7 +1,5 @@
 import _ from 'lodash';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_PFB_IMPORT } from 'src/libs/feature-previews-config';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { anvilSources, biodatacatalystSources, isAnvilImport, urlMatchesSource, UrlSource } from './import-sources';
@@ -11,14 +9,10 @@ export const getRequiredCloudPlatform = (importRequest: ImportRequest): CloudPro
   switch (importRequest.type) {
     case 'tdr-snapshot-export':
     case 'tdr-snapshot-reference':
-      const tdrCloudPlatformToCloudProvider: Record<Snapshot['cloudPlatform'], CloudProvider> = {
-        azure: 'AZURE',
-        gcp: 'GCP',
-      };
-      return tdrCloudPlatformToCloudProvider[importRequest.snapshot.cloudPlatform];
+      return importRequest.snapshot.cloudPlatform === 'gcp' ? 'GCP' : undefined;
     case 'pfb':
       // restrict PFB imports to GCP unless the user has the right feature flag enabled
-      return isFeaturePreviewEnabled(ENABLE_AZURE_PFB_IMPORT) ? undefined : 'GCP';
+      return 'GCP';
     default:
       return undefined;
   }
@@ -88,7 +82,6 @@ export const sourceHasAccessControl = (importRequest: ImportRequest): boolean | 
     case 'tdr-snapshot-reference':
       // The snapshot has access controls if it has an auth domain.
       return importRequest.snapshotAccessControls.length !== 0;
-      return undefined;
     default:
       return false;
   }

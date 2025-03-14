@@ -8,8 +8,9 @@
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-dev.broadinstitute.org",
+  "duosUrlRoot": "https://duos-k8s.dsde-dev.broadinstitute.org",
   "externalCreds": {
-    "providers": ["ras", "fence", "dcf-fence", "kids-first", "github"],
+    "providers": ["ras", "fence", "dcf-fence", "kids-first", "github", "sage"],
     "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org"
   },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
@@ -22,7 +23,6 @@
   "samUrlRoot": "https://sam.dsde-dev.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
   "workspaceManagerUrlRoot": "https://workspace.dsde-dev.broadinstitute.org",
-  "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-dev.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-dev",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_dev",

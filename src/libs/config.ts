@@ -1,10 +1,19 @@
 import _ from 'lodash/fp';
-import { loadedConfigStore } from 'src/configStore';
+import { AppConfigSettings, loadedConfigStore } from 'src/libs/startup/configStore';
 import { configOverridesStore } from 'src/libs/state';
 
-export const getConfig = () => {
-  console.assert(loadedConfigStore.current, 'Called getConfig before initialization');
-  return _.merge(loadedConfigStore.current, configOverridesStore.get());
+export { type AppConfigSettings } from 'src/libs/startup/configStore';
+
+export const getConfig = (): AppConfigSettings => {
+  const baseConfig = loadedConfigStore();
+  console.assert(baseConfig, 'Called getConfig before initialization');
+  return _.merge(baseConfig, configOverridesStore.get());
+};
+
+export const getBuildTimestamp = (): number => {
+  const timeRaw: number | string = getConfig().buildTimestamp;
+  const timeStamp = typeof timeRaw === 'number' ? timeRaw : parseInt(timeRaw, 10);
+  return timeStamp;
 };
 
 /**

@@ -166,7 +166,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         setAcl={setAcl}
         originalAcl={originalAcl}
         lastAddedEmail={lastAddedEmail}
-        workspace={workspace}
+        workspaceAccessLevel={workspace.accessLevel}
+        isAzureWorkspace={isAzureWorkspace(workspace)}
       />
       <WorkspacePolicies workspace={workspace} noCheckboxes />
       {!loaded && centeredSpinner()}

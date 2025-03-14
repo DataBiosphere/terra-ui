@@ -7,7 +7,6 @@ import * as Auth from 'src/auth/auth';
 import { CreateBillingProjectControl } from 'src/billing/List/CreateBillingProjectControl';
 import { GCPNewBillingProjectModal } from 'src/billing/List/GCPNewBillingProjectModal';
 import { listItemStyle, ProjectListItem, ProjectListItemProps } from 'src/billing/List/ProjectListItem';
-import { AzureBillingProjectWizard } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard';
 import { GCPBillingProjectWizard } from 'src/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import ProjectDetail from 'src/billing/Project';
 import { billingRoles, isCreating, isDeleting } from 'src/billing/utils';
@@ -47,7 +46,6 @@ interface RightHandContentProps {
   billingProjects: BillingProject[];
   billingAccounts: Record<string, GoogleBillingAccount>;
   isLoadingProjects: boolean;
-  showAzureBillingProjectWizard: boolean;
   projectsOwned: BillingProject[];
   allWorkspaces: WorkspaceWrapper[];
   refreshWorkspaces: () => Promise<void>;
@@ -65,7 +63,6 @@ const RightHandContent = (props: RightHandContentProps): ReactNode => {
     billingProjects,
     billingAccounts,
     isLoadingProjects,
-    showAzureBillingProjectWizard,
     projectsOwned,
     allWorkspaces,
     refreshWorkspaces,
@@ -83,21 +80,6 @@ const RightHandContent = (props: RightHandContentProps): ReactNode => {
           <p>It may not exist, or you may not have access to it.</p>
         </div>
       </div>
-    );
-  }
-  if (showAzureBillingProjectWizard) {
-    return (
-      <AzureBillingProjectWizard
-        onSuccess={(billingProjectName, protectedData) => {
-          void Metrics().captureEvent(Events.billingCreationBillingProjectCreated, {
-            billingProjectName,
-            cloudPlatform: cloudProviderTypes.AZURE,
-            protectedData,
-          });
-          setCreatingBillingProjectType(null);
-          loadProjects();
-        }}
-      />
     );
   }
   if (!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser()) {
@@ -229,11 +211,7 @@ export const BillingList = (props: BillingListProps) => {
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts);
 
   const showCreateProjectModal = async (type: CloudProvider) => {
-    if (type === 'AZURE') {
-      setCreatingBillingProjectType(type);
-      // Show the Azure wizard instead of the selected billing project.
-      Nav.history.replace({ search: '' });
-    } else if (Auth.hasBillingScope()) {
+    if (Auth.hasBillingScope()) {
       setCreatingBillingProjectType(type);
     } else {
       await authorizeAndLoadAccounts();
@@ -270,9 +248,6 @@ export const BillingList = (props: BillingListProps) => {
     ({ roles }) => _.includes(billingRoles.owner, roles),
     billingProjects
   );
-
-  const azureUserWithNoBillingProjects = !isLoadingProjects && _.isEmpty(billingProjects) && Auth.isAzureUser();
-  const creatingAzureBillingProject = !selectedName && creatingBillingProjectType === 'AZURE';
 
   const makeProjectListItemProps = (project: BillingProject): ProjectListItemProps => {
     return {
@@ -375,7 +350,6 @@ export const BillingList = (props: BillingListProps) => {
           allWorkspaces={allWorkspaces}
           refreshWorkspaces={refreshWorkspaces}
           selectedName={selectedName}
-          showAzureBillingProjectWizard={azureUserWithNoBillingProjects || creatingAzureBillingProject}
           setCreatingBillingProjectType={setCreatingBillingProjectType}
           reloadBillingProject={reloadBillingProject}
           type={type}

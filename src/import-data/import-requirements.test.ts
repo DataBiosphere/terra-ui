@@ -3,7 +3,6 @@ import { CloudProvider } from 'src/workspaces/utils';
 
 import {
   anvilPfbImportRequests,
-  azureTdrSnapshotImportRequest,
   biodataCatalystPfbImportRequests,
   gcpTdrSnapshotImportRequest,
   gcpTdrSnapshotReferenceImportRequest,
@@ -25,10 +24,6 @@ describe('cloud provider requirements', () => {
       {
         importRequest: genericPfbImportRequest,
         expectedCloudPlatform: 'GCP',
-      },
-      {
-        importRequest: azureTdrSnapshotImportRequest,
-        expectedCloudPlatform: 'AZURE',
       },
       {
         importRequest: gcpTdrSnapshotImportRequest,

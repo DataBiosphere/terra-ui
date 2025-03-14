@@ -1,5 +1,4 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
-import { AuditInfo, CloudContext } from '@terra-ui-packages/leonardo-data-client';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash';
@@ -7,12 +6,7 @@ import { h } from 'react-hyperscript-helpers';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { BillingProject } from 'src/libs/ajax/billing/billing-models';
 import { GroupContract, Groups, GroupsContract } from 'src/libs/ajax/Groups';
-import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
-import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
-import { Cbas, CbasAjaxContract, CbasMethodsContract } from 'src/libs/ajax/workflows-app/Cbas';
-import { errorWatcher } from 'src/libs/error.mock';
-import * as Nav from 'src/libs/nav';
 import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
@@ -112,43 +106,6 @@ jest.mock('react-notifications-component', (): DeepPartial<ReactNotificationsCom
 });
 
 describe('ImportWorkflow', () => {
-  const mockAppResponse: ListAppItem[] = [
-    partial<ListAppItem>({
-      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cloudContext: partial<CloudContext>({
-        cloudProvider: 'AZURE',
-      }),
-      status: 'RUNNING',
-      proxyUrls: {
-        cbas: 'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-        'cbas-ui':
-          'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
-        cromwell:
-          'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cromwell',
-      },
-      appName: 'terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374',
-      appType: 'CROMWELL',
-      auditInfo: partial<AuditInfo>({
-        creator: 'abc@gmail.com',
-      }),
-    }),
-    partial<ListAppItem>({
-      workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      cloudContext: partial<CloudContext>({
-        cloudProvider: 'AZURE',
-      }),
-      status: 'RUNNING',
-      proxyUrls: {
-        wds: 'https://abc.servicebus.windows.net/wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/',
-      },
-      appName: 'wds-79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-      appType: 'WDS',
-      auditInfo: partial<AuditInfo>({
-        creator: 'abc@gmail.com',
-      }),
-    }),
-  ];
-
   beforeAll(() => {
     // Arrange
     asMockedFn(useWorkspaces).mockReturnValue({
@@ -173,23 +130,12 @@ describe('ImportWorkflow', () => {
         },
         {
           workspace: {
-            namespace: 'azure-test1',
-            name: 'azure-workspace1',
-            workspaceId: '79201ea6-519a-4077-a9a4-75b2a7c4cdeb',
-            cloudPlatform: 'Azure',
-            createdBy: 'abc@gmail.com',
+            namespace: 'test',
+            name: 'gcp-workspace3',
+            workspaceId: '5cfa16d8-d604-4de8-8e8a-acde05d71b75',
+            cloudPlatform: 'Gcp',
           },
-          accessLevel: 'OWNER',
-        },
-        {
-          workspace: {
-            namespace: 'azure-test2',
-            name: 'azure-workspace2',
-            workspaceId: 'c2486653-f5dc-4a86-826a-4ba8c6624d10',
-            cloudPlatform: 'Azure',
-            createdBy: 'not-abc@gmail.com',
-          },
-          accessLevel: 'WRITER',
+          accessLevel: 'READER',
         },
       ] as WorkspaceWrapper[],
       refresh: () => Promise.resolve(),
@@ -209,14 +155,6 @@ describe('ImportWorkflow', () => {
             cloudPlatform: 'GCP',
             invalidBillingAccount: false,
             projectName: 'Google Billing Project',
-            roles: ['Owner'],
-            status: 'Ready',
-          }),
-          partial<BillingProject>({
-            // billingAccount: 'billingAccounts/BAA-RAM-EWE',
-            cloudPlatform: 'AZURE',
-            invalidBillingAccount: false,
-            projectName: 'Azure Billing Project',
             roles: ['Owner'],
             status: 'Ready',
           }),
@@ -345,116 +283,6 @@ describe('ImportWorkflow', () => {
         workflow: testWorkflow,
       }),
       { overwrite: false }
-    );
-  });
-
-  it('it imports the workflow into the selected Azure workspace', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const mockPostMethodResponse = {
-      method_id: '031e1da5-b977-4467-b1d7-acc7054fe72d',
-      run_set_id: 'd250fe2e-d5c2-4ccc-8484-3cd6179e312c',
-    };
-    const mockListAppsFn = jest.fn(() => Promise.resolve(mockAppResponse));
-    const mockPostMethodAppsFn = jest.fn(() => Promise.resolve(mockPostMethodResponse));
-
-    asMockedFn(Cbas).mockReturnValue(
-      partial<CbasAjaxContract>({
-        methods: partial<CbasMethodsContract>({ post: mockPostMethodAppsFn }),
-      })
-    );
-
-    asMockedFn(Apps).mockReturnValue(
-      partial<AppsAjaxContract>({
-        listAppsV2: mockListAppsFn,
-      })
-    );
-
-    const testWorkflow = {
-      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
-      version: 'v1.0.0',
-      source: 'dockstore',
-    };
-
-    render(h(ImportWorkflow, { ...testWorkflow }));
-
-    // Act
-    const workspaceMenu = new SelectHelper(screen.getByLabelText('Destination Workspace'), user);
-    await workspaceMenu.selectOption(/azure-workspace1/);
-
-    const importButton = screen.getByText('Import');
-    await user.click(importButton);
-
-    // Assert
-    expect(mockListAppsFn).toHaveBeenCalledWith('79201ea6-519a-4077-a9a4-75b2a7c4cdeb');
-
-    expect(mockPostMethodAppsFn).toHaveBeenCalledWith(
-      'https://abc.servicebus.windows.net/terra-app-3b8d9c55-7eee-49e9-a998-e8c6db05e374-79201ea6-519a-4077-a9a4-75b2a7c4cdeb/cbas',
-      expect.objectContaining({
-        method_name: 'test-workflow',
-        method_description: null,
-        method_source: 'Dockstore',
-        method_version: 'v1.0.0',
-        method_url: 'github.com/DataBiosphere/test-workflows/test-workflow',
-        method_input_mappings: [],
-        method_output_mappings: [],
-      })
-    );
-
-    expect(Nav.goToPath).toHaveBeenCalledWith('workspace-workflows-app', {
-      methodId: '031e1da5-b977-4467-b1d7-acc7054fe72d',
-      name: 'azure-workspace1',
-      namespace: 'azure-test1',
-    });
-  });
-
-  it("it should not import workflow into workspace where workspace wasn't created by current user", async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const mockListAppsFn: jest.MockedFunction<AppsAjaxContract['listAppsV2']> = jest.fn();
-    mockListAppsFn.mockResolvedValue(mockAppResponse);
-
-    asMockedFn(Apps).mockReturnValue(partial<AppsAjaxContract>({ listAppsV2: mockListAppsFn }));
-
-    const testWorkflow = {
-      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
-      version: 'v1.0.0',
-      source: 'dockstore',
-    };
-
-    render(h(ImportWorkflow, { ...testWorkflow }));
-
-    // Act
-    const workspaceMenu = new SelectHelper(screen.getByLabelText('Destination Workspace'), user);
-    await workspaceMenu.selectOption(/azure-workspace2/);
-
-    const importButton = screen.getByText('Import');
-    await user.click(importButton);
-
-    // Assert
-    expect(mockListAppsFn).toBeCalledTimes(0);
-    expect(errorWatcher).toHaveBeenCalledWith('Error importing workflow', expect.any(Error));
-  });
-
-  it('opens new workspace modal with azure disabled', async () => {
-    // Arrange
-    const user = userEvent.setup();
-
-    const testWorkflow = {
-      path: 'github.com/DataBiosphere/test-workflows/test-workflow',
-      version: 'v1.0.0',
-      source: 'dockstore',
-    };
-
-    render(h(ImportWorkflow, { ...testWorkflow }));
-
-    // Act
-    const createWorkspaceButton = screen.getByText('create a new workspace');
-    await user.click(createWorkspaceButton);
-
-    screen.getByText(
-      'Importing directly into new Azure workspaces is not currently supported. To create a new workspace with an Azure billing project, visit the main',
-      { exact: false }
     );
   });
 

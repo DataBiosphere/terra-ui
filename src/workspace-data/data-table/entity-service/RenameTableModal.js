@@ -13,6 +13,7 @@ import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import validate from 'validate.js';
 
 import { allSavedColumnSettingsEntityTypeKey } from './SavedColumnSettings';
 
@@ -30,6 +31,7 @@ export const RenameTableModal = ({
   const [newName, setNewName] = useState('');
   const [renaming, setRenaming] = useState(false);
   const [renameSetTables, setRenameSetTables] = useState(false);
+  const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false);
 
   const handleTableRename = async ({ oldName, newName }) => {
     void Metrics().captureEvent(Events.workspaceDataRenameTable, { oldName, newName });
@@ -55,6 +57,18 @@ export const RenameTableModal = ({
     }
   };
 
+  const recordTypeNameErrors = validate.single(newName, {
+    presence: {
+      allowEmpty: false,
+      message: 'Table name is required',
+    },
+    format: {
+      pattern: '^[a-z0-9_-]*',
+      flags: 'i',
+      message: 'Table name may only contain alphanumeric characters, underscores, and dashes.',
+    },
+  });
+
   return h(
     Modal,
     {
@@ -63,7 +77,7 @@ export const RenameTableModal = ({
       okButton: h(
         ButtonPrimary,
         {
-          disabled: renaming,
+          disabled: renaming || recordTypeNameErrors,
           onClick: _.flow(
             withErrorReporting('Error renaming data table.'),
             Utils.withBusyState(setRenaming)
@@ -103,9 +117,11 @@ export const RenameTableModal = ({
                 autoFocus: true,
                 placeholder: 'Enter a name',
                 onChange: (v) => {
+                  setRecordTypeInputTouched(true);
                   setNewName(v);
                 },
               },
+              error: recordTypeInputTouched && Utils.summarizeErrors(recordTypeNameErrors),
             }),
             !_.isEmpty(setTableNames) &&
               div(

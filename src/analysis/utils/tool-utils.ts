@@ -4,12 +4,11 @@ import { FileExtension, getExtension } from 'src/analysis/utils/file-utils';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { isRuntime, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { isCromwellAppVisible } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/workspaces/utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
-export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'HAIL_BATCH' | 'WDS' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'WDS' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
 export type CromwellAppToolLabel = 'CROMWELL' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
 export type AppAccessScope = 'USER_PRIVATE' | 'WORKSPACE_SHARED';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
@@ -36,7 +35,6 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   CROMWELL: 'Cromwell',
   WORKFLOWS_APP: 'Workflows',
   CROMWELL_RUNNER_APP: 'Cromwell runner',
-  HAIL_BATCH: 'Hail Batch',
   WDS: 'Workspace Data Service',
 };
 
@@ -45,7 +43,6 @@ export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   CROMWELL: 'CROMWELL',
   WORKFLOWS_APP: 'WORKFLOWS_APP',
   CROMWELL_RUNNER_APP: 'CROMWELL_RUNNER_APP',
-  HAIL_BATCH: 'HAIL_BATCH',
   WDS: 'WDS',
 };
 
@@ -136,8 +133,6 @@ const Workflows = { label: 'WORKFLOWS_APP', isPauseUnsupported: true } as const 
 
 const CromwellRunner = { label: 'CROMWELL_RUNNER_APP', isPauseUnsupported: true } as const satisfies AppTool;
 
-const HailBatch = { label: 'HAIL_BATCH', isPauseUnsupported: true } as const satisfies AppTool;
-
 const Wds = { label: 'WDS', isPauseUnsupported: true } as const satisfies AppTool;
 
 export const appTools: Record<AppToolLabel, AppTool> = {
@@ -145,7 +140,6 @@ export const appTools: Record<AppToolLabel, AppTool> = {
   CROMWELL: Cromwell,
   WORKFLOWS_APP: Workflows,
   CROMWELL_RUNNER_APP: CromwellRunner,
-  HAIL_BATCH: HailBatch,
   WDS: Wds,
 };
 
@@ -170,7 +164,7 @@ export const cloudRuntimeTools = {
 
 export const cloudAppTools = {
   GCP: [Galaxy, Cromwell],
-  AZURE: [Cromwell, HailBatch],
+  AZURE: [Cromwell],
 } as const satisfies Record<CloudProvider, readonly AppTool[]>;
 
 export interface ExtensionDisplay {
@@ -252,11 +246,6 @@ export const isToolHidden = (toolLabel: ToolLabel, cloudProvider: CloudProvider)
           ],
           [Utils.DEFAULT, () => false]
         ),
-    ],
-    [
-      toolLabel === appToolLabels.HAIL_BATCH &&
-        (cloudProvider === cloudProviderTypes.GCP || !isFeaturePreviewEnabled('hail-batch-azure')),
-      () => true,
     ],
     [Utils.DEFAULT, () => false]
   );
