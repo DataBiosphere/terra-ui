@@ -5,6 +5,7 @@ import { ButtonOutline, Link } from 'src/components/common';
 import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils';
 import { centeredSpinner, icon } from 'src/components/icons';
 import IGVAddTrackModal from 'src/components/IGVAddTrackModal';
+import initIgvFacets from 'src/components/IGVFilter';
 import { GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -116,6 +117,14 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
 
         igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject));
         igvBrowser.current = await igv.createBrowser(containerRef.current, options);
+        window.igvBrowser = igvBrowser.current;
+        const trackToFilter = window.igvBrowser.findTracks('name', 'Phase 3 WGS variants')[0];
+        // Update the facet widgets no locus change.  Changing the locus changes the features in view.  This can be
+        // relatively frequent,  many times a second if dragging the track.
+        igvBrowser.current.on('locuschange', () => {
+          // Update counts
+          initIgvFacets(trackToFilter);
+        });
 
         const initialTracks = _.map(({ filePath, indexFilePath, isSignedUrl }) => {
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };
