@@ -9,7 +9,6 @@ import { signIn } from 'src/auth/auth';
 import { signOut } from 'src/auth/signout/sign-out';
 import { Clickable, LabeledCheckbox, Link } from 'src/components/common';
 import { TextArea } from 'src/components/input';
-import ProfilePicture from 'src/components/ProfilePicture';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';
 import headerRightHexes from 'src/images/brands/terra/header-right-hexes.svg';
@@ -190,12 +189,9 @@ export const TopBar = (props: TopBarProps): ReactNode => {
             {signInStatus === 'userLoaded' || signInStatus === 'authenticated' ? (
               <DropDownSection
                 title={
-                  <>
-                    <ProfilePicture size={32} style={{ marginRight: 12, flex: 'none' }} />
-                    <div style={{ ...Style.noWrapEllipsis }}>
-                      {firstName} {lastName}
-                    </div>
-                  </>
+                  <div style={{ ...Style.noWrapEllipsis }}>
+                    {firstName} {lastName}
+                  </div>
                 }
                 onClick={() => setOpenUserMenu(!openUserMenu)}
                 isOpened={openUserMenu}
