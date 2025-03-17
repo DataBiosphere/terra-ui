@@ -47,12 +47,7 @@ export const NewWorkspaceSharingTab = ({ acl, setAcl }): ReactNode => {
     <>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
         <div style={{ flexGrow: 100, alignSelf: 'flex-start' }}>
-          <EmailSelect
-            placeholder='Add people or groups'
-            options={[]}
-            emails={searchValues}
-            setEmails={setSearchValues}
-          />
+          <EmailSelect placeholder='Add people or groups' setEmails={setSearchValues} />
         </div>
 
         <div style={{ flexGrow: 1, alignSelf: 'flex-start' }}>
