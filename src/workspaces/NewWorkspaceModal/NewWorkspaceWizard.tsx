@@ -385,8 +385,8 @@ export const NewWorkspaceWizard = withDisplayName(
                 )}
               </ButtonPrimary>
             }
-            width={620}
-            styles={{ modal: { height: 675 } }}
+            width={720}
+            styles={{ modal: { height: 720 } }}
           >
             {creating ? (
               <CreatingWorkspaceMessage />
