@@ -1,43 +1,139 @@
-import { d3 } from 'd3';
-import { tippy } from 'tippy.js';
+import * as d3 from 'd3';
+import tippy from 'tippy.js';
 
 const HISTOGRAM_BAR_MAX_HEIGHT = 20;
 const SLIDER_HANDLEBAR_WIDTH = 6;
 const HANDLEBAR_Y = -1 * (HISTOGRAM_BAR_MAX_HEIGHT - 1);
 
+const igvFilterStyle = `<style id="igv-filter-style">
+        .igv-facet .brush .selection {
+            fill-opacity: .1;
+            fill: #3d5a87;
+            stroke: #3d5a87;
+            shape-rendering: crispEdges;
+        }
+
+        .igv-filters-container {
+            /**
+            font-family: "Open Sans", sans-serif;
+            font-size: 13px;
+            */
+            float: left;
+            margin-left: 15px;
+            margin-right: 10px;
+            width: 240px;
+        }
+
+        .igv-facet-header {
+            font-weight: bold;
+            position: relative;
+            top: -1px;
+        }
+
+        .igv-facet-header-categorical,
+        .igv-facet-header-checkbox {
+            position: relative;
+            left: -7px;
+        }
+
+        .igv-facet .igv-facet-header-checkbox,
+        .igv-facet .facet-toggle-chevron {
+            visibility: hidden;
+        }
+        .igv-facet:hover .igv-facet-header-checkbox,
+        .igv-facet:hover .facet-toggle-chevron {
+            visibility: visible;
+        }
+
+        .facet-tools {
+            float: right;
+            margin-right: 5px;
+            margin-top: -1px;
+        }
+
+        .igv-facet {
+            margin-top: 15px;
+            width: 220px;
+        }
+
+        .igv-facet-numeric {
+            margin-left: 13px;
+        }
+
+        .igv-filter-label,
+        .igv-filters-container input[type="checkbox"],
+        .igv-filters-container select {
+            cursor: pointer;
+        }
+
+        .igv-filter-label > div, .igv-facet-toggle {
+            margin-left: 14px;
+        }
+
+
+        .igv-filter-label:hover {
+            color: #007;
+        }
+
+        .igv-population-af-toggle, .igv-facet-toggle {
+            color: #337ab7;
+            cursor: pointer;
+        }
+
+        .igv-population-af-toggle:hover, .igv-facet-toggle:hover {
+            color: #23527c;
+        }
+
+        .igv-filter-count {
+            float: right;
+        }
+
+        /**
+        .tippy-box {
+            font-family: "Open Sans", sans-serif;
+            font-size: 13px;
+        }
+        */
+
+        .tippy-content {
+            padding: 3px 7px;
+        }
+    </style>`;
+
 const widthsByOperator = {
-  between: 75,
-  'not between': 100,
-  '=': 50,
-  '!=': 50,
-  '<': 50,
-  '<=': 50,
-  '>': 50,
-  '>=': 50,
+  between: 85,
+  'not between': 110,
+  '=': 60,
+  '!=': 60,
+  '<': 60,
+  '<=': 60,
+  '>': 60,
+  '>=': 60,
 };
 
-// function updateOperator(event) {
-//   const target = event.target;
+function updateIgvFilterOperator(event) {
+  const target = event.target;
 
-//   const facetName = target.getAttribute('data-igv-facet-name');
-//   const facetClass = getFacetClass({ name: facetName });
-//   const input = document.querySelector(`.${facetClass} input`);
+  const facetName = target.getAttribute('data-igv-facet-name');
+  const facetClass = getFacetClass({ name: facetName });
+  const input = document.querySelector(`.${facetClass} input`);
 
-//   const newOperator = target.value;
+  const newOperator = target.value;
 
-//   target.setAttribute('value', newOperator);
-//   const width = widthsByOperator[newOperator];
-//   target.style.width = `${width}px`;
+  target.setAttribute('value', newOperator);
+  const width = widthsByOperator[newOperator];
+  target.style.width = `${width}px`;
 
-//   const andInput2Style = getAndInput2Style(newOperator);
-//   target.parentElement.querySelector('.igv-and-input-2').style = andInput2Style;
+  const andInput2Style = getAndInput2Style(newOperator);
+  target.parentElement.querySelector('.igv-and-input-2').style = andInput2Style;
 
-//   const changeEvent = new Event('change');
-//   input.dispatchEvent(changeEvent);
-// }
+  const changeEvent = new Event('change');
+  input.dispatchEvent(changeEvent);
+}
 
 /** Get options for numeric filter operators */
 function getOperatorMenu(operator, facet) {
+  window.updateIgvFilterOperator = updateIgvFilterOperator;
   const operators = ['between', 'not between', '=', '!=', '<', '<=', '>', '>='];
 
   const menuWidth = `${widthsByOperator[operator]}px`;
@@ -46,7 +142,7 @@ function getOperatorMenu(operator, facet) {
   style="width: ${menuWidth}"
   data-igv-facet-name="${facet.name}"
   value="${operator}"
-  onChange="updateOperator(event)"
+  onChange="updateIgvFilterOperator(event)"
 >
   ${operators.map((operator) => {
     return `<option value="${operator}">${operator}</option>`;
@@ -730,6 +826,7 @@ function getNumericQueryBuilder(
   const brushSelection = [inputValue, inputValue2].map(xScale);
 
   const [histogram, brushConf] = getHistogram(facet, bars, histogramWidth, 20, brushSelection, xScale);
+  // console.log('histogram', histogram);
 
   const operatorMenu = getOperatorMenu(operator, facet);
   const input = getNumericQueryInput(statistics.min, facet, 'value', styles.input);
@@ -754,6 +851,7 @@ function getNumericQueryBuilder(
   </div>
 </div>`;
 
+  // console.log('numericQueryBuilderHtml', numericQueryBuilderHtml);
   return [numericQueryBuilderHtml, brushConf];
 }
 
@@ -899,7 +997,8 @@ function getFacetsHtml(facets) {
       if (facet.type === 'categorical') {
         facetHtml = getCategoricalFacetHtml(facet);
       } else {
-        const [_, brushConf] = getNumericFacetHtml(facet);
+        const [numericFacetHtml, brushConf] = getNumericFacetHtml(facet);
+        facetHtml = numericFacetHtml;
         if (brushConf) {
           brushesByNumericFacetName[facet.name] = brushConf;
         }
@@ -948,7 +1047,15 @@ export default function initIgvFacets(trackToFilter) {
 
   const [facetsHtml, brushesByNumericFacetName] = getFacetsHtml(facets);
 
-  const filterContainerDom = document.querySelector('.igv-filters-container');
+  let filterContainerDom = document.querySelector('.igv-filters-container');
+  if (!filterContainerDom) {
+    // containerElement = document.createElement('div')
+    // containerElement.setAttribute('class', 'igv-filters-container')
+    const parentContainer = document.querySelector('[aria-label="data in this workspace"]').parentElement;
+    parentContainer.innerHTML = '<div class="igv-filters-container"></div>';
+    filterContainerDom = document.querySelector('.igv-filters-container');
+  }
+
   filterContainerDom.innerHTML = '';
   filterContainerDom.insertAdjacentHTML('beforeend', facetsHtml);
 
@@ -983,6 +1090,11 @@ export default function initIgvFacets(trackToFilter) {
       filterChange();
     });
   });
+
+  const igvFilterStyleDom = document.querySelector('#igv-filter-style');
+  if (!igvFilterStyleDom) {
+    filterContainerDom.insertAdjacentHTML('afterbegin', igvFilterStyle);
+  }
 }
 
 function getRefinedDescription(facet, facetName) {

@@ -113,15 +113,17 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           genome,
           reference,
           tracks: [],
+          locus: '19:11,199,138-11,245,496',
         };
 
         igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject));
         igvBrowser.current = await igv.createBrowser(containerRef.current, options);
         window.igvBrowser = igvBrowser.current;
-        const trackToFilter = window.igvBrowser.findTracks('name', 'Phase 3 WGS variants')[0];
+        // const trackToFilter = window.igvBrowser.findTracks('name', 'Phase 3 WGS variants')[0];
         // Update the facet widgets no locus change.  Changing the locus changes the features in view.  This can be
         // relatively frequent,  many times a second if dragging the track.
         igvBrowser.current.on('locuschange', () => {
+          const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
           // Update counts
           initIgvFacets(trackToFilter);
         });
