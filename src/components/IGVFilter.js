@@ -1,9 +1,15 @@
 import * as d3 from 'd3';
 import tippy from 'tippy.js';
 
+window.IGVFilter = {};
+
 const HISTOGRAM_BAR_MAX_HEIGHT = 20;
 const SLIDER_HANDLEBAR_WIDTH = 6;
 const HANDLEBAR_Y = -1 * (HISTOGRAM_BAR_MAX_HEIGHT - 1);
+
+const HISTOGRAM_WIDTH = 220;
+
+const defaultNumericInputWidth = 55;
 
 const igvFilterStyle = `<style id="igv-filter-style">
         .igv-facet .brush .selection {
@@ -20,8 +26,6 @@ const igvFilterStyle = `<style id="igv-filter-style">
             */
             float: left;
             margin-left: 15px;
-            margin-right: 10px;
-            width: 240px;
         }
 
         .igv-facet-header {
@@ -53,7 +57,7 @@ const igvFilterStyle = `<style id="igv-filter-style">
 
         .igv-facet {
             margin-top: 15px;
-            width: 220px;
+            width: 240px;
         }
 
         .igv-facet-numeric {
@@ -131,9 +135,10 @@ function updateIgvFilterOperator(event) {
   input.dispatchEvent(changeEvent);
 }
 
+window.IGVFilter.updateIgvFilterOperator = updateIgvFilterOperator;
+
 /** Get options for numeric filter operators */
 function getOperatorMenu(operator, facet) {
-  window.updateIgvFilterOperator = updateIgvFilterOperator;
   const operators = ['between', 'not between', '=', '!=', '<', '<=', '>', '>='];
 
   const menuWidth = `${widthsByOperator[operator]}px`;
@@ -142,7 +147,7 @@ function getOperatorMenu(operator, facet) {
   style="width: ${menuWidth}"
   data-igv-facet-name="${facet.name}"
   value="${operator}"
-  onChange="updateIgvFilterOperator(event)"
+  onChange="IGVFilter.updateIgvFilterOperator(event)"
 >
   ${operators.map((operator) => {
     return `<option value="${operator}">${operator}</option>`;
@@ -554,30 +559,32 @@ function getMedian(numbers) {
 }
 
 // /** Expand or contract a full list of filters within a categorical facet */
-// function togglePartialCollapse(event) {
-//   const target = event.target;
-//   const attrName = 'data-igv-is-partly-collapsed';
-//   const oldIsPartlyCollapsed = target.getAttribute(attrName) === 'true';
-//   const newIsPartlyCollapsed = !oldIsPartlyCollapsed;
-//   const facetName = target.getAttribute('data-igv-facet-name');
+function togglePartialCollapse(event) {
+  const target = event.target;
+  const attrName = 'data-igv-is-partly-collapsed';
+  const oldIsPartlyCollapsed = target.getAttribute(attrName) === 'true';
+  const newIsPartlyCollapsed = !oldIsPartlyCollapsed;
+  const facetName = target.getAttribute('data-igv-facet-name');
 
-//   const filterSel = `.igv-filter[data-igv-facet-name="${facetName}"]`;
-//   document.querySelectorAll(filterSel).forEach((checkbox, i) => {
-//     const filterDom = checkbox.parentElement.parentElement;
-//     if (newIsPartlyCollapsed && i >= 5) {
-//       // TODO: Consider optimizing by batching DOM writes
-//       filterDom.style = 'display: none;';
-//     } else {
-//       filterDom.style = '';
-//     }
-//   });
+  const filterSel = `.igv-filter[data-igv-facet-name="${facetName}"]`;
+  document.querySelectorAll(filterSel).forEach((checkbox, i) => {
+    const filterDom = checkbox.parentElement.parentElement;
+    if (newIsPartlyCollapsed && i >= 5) {
+      // TODO: Consider optimizing by batching DOM writes
+      filterDom.style = 'display: none;';
+    } else {
+      filterDom.style = '';
+    }
+  });
 
-//   const toggler = document.querySelector('.igv-facet-toggle');
-//   toggler.setAttribute(attrName, newIsPartlyCollapsed);
+  const toggler = document.querySelector('.igv-facet-toggle');
+  toggler.setAttribute(attrName, newIsPartlyCollapsed);
 
-//   const action = newIsPartlyCollapsed ? 'More...' : 'Less...';
-//   toggler.textContent = action;
-// }
+  const action = newIsPartlyCollapsed ? 'More...' : 'Less...';
+  toggler.textContent = action;
+}
+
+window.IGVFilter.togglePartialCollapse = togglePartialCollapse;
 
 function getFacetClass(facet) {
   return `igv-facet-${facet.name}`;
@@ -677,19 +684,21 @@ function getCollapseToggleChevron(isCollapsed, whatToToggle) {
 }
 
 /** Add or remove all checked item from list */
-// function handleFacetCheckboxChange(event) {
-//   const target = event.target;
-//   const facetName = target.getAttribute('data-igv-facet-name');
-//   const isChecked = target.checked;
-//   const selector = `.igv-filter[data-igv-facet-name="${facetName}"]`;
-//   const filterCheckboxes = document.querySelectorAll(selector);
-//   console.log('filterCheckboxes', filterCheckboxes);
-//   filterCheckboxes.forEach((filterCheckbox) => {
-//     filterCheckbox.checked = isChecked;
-//   });
-//   const changeEvent = new Event('change');
-//   filterCheckboxes[0].dispatchEvent(changeEvent);
-// }
+function handleFacetCheckboxChange(event) {
+  const target = event.target;
+  const facetName = target.getAttribute('data-igv-facet-name');
+  const isChecked = target.checked;
+  const selector = `.igv-filter[data-igv-facet-name="${facetName}"]`;
+  const filterCheckboxes = document.querySelectorAll(selector);
+  filterCheckboxes.forEach((filterCheckbox) => {
+    filterCheckbox.checked = isChecked;
+  });
+  const changeEvent = new Event('change');
+  filterCheckboxes[0].dispatchEvent(changeEvent);
+}
+
+// Enable calling via standard DOM onChange API
+window.IGVFilter.handleFacetCheckboxChange = handleFacetCheckboxChange;
 
 function getCategoricalFacetHeader(facet) {
   const friendlyName = getFriendlyFacetName(facet);
@@ -699,7 +708,7 @@ function getCategoricalFacetHeader(facet) {
         class="igv-facet-header-checkbox"
         data-igv-facet-name="${facet.name}"
         name="igv-facet-${facet.name}"
-        onChange="handleFacetCheckboxChange(event)"
+        onChange="IGVFilter.handleFacetCheckboxChange(event)"
         checked
     />
     <span
@@ -760,7 +769,7 @@ function getCategoricalFacetHtml(facet, isPartlyCollapsed = true) {
     class="igv-facet-toggle"
     data-igv-facet-name="${facet.name}"
     data-igv-is-partly-collapsed="${isPartlyCollapsed}"
-    onClick="togglePartialCollapse(event)"
+    onClick="IGVFilter.togglePartialCollapse(event)"
   >
     ${isPartlyCollapsed ? 'More...' : 'Less...'}
   </a>`;
@@ -817,7 +826,7 @@ function getNumericQueryBuilder(
 
   const hasNull = false; // TODO: Move upstream
 
-  const histogramWidth = 170;
+  const histogramWidth = HISTOGRAM_WIDTH;
 
   const bars = getHistogramBars(facet);
 
@@ -870,7 +879,7 @@ function round(val, precision = 0) {
  * Get width and font size for input, to help keep full value glanceable
  */
 function getInputStyle(inputValue, operator, precision) {
-  let width = 32;
+  let width = defaultNumericInputWidth;
   let fontSize = 13;
 
   const roundedNumber = round(inputValue, precision);
@@ -919,27 +928,29 @@ function getResponsiveStyles(inputValue, inputValue2, operator, precision) {
 }
 
 // /** Expand or contract list of population-level allele frequency facets */
-// function toggleAfCollapse(event) {
-//   const target = event.target;
-//   const attrName = 'data-igv-is-af-collapsed';
-//   const oldIsAfCollapsed = target.getAttribute(attrName) === 'true';
-//   const newIsAfCollapsed = !oldIsAfCollapsed;
+function toggleAfCollapse(event) {
+  const target = event.target;
+  const attrName = 'data-igv-is-af-collapsed';
+  const oldIsAfCollapsed = target.getAttribute(attrName) === 'true';
+  const newIsAfCollapsed = !oldIsAfCollapsed;
 
-//   const facetSel = '.igv-facet-population-af';
-//   document.querySelectorAll(facetSel).forEach((facetDom) => {
-//     if (newIsAfCollapsed) {
-//       facetDom.style = 'display: none;';
-//     } else {
-//       facetDom.style = '';
-//     }
-//   });
+  const facetSel = '.igv-facet-population-af';
+  document.querySelectorAll(facetSel).forEach((facetDom) => {
+    if (newIsAfCollapsed) {
+      facetDom.style = 'display: none;';
+    } else {
+      facetDom.style = '';
+    }
+  });
 
-//   const afToggler = document.querySelector('.igv-population-af-toggle');
-//   afToggler.setAttribute(attrName, newIsAfCollapsed);
+  const afToggler = document.querySelector('.igv-population-af-toggle');
+  afToggler.setAttribute(attrName, newIsAfCollapsed);
 
-//   const action = newIsAfCollapsed ? 'Show' : 'Hide';
-//   afToggler.textContent = `${action} by population`;
-// }
+  const action = newIsAfCollapsed ? 'Show' : 'Hide';
+  afToggler.textContent = `${action} by population`;
+}
+
+window.IGVFilter.toggleAfCollapse = toggleAfCollapse;
 
 function getNumericFacetHtml(facet) {
   if (facet.filterNumbers.length === 0 || facet.statistics.min === facet.statistics.max) {
@@ -964,7 +975,7 @@ function getNumericFacetHtml(facet) {
   <div
     class="igv-population-af-toggle"
     data-igv-is-af-collapsed="true"
-    onClick="toggleAfCollapse(event)"
+    onClick="IGVFilter.toggleAfCollapse(event)"
   >
     Show by population
   </div>`;
