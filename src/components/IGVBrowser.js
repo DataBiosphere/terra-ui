@@ -86,16 +86,19 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined };
 
       // Omit residual URL parameters from access URLs resolved via DRS Hub
-      const simpleUrl = _.last(url.split('/')).split('?')[0];
+      const remoteName = _.last(url.split('/')).split('?')[0];
+      const shortRemoteName = remoteName.length > 20 ? `${remoteName.slice(0, 20)}...` : remoteName;
+      const shortUrl = url.length > 15 ? `${url.slice(0, 15)}` : url;
+      const altName = `${shortRemoteName} (${shortUrl})`;
 
       const fullUrl = isSignedUrl ? url : Utils.mergeQueryParams(userProjectParam, url);
       const fullIndexUrl = isSignedUrl ? indexURL : Utils.mergeQueryParams(userProjectParam, indexURL);
 
       // Enable viewing features upon searching most genes, without needing to zoom several times
-      const visibilityWindow = 75_000;
+      const visibilityWindow = 300_000;
 
       igvBrowser.current.loadTrack({
-        name: name || `${simpleUrl} (${url})`,
+        name: name || altName,
         url: fullUrl,
         indexURL: indexURL ? fullIndexUrl : undefined,
         visibilityWindow,

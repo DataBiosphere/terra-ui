@@ -1,5 +1,4 @@
 import * as d3 from 'd3';
-import tippy from 'tippy.js';
 
 window.IGVFilter = {};
 
@@ -655,10 +654,10 @@ const chevronDown =
 const chevronRight =
   '<svg xmlns="http://www.w3.org/2000/svg" height="14" width="8.75" viewBox="0 0 320 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>';
 
-const tooltipAttrs = {
-  dataToggle: 'tooltip',
-  dataDelay: '{"show": 150}', // Avoid flurry of tooltips on passing hover
-};
+// const tooltipAttrs = {
+//   dataToggle: 'tooltip',
+//   dataDelay: '{"show": 150}', // Avoid flurry of tooltips on passing hover
+// };
 
 /** Toggle icon for collapsing a list; for each filter list, and all filter lists */
 function getCollapseToggleChevron(isCollapsed, whatToToggle) {
@@ -672,13 +671,15 @@ function getCollapseToggleChevron(isCollapsed, whatToToggle) {
     toggleIconTooltipText = `Show ${whatToToggle}`;
   }
 
+  const randomNumber = Math.floor(Math.random() * 90000) + 10000;
+  const uniqueId = `tooltip-${randomNumber}`;
+
   return `
         <span
         class="facet-toggle-chevron"
-        data-original-title="${toggleIconTooltipText}"
-        data-toggle="${tooltipAttrs.dataToggle}"
-        data-delay="${tooltipAttrs.dataDelay}"
+        aria-labelledby="${uniqueId}"
         >
+        <span id="${uniqueId}" style="display: none">${toggleIconTooltipText}</span>
         ${toggleIcon}
         </span>`;
 }
@@ -702,6 +703,7 @@ window.IGVFilter.handleFacetCheckboxChange = handleFacetCheckboxChange;
 
 function getCategoricalFacetHeader(facet) {
   const friendlyName = getFriendlyFacetName(facet);
+  const tooltipId = `igv-facet-tooltip-${facet.name}`;
   const header = `
     <input
         type="checkbox"
@@ -713,8 +715,10 @@ function getCategoricalFacetHeader(facet) {
     />
     <span
         class="igv-facet-header igv-facet-header-categorical"
-        data-tippy-content="${facet.description}"
-    >${friendlyName}</span>
+        aria-labelledby="${tooltipId}"
+    >
+    <span id="${tooltipId}" style="display: none">${facet.description}</span>
+    ${friendlyName}</span>
     ${getFacetTools()}`;
 
   return header;
@@ -990,7 +994,7 @@ function getNumericFacetHtml(facet) {
 <div class="igv-facet ${facetClass} igv-facet-numeric" style="${display}">
     <span
         class="igv-facet-header"
-        data-tippy-content="${facet.description}"
+        aria-label="${facet.description}"
     >${friendlyName}</span>
     ${filtersHtml}
     ${populationAfToggle}
@@ -1071,7 +1075,7 @@ export default function initIgvFacets(trackToFilter) {
   filterContainerDom.insertAdjacentHTML('beforeend', facetsHtml);
 
   // Initialize tooltips
-  tippy('.igv-facet-header[data-tippy-content]', { allowHTML: true });
+  // tippy('.igv-facet-header[data-tippy-content]', { allowHTML: true });
 
   writeNumericFacetSliderBrushes(facets, brushesByNumericFacetName);
 
