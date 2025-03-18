@@ -215,7 +215,11 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
+        disabled:
+          !workspaceLoaded ||
+          state === 'Deleting' ||
+          state === 'DeleteFailed' ||
+          cloudProvider !== cloudProviderTypes.GCP,
         onClick: () => {
           menuClicked('Clone');
           onClone();

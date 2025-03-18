@@ -1,11 +1,14 @@
 import React, { ReactNode } from 'react';
 import LeaveResourceModal from 'src/components/LeaveResourceModal';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENHANCED_WORKSPACE_CREATION } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
 import { DeleteWorkspaceModal } from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
 import { NewWorkspaceModal } from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { isGoogleWorkspace } from 'src/workspaces/utils';
@@ -52,7 +55,21 @@ export const WorkspaceContainerModals = (props: WorkspaceContainerModalsProps): 
           onSuccess={() => Nav.goToPath('workspaces')}
         />
       )}
-      {cloningWorkspace && (
+      {cloningWorkspace && isFeaturePreviewEnabled(ENHANCED_WORKSPACE_CREATION) && (
+        <NewWorkspaceWizard
+          cloneWorkspace={workspace}
+          onDismiss={() => setCloningWorkspace(false)}
+          onSuccess={(clonedWorkspace) => {
+            if (workspace && isGoogleWorkspace(workspace)) {
+              Nav.goToPath('workspace-dashboard', { namespace: clonedWorkspace.namespace, name: clonedWorkspace.name });
+            } else {
+              setCloningWorkspace(false);
+              notifyNewWorkspaceClone(clonedWorkspace);
+            }
+          }}
+        />
+      )}
+      {cloningWorkspace && !isFeaturePreviewEnabled(ENHANCED_WORKSPACE_CREATION) && (
         <NewWorkspaceModal
           cloneWorkspace={workspace}
           onDismiss={() => setCloningWorkspace(false)}

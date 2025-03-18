@@ -9,7 +9,6 @@ import { signIn } from 'src/auth/auth';
 import { signOut } from 'src/auth/signout/sign-out';
 import { Clickable, LabeledCheckbox, Link } from 'src/components/common';
 import { TextArea } from 'src/components/input';
-import ProfilePicture from 'src/components/ProfilePicture';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';
 import headerRightHexes from 'src/images/brands/terra/header-right-hexes.svg';
@@ -17,7 +16,7 @@ import { Support } from 'src/libs/ajax/Support';
 import { User } from 'src/libs/ajax/User';
 import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
+import { getBuildTimestamp, getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import { FormLabel } from 'src/libs/forms';
 import { topBarLogo } from 'src/libs/logos';
@@ -190,12 +189,9 @@ export const TopBar = (props: TopBarProps): ReactNode => {
             {signInStatus === 'userLoaded' || signInStatus === 'authenticated' ? (
               <DropDownSection
                 title={
-                  <>
-                    <ProfilePicture size={32} style={{ marginRight: 12, flex: 'none' }} />
-                    <div style={{ ...Style.noWrapEllipsis }}>
-                      {firstName} {lastName}
-                    </div>
-                  </>
+                  <div style={{ ...Style.noWrapEllipsis }}>
+                    {firstName} {lastName}
+                  </div>
                 }
                 onClick={() => setOpenUserMenu(!openUserMenu)}
                 isOpened={openUserMenu}
@@ -403,7 +399,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   {...Utils.newTabLinkProps}
                   style={{ textDecoration: 'underline', marginLeft: '0.25rem' }}
                 >
-                  {new Date(parseInt(getConfig().buildTimestamp, 10)).toLocaleString()}
+                  {new Date(getBuildTimestamp()).toLocaleString()}
                 </Clickable>
               </div>
             </div>

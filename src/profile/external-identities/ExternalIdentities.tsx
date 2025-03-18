@@ -12,7 +12,7 @@ type ExternalIdentitiesProps = {
 
 export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode => {
   const { queryParams } = props;
-  const providers = getConfig().externalCreds?.providers || [];
+  const providers = (getConfig().externalCreds?.providers || []) as OAuth2ProviderKey[];
   const hasRas = providers.includes('ras');
   const filteredProviders = providers.filter(
     (p: any) => p !== 'github' || userHasAccessToEnterpriseFeature('github-account-linking')

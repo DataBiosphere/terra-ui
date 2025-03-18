@@ -6,7 +6,7 @@ import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
 import { SamUserRegistrationStatusResponse, User, UserContract } from 'src/libs/ajax/User';
 import { Cbas, CbasAjaxContract, CbasRunSetsContract } from 'src/libs/ajax/workflows-app/Cbas';
 import { WorkspaceWrapper } from 'src/libs/ajax/workspaces/workspace-models';
-import { getConfig } from 'src/libs/config';
+import { AppConfigSettings, getConfig } from 'src/libs/config';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { BaseSubmissionHistory } from 'src/workflows-app/SubmissionHistory';
 import { mockAbortResponse, mockAzureApps, mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
@@ -103,7 +103,7 @@ const cbasUrlRoot = 'https://lz-abc/terra-app-abc/cbas';
 const cromwellUrlRoot = 'https://lz-abc/terra-app-abc/cromwell';
 
 beforeEach(() => {
-  asMockedFn(getConfig).mockReturnValue({ cbasUrlRoot, cromwellUrlRoot });
+  asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ cbasUrlRoot, cromwellUrlRoot }));
   asMockedFn(MenuTrigger).mockImplementation(({ content }) => {
     return div({ role: 'menu' }, [content]);
   });

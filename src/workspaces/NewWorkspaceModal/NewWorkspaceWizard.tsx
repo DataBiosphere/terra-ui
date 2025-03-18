@@ -1,21 +1,11 @@
-import { Icon, Modal, TooltipTrigger } from '@terra-ui-packages/components';
+import { ButtonSecondary, Icon, Modal, modalStyles } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { ReactNode, useState } from 'react';
 import { defaultLocation } from 'src/analysis/utils/runtime-utils';
 import { BillingProject, CloudPlatform, GCPBillingProject } from 'src/billing-core/models';
-import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
-import {
-  ButtonPrimary,
-  IdContainer,
-  LabeledCheckbox,
-  Link,
-  Select,
-  spinnerOverlay,
-  VirtualizedSelect,
-} from 'src/components/common';
-import { InfoBox } from 'src/components/InfoBox';
-import { TextArea, ValidatedInput } from 'src/components/input';
-import { availableBucketRegions, isSupportedBucketLocation } from 'src/components/region-common';
+import { ButtonPrimary, spinnerOverlay } from 'src/components/common';
+import { isSupportedBucketLocation } from 'src/components/region-common';
+import { TabWizard } from 'src/components/tabWizard';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { CurrentUserGroupMembership, Groups } from 'src/libs/ajax/Groups';
@@ -24,23 +14,18 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReportingInModal } from 'src/libs/error';
 import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events';
-import { FormLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
-import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgressWarning';
 import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
-import {
-  cloudProviderLabels,
-  isGoogleWorkspace,
-  isProtectedWorkspace,
-  protectedDataLabel,
-  protectedDataMessage,
-  WorkspaceInfo,
-  WorkspaceWrapper,
-} from 'src/workspaces/utils';
+import { isGoogleWorkspace, isProtectedWorkspace, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import validate from 'validate.js';
+
+import { WorkspaceAcl } from '../acl-utils';
+import { NewWorkspaceBasicTab } from './NewWorkspaceBasicTab';
+import { NewWorkspaceSecurityTab } from './NewWorkspaceSecurityTab';
+import { NewWorkspaceSharingTab } from './NewWorkspaceSharingTab';
 
 const constraints = {
   name: {
@@ -56,14 +41,7 @@ const constraints = {
   },
 };
 
-const invalidBillingAccountMsg =
-  'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra';
-
-const ariaInvalidBillingAccountMsg = (invalidBillingAccount: boolean): string => {
-  return invalidBillingAccount ? ` with warning "${invalidBillingAccountMsg}"` : '';
-};
-
-export interface NewWorkspaceModalProps {
+export interface NewWorkspaceWizardProps {
   buttonText?: string;
   cloneWorkspace?: WorkspaceWrapper;
   cloudPlatform?: CloudPlatform;
@@ -79,8 +57,8 @@ export interface NewWorkspaceModalProps {
   onSuccess: (newWorkspace: WorkspaceInfo) => void;
 }
 
-export const NewWorkspaceModal = withDisplayName(
-  'NewWorkspaceModal',
+export const NewWorkspaceWizard = withDisplayName(
+  'NewWorkspaceWizard',
   ({
     cloneWorkspace,
     cloudPlatform,
@@ -91,7 +69,8 @@ export const NewWorkspaceModal = withDisplayName(
     requireEnhancedBucketLogging,
     title,
     buttonText,
-  }: NewWorkspaceModalProps) => {
+    workflowImport,
+  }: NewWorkspaceWizardProps) => {
     // State
     const [billingProjects, setBillingProjects] = useState<BillingProject[]>();
     const [allGroups, setAllGroups] = useState<CurrentUserGroupMembership[]>();
@@ -100,13 +79,14 @@ export const NewWorkspaceModal = withDisplayName(
     const [description, setDescription] = useState(cloneWorkspace?.workspace.attributes?.description || '');
     const [groups, setGroups] = useState<string[]>([]);
     const [enhancedBucketLogging, setEnhancedBucketLogging] = useState(!!requireEnhancedBucketLogging);
-    const [nameModified, setNameModified] = useState(false);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState<string>();
     const [bucketLocation, setBucketLocation] = useState(defaultLocation);
-    const [sourceGCPWorkspaceRegion, setSourceGcpWorkspaceRegion] = useState<string>(defaultLocation);
+    const [sourceGCPWorkspaceRegion, setSourceGCPWorkspaceRegion] = useState<string>(defaultLocation);
     const [sourceGCPWorkspaceRegionError, setSourceGCPWorkspaceRegionError] = useState(false);
+    const [activeTab, setActiveTab] = useState<string>('basic');
+    const [acl, setAcl] = useState<WorkspaceAcl>([]);
     const signal = useCancellation();
 
     // Helpers
@@ -129,6 +109,7 @@ export const NewWorkspaceModal = withDisplayName(
           copyFilesWithPrefix: isGoogleBillingProject() ? 'notebooks/' : 'analyses/',
           ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation }),
           enhancedBucketLogging,
+          addUsers: acl,
         };
 
         const createdWorkspace = await Utils.cond(
@@ -213,7 +194,7 @@ export const NewWorkspaceModal = withDisplayName(
             .then(({ location }) => {
               // For current phased regionality release, we only allow US workspace buckets.
               setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation);
-              setSourceGcpWorkspaceRegion(location);
+              setSourceGCPWorkspaceRegion(location);
             })
             .catch((_) => {
               // We cannot get the bucket location in a couple of scenarios:
@@ -251,13 +232,10 @@ export const NewWorkspaceModal = withDisplayName(
       if (cloudPlatform && project.cloudPlatform !== cloudPlatform) {
         return false;
       }
-      // Do not show Non-Google billing projects
-      if (!isGoogleBillingProject(project)) {
-        return false;
+      if (workflowImport) {
+        return true;
       }
-      if (!!cloneWorkspace && !isGoogleWorkspace(cloneWorkspace)) {
-        return false;
-      }
+
       if (!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace)) {
         return isGoogleBillingProject(project);
       }
@@ -283,19 +261,102 @@ export const NewWorkspaceModal = withDisplayName(
       prettify: (v) => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v)),
     });
 
-    const onFocusAria = ({ focused, isDisabled }) => {
-      return `${isDisabled ? 'Disabled option ' : 'Option '}${focused['aria-label']}, focused.`;
+    const handleSecondaryButtonClick = async () =>
+      Utils.switchCase(
+        activeTab,
+        ['basic', async () => await create()],
+        [
+          'sharing',
+          async () => {
+            // TODO is there any data that needs to be included?
+            void Metrics().captureEvent(Events.workspaceCreateBasic);
+            setActiveTab('basic');
+            return Promise.resolve();
+          },
+        ],
+        [
+          'security',
+          async () => {
+            void Metrics().captureEvent(Events.workspaceCreateSharing);
+            setActiveTab('sharing');
+            return Promise.resolve();
+          },
+        ]
+      );
+
+    const handlePrimaryButtonClick = async () =>
+      Utils.switchCase(
+        activeTab,
+        [
+          'basic',
+          async () => {
+            void Metrics().captureEvent(Events.workspaceCreateSharing);
+            setActiveTab('sharing');
+            return Promise.resolve();
+          },
+        ],
+        [
+          'sharing',
+          async () => {
+            // TODO is there any data that needs to be included?
+            void Metrics().captureEvent(Events.workspaceCreateSecurity);
+            setActiveTab('security');
+            return Promise.resolve();
+          },
+        ],
+        [
+          'security',
+          async () => {
+            await create();
+          },
+        ]
+      );
+
+    const getTooltip = () => {
+      if (activeTab === 'basic') {
+        if (errors) {
+          return Utils.summarizeErrors(errors);
+        }
+        return 'Allows you to quickly create workspace without any sharing or additional security options';
+      }
+      return undefined;
     };
 
-    const onChangeAria = ({ value }) => {
-      return !value ? '' : `Option ${value['aria-label']} selected.`;
-    };
-
-    const endingNotice = renderNotice ? renderNotice({ selectedBillingProject }) : undefined;
-
-    const renderPolicyAndWorkspaceInfo = () => {
-      return endingNotice ? <div style={{ ...Style.elements.noticeContainer }}>{endingNotice}</div> : undefined;
-    };
+    const buttons = (
+      <div
+        style={{
+          padding: '-1 -1 rem',
+          width: '90%',
+          position: 'absolute',
+          bottom: '1rem',
+          ...modalStyles.buttonRow,
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
+      >
+        <ButtonSecondary style={{ position: 'absolute', left: '1rem' }} onClick={onDismiss}>
+          Cancel
+        </ButtonSecondary>
+        <div style={{ display: 'flex', gap: '1rem', marginLeft: 'auto' }}>
+          <ButtonSecondary
+            style={{ padding: '0 1rem', marginLeft: '1rem', border: '1px solid', borderRadius: '5px' }}
+            disabled={activeTab === 'basic' && errors}
+            tooltip={getTooltip()}
+            onClick={handleSecondaryButtonClick}
+          >
+            {Utils.cond([activeTab === 'basic', () => 'Quick create workspace'], () => 'Previous')}
+          </ButtonSecondary>
+          <ButtonPrimary
+            style={{ padding: '0 1rem', marginLeft: '1rem' }}
+            disabled={errors}
+            tooltip={activeTab === 'security' ? Utils.summarizeErrors(errors) : undefined}
+            onClick={handlePrimaryButtonClick}
+          >
+            {Utils.cond([activeTab === 'security', () => 'Create workspace'], () => 'Next')}
+          </ButtonPrimary>
+        </div>
+      </div>
+    );
 
     return Utils.cond(
       [loading, () => spinnerOverlay],
@@ -307,13 +368,13 @@ export const NewWorkspaceModal = withDisplayName(
               [!!title, () => title],
               [!!cloneWorkspace && creating, () => 'Cloning workspace'],
               [creating, () => 'Creating workspace'],
-              [!!cloneWorkspace, () => 'Clone this workspace'],
+              [!!cloneWorkspace, () => 'Clone Workspace'],
               () => 'Create a New Workspace'
             )}
             // Hold modal open while waiting for create workspace request.
             shouldCloseOnOverlayClick={!creating}
             shouldCloseOnEsc={!creating}
-            showButtons={!creating}
+            showButtons={false}
             onDismiss={onDismiss}
             okButton={
               <ButtonPrimary disabled={errors} tooltip={Utils.summarizeErrors(errors)} onClick={create}>
@@ -324,108 +385,65 @@ export const NewWorkspaceModal = withDisplayName(
                 )}
               </ButtonPrimary>
             }
-            width={550}
+            width={720}
+            styles={{ modal: { height: 720 } }}
           >
             {creating ? (
               <CreatingWorkspaceMessage />
             ) : (
               <>
-                <IdContainer>
-                  {(id) => (
-                    <>
-                      <FormLabel htmlFor={id} required>
-                        Workspace name
-                      </FormLabel>
-                      <ValidatedInput
-                        inputProps={{
-                          id,
-                          autoFocus: true,
-                          placeholder: 'Enter a name',
-                          value: name,
-                          onChange: (v) => {
-                            setName(v);
-                            setNameModified(true);
-                          },
-                        }}
-                        error={Utils.summarizeErrors(nameModified && errors?.name)}
-                      />
-                    </>
-                  )}
-                </IdContainer>
-                <IdContainer>
-                  {(id) => (
-                    <>
-                      <FormLabel htmlFor={id} required>
-                        Billing project
-                      </FormLabel>
-                      <VirtualizedSelect
-                        id={id}
-                        isClearable={false}
-                        placeholder='Select a billing project'
-                        value={namespace || null}
-                        ariaLiveMessages={{ onFocus: onFocusAria, onChange: onChangeAria }}
-                        onChange={(opt) => setNamespace(opt!.value)}
-                        styles={{ option: (provided) => ({ ...provided, padding: 10 }) }}
-                        options={_.map((project: BillingProject) => {
-                          const { projectName, invalidBillingAccount, cloudPlatform } = project;
-                          return {
-                            'aria-label': `${
-                              cloudProviderLabels[cloudPlatform]
-                            } ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
-                            label: (
-                              <TooltipTrigger content={invalidBillingAccount && invalidBillingAccountMsg} side='left'>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                  {cloudPlatform === 'GCP' && (
-                                    <CloudProviderIcon
-                                      key={projectName}
-                                      cloudProvider={cloudPlatform}
-                                      style={{ marginRight: '0.5rem' }}
-                                    />
-                                  )}
-                                  {projectName}
-                                </div>
-                              </TooltipTrigger>
-                            ),
-                            value: projectName,
-                            isDisabled: invalidBillingAccount,
-                          };
-                        }, _.sortBy('projectName', billingProjects))}
-                      />
-                    </>
-                  )}
-                </IdContainer>
-                {isGoogleBillingProject() && (
-                  <IdContainer>
-                    {(id) => (
-                      <>
-                        <FormLabel htmlFor={id}>
-                          Bucket location
-                          <InfoBox style={{ marginLeft: '0.25rem' }}>
-                            <p style={{ marginTop: '0.2rem' }}>
-                              By default, workflow and Cloud Environments will run in the same region as the workspace
-                              bucket. Changing bucket or Cloud Environment locations from the defaults can lead to
-                              network egress charges.
-                            </p>
-                            <Link
-                              href='https://support.terra.bio/hc/en-us/articles/360058964552'
-                              {...Utils.newTabLinkProps}
-                            >
-                              Read more about bucket locations
-                            </Link>
-                          </InfoBox>
-                        </FormLabel>
-                        <Select<string>
-                          isDisabled
-                          id={id}
-                          value={bucketLocation}
-                          onChange={(opt) => setBucketLocation(opt!.value)}
-                          options={availableBucketRegions}
-                        />
-                      </>
-                    )}
-                  </IdContainer>
+                <TabWizard
+                  aria-label='create workspace wizard'
+                  activeTab={activeTab}
+                  tabs={[
+                    { name: 'basic', displayName: '1. Basic Information and Billing', disabled: () => false },
+                    { name: 'sharing', displayName: '2. Sharing', disabled: () => activeTab === 'basic' && !!errors },
+                    {
+                      name: 'security',
+                      displayName: '3. Additional Security Options',
+                      disabled: () => activeTab === 'basic' && !!errors,
+                    },
+                  ]}
+                  style={{ textTransform: 'none', width: '90%' }}
+                  getHref={() => {}}
+                  getOnClick={(currentTab) => {
+                    setActiveTab(currentTab.name);
+                  }}
+                >
+                  {null /* nothing to display at the end of the tab bar */}
+                </TabWizard>
+                {activeTab === 'basic' && (
+                  <NewWorkspaceBasicTab
+                    setName={setName}
+                    name={name}
+                    errors={errors}
+                    description={description}
+                    setDescription={setDescription}
+                    namespace={namespace}
+                    billingProjects={billingProjects}
+                    setNamespace={setNamespace}
+                    bucketLocation={bucketLocation}
+                    setBucketLocation={setBucketLocation}
+                  />
                 )}
-                {!!selectedBillingProject && !!cloneWorkspace && (
+                {activeTab === 'sharing' && <NewWorkspaceSharingTab acl={acl} setAcl={setAcl} />}
+                {activeTab === 'security' && (
+                  <NewWorkspaceSecurityTab
+                    requireEnhancedBucketLogging={requireEnhancedBucketLogging}
+                    setEnhancedBucketLogging={setEnhancedBucketLogging}
+                    groups={groups}
+                    setGroups={setGroups}
+                    cloningGcpProtectedWorkspace={cloningGcpProtectedWorkspace}
+                    existingGroups={existingGroups}
+                    allGroups={allGroups}
+                    billingProjects={billingProjects}
+                    renderNotice={renderNotice}
+                    selectedBillingProject={selectedBillingProject}
+                    enhancedBucketLogging={enhancedBucketLogging}
+                  />
+                )}
+
+                {!!selectedBillingProject && !!cloneWorkspace && activeTab === 'basic' && (
                   <CloneEgressWarning
                     sourceWorkspace={cloneWorkspace}
                     selectedGcpBucketLocation={bucketLocation}
@@ -433,98 +451,8 @@ export const NewWorkspaceModal = withDisplayName(
                     sourceGCPWorkspaceRegionError={sourceGCPWorkspaceRegionError}
                   />
                 )}
-                <IdContainer>
-                  {(id) => (
-                    <>
-                      <FormLabel htmlFor={id}>Description</FormLabel>
-                      <TextArea
-                        id={id}
-                        style={{ height: 100 }}
-                        placeholder='Enter a description'
-                        value={description}
-                        onChange={setDescription}
-                      />
-                    </>
-                  )}
-                </IdContainer>
-                {isGoogleBillingProject() && (
-                  <div style={{ margin: '1rem 0.25rem 0.25rem 0' }}>
-                    <IdContainer>
-                      {(id) => (
-                        <>
-                          <LabeledCheckbox
-                            style={{ margin: '0rem 0.25rem 0.25rem 0rem' }}
-                            checked={enhancedBucketLogging}
-                            disabled={
-                              !!requireEnhancedBucketLogging || groups.length > 0 || cloningGcpProtectedWorkspace
-                            }
-                            onChange={() => setEnhancedBucketLogging(!enhancedBucketLogging)}
-                            aria-describedby={id}
-                          >
-                            {
-                              // the LabeledCheckbox uses an id container, and wraps its children in a span with the id,
-                              // and sets it 'aria-labelledby': id
-                              /* eslint-disable jsx-a11y/label-has-associated-control */
-                            }
-                            <label style={{ ...Style.elements.sectionHeader }}>{`Enable ${_.toLower(
-                              protectedDataLabel
-                            )}`}</label>
-                            {/* eslint-enable jsx-a11y/label-has-associated-control */}
-                          </LabeledCheckbox>
-                          <InfoBox style={{ marginLeft: '0.25rem', verticalAlign: 'middle' }}>
-                            {protectedDataMessage}
-                          </InfoBox>
-                        </>
-                      )}
-                    </IdContainer>
-                  </div>
-                )}
-                {isGoogleBillingProject() && (
-                  <IdContainer>
-                    {(id) => (
-                      <>
-                        <FormLabel htmlFor={id}>
-                          Authorization domain (optional)
-                          <InfoBox style={{ marginLeft: '0.25rem' }}>
-                            Authorization Domains restrict data access to only specified individuals in a group and are
-                            intended to fulfill requirements you may have for data governed by a compliance standard,
-                            such as federal controlled-access data or HIPAA protected data. They follow all workspace
-                            copies and cannot be removed. For more details, see{' '}
-                            <Link
-                              href='https://support.terra.bio/hc/en-us/articles/360026775691'
-                              {...Utils.newTabLinkProps}
-                            >
-                              When to use an Authorization Domain
-                            </Link>
-                            .
-                          </InfoBox>
-                        </FormLabel>
-                        <p style={{ marginTop: '.25rem' }}>Additional group management controls</p>
-                        {!!existingGroups.length && (
-                          <div style={{ marginBottom: '0.5rem', fontSize: 12 }}>
-                            <div style={{ marginBottom: '0.2rem' }}>Inherited groups:</div>
-                            {existingGroups.join(', ')}
-                          </div>
-                        )}
-                        <Select<string, true>
-                          id={id}
-                          isClearable={false}
-                          isMulti
-                          placeholder='Select groups'
-                          isDisabled={!allGroups || !billingProjects}
-                          value={groups}
-                          onChange={(data) => {
-                            setGroups(_.map('value', data));
-                            setEnhancedBucketLogging(!!requireEnhancedBucketLogging || data.length > 0);
-                          }}
-                          options={_.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()}
-                        />
-                      </>
-                    )}
-                  </IdContainer>
-                )}
-                {renderPolicyAndWorkspaceInfo()}
                 {createError && <div style={{ marginTop: '1rem', color: colors.danger() }}>{createError}</div>}
+                {!creating && buttons}
               </>
             )}
           </Modal>
@@ -574,4 +502,4 @@ const NoBillingModal = (props: NoBillingModalProps) => {
   );
 };
 
-export default NewWorkspaceModal;
+export default NewWorkspaceWizard;

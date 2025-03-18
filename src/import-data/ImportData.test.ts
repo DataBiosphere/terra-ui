@@ -12,8 +12,6 @@ import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { WDSJob, WorkspaceData, WorkspaceDataAjaxContract } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_PFB_IMPORT, ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -92,21 +90,6 @@ jest.mock('src/data-catalog/data-browser-utils', (): DataBrowserUtilsExports => 
   };
 });
 
-const azureSnapshotFixture: Snapshot = {
-  id: 'aaaabbbb-cccc-dddd-0000-111122223333',
-  name: 'test-snapshot',
-  source: [
-    {
-      dataset: {
-        id: 'aaaabbbb-cccc-dddd-0000-111122223333',
-        name: 'test-dataset',
-        secureMonitoringEnabled: false,
-      },
-    },
-  ],
-  cloudPlatform: 'azure',
-};
-
 const googleSnapshotFixture: Snapshot = {
   id: '00001111-2222-3333-aaaa-bbbbccccdddd',
   name: 'test-snapshot',
@@ -134,9 +117,6 @@ const setup = async (opts: SetupOptions) => {
       snapshot: (snapshotId: string) =>
         partial<DataRepoSnapshotContract>({
           details: jest.fn(async () => {
-            if (snapshotId === azureSnapshotFixture.id) {
-              return azureSnapshotFixture;
-            }
             if (snapshotId === googleSnapshotFixture.id) {
               return googleSnapshotFixture;
             }
@@ -286,33 +266,6 @@ describe('ImportData', () => {
         expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
         expect(startImportJob).not.toHaveBeenCalled();
       });
-
-      it('imports PFB files into Azure workspaces', async () => {
-        // Arrange
-        const user = userEvent.setup();
-
-        asMockedFn(isFeaturePreviewEnabled).mockImplementation(
-          (featurePreview) => featurePreview === ENABLE_AZURE_PFB_IMPORT
-        );
-
-        const importUrl = 'https://example.com/path/to/file.pfb';
-        const { importJob, startImportJob, wdsProxyUrl } = await setup({
-          queryParams: {
-            format: 'PFB',
-            url: importUrl,
-          },
-        });
-
-        // Act
-        await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
-
-        // Assert
-        expect(startImportJob).toHaveBeenCalledWith(wdsProxyUrl, defaultAzureWorkspace.workspace.workspaceId, {
-          url: importUrl,
-          type: 'PFB',
-        });
-        expect(importJob).not.toHaveBeenCalled();
-      });
     });
 
     it('imports BagIt files when format is unspecified', async () => {
@@ -392,31 +345,6 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(queryParams.tdrmanifest, 'tdrexport', { tdrSyncPermissions: true });
-      });
-
-      it('imports snapshots into Azure workspaces', async () => {
-        // Arrange
-        const user = userEvent.setup();
-
-        asMockedFn(isFeaturePreviewEnabled).mockImplementation(
-          (featurePreview) => featurePreview === ENABLE_AZURE_TDR_IMPORT
-        );
-
-        // Azure tdr import expects the tdrmanifest to be a URL object, not a string
-        const queryParams = {
-          ...commonSnapshotExportQueryParams,
-          snapshotId: azureSnapshotFixture.id,
-        };
-        const { importJob, startImportJob, wdsProxyUrl } = await setup({ queryParams });
-
-        // Act
-        await importIntoExistingWorkspace(user, defaultAzureWorkspace.workspace.name);
-
-        expect(startImportJob).toHaveBeenCalledWith(wdsProxyUrl, defaultAzureWorkspace.workspace.workspaceId, {
-          url: queryParams.tdrmanifest,
-          type: 'TDRMANIFEST',
-        });
-        expect(importJob).not.toHaveBeenCalled();
       });
     });
 

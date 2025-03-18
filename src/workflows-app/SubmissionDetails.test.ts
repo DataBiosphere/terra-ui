@@ -18,6 +18,7 @@ import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { Cbas, CbasAjaxContract } from 'src/libs/ajax/workflows-app/Cbas';
 import { CromwellApp, CromwellAppAjaxContract, WorkflowsContract } from 'src/libs/ajax/workflows-app/CromwellApp';
+import { AppConfigSettings } from 'src/libs/config';
 import { getLink } from 'src/libs/nav';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
@@ -97,13 +98,13 @@ jest.mock(
 );
 
 type ConfigExports = typeof import('src/libs/config');
-jest.mock(
-  'src/libs/config',
-  (): ConfigExports => ({
+jest.mock('src/libs/config', (): ConfigExports => {
+  const { partial } = jest.requireActual<typeof import('src/testing/test-utils')>('src/testing/test-utils');
+  return {
     ...jest.requireActual<ConfigExports>('src/libs/config'),
-    getConfig: jest.fn(() => ({ cbasUrlRoot, cromwellUrlRoot, wdsUrlRoot })),
-  })
-);
+    getConfig: jest.fn(() => partial<AppConfigSettings>({ cbasUrlRoot, cromwellUrlRoot, wdsUrlRoot })),
+  };
+});
 
 type FileBrowserHooksExports = typeof import('src/components/file-browser/file-browser-hooks');
 jest.mock(
