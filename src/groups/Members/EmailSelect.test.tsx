@@ -9,6 +9,7 @@ describe('EmailSelect', () => {
     label: 'User emails',
     placeholder: 'Type or select user emails',
     setEmails: jest.fn(),
+    emails: [],
   };
 
   it('renders the component with default props', () => {

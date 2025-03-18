@@ -95,6 +95,7 @@ describe('Members', () => {
       label: 'User emails',
       placeholder: 'Test emails',
       setEmails: jest.fn(),
+      emails: [],
     };
 
     // Act

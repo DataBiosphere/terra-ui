@@ -17,17 +17,17 @@ export const EmailSelect: React.FC<EmailSelectProps> = ({
   setEmails,
   emails,
 }) => {
-  const [searchValue, setSearchValue] = useState<string>('');
+  const [emailInput, setEmailInput] = useState<string>('');
 
   useEffect(() => {
     // Reset the field along with the emails
-    if (emails.length === 0) {
-      setSearchValue('');
+    if (emails === undefined || emails.length === 0) {
+      setEmailInput('');
     }
   }, [emails]);
 
   const emailInputId = useUniqueId();
-  const emptySearchValue = (searchValue: string) => searchValue === '';
+  const emptyInputValue = (emailInput: string) => emailInput === '';
 
   const addSelectedOptions = (options: string) => {
     const selectedOptions: string[] = options
@@ -41,11 +41,11 @@ export const EmailSelect: React.FC<EmailSelectProps> = ({
   };
 
   const handleOnBlur = () => {
-    !emptySearchValue(searchValue) && addSelectedOptions(searchValue);
+    !emptyInputValue(emailInput) && addSelectedOptions(emailInput);
   };
 
   const handleOnChange = (input: string) => {
-    !emptySearchValue(input) && setSearchValue(input);
+    !emptyInputValue(input) && setEmailInput(input);
     addSelectedOptions(input);
   };
 
@@ -60,7 +60,7 @@ export const EmailSelect: React.FC<EmailSelectProps> = ({
         aria-label={placeholder}
         onBlur={handleOnBlur}
         onChange={handleOnChange}
-        value={searchValue}
+        value={emailInput}
         height={200}
       />
     </>

@@ -114,7 +114,7 @@ export const NewMemberModal = (props: NewMemberModalProps) => {
       >
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1.5rem' }}>
           <div style={{ flex: 2, width: '500px', alignSelf: 'flex-start', marginTop: '0.75rem' }}>
-            <EmailSelect setEmails={setUserEmails} />
+            <EmailSelect setEmails={setUserEmails} emails={userEmails} />
           </div>
           <div style={{ flex: '1', alignSelf: 'flex-start' }}>
             <RoleSelect options={[memberLabel, adminLabel]} role={role} setRole={setRole} />
