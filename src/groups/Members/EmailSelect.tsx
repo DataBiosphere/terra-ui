@@ -31,15 +31,15 @@ export const EmailSelect: React.FC<EmailSelectProps> = ({
     if (newEmail || newEmail === undefined) {
       setEmails(selectedOptions);
     }
-    setSearchValue('');
+    // setSearchValue('');
   };
 
   // const handleOnInputChange = (searchValue: any) => {
   //   !emptySearchValue(searchValue) && setSearchValue(searchValue);
   // };
 
-  const handleOnBlur = (test: any) => {
-    !emptySearchValue(test) && addSelectedOptions(searchValue);
+  const handleOnBlur = () => {
+    !emptySearchValue(searchValue) && addSelectedOptions(searchValue);
   };
 
   const handleOnChange = (input: string) => {
