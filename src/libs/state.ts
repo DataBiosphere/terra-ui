@@ -158,7 +158,6 @@ export const userStore: Atom<TerraUserState> = atom<TerraUserState>({
     name: undefined,
     givenName: undefined,
     familyName: undefined,
-    imageUrl: undefined,
     idp: undefined,
   },
   terraUserAttributes: {

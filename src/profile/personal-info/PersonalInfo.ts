@@ -5,7 +5,6 @@ import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/component
 import { InfoBox } from 'src/components/InfoBox';
 import { TextInput, ValidatedInput } from 'src/components/input';
 import { PageBox, PageBoxVariants } from 'src/components/PageBox';
-import ProfilePicture from 'src/components/ProfilePicture';
 import colors from 'src/libs/colors';
 import { getTerraUser, TerraUserProfile } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -30,7 +29,6 @@ const styles = {
       alignItems: 'center',
     },
     nameLine: {
-      marginLeft: '1rem',
       color: colors.dark(),
       fontSize: '150%',
     },
@@ -136,24 +134,7 @@ export const PersonalInfo = (props: PersonalInfoProps): ReactNode => {
   const errors = validate({ firstName, lastName }, { firstName: required, lastName: required });
 
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
-    div({ style: styles.header.line }, [
-      div({ style: { position: 'relative' } }, [
-        // @ts-expect-error
-        h(ProfilePicture, { size: 48 }),
-        h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
-          'To change your profile image, visit your ',
-          h(
-            Link,
-            {
-              href: `https://myaccount.google.com?authuser=${getTerraUser().email}`,
-              ...Utils.newTabLinkProps,
-            },
-            ['Google account page.']
-          ),
-        ]),
-      ]),
-      div({ style: styles.header.nameLine }, [`Hello again, ${firstName}`]),
-    ]),
+    div({ style: styles.header.line }, [div({ style: styles.header.nameLine }, [`Hello again, ${firstName}`])]),
     div({ style: { display: 'flex' } }, [
       div({ style: styles.page }, [
         line([
