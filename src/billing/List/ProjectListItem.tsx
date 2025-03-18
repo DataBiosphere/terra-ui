@@ -20,6 +20,7 @@ export const listItemStyle = (selected, hovered) => {
     ...Style.navList.item(selected),
     ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
     paddingLeft: '2rem',
+    height: 60,
   };
   if (hovered) {
     return {
