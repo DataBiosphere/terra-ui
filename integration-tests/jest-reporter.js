@@ -45,7 +45,9 @@ module.exports = class JestReporter {
       if (!_.isEmpty(failureMessages)) {
         writableStream.write(`Failure messages: ${failureMessages}\n`);
       }
-      if (!_.isEmpty(failureDetails)) {
+      // Only write failure details if they do not contain a JWT (even if it is an invalid one) as the logs are public
+      // See https://broadworkbench.atlassian.net/browse/AN-464
+      if (!_.isEmpty(failureDetails) && !failureDetails.response.config.data.grant_type === 'urn:ietf:params:oauth:grant-type:jwt-bearer') {
         writableStream.write(`Failure details: ${JSON.stringify(failureDetails, null, 2)}\n`);
       }
       writableStream.write('\n');
