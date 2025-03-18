@@ -1,6 +1,6 @@
 import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextInput } from 'src/components/input';
 import { FormLabel } from 'src/libs/forms';
 
@@ -19,6 +19,13 @@ export const EmailSelect: React.FC<EmailSelectProps> = ({
 }) => {
   const [searchValue, setSearchValue] = useState<string>('');
 
+  useEffect(() => {
+    // Reset the field along with the emails
+    if (emails.length === 0) {
+      setSearchValue('');
+    }
+  }, [emails]);
+
   const emailInputId = useUniqueId();
   const emptySearchValue = (searchValue: string) => searchValue === '';
 
@@ -31,12 +38,7 @@ export const EmailSelect: React.FC<EmailSelectProps> = ({
     if (newEmail || newEmail === undefined) {
       setEmails(selectedOptions);
     }
-    // setSearchValue('');
   };
-
-  // const handleOnInputChange = (searchValue: any) => {
-  //   !emptySearchValue(searchValue) && setSearchValue(searchValue);
-  // };
 
   const handleOnBlur = () => {
     !emptySearchValue(searchValue) && addSelectedOptions(searchValue);
