@@ -7,7 +7,7 @@ import colors from 'src/libs/colors';
 import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { AccessEntry, WorkspaceAcl } from 'src/workspaces/acl-utils';
-import { BaseWorkspace, canWrite, hasAccessLevel, isAzureWorkspace, WorkspaceAccessLevel } from 'src/workspaces/utils';
+import { canWrite, hasAccessLevel, WorkspaceAccessLevel } from 'src/workspaces/utils';
 
 /**
  * @param aclItem {AccessEntry} the item to render
@@ -22,12 +22,13 @@ interface CollaboratorProps {
   acl: WorkspaceAcl;
   setAcl: Dispatch<SetStateAction<WorkspaceAcl>>;
   originalAcl: WorkspaceAcl;
-  workspace: BaseWorkspace;
+  workspaceAccessLevel: WorkspaceAccessLevel;
+  isAzureWorkspace: boolean | undefined;
   lastAddedEmail?: string;
 }
 
 export const Collaborator: React.FC<CollaboratorProps> = (props: CollaboratorProps) => {
-  const { originalAcl, aclItem, acl, setAcl, workspace, lastAddedEmail } = props;
+  const { originalAcl, aclItem, acl, setAcl, workspaceAccessLevel, isAzureWorkspace, lastAddedEmail } = props;
   const { email, accessLevel, pending } = aclItem;
   const disabled = accessLevel === 'PROJECT_OWNER' || email === getTerraUser().email;
   const isOld = _.find({ email }, originalAcl);
@@ -54,11 +55,11 @@ export const Collaborator: React.FC<CollaboratorProps> = (props: CollaboratorPro
           value={aclItem}
           onChange={(v) => setAcl(_.map((entry) => (entry.email === email ? v : entry), acl))}
           disabled={disabled}
-          maxAccessLevel={workspace.accessLevel}
-          isAzureWorkspace={isAzureWorkspace(workspace)}
+          maxAccessLevel={workspaceAccessLevel}
+          isAzureWorkspace={isAzureWorkspace}
         />
       </div>
-      {!disabled && allowRoleEdit(workspace.accessLevel, aclItem) && (
+      {!disabled && allowRoleEdit(workspaceAccessLevel, aclItem) && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <Link
           tooltip={`Remove ${accessLevel.toLowerCase()} ${email}`}

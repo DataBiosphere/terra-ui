@@ -21,7 +21,6 @@ import targetLogo from 'src/images/library/datasets/target_logo.jpeg';
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg';
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { getEnabledBrand } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
@@ -384,31 +383,6 @@ const encode = () =>
     ]
   );
 
-const fcDataLib = () =>
-  h(
-    Participant,
-    {
-      logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
-      title: 'Broad Dataset Workspace Library',
-      description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
-   are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
-      sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')]),
-    },
-    [
-      h(
-        ButtonPrimary,
-        {
-          'aria-label': 'Browse Broad Institute datasets',
-          tooltip: 'Search for dataset workspaces',
-          href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#library`,
-          onClick: () => captureBrowseDataEvent('Broad Institute Datasets'),
-          ...Utils.newTabLinkProps,
-        },
-        ['Browse Datasets']
-      ),
-    ]
-  );
-
 const framingham = () =>
   h(
     Participant,
@@ -554,7 +528,7 @@ const target = () =>
         ButtonPrimary,
         {
           'aria-label': 'Browse TARGET data',
-          href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=TARGET#library`,
+          href: `${getConfig().duosUrlRoot}/datalibrary/firecloud`,
           onClick: () => captureBrowseDataEvent('TARGET'),
           ...Utils.newTabLinkProps,
         },
@@ -583,7 +557,7 @@ const tcga = () =>
         ButtonPrimary,
         {
           'aria-label': 'Browse Cancer Genome Atlas data',
-          href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=TCGA#library`,
+          href: `${getConfig().duosUrlRoot}/datalibrary/firecloud`,
           onClick: () => captureBrowseDataEvent('Cancer Genome Atlas'),
           ...Utils.newTabLinkProps,
         },
@@ -671,7 +645,6 @@ export const Datasets = () => {
           ccdg(),
           cmg(),
           encode(),
-          fcDataLib(),
           framingham(),
           gp2(),
           hca(),

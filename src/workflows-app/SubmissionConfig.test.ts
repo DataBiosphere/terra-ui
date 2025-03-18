@@ -7,7 +7,7 @@ import { Cbas, CbasAjaxContract } from 'src/libs/ajax/workflows-app/Cbas';
 import { WorkflowScript, WorkflowScriptAjaxContract } from 'src/libs/ajax/workflows-app/WorkflowScript';
 import { WorkspaceData, WorkspaceDataAjaxContract } from 'src/libs/ajax/WorkspaceDataService';
 import { AzureWorkspace } from 'src/libs/ajax/workspaces/workspace-models';
-import { getConfig } from 'src/libs/config';
+import { AppConfigSettings, getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
 import { AppProxyUrlStatus, getTerraUser, workflowsAppStore } from 'src/libs/state';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -136,7 +136,7 @@ describe('BaseSubmissionConfig', () => {
   });
 
   beforeEach(() => {
-    asMockedFn(getConfig).mockReturnValue({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot });
+    asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot }));
     asMockedFn(Apps).mockReturnValue(partial<AppsAjaxContract>({ listAppsV2: mockLeoResponse }));
     asMockedFn(WorkspaceData).mockReturnValue(
       partial<WorkspaceDataAjaxContract>({
@@ -316,7 +316,7 @@ describe('BaseSubmissionConfig', () => {
 
   describe('BaseSubmissionConfig with workflowsAppStore', () => {
     beforeEach(() => {
-      asMockedFn(getConfig).mockReturnValue({ leoUrlRoot });
+      asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ leoUrlRoot }));
       asMockedFn(getTerraUser).mockReturnValue({ email: 'groot@gmail.com' });
     });
 
@@ -705,7 +705,7 @@ describe('BaseSubmissionConfig', () => {
 
   describe('Records Table updates', () => {
     beforeEach(() => {
-      asMockedFn(getConfig).mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
+      asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ wdsUrlRoot, cbasUrlRoot }));
     });
 
     it('should repopulate the record selector when the dropdown selection changes', async () => {
@@ -1032,7 +1032,7 @@ describe('BaseSubmissionConfig', () => {
 
   describe('Submitting a run set', () => {
     beforeEach(() => {
-      asMockedFn(getConfig).mockReturnValue({ wdsUrlRoot, cbasUrlRoot });
+      asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ wdsUrlRoot, cbasUrlRoot }));
     });
     interface SubmitTestCase {
       workspace: AzureWorkspace;

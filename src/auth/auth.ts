@@ -280,7 +280,6 @@ export const loadOidcUser = (user: OidcUser): void => {
       name: tokenClaims.name,
       givenName: tokenClaims.given_name,
       familyName: tokenClaims.family_name,
-      imageUrl: tokenClaims.picture,
       idp: tokenClaims.idp,
     },
   }));

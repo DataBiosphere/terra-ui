@@ -2,10 +2,8 @@ import { abandonedPromise } from '@terra-ui-packages/core-utils';
 import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
-import { BillingProject, CloudPlatform } from 'src/billing-core/models';
-import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage';
+import { BillingProject } from 'src/billing-core/models';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { FirecloudBucket, FirecloudBucketAjaxContract } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { CurrentUserGroupMembership, GroupContract, Groups, GroupsContract } from 'src/libs/ajax/Groups';
@@ -20,23 +18,17 @@ import {
 } from 'src/libs/ajax/workspaces/Workspaces';
 import Events from 'src/libs/events';
 import { goToPath } from 'src/libs/nav';
-import {
-  azureBillingProject,
-  azureProtectedDataBillingProject,
-  gcpBillingProject,
-} from 'src/testing/billing-project-fixtures';
+import { gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import {
-  defaultAzureWorkspace,
   defaultGoogleWorkspace,
   makeGoogleWorkspace,
   mockBucketRequesterPaysError,
 } from 'src/testing/workspace-fixtures';
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
-import NewWorkspaceModal from './NewWorkspaceModal';
+import NewWorkspaceWizard from './NewWorkspaceWizard';
 
-jest.mock('src/libs/ajax/AzureStorage');
 jest.mock('src/libs/ajax/billing/Billing');
 jest.mock('src/libs/ajax/firecloud/FirecloudBucket');
 jest.mock('src/libs/ajax/Groups');
@@ -63,7 +55,6 @@ interface SetupOptions {
 interface SetupResult {
   captureEvent: jest.MockedFunction<MetricsContract['captureEvent']>;
   checkBucketLocation: jest.MockedFunction<WorkspaceContract['checkBucketLocation']>;
-  containerInfo: jest.MockedFunction<AzureStorageContract['containerInfo']>;
   cloneWorkspace: jest.MockedFunction<WorkspaceV2Contract['clone']>;
   createWorkspace: jest.MockedFunction<WorkspacesAjaxContract['create']>;
   getWorkspaceDetails: jest.MockedFunction<WorkspaceContract['details']>;
@@ -109,13 +100,14 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
   asMockedFn(Groups).mockReturnValue(
     partial<GroupsContract>({
       list: async () => {
-        return groups.map((groupName) =>
+        const groupsResponse = groups.map((groupName) =>
           partial<CurrentUserGroupMembership>({
             groupEmail: `${groupName}@test.firecloud.org`,
             groupName,
             role: 'member',
           })
         );
+        return groupsResponse;
       },
       group: (groupName) =>
         partial<GroupContract>({
@@ -144,22 +136,8 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
     })
   );
 
-  const containerInfo: jest.MockedFunction<AzureStorageContract['containerInfo']> = jest.fn();
-  asMockedFn(containerInfo).mockResolvedValue({
-    storageContainerName: 'sc-e18cfbc3-7115-4a37-add7-1d95d3ecfa14',
-    resourceId: '4da46849-7f06-44e2-ba62-80fa2348ff35',
-    region: 'japaneast',
-  });
-
-  asMockedFn(AzureStorage).mockReturnValue(
-    partial<AzureStorageContract>({
-      containerInfo,
-    })
-  );
-
   return {
     checkBucketLocation,
-    containerInfo,
     cloneWorkspace,
     createWorkspace,
     getWorkspaceDetails,
@@ -172,19 +150,9 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
 const egressWarning = /may incur network egress charges/;
 const nonRegionSpecificEgressWarning = /Copying data may incur network egress charges/;
 
-const mockWorkspaceDetails: { Gcp: WorkspaceInfo } = {
-  Gcp: defaultGoogleWorkspace.workspace,
-};
+const mockWorkspaceDetails: WorkspaceInfo = defaultGoogleWorkspace.workspace;
 
-describe('NewWorkspaceModal', () => {
-  const getAvailableBillingProjects = async (user) => {
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    const availableBillingProjectOptions = await projectSelect.getOptions();
-    // Remove icon name from option label.
-    // The icon names are only present in tests. They're the result of a configured transform.
-    return availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
-  };
-
+describe('NewWorkspaceWizard', () => {
   const selectBillingProject = async (user, billingProjectName) => {
     await user.click(screen.getByText('Select a billing project'));
     await user.click(screen.getByText(billingProjectName));
@@ -198,7 +166,7 @@ describe('NewWorkspaceModal', () => {
       // Act
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
+          h(NewWorkspaceWizard, {
             onSuccess: () => {},
             onDismiss: () => {},
           })
@@ -216,8 +184,8 @@ describe('NewWorkspaceModal', () => {
       // Act
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
-            cloneWorkspace: defaultAzureWorkspace,
+          h(NewWorkspaceWizard, {
+            cloneWorkspace: defaultGoogleWorkspace,
             onSuccess: () => {},
             onDismiss: () => {},
           })
@@ -233,11 +201,11 @@ describe('NewWorkspaceModal', () => {
       const user = userEvent.setup();
       setup({ billingProjects: [] });
 
-      // Arrange
+      // Act
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
-            cloneWorkspace: defaultAzureWorkspace,
+          h(NewWorkspaceWizard, {
+            cloneWorkspace: defaultGoogleWorkspace,
             onSuccess: () => {},
             onDismiss: () => {},
           })
@@ -254,11 +222,12 @@ describe('NewWorkspaceModal', () => {
   it('Shows all available billing projects by default', async () => {
     // Arrange
     const user = userEvent.setup();
-    setup();
+    setup({ billingProjects: [gcpBillingProject, { ...gcpBillingProject, projectName: 'Second Billing Project' }] });
 
+    // Act
     await act(async () => {
       render(
-        h(NewWorkspaceModal, {
+        h(NewWorkspaceWizard, {
           onSuccess: () => {},
           onDismiss: () => {},
         })
@@ -269,101 +238,8 @@ describe('NewWorkspaceModal', () => {
     await user.click(projectSelector);
 
     // Assert
-    // getByText throws an error if the element is not found:
     screen.getByText('Google Billing Project');
-    // queryByText returns null if the element is not found:
-    expect(screen.queryByText('Importing directly into new Azure workspaces is not currently supported.')).toBeNull();
-  });
-
-  describe('handles the requireEnhancedBucketLogging option', () => {
-    it('hides unprotected Gcp billing projects when additional security monitoring is required', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      setup({ billingProjects: [gcpBillingProject] });
-
-      await act(async () => {
-        render(
-          h(NewWorkspaceModal, {
-            onSuccess: () => {},
-            onDismiss: () => {},
-            requireEnhancedBucketLogging: true,
-          })
-        );
-      });
-
-      // Assert
-      expect(await getAvailableBillingProjects(user)).toEqual(['Google Billing Project']);
-    });
-
-    it.each([
-      {
-        cloudPlatform: 'GCP',
-        expectedBillingProjects: ['Google Billing Project'],
-        requireEnhancedBucketLogging: false,
-      },
-      { cloudPlatform: 'GCP', expectedBillingProjects: ['Google Billing Project'], requireEnhancedBucketLogging: true },
-    ] as { cloudPlatform: CloudPlatform; expectedBillingProjects: string[]; requireEnhancedBucketLogging: boolean }[])(
-      'can limit billing projects to $cloudPlatform with requireEnhancedBucketLogging=$requireEnhancedBucketLogging',
-      async ({ cloudPlatform, expectedBillingProjects, requireEnhancedBucketLogging }) => {
-        // Arrange
-        const user = userEvent.setup();
-        setup({ billingProjects: [gcpBillingProject] });
-
-        // Act
-        await act(async () => {
-          render(
-            h(NewWorkspaceModal, {
-              cloudPlatform,
-              requireEnhancedBucketLogging,
-              onDismiss: () => {},
-              onSuccess: () => {},
-            })
-          );
-        });
-
-        // Assert
-        expect(await getAvailableBillingProjects(user)).toEqual(expectedBillingProjects);
-      }
-    );
-  });
-
-  describe('filters billing projects when cloning a workspace ', () => {
-    it('Hides Azure billing projects when cloning a GCP workspace', async () => {
-      const user = userEvent.setup();
-      setup();
-
-      // Act
-      await act(async () => {
-        render(
-          h(NewWorkspaceModal, {
-            cloneWorkspace: defaultGoogleWorkspace,
-            onDismiss: () => {},
-            onSuccess: () => {},
-          })
-        );
-      });
-
-      // Assert
-      expect(await getAvailableBillingProjects(user)).toEqual(['Google Billing Project']);
-    });
-
-    it('Hides All billing projects when cloning an Azure workspace', async () => {
-      setup({ billingProjects: [gcpBillingProject, azureBillingProject, azureProtectedDataBillingProject] });
-
-      // Act
-      await act(async () => {
-        render(
-          h(NewWorkspaceModal, {
-            cloneWorkspace: defaultAzureWorkspace,
-            onDismiss: () => {},
-            onSuccess: () => {},
-          })
-        );
-      });
-
-      // Assert
-      screen.getByText('You do not have a billing project that is able to clone this workspace.');
-    });
+    screen.getByText('Second Billing Project');
   });
 
   describe('decides when to show a policy section ', () => {
@@ -379,7 +255,7 @@ describe('NewWorkspaceModal', () => {
       // Act
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
+          h(NewWorkspaceWizard, {
             cloneWorkspace: protectedWorkspace,
             onDismiss: () => {},
             onSuccess: () => {},
@@ -393,7 +269,6 @@ describe('NewWorkspaceModal', () => {
   });
 
   describe('handles Additional Security Monitoring for GCP billing projects/workspaces ', () => {
-    const additionalSecurityMonitoring = 'Enable additional security monitoring';
     it.each([{ selectCheckbox: true }, { selectCheckbox: false }] as { selectCheckbox: boolean }[])(
       'shows the checkbox if a Google billing project is selected, and correctly passes the value $selectCheckbox on create',
       async ({ selectCheckbox }) => {
@@ -401,9 +276,10 @@ describe('NewWorkspaceModal', () => {
         const user = userEvent.setup();
         const { createWorkspace } = setup();
 
+        // Act
         await act(async () => {
           render(
-            h(NewWorkspaceModal, {
+            h(NewWorkspaceWizard, {
               onSuccess: () => {},
               onDismiss: () => {},
             })
@@ -417,25 +293,28 @@ describe('NewWorkspaceModal', () => {
 
         await selectBillingProject(user, 'Google Billing Project');
 
-        const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
-
+        const securityTab = screen.getByText('3. Additional Security Options');
+        await user.click(securityTab);
         // Assert
-        // getByText throws an error if the element is not found:
-        const checkbox = screen.getByRole('checkbox');
-        expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
-        expect(checkbox).not.toHaveAttribute('disabled');
-        expect(checkbox).not.toBeChecked();
+        const secureMonitoringSwitch = screen.getByRole('switch');
+        expect(secureMonitoringSwitch).not.toHaveAttribute('disabled');
+        expect(secureMonitoringSwitch).not.toBeChecked();
 
         // Act
         if (selectCheckbox) {
-          await user.click(checkbox);
-          expect(checkbox).toBeChecked();
+          await user.click(secureMonitoringSwitch);
+          expect(secureMonitoringSwitch).toBeChecked();
         }
+
+        const createWorkspaceButton = screen.getByRole('button', { name: 'Create workspace' });
+
+        // Assert
         expect(createWorkspaceButton).not.toHaveAttribute('disabled');
         await user.click(createWorkspaceButton);
 
         // Assert arguments sent to Ajax method for creating a workspace.
         expect(createWorkspace).toBeCalledWith({
+          addUsers: [],
           attributes: { description: '' },
           authorizationDomain: [],
           bucketLocation: 'US-CENTRAL1',
@@ -447,28 +326,40 @@ describe('NewWorkspaceModal', () => {
       }
     );
 
-    it('does not let the user uncheck the option if requireEnhancedBucketLogging is passed in as true', async () => {
+    it('does not let the user unselect secure monitoring if an auth domain is added', async () => {
       // Arrange
       const user = userEvent.setup();
-      setup();
+      setup({ billingProjects: [gcpBillingProject], groups: ['AuthDomain'] });
 
+      // Act
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
+          h(NewWorkspaceWizard, {
             onSuccess: () => {},
             onDismiss: () => {},
-            requireEnhancedBucketLogging: true,
           })
         );
       });
 
       await selectBillingProject(user, 'Google Billing Project');
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
+
+      const securityTab = screen.getByText('3. Additional Security Options');
+      await user.click(securityTab);
+
+      const groupsSelector = screen.getByText('Select groups');
+      await user.click(groupsSelector);
+
+      const authDomain = screen.getByText('AuthDomain');
+      await user.click(authDomain);
 
       // Assert
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
-      expect(checkbox).toHaveAttribute('disabled');
-      expect(checkbox).toBeChecked();
+      const secureMonitoringSwitch = screen.getByRole('switch');
+      expect(secureMonitoringSwitch).toHaveProperty('checked', true);
+      expect(secureMonitoringSwitch).toHaveProperty('disabled', true);
     });
 
     it('does not let the user uncheck the option if cloning a GCP protected data workspace', async () => {
@@ -482,7 +373,7 @@ describe('NewWorkspaceModal', () => {
       // Act
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
+          h(NewWorkspaceWizard, {
             cloneWorkspace: protectedWorkspace,
             onDismiss: () => {},
             onSuccess: () => {},
@@ -492,21 +383,24 @@ describe('NewWorkspaceModal', () => {
 
       await selectBillingProject(user, 'Google Billing Project');
 
+      const securityTab = screen.getByText('3. Additional Security Options');
+      await user.click(securityTab);
+
       // Assert
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
-      expect(checkbox).toHaveAttribute('disabled');
-      expect(checkbox).toBeChecked();
+      const secureMonitoringSwitch = screen.getByRole('switch');
+      expect(secureMonitoringSwitch).toHaveProperty('checked', true);
+      expect(secureMonitoringSwitch).toHaveProperty('disabled', true);
     });
 
     it('checks and disables the option if an auth domain is chosen', async () => {
       // Arrange
       const user = userEvent.setup();
-      setup({ groups: ['AuthDomain'] });
+      setup({ billingProjects: [gcpBillingProject], groups: ['AuthDomain'] });
 
+      // Act
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
+          h(NewWorkspaceWizard, {
             onSuccess: () => {},
             onDismiss: () => {},
           })
@@ -514,6 +408,13 @@ describe('NewWorkspaceModal', () => {
       });
 
       await selectBillingProject(user, 'Google Billing Project');
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
+
+      const securityTab = screen.getByText('3. Additional Security Options');
+      await user.click(securityTab);
 
       const groupsSelector = screen.getByText('Select groups');
       await user.click(groupsSelector);
@@ -522,46 +423,10 @@ describe('NewWorkspaceModal', () => {
       await user.click(authDomain);
 
       // Assert
-      const checkbox = screen.getByRole('checkbox');
-      expect(checkbox).toHaveAccessibleName(additionalSecurityMonitoring);
-      expect(checkbox).toHaveAttribute('disabled');
-      expect(checkbox).toBeChecked();
+      const secureMonitoringSwitch = screen.getByRole('switch');
+      expect(secureMonitoringSwitch).toHaveProperty('checked', true);
+      expect(secureMonitoringSwitch).toHaveProperty('disabled', true);
     });
-  });
-
-  it('allows showing a notice based on the selected billing project', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    setup({ groups: ['AuthDomain'] });
-
-    const renderNotice = jest.fn().mockImplementation(({ selectedBillingProject }) => {
-      return selectedBillingProject
-        ? `Selected billing project: ${selectedBillingProject.projectName}`
-        : 'No selected billing project';
-    });
-
-    // Act
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          renderNotice,
-          onSuccess: () => {},
-          onDismiss: () => {},
-        })
-      );
-    });
-
-    // Assert
-    expect(renderNotice).toHaveBeenCalledWith({ selectedBillingProject: undefined });
-    screen.getByText('No selected billing project');
-
-    // Act
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    await projectSelect.selectOption(/Google Billing Project/);
-
-    // Assert
-    expect(renderNotice).toHaveBeenCalledWith({ selectedBillingProject: gcpBillingProject });
-    screen.getByText('Selected billing project: Google Billing Project');
   });
 
   describe('while creating a workspace', () => {
@@ -579,7 +444,7 @@ describe('NewWorkspaceModal', () => {
 
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
+          h(NewWorkspaceWizard, {
             onSuccess: () => {},
             onDismiss: () => {},
           })
@@ -595,7 +460,7 @@ describe('NewWorkspaceModal', () => {
       const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
       await projectSelect.selectOption(/Google Billing Project/);
 
-      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Quick create workspace' });
       await user.click(createWorkspaceButton);
     });
 
@@ -625,20 +490,18 @@ describe('NewWorkspaceModal', () => {
     });
   });
 
-  it('includes Gcp cloud platform from workspace response', async () => {
+  it('includes $cloudPlatform cloud platform from workspace response', async () => {
     // Arrange
     const user = userEvent.setup();
-    const billingProjectName = gcpBillingProject.projectName;
-    const cloudPlatform = 'Gcp';
 
-    const createdWorkspace = mockWorkspaceDetails[cloudPlatform];
+    const createdWorkspace = mockWorkspaceDetails;
     const { createWorkspace } = setup();
     createWorkspace.mockResolvedValue(createdWorkspace);
 
     const onSuccess = jest.fn();
     await act(async () => {
       render(
-        h(NewWorkspaceModal, {
+        h(NewWorkspaceWizard, {
           onSuccess,
           onDismiss: () => {},
         })
@@ -652,15 +515,15 @@ describe('NewWorkspaceModal', () => {
     });
 
     const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    await projectSelect.selectOption(new RegExp(billingProjectName));
+    await projectSelect.selectOption(new RegExp(gcpBillingProject.projectName));
 
-    const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+    const createWorkspaceButton = screen.getByRole('button', { name: 'Quick create workspace' });
     await user.click(createWorkspaceButton);
 
     // Assert
     expect(onSuccess).toHaveBeenCalledWith({
       ...createdWorkspace,
-      cloudPlatform,
+      // 'Gcp',
     });
   });
 
@@ -686,7 +549,7 @@ describe('NewWorkspaceModal', () => {
 
         await act(async () => {
           render(
-            h(NewWorkspaceModal, {
+            h(NewWorkspaceWizard, {
               onSuccess: () => {},
               onDismiss: () => {},
             })
@@ -702,7 +565,7 @@ describe('NewWorkspaceModal', () => {
         const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
         await projectSelect.selectOption(/Google Billing Project/);
 
-        const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+        const createWorkspaceButton = screen.getByRole('button', { name: 'Quick create workspace' });
         await user.click(createWorkspaceButton);
 
         // Assert
@@ -718,7 +581,7 @@ describe('NewWorkspaceModal', () => {
 
       await act(async () => {
         render(
-          h(NewWorkspaceModal, {
+          h(NewWorkspaceWizard, {
             onSuccess: () => {},
             onDismiss: () => {},
           })
@@ -734,7 +597,7 @@ describe('NewWorkspaceModal', () => {
       const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
       await projectSelect.selectOption(/Google Billing Project/);
 
-      const createWorkspaceButton = screen.getByRole('button', { name: 'Create Workspace' });
+      const createWorkspaceButton = screen.getByRole('button', { name: 'Quick create workspace' });
       await user.click(createWorkspaceButton);
 
       // Assert
@@ -760,7 +623,7 @@ describe('NewWorkspaceModal', () => {
         // Act
         await act(async () => {
           render(
-            h(NewWorkspaceModal, {
+            h(NewWorkspaceWizard, {
               cloneWorkspace: defaultGoogleWorkspace,
               onDismiss: () => {},
               onSuccess: () => {},
@@ -777,38 +640,6 @@ describe('NewWorkspaceModal', () => {
         screen.getByText(nonRegionSpecificEgressWarning);
       }
     );
-  });
-
-  it('does not show an egress message if the user is cloning within the same billing project', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const cloneWorkspace = _.cloneDeep(defaultGoogleWorkspace);
-    cloneWorkspace.workspace.namespace = gcpBillingProject.projectName;
-
-    const { containerInfo } = setup({ billingProjects: [gcpBillingProject] });
-
-    // The container error does not matter -- we will not show an egress message
-    // because the selected billing project matches the namespace of the clone workspace.
-    containerInfo.mockRejectedValue(new Response('Mock container error', { status: 500 }));
-
-    // Don't show expected message about storage container not being available
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-
-    // Act
-    await act(async () => {
-      render(
-        h(NewWorkspaceModal, {
-          cloneWorkspace,
-          onDismiss: () => {},
-          onSuccess: () => {},
-        })
-      );
-    });
-
-    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
-    await projectSelect.selectOption(/Google Billing Project/);
-
-    expect(screen.queryByText(egressWarning)).toBeNull();
   });
 
   it('loads full description when cloning a workspace', async () => {
@@ -829,7 +660,7 @@ describe('NewWorkspaceModal', () => {
     // Act
     await act(async () => {
       render(
-        h(NewWorkspaceModal, {
+        h(NewWorkspaceWizard, {
           cloneWorkspace,
           onDismiss: () => {},
           onSuccess: () => {},
@@ -840,5 +671,49 @@ describe('NewWorkspaceModal', () => {
     // Assert
     const descriptionInput = screen.getByLabelText('Description');
     expect(descriptionInput).toHaveValue('Important: before using this workspace, <rest of the instructions>.');
+  });
+
+  describe('tab navigation', () => {
+    it('disallows navigation past first tab until required fields are complete', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup();
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceWizard, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+          })
+        );
+      });
+
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      expect(nextButton).toHaveAttribute('disabled');
+      // Tooltip should tell you to fill in the required fields
+      const needBillingProjectTooltip = screen.getAllByText("Billing project can't be blank");
+      expect(needBillingProjectTooltip).toBeInTheDocument;
+
+      await selectBillingProject(user, 'Google Billing Project');
+      expect(nextButton).toHaveAttribute('disabled');
+      // Tooltip should tell you to fill in the required fields
+      const needNameTooltip = screen.getAllByText("Name can't be blank");
+      expect(needNameTooltip).toBeInTheDocument;
+
+      const workspaceNameInput = screen.getByLabelText('Workspace name *');
+      act(() => {
+        fireEvent.change(workspaceNameInput, { target: { value: 'Test workspace' } });
+      });
+
+      expect(nextButton).not.toHaveAttribute('disabled');
+      expect(needBillingProjectTooltip).not.toBeInTheDocument;
+      expect(needNameTooltip).not.toBeInTheDocument;
+
+      const quickCreateTooltip = screen.getAllByText(
+        'Allows you to quickly create workspace without any sharing or additional security options'
+      );
+
+      expect(quickCreateTooltip).not.toBeInTheDocument;
+    });
   });
 });

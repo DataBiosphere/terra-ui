@@ -8,7 +8,7 @@ import { initializeAuthMetrics } from 'src/auth/app-load/init-metrics';
 import { initializeClientId } from 'src/auth/app-load/initializeClientId';
 import { initializeSystemProperties } from 'src/auth/system-loader';
 import { mountAjaxOverrideUtils } from 'src/libs/ajax/ajax-override-utils';
-import { isAxeEnabled } from 'src/libs/config';
+import { AppConfigSettings, isAxeEnabled } from 'src/libs/config';
 import { setupAjaxTestUtil } from 'src/libs/startup/ajax-test-root';
 import { initAxeTools } from 'src/libs/startup/axe-core';
 import Main from 'src/pages/Main';
@@ -31,14 +31,15 @@ jest.mock('src/libs/startup/axe-core');
 jest.mock('src/libs/style');
 
 type ConfigExports = typeof import('src/libs/config');
-jest.mock(
-  'src/libs/config',
-  (): ConfigExports => ({
+jest.mock('src/libs/config', (): ConfigExports => {
+  const { partial } = jest.requireActual<typeof import('src/testing/test-utils')>('src/testing/test-utils');
+
+  return {
     ...jest.requireActual<ConfigExports>('src/libs/config'),
-    getConfig: jest.fn(() => ({ brand: 'terra' })),
+    getConfig: jest.fn(() => partial<AppConfigSettings>({ brand: 'terra' })),
     isAxeEnabled: jest.fn(() => false),
-  })
-);
+  };
+});
 
 type MainPageExports = typeof import('src/pages/Main') & {
   __esModule: true;
