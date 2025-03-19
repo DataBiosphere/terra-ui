@@ -671,15 +671,11 @@ function getCollapseToggleChevron(isCollapsed, whatToToggle) {
     toggleIconTooltipText = `Show ${whatToToggle}`;
   }
 
-  const randomNumber = Math.floor(Math.random() * 90000) + 10000;
-  const uniqueId = `tooltip-${randomNumber}`;
-
   return `
         <span
         class="facet-toggle-chevron"
-        aria-labelledby="${uniqueId}"
+        title="${toggleIconTooltipText}"
         >
-        <span id="${uniqueId}" style="display: none">${toggleIconTooltipText}</span>
         ${toggleIcon}
         </span>`;
 }
@@ -703,7 +699,6 @@ window.IGVFilter.handleFacetCheckboxChange = handleFacetCheckboxChange;
 
 function getCategoricalFacetHeader(facet) {
   const friendlyName = getFriendlyFacetName(facet);
-  const tooltipId = `igv-facet-tooltip-${facet.name}`;
   const header = `
     <input
         type="checkbox"
@@ -715,9 +710,8 @@ function getCategoricalFacetHeader(facet) {
     />
     <span
         class="igv-facet-header igv-facet-header-categorical"
-        aria-labelledby="${tooltipId}"
+        title="${facet.description}"
     >
-    <span id="${tooltipId}" style="display: none">${facet.description}</span>
     ${friendlyName}</span>
     ${getFacetTools()}`;
 
@@ -994,7 +988,7 @@ function getNumericFacetHtml(facet) {
 <div class="igv-facet ${facetClass} igv-facet-numeric" style="${display}">
     <span
         class="igv-facet-header"
-        aria-label="${facet.description}"
+        title="${facet.description}"
     >${friendlyName}</span>
     ${filtersHtml}
     ${populationAfToggle}
@@ -1120,14 +1114,12 @@ function getRefinedDescription(facet, facetName) {
     // Original is unpolished; remove redundant field name; standardize case, spacing
     // "Ancestral Allele. Format: AA|REF|ALT|IndelType. AA: Ancestral allele, REF:Reference Allele, ALT:Alternate Allele, IndelType:Type of Indel (REF, ALT and IndelType are only defined for indels)"
     prose =
-      'Format: AA | REF | ALT | IndelType <br/>' +
-      'AA: Ancestral allele, REF: Reference allele, ALT: Alternate allele, IndelType: Type of Indel. <br/>' +
+      'Format: AA | REF | ALT | IndelType &#013;' +
+      'AA: Ancestral allele, REF: Reference allele, ALT: Alternate allele, IndelType: Type of Indel. &#013;' +
       'REF, ALT and IndelType are only defined for indels.';
   }
 
-  const description = `INFO field: ${facetName}
-        <br/>
-        ${prose}`;
+  const description = `INFO field: ${facetName}&#013;${prose}`;
 
   return description;
 }
