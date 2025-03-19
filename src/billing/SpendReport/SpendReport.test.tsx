@@ -8,7 +8,6 @@ import {
   AggregatedWorkspaceSpendData,
   SpendReport as SpendReportServerResponse,
 } from 'src/libs/ajax/billing/billing-models';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { getLink } from 'src/libs/nav';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -22,9 +21,6 @@ jest.mock(
     getLink: jest.fn(),
   })
 );
-jest.mock('src/libs/feature-previews', () => ({
-  isFeaturePreviewEnabled: jest.fn(),
-}));
 
 describe('SpendReport', () => {
   beforeEach(() => {
@@ -282,13 +278,13 @@ describe('SpendReport', () => {
       billingProjectName: 'thrifty',
       endDate: '2022-04-01',
       startDate: '2022-03-02',
-      aggregationKeys: ['Workspace~Category', 'Category'],
+      aggregationKeys: ['Daily~Category', 'Category'],
     });
     expect(getSpendReport).toHaveBeenNthCalledWith(2, {
       billingProjectName: 'thrifty',
       endDate: '2022-04-01',
       startDate: '2022-01-01',
-      aggregationKeys: ['Workspace~Category', 'Category'],
+      aggregationKeys: ['Daily~Category', 'Category'],
     });
   });
 
@@ -324,14 +320,11 @@ describe('SpendReport', () => {
     });
   });
 
-  it('renders daily spend chart when feature preview is enabled', async () => {
+  it('renders daily spend chart', async () => {
     // Arrange
     const getSpendReport: MockedFn<BillingContract['getSpendReport']> = jest.fn();
     getSpendReport.mockResolvedValue(createSpendReportResult('1110', false));
     asMockedFn(Billing).mockReturnValue(partial<BillingContract>({ getSpendReport }));
-
-    // Mock the return value of isFeaturePreviewEnabled
-    (isFeaturePreviewEnabled as jest.Mock).mockReturnValue(true);
 
     // Act
     await act(async () => {
@@ -343,28 +336,6 @@ describe('SpendReport', () => {
       const dailySpendElements = screen.getAllByText('Daily Spend');
       expect(dailySpendElements.length).toBeGreaterThan(0);
       expect(dailySpendElements[0]).toBeInTheDocument();
-    });
-  });
-
-  it('renders workspace spend chart when feature preview is disabled', async () => {
-    // Arrange
-    const getSpendReport: MockedFn<BillingContract['getSpendReport']> = jest.fn();
-    getSpendReport.mockResolvedValue(createSpendReportResult('1110'));
-    asMockedFn(Billing).mockReturnValue(partial<BillingContract>({ getSpendReport }));
-
-    // Mock the return value of isFeaturePreviewEnabled
-    (isFeaturePreviewEnabled as jest.Mock).mockReturnValue(false);
-
-    // Act
-    await act(async () => {
-      render(<SpendReport viewSelected billingProjectName='thrifty' cloudPlatform='GCP' />);
-    });
-
-    // Assert
-    await waitFor(() => {
-      const spendByWorkspaceElements = screen.getAllByText('Spend By Workspace');
-      expect(spendByWorkspaceElements.length).toBeGreaterThan(0);
-      expect(spendByWorkspaceElements[0]).toBeInTheDocument();
     });
   });
 });
