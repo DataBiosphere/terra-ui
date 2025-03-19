@@ -116,7 +116,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           genome,
           reference,
           tracks: [],
-          locus: '19:11,199,138-11,245,496',
+          locus: 'LDLR',
         };
 
         igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject));
@@ -125,11 +125,11 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         // const trackToFilter = window.igvBrowser.findTracks('name', 'Phase 3 WGS variants')[0];
         // Update the facet widgets no locus change.  Changing the locus changes the features in view.  This can be
         // relatively frequent,  many times a second if dragging the track.
-        igvBrowser.current.on('locuschange', () => {
-          const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
-          // Update counts
-          initIgvFacets(trackToFilter);
-        });
+        // igvBrowser.current.on('locuschange', () => {
+        //   const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
+        //   // Update counts
+        //   initIgvFacets(trackToFilter);
+        // });
 
         const initialTracks = _.map(({ filePath, indexFilePath, isSignedUrl }) => {
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };
@@ -150,14 +150,29 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   return h(Fragment, [
     div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.5rem 0' } }, [
       h(Link, { onClick: onDismiss }, [icon('arrowLeft', { style: { marginRight: '1ch' } }), 'Back to data table']),
-      h(
-        ButtonOutline,
-        {
-          disabled: loadingIgv,
-          onClick: () => setShowAddTrackModal(true),
-        },
-        ['Add track']
-      ),
+      div({}, [
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv,
+            onClick: () => setShowAddTrackModal(true),
+            style: { marginRight: '10px' },
+          },
+          ['Add track']
+        ),
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv,
+            onClick: () => {
+              const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
+              // Update counts
+              initIgvFacets(trackToFilter);
+            },
+          },
+          ['Filter variants']
+        ),
+      ]),
     ]),
     div(
       {
