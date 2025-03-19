@@ -14,7 +14,6 @@
     "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org"
   },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
-  "firecloudUrlRoot": "https://firecloud.dsde-dev.broadinstitute.org",
   "isProd": false,
   "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
