@@ -32,7 +32,6 @@ describe('EmailSelect', () => {
 
     // Act
     fireEvent.change(input, { target: { value: 'test2@example.com' } });
-    // fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
 
     // Assert
     expect(defaultProps.setEmails).toHaveBeenCalledWith(['test2@example.com']);
