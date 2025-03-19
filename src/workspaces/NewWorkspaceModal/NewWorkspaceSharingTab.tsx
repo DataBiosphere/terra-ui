@@ -22,13 +22,13 @@ const defaultAcl: AccessEntry = {
 };
 
 export const NewWorkspaceSharingTab = ({ acl, setAcl }): ReactNode => {
-  const [searchValues, setSearchValues] = useState<string[]>([]);
+  const [emailInputValues, setEmailInputValues] = useState<string[]>([]);
   // const [acl, setAcl] = useState<WorkspaceAcl>([]);
   const [newAcl, setNewAcl] = useState<AccessEntry>(defaultAcl);
   const [lastAddedEmail, setLastAddedEmail] = useState<string | undefined>(undefined);
 
   // // Render
-  const sharingErrors = validateUserEmails(searchValues);
+  const sharingErrors = validateUserEmails(emailInputValues);
   const aclEmails = _.map('email', acl);
 
   const addCollaborators = (collaboratorEmails: string[], collaboratorAcl: AccessEntry) => {
@@ -38,8 +38,8 @@ export const NewWorkspaceSharingTab = ({ acl, setAcl }): ReactNode => {
         setLastAddedEmail(collaboratorEmail);
       }
     });
-    // Clear the search values and new acl after adding collaborators
-    setSearchValues([]);
+    // Clear the email values and new acl after adding collaborators
+    setEmailInputValues([]);
     setNewAcl(defaultAcl);
   };
 
@@ -47,12 +47,7 @@ export const NewWorkspaceSharingTab = ({ acl, setAcl }): ReactNode => {
     <>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
         <div style={{ flexGrow: 100, alignSelf: 'flex-start' }}>
-          <EmailSelect
-            placeholder='Add people or groups'
-            options={[]}
-            emails={searchValues}
-            setEmails={setSearchValues}
-          />
+          <EmailSelect placeholder='Add people or groups' setEmails={setEmailInputValues} emails={emailInputValues} />
         </div>
 
         <div style={{ flexGrow: 1, alignSelf: 'flex-start' }}>
@@ -73,7 +68,7 @@ export const NewWorkspaceSharingTab = ({ acl, setAcl }): ReactNode => {
           <ButtonPrimary
             disabled={!!sharingErrors}
             tooltip={summarizeErrors(sharingErrors)}
-            onClick={() => addCollaborators(searchValues, newAcl)}
+            onClick={() => addCollaborators(emailInputValues, newAcl)}
           >
             Add
           </ButtonPrimary>
