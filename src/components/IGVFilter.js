@@ -30,13 +30,18 @@ const igvFilterStyle = `<style id="igv-filter-style">
         .igv-facet-header {
             font-weight: bold;
             position: relative;
-            top: -1px;
+            top: -4px;
         }
 
         .igv-facet-header-categorical,
         .igv-facet-header-checkbox {
             position: relative;
             left: -7px;
+        }
+
+
+        .igv-facet-header-checkbox {
+          top: -4px;
         }
 
         .igv-facet .igv-facet-header-checkbox,
@@ -51,7 +56,7 @@ const igvFilterStyle = `<style id="igv-filter-style">
         .facet-tools {
             float: right;
             margin-right: 5px;
-            margin-top: -1px;
+            margin-top: -4px;
         }
 
         .igv-facet {
@@ -89,17 +94,6 @@ const igvFilterStyle = `<style id="igv-filter-style">
 
         .igv-filter-count {
             float: right;
-        }
-
-        /**
-        .tippy-box {
-            font-family: "Open Sans", sans-serif;
-            font-size: 13px;
-        }
-        */
-
-        .tippy-content {
-            padding: 3px 7px;
         }
     </style>`;
 
@@ -1044,14 +1038,11 @@ function updateBrushSelection(facet, brushesByNumericFacetName, facetSelections)
   d3.select(selector).call(brush.move, brushSelection.map(xScale));
 }
 
-/** ****************************************************************************************************** */
-// J robinson changes and additions
-
 /**
  * Initialize interactive filtering in IGV, for the given track
  * @param trackToFilter - an IGV track object
  */
-export default function initIgvFacets(trackToFilter) {
+export default function initIgvFacets(trackToFilter, containerSelector) {
   const facets = initFacets(trackToFilter);
 
   const [facetsHtml, brushesByNumericFacetName] = getFacetsHtml(facets);
@@ -1060,16 +1051,13 @@ export default function initIgvFacets(trackToFilter) {
   if (!filterContainerDom) {
     // containerElement = document.createElement('div')
     // containerElement.setAttribute('class', 'igv-filters-container')
-    const parentContainer = document.querySelector('[aria-label="data in this workspace"]').parentElement;
-    parentContainer.innerHTML = '<div class="igv-filters-container"></div>';
+    const container = document.querySelector(containerSelector);
+    container.insertAdjacentHTML('beforeend', '<div class="igv-filters-container"></div>');
     filterContainerDom = document.querySelector('.igv-filters-container');
   }
 
   filterContainerDom.innerHTML = '';
   filterContainerDom.insertAdjacentHTML('beforeend', facetsHtml);
-
-  // Initialize tooltips
-  // tippy('.igv-facet-header[data-tippy-content]', { allowHTML: true });
 
   writeNumericFacetSliderBrushes(facets, brushesByNumericFacetName);
 
@@ -1111,8 +1099,6 @@ function getRefinedDescription(facet, facetName) {
   if (facetName === 'VT') {
     prose = 'Type of variant';
   } else if (facetName === 'AA') {
-    // Original is unpolished; remove redundant field name; standardize case, spacing
-    // "Ancestral Allele. Format: AA|REF|ALT|IndelType. AA: Ancestral allele, REF:Reference Allele, ALT:Alternate Allele, IndelType:Type of Indel (REF, ALT and IndelType are only defined for indels)"
     prose =
       'Format: AA | REF | ALT | IndelType &#013;' +
       'AA: Ancestral allele, REF: Reference allele, ALT: Alternate allele, IndelType: Type of Indel. &#013;' +
@@ -1207,6 +1193,10 @@ function initFacets(trackToFilter) {
       if (facetName in info) {
         const rawValue = info[facetName];
         if (facet.type === 'categorical') {
+          if (rawValue === 'SNP,INDEL') {
+            // IGV doesn't render features with variant type "SNP,INDEL"
+            continue;
+          }
           if (!facet.filterNames.includes(rawValue)) {
             // Populate filterNames
             facet.filterNames.push(rawValue);

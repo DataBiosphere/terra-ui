@@ -14,6 +14,19 @@ import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src
 import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
+const panelContainerSelector = '[aria-label="data in this workspace"]';
+
+/** Hide (or show) default content in sidecar panel, to account for IGV filtering panel */
+function updateDataTablePanelDisplay(display) {
+  const container = document.querySelector(panelContainerSelector);
+
+  const importDataDiv = container.parentElement.children[0];
+  importDataDiv.style.display = display;
+
+  const tableList = container.children[0];
+  tableList.style.display = display;
+}
+
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {
   const [loadingIgv, setLoadingIgv] = useState(true);
@@ -149,7 +162,16 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
 
   return h(Fragment, [
     div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.5rem 0' } }, [
-      h(Link, { onClick: onDismiss }, [icon('arrowLeft', { style: { marginRight: '1ch' } }), 'Back to data table']),
+      h(
+        Link,
+        {
+          onClick: () => {
+            updateDataTablePanelDisplay('');
+            onDismiss();
+          },
+        },
+        [icon('arrowLeft', { style: { marginRight: '1ch' } }), 'Back to data table']
+      ),
       div({}, [
         h(
           ButtonOutline,
@@ -166,8 +188,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
             disabled: loadingIgv,
             onClick: () => {
               const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
+              updateDataTablePanelDisplay('none');
               // Update counts
-              initIgvFacets(trackToFilter);
+              initIgvFacets(trackToFilter, panelContainerSelector);
             },
           },
           ['Filter variants']
@@ -178,7 +201,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       {
         ref: containerRef,
         style: {
-          overflowY: 'auto',
+          overflowY: 'visible',
           padding: '10px 0',
           margin: 8,
           border: `1px solid ${colors.dark(0.25)}`,
