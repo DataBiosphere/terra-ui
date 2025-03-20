@@ -3,7 +3,6 @@ import React from 'react';
 import { BillingProject } from 'src/billing-core/models';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
@@ -64,15 +63,10 @@ jest.mock('src/auth/auth', (): AuthExports => {
   };
 });
 
-jest.mock('src/libs/feature-previews', () => ({
-  isFeaturePreviewEnabled: jest.fn(),
-}));
-
 describe('BillingList', () => {
   let billingListProps: BillingListProps;
 
-  it('renders link to consolidated spend report if feature preview is on', async () => {
-    (isFeaturePreviewEnabled as jest.Mock).mockReturnValue(true);
+  it('renders link to consolidated spend report', async () => {
     billingListProps = { queryParams: { selectedName: 'name', type: undefined } };
 
     // Act
@@ -80,16 +74,5 @@ describe('BillingList', () => {
 
     // Assert
     expect(screen.getByText('Consolidated Spend Report')).not.toBeNull();
-  });
-
-  it('does not render link to consolidated spend report if feature preview is off', async () => {
-    (isFeaturePreviewEnabled as jest.Mock).mockReturnValue(false);
-    billingListProps = { queryParams: { selectedName: 'name', type: undefined } };
-
-    // Act
-    await act(async () => render(<BillingList {...billingListProps} />));
-
-    // Assert
-    expect(screen.queryByText('Consolidated Spend Report')).toBeNull();
   });
 });
