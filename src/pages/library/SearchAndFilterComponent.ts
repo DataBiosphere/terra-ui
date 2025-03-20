@@ -18,8 +18,7 @@ export interface FilterSection<DataType> {
   renderer?: (string) => string | ReactElement;
   values: string[];
 }
-colors.success(1.5);
-colors.accent();
+
 const styles = {
   header: {
     fontSize: '1.5rem',
