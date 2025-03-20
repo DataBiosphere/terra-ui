@@ -5,7 +5,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { TopBar } from 'src/components/TopBar';
 import scienceBackground from 'src/images/science-background.jpg';
 import * as Nav from 'src/libs/nav';
-import * as Utils from 'src/libs/utils';
 
 import { ImportDataContainer } from './ImportData';
 
