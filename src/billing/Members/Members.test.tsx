@@ -83,7 +83,6 @@ describe('Members', () => {
 
     const addProjectUsers: MockedFn<BillingContract['addProjectUsers']> = jest.fn();
     asMockedFn(Billing).mockReturnValue(partial<BillingContract>({ addProjectUsers }));
-    // Next 2 mocks are needed for suggestions in the NewUserModal.
     asMockedFn(Groups).mockReturnValue(
       partial<GroupsContract>({
         list: jest.fn(async () => []),
@@ -95,12 +94,8 @@ describe('Members', () => {
     const defaultProps = {
       label: 'User emails',
       placeholder: 'Test emails',
-      isMulti: true,
-      isClearable: true,
-      isSearchable: true,
-      options: ['test-user@company.com', 'test-user2@company.com'],
-      emails: ['test-user@company.com'],
       setEmails: jest.fn(),
+      emails: [],
     };
 
     // Act

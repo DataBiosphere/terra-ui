@@ -1,59 +1,52 @@
-import { CreatableSelect, useUniqueId } from '@terra-ui-packages/components';
+import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { TextInput } from 'src/components/input';
 import { FormLabel } from 'src/libs/forms';
 
 interface EmailSelectProps {
   label?: string;
   placeholder?: string;
-  isMulti?: boolean;
-  isClearable?: boolean;
-  isSearchable?: boolean;
-  options: string[];
-  emails: string[];
   setEmails: (values: string[]) => void;
+  emails: string[];
 }
 
 export const EmailSelect: React.FC<EmailSelectProps> = ({
   label = 'User emails',
-  placeholder = 'Type or select user emails',
-  isMulti = true,
-  isClearable = true,
-  isSearchable = true,
-  options,
-  emails,
+  placeholder = 'Type user emails separated by commas',
   setEmails,
+  emails,
 }) => {
-  const [searchValue, setSearchValue] = useState<string>('');
+  const [emailInput, setEmailInput] = useState<string>('');
+
+  useEffect(() => {
+    // Reset the field along with the emails
+    if (emails === undefined || emails.length === 0) {
+      setEmailInput('');
+    }
+  }, [emails]);
 
   const emailInputId = useUniqueId();
-  const emptySearchValue = (searchValue: string) => searchValue === '';
-  const addSelectedOptions = (options: string[]) => {
-    const selectedOptions: string[] = _.flatMap(
-      (option) =>
-        option
-          .split(',')
-          .map((email) => email.trim())
-          .filter((email) => email !== ''),
-      options
-    );
+  const emptyInputValue = (emailInput: string) => emailInput === '';
+
+  const addSelectedOptions = (options: string) => {
+    const selectedOptions: string[] = options
+      .split(',')
+      .map((email) => email.trim())
+      .filter((email) => email !== '');
     const newEmail: string | undefined = _.find((email: string) => !emails.includes(email), selectedOptions);
     if (newEmail || newEmail === undefined) {
       setEmails(selectedOptions);
     }
-    setSearchValue('');
-  };
-
-  const handleOnInputChange = (inputValue: any) => {
-    !emptySearchValue(inputValue) && setSearchValue(inputValue);
   };
 
   const handleOnBlur = () => {
-    !emptySearchValue(searchValue) && addSelectedOptions([...emails, searchValue]);
+    !emptyInputValue(emailInput) && addSelectedOptions(emailInput);
   };
 
-  const handleOnChange = (options: Array<{ value: string; label: string }>) => {
-    addSelectedOptions(_.map((option) => option.value, options));
+  const handleOnChange = (input: string) => {
+    !emptyInputValue(input) && setEmailInput(input);
+    addSelectedOptions(input);
   };
 
   return (
@@ -61,20 +54,14 @@ export const EmailSelect: React.FC<EmailSelectProps> = ({
       <FormLabel id={emailInputId} required style={{ marginTop: '0.25rem' }}>
         {label}
       </FormLabel>
-      <CreatableSelect
+      <TextInput
         id={emailInputId}
-        isMulti={isMulti}
-        isClearable={isClearable}
-        isSearchable={isSearchable}
         placeholder={placeholder}
         aria-label={placeholder}
-        value={_.map((value: string) => ({ value, label: value }), emails)}
-        options={_.map((value: string) => ({ value, label: value }), options)}
-        onInputChange={handleOnInputChange}
         onBlur={handleOnBlur}
         onChange={handleOnChange}
+        value={emailInput}
         height={200}
-        noOptionsMessage={() => null}
       />
     </>
   );
