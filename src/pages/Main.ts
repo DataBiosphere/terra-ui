@@ -14,7 +14,6 @@ import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning';
 import CookieRejectModal from 'src/components/CookieRejectModal';
 import CookieWarning from 'src/components/CookieWarning';
 import Favicon from 'src/components/Favicon';
-import FirecloudNotification from 'src/components/FirecloudNotification';
 import IdleStatusMonitor from 'src/components/IdleStatusMonitor';
 import SupportRequest from 'src/components/SupportRequest';
 import { TitleManager } from 'src/components/TitleManager';
@@ -44,7 +43,6 @@ const Main = (): ReactNode => {
           },
           [
             h(TitleManager),
-            h(FirecloudNotification),
             h(AuthenticatedCookieSetter),
             h(AuthProvider, getOidcConfig(), [h(AuthStoreSetter)]),
             h(AuthContainer, [h(Router)]),

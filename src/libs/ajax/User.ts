@@ -126,11 +126,6 @@ export const kvArrayToObject = (kvArray: { key: string; value: any }[] | undefin
   return Object.fromEntries((kvArray ?? []).map(({ key, value }) => [key, value]));
 };
 
-export interface OrchestrationUserPreferLegacyFireCloudResponse {
-  preferTerra: boolean;
-  preferTerraLastUpdated: number;
-}
-
 export interface NihDatasetPermission {
   name: string;
   authorized: boolean;
@@ -285,10 +280,6 @@ export const User = (signal?: AbortSignal) => {
           'api/profile/preferences',
           _.mergeAll([authOpts(), jsonBody(preferences), { signal, method: 'POST' }])
         );
-      },
-
-      preferLegacyFirecloud: async (): Promise<OrchestrationUserPreferLegacyFireCloudResponse> => {
-        return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
       },
     },
 
