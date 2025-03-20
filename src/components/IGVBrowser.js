@@ -113,8 +113,10 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const fullUrl = isSignedUrl ? url : Utils.mergeQueryParams(userProjectParam, url);
       const fullIndexUrl = isSignedUrl ? indexURL : Utils.mergeQueryParams(userProjectParam, indexURL);
 
-      // Enable viewing features upon searching most genes, without needing to zoom several times
-      const visibilityWindow = 300_000;
+      // Enable viewing variants for a handful of genes (or a few CNVs), simultaneously;
+      // or enable viewing other features (e.g. reads) for almost any gene, without zoom
+      const isVcf = getHasVariantFiles([{ filePath: url }]);
+      const visibilityWindow = isVcf ? 500_000 : 75_000;
 
       igvBrowser.current.loadTrack({
         name: name || altName,
@@ -144,11 +146,10 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         // const trackToFilter = window.igvBrowser.findTracks('name', 'Phase 3 WGS variants')[0];
         // Update the facet widgets no locus change.  Changing the locus changes the features in view.  This can be
         // relatively frequent,  many times a second if dragging the track.
-        // igvBrowser.current.on('locuschange', () => {
-        //   const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
-        //   // Update counts
-        //   initIgvFacets(trackToFilter);
-        // });
+        igvBrowser.current.on('locuschange', () => {
+          const trackToFilter = igvBrowser.current.findTracks('type', 'variant')[0];
+          initIgvFacets(trackToFilter, panelContainerSelector);
+        });
 
         const initialTracks = _.map(({ filePath, indexFilePath, isSignedUrl }) => {
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };
