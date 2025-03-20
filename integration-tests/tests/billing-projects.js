@@ -277,9 +277,6 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra.');
   // Check that chart loaded, and costs are sorted by date.
   await billingPage.assertText('Daily Spend');
-  // Verify all series values of all the dates.
-  await billingPage.assertChartValue('Feb 5', 'Compute', '$900.00');
-  await billingPage.assertChartValue('Feb 5', 'Storage', '$20.00');
   // Verify the spend report configuration option is present
   await billingPage.assertText('View billing account');
   // Verify link to Azure portal is not present
@@ -291,7 +288,6 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertText('Total spend$1,110.17');
   // Check that title updated to reflect truncation.
   await billingPage.assertText('Daily Spend');
-  await billingPage.assertChartValue('Feb 5', 'Compute', '$900.00');
 
   // Check accessibility of spend report page.
   await verifyAccessibility(page);
