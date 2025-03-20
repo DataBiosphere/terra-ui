@@ -8,9 +8,7 @@ import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { DelayedAutoCompleteInput, DelayedSearchInput } from 'src/components/input';
-import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
-import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
 
@@ -20,15 +18,8 @@ export interface FilterSection<DataType> {
   renderer?: (string) => string | ReactElement;
   values: string[];
 }
-
-export const commonStyles = {
-  access: {
-    granted: colors.success(1.5),
-    controlled: colors.accent(),
-    pending: '#F7981C',
-  },
-};
-
+colors.success(1.5);
+colors.accent();
 const styles = {
   header: {
     fontSize: '1.5rem',
@@ -378,9 +369,6 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   ];
 };
 
-const sendSearchEvent = (term) => void Metrics().captureEvent(Events.catalogFilterSearch, { term });
-const debounceSearchEvent = _.debounce(5000, sendSearchEvent);
-
 /**
  * A function to get all data in a list for a specific filter item following the rules of the given matcher
  */
@@ -453,8 +441,6 @@ const FilterSectionComponent = <ListItem>({
     (sectionEntry) => sectionEntrySelected(section, sectionEntry, selectedSections),
     section.values
   );
-  // The shown labels are the first N labels that have any catalog entries, with any selected labels added at the end,
-  // if they aren't one of the first N labels.
   const shownLabels = _.flow(
     _.intersection(labelsWithEntries),
     _.concat(_.take(numLabelsToRender, labelsWithEntries)),
@@ -619,12 +605,6 @@ export const SearchAndFilterComponent = <ListItem>({
   };
 
   const onSearchChange = (filter) => {
-    if (filter) {
-      // This method is already debounced, but we need to further debounce the event logging to
-      // prevent getting all the intermediate filter strings in the event logs.
-      debounceSearchEvent(filter);
-    }
-
     navigateToFilterAndSelection({ filter });
   };
 
@@ -758,10 +738,6 @@ export const SearchAndFilterComponent = <ListItem>({
             if (sectionSelected !== -1) {
               const sectionToAlter = selectedSections[sectionSelected];
               const valuesSelected = _.xor(sectionEntries, sectionToAlter.values);
-              _.forEach(
-                (sectionEntry) => void Metrics().captureEvent(Events.catalogFilterSidebar, { tag: sectionEntry }),
-                sectionEntries
-              );
               valuesSelected.length > 0
                 ? navigateToFilterAndSelection({
                     sections: _.set(`[${sectionSelected}].values`, valuesSelected, selectedSections),

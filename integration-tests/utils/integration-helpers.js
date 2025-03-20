@@ -9,18 +9,15 @@ const {
   dismissInfoNotifications,
   enablePageLogging,
   fillIn,
-  findElement,
   findText,
   gotoPage,
   input,
-  label,
   navChild,
   navOptionNetworkIdle,
   noSpinnersAfter,
   retryUntil,
   signIntoTerra,
   waitForMenu,
-  waitForNoSpinners,
 } = require('./integration-utils');
 const { fetchLyle } = require('./lyle-utils');
 
@@ -473,22 +470,6 @@ const patientlyDeleteRuntime = async (page, { workspaceId, runtimeName, status }
   return false;
 };
 
-const navigateToDataCatalog = async (page, testUrl, token) => {
-  await gotoPage(page, testUrl);
-  await waitForNoSpinners(page);
-  await findText(page, 'Browse Data');
-  await click(page, clickable({ textContains: 'Browse Data' }));
-  await signIntoTerra(page, { token });
-  await enableDataCatalog(page);
-};
-
-const enableDataCatalog = async (page) => {
-  await click(page, clickable({ textContains: 'datasets' }));
-  await findElement(page, label({ labelContains: 'New Catalog OFF' }));
-  await click(page, label({ labelContains: 'New Catalog OFF' }));
-  await waitForNoSpinners(page, { timeout: Millis.ofMinutes(3) });
-};
-
 const clickNavChildAndLoad = async (page, tab) => {
   // click triggers a page navigation event
   await Promise.all([
@@ -551,10 +532,8 @@ module.exports = {
   deleteRuntimes,
   deleteRuntimesV2,
   deleteWorkspaceV2,
-  enableDataCatalog,
   getWorkspaceId,
   gotoAnalysisTab,
-  navigateToDataCatalog,
   testWorkspaceName: getTestWorkspaceName,
   testWorkspaceNamePrefix,
   viewWorkspaceDashboard,

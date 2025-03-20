@@ -21,15 +21,11 @@ const styles = {
 
 const ImportDataPage = () => {
   const {
-    query: { format, referrer },
+    query: { format },
   } = Nav.useRoute();
 
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
-  const title = Utils.cond(
-    [referrer === 'data-catalog', () => 'Catalog'],
-    [isDataset, () => 'Import Data'],
-    [Utils.DEFAULT, () => 'Import Snapshot']
-  );
+  const title = Utils.cond([isDataset, () => 'Import Data'], [Utils.DEFAULT, () => 'Import Snapshot']);
 
   return h(FooterWrapper, [
     h(TopBar, { title }),

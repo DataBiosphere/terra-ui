@@ -5,7 +5,6 @@ import { SamResources } from 'src/libs/ajax/SamResources';
 import { useRoute } from 'src/libs/nav';
 
 import {
-  CatalogDatasetImportRequest,
   FileImportRequest,
   ImportRequest,
   TDRSnapshotExportImportRequest,
@@ -157,14 +156,6 @@ const getTDRSnapshotReferenceImportRequest = async (
   };
 };
 
-const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatasetImportRequest => {
-  const datasetId = requireString(queryParams.catalogDatasetId, 'dataset ID');
-  return {
-    type: 'catalog-dataset',
-    datasetId,
-  };
-};
-
 export const getImportRequest = (queryParams: QueryParams): Promise<ImportRequest> => {
   const format = getFormat(queryParams);
 
@@ -179,8 +170,6 @@ export const getImportRequest = (queryParams: QueryParams): Promise<ImportReques
       return getTDRSnapshotExportImportRequest(queryParams);
     case 'snapshot':
       return getTDRSnapshotReferenceImportRequest(queryParams);
-    case 'catalog':
-      return Promise.resolve(getCatalogDatasetImportRequest(queryParams));
     default:
       throw new Error(`Invalid format: ${format}`);
   }

@@ -4,7 +4,6 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import { TerraLengthyOperationOverlay } from 'src/branding/TerraLengthyOperationOverlay';
 import { spinnerOverlay } from 'src/components/common';
 import { Billing } from 'src/libs/ajax/billing/Billing';
-import { Catalog } from 'src/libs/ajax/Catalog';
 import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -25,7 +24,6 @@ import { WorkspaceInfo } from 'src/workspaces/utils';
 import { getImportSource } from './import-sources';
 import {
   BagItImportRequest,
-  CatalogDatasetImportRequest,
   EntitiesImportRequest,
   ImportRequest,
   PFBImportRequest,
@@ -148,12 +146,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     notify('success', 'Snapshot imported successfully.', { timeout: 3000 });
   };
 
-  const exportCatalog = async (importRequest: CatalogDatasetImportRequest, workspace: WorkspaceInfo) => {
-    const { workspaceId } = workspace;
-    await Catalog().exportDataset({ id: importRequest.datasetId, workspaceId });
-    notify('success', 'Catalog dataset imported successfully.', { timeout: 3000 });
-  };
-
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
@@ -173,9 +165,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         break;
       case 'tdr-snapshot-reference':
         await importSnapshot(importRequest, workspace);
-        break;
-      case 'catalog-dataset':
-        await exportCatalog(importRequest, workspace);
         break;
       default:
         // Use TypeScript to verify that this switch handles all possible values.
