@@ -63,7 +63,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, azureBilling
             credits: '0.00',
             currency: 'USD',
             endTime: '2022-02-02T00:00:00.000Z',
-            startTime: '2022-02-05T00:00:00.000Z',
+            startTime: '2022-02-05T16:00:00.000Z',
             subAggregation: {
               aggregationKey: 'Category',
               spendData: [
@@ -78,7 +78,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, azureBilling
             credits: '0.00',
             currency: 'USD',
             endTime: '2022-02-02T00:00:00.000Z',
-            startTime: '2022-02-06T00:00:00.000Z',
+            startTime: '2022-02-06T16:00:00.000Z',
             subAggregation: {
               aggregationKey: 'Category',
               spendData: [
@@ -93,7 +93,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, azureBilling
             credits: '0.00',
             currency: 'USD',
             endTime: '2022-02-02T00:00:00.000Z',
-            startTime: '2022-02-07T00:00:00.000Z',
+            startTime: '2022-02-07T16:00:00.000Z',
             subAggregation: {
               aggregationKey: 'Category',
               spendData: [
@@ -277,6 +277,11 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra.');
   // Check that chart loaded, and costs are sorted by date.
   await billingPage.assertText('Daily Spend');
+  // Verify all series values of all the dates.
+  await billingPage.assertChartValue('Feb 5', 'Compute', '$90.00');
+  await billingPage.assertChartValue('Feb 6', 'Compute', '$900.00');
+  await billingPage.assertChartValue('Feb 6', 'Storage', '$20.00');
+  await billingPage.assertChartValue('Feb 7', 'Storage', '$0.00');
   // Verify the spend report configuration option is present
   await billingPage.assertText('View billing account');
   // Verify link to Azure portal is not present
@@ -288,6 +293,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertText('Total spend$1,110.17');
   // Check that title updated to reflect truncation.
   await billingPage.assertText('Daily Spend');
+  await billingPage.assertChartValue('Feb 6', 'Compute', '$900.00');
 
   // Check accessibility of spend report page.
   await verifyAccessibility(page);
