@@ -25,7 +25,7 @@ const ImportDataPage = () => {
   } = Nav.useRoute();
 
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
-  const title = Utils.cond([isDataset, () => 'Import Data'], [Utils.DEFAULT, () => 'Import Snapshot']);
+  const title = isDataset ? 'Import Data' : 'Import Snapshot';
 
   return h(FooterWrapper, [
     h(TopBar, { title }),
