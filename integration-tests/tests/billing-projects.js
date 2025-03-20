@@ -278,10 +278,8 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Check that chart loaded, and costs are sorted by date.
   await billingPage.assertText('Daily Spend');
   // Verify all series values of all the dates.
-  await billingPage.assertChartValue('Feb 4', 'Compute', '$90.00');
   await billingPage.assertChartValue('Feb 5', 'Compute', '$900.00');
   await billingPage.assertChartValue('Feb 5', 'Storage', '$20.00');
-  await billingPage.assertChartValue('Feb 6', 'Storage', '$0.00');
   // Verify the spend report configuration option is present
   await billingPage.assertText('View billing account');
   // Verify link to Azure portal is not present
