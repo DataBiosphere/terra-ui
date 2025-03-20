@@ -4,7 +4,6 @@ import { Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamUserTermsOfServiceDetails, TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
 import {
-  OrchestrationUserPreferLegacyFireCloudResponse,
   SamUserAllowances,
   SamUserCombinedStateResponse,
   SamUserResponse,
@@ -108,7 +107,6 @@ const setupMockAjax = async (
         get: jest.fn(async () => partial<TerraUserProfile>({})),
         update: jest.fn(async () => undefined),
         setPreferences: jest.fn(async () => undefined),
-        preferLegacyFirecloud: jest.fn(async () => partial<OrchestrationUserPreferLegacyFireCloudResponse>({})),
       },
       getNihStatus,
     })

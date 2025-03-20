@@ -66,7 +66,7 @@ describe('NewMemberModal', () => {
   it('handles user input for emails and roles', async () => {
     // Arrange
     render(<NewMemberModal {...defaultProps} />);
-    const emailInput = screen.getByLabelText('Type or select user emails');
+    const emailInput = screen.getByLabelText('Type user emails separated by commas');
     const roleSelect = screen.getByLabelText('Select Role');
 
     // Act
@@ -78,8 +78,7 @@ describe('NewMemberModal', () => {
 
     // Assert
     await waitFor(() => {
-      expect(emailInput).toHaveValue(''); // The input clears after adding
-      expect(screen.getByText('test@example.com')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument();
       expect(screen.getByText('Admin')).toBeInTheDocument();
     });
   });
@@ -87,24 +86,23 @@ describe('NewMemberModal', () => {
   it('submits valid data and calls addFunction', async () => {
     // Arrange
     render(<NewMemberModal {...defaultProps} />);
-    const emailInput = screen.getByLabelText('Type or select user emails');
+    const emailInput = screen.getByLabelText('Type user emails separated by commas');
     const addButton = screen.getByText('Add Users');
-    const userEmails = ['test1@example.com', 'test2@example.com'];
+    const userEmailString = 'test1@example.com, test2@example.com';
+    const userEmailArray = ['test1@example.com', 'test2@example.com'];
     const userRole = 'Member';
 
     // Act
-    fireEvent.change(emailInput, { target: { value: userEmails } });
+    fireEvent.change(emailInput, { target: { value: userEmailString } });
     fireEvent.keyDown(emailInput, { key: 'Enter', code: 'Enter' });
     fireEvent.click(addButton);
 
     // Assert
     await waitFor(() => {
-      userEmails.forEach((userEmail) => {
-        expect(screen.getByText(userEmail)).toBeInTheDocument();
-      });
+      expect(screen.getByDisplayValue(userEmailString)).toBeInTheDocument();
       expect(screen.getByText(userRole)).toBeInTheDocument();
       expect(addButton).not.toBeDisabled();
-      expect(mockAddFunction).toHaveBeenCalledWith(userRole, userEmails);
+      expect(mockAddFunction).toHaveBeenCalledWith(userRole, userEmailArray);
       expect(mockOnSuccess).toHaveBeenCalled();
     });
   });
@@ -114,7 +112,7 @@ describe('NewMemberModal', () => {
 
     render(<NewMemberModal {...defaultProps} />);
 
-    const emailInput = screen.getByLabelText('Type or select user emails');
+    const emailInput = screen.getByLabelText('Type user emails separated by commas');
     const addButton = screen.getByText('Add Users');
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });

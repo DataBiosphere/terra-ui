@@ -44,7 +44,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
 
   // State
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
-  const [searchValues, setSearchValues] = useState<string[]>([]);
+  const [emailInputValues, setEmailInputValues] = useState<string[]>([]);
   const [acl, setAcl] = useState<WorkspaceAcl>([]);
   const [newAcl, setNewAcl] = useState<AccessEntry>(defaultAcl);
   const [loaded, setLoaded] = useState(false);
@@ -79,8 +79,9 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   }, [lastAddedEmail]);
 
   // Render
-  const errors = validateUserEmails(searchValues);
-  const searchValuesValid = !!errors;
+  const errors = validateUserEmails(emailInputValues);
+
+  const emailValuesValid = !!errors;
   const aclEmails = _.map('email', acl);
 
   const addUserReminder =
@@ -93,8 +94,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         setLastAddedEmail(collaboratorEmail);
       }
     });
-    // Clear the search values and new acl after adding collaborators
-    setSearchValues([]);
+    // Clear the email values and new acl after adding collaborators
+    setEmailInputValues([]);
     setNewAcl(defaultAcl);
   };
 
@@ -137,12 +138,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
     <Modal title='Share Workspace' width={720} showButtons={false} onDismiss={onDismiss}>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
         <div style={{ flexGrow: 2, width: '400px', alignSelf: 'flex-start' }}>
-          <EmailSelect
-            placeholder='Add people or groups'
-            options={[]}
-            emails={searchValues}
-            setEmails={setSearchValues}
-          />
+          <EmailSelect placeholder='Add people or groups' setEmails={setEmailInputValues} emails={emailInputValues} />
         </div>
         <div style={{ flexGrow: 1, alignSelf: 'stretch', marginTop: '1.4rem' }}>
           <AclInput
@@ -159,13 +155,13 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
           <ButtonPrimary
             disabled={!!errors}
             tooltip={summarizeErrors(errors)}
-            onClick={() => addCollaborators(searchValues, newAcl)}
+            onClick={() => addCollaborators(emailInputValues, newAcl)}
           >
             Add
           </ButtonPrimary>
         </div>
       </div>
-      {!searchValuesValid && <p>{addUserReminder}</p>}
+      {!emailValuesValid && <p>{addUserReminder}</p>}
       <CurrentCollaborators
         acl={acl}
         setAcl={setAcl}
@@ -234,7 +230,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
           <ButtonSecondary style={{ marginRight: '1rem' }} onClick={onDismiss}>
             Cancel
           </ButtonSecondary>
-          <ButtonPrimary disabled={!searchValuesValid} tooltip={!searchValuesValid && addUserReminder} onClick={save}>
+          <ButtonPrimary disabled={!emailValuesValid} tooltip={!emailValuesValid && addUserReminder} onClick={save}>
             Save
           </ButtonPrimary>
         </span>

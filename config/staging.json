@@ -14,7 +14,6 @@
     "urlRoot": "https://externalcreds.dsde-staging.broadinstitute.org"
   },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
-  "firecloudUrlRoot": "https://firecloud.dsde-staging.broadinstitute.org",
   "isProd": true,
   "jobManagerUrlRoot": "https://job-manager.dsde-staging.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-staging.broadinstitute.org",

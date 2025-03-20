@@ -698,7 +698,7 @@ const MetadataUploadPanel = ({
                 _.map(() => '', _.range(0, headerRow.length - row.length))
               ),
             // Replace any file references with bucket paths
-            _.map((cell) => (cell in filenames ? filenames[cell] : cell))
+            _.map((cell) => (cell && cell in filenames ? filenames[cell] : cell))
           ),
           otherRows
         );

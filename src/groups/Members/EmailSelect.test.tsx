@@ -8,12 +8,8 @@ describe('EmailSelect', () => {
   const defaultProps = {
     label: 'User emails',
     placeholder: 'Type or select user emails',
-    isMulti: true,
-    isClearable: true,
-    isSearchable: true,
-    options: ['test1@example.com', 'test2@example.com'],
-    emails: ['test1@example.com'],
     setEmails: jest.fn(),
+    emails: [],
   };
 
   it('renders the component with default props', () => {
@@ -29,67 +25,27 @@ describe('EmailSelect', () => {
     expect(label).toBeInTheDocument();
   });
 
-  it('calls setEmails when an email is selected', () => {
+  it('calls setEmails when an email is entered', () => {
     // Arrange
     render(<EmailSelect {...defaultProps} />);
     const input = screen.getByLabelText(defaultProps.placeholder);
 
     // Act
     fireEvent.change(input, { target: { value: 'test2@example.com' } });
-    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
 
     // Assert
-    expect(defaultProps.setEmails).toHaveBeenCalledWith(['test1@example.com', 'test2@example.com']);
+    expect(defaultProps.setEmails).toHaveBeenCalledWith(['test2@example.com']);
   });
 
-  it('calls setEmails when an email is removed', () => {
+  it('divides emails by comma', () => {
     // Arrange
     render(<EmailSelect {...defaultProps} />);
     const input = screen.getByLabelText(defaultProps.placeholder);
 
     // Act
-    fireEvent.keyDown(input, { key: 'Backspace', code: 'Backspace' });
+    fireEvent.change(input, { target: { value: 'test2@example.com,test1@example.com' } });
 
     // Assert
-    expect(defaultProps.setEmails).toHaveBeenCalledWith([]);
-  });
-
-  it('renders the correct number of selected options', () => {
-    // Arrange
-    render(<EmailSelect {...defaultProps} />);
-    const input = screen.getByLabelText(defaultProps.placeholder);
-
-    // Act
-    fireEvent.focus(input);
-    const options = screen.getAllByRole('button'); // Each selected option has a remove button
-
-    // Assert
-    expect(options).toHaveLength(defaultProps.emails.length);
-  });
-
-  it('updates searchValue on input change', () => {
-    // Arrange
-    render(<EmailSelect {...defaultProps} />);
-    const input = screen.getByLabelText(defaultProps.placeholder);
-
-    // Act
-    fireEvent.change(input, { target: { value: 'newemail@example.com' } });
-
-    // Assert
-    // @ts-ignore
-    expect(input.value).toBe('newemail@example.com');
-  });
-
-  it('saves searchValue to emails on blur', () => {
-    // Arrange
-    render(<EmailSelect {...defaultProps} />);
-    const input = screen.getByLabelText(defaultProps.placeholder);
-
-    // Act
-    fireEvent.change(input, { target: { value: 'newemail@example.com' } });
-    fireEvent.blur(input);
-
-    // Assert
-    expect(defaultProps.setEmails).toHaveBeenCalledWith(['test1@example.com', 'newemail@example.com']);
+    expect(defaultProps.setEmails).toHaveBeenCalledWith(['test2@example.com', 'test1@example.com']);
   });
 });
