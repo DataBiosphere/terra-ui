@@ -27,6 +27,10 @@ function updateDataTablePanelDisplay(display) {
   tableList.style.display = display;
 }
 
+function getHasVariantFiles(files) {
+  return files.some((file) => file.filePath.includes('vcf'));
+}
+
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {
   const [loadingIgv, setLoadingIgv] = useState(true);
@@ -36,6 +40,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const igvLibrary = useRef();
   const igvBrowser = useRef();
   const signal = useCancellation();
+
+  const hasVariantFiles = getHasVariantFiles(selectedFiles);
 
   const addTracks = withErrorReporting('Unable to add tracks')(async (tracks) => {
     const gsTracks = tracks.filter((track) => track.isSignedUrl === false);
@@ -182,19 +188,21 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           },
           ['Add track']
         ),
-        h(
-          ButtonOutline,
-          {
-            disabled: loadingIgv,
-            onClick: () => {
-              const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
-              updateDataTablePanelDisplay('none');
-              // Update counts
-              initIgvFacets(trackToFilter, panelContainerSelector);
-            },
-          },
-          ['Filter variants']
-        ),
+        !hasVariantFiles
+          ? null
+          : h(
+              ButtonOutline,
+              {
+                disabled: loadingIgv,
+                onClick: () => {
+                  const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
+                  updateDataTablePanelDisplay('none');
+                  // Update counts
+                  initIgvFacets(trackToFilter, panelContainerSelector);
+                },
+              },
+              ['Filter variants']
+            ),
       ]),
     ]),
     div(
