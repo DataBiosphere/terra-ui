@@ -318,7 +318,6 @@ export const SpendReport = (props: SpendReportProps) => {
           (details) => details.aggregationKey === 'Daily',
           spend.spendDetails
         ) as AggregatedDailySpendData;
-        console.assert(dailyDetails !== undefined, 'Spend report details do not include aggregation by Day');
         const dailySpend = _.flow(
           _.sortBy(({ startTime }) => {
             return startTime;
