@@ -81,7 +81,12 @@ export const NewWorkspaceSharingTab = ({ acl, setAcl }): ReactNode => {
         lastAddedEmail={lastAddedEmail}
         workspaceAccessLevel='OWNER'
         isAzureWorkspace={false}
-        listStyles={{ margin: '0.5rem 0rem 0px' }}
+        listStyles={{
+          margin: '0.5rem -1.25rem 0',
+          maxHeight: 'calc(400px - 1rem)',
+          overflowY: 'auto',
+          padding: '1rem 1.25rem',
+        }}
       />
     </>
   );

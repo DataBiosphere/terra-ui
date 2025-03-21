@@ -123,7 +123,7 @@ export const NewWorkspaceSecurityTab = ({
           </>
         )}
       </IdContainer>
-      {renderPolicyAndWorkspaceInfo()}
+      <div style={{ maxHeight: '200px', overflowY: 'auto' }}>{renderPolicyAndWorkspaceInfo()}</div>
     </div>
   );
 };
