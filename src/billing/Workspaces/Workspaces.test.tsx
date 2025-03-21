@@ -7,7 +7,6 @@ import { GoogleBillingAccount } from 'src/billing-core/models';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { BillingProject, SpendReport as SpendReportServerResponse } from 'src/libs/ajax/billing/billing-models';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { azureBillingProject, gcpBillingProject } from 'src/testing/billing-project-fixtures';
 import { asMockedFn, partial, renderWithAppContexts } from 'src/testing/test-utils';
 import {
@@ -33,9 +32,6 @@ jest.mock(
 );
 jest.mock('src/libs/ajax/billing/Billing');
 jest.mock('src/libs/ajax/Metrics');
-jest.mock('src/libs/feature-previews', () => ({
-  isFeaturePreviewEnabled: jest.fn(),
-}));
 
 describe('Workspaces', () => {
   const getSpendReport = jest.fn().mockResolvedValue({} as SpendReportServerResponse);
@@ -125,8 +121,8 @@ describe('Workspaces', () => {
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(3); // 1 header row + 2 workspace rows
     // users sort initially by name, resource group ID comes from the billing project
-    expect(users[1]).toHaveTextContent(/secondWorkspacejustin@gmail.comMar 15, 2023/);
-    expect(users[2]).toHaveTextContent(/test-azure-ws-namejustin@gmail.comMar 15, 2023/);
+    expect(users[1]).toHaveTextContent(/test-azure-ws-nameN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
+    expect(users[2]).toHaveTextContent(/secondWorkspaceN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
   });
 
   it('renders Google workspaces, including errorMessage', async () => {
@@ -146,7 +142,7 @@ describe('Workspaces', () => {
     };
     const billingAccounts: Record<string, GoogleBillingAccount> = {};
     billingAccounts[`${secondWorkspace.workspace.billingAccount}`] = testBillingAccount;
-    const secondWorkspaceInfo = 'secondWorkspacegroot@gmail.comMar 15, 2023';
+    const secondWorkspaceInfo = 'secondWorkspaceN/AN/AN/Agroot@gmail.comMar 15, 2023';
 
     // Act
     await act(async () => {
@@ -167,8 +163,8 @@ describe('Workspaces', () => {
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(3); // 1 header row + 2 workspace rows
     // users sort initially by name
-    expect(users[1]).toHaveTextContent(new RegExp(secondWorkspaceInfo));
-    expect(users[2]).toHaveTextContent(/test-gcp-ws-namegroot@gmail.comMar 15, 2023/);
+    expect(users[1]).toHaveTextContent(/test-gcp-ws-nameN\/AN\/AN\/Agroot@gmail.comMar 15, 2023/);
+    expect(users[2]).toHaveTextContent(new RegExp(secondWorkspaceInfo));
   });
 
   it('supports sorting', async () => {
@@ -197,8 +193,8 @@ describe('Workspaces', () => {
     const userTable = screen.getByRole('table');
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(3); // 1 header row + 2 workspace rows
-    expect(users[1]).toHaveTextContent(/test-azure-ws-namejustin@gmail.comMar 15, 2023/);
-    expect(users[2]).toHaveTextContent(/secondWorkspacezoo@gmail.comMar 15, 2023/);
+    expect(users[1]).toHaveTextContent(/test-azure-ws-nameN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
+    expect(users[2]).toHaveTextContent(/secondWorkspaceN\/AN\/AN\/Azoo@gmail.comMar 15, 2023/);
   });
 
   it('renders icons if billing accounts are synchronizing with no accessibility errors', async () => {
@@ -229,17 +225,14 @@ describe('Workspaces', () => {
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(4); // 1 header row + 4 workspace rows
     // users sort initially by name
-    expect(users[1]).toHaveTextContent('secondWorkspacegroot@gmail.comMar 15, 2023');
-    expect(users[2]).toHaveTextContent('test-gcp-ws-namegroot@gmail.comMar 15, 2023');
-    expect(users[3]).toHaveTextContent('thirdWorkspacegroot@gmail.comMar 15, 2023');
+    expect(users[1]).toHaveTextContent('test-gcp-ws-nameN/AN/AN/Agroot@gmail.comMar 15, 2023');
+    expect(users[2]).toHaveTextContent('secondWorkspaceN/AN/AN/Agroot@gmail.comMar 15, 2023');
+    expect(users[3]).toHaveTextContent('thirdWorkspaceN/AN/AN/Agroot@gmail.comMar 15, 2023');
     // Verify accessibility
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it('fetches and filters workspaces based on spend report and search value', async () => {
-    // Mock the return value of isFeaturePreviewEnabled
-    (isFeaturePreviewEnabled as jest.Mock).mockReturnValue(true);
-
     const testNamespace = 'test-gcp-ws-namespace';
     const testWorkspaceName = 'test-gcp-ws-name';
 
@@ -303,9 +296,6 @@ describe('Workspaces', () => {
   });
 
   it('fetches and filters workspaces without on spend report and search value', async () => {
-    // Mock the return value of isFeaturePreviewEnabled
-    (isFeaturePreviewEnabled as jest.Mock).mockReturnValue(true);
-
     const testWorkspaceName = 'test-gcp-ws-name';
 
     // Arrange

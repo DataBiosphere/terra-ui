@@ -18,8 +18,6 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { SPEND_REPORTING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
@@ -283,32 +281,30 @@ export const BillingList = (props: BillingListProps) => {
           <h2 style={{ fontSize: 16 }}>Billing Projects</h2>
           <CreateBillingProjectControl showCreateProjectModal={showCreateProjectModal} />
         </div>
-        {isFeaturePreviewEnabled(SPEND_REPORTING) && (
-          <div role='list'>
-            <div role='listitem'>
-              <div
-                style={{ ...listItemStyle(type === 'consolidatedSpendReport', spendReportHovered) }}
-                onMouseEnter={() => setSpendReportHovered(true)}
-                onMouseLeave={() => setSpendReportHovered(false)}
+        <div role='list'>
+          <div role='listitem'>
+            <div
+              style={{ ...listItemStyle(type === 'consolidatedSpendReport', spendReportHovered) }}
+              onMouseEnter={() => setSpendReportHovered(true)}
+              onMouseLeave={() => setSpendReportHovered(false)}
+            >
+              <Clickable
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: type === 'consolidatedSpendReport' ? colors.accent(1.1) : colors.accent(),
+                }}
+                href={`${Nav.getLink('billing')}?${qs.stringify({
+                  type: 'consolidatedSpendReport',
+                })}`}
+                onClick={() => void Metrics().captureEvent(Events.billingViewConsolidatedSpendReport)}
+                aria-current={type === 'consolidatedSpendReport' ? 'location' : false}
               >
-                <Clickable
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: type === 'consolidatedSpendReport' ? colors.accent(1.1) : colors.accent(),
-                  }}
-                  href={`${Nav.getLink('billing')}?${qs.stringify({
-                    type: 'consolidatedSpendReport',
-                  })}`}
-                  onClick={() => void Metrics().captureEvent(Events.billingViewConsolidatedSpendReport)}
-                  aria-current={type === 'consolidatedSpendReport' ? 'location' : false}
-                >
-                  Consolidated Spend Report
-                </Clickable>
-              </div>
+                Consolidated Spend Report
+              </Clickable>
             </div>
           </div>
-        )}
+        </div>
         <BillingProjectSubheader title='Owned by You'>
           <div role='list'>
             {projectsOwned.map((project) => (
