@@ -1,3 +1,4 @@
+import { InfoBox } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -93,7 +94,10 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
   return (
     <div style={styles.idLink.container}>
       <div style={styles.idLink.linkContentTop(false)}>
-        <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>{provider.name}</h3>
+        <h3 style={{ marginTop: 0, ...styles.idLink.linkName }}>
+          {provider.name}
+          {provider.toolTip && <InfoBox style={{ marginLeft: '0.5rem' }}>{provider.toolTip}</InfoBox>}
+        </h3>
         {isLinking && <SpacedSpinner>Loading account status...</SpacedSpinner>}
         {!externalUserId && (
           <div>

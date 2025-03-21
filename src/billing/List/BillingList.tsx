@@ -7,7 +7,6 @@ import * as Auth from 'src/auth/auth';
 import { CreateBillingProjectControl } from 'src/billing/List/CreateBillingProjectControl';
 import { GCPNewBillingProjectModal } from 'src/billing/List/GCPNewBillingProjectModal';
 import { listItemStyle, ProjectListItem, ProjectListItemProps } from 'src/billing/List/ProjectListItem';
-import { AzureBillingProjectWizard } from 'src/billing/NewBillingProjectWizard/AzureBillingProjectWizard/AzureBillingProjectWizard';
 import { GCPBillingProjectWizard } from 'src/billing/NewBillingProjectWizard/GCPBillingProjectWizard/GCPBillingProjectWizard';
 import ProjectDetail from 'src/billing/Project';
 import { billingRoles, isCreating, isDeleting } from 'src/billing/utils';
@@ -19,8 +18,6 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import { reportErrorAndRethrow } from 'src/libs/error';
 import Events from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { SPEND_REPORTING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
@@ -47,7 +44,6 @@ interface RightHandContentProps {
   billingProjects: BillingProject[];
   billingAccounts: Record<string, GoogleBillingAccount>;
   isLoadingProjects: boolean;
-  showAzureBillingProjectWizard: boolean;
   projectsOwned: BillingProject[];
   allWorkspaces: WorkspaceWrapper[];
   refreshWorkspaces: () => Promise<void>;
@@ -65,7 +61,6 @@ const RightHandContent = (props: RightHandContentProps): ReactNode => {
     billingProjects,
     billingAccounts,
     isLoadingProjects,
-    showAzureBillingProjectWizard,
     projectsOwned,
     allWorkspaces,
     refreshWorkspaces,
@@ -83,21 +78,6 @@ const RightHandContent = (props: RightHandContentProps): ReactNode => {
           <p>It may not exist, or you may not have access to it.</p>
         </div>
       </div>
-    );
-  }
-  if (showAzureBillingProjectWizard) {
-    return (
-      <AzureBillingProjectWizard
-        onSuccess={(billingProjectName, protectedData) => {
-          void Metrics().captureEvent(Events.billingCreationBillingProjectCreated, {
-            billingProjectName,
-            cloudPlatform: cloudProviderTypes.AZURE,
-            protectedData,
-          });
-          setCreatingBillingProjectType(null);
-          loadProjects();
-        }}
-      />
     );
   }
   if (!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser()) {
@@ -229,11 +209,7 @@ export const BillingList = (props: BillingListProps) => {
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts);
 
   const showCreateProjectModal = async (type: CloudProvider) => {
-    if (type === 'AZURE') {
-      setCreatingBillingProjectType(type);
-      // Show the Azure wizard instead of the selected billing project.
-      Nav.history.replace({ search: '' });
-    } else if (Auth.hasBillingScope()) {
+    if (Auth.hasBillingScope()) {
       setCreatingBillingProjectType(type);
     } else {
       await authorizeAndLoadAccounts();
@@ -271,9 +247,6 @@ export const BillingList = (props: BillingListProps) => {
     billingProjects
   );
 
-  const azureUserWithNoBillingProjects = !isLoadingProjects && _.isEmpty(billingProjects) && Auth.isAzureUser();
-  const creatingAzureBillingProject = !selectedName && creatingBillingProjectType === 'AZURE';
-
   const makeProjectListItemProps = (project: BillingProject): ProjectListItemProps => {
     return {
       project,
@@ -308,32 +281,30 @@ export const BillingList = (props: BillingListProps) => {
           <h2 style={{ fontSize: 16 }}>Billing Projects</h2>
           <CreateBillingProjectControl showCreateProjectModal={showCreateProjectModal} />
         </div>
-        {isFeaturePreviewEnabled(SPEND_REPORTING) && (
-          <div role='list'>
-            <div role='listitem'>
-              <div
-                style={{ ...listItemStyle(type === 'consolidatedSpendReport', spendReportHovered) }}
-                onMouseEnter={() => setSpendReportHovered(true)}
-                onMouseLeave={() => setSpendReportHovered(false)}
+        <div role='list'>
+          <div role='listitem'>
+            <div
+              style={{ ...listItemStyle(type === 'consolidatedSpendReport', spendReportHovered) }}
+              onMouseEnter={() => setSpendReportHovered(true)}
+              onMouseLeave={() => setSpendReportHovered(false)}
+            >
+              <Clickable
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: type === 'consolidatedSpendReport' ? colors.accent(1.1) : colors.accent(),
+                }}
+                href={`${Nav.getLink('billing')}?${qs.stringify({
+                  type: 'consolidatedSpendReport',
+                })}`}
+                onClick={() => void Metrics().captureEvent(Events.billingViewConsolidatedSpendReport)}
+                aria-current={type === 'consolidatedSpendReport' ? 'location' : false}
               >
-                <Clickable
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: type === 'consolidatedSpendReport' ? colors.accent(1.1) : colors.accent(),
-                  }}
-                  href={`${Nav.getLink('billing')}?${qs.stringify({
-                    type: 'consolidatedSpendReport',
-                  })}`}
-                  onClick={() => void Metrics().captureEvent(Events.billingViewConsolidatedSpendReport)}
-                  aria-current={type === 'consolidatedSpendReport' ? 'location' : false}
-                >
-                  Consolidated Spend Report
-                </Clickable>
-              </div>
+                Consolidated Spend Report
+              </Clickable>
             </div>
           </div>
-        )}
+        </div>
         <BillingProjectSubheader title='Owned by You'>
           <div role='list'>
             {projectsOwned.map((project) => (
@@ -375,7 +346,6 @@ export const BillingList = (props: BillingListProps) => {
           allWorkspaces={allWorkspaces}
           refreshWorkspaces={refreshWorkspaces}
           selectedName={selectedName}
-          showAzureBillingProjectWizard={azureUserWithNoBillingProjects || creatingAzureBillingProject}
           setCreatingBillingProjectType={setCreatingBillingProjectType}
           reloadBillingProject={reloadBillingProject}
           type={type}

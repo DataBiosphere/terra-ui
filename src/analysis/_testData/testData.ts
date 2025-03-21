@@ -399,7 +399,7 @@ export const getGoogleDataProcRuntime = ({
   workspace = defaultGoogleWorkspace,
   runtimeName = generateRuntimeName(),
   status = runtimeStatuses.running.leoLabel,
-  tool = tools.HAIL_BATCH.label,
+  tool = tools.Jupyter.label,
   runtimeConfig = getRuntimeConfig() satisfies RuntimeConfig,
 } = {}): ListRuntimeItem => {
   return {

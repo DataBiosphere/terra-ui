@@ -1,6 +1,5 @@
 import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
-import { screen, within } from '@testing-library/react';
-import { act } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
@@ -71,8 +70,7 @@ describe('Find Workflow modal in Workflows view', () => {
           partial<WorkspaceContract>({
             details: jest.fn().mockResolvedValue(mockGoogleWorkspace),
             checkBucketReadAccess: jest.fn(),
-            storageCostEstimate: jest.fn(),
-            bucketUsage: jest.fn(),
+            storageCostEstimateV2: jest.fn(),
             checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
             listMethodConfigs: jest.fn(),
           }),
@@ -128,9 +126,9 @@ describe('Find Workflow modal in Workflows view', () => {
 
     expect(findWorkflowModal).toBeInTheDocument();
     expect(within(findWorkflowModal).getByText('Find a workflow')).toBeInTheDocument();
-    // Dockstore and Broad Methods Repo cards
+    // Dockstore and Terra Workflow Repo card
     expect(within(findWorkflowModal).getByText('Dockstore.org')).toBeInTheDocument();
-    expect(within(findWorkflowModal).getByText('Broad Methods Repository')).toBeInTheDocument();
+    expect(within(findWorkflowModal).getByText('Terra Workflow Repository')).toBeInTheDocument();
     // curated workflows section
     expect(within(findWorkflowModal).getByText('GATK Best Practices')).toBeInTheDocument();
     expect(within(findWorkflowModal).getByText('Long Read Pipelines')).toBeInTheDocument();

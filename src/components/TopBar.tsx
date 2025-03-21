@@ -1,4 +1,4 @@
-import { FocusTrap, Icon, IconId, Modal, SpinnerOverlay, useUniqueId } from '@terra-ui-packages/components';
+import { FocusTrap, Icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, PropsWithChildren, ReactNode, useRef, useState } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
@@ -7,19 +7,12 @@ import { AlertsIndicator } from 'src/alerts/Alerts';
 import { RequiredUpdateAlert } from 'src/alerts/RequiredUpdateAlert';
 import { signIn } from 'src/auth/auth';
 import { signOut } from 'src/auth/signout/sign-out';
-import { Clickable, LabeledCheckbox, Link } from 'src/components/common';
-import { TextArea } from 'src/components/input';
-import ProfilePicture from 'src/components/ProfilePicture';
+import { Clickable, Link } from 'src/components/common';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
-import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg';
 import headerRightHexes from 'src/images/brands/terra/header-right-hexes.svg';
-import { Support } from 'src/libs/ajax/Support';
-import { User } from 'src/libs/ajax/User';
 import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
-import { withErrorReporting } from 'src/libs/error';
-import { FormLabel } from 'src/libs/forms';
+import { getBuildTimestamp, getConfig } from 'src/libs/config';
 import { topBarLogo } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
 import { useStore } from 'src/libs/react-utils';
@@ -148,7 +141,6 @@ export const TopBar = (props: TopBarProps): ReactNode => {
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
   const [openSupportMenu, setOpenSupportMenu] = useState(false);
   const [openPlatformNewsMenu, setOpenPlatformNewsMenu] = useState(false);
-  const [openFirecloudModal, setOpenFirecloudModal] = useState(false);
 
   const authState = useStore(authStore);
   const userState = useStore(userStore);
@@ -190,12 +182,9 @@ export const TopBar = (props: TopBarProps): ReactNode => {
             {signInStatus === 'userLoaded' || signInStatus === 'authenticated' ? (
               <DropDownSection
                 title={
-                  <>
-                    <ProfilePicture size={32} style={{ marginRight: 12, flex: 'none' }} />
-                    <div style={{ ...Style.noWrapEllipsis }}>
-                      {firstName} {lastName}
-                    </div>
-                  </>
+                  <div style={{ ...Style.noWrapEllipsis }}>
+                    {firstName} {lastName}
+                  </div>
                 }
                 onClick={() => setOpenUserMenu(!openUserMenu)}
                 isOpened={openUserMenu}
@@ -359,21 +348,6 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                 Service Notifications
               </DropDownSubItem>
             </DropDownSection>
-            {isFirecloud() && (
-              <NavSection
-                disabled={signInStatus !== 'userLoaded'}
-                tooltip={signInStatus === 'userLoaded' ? undefined : 'Please sign in'}
-                onClick={() => {
-                  hideNav();
-                  setOpenFirecloudModal(true);
-                }}
-              >
-                <div style={navIconStyles}>
-                  <img src={fcIconWhite} alt='' style={{ height: 20, width: 20 }} />
-                </div>
-                Use Classic FireCloud
-              </NavSection>
-            )}
             <div style={{ borderTop: `1px solid ${colors.dark(0.55)}` }} />
             <div style={{ flex: 'none', padding: 28, marginTop: 'auto' }}>
               {isBioDataCatalyst() && (
@@ -403,7 +377,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   {...Utils.newTabLinkProps}
                   style={{ textDecoration: 'underline', marginLeft: '0.25rem' }}
                 >
-                  {new Date(parseInt(getConfig().buildTimestamp, 10)).toLocaleString()}
+                  {new Date(getBuildTimestamp()).toLocaleString()}
                 </Clickable>
               </div>
             </div>
@@ -480,64 +454,10 @@ export const TopBar = (props: TopBarProps): ReactNode => {
               color: isTerra() ? 'white' : colors.dark(),
             }}
           />
-          {openFirecloudModal && <PreferFirecloudModal onDismiss={() => setOpenFirecloudModal(false)} />}
         </div>
       </div>
       <RequiredUpdateAlert />
       <SkipNavTarget ref={mainRef} />
     </div>
-  );
-};
-
-const PreferFirecloudModal = ({ onDismiss }) => {
-  const [emailAgreed, setEmailAgreed] = useState<boolean>(true);
-  const [reason, setReason] = useState<string>('');
-  const [submitting, setSubmitting] = useState<boolean>(false);
-
-  const user = useStore(userStore);
-  const {
-    profile: { firstName, lastName },
-  } = user;
-  const email = user.profile.contactEmail ?? user.terraUser.email ?? '';
-  const currUrl = window.location.href;
-
-  const returnToLegacyFC = _.flow(
-    withErrorReporting('Error opting out of Terra'),
-    Utils.withBusyState(setSubmitting)
-  )(async () => {
-    await User().profile.preferLegacyFirecloud();
-    if (emailAgreed === true || reason.length !== 0) {
-      await Support().createSupportRequest({
-        name: `${firstName} ${lastName}`,
-        email,
-        description: reason,
-        subject: 'Opt out of Terra',
-        type: 'survey',
-        attachmentToken: '',
-        emailAgreed,
-        currUrl,
-      });
-    }
-    onDismiss();
-    window.location.assign(getConfig().firecloudUrlRoot);
-  });
-
-  const reasonContainerId = useUniqueId();
-  return (
-    <Modal onDismiss={onDismiss} title='Return to classic FireCloud' okButton={returnToLegacyFC}>
-      Are you sure you would prefer the previous FireCloud interface?
-      <FormLabel htmlFor={reasonContainerId}>Please tell us why</FormLabel>
-      <TextArea
-        id={reasonContainerId}
-        style={{ height: 100, marginBottom: '0.5rem' }}
-        placeholder='Enter your reason'
-        value={reason}
-        onChange={setReason}
-      />
-      <LabeledCheckbox checked={emailAgreed} onChange={setEmailAgreed}>
-        <span style={{ marginLeft: '0.5rem' }}>You can follow up with me by email.</span>
-      </LabeledCheckbox>
-      {submitting && <SpinnerOverlay />}
-    </Modal>
   );
 };

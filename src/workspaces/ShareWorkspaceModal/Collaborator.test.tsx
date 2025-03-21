@@ -1,7 +1,6 @@
 import { fireEvent, getByRole, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
-import { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -37,7 +36,8 @@ const CollaboratorWithState = ({ aclItem, acl, originalAcl, workspace, lastAdded
       acl={acl}
       setAcl={setAcl}
       originalAcl={originalAcl}
-      workspace={workspace}
+      workspaceAccessLevel={workspace.accessLevel}
+      isAzureWorkspace={false}
       lastAddedEmail={lastAddedEmail}
     />
   );
@@ -72,7 +72,8 @@ describe('a Collaborator component', () => {
         acl={acl}
         setAcl={setAcl}
         originalAcl={acl}
-        workspace={workspace}
+        workspaceAccessLevel={workspace.accessLevel}
+        isAzureWorkspace={false}
         lastAddedEmail={undefined}
       />
     );
@@ -101,7 +102,8 @@ describe('a Collaborator component', () => {
         acl={acl}
         setAcl={setAcl}
         originalAcl={acl}
-        workspace={workspace}
+        workspaceAccessLevel={workspace.accessLevel}
+        isAzureWorkspace={false}
         lastAddedEmail={undefined}
       />
     );
@@ -132,7 +134,8 @@ describe('a Collaborator component', () => {
         acl={acl}
         setAcl={setAcl}
         originalAcl={acl}
-        workspace={{ ...workspace, accessLevel: 'PROJECT_OWNER' }}
+        workspaceAccessLevel='PROJECT_OWNER'
+        isAzureWorkspace={false}
         lastAddedEmail={undefined}
       />
     );
@@ -175,7 +178,8 @@ describe('a Collaborator component', () => {
         acl={acl}
         setAcl={aclMock}
         originalAcl={acl}
-        workspace={{ ...workspace, accessLevel: 'PROJECT_OWNER' }}
+        workspaceAccessLevel='PROJECT_OWNER'
+        isAzureWorkspace={false}
         lastAddedEmail={undefined}
       />
     );
@@ -213,7 +217,8 @@ describe('a Collaborator component', () => {
         acl={acl}
         setAcl={jest.fn()}
         originalAcl={acl}
-        workspace={{ ...workspace, accessLevel: 'WRITER' }}
+        workspaceAccessLevel='WRITER'
+        isAzureWorkspace={false}
         lastAddedEmail={undefined}
       />
     );
@@ -241,7 +246,8 @@ describe('a Collaborator component', () => {
         acl={acl}
         setAcl={jest.fn()}
         originalAcl={acl}
-        workspace={{ ...workspace, accessLevel: 'OWNER' }}
+        workspaceAccessLevel='OWNER'
+        isAzureWorkspace={false}
         lastAddedEmail={undefined}
       />
     );
@@ -369,7 +375,8 @@ describe('a Collaborator component', () => {
         acl={acl}
         setAcl={jest.fn()}
         originalAcl={acl}
-        workspace={{ ...workspace, accessLevel: 'WRITER' }}
+        workspaceAccessLevel='WRITER'
+        isAzureWorkspace={false}
         lastAddedEmail={undefined}
       />
     );
@@ -400,7 +407,8 @@ describe('a Collaborator component', () => {
           acl={acl}
           setAcl={setAcl}
           originalAcl={acl}
-          workspace={{ ...workspace, accessLevel: 'WRITER' }}
+          workspaceAccessLevel='WRITER'
+          isAzureWorkspace={false}
           lastAddedEmail={undefined}
         />
       );
@@ -438,7 +446,8 @@ describe('a Collaborator component', () => {
           acl={acl}
           setAcl={setAcl}
           originalAcl={acl}
-          workspace={{ ...workspace, accessLevel }}
+          workspaceAccessLevel={accessLevel}
+          isAzureWorkspace={false}
           lastAddedEmail={undefined}
         />
       );
@@ -487,7 +496,8 @@ describe('a Collaborator component', () => {
             acl={acl}
             setAcl={setAcl}
             originalAcl={acl}
-            workspace={{ ...workspace, accessLevel: 'OWNER' }}
+            workspaceAccessLevel='OWNER'
+            isAzureWorkspace={false}
             lastAddedEmail={undefined}
           />
         );

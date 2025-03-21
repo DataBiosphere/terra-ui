@@ -1,14 +1,10 @@
 import { partial } from '@terra-ui-packages/test-utils';
-import { fetchDataCatalog } from 'src/data-catalog/data-browser-utils';
 import { DataRepo, DataRepoContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { asMockedFn } from 'src/testing/test-utils';
 
 import {
   BagItImportRequest,
-  CatalogDatasetImportRequest,
   EntitiesImportRequest,
   ImportRequest,
   PFBImportRequest,
@@ -36,14 +32,6 @@ jest.mock('src/libs/ajax/SamResources', (): SamResourcesExports => {
   };
 });
 
-type DataBrowserUtilsExports = typeof import('src/data-catalog/data-browser-utils');
-jest.mock('src/data-catalog/data-browser-utils', (): DataBrowserUtilsExports => {
-  return {
-    ...jest.requireActual<DataBrowserUtilsExports>('src/data-catalog/data-browser-utils'),
-    fetchDataCatalog: jest.fn(),
-  };
-});
-
 type FeaturePreviewsExports = typeof import('src/libs/feature-previews');
 jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
   return {
@@ -53,21 +41,6 @@ jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
 });
 
 describe('getImportRequest', () => {
-  const azureSnapshotFixture: Snapshot = {
-    id: 'aaaabbbb-cccc-dddd-0000-111122223333',
-    name: 'test-snapshot',
-    source: [
-      {
-        dataset: {
-          id: 'aaaabbbb-cccc-dddd-0000-111122223333',
-          name: 'test-dataset',
-          secureMonitoringEnabled: false,
-        },
-      },
-    ],
-    cloudPlatform: 'azure',
-  };
-
   const googleSnapshotFixture: Snapshot = {
     id: '00001111-2222-3333-aaaa-bbbbccccdddd',
     name: 'test-snapshot',
@@ -151,24 +124,10 @@ describe('getImportRequest', () => {
         snapshotAccessControls: [],
       } satisfies TDRSnapshotReferenceImportRequest,
     },
-    // Catalog dataset
-    {
-      queryParams: {
-        format: 'catalog',
-        catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-      },
-      expectedResult: {
-        type: 'catalog-dataset',
-        datasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-      } satisfies CatalogDatasetImportRequest,
-    },
   ];
 
   const mockSnapshotDetails = (snapshotId: string) =>
     jest.fn().mockImplementation(() => {
-      if (snapshotId === azureSnapshotFixture.id) {
-        return Promise.resolve(azureSnapshotFixture);
-      }
       if (snapshotId === googleSnapshotFixture.id) {
         return Promise.resolve(googleSnapshotFixture);
       }
@@ -182,57 +141,6 @@ describe('getImportRequest', () => {
       }),
     };
     asMockedFn(DataRepo).mockReturnValue(mockDataRepo as unknown as DataRepoContract);
-
-    asMockedFn(fetchDataCatalog).mockResolvedValue([
-      {
-        id: 'aaaabbbb-cccc-dddd-eeee-ffffgggghhhh',
-        'dct:creator': 'testowner',
-        'dct:description': 'A test snapshot',
-        'dct:identifier': '00001111-2222-3333-aaaa-bbbbccccdddd',
-        'dct:issued': '2023-10-02T11:30:00.000000Z',
-        'dct:title': 'test-snapshot-1',
-        'dcat:accessURL':
-          'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/00001111-2222-3333-aaaa-bbbbccccdddd',
-        'TerraDCAT_ap:hasDataCollection': [],
-        accessLevel: 'reader',
-        storage: [],
-        counts: {},
-        samples: {},
-        contributors: [],
-      },
-      {
-        id: '11112222-3333-4444-5555-666677778888',
-        'dct:creator': 'testowner',
-        'dct:description': 'Another test snapshot',
-        'dct:identifier': 'aaaabbbb-cccc-1111-2222-333333333333',
-        'dct:issued': '2023-10-02T11:30:00.000000Z',
-        'dct:title': 'test-snapshot-2',
-        'dcat:accessURL':
-          'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/aaaabbbb-cccc-1111-2222-333333333333',
-        'TerraDCAT_ap:hasDataCollection': [],
-        accessLevel: 'reader',
-        storage: [],
-        counts: {},
-        samples: {},
-        contributors: [],
-      },
-      {
-        id: 'zzzzyyyy-xxxx-1111-2222-333333333333',
-        'dct:creator': 'testowner',
-        'dct:description': 'Yet another test snapshot',
-        'dct:identifier': '99998888-7777-xxxx-yyyy-zzzzzzzzzzzz',
-        'dct:issued': '2023-10-02T11:30:00.000000Z',
-        'dct:title': 'test-snapshot-3',
-        'dcat:accessURL':
-          'https://jade.datarepo-dev.broadinstitute.org/snapshots/details/99998888-7777-xxxx-yyyy-zzzzzzzzzzzz',
-        'TerraDCAT_ap:hasDataCollection': [],
-        accessLevel: 'reader',
-        storage: [],
-        counts: {},
-        samples: {},
-        contributors: [],
-      },
-    ]);
 
     asMockedFn(SamResources).mockReturnValue(
       partial<SamResourcesContract>({
@@ -360,44 +268,6 @@ describe('getImportRequest', () => {
         syncPermissions: false,
         type: 'tdr-snapshot-export',
       });
-    });
-
-    it('rejects snapshot imports for Azure snapshots unless feature preview is enabled', async () => {
-      // Arrange
-      const queryParams = {
-        format: 'tdrexport',
-        snapshotId: azureSnapshotFixture.id,
-        tdrmanifest: 'https://example.com/path/to/manifest.json',
-        tdrSyncPermissions: 'true',
-        url: 'https://data.terra.bio',
-      };
-
-      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-      // Act/Assert
-      await expect(getImportRequest(queryParams)).rejects.toEqual(
-        new Error('Importing Azure snapshots is not supported.')
-      );
-
-      // Arrange
-      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === ENABLE_AZURE_TDR_IMPORT);
-
-      // Act/Assert
-      await expect(getImportRequest(queryParams)).resolves.toEqual(expect.anything());
-    });
-
-    it('rejects snapshot by reference imports for Azure snapshots', async () => {
-      // Act
-      const queryParams = {
-        format: 'snapshot',
-        snapshotId: azureSnapshotFixture.id,
-      };
-      const importRequest = getImportRequest(queryParams);
-
-      // Assert
-      await expect(importRequest).rejects.toEqual(
-        new Error('Importing by reference is not supported for Azure snapshots.')
-      );
     });
   });
 });

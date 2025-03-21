@@ -270,8 +270,7 @@ describe('Workflow View (GCP)', () => {
           gcpDataRepoSnapshots: [],
         }),
         checkBucketReadAccess: jest.fn(),
-        storageCostEstimate: jest.fn(),
-        bucketUsage: jest.fn(),
+        storageCostEstimateV2: jest.fn(),
         checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
         methodConfig: () => ({
           save: jest.fn().mockReturnValue(mockSave),
@@ -674,7 +673,7 @@ describe('Workflow View (GCP)', () => {
 
     // Assert
     // check that workflow cost capping is not shown
-    expect(screen.queryByText('Set cost limit per workflow (BETA)')).toBeNull();
+    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).toBeNull();
   });
 
   it('does show cost capping input if the feature flag is enabled', async () => {
@@ -693,6 +692,34 @@ describe('Workflow View (GCP)', () => {
 
     // Assert
     // check that workflow cost capping is shown
-    expect(screen.queryByText('Set cost limit per workflow (BETA)')).not.toBeNull();
+    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).not.toBeNull();
+  });
+
+  it('updates perWorkflowCostCap state on input change', async () => {
+    // Arrange
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    mockDefaultAjax();
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    const costCapInput = screen.getByPlaceholderText('Example: 1.00');
+    expect(costCapInput).toBeInTheDocument();
+
+    // Assert initial state
+    expect(costCapInput).toHaveValue(null);
+
+    // Act
+    await user.type(costCapInput, '123.456');
+
+    // Assert updated state
+    expect(Number(costCapInput.value)).toBeCloseTo(123.456, 2);
   });
 });

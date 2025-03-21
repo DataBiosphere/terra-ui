@@ -89,15 +89,6 @@ jest.mock('src/components/CookieWarning', (): CookieWarningExports => {
   };
 });
 
-type FirecloudNotificationExports = typeof import('src/components/FirecloudNotification') & { __esModule: true };
-jest.mock('src/components/FirecloudNotification', (): FirecloudNotificationExports => {
-  return {
-    ...jest.requireActual<FirecloudNotificationExports>('src/components/FirecloudNotification'),
-    default: jest.fn().mockReturnValue(null),
-    __esModule: true,
-  };
-});
-
 type IdleStatusMonitorExports = typeof import('src/components/IdleStatusMonitor') & { __esModule: true };
 jest.mock('src/components/IdleStatusMonitor', (): IdleStatusMonitorExports => {
   return {

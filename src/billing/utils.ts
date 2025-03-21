@@ -10,7 +10,7 @@ export const billingRoles = {
 };
 
 export const billingProjectNameValidator = (existing: string[]) => ({
-  length: { minimum: 6, maximum: 30 },
+  length: { minimum: 6, maximum: 60 },
   format: {
     pattern: /(\w|-)+/,
     message: 'can only contain letters, numbers, underscores and hyphens.',

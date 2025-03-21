@@ -10,11 +10,9 @@ import {
   getGoogleRuntime,
 } from 'src/analysis/_testData/testData';
 import { CloudEnvironmentModal } from 'src/analysis/modals/CloudEnvironmentModal';
-import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
-import { appToolLabels, tools } from 'src/analysis/utils/tool-utils';
+import { tools } from 'src/analysis/utils/tool-utils';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -148,42 +146,6 @@ const CloudEnvironmentModalDefaultProps: any = {
   location: 'NORTHAMERICA-NORTHEAST1',
   computeRegion: 'NORTHAMERICA-NORTHEAST1',
   filterForTool: undefined,
-};
-
-const hailBatchAppRunning: App = {
-  workspaceId: null,
-  accessScope: null,
-  appName: 'test-hail-batch-app',
-  cloudContext: {
-    cloudProvider: 'AZURE',
-    cloudResource: 'path/to/cloud/resource',
-  },
-  kubernetesRuntimeConfig: {
-    numNodes: 1,
-    machineType: 'Standard_A2_v2',
-    autoscalingEnabled: false,
-  },
-  errors: [],
-  status: 'RUNNING',
-  proxyUrls: {
-    batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
-  },
-  diskName: null,
-  customEnvironmentVariables: {},
-  auditInfo: {
-    creator: 'abc.testerson@gmail.com',
-    createdDate: '2023-01-18T23:28:47.605176Z',
-    destroyedDate: null,
-    dateAccessed: '2023-01-18T23:28:47.605176Z',
-  },
-  appType: appToolLabels.HAIL_BATCH,
-  labels: {
-    cloudContext: 'path/to/cloud/context',
-    appName: 'test-cromwell-app',
-    clusterServiceAccount: '/subscriptions/123/pet-101',
-    creator: 'abc.testerson@gmail.com',
-  },
-  region: 'us-central1',
 };
 
 type NavExports = typeof import('src/libs/nav');
@@ -703,34 +665,5 @@ describe('CloudEnvironmentModal', () => {
     const settingsButton = screen.getByText('Settings');
     await user.click(settingsButton);
     screen.getByText('AzureComputeModalBase');
-  });
-});
-
-describe('renderToolButtons', () => {
-  it('should render PeriodicAzureCookieSetter for Hail Batch', async () => {
-    // Arrange
-    const mockRuntimes: Partial<RuntimesContract> = {
-      invalidateCookie: jest.fn(),
-      setCookie: jest.fn(),
-      runtime: jest.fn(),
-      azureProxy: jest.fn(),
-      listV2: jest.fn(),
-      listV2WithWorkspace: jest.fn(),
-      runtimeV2: jest.fn(),
-      fileSyncing: jest.fn(),
-    };
-
-    asMockedFn(Runtimes).mockImplementation(() => mockRuntimes as RuntimesContract);
-
-    const testProps = {
-      ...AzureCloudEnvironmentModalDefaultProps,
-      filterForTool: appToolLabels.HAIL_BATCH,
-      apps: [hailBatchAppRunning],
-    };
-    // Act
-    render(h(CloudEnvironmentModal, testProps));
-
-    // Assert
-    expect(PeriodicAzureCookieSetter).toHaveBeenCalled();
   });
 });

@@ -22,7 +22,6 @@ import { Runtimes, RuntimesAjaxContract } from 'src/libs/ajax/leonardo/Runtimes'
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils';
 import { isCromwellAppVisible } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import * as Utils from 'src/libs/utils';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
@@ -110,8 +109,6 @@ jest.mock(
 
 jest.mock('src/libs/ajax/leonardo/Runtimes');
 jest.mock('src/libs/ajax/Metrics');
-
-jest.mock('src/libs/feature-previews');
 
 const mockMetrics: Partial<MetricsContract> = {
   captureEvent: () => Promise.resolve(),
@@ -422,41 +419,6 @@ const contextBarPropsForAzure: ContextBarProps = {
   refreshApps: () => Promise.resolve(),
   isLoadingCloudEnvironments: false,
   workspace: defaultAzureWorkspace,
-};
-
-const hailBatchAppRunning: ListAppItem = {
-  workspaceId: null,
-  accessScope: null,
-  appName: 'test-hail-batch-app',
-  diskName: null,
-  cloudContext: {
-    cloudProvider: 'AZURE',
-    cloudResource: 'path/to/cloud/resource',
-  },
-  kubernetesRuntimeConfig: {
-    numNodes: 1,
-    machineType: 'Standard_A2_v2',
-    autoscalingEnabled: false,
-  },
-  errors: [],
-  status: 'RUNNING',
-  proxyUrls: {
-    batch: 'https://lz123.servicebus.windows.net/test-hail-batch-app/batch',
-  },
-  auditInfo: {
-    creator: 'abc.testerson@gmail.com',
-    createdDate: '2023-01-18T23:28:47.605176Z',
-    destroyedDate: null,
-    dateAccessed: '2023-01-18T23:28:47.605176Z',
-  },
-  appType: 'HAIL_BATCH',
-  labels: {
-    cloudContext: 'path/to/cloud/context',
-    appName: 'test-cromwell-app',
-    clusterServiceAccount: '/subscriptions/123/pet-101',
-    creator: 'abc.testerson@gmail.com',
-  },
-  region: 'us-central1',
 };
 
 describe('ContextBar - buttons', () => {
@@ -817,41 +779,5 @@ describe('ContextBar - actions', () => {
 
     // Assert
     expect(queryByText('Cloud Environment Details')).toBeFalsy();
-  });
-
-  it('will not render Hail Batch if the feature flag is disabled', () => {
-    // Arrange
-    const hailBatchContextBarProps: ContextBarProps = {
-      ...contextBarPropsForAzure,
-      apps: [hailBatchAppRunning],
-      appDataDisks: [],
-    };
-
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-    // Act
-    const { getByLabelText, queryByLabelText } = render(h(ContextBar, hailBatchContextBarProps));
-
-    // Assert
-    expect(getByLabelText('Environment Configuration'));
-    expect(queryByLabelText(new RegExp(/Hail Batch Environment/i))).not.toBeInTheDocument();
-  });
-
-  it('will render Hail Batch app if the feature flag is enabled', () => {
-    // Arrange
-    const hailBatchContextBarProps: ContextBarProps = {
-      ...contextBarPropsForAzure,
-      apps: [hailBatchAppRunning],
-      appDataDisks: [],
-    };
-
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
-
-    // Act
-    const { getByLabelText, queryByLabelText } = render(h(ContextBar, hailBatchContextBarProps));
-
-    // Assert
-    expect(getByLabelText('Environment Configuration'));
-    expect(queryByLabelText(new RegExp(/Hail Batch Environment/i)));
   });
 });

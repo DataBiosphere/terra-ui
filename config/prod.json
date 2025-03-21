@@ -3,12 +3,11 @@
   "bardRoot": "https://terra-bard-prod.appspot.com",
   "billingProfileManagerUrlRoot": "https://bpm.dsde-prod.broadinstitute.org",
   "calhounUrlRoot": "https://calhoun.dsde-prod.broadinstitute.org",
-  "catalogUrlRoot": "https://catalog.dsde-prod.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.terra.bio",
   "dockstoreUrlRoot": "https://dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-prod.broadinstitute.org",
+  "duosUrlRoot": "https://duos.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
-  "firecloudUrlRoot": "https://portal.firecloud.org",
   "externalCreds": {
     "providers": ["fence", "dcf-fence", "kids-first", "github"],
     "urlRoot": "https://externalcreds.dsde-prod.broadinstitute.org"
@@ -21,7 +20,6 @@
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com",
   "workspaceManagerUrlRoot": "https://workspace.dsde-prod.broadinstitute.org",
-  "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-prod.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_prod",

@@ -5,8 +5,6 @@ import { validateUserEmails } from 'src/billing/utils';
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common';
 import { centeredSpinner } from 'src/components/icons';
 import { EmailSelect } from 'src/groups/Members/EmailSelect';
-import { Groups } from 'src/libs/ajax/Groups';
-import { CurrentUserGroupMembership } from 'src/libs/ajax/Groups';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { reportError } from 'src/libs/error';
@@ -45,10 +43,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   };
 
   // State
-  const [shareSuggestions, setShareSuggestions] = useState<string[]>([]);
-  const [groups, setGroups] = useState<CurrentUserGroupMembership[]>([]);
   const [originalAcl, setOriginalAcl] = useState<WorkspaceAcl>([]);
-  const [searchValues, setSearchValues] = useState<string[]>([]);
+  const [emailInputValues, setEmailInputValues] = useState<string[]>([]);
   const [acl, setAcl] = useState<WorkspaceAcl>([]);
   const [newAcl, setNewAcl] = useState<AccessEntry>(defaultAcl);
   const [loaded, setLoaded] = useState(false);
@@ -63,17 +59,11 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   useOnMount(() => {
     const load = async () => {
       try {
-        const [{ acl }, shareSuggestions, groups] = await Promise.all([
-          Workspaces(signal).workspace(namespace, name).getAcl(),
-          Workspaces(signal).getShareLog(),
-          Groups(signal).list(),
-        ]);
+        const { acl } = await Workspaces(signal).workspace(namespace, name).getAcl();
 
         const fixedAcl: WorkspaceAcl = transformAcl(acl);
         setAcl(fixedAcl);
         setOriginalAcl(fixedAcl);
-        setGroups(groups);
-        setShareSuggestions(shareSuggestions);
         setLoaded(true);
       } catch (error) {
         onDismiss();
@@ -89,18 +79,11 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   }, [lastAddedEmail]);
 
   // Render
-  const errors = validateUserEmails(searchValues);
-  const searchValuesValid = !!errors;
+  const errors = validateUserEmails(emailInputValues);
+
+  const emailValuesValid = !!errors;
   const aclEmails = _.map('email', acl);
 
-  const suggestions: string[] = _.flow(
-    _.map('groupEmail'),
-    _.concat(shareSuggestions),
-    (list) => _.difference(list, aclEmails),
-    _.uniq
-  )(groups);
-
-  const remainingSuggestions = _.difference(suggestions, _.map('email', acl));
   const addUserReminder =
     'Did you mean to add collaborators? Add them or clear the "User emails" field to save changes.';
 
@@ -111,8 +94,8 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         setLastAddedEmail(collaboratorEmail);
       }
     });
-    // Clear the search values and new acl after adding collaborators
-    setSearchValues([]);
+    // Clear the email values and new acl after adding collaborators
+    setEmailInputValues([]);
     setNewAcl(defaultAcl);
   };
 
@@ -155,12 +138,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
     <Modal title='Share Workspace' width={720} showButtons={false} onDismiss={onDismiss}>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
         <div style={{ flexGrow: 2, width: '400px', alignSelf: 'flex-start' }}>
-          <EmailSelect
-            placeholder='Add people or groups'
-            options={cond([remainingSuggestions.length > 0, () => remainingSuggestions], () => [])}
-            emails={searchValues}
-            setEmails={setSearchValues}
-          />
+          <EmailSelect placeholder='Add people or groups' setEmails={setEmailInputValues} emails={emailInputValues} />
         </div>
         <div style={{ flexGrow: 1, alignSelf: 'stretch', marginTop: '1.4rem' }}>
           <AclInput
@@ -177,19 +155,20 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
           <ButtonPrimary
             disabled={!!errors}
             tooltip={summarizeErrors(errors)}
-            onClick={() => addCollaborators(searchValues, newAcl)}
+            onClick={() => addCollaborators(emailInputValues, newAcl)}
           >
             Add
           </ButtonPrimary>
         </div>
       </div>
-      {!searchValuesValid && <p>{addUserReminder}</p>}
+      {!emailValuesValid && <p>{addUserReminder}</p>}
       <CurrentCollaborators
         acl={acl}
         setAcl={setAcl}
         originalAcl={originalAcl}
         lastAddedEmail={lastAddedEmail}
-        workspace={workspace}
+        workspaceAccessLevel={workspace.accessLevel}
+        isAzureWorkspace={isAzureWorkspace(workspace)}
       />
       <WorkspacePolicies workspace={workspace} noCheckboxes />
       {!loaded && centeredSpinner()}
@@ -251,7 +230,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
           <ButtonSecondary style={{ marginRight: '1rem' }} onClick={onDismiss}>
             Cancel
           </ButtonSecondary>
-          <ButtonPrimary disabled={!searchValuesValid} tooltip={!searchValuesValid && addUserReminder} onClick={save}>
+          <ButtonPrimary disabled={!emailValuesValid} tooltip={!emailValuesValid && addUserReminder} onClick={save}>
             Save
           </ButtonPrimary>
         </span>

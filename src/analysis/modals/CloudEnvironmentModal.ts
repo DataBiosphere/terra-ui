@@ -7,7 +7,6 @@ import { AzureComputeModalBase } from 'src/analysis/modals/ComputeModal/AzureCom
 import { GcpComputeModalBase } from 'src/analysis/modals/ComputeModal/GcpComputeModal/GcpComputeModal';
 import { CromwellModalBase } from 'src/analysis/modals/CromwellModal';
 import { GalaxyModalBase } from 'src/analysis/modals/GalaxyModal';
-import { HailBatchModal } from 'src/analysis/modals/HailBatchModal';
 import { RuntimeErrorModal } from 'src/analysis/modals/RuntimeErrorModal';
 import { PeriodicAzureCookieSetter } from 'src/analysis/runtime-common-components';
 import { appLauncherTabName } from 'src/analysis/runtime-common-text';
@@ -41,7 +40,6 @@ import ModalDrawer from 'src/components/ModalDrawer';
 import TitleBar from 'src/components/TitleBar';
 import cromwellImg from 'src/images/cromwell-logo.png';
 import galaxyLogo from 'src/images/galaxy-logo.svg';
-import hailLogo from 'src/images/hail-logo.svg';
 import jupyterLogo from 'src/images/jupyter-logo-long.png';
 import rstudioBioLogo from 'src/images/r-bio-logo.svg';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
@@ -370,7 +368,6 @@ export const CloudEnvironmentModal = ({
       [appToolLabels.GALAXY, () => galaxyLogo],
       [runtimeToolLabels.RStudio, () => rstudioBioLogo],
       [appToolLabels.CROMWELL, () => cromwellImg],
-      [appToolLabels.HAIL_BATCH, () => hailLogo],
       [runtimeToolLabels.JupyterLab, () => jupyterLogo]
     );
 
@@ -479,20 +476,6 @@ export const CloudEnvironmentModal = ({
         },
       ],
       [
-        appToolLabels.HAIL_BATCH,
-        () => {
-          return {
-            ...baseProps,
-            href: app && app.proxyUrls?.batch,
-            onClick: () => {
-              onDismiss();
-              Metrics(signal).captureEvent(Events.applicationLaunch, { app: appTools.HAIL_BATCH.label });
-            },
-            ...Utils.newTabLinkPropsWithReferrer,
-          };
-        },
-      ],
-      [
         Utils.DEFAULT,
         () => {
           // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
@@ -530,16 +513,6 @@ export const CloudEnvironmentModal = ({
             [
               toolLabel === appToolLabels.CROMWELL,
               () => h(PeriodicAzureCookieSetter, { proxyUrl: app.proxyUrls['cbas-ui'], forApp: true }),
-            ],
-            [
-              toolLabel === appToolLabels.HAIL_BATCH,
-              () => {
-                const batchUrl = app?.proxyUrls?.batch;
-                return h(PeriodicAzureCookieSetter, {
-                  proxyUrl: batchUrl.substring(0, batchUrl.lastIndexOf('/') + 1),
-                  forApp: true,
-                });
-              },
             ],
             [Utils.DEFAULT, () => null]
           )
@@ -610,7 +583,6 @@ export const CloudEnvironmentModal = ({
       [runtimeToolLabels.RStudio, () => renderComputeModal(runtimeToolLabels.RStudio)],
       [appToolLabels.GALAXY, () => renderAppModal(GalaxyModalBase, appToolLabels.GALAXY)],
       [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
-      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModal, appToolLabels.HAIL_BATCH)],
       [Utils.DEFAULT, renderDefaultPage]
     );
 
@@ -619,7 +591,6 @@ export const CloudEnvironmentModal = ({
       viewMode,
       [runtimeToolLabels.JupyterLab, () => renderAzureModal(runtimeToolLabels.JupyterLab)],
       [appToolLabels.CROMWELL, () => renderAppModal(CromwellModalBase, appToolLabels.CROMWELL)],
-      [appToolLabels.HAIL_BATCH, () => renderAppModal(HailBatchModal, appToolLabels.HAIL_BATCH)],
       [Utils.DEFAULT, renderDefaultPage]
     );
 
@@ -632,7 +603,6 @@ export const CloudEnvironmentModal = ({
     [runtimeToolLabels.RStudio, () => 675],
     [appToolLabels.GALAXY, () => 675],
     [appToolLabels.CROMWELL, () => 675],
-    [appToolLabels.HAIL_BATCH, () => 675],
     [runtimeToolLabels.JupyterLab, () => 675],
     [Utils.DEFAULT, () => 430]
   );

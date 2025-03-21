@@ -14,11 +14,14 @@ import {
 } from 'src/components/common';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { ENHANCED_WORKSPACE_CREATION } from 'src/libs/feature-previews-config';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
 import { canWrite, WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
@@ -365,7 +368,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               disabled: !userHasBillingProjects,
             }),
             isCreateOpen &&
-              h(NewWorkspaceModal, {
+              h(isFeaturePreviewEnabled(ENHANCED_WORKSPACE_CREATION) ? NewWorkspaceWizard : NewWorkspaceModal, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: requiredCloudPlatform,
                 renderNotice: () => {

@@ -53,6 +53,9 @@ jest.mock<WorkspaceMenuExports>('src/workspaces/common/WorkspaceMenu', () => ({
 }));
 
 describe('WorkspaceContainer', () => {
+  beforeEach(() => {
+    jest.spyOn(console, 'assert').mockImplementation(jest.fn());
+  });
   afterEach(() => {
     jest.useRealTimers();
     jest.resetAllMocks();

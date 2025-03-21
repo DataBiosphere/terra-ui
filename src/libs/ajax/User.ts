@@ -126,11 +126,6 @@ export const kvArrayToObject = (kvArray: { key: string; value: any }[] | undefin
   return Object.fromEntries((kvArray ?? []).map(({ key, value }) => [key, value]));
 };
 
-export interface OrchestrationUserPreferLegacyFireCloudResponse {
-  preferTerra: boolean;
-  preferTerraLastUpdated: number;
-}
-
 export interface NihDatasetPermission {
   name: string;
   authorized: boolean;
@@ -286,10 +281,6 @@ export const User = (signal?: AbortSignal) => {
           _.mergeAll([authOpts(), jsonBody(preferences), { signal, method: 'POST' }])
         );
       },
-
-      preferLegacyFirecloud: async (): Promise<OrchestrationUserPreferLegacyFireCloudResponse> => {
-        return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
-      },
     },
 
     // Returns the proxy group email of the user with the given email
@@ -345,7 +336,10 @@ export const User = (signal?: AbortSignal) => {
     },
 
     getSupportSummary: async (email: string): Promise<SupportSummary> => {
-      const res = await fetchSam(`api/admin/v1/user/email/${email}/supportSummary`, _.merge(authOpts(), { signal }));
+      const res = await fetchSam(
+        `api/admin/v1/user/email/${email}/supportSummary?groupsContributingToMostMembershipsLimit=10`,
+        _.merge(authOpts(), { signal })
+      );
       return res.json();
     },
   };

@@ -18,7 +18,7 @@ import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { AUTO_GENERATE_DATA_TABLES } from 'src/libs/feature-previews-config';
+import { AUTO_GENERATE_DATA_TABLES, ENHANCED_WORKSPACE_CREATION } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
@@ -28,6 +28,7 @@ import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
 import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import UploadPreviewTable from './UploadPreviewTable';
@@ -697,7 +698,7 @@ const MetadataUploadPanel = ({
                 _.map(() => '', _.range(0, headerRow.length - row.length))
               ),
             // Replace any file references with bucket paths
-            _.map((cell) => (cell in filenames ? filenames[cell] : cell))
+            _.map((cell) => (cell && cell in filenames ? filenames[cell] : cell))
           ),
           otherRows
         );
@@ -1225,7 +1226,7 @@ export const UploadData = _.flow(
             ),
           ]),
       creatingNewWorkspace &&
-        h(NewWorkspaceModal, {
+        h(isFeaturePreviewEnabled(ENHANCED_WORKSPACE_CREATION) ? NewWorkspaceWizard : NewWorkspaceModal, {
           onDismiss: () => setCreatingNewWorkspace(false),
           onSuccess: ({ workspaceId }) => {
             refreshWorkspaces();

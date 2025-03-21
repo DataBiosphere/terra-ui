@@ -21,8 +21,6 @@ import {
 } from 'src/libs/ajax/billing/billing-models';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import Events, { extractBillingDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { SPEND_REPORTING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { memoWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
@@ -64,19 +62,16 @@ const WorkspaceCardHeaders: React.FC<WorkspaceCardHeadersProps> = memoWithName(
         >
           <HeaderRenderer sort={sort} onSort={onSort} name='name' />
         </div>
-        {isFeaturePreviewEnabled(SPEND_REPORTING) && (
-          <>
-            <div role='columnheader' aria-sort={ariaSort(sort, 'totalSpend')} style={{ flex: 1 }}>
-              <HeaderRenderer sort={sort} onSort={onSort} name='totalSpend' />
-            </div>
-            <div role='columnheader' aria-sort={ariaSort(sort, 'totalCompute')} style={{ flex: 1 }}>
-              <HeaderRenderer sort={sort} onSort={onSort} name='totalCompute' />
-            </div>
-            <div role='columnheader' aria-sort={ariaSort(sort, 'totalStorage')} style={{ flex: 1 }}>
-              <HeaderRenderer sort={sort} onSort={onSort} name='totalStorage' />
-            </div>
-          </>
-        )}
+        <div role='columnheader' aria-sort={ariaSort(sort, 'totalSpend')} style={{ flex: 1 }}>
+          <HeaderRenderer sort={sort} onSort={onSort} name='totalSpend' />
+        </div>
+        <div role='columnheader' aria-sort={ariaSort(sort, 'totalCompute')} style={{ flex: 1 }}>
+          <HeaderRenderer sort={sort} onSort={onSort} name='totalCompute' />
+        </div>
+        <div role='columnheader' aria-sort={ariaSort(sort, 'totalStorage')} style={{ flex: 1 }}>
+          <HeaderRenderer sort={sort} onSort={onSort} name='totalStorage' />
+        </div>
+
         <div role='columnheader' aria-sort={ariaSort(sort, 'createdBy')} style={{ flex: 1 }}>
           <HeaderRenderer sort={sort} onSort={onSort} name='createdBy' />
         </div>
@@ -143,19 +138,15 @@ const WorkspaceCard: React.FC<WorkspaceCardProps> = memoWithName('WorkspaceCard'
             {name}
           </Link>
         </div>
-        {isFeaturePreviewEnabled(SPEND_REPORTING) && (
-          <>
-            <div role='cell' style={workspaceCardStyles.field}>
-              {totalSpend ?? '...'}
-            </div>
-            <div role='cell' style={workspaceCardStyles.field}>
-              {totalCompute ?? '...'}
-            </div>
-            <div role='cell' style={workspaceCardStyles.field}>
-              {totalStorage ?? '...'}
-            </div>
-          </>
-        )}
+        <div role='cell' style={workspaceCardStyles.field}>
+          {totalSpend ?? '...'}
+        </div>
+        <div role='cell' style={workspaceCardStyles.field}>
+          {totalCompute ?? '...'}
+        </div>
+        <div role='cell' style={workspaceCardStyles.field}>
+          {totalStorage ?? '...'}
+        </div>
         <div role='cell' style={workspaceCardStyles.field}>
           {createdBy}
         </div>
@@ -177,17 +168,10 @@ interface WorkspacesProps {
 
 export const Workspaces = (props: WorkspacesProps): ReactNode => {
   const { billingAccounts, billingAccountsOutOfDate, billingProject, groups, workspacesInProject } = props;
-  const [workspaceSort, setWorkspaceSort] = useState<{ field: string; direction: 'asc' | 'desc' }>(
-    isFeaturePreviewEnabled(SPEND_REPORTING)
-      ? {
-          field: 'totalSpend',
-          direction: 'desc',
-        }
-      : {
-          field: 'name',
-          direction: 'asc',
-        }
-  );
+  const [workspaceSort, setWorkspaceSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({
+    field: 'totalSpend',
+    direction: 'desc',
+  });
 
   const getBillingAccountStatus = (workspace: WorkspaceInfo): BillingAccountStatus =>
     // @ts-ignore
@@ -296,35 +280,31 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
 
   return (
     <>
-      {isFeaturePreviewEnabled(SPEND_REPORTING) && (
-        <>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
-              rowGap: '1.66rem',
-              columnGap: '1.25rem',
-            }}
-          >
-            <DateRangeFilter
-              label='Date range'
-              rangeOptions={[7, 30, 90]}
-              defaultValue={selectedDays}
-              style={{ gridRowStart: 1, gridColumnStart: 1 }}
-              onChange={setSelectedDays}
-            />
-            <SearchFilter
-              placeholder='Search by name, project or bucket'
-              style={{ gridRowStart: 1, gridColumnStart: 2, margin: '1.35rem' }}
-              onChange={setSearchValue}
-            />
-          </div>
-          <div aria-live='polite' aria-atomic>
-            <span aria-hidden>*</span>
-            Total spend includes infrastructure or query costs related to the general operations of Terra.
-          </div>
-        </>
-      )}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
+          rowGap: '1.66rem',
+          columnGap: '1.25rem',
+        }}
+      >
+        <DateRangeFilter
+          label='Date range'
+          rangeOptions={[7, 30, 90]}
+          defaultValue={selectedDays}
+          style={{ gridRowStart: 1, gridColumnStart: 1 }}
+          onChange={setSelectedDays}
+        />
+        <SearchFilter
+          placeholder='Search by name, project or bucket'
+          style={{ gridRowStart: 1, gridColumnStart: 2, margin: '1.35rem' }}
+          onChange={setSearchValue}
+        />
+      </div>
+      <div aria-live='polite' aria-atomic>
+        <span aria-hidden>*</span>
+        Total spend includes infrastructure or query costs related to the general operations of Terra.
+      </div>
       {_.isEmpty(workspacesInProject) ? (
         <div
           style={{
@@ -372,7 +352,7 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
                   );
                 })
               )(filteredWorkspacesInProject)}
-              {isFeaturePreviewEnabled(SPEND_REPORTING) && updating && fixedSpinnerOverlay}
+              {updating && fixedSpinnerOverlay}
             </div>
           </div>
         )

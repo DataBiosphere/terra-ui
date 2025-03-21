@@ -10,7 +10,6 @@ import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { FieldsArg } from 'src/libs/ajax/workspaces/providers/WorkspaceProvider';
 import {
   AttributeEntityReference,
-  BucketUsageResponse,
   EntityUpdateDefinition,
   MethodConfiguration,
   RawWorkspaceAcl,
@@ -71,11 +70,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
 
   create: async (body: WorkspaceRequest): Promise<WorkspaceInfo> => {
     const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]));
-    return res.json();
-  },
-
-  getShareLog: async (): Promise<string[]> => {
-    const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', _.merge(authOpts(), { signal }));
     return res.json();
   },
 
@@ -337,7 +331,7 @@ export const Workspaces = (signal?: AbortSignal) => ({
           },
 
           // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
-          // workflow: workflowId => Ajax(signal).CromIAM.workflow(workflowId)
+          // workflow: workflowId => CromIAM(signal).workflow(workflowId)
           // But: Because of the slowness of asking via CromIAM, that's probably a non-starter for right now.
           workflow: (workflowId: string) => {
             return {
@@ -606,9 +600,9 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.blob();
       },
 
-      storageCostEstimate: async (): Promise<StorageCostEstimate> => {
+      storageCostEstimateV2: async (): Promise<StorageCostEstimate> => {
         const res = await fetchOrchestration(
-          `api/workspaces/${namespace}/${name}/storageCostEstimate`,
+          `api/workspaces/v2/${namespace}/${name}/storageCostEstimate`,
           _.merge(authOpts(), { signal })
         );
         return res.json();
@@ -635,11 +629,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
           `api/workspaces/${namespace}/${name}/tags`,
           _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }])
         );
-        return res.json();
-      },
-
-      bucketUsage: async (): Promise<BucketUsageResponse> => {
-        const res = await fetchRawls(`${root}/bucketUsage`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 

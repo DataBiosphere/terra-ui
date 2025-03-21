@@ -10,8 +10,6 @@ import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorag
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { reportError } from 'src/libs/error';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { HAIL_BATCH_AZURE_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
@@ -67,8 +65,6 @@ jest.mock('src/analysis/utils/file-utils', (): FileUtilsExports => {
     getExtension: jest.fn(),
   };
 });
-
-jest.mock('src/libs/feature-previews');
 
 describe('AnalysisModal', () => {
   beforeEach(() => {
@@ -280,7 +276,6 @@ describe('AnalysisModal', () => {
     screen.getByAltText('Create new notebook');
     expect(screen.queryByAltText('Create new R file')).toBeNull();
     expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
-    expect(screen.queryByAltText('Create new Hail Batch app')).toBeNull();
   });
 
   it('Azure - Does not render Cromwell', async () => {
@@ -290,20 +285,6 @@ describe('AnalysisModal', () => {
     // Assert
     expect(screen.queryByAltText('Create new Cromwell app')).not.toBeInTheDocument();
     expect(screen.queryByText('You already have a Cromwell instance')).not.toBeInTheDocument();
-  });
-
-  it('Azure - Renders Hail Batch when feature flag is enabled', () => {
-    // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((preview) => preview === HAIL_BATCH_AZURE_FEATURE_ID);
-
-    // Act
-    render(h(AnalysisModal, defaultAzureModalProps));
-    // Assert
-    screen.getByText('Select an application');
-    screen.getByAltText('Create new notebook');
-    screen.getByAltText('Create new Hail Batch app');
-    expect(screen.queryByAltText('Create new R file')).toBeNull();
-    expect(screen.queryByAltText('Create new Galaxy app')).toBeNull();
   });
 
   it('Azure - Successfully resets view.', async () => {

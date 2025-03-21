@@ -2,12 +2,9 @@ import { delay } from '@terra-ui-packages/core-utils';
 import { useEffect, useState } from 'react';
 import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources } from 'src/libs/ajax/SamResources';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENABLE_AZURE_TDR_IMPORT } from 'src/libs/feature-previews-config';
 import { useRoute } from 'src/libs/nav';
 
 import {
-  CatalogDatasetImportRequest,
   FileImportRequest,
   ImportRequest,
   TDRSnapshotExportImportRequest,
@@ -91,6 +88,18 @@ const generateSnapshotManifest = async (snapshotId: string): Promise<URL> => {
   return jobResult?.format?.parquet?.manifest;
 };
 
+/**
+ * Validate that the snapshot is on the GCP cloud platform.
+ *
+ * @param snapshot The snapshot to validate.
+ * @throws Will throw an error if the snapshot is not on the GCP cloud platform.
+ */
+const validateGcpSnapshot = (snapshot: Snapshot): void => {
+  if (snapshot.cloudPlatform !== 'gcp') {
+    throw new Error('Importing by reference is not supported for non-gcp snapshots.');
+  }
+};
+
 const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Promise<TDRSnapshotExportImportRequest> => {
   const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
   const syncPermissions = queryParams.tdrSyncPermissions === 'true';
@@ -111,9 +120,7 @@ const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Prom
     throw new Error('Unable to load snapshot.');
   }
 
-  if (snapshot.cloudPlatform === 'azure' && !isFeaturePreviewEnabled(ENABLE_AZURE_TDR_IMPORT)) {
-    throw new Error('Importing Azure snapshots is not supported.');
-  }
+  validateGcpSnapshot(snapshot);
 
   return {
     type: 'tdr-snapshot-export',
@@ -140,22 +147,12 @@ const getTDRSnapshotReferenceImportRequest = async (
     throw new Error('Unable to load snapshot.');
   }
 
-  if (snapshot.cloudPlatform === 'azure') {
-    throw new Error('Importing by reference is not supported for Azure snapshots.');
-  }
+  validateGcpSnapshot(snapshot);
 
   return {
     type: 'tdr-snapshot-reference',
     snapshot,
     snapshotAccessControls,
-  };
-};
-
-const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatasetImportRequest => {
-  const datasetId = requireString(queryParams.catalogDatasetId, 'dataset ID');
-  return {
-    type: 'catalog-dataset',
-    datasetId,
   };
 };
 
@@ -173,8 +170,6 @@ export const getImportRequest = (queryParams: QueryParams): Promise<ImportReques
       return getTDRSnapshotExportImportRequest(queryParams);
     case 'snapshot':
       return getTDRSnapshotReferenceImportRequest(queryParams);
-    case 'catalog':
-      return Promise.resolve(getCatalogDatasetImportRequest(queryParams));
     default:
       throw new Error(`Invalid format: ${format}`);
   }

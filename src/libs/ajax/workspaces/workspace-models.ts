@@ -232,11 +232,24 @@ export interface AttributeEntityReference {
 }
 
 export interface StorageCostEstimate {
-  estimate: string;
+  estimate: number;
+  usageInBytes: number;
   lastUpdated?: string;
 }
 
-export interface BucketUsageResponse {
-  usageInBytes: number;
-  lastUpdated?: string;
+export interface Workflow {
+  cost: number | string;
+  inputResolutions: {
+    value: any;
+    error: string;
+    inputName: string;
+  }[];
+  messages: string[];
+  status: string;
+  statusLastChangedDate: string;
+  workflowEntity: {
+    entityType: string;
+    entityName: string;
+  };
+  workflowId: string;
 }
