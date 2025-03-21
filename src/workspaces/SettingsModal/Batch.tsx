@@ -17,12 +17,13 @@ const Batch = (props: BatchProps): ReactNode => {
     <Setting
       settingEnabled={batchEnabled}
       setSettingEnabled={settingToggled}
-      label='GCP Batch:'
+      label='Run Workflows on GCP Batch:'
       isOwner={isOwner}
       description={
         <>
-          When <ExternalLink href='https://cloud.google.com/batch/docs'>batch</ExternalLink> is enabled, workflows will
-          be processed by the GCP Batch service, rather than the former Cloud Life Sciences API{' '}
+          Enabling this allows workflows to be processed by the{' '}
+          <ExternalLink href='https://cloud.google.com/batch/docs'>GCP Batch service</ExternalLink>, rather than the
+          former Cloud Life Sciences API.
         </>
       }
     />

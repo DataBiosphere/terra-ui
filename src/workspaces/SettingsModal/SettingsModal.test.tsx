@@ -7,8 +7,6 @@ import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SeparateSubmissionFinalOutputsSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { GCP_BATCH } from 'src/libs/feature-previews-config';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
@@ -146,7 +144,6 @@ describe('SettingsModal', () => {
           }),
       })
     );
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === GCP_BATCH);
   };
 
   it('has no accessibility errors', async () => {
@@ -879,7 +876,7 @@ describe('SettingsModal', () => {
   });
 
   describe('Batch Setting', () => {
-    const getBatchToggle = () => screen.getByLabelText('GCP Batch:');
+    const getBatchToggle = () => screen.getByLabelText('Run Workflows on GCP Batch:');
 
     it('renders the option as disabled if the user is not an owner', async () => {
       // Arrange
@@ -1001,19 +998,5 @@ describe('SettingsModal', () => {
       expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
     });
-  });
-
-  it('does not show GCP batch settings if the feature flag is disabled', async () => {
-    // Arrange
-    setup([], jest.fn());
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-    // Act
-    await act(async () => {
-      render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-    });
-
-    // Assert
-    expect(screen.queryByText('GCP Batch')).toBeNull();
   });
 });
