@@ -21,7 +21,7 @@ on:
       tests_to_run:
         required: true
         type: string
-        description: "comma separated list of tests to run, i.e. 'tests/find-workflow.js,tests/request-access.js'"
+        description: "comma separated list of tests to run, i.e. 'tests/find-workflow.js,tests/register-user.js'"
       target_branch:
         required: false
         type: string
@@ -45,7 +45,7 @@ on:
 
 jobs:
   # A dance we must do to make the text string parsable
-  # jqs a comma separated string into a json array, chomping white spaces. 
+  # jqs a comma separated string into a json array, chomping white spaces.
   # "apple, tree" -> ["apple","tree"]
   setup-inputs:
     runs-on: ubuntu-latest
@@ -62,7 +62,7 @@ jobs:
   terraui-e2e:
     needs: setup-inputs
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         tests_to_run: ${{fromjson(needs.setup-inputs.outputs.tests)}}
     permissions:

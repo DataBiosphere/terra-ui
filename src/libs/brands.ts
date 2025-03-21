@@ -79,9 +79,6 @@ export interface BrandConfiguration {
     linkQueryParams?: object;
   }[];
 
-  /** Optionally filter which datasets show up in the Data Catalog */
-  catalogDataCollectionsToInclude?: string[];
-
   /** Snapshot ID for dataset builder */
   datasetBuilderSnapshotId?: string;
 

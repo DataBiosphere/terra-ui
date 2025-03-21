@@ -35,11 +35,6 @@ export const fetchWorkspaceManager = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchCatalog = _.flow(
-  withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk);
-
 export const fetchDataRepo = _.flow(
   withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`),
   withRetryAfterReloadingExpiredAuthToken

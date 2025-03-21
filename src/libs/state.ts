@@ -3,7 +3,6 @@ import { UserManager } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
 import { AuthTokenState } from 'src/auth/auth';
 import { OidcUser } from 'src/auth/oidc-broker';
-import { Dataset } from 'src/libs/ajax/Catalog';
 import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import { Snapshot } from 'src/libs/ajax/methods/methods-models';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
@@ -324,8 +323,6 @@ export const snapshotStore = atom<Snapshot>({
   synopsis: '',
   url: '',
 });
-
-export const dataCatalogStore = atom<Dataset[]>([]);
 
 export type AjaxOverride = {
   fn: (fetch: AnyPromiseFn) => AnyPromiseFn;

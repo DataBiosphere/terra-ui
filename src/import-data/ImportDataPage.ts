@@ -5,7 +5,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { TopBar } from 'src/components/TopBar';
 import scienceBackground from 'src/images/science-background.jpg';
 import * as Nav from 'src/libs/nav';
-import * as Utils from 'src/libs/utils';
 
 import { ImportDataContainer } from './ImportData';
 
@@ -21,15 +20,11 @@ const styles = {
 
 const ImportDataPage = () => {
   const {
-    query: { format, referrer },
+    query: { format },
   } = Nav.useRoute();
 
   const isDataset = !_.includes(format, ['snapshot', 'tdrexport']);
-  const title = Utils.cond(
-    [referrer === 'data-catalog', () => 'Catalog'],
-    [isDataset, () => 'Import Data'],
-    [Utils.DEFAULT, () => 'Import Snapshot']
-  );
+  const title = isDataset ? 'Import Data' : 'Import Snapshot';
 
   return h(FooterWrapper, [
     h(TopBar, { title }),

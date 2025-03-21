@@ -4,8 +4,6 @@ import * as Analysis from 'src/analysis/Analyses';
 import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
 import * as AppLauncher from 'src/analysis/AppLauncher';
 import * as SignOutPage from 'src/auth/signout/SignOutPage';
-import * as DataBrowserDetails from 'src/data-catalog/DataBrowserDetails';
-import * as DataBrowserPreview from 'src/data-catalog/DataBrowserPreview';
 import * as ImportDataPage from 'src/import-data/ImportDataPage';
 import { routeHandlersStore } from 'src/libs/state';
 import * as Projects from 'src/pages/billing/BillingListPage';
@@ -15,7 +13,6 @@ import * as Group from 'src/pages/groups/GroupDetailsPage';
 import * as Groups from 'src/pages/groups/GroupListPage';
 import * as ImportWorkflow from 'src/pages/ImportWorkflow/ImportWorkflow';
 import * as LandingPage from 'src/pages/LandingPage';
-import * as CreateDataset from 'src/pages/library/data-catalog/create-dataset/CreateDatasetPage';
 import * as DatasetBuilderDetails from 'src/pages/library/dataset-builder/DatasetBuilderDetailsPage';
 import * as DatasetBuilder from 'src/pages/library/dataset-builder/DatasetBuilderPage';
 import * as Datasets from 'src/pages/library/Datasets';
@@ -69,11 +66,8 @@ const routes = _.flatten([
   Group.navPaths,
   AppLauncher.navPaths,
   TermsOfService.navPaths,
-  DataBrowserDetails.navPaths,
-  DataBrowserPreview.navPaths,
   DatasetBuilder.navPaths,
   DatasetBuilderDetails.navPaths,
-  CreateDataset.navPaths,
   DataExplorer.navPaths,
   Datasets.navPaths,
   Showcase.navPaths,

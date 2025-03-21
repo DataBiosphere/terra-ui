@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { BillingProject } from 'src/libs/ajax/billing/billing-models';
-import { Catalog, CatalogContract } from 'src/libs/ajax/Catalog';
 import { DataRepo, DataRepoContract, DataRepoSnapshotContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { FirecloudBucket, FirecloudBucketAjaxContract } from 'src/libs/ajax/firecloud/FirecloudBucket';
 import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
@@ -31,7 +30,6 @@ jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports 
 });
 
 jest.mock('src/libs/ajax/billing/Billing');
-jest.mock('src/libs/ajax/Catalog');
 jest.mock('src/libs/ajax/firecloud/FirecloudBucket');
 jest.mock('src/libs/ajax/leonardo/Apps');
 jest.mock('src/libs/ajax/Metrics');
@@ -82,14 +80,6 @@ jest.mock('src/libs/notifications', (): NotificationsExports => {
   };
 });
 
-type DataBrowserUtilsExports = typeof import('src/data-catalog/data-browser-utils');
-jest.mock('src/data-catalog/data-browser-utils', (): DataBrowserUtilsExports => {
-  return {
-    ...jest.requireActual<DataBrowserUtilsExports>('src/data-catalog/data-browser-utils'),
-    fetchDataCatalog: jest.fn(),
-  };
-});
-
 const googleSnapshotFixture: Snapshot = {
   id: '00001111-2222-3333-aaaa-bbbbccccdddd',
   name: 'test-snapshot',
@@ -132,8 +122,6 @@ const setup = async (opts: SetupOptions) => {
     })
   );
 
-  const exportDataset: MockedFn<CatalogContract['exportDataset']> = jest.fn();
-
   const importBagit: MockedFn<WorkspaceContract['importBagit']> = jest.fn();
   const importJob: MockedFn<WorkspaceContract['importJob']> = jest.fn(async (_url, _type, _options) => ({
     jobId: 'new-job',
@@ -174,11 +162,6 @@ const setup = async (opts: SetupOptions) => {
       listProjects: jest.fn(async () => [partial<BillingProject>({})]),
     })
   );
-  asMockedFn(Catalog).mockReturnValue(
-    partial<CatalogContract>({
-      exportDataset,
-    })
-  );
   asMockedFn(FirecloudBucket).mockReturnValue(
     partial<FirecloudBucketAjaxContract>({
       getTemplateWorkspaces: jest.fn(async () => []),
@@ -208,7 +191,6 @@ const setup = async (opts: SetupOptions) => {
   });
 
   return {
-    exportDataset,
     getWorkspaceApi,
     importBagit,
     importJob,
@@ -369,28 +351,6 @@ describe('ImportData', () => {
         );
 
         expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, googleSnapshotFixture.name);
-      });
-    });
-  });
-
-  describe('catalog', () => {
-    it('imports from the data catalog', async () => {
-      // Arrange
-      const user = userEvent.setup();
-
-      const queryParams = {
-        format: 'catalog',
-        catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-      };
-      const { exportDataset } = await setup({ queryParams });
-
-      // Act
-      await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
-
-      // Assert
-      expect(exportDataset).toHaveBeenCalledWith({
-        id: queryParams.catalogDatasetId,
-        workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
       });
     });
   });

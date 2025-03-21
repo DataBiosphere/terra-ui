@@ -4,7 +4,6 @@ import { b, div, h, img, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { libraryTopMatter } from 'src/components/library-common';
-import { Browser } from 'src/data-catalog/DataBrowser';
 import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png';
 import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png';
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png';
@@ -27,10 +26,8 @@ import Events from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { COHORT_BUILDER_CARD } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
-import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler';
 
 const styles = {
   header: {
@@ -622,38 +619,27 @@ const rareX = () =>
   );
 
 export const Datasets = () => {
-  const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'));
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
-    h(DataBrowserPreviewToggler, {
-      onChange: (value) => {
-        setCatalogShowing(value);
-        void Metrics().captureEvent(Events.catalogToggle, { enabled: value });
-        setLocalPref('catalog-toggle', value);
-      },
-      catalogShowing,
-    }),
-    catalogShowing
-      ? h(Browser)
-      : div({ role: 'main', style: styles.content }, [
-          // Put datasets in alphabetical order
-          thousandGenomesHighCoverage(),
-          thousandGenomesLowCoverage(),
-          amppd(),
-          isFeaturePreviewEnabled(COHORT_BUILDER_CARD) && cohortBuilder(),
-          baseline(),
-          ccdg(),
-          cmg(),
-          encode(),
-          framingham(),
-          gp2(),
-          hca(),
-          nemo(),
-          rareX(),
-          target(),
-          tcga(),
-          topMed(),
-        ]),
+    div({ role: 'main', style: styles.content }, [
+      // Put datasets in alphabetical order
+      thousandGenomesHighCoverage(),
+      thousandGenomesLowCoverage(),
+      amppd(),
+      isFeaturePreviewEnabled(COHORT_BUILDER_CARD) && cohortBuilder(),
+      baseline(),
+      ccdg(),
+      cmg(),
+      encode(),
+      framingham(),
+      gp2(),
+      hca(),
+      nemo(),
+      rareX(),
+      target(),
+      tcga(),
+      topMed(),
+    ]),
   ]);
 };
 
