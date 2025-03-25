@@ -21,9 +21,9 @@ const Batch = (props: BatchProps): ReactNode => {
       isOwner={isOwner}
       description={
         <>
-          Enabling this allows workflows to be processed by the{' '}
-          <ExternalLink href='https://cloud.google.com/batch/docs'>GCP Batch service</ExternalLink>, rather than the
-          former Cloud Life Sciences API.
+          Process workflows with the new{' '}
+          <ExternalLink href='https://cloud.google.com/batch/docs'>GCP Batch API</ExternalLink>, rather than the former
+          Cloud Life Sciences API (retiring May 2025).
         </>
       }
     />
