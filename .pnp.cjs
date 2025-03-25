@@ -5344,7 +5344,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@pact-foundation/pact", "npm:13.2.0"],\
             ["@pact-foundation/pact-core", "npm:15.2.1"],\
             ["@types/express", "npm:4.17.21"],\
-            ["axios", "npm:1.7.7"],\
+            ["axios", "npm:1.8.4"],\
             ["body-parser", "npm:1.20.3"],\
             ["chalk", "npm:4.1.2"],\
             ["express", "npm:4.21.2"],\
@@ -9219,11 +9219,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["axios", [\
-        ["npm:1.7.7", {\
-          "packageLocation": "./.yarn/cache/axios-npm-1.7.7-cfbedc233d-882d4fe0ec.zip/node_modules/axios/",\
+        ["npm:1.8.4", {\
+          "packageLocation": "./.yarn/cache/axios-npm-1.8.4-8cf735eb2b-e901dc1730.zip/node_modules/axios/",\
           "packageDependencies": [\
-            ["axios", "npm:1.7.7"],\
-            ["follow-redirects", "virtual:cfbedc233d4c16068d815547ad303dec1092fdb3b8bb4ec9ab9c56bdd55b4e87650c7a525a88805756f4d2819c03abfd96a9983cfa927fedf995d1b8b879db38#npm:1.15.6"],\
+            ["axios", "npm:1.8.4"],\
+            ["follow-redirects", "virtual:8cf735eb2b9f70962d771e00a864e9e0536f45b1a3899af224ac07f4fa06f6303e4a41f37b803333808763ece4c23df875efb5ad0daa70f6856aaaee39943a11#npm:1.15.6"],\
             ["form-data", "npm:4.0.0"],\
             ["proxy-from-env", "npm:1.1.0"]\
           ],\
@@ -13255,10 +13255,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:cfbedc233d4c16068d815547ad303dec1092fdb3b8bb4ec9ab9c56bdd55b4e87650c7a525a88805756f4d2819c03abfd96a9983cfa927fedf995d1b8b879db38#npm:1.15.6", {\
-          "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-ccbb070eb1/0/cache/follow-redirects-npm-1.15.6-50635fe51d-a62c378dfc.zip/node_modules/follow-redirects/",\
+        ["virtual:8cf735eb2b9f70962d771e00a864e9e0536f45b1a3899af224ac07f4fa06f6303e4a41f37b803333808763ece4c23df875efb5ad0daa70f6856aaaee39943a11#npm:1.15.6", {\
+          "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-d0fe389eec/0/cache/follow-redirects-npm-1.15.6-50635fe51d-a62c378dfc.zip/node_modules/follow-redirects/",\
           "packageDependencies": [\
-            ["follow-redirects", "virtual:cfbedc233d4c16068d815547ad303dec1092fdb3b8bb4ec9ab9c56bdd55b4e87650c7a525a88805756f4d2819c03abfd96a9983cfa927fedf995d1b8b879db38#npm:1.15.6"],\
+            ["follow-redirects", "virtual:8cf735eb2b9f70962d771e00a864e9e0536f45b1a3899af224ac07f4fa06f6303e4a41f37b803333808763ece4c23df875efb5ad0daa70f6856aaaee39943a11#npm:1.15.6"],\
             ["@types/debug", null],\
             ["debug", null]\
           ],\
@@ -14115,7 +14115,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["http-proxy", "npm:1.18.1"],\
             ["eventemitter3", "npm:4.0.7"],\
-            ["follow-redirects", "virtual:cfbedc233d4c16068d815547ad303dec1092fdb3b8bb4ec9ab9c56bdd55b4e87650c7a525a88805756f4d2819c03abfd96a9983cfa927fedf995d1b8b879db38#npm:1.15.6"],\
+            ["follow-redirects", "virtual:8cf735eb2b9f70962d771e00a864e9e0536f45b1a3899af224ac07f4fa06f6303e4a41f37b803333808763ece4c23df875efb5ad0daa70f6856aaaee39943a11#npm:1.15.6"],\
             ["requires-port", "npm:1.0.0"]\
           ],\
           "linkType": "HARD"\
@@ -22947,7 +22947,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/wait-on-npm-7.2.0-672226c2e5-69ec1432bb.zip/node_modules/wait-on/",\
           "packageDependencies": [\
             ["wait-on", "npm:7.2.0"],\
-            ["axios", "npm:1.7.7"],\
+            ["axios", "npm:1.8.4"],\
             ["joi", "npm:17.13.3"],\
             ["lodash", "npm:4.17.21"],\
             ["minimist", "npm:1.2.8"],\
