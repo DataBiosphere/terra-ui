@@ -169,7 +169,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["postcss-normalize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:10.0.1"],\
             ["postcss-preset-env", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:7.8.3"],\
             ["prettier", "npm:2.8.8"],\
-            ["prismjs", "npm:1.27.0"],\
+            ["prismjs", "npm:1.30.0"],\
             ["prop-types", "npm:15.8.1"],\
             ["qs", "npm:6.13.0"],\
             ["rc-slider", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:10.2.1"],\
@@ -19056,10 +19056,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["prismjs", [\
-        ["npm:1.27.0", {\
-          "packageLocation": "./.yarn/cache/prismjs-npm-1.27.0-ca4e1667c6-85c7f4a3e9.zip/node_modules/prismjs/",\
+        ["npm:1.30.0", {\
+          "packageLocation": "./.yarn/cache/prismjs-npm-1.30.0-c3c5ff824c-a68eddd4c5.zip/node_modules/prismjs/",\
           "packageDependencies": [\
-            ["prismjs", "npm:1.27.0"]\
+            ["prismjs", "npm:1.30.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -21794,7 +21794,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["postcss-normalize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:10.0.1"],\
             ["postcss-preset-env", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:7.8.3"],\
             ["prettier", "npm:2.8.8"],\
-            ["prismjs", "npm:1.27.0"],\
+            ["prismjs", "npm:1.30.0"],\
             ["prop-types", "npm:15.8.1"],\
             ["qs", "npm:6.13.0"],\
             ["rc-slider", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:10.2.1"],\

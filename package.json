@@ -42,7 +42,7 @@
     "outdated-browser-rework": "^3.0.1",
     "path-to-regexp": "^6.3.0",
     "pluralize": "^8.0.0",
-    "prismjs": "^1.27.0",
+    "prismjs": "^1.30.0",
     "prop-types": "^15.7.2",
     "qs": "^6.10.1",
     "rc-slider": "^10.2.1",
