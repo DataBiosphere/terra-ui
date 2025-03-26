@@ -316,10 +316,3 @@ workflows:
       equal: [integration-tests-staging, << pipeline.parameters.workflow_to_run >>]
     jobs:
       - integration-tests-staging
-  nightly-integration-tests:
-    triggers:
-      - schedule:
-          <<: *filter-dev-branch
-          cron: "0 13 * * *"
-    jobs:
-      - integration-tests-staging
