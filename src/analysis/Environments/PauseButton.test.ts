@@ -56,22 +56,6 @@ describe('PauseButton', () => {
     }
   );
 
-  // TODO: change it so we don't hide when they don't have permission and only hide when disallowed?
-  it('Hides pause button when user doesnt have permission', () => {
-    // Arrange
-    const pauseProps: PauseButtonProps = {
-      ...defaultPauseProps,
-      cloudEnvironment: generateTestListGoogleRuntime(),
-    };
-
-    // Act
-    render(h(PauseButton, pauseProps));
-
-    // Assert
-    const pauseButton = screen.queryByText('Pause');
-    expect(pauseButton).toBeNull();
-  });
-
   it('Hides pause button when pause is not supported', () => {
     // Arrange
     const pauseProps: PauseButtonProps = {

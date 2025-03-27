@@ -1,27 +1,26 @@
-import { DeepPartial } from '@terra-ui-packages/core-utils';
+import { diskStatuses } from '@terra-ui-packages/leonardo-data-client';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { defaultTestDisk, generateTestDisk, generateTestListGoogleRuntime } from 'src/analysis/_testData/testData';
 import { isComputePausable } from 'src/analysis/Environments/PauseButton';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
-import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { ListRuntimeItem, Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { getTerraUser, TerraUser } from 'src/libs/state';
 
-import { leoResourceDeletable } from './environmentsPermissions';
+import { leoResourceDeletable } from './deletableEnvironments';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
   getTerraUser: jest.fn(),
 }));
-describe('environmentsPermissions', () => {
-  it('allows disk delete for permitted user', () => {
+describe('deletableEnvironments', () => {
+  it('allows disk delete if disk is deletable', () => {
     // Arrange
     asMockedFn(getTerraUser).mockReturnValue({
       email: 'me@here.org',
     } as Partial<TerraUser> as TerraUser);
 
-    const myDisk: PersistentDisk = {
-      auditInfo: { creator: 'me@here.org' },
-    } as DeepPartial<PersistentDisk> as PersistentDisk;
+    const myDisk: PersistentDisk = defaultTestDisk;
 
     // Act
     const canIDeleteDisk = leoResourceDeletable.isResourceInDeletableState(myDisk);
@@ -29,31 +28,29 @@ describe('environmentsPermissions', () => {
     // Assert
     expect(canIDeleteDisk).toBe(true);
   });
-  it('blocks disk delete for non-permitted user', () => {
+
+  it('doesnt allow disk delete if disk is not deletable', () => {
     // Arrange
     asMockedFn(getTerraUser).mockReturnValue({
       email: 'me@here.org',
     } as Partial<TerraUser> as TerraUser);
 
-    const otherDisk: PersistentDisk = {
-      auditInfo: { creator: 'you@there.org' },
-    } as DeepPartial<PersistentDisk> as PersistentDisk;
+    const myDisk: PersistentDisk = generateTestDisk({ status: diskStatuses.creating.leoLabel });
 
     // Act
-    const canIDeleteDisk = leoResourceDeletable.isResourceInDeletableState(otherDisk);
+    const canIDeleteDisk = leoResourceDeletable.isResourceInDeletableState(myDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);
   });
-  it('allows resource pause for permitted user', () => {
+
+  it('allows runtime pause if runtime is pausable ', () => {
     // Arrange
     asMockedFn(getTerraUser).mockReturnValue({
       email: 'me@here.org',
     } as Partial<TerraUser> as TerraUser);
 
-    const myRuntime: ListRuntimeItem = {
-      auditInfo: { creator: 'me@here.org' },
-    } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
+    const myRuntime: ListRuntimeItem = generateTestListGoogleRuntime();
 
     // Act
     const canIPauseRuntime = isComputePausable(myRuntime);
@@ -61,18 +58,17 @@ describe('environmentsPermissions', () => {
     // Assert
     expect(canIPauseRuntime).toBe(true);
   });
-  it('blocks resource pausing for non-permitted user', () => {
+
+  it('doesnt allow runtime pause if runtime is not pausable ', () => {
     // Arrange
     asMockedFn(getTerraUser).mockReturnValue({
       email: 'me@here.org',
     } as Partial<TerraUser> as TerraUser);
 
-    const otherRuntime: ListRuntimeItem = {
-      auditInfo: { creator: 'you@there.org' },
-    } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
+    const myRuntime: ListRuntimeItem = generateTestListGoogleRuntime({ status: runtimeStatuses.error.leoLabel });
 
     // Act
-    const canIPauseRuntime = isComputePausable(otherRuntime);
+    const canIPauseRuntime = isComputePausable(myRuntime);
 
     // Assert
     expect(canIPauseRuntime).toBe(false);

@@ -20,7 +20,7 @@ import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { leoResourceDeletable } from 'src/pages/EnvironmentsPage/environmentsPermissions';
+import { leoResourceDeletable } from 'src/pages/EnvironmentsPage/deletableEnvironments';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
@@ -289,7 +289,7 @@ describe('Environments Component', () => {
       expect(buttons4[1].getAttribute('aria-disabled')).toBe('true');
     });
 
-    it('should hide pause button where user is not creator of runtime', async () => {
+    it('should not hide pause button where user is a billing project owner', async () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
@@ -309,9 +309,11 @@ describe('Environments Component', () => {
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[10];
       const buttons1 = getAllByRole(runtime1ButtonsCell, 'button');
-      expect(buttons1.length).toBe(1);
-      expect(buttons1[0].textContent).toBe('Delete');
+      expect(buttons1.length).toBe(2);
+      expect(buttons1[0].textContent).toBe('Pause');
       expect(buttons1[0].getAttribute('aria-disabled')).toBe('false');
+      expect(buttons1[1].textContent).toBe('Delete');
+      expect(buttons1[1].getAttribute('aria-disabled')).toBe('false');
     });
 
     it.each([
