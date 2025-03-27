@@ -2,7 +2,6 @@ export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
 export const PREVIEW_COST_CAPPING = 'previewCostCapping';
-export const GCP_BATCH = 'gcpBatch';
 export const ENHANCED_WORKSPACE_CREATION = 'enhancedWorkspaceCreation';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
@@ -74,15 +73,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
       'Enabling this feature will show a new workflow configuration option to add a user-configurable cost threshold to the workflow. Workflows will be terminated once they exceed the configured value.',
     feedbackUrl: 'https://support.terra.bio/hc/en-us/articles/31269696049307',
     lastUpdated: '2/28/2025',
-  },
-  {
-    id: GCP_BATCH,
-    title: 'Run workflows on GCP Batch',
-    description:
-      'Enabling this feature allows workflows to be processed by the GCP Batch service, rather than the former Cloud Life Sciences API. All Terra workflows will be transitioned to GCP Batch by mid-2025.',
-    groups: ['preview-batch'],
-    feedbackUrl: `mailto:dsp-analysis@broadinstitute.org?subject=${encodeURIComponent('Feedback on GCP Batch')}`,
-    lastUpdated: '12/12/2024',
   },
   {
     id: ENHANCED_WORKSPACE_CREATION,

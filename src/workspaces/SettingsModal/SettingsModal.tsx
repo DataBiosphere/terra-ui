@@ -6,8 +6,6 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { GCP_BATCH } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import Batch from 'src/workspaces/SettingsModal/Batch';
@@ -285,11 +283,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         </ButtonPrimary>
       }
     >
-      {isFeaturePreviewEnabled(GCP_BATCH) && (
-        <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
-          <Batch batchEnabled={batchEnabled} setBatchEnabled={setBatchEnabled} isOwner={isOwner} />
-        </div>
-      )}
+      <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
+        <Batch batchEnabled={batchEnabled} setBatchEnabled={setBatchEnabled} isOwner={isOwner} />
+      </div>
       <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
         <BucketLifecycleSettings
           lifecycleRulesEnabled={lifecycleRulesEnabled}
