@@ -1,11 +1,12 @@
 import { DeepPartial } from '@terra-ui-packages/core-utils';
 import { asMockedFn } from '@terra-ui-packages/test-utils';
+import { isComputePausable } from 'src/analysis/Environments/PauseButton';
 import { App } from 'src/libs/ajax/leonardo/models/app-models';
 import { ListRuntimeItem, Runtime } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { getTerraUser, TerraUser } from 'src/libs/state';
 
-import { leoResourcePermissions } from './environmentsPermissions';
+import { leoResourceDeletable } from './environmentsPermissions';
 
 jest.mock('src/libs/state', () => ({
   ...jest.requireActual('src/libs/state'),
@@ -23,7 +24,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.hasDeleteDiskPermission(myDisk);
+    const canIDeleteDisk = leoResourceDeletable.isResourceInDeletableState(myDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(true);
@@ -39,7 +40,7 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<PersistentDisk> as PersistentDisk;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.hasDeleteDiskPermission(otherDisk);
+    const canIDeleteDisk = leoResourceDeletable.isResourceInDeletableState(otherDisk);
 
     // Assert
     expect(canIDeleteDisk).toBe(false);
@@ -55,10 +56,10 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.hasPausePermission(myRuntime);
+    const canIPauseRuntime = isComputePausable(myRuntime);
 
     // Assert
-    expect(canIDeleteDisk).toBe(true);
+    expect(canIPauseRuntime).toBe(true);
   });
   it('blocks resource pausing for non-permitted user', () => {
     // Arrange
@@ -71,10 +72,10 @@ describe('environmentsPermissions', () => {
     } as DeepPartial<ListRuntimeItem> as ListRuntimeItem;
 
     // Act
-    const canIDeleteDisk = leoResourcePermissions.hasPausePermission(otherRuntime);
+    const canIPauseRuntime = isComputePausable(otherRuntime);
 
     // Assert
-    expect(canIDeleteDisk).toBe(false);
+    expect(canIPauseRuntime).toBe(false);
   });
 
   it.each([
@@ -137,7 +138,7 @@ describe('environmentsPermissions', () => {
   ] as { resource: App; canDeleteApp: boolean }[])(
     'returns proper boolean for app deletion',
     ({ resource, canDeleteApp }) => {
-      expect(leoResourcePermissions.isAppInDeletableState(resource)).toBe(canDeleteApp);
+      expect(leoResourceDeletable.isAppInDeletableState(resource)).toBe(canDeleteApp);
     }
   );
 
@@ -234,7 +235,7 @@ describe('environmentsPermissions', () => {
   ] as { resource: App | PersistentDisk | Runtime; canDeleteResource: boolean }[])(
     'returns correct boolean for resource deletion',
     ({ resource, canDeleteResource }) => {
-      expect(leoResourcePermissions.isResourceInDeletableState(resource)).toBe(canDeleteResource);
+      expect(leoResourceDeletable.isResourceInDeletableState(resource)).toBe(canDeleteResource);
     }
   );
 });

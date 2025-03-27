@@ -12,7 +12,7 @@ import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events from 'src/libs/events';
 import { terraNavKey, TerraNavLinkProvider, terraNavLinkProvider } from 'src/libs/nav';
 import { contactUsActive } from 'src/libs/state';
-import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
+import { leoResourceDeletable } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 
 type NavMap<NavTypes, FnReturn> = {
@@ -50,7 +50,7 @@ export const EnvironmentsPage = (): ReactNode => {
       leoAppData: leoAppProvider,
       leoRuntimeData: leoRuntimeProvider,
       leoDiskData: leoDiskProvider,
-      permissions: leoResourcePermissions,
+      permissions: leoResourceDeletable,
       onEvent: (eventName, eventArgs) => {
         switch (eventName) {
           case 'dataRefresh':

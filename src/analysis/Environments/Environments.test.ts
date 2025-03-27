@@ -20,14 +20,14 @@ import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
+import { leoResourceDeletable } from 'src/pages/EnvironmentsPage/environmentsPermissions';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { DataRefreshInfo, EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
-import { LeoResourcePermissionsProvider } from './Environments.models';
+import { LeoResourceDeletableProvider } from './Environments.models';
 
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
@@ -81,14 +81,10 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 };
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
-  const mockPermissions: LeoResourcePermissionsProvider = {
-    hasDeleteDiskPermission: jest.fn(),
-    hasPausePermission: jest.fn(),
+  const mockPermissions: LeoResourceDeletableProvider = {
     isAppInDeletableState: jest.fn(),
     isResourceInDeletableState: jest.fn(),
   };
-  asMockedFn(mockPermissions.hasDeleteDiskPermission).mockReturnValue(true);
-  asMockedFn(mockPermissions.hasPausePermission).mockReturnValue(true);
   asMockedFn(mockPermissions.isAppInDeletableState).mockReturnValue(true);
   asMockedFn(mockPermissions.isResourceInDeletableState).mockReturnValue(true);
 
@@ -242,7 +238,7 @@ describe('Environments Component', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
-      props.permissions.isResourceInDeletableState = leoResourcePermissions.isResourceInDeletableState;
+      props.permissions.isResourceInDeletableState = leoResourceDeletable.isResourceInDeletableState;
 
       // Act
       await act(async () => {
@@ -302,8 +298,6 @@ describe('Environments Component', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
       });
-
-      asMockedFn(props.permissions.hasPausePermission).mockReturnValue(false);
 
       // Act
       await act(async () => {
@@ -541,7 +535,7 @@ describe('Environments Component', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace, azureWorkspace2],
       });
-      props.permissions = leoResourcePermissions;
+      props.permissions = leoResourceDeletable;
 
       // Act
       await act(async () => {

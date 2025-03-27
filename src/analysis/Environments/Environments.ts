@@ -55,7 +55,7 @@ import {
   DecoratedComputeResource,
   DecoratedResourceAttributes,
   DiskWithWorkspace,
-  LeoResourcePermissionsProvider,
+  LeoResourceDeletableProvider,
   RuntimeWithWorkspace,
 } from './Environments.models';
 import { PauseButton, PauseButtonProps } from './PauseButton';
@@ -91,7 +91,7 @@ export interface EnvironmentsProps {
   leoAppData: LeoAppProviderNeeds;
   leoRuntimeData: LeoRuntimeProviderNeeds;
   leoDiskData: LeoDiskProviderNeeds;
-  permissions: LeoResourcePermissionsProvider;
+  permissions: LeoResourceDeletableProvider;
   onEvent?: KeyedEventHandler<EnvironmentsEvents>;
 }
 
@@ -691,8 +691,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                           },
                           [name]
                         ),
-                        permissions.hasDeleteDiskPermission(rowDisk) &&
-                          diskStatus !== 'Deleting' &&
+                        diskStatus !== 'Deleting' &&
                           multipleDisks &&
                           h(
                             TooltipTrigger,
