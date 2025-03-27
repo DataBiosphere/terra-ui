@@ -93,14 +93,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     feedbackUrl: `mailto:dsp-analysis@broadinstitute.org?subject=${encodeURIComponent('Feedback on GCP Batch')}`,
     lastUpdated: '12/12/2024',
   },
-  {
-    id: ENHANCED_WORKSPACE_CREATION,
-    title: 'Enhanced user controls for creating workspaces',
-    description:
-      'Enabling this feature changes the workspace creation flow to allow you to add collaborators to a workspace on import. This feature also adjusts the messaging around authorization domains to clarify their role in user access. ',
-    feedbackUrl: 'https://support.terra.bio/hc/en-us/articles/31203371784731',
-    lastUpdated: '03/12/2025',
-  },
 ];
 
 export default featurePreviewsConfig;

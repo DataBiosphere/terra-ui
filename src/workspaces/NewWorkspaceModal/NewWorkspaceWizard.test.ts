@@ -153,6 +153,14 @@ const nonRegionSpecificEgressWarning = /Copying data may incur network egress ch
 const mockWorkspaceDetails: WorkspaceInfo = defaultGoogleWorkspace.workspace;
 
 describe('NewWorkspaceWizard', () => {
+  const getAvailableBillingProjects = async (user) => {
+    const projectSelect = new SelectHelper(screen.getByLabelText('Billing project *'), user);
+    const availableBillingProjectOptions = await projectSelect.getOptions();
+    // Remove icon name from option label.
+    // The icon names are only present in tests. They're the result of a configured transform.
+    return availableBillingProjectOptions.map((opt) => opt.split('.svg')[1]);
+  };
+
   const selectBillingProject = async (user, billingProjectName) => {
     await user.click(screen.getByText('Select a billing project'));
     await user.click(screen.getByText(billingProjectName));
@@ -714,6 +722,27 @@ describe('NewWorkspaceWizard', () => {
       );
 
       expect(quickCreateTooltip).not.toBeInTheDocument;
+    });
+  });
+
+  describe('handles the requireEnhancedBucketLogging option', () => {
+    it('hides unprotected Gcp billing projects when additional security monitoring is required', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup({ billingProjects: [gcpBillingProject] });
+
+      await act(async () => {
+        render(
+          h(NewWorkspaceWizard, {
+            onSuccess: () => {},
+            onDismiss: () => {},
+            requireEnhancedBucketLogging: true,
+          })
+        );
+      });
+
+      // Assert
+      expect(await getAvailableBillingProjects(user)).toEqual(['Google Billing Project']);
     });
   });
 });
