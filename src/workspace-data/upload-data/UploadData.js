@@ -18,7 +18,6 @@ import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { AUTO_GENERATE_DATA_TABLES } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
@@ -801,11 +800,9 @@ const MetadataUploadPanel = ({
   // Render
 
   const renderAutoGenerateSection = () => {
-    if (!isFeaturePreviewEnabled(AUTO_GENERATE_DATA_TABLES)) return null;
-
     return div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
       h(ButtonOutline, { style: { ...styles.heading, flex: 0 }, onClick: doAutoGenerate }, [
-        'Autogenerate table for single or paired end sequencing (BETA)',
+        'Autogenerate table for single or paired end sequencing',
       ]),
       h2({ style: { ...styles.heading, flex: 0, margin: '0.25rem' } }, [span({ ref: header, tabIndex: -1 }, ['OR'])]),
     ]);
