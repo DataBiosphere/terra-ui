@@ -95,7 +95,7 @@ export const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismis
       DEFAULT,
       () => (
         <Modal
-          title='Cannot access data'
+          title='Cannot access data due to requester pays'
           onDismiss={onDismiss}
           okButton={
             <ButtonPrimary
@@ -108,8 +108,8 @@ export const RequesterPaysModal: React.FC<RequesterPaysModalProps> = ({ onDismis
           }
         >
           <div>
-            To view or download data in this workspace, please ensure you have at least one workspace with owner or
-            project owner permissions in order to bill to.
+            This data is in a requester pays bucket. To view or download data in this workspace, please ensure you have
+            at least one workspace with owner or project owner permissions in order to bill to.
           </div>
           {requesterPaysHelpInfo}
         </Modal>
