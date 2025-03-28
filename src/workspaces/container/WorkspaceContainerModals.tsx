@@ -5,7 +5,7 @@ import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningW
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
 import { DeleteWorkspaceModal } from 'src/workspaces/DeleteWorkspaceModal/DeleteWorkspaceModal';
 import LockWorkspaceModal from 'src/workspaces/LockWorkspaceModal/LockWorkspaceModal';
-import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { isGoogleWorkspace } from 'src/workspaces/utils';

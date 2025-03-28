@@ -6,7 +6,7 @@ import { withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
-import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import { canWrite, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
 type WorkspaceImporterProps = {

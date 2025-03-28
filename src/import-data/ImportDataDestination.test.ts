@@ -9,7 +9,7 @@ import {
   protectedDataPolicy,
 } from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
-import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import {
@@ -35,12 +35,12 @@ jest.mock('./import-utils', (): ImportUtilsExports => {
   };
 });
 
-type NewWorkspaceWizardExports = typeof import('src/workspaces/NewWorkspaceModal/NewWorkspaceWizard') & {
+type NewWorkspaceWizardExports = typeof import('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard') & {
   __esModule: true;
 };
-jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceWizard', (): NewWorkspaceWizardExports => {
+jest.mock('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard', (): NewWorkspaceWizardExports => {
   return {
-    ...jest.requireActual<NewWorkspaceWizardExports>('src/workspaces/NewWorkspaceModal/NewWorkspaceWizard'),
+    ...jest.requireActual<NewWorkspaceWizardExports>('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard'),
     default: jest.fn().mockReturnValue(null),
     __esModule: true,
   };

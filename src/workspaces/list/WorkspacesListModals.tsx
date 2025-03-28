@@ -10,7 +10,7 @@ import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { isGoogleWorkspace, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
-import NewWorkspaceWizard from '../NewWorkspaceModal/NewWorkspaceWizard';
+import NewWorkspaceWizard from '../NewWorkspaceWizard/NewWorkspaceWizard';
 
 interface WorkspacesListModalsProps {
   getWorkspace: (string) => Workspace;

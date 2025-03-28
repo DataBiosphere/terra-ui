@@ -27,7 +27,7 @@ import * as Utils from 'src/libs/utils';
 import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
-import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import UploadPreviewTable from './UploadPreviewTable';

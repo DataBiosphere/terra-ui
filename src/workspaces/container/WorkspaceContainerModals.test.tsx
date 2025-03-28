@@ -4,17 +4,17 @@ import { goToPath } from 'src/libs/nav';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
-import { NewWorkspaceWizardProps } from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
+import { NewWorkspaceWizardProps } from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import { WorkspaceInfo } from 'src/workspaces/utils';
 
 const mockModalFn = jest.fn();
 
-type NewWorkspaceWizardExports = typeof import('src/workspaces/NewWorkspaceModal/NewWorkspaceWizard') & {
+type NewWorkspaceWizardExports = typeof import('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard') & {
   __esModule: true;
 };
-jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceWizard', (): NewWorkspaceWizardExports => {
+jest.mock('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard', (): NewWorkspaceWizardExports => {
   return {
-    ...jest.requireActual<NewWorkspaceWizardExports>('src/workspaces/NewWorkspaceModal/NewWorkspaceWizard'),
+    ...jest.requireActual<NewWorkspaceWizardExports>('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard'),
     default: mockModalFn,
     __esModule: true,
   };
@@ -61,7 +61,6 @@ describe('WorkspacesContainerModals', () => {
 
     // Act
     render(<WorkspaceContainerModals {...defaultModalProps} cloningWorkspace />);
-    screen.debug();
     // Assert
     expect(screen.getByText('mockedNewWorkspaceWizard')).toBeInTheDocument();
   });

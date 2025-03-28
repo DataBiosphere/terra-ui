@@ -29,8 +29,8 @@ import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgressWarning';
-import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceWizard/CloneEgressWarning';
+import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceWizard/CreatingWorkspaceMessage';
 import {
   cloudProviderLabels,
   isGoogleWorkspace,
