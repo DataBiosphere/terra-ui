@@ -268,7 +268,6 @@ export const NewWorkspaceWizard = withDisplayName(
         [
           'sharing',
           async () => {
-            // TODO is there any data that needs to be included?
             void Metrics().captureEvent(Events.workspaceCreateBasic);
             setActiveTab('basic');
             return Promise.resolve();
@@ -298,7 +297,6 @@ export const NewWorkspaceWizard = withDisplayName(
         [
           'sharing',
           async () => {
-            // TODO is there any data that needs to be included?
             void Metrics().captureEvent(Events.workspaceCreateSecurity);
             setActiveTab('security');
             return Promise.resolve();
