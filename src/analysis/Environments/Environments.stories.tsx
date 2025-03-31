@@ -9,7 +9,7 @@ import {
   generateTestListGoogleRuntime,
 } from 'src/analysis/_testData/testData';
 import { Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
-import { LeoResourcePermissionsProvider } from 'src/analysis/Environments/Environments.models';
+import { LeoResourceDeletableProvider } from 'src/analysis/Environments/Environments.models';
 import { GetAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { ListRuntimeItem } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { DiskBasics, PersistentDisk } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
@@ -145,9 +145,7 @@ const mockNotifications = makeNotificationsProvider({
   shouldIgnoreError: () => false,
 });
 
-const happyPermissions: LeoResourcePermissionsProvider = {
-  hasDeleteDiskPermission: () => true,
-  hasPausePermission: () => true,
+const happyPermissions: LeoResourceDeletableProvider = {
   isAppInDeletableState: () => true,
   isResourceInDeletableState: () => true,
 };

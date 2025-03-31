@@ -15,20 +15,14 @@ import {
 } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 
-import { LeoResourcePermissionsProvider } from './Environments.models';
-
-type PausePermissionsProvider = Pick<LeoResourcePermissionsProvider, 'hasPausePermission'>;
-
 export interface PauseButtonProps {
   cloudEnvironment: App | ListRuntimeItem;
-  permissions: PausePermissionsProvider;
   pauseComputeAndRefresh: (cloudEnvironment: App | ListRuntimeItem) => void;
 }
 
 export const PauseButton = (props: PauseButtonProps): ReactNode => {
-  const { cloudEnvironment, permissions, pauseComputeAndRefresh } = props;
-  const shouldShowPauseButton =
-    isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment)) && permissions.hasPausePermission(cloudEnvironment);
+  const { cloudEnvironment, pauseComputeAndRefresh } = props;
+  const shouldShowPauseButton = isPauseSupported(getToolLabelFromCloudEnv(cloudEnvironment));
 
   return shouldShowPauseButton
     ? h(

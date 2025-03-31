@@ -8,10 +8,10 @@ import { isApp } from 'src/libs/ajax/leonardo/models/app-models';
 import { LeoRuntimeStatus } from 'src/libs/ajax/leonardo/models/runtime-models';
 import * as Utils from 'src/libs/utils';
 
-import { DecoratedComputeResource, LeoResourcePermissionsProvider } from './Environments.models';
+import { DecoratedComputeResource, LeoResourceDeletableProvider } from './Environments.models';
 
 type DeletePermissionsProvider = Pick<
-  LeoResourcePermissionsProvider,
+  LeoResourceDeletableProvider,
   'isAppInDeletableState' | 'isResourceInDeletableState'
 >;
 

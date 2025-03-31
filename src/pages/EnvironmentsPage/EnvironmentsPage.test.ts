@@ -12,8 +12,8 @@ import { asMockedFn } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { UseWorkspaces } from 'src/workspaces/common/state/useWorkspaces.models';
 
+import { leoResourceDeletable } from './deletableEnvironments';
 import { EnvironmentsPage, makeNavProvider, navProvider } from './EnvironmentsPage';
-import { leoResourcePermissions } from './environmentsPermissions';
 
 jest.mock('src/analysis/Environments/Environments');
 
@@ -61,7 +61,7 @@ describe('Environments Page', () => {
         leoAppData: leoAppProvider,
         leoRuntimeData: leoRuntimeProvider,
         leoDiskData: leoDiskProvider,
-        permissions: leoResourcePermissions,
+        permissions: leoResourceDeletable,
       } satisfies EnvironmentsProps),
       expect.anything()
     );
