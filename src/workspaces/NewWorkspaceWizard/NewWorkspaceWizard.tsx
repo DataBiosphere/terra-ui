@@ -17,8 +17,8 @@ import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 's
 import * as Nav from 'src/libs/nav';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
-import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceModal/CloneEgressWarning';
-import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import { CloneEgressWarning } from 'src/workspaces/NewWorkspaceWizard/CloneEgressWarning';
+import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceWizard/CreatingWorkspaceMessage';
 import { isGoogleWorkspace, isProtectedWorkspace, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
@@ -268,7 +268,6 @@ export const NewWorkspaceWizard = withDisplayName(
         [
           'sharing',
           async () => {
-            // TODO is there any data that needs to be included?
             void Metrics().captureEvent(Events.workspaceCreateBasic);
             setActiveTab('basic');
             return Promise.resolve();
@@ -298,7 +297,6 @@ export const NewWorkspaceWizard = withDisplayName(
         [
           'sharing',
           async () => {
-            // TODO is there any data that needs to be included?
             void Metrics().captureEvent(Events.workspaceCreateSecurity);
             setActiveTab('security');
             return Promise.resolve();

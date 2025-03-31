@@ -17,8 +17,6 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENHANCED_WORKSPACE_CREATION } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
 import * as StateHistory from 'src/libs/state-history';
@@ -27,8 +25,7 @@ import * as Utils from 'src/libs/utils';
 import { NoWorkspacesMessage } from 'src/workspaces/common/NoWorkspacesMessage';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
-import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
 import UploadPreviewTable from './UploadPreviewTable';
@@ -1224,7 +1221,7 @@ export const UploadData = _.flow(
             ),
           ]),
       creatingNewWorkspace &&
-        h(isFeaturePreviewEnabled(ENHANCED_WORKSPACE_CREATION) ? NewWorkspaceWizard : NewWorkspaceModal, {
+        h(NewWorkspaceWizard, {
           onDismiss: () => setCreatingNewWorkspace(false),
           onSuccess: ({ workspaceId }) => {
             refreshWorkspaces();

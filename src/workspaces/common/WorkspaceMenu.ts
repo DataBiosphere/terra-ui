@@ -138,7 +138,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
     },
     // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
     // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
-    // and NewWorkspaceModal (cloning, this will include the full description). The dashboard component already has the fields, so it will ignore them.
+    // and NewWorkspaceWizard (cloning, this will include the full description). The dashboard component already has the fields, so it will ignore them.
     callbacks: {
       ...callbacks,
       onShare: () => callbacks.onShare(workspace?.policies, bucketName),
