@@ -344,6 +344,7 @@ const deleteRuntimesV2 = async ({ page, billingProject, workspaceId }) => {
   const deletableRuntimes = await page.evaluate(async (workspaceId) => {
     return await window.Ajax().Runtimes.listV2WithWorkspace(workspaceId, { role: 'creator' });
   }, workspaceId);
+  console.log(`deletableRuntimes for ${workspaceId}:`, deletableRuntimes);
   const deletedRuntimes = await Promise.all(
     deletableRuntimes.map(async (runtime) => {
       const isRuntimeDeleted = await patientlyDeleteRuntime(page, runtime);
