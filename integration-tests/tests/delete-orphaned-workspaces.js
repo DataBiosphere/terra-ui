@@ -73,14 +73,11 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
     );
     console.log(`${persistentOrphans.length} persistent orphans remaining after delete attempt.`);
     const deleteFailedOrphans = getDeleteFailedWorkspaceNames(persistentOrphans);
-    console.log(`deleteFailedOrphans: ${deleteFailedOrphans}`);
     const newlyFailedDeletes = deleteFailedOrphans.filter((newName) => !oldWorkspaceNamesInDeleteFailed.includes(newName));
-    console.log(`newlyFailedDeletes: ${newlyFailedDeletes}`);
 
     if (newlyFailedDeletes.length) {
-      const newlyFailedNames = newlyFailedDeletes.map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`).join(', ');
       throw new Error(
-        `${newlyFailedDeletes.length} workspaces entered state DeleteFailed after orphan cleanup. These should be manually deleted: ${newlyFailedNames}`
+        `${newlyFailedDeletes.length} workspaces entered state DeleteFailed after orphan cleanup. These should be manually deleted: ${newlyFailedDeletes}`
       );
     }
   });
