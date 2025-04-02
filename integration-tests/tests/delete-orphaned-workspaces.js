@@ -70,7 +70,6 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
       oldWorkspaces.some(({ workspace: { name: oldName } }) => oldName === name)
     );
     console.log(`${persistentOrphans.length} persistent orphans remaining after delete attempt.`);
-    console.log('persistent orphans: ', persistentOrphans);
     const deleteFailedOrphans = getDeleteFailedWorkspaceNames(persistentOrphans);
     const newlyFailedDeletes = deleteFailedOrphans.filter((newName) => !oldWorkspaceNamesInDeleteFailed.includes(newName));
 
