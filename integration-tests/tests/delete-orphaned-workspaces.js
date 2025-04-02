@@ -62,7 +62,7 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
     const failedNames = failedDeletes.map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`).join(', ');
     console.info(`Triggered delete on workspaces: ${deletedNames}`);
     if (failedNames) {
-      console.warn(`Failed to delete ${failedNames.length} workspaces : ${failedNames}`);
+      console.warn(`Failed to delete ${failedDeletes.length} workspaces : ${failedNames}`);
     }
 
     const currentOrphans = await listOrphanWorkspaces(page, { isVerbose: false });
