@@ -36,10 +36,10 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
   const oldWorkspaces = await listOrphanWorkspaces(page);
   // List orphans which are already in state DeleteFailed (resistant to automated delete, don't fail on these)
   const oldWorkspaceNamesInDeleteFailed = getDeleteFailedWorkspaceNames(oldWorkspaces);
-  console.log(`${oldWorkspaceNamesInDeleteFailed.length} test workspaces in state DeleteFailed`);
+  const oldWorkspacesToDelete = oldWorkspaces.filter(({ workspace: { name } }) => !oldWorkspaceNamesInDeleteFailed.includes(name));
 
   // Delete orphans
-  console.log(`Attempting to delete ${oldWorkspaces.length} test workspaces created more than ${olderThanCount} ${timeUnit} ago.`);
+  console.log(`Attempting to delete ${oldWorkspacesToDelete.length} test workspaces created more than ${olderThanCount} ${timeUnit} ago.`);
   return Promise.all(
     _.map(async ({ workspace: { namespace, name, cloudPlatform } }) => {
       try {
@@ -50,7 +50,7 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
       } catch (e) {
         return { name, cloudPlatform, isDeleted: false };
       }
-    }, oldWorkspaces)
+    }, oldWorkspacesToDelete)
   ).then(async (results) => {
     // Report results
     const deletedNames =
