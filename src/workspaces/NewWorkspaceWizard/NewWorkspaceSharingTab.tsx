@@ -11,8 +11,6 @@ import { AccessEntry } from '../acl-utils';
 import { AclInput } from '../ShareWorkspaceModal/Collaborator';
 import { CurrentCollaborators } from '../ShareWorkspaceModal/CurrentCollaborators';
 
-// TODO more intelligently share this with ShareWorkspaceModal.tsx
-
 const defaultAcl: AccessEntry = {
   email: '',
   accessLevel: 'READER',
@@ -23,7 +21,6 @@ const defaultAcl: AccessEntry = {
 
 export const NewWorkspaceSharingTab = ({ acl, setAcl }): ReactNode => {
   const [emailInputValues, setEmailInputValues] = useState<string[]>([]);
-  // const [acl, setAcl] = useState<WorkspaceAcl>([]);
   const [newAcl, setNewAcl] = useState<AccessEntry>(defaultAcl);
   const [lastAddedEmail, setLastAddedEmail] = useState<string | undefined>(undefined);
 

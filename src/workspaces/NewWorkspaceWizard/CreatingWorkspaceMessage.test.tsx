@@ -1,5 +1,5 @@
 import React, { render, screen, waitFor } from '@testing-library/react';
-import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceModal/CreatingWorkspaceMessage';
+import { CreatingWorkspaceMessage } from 'src/workspaces/NewWorkspaceWizard/CreatingWorkspaceMessage';
 
 describe('CreatingWorkspaceMessage', () => {
   it('displays the standard message', () => {

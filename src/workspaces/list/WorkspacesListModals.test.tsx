@@ -5,18 +5,23 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { notifyNewWorkspaceClone } from 'src/workspaces/common/state/useCloningWorkspaceNotifications';
 import { WorkspaceUserActionsContext } from 'src/workspaces/list/WorkspaceUserActions';
-import { NewWorkspaceModalProps } from 'src/workspaces/NewWorkspaceModal//NewWorkspaceModal';
+import { NewWorkspaceWizardProps } from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import { WorkspaceInfo } from 'src/workspaces/utils';
 
 const mockModalFn = jest.fn();
 
-jest.doMock('src/workspaces/NewWorkspaceModal/NewWorkspaceModal', () => ({
-  ...jest.requireActual('src/workspaces/NewWorkspaceModal/NewWorkspaceModal'),
-  NewWorkspaceModal: mockModalFn,
-  default: mockModalFn,
-}));
+type NewWorkspaceWizardExports = typeof import('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard') & {
+  __esModule: true;
+};
+jest.mock('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard', (): NewWorkspaceWizardExports => {
+  return {
+    ...jest.requireActual<NewWorkspaceWizardExports>('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard'),
+    default: mockModalFn,
+    __esModule: true,
+  };
+});
 
-// this has to be imported with require, and after the mock for NewWorkspaceModal,
+// this has to be imported with require, and after the mock for NewWorkspaceWizard,
 // so the mock is set up when WorkspacesListModals loads its dependencies
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { WorkspacesListModals } = require('src/workspaces/list/WorkspacesListModals');
@@ -55,9 +60,9 @@ describe('WorkspacesListModals', () => {
     requestingAccessWorkspaceId: undefined,
   };
 
-  it('renders the NewWorkspaceModal when creating a new workspace', () => {
+  it('renders the NewWorkspaceWizard when creating a new workspace', () => {
     // Arrange
-    mockModalFn.mockImplementation(() => <div>mockedNewWorkspaceModal</div>);
+    mockModalFn.mockImplementation(() => <div>mockedNewWorkspaceWizard</div>);
 
     // Act
     render(
@@ -71,19 +76,19 @@ describe('WorkspacesListModals', () => {
       </WorkspaceUserActionsContext.Provider>
     );
     // Assert
-    expect(screen.getByText('mockedNewWorkspaceModal')).toBeInTheDocument();
+    expect(screen.getByText('mockedNewWorkspaceWizard')).toBeInTheDocument();
   });
 
   it('goes to the new workspace when finished', () => {
     // Arrange
     mockModalFn.mockImplementation(
-      (props: NewWorkspaceModalProps): React.ReactNode => (
+      (props: NewWorkspaceWizardProps): React.ReactNode => (
         <button
           type='button'
-          data-testid='mockedNewWorkspaceModal'
+          data-testid='mockedNewWorkspaceWizard'
           onClick={() => props.onSuccess(defaultAzureWorkspace.workspace)}
         >
-          mockedNewWorkspaceModal
+          mockedNewWorkspaceWizard
         </button>
       )
     );
@@ -98,7 +103,7 @@ describe('WorkspacesListModals', () => {
         <WorkspacesListModals {...props} />
       </WorkspaceUserActionsContext.Provider>
     );
-    fireEvent.click(screen.getByText('mockedNewWorkspaceModal'));
+    fireEvent.click(screen.getByText('mockedNewWorkspaceWizard'));
 
     // Assert
     expect(goToPath).toHaveBeenCalledWith('workspace-dashboard', {
@@ -107,9 +112,9 @@ describe('WorkspacesListModals', () => {
     });
   });
 
-  it('renders the NewWorkspaceModal when cloning a workspace', () => {
+  it('renders the NewWorkspaceWizard when cloning a workspace', () => {
     // Arrange
-    mockModalFn.mockImplementation(() => <div>mockedNewWorkspaceModal</div>);
+    mockModalFn.mockImplementation(() => <div>mockedNewWorkspaceWizard</div>);
 
     // Act
     render(
@@ -123,7 +128,7 @@ describe('WorkspacesListModals', () => {
       </WorkspaceUserActionsContext.Provider>
     );
     // Assert
-    expect(screen.getByText('mockedNewWorkspaceModal')).toBeInTheDocument();
+    expect(screen.getByText('mockedNewWorkspaceWizard')).toBeInTheDocument();
   });
 
   it('goes to the cloned workspace when a google workspace is cloned', () => {
@@ -134,10 +139,10 @@ describe('WorkspacesListModals', () => {
       namespace: 'new-workspace-namespace',
     };
     mockModalFn.mockImplementation(
-      (props: NewWorkspaceModalProps): React.ReactNode => (
+      (props: NewWorkspaceWizardProps): React.ReactNode => (
         // eslint-disable-next-line jsx-a11y/control-has-associated-label, react/button-has-type
         <button type='button' onClick={() => props.onSuccess(newWorkspace)}>
-          mockedNewWorkspaceModal
+          mockedNewWorkspaceWizard
         </button>
       )
     );
@@ -152,7 +157,7 @@ describe('WorkspacesListModals', () => {
         <WorkspacesListModals {...props} />
       </WorkspaceUserActionsContext.Provider>
     );
-    fireEvent.click(screen.getByText('mockedNewWorkspaceModal'));
+    fireEvent.click(screen.getByText('mockedNewWorkspaceWizard'));
 
     // Assert
     expect(goToPath).toHaveBeenCalledWith('workspace-dashboard', {
@@ -169,9 +174,9 @@ describe('WorkspacesListModals', () => {
       namespace: 'new-workspace-namespace',
     };
     mockModalFn.mockImplementation(
-      (props: NewWorkspaceModalProps): React.ReactNode => (
+      (props: NewWorkspaceWizardProps): React.ReactNode => (
         <button type='button' onClick={() => props.onSuccess(newWorkspace)}>
-          mockedNewWorkspaceModal
+          mockedNewWorkspaceWizard
         </button>
       )
     );
@@ -186,7 +191,7 @@ describe('WorkspacesListModals', () => {
         <WorkspacesListModals {...props} />
       </WorkspaceUserActionsContext.Provider>
     );
-    fireEvent.click(screen.getByText('mockedNewWorkspaceModal'));
+    fireEvent.click(screen.getByText('mockedNewWorkspaceWizard'));
 
     // Assert
     expect(goToPath).not.toHaveBeenCalled();

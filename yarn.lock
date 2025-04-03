@@ -1578,11 +1578,11 @@ __metadata:
   linkType: hard
 
 "@babel/runtime@npm:*, @babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.10.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.8, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
-  version: 7.23.8
-  resolution: "@babel/runtime@npm:7.23.8"
+  version: 7.27.0
+  resolution: "@babel/runtime@npm:7.27.0"
   dependencies:
     regenerator-runtime: ^0.14.0
-  checksum: 0bd5543c26811153822a9f382fd39886f66825ff2a397a19008011376533747cd05c33a91f6248c0b8b0edf0448d7c167ebfba34786088f1b7eb11c65be7dfc3
+  checksum: 3e73d9e65f76fad8f99802b5364c941f4a60c693b3eca66147bb0bfa54cf0fbe017232155e16e3fd83c0a049b51b8d7239efbd73626534abe8b54a6dd57dcb1b
   languageName: node
   linkType: hard
 
@@ -4182,7 +4182,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4196,10 +4196,10 @@ __metadata:
     "@rollup/plugin-typescript": ^11.1.6
     tslib: ^2.6.1
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
   peerDependencies:
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
   languageName: unknown
   linkType: soft
 
@@ -4236,7 +4236,7 @@ __metadata:
     react-select: ^5.7.4
     react-switch: ^6.1.0
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
     vite-plugin-svgr: ^3.3.0
   peerDependencies:
     react: 18.2.0
@@ -4256,7 +4256,7 @@ __metadata:
     jest: ^27.4.3
     lodash: ^4.17.21
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
   languageName: unknown
   linkType: soft
 
@@ -4269,7 +4269,7 @@ __metadata:
     "@types/jest": ^28.1.8
     jest: ^27.4.3
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
   languageName: unknown
   linkType: soft
 
@@ -4285,7 +4285,7 @@ __metadata:
     jest: ^27.4.3
     qs: ^6.10.1
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
   languageName: unknown
   linkType: soft
 
@@ -4309,7 +4309,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4340,7 +4340,7 @@ __metadata:
     jest-fail-on-console: ^3.1.1
     jest-watch-typeahead: ^1.0.0
     typescript: ~5.1.6
-    vite: ^5.2.11
+    vite: ^5.4.15
     whatwg-fetch: ^3.6.2
   peerDependencies:
     "@testing-library/react": ^14.0.0
@@ -5739,13 +5739,13 @@ __metadata:
   linkType: hard
 
 "axios@npm:^1.6.1, axios@npm:^1.7.4":
-  version: 1.7.7
-  resolution: "axios@npm:1.7.7"
+  version: 1.8.4
+  resolution: "axios@npm:1.8.4"
   dependencies:
     follow-redirects: ^1.15.6
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 882d4fe0ec694a07c7f5c1f68205eb6dc5a62aecdb632cc7a4a3d0985188ce3030e0b277e1a8260ac3f194d314ae342117660a151fabffdc5081ca0b5a8b47fe
+  checksum: e901dc1730bdcd769839b3d93ae6d6457a53d79b19a0eb623ebfea333441259ab51e63ca118baa47a5156567401466ac739f31087b4ee5e6770ab2e227484538
   languageName: node
   linkType: hard
 
@@ -13787,10 +13787,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismjs@npm:^1.27.0":
-  version: 1.27.0
-  resolution: "prismjs@npm:1.27.0"
-  checksum: 85c7f4a3e999073502cc9e1882af01e3709706369ec254b60bff1149eda701f40d02512acab956012dc7e61cfd61743a3a34c1bd0737e8dbacd79141e5698bbc
+"prismjs@npm:^1.30.0":
+  version: 1.30.0
+  resolution: "prismjs@npm:1.30.0"
+  checksum: a68eddd4c5f1c506badb5434b0b28a7cc2479ed1df91bc4218e6833c7971ef40c50ec481ea49749ac964256acb78d8b66a6bd11554938e8998e46c18b5f9a580
   languageName: node
   linkType: hard
 
@@ -16027,7 +16027,7 @@ __metadata:
     postcss-normalize: ^10.0.1
     postcss-preset-env: ^7.8.2
     prettier: ^2.8.8
-    prismjs: ^1.27.0
+    prismjs: ^1.30.0
     prop-types: ^15.7.2
     qs: ^6.10.1
     rc-slider: ^10.2.1
@@ -16055,7 +16055,7 @@ __metadata:
     use-memo-one: ^1.1.3
     uuid: ^8.3.2
     validate.js: ^0.13.1
-    vite: ^5.2.14
+    vite: ^5.4.15
     vite-plugin-svgr: ^3.3.0
   dependenciesMeta:
     "@fortawesome/fontawesome-common-types":
@@ -16826,9 +16826,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.2.11, vite@npm:^5.2.14":
-  version: 5.4.14
-  resolution: "vite@npm:5.4.14"
+"vite@npm:^5.4.15":
+  version: 5.4.15
+  resolution: "vite@npm:5.4.15"
   dependencies:
     esbuild: ^0.21.3
     fsevents: ~2.3.3
@@ -16865,7 +16865,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 7360661da0415809454ff8809b6666e868ffc3e5ccfbd5fc17425341546cdc3dd3d37c68fcd6ed7305252aaecd0d251ede3745b57aaebd00b8aececc30b6697b
+  checksum: 296463795fdc806e2650b9caae6409b630eb4acd4ef295121e7f700548a2ecb7d7805ad25a46d668be79dc78f1ea48319afd9a646afe934fb3371f8fe30e84be
   languageName: node
   linkType: hard
 

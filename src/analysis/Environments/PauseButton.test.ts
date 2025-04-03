@@ -6,7 +6,6 @@ import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-ut
 
 import { generateTestApp, generateTestListGoogleRuntime } from '../_testData/testData';
 import { isPauseSupported } from '../utils/tool-utils';
-import { LeoResourcePermissionsProvider } from './Environments.models';
 import {
   isComputePausable,
   pauseableAppStatuses,
@@ -23,16 +22,8 @@ jest.mock('src/analysis/utils/tool-utils', (): ToolUtilsExports => {
   };
 });
 
-const mockPermissions: LeoResourcePermissionsProvider = {
-  hasDeleteDiskPermission: jest.fn(),
-  hasPausePermission: jest.fn(),
-  isAppInDeletableState: jest.fn(),
-  isResourceInDeletableState: jest.fn(),
-};
-
 const defaultPauseProps: PauseButtonProps = {
   cloudEnvironment: generateTestListGoogleRuntime(),
-  permissions: mockPermissions,
   pauseComputeAndRefresh: jest.fn(),
 };
 
@@ -53,8 +44,7 @@ describe('PauseButton', () => {
     'Renders pause button enabled/disabled properly when user has permission, depending on resource status',
     ({ cloudEnvironment, isPauseEnabled }) => {
       // Arrange
-      const permissions = { ...mockPermissions, hasPausePermission: jest.fn().mockReturnValue(true) };
-      const pauseProps: PauseButtonProps = { ...defaultPauseProps, permissions, cloudEnvironment };
+      const pauseProps: PauseButtonProps = { ...defaultPauseProps, cloudEnvironment };
 
       // Act
       render(h(PauseButton, pauseProps));
@@ -66,30 +56,10 @@ describe('PauseButton', () => {
     }
   );
 
-  // TODO: change it so we don't hide when they don't have permission and only hide when disallowed?
-  it('Hides pause button when user doesnt have permission', () => {
-    // Arrange
-    const permissions = { ...mockPermissions, hasPausePermission: jest.fn().mockReturnValue(false) };
-    const pauseProps: PauseButtonProps = {
-      ...defaultPauseProps,
-      permissions,
-      cloudEnvironment: generateTestListGoogleRuntime(),
-    };
-
-    // Act
-    render(h(PauseButton, pauseProps));
-
-    // Assert
-    const pauseButton = screen.queryByText('Pause');
-    expect(pauseButton).toBeNull();
-  });
-
   it('Hides pause button when pause is not supported', () => {
     // Arrange
-    const permissions = { ...mockPermissions, hasPausePermission: jest.fn().mockReturnValue(true) };
     const pauseProps: PauseButtonProps = {
       ...defaultPauseProps,
-      permissions,
       cloudEnvironment: generateTestListGoogleRuntime(),
     };
     asMockedFn(isPauseSupported).mockReturnValue(false);
@@ -104,10 +74,9 @@ describe('PauseButton', () => {
 
   it('Calls pause function when clicked', () => {
     // Arrange
-    const permissions = { ...mockPermissions, hasPausePermission: jest.fn().mockReturnValue(true) };
     const pauseFn = jest.fn();
     const cloudEnvironment = generateTestListGoogleRuntime();
-    const pauseProps: PauseButtonProps = { permissions, cloudEnvironment, pauseComputeAndRefresh: pauseFn };
+    const pauseProps: PauseButtonProps = { cloudEnvironment, pauseComputeAndRefresh: pauseFn };
 
     // Act
     render(h(PauseButton, pauseProps));
