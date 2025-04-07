@@ -228,7 +228,7 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
         // Update each workspace with spend data or default values
         return workspacesInProject.map((workspace) => {
           const key = `${workspace.namespace}-${workspace.name}`;
-          const spendItem = spendDataMap[key];
+          const spendItem = spendDataMap[key] as unknown as WorkspaceSpendData | undefined;
 
           if (!spendItem) {
             return setDefaultSpendValues(workspace);
