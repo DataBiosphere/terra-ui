@@ -222,13 +222,13 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
         // Create a map of spend data by workspace identifier
         const spendDataMap = _.keyBy(
           (spendItem: WorkspaceSpendData) => `${spendItem.workspace.namespace}-${spendItem.workspace.name}`,
-          (billingProjectSpentReport.spendDetails[0] as AggregatedWorkspaceSpendData).spendData
+          _.flatMap((detail: AggregatedWorkspaceSpendData) => detail.spendData, billingProjectSpentReport.spendDetails)
         );
 
         // Update each workspace with spend data or default values
         return workspacesInProject.map((workspace) => {
           const key = `${workspace.namespace}-${workspace.name}`;
-          const spendItem = spendDataMap[key];
+          const spendItem = spendDataMap[key] as unknown as WorkspaceSpendData | undefined;
 
           if (!spendItem) {
             return setDefaultSpendValues(workspace);
