@@ -358,7 +358,7 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
     div(
       {
         style: {
-          width: '275px',
+          width: '400px',
           paddingLeft: '1rem',
           borderLeft: `1px solid ${colors.light()}`,
           marginLeft: '1rem',

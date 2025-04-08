@@ -732,7 +732,7 @@ const DataTable = (props) => {
         Modal,
         {
           title: 'Select columns',
-          width: 800,
+          width: 1000,
           onDismiss: () => setUpdatingColumnSettings(undefined),
           okButton: h(
             ButtonPrimary,
