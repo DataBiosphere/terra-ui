@@ -10,6 +10,7 @@ import amppdLogo from 'src/images/library/datasets/Amp@2x.png';
 import anvilLogo from 'src/images/library/datasets/Anvil-logo.svg';
 import baselineLogo from 'src/images/library/datasets/baseline.jpg';
 import broadLogo from 'src/images/library/datasets/broad_logo.png';
+import duosLogo from 'src/images/library/datasets/duos-logo.svg';
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png';
 import framinghamLogo from 'src/images/library/datasets/framingham.jpg';
 import gp2Logo from 'src/images/library/datasets/GP2_logo.png';
@@ -618,6 +619,31 @@ const rareX = () =>
     ]
   );
 
+const duos = () =>
+  h(
+    Participant,
+    {
+      logo: { src: duosLogo, alt: 'DUOS logo' },
+      title: 'Duos Data Catalog',
+      description: h(Fragment, [
+        h(Link, { href: 'https://duos.org/', ...Utils.newTabLinkProps }, 'DUOS'),
+        ' - the Data Use Oversight System - is a platform for managing access to controlled-access datasets. DUOS streamlines the often-tedious data access process by allowing Signing Officials to pre-authorize approved researchers to submit data access requests. It contains data from NHGRI as well as the Human Cell Atlas and data generated from The Broad Institute labs.',
+      ]),
+    },
+    [
+      h(
+        ButtonPrimary,
+        {
+          'aria-label': 'Browse DUOS Datasets',
+          href: 'https://duos.org/',
+          onClick: () => captureBrowseDataEvent('DUOS'),
+          ...Utils.newTabLinkProps,
+        },
+        ['Browse Data']
+      ),
+    ]
+  );
+
 export const Datasets = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
@@ -639,6 +665,7 @@ export const Datasets = () => {
       target(),
       tcga(),
       topMed(),
+      duos(),
     ]),
   ]);
 };
