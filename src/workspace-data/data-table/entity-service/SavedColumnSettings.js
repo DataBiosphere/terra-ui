@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, hr, li, p, span, ul } from 'react-hyperscript-helpers';
 import { ButtonOutline, Clickable, IdContainer, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { AutocompleteTextInput } from 'src/components/input';
+import { AutocompleteTextInput, ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { ColumnSettings } from 'src/components/table';
@@ -333,22 +333,27 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
   ]);
 };
 
+const filterColumnSettings = (searchTerm, columnSettings) => {
+  const filterTerm = searchTerm.toString().trim().toLowerCase();
+  return _.filter(({ name }) => name.toLowerCase().includes(filterTerm), columnSettings);
+};
+
 export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange, ...otherProps }) => {
   const columnSettingsRef = useRef();
 
   // This will update the state of the ColumnSettings component currently in use
   const updateColumnSettings = (newColumnSettings) => {
-    if (columnSettingsRef.current) {
-      // Need to update the indices and ids as well
-      const indexedColumnSettings = _.map.convert({ cap: false })((value) => {
-        return _.merge(value, { id: value.name });
-      })(newColumnSettings);
-      columnSettingsRef.current.updateItems(indexedColumnSettings);
-    }
+    columnSettingsRef.current?.updateItems(newColumnSettings.map((value) => ({ ...value, id: value.name })));
   };
 
+  // Debounced search handler
+  const handleSearch = _.debounce(300, (searchTerm) => {
+    const filteredSettings = filterColumnSettings(searchTerm, columnSettings);
+    updateColumnSettings(filteredSettings);
+  });
+
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-    div({ style: { flex: '1 1 0' } }, [
+    div({ style: { flex: '1 1 0', marginTop: '0.5rem' } }, [
       h(ColumnSettings, {
         ref: columnSettingsRef,
         columnSettings,
@@ -362,10 +367,17 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
           paddingLeft: '1rem',
           borderLeft: `1px solid ${colors.light()}`,
           marginLeft: '1rem',
-          marginTop: '2rem',
         },
       },
       [
+        div({ style: { width: 350, marginBottom: '1rem' } }, [
+          h(ConfirmedSearchInput, {
+            'aria-label': 'Search',
+            placeholder: 'Search',
+            onChange: handleSearch,
+            defaultValue: '',
+          }),
+        ]),
         h(SavedColumnSettings, {
           ...otherProps,
           columnSettings,
