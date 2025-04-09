@@ -33,7 +33,7 @@ export const useWorkspaceDetails = (
     const wsAcls: Record<'acl', RawWorkspaceAcl> = await Workspaces(signal).workspace(namespace, name).getAcl();
     const accessEntry = _.flow(
       _.toPairs,
-      _.find(([key, entry]: [string, RawAccessEntry]) => key === userEmail && entry.accessLevel === 'OWNER'),
+      _.find(([key]: [string, RawAccessEntry]) => key === userEmail),
       _.last
     )(wsAcls.acl) as RawAccessEntry | undefined;
 
