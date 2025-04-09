@@ -33,20 +33,6 @@ jest.mock('src/components/PopupTrigger', () => {
   };
 });
 
-const workspaceMenuProps = {
-  iconSize: 20,
-  popupLocation: 'left',
-  callbacks: {
-    onClone: () => {},
-    onShare: () => {},
-    onLock: () => {},
-    onDelete: () => {},
-    onLeave: () => {},
-    onShowSettings: () => {},
-  },
-  workspaceInfo: { name: 'example1', namespace: 'example-billing-project' },
-};
-
 const descriptionText =
   'This description is longer then two hundred and fifty five characters, to ensure we can test that all two hundred and fifty five characters actually get copied over during a cloning event. If they are not copied over then it is indeed a bug that needs to fail the test. (280chars)';
 const googleWorkspace: GoogleWorkspace = {
@@ -79,6 +65,30 @@ const azureWorkspace: AzureWorkspace = {
   accessLevel: 'OWNER',
   canShare: true,
   policies: [protectedDataPolicy],
+};
+
+const loggedInUser = {
+  userEmail: 'test@example.com',
+  accessLevel: 'OWNER' as WorkspaceAccessLevel,
+};
+
+const workspaceMenuProps = {
+  iconSize: 20,
+  popupLocation: 'left',
+  callbacks: {
+    onClone: () => {},
+    onShare: () => {},
+    onLock: () => {},
+    onDelete: () => {},
+    onLeave: () => {},
+    onShowSettings: () => {},
+  },
+  workspaceInfo: {
+    name: 'example1',
+    namespace: 'example-billing-project',
+    selectedWorkspace: googleWorkspace,
+    loggedInUser,
+  },
 };
 
 beforeEach(() => {
@@ -490,12 +500,17 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       onLeave: jest.fn(),
       onShowSettings: jest.fn(),
     },
-    workspaceInfo: { namespace, name },
+    workspaceInfo: {
+      name,
+      namespace,
+      selectedWorkspace: googleWorkspace,
+      loggedInUser,
+    },
   };
 
   it('requests expected fields', async () => {
     // Arrange
-    const workspaceDetails = asMockedFn(useWorkspaceDetails).mockReturnValue({
+    asMockedFn(useWorkspaceDetails).mockReturnValue({
       workspace: googleWorkspace,
       refresh: jest.fn(),
       loading: false,
@@ -518,7 +533,15 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     render(h(WorkspaceMenu, workspaceMenuProps));
 
     // Assert
-    expect(workspaceDetails).toHaveBeenCalledWith({ namespace, name }, expectedRequestedFields);
+    expect(asMockedFn(useWorkspaceDetails)).toHaveBeenCalledWith(
+      {
+        namespace,
+        name,
+        selectedWorkspace: googleWorkspace,
+        loggedInUser,
+      },
+      expectedRequestedFields
+    );
   });
 
   it('passes onClone the bucketName, description, and googleProject for a Google workspace', async () => {
