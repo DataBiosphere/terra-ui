@@ -342,7 +342,7 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
   const columnSettingsRef = useRef();
   const initialColumnSettings = useRef(columnSettings);
 
-  const visibleColumnSynchronizer = (sourceSettings, targetSettings) =>
+  const columnSettingsSynchronizer = (sourceSettings, targetSettings) =>
     _.map((sourceSetting) => {
       const targetSetting = _.find({ name: sourceSetting.name }, targetSettings);
       return {
@@ -353,23 +353,20 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
     }, sourceSettings);
 
   // This will update the state of the ColumnSettings component currently in use
-  const updateColumnSettings = (newColumnSettings, persistVisibleState = false) => {
-    const currentColumnSettings = columnSettingsRef.current?.getItems();
-
-    // Sync initial column settings with the latest visibility state
-    initialColumnSettings.current = visibleColumnSynchronizer(initialColumnSettings.current, currentColumnSettings);
-
-    // Determine which column settings to persist based on 'persistVisibleState' flag
-    const columnSettingsToPersist = (persistVisibleState && initialColumnSettings.current) || newColumnSettings;
-
-    // Persist visibility state of new column settings
-    columnSettingsRef.current?.updateItems(visibleColumnSynchronizer(newColumnSettings, columnSettingsToPersist));
+  const updateColumnSettings = (newColumnSettings, columnSettingsToPersist) => {
+    columnSettingsRef.current?.updateItems(columnSettingsSynchronizer(newColumnSettings, columnSettingsToPersist));
   };
 
   // Debounced search handler
   const handleSearch = _.debounce(300, (searchTerm) => {
     const filteredSettings = filterColumnSettings(searchTerm, columnSettings);
-    updateColumnSettings(filteredSettings, true);
+    const currentColumnSettings = columnSettingsRef.current?.getItems();
+
+    // Sync initial column settings with the latest visibility state
+    initialColumnSettings.current = columnSettingsSynchronizer(initialColumnSettings.current, currentColumnSettings);
+
+    // Update column settings and persist visible state based on initial column settings
+    updateColumnSettings(filteredSettings, initialColumnSettings.current);
   });
 
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
@@ -403,7 +400,7 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
           columnSettings,
           onLoad: (updatedColumnSettings) => {
             onChange(updatedColumnSettings);
-            updateColumnSettings(updatedColumnSettings);
+            updateColumnSettings(updatedColumnSettings, updatedColumnSettings);
           },
         }),
       ]
