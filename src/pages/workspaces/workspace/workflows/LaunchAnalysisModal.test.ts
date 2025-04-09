@@ -1,7 +1,12 @@
 import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
+import {
+  WorkspaceContract,
+  Workspaces,
+  WorkspacesAjaxContract,
+  WorkspaceV2Contract,
+} from 'src/libs/ajax/workspaces/Workspaces';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
@@ -24,6 +29,10 @@ describe('Launch Analysis Modal', () => {
         workspace: () =>
           partial<WorkspaceContract>({
             checkBucketLocation: jest.fn().mockResolvedValue({ location: 'us-south', locationType: 'region' }),
+          }),
+        workspaceV2: () =>
+          partial<WorkspaceV2Contract>({
+            getSettings: jest.fn().mockResolvedValue([]),
           }),
       })
     );
