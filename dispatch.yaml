@@ -1,0 +1,4 @@
+dispatch:
+  # Default service (terra ui) serves what used to be firecloud ui.
+  - url: "*/portal.firecloud.org/*"
+    service: default
