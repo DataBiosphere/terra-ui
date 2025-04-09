@@ -340,10 +340,27 @@ const filterColumnSettings = (searchTerm, columnSettings) => {
 
 export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange, ...otherProps }) => {
   const columnSettingsRef = useRef();
+  const initialColumnSettings = useRef(columnSettings);
+
+  const visibleColumnSynchronizer = (sourceSettings, targetSettings) =>
+    _.map((sourceSetting) => {
+      const targetSetting = _.find({ name: sourceSetting.name }, targetSettings);
+      return {
+        ...sourceSetting,
+        visible: targetSetting?.visible ?? sourceSetting.visible,
+        id: sourceSetting.name,
+      };
+    }, sourceSettings);
 
   // This will update the state of the ColumnSettings component currently in use
   const updateColumnSettings = (newColumnSettings) => {
-    columnSettingsRef.current?.updateItems(newColumnSettings.map((value) => ({ ...value, id: value.name })));
+    const currentColumnSettings = columnSettingsRef.current?.getItems();
+
+    // Sync initial column settings with the latest visibility state
+    initialColumnSettings.current = visibleColumnSynchronizer(initialColumnSettings.current, currentColumnSettings);
+
+    // Persist visibility state of new column settings
+    columnSettingsRef.current?.updateItems(visibleColumnSynchronizer(newColumnSettings, initialColumnSettings.current));
   };
 
   // Debounced search handler
