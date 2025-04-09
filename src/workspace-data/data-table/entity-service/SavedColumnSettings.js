@@ -333,40 +333,42 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
   ]);
 };
 
-const filterColumnSettings = (searchTerm, columnSettings) => {
+export const filterColumnSettings = (searchTerm, columnSettings) => {
   const filterTerm = searchTerm.toString().trim().toLowerCase();
   return _.filter(({ name }) => name.toLowerCase().includes(filterTerm), columnSettings);
+};
+
+export const columnSettingsSynchronizer = (sourceSettings, targetSettings) =>
+  _.map((sourceSetting) => {
+    const targetSetting = _.find({ name: sourceSetting.name }, targetSettings);
+    return {
+      ...sourceSetting,
+      visible: targetSetting?.visible ?? sourceSetting.visible,
+      id: sourceSetting.name,
+    };
+  }, sourceSettings);
+
+export const updateColumnSettings = (columnSettingsRef, newColumnSettings, columnSettingsToPersist) => {
+  columnSettingsRef.current?.updateItems(columnSettingsSynchronizer(newColumnSettings, columnSettingsToPersist));
+};
+
+export const handleSearch = (searchTerm, columnSettings, columnSettingsRef, initialColumnSettings) => {
+  const filteredSettings = filterColumnSettings(searchTerm, columnSettings);
+  const currentColumnSettings = columnSettingsRef.current?.getItems();
+
+  // Sync initial column settings with the latest visibility state
+  initialColumnSettings.current = columnSettingsSynchronizer(initialColumnSettings.current, currentColumnSettings);
+
+  // Update column settings and persist visible state based on initial column settings
+  updateColumnSettings(columnSettingsRef, filteredSettings, initialColumnSettings.current);
 };
 
 export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange, ...otherProps }) => {
   const columnSettingsRef = useRef();
   const initialColumnSettings = useRef(columnSettings);
 
-  const columnSettingsSynchronizer = (sourceSettings, targetSettings) =>
-    _.map((sourceSetting) => {
-      const targetSetting = _.find({ name: sourceSetting.name }, targetSettings);
-      return {
-        ...sourceSetting,
-        visible: targetSetting?.visible ?? sourceSetting.visible,
-        id: sourceSetting.name,
-      };
-    }, sourceSettings);
-
-  // This will update the state of the ColumnSettings component currently in use
-  const updateColumnSettings = (newColumnSettings, columnSettingsToPersist) => {
-    columnSettingsRef.current?.updateItems(columnSettingsSynchronizer(newColumnSettings, columnSettingsToPersist));
-  };
-
-  // Debounced search handler
-  const handleSearch = _.debounce(300, (searchTerm) => {
-    const filteredSettings = filterColumnSettings(searchTerm, columnSettings);
-    const currentColumnSettings = columnSettingsRef.current?.getItems();
-
-    // Sync initial column settings with the latest visibility state
-    initialColumnSettings.current = columnSettingsSynchronizer(initialColumnSettings.current, currentColumnSettings);
-
-    // Update column settings and persist visible state based on initial column settings
-    updateColumnSettings(filteredSettings, initialColumnSettings.current);
+  const debouncedHandleSearch = _.debounce(300, (searchTerm) => {
+    handleSearch(searchTerm, columnSettings, columnSettingsRef, initialColumnSettings);
   });
 
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
@@ -391,7 +393,7 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',
-            onChange: handleSearch,
+            onChange: debouncedHandleSearch,
             defaultValue: '',
           }),
         ]),
@@ -400,7 +402,7 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
           columnSettings,
           onLoad: (updatedColumnSettings) => {
             onChange(updatedColumnSettings);
-            updateColumnSettings(updatedColumnSettings, updatedColumnSettings);
+            updateColumnSettings(columnSettingsRef, updatedColumnSettings, updatedColumnSettings);
           },
         }),
       ]
