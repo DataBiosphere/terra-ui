@@ -246,10 +246,6 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
     workspace: { workspaceId, namespace, name, state },
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
-  const {
-    profile: { contactEmail: userEmail },
-  } = useStore<TerraUserState>(userStore);
-  const loggedInUser = { userEmail, accessLevel };
 
   if (state === 'Deleted') {
     return null;
@@ -297,7 +293,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
           iconSize={20}
           popupLocation='left'
           callbacks={{ onClone, onShare, onLock, onDelete, onLeave, onShowSettings }}
-          workspaceInfo={{ namespace, name, selectedWorkspace: props.workspace, loggedInUser }}
+          workspaceInfo={{ namespace, name, selectedWorkspace: props.workspace, accessLevel }}
         />
       </div>
     </div>

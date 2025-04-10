@@ -37,10 +37,6 @@ type LoadedWorkspaceInfo = {
   namespace: string;
   name: string;
   selectedWorkspace?: Workspace;
-  loggedInUser?: {
-    userEmail?: string;
-    accessLevel: WorkspaceAccessLevel;
-  };
   accessLevel?: WorkspaceAccessLevel;
 };
 
@@ -48,10 +44,7 @@ type DynamicWorkspaceInfo = {
   name: string;
   namespace: string;
   selectedWorkspace?: Workspace;
-  loggedInUser?: {
-    userEmail?: string;
-    accessLevel: WorkspaceAccessLevel;
-  };
+  accessLevel: WorkspaceAccessLevel;
 };
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
@@ -118,7 +111,7 @@ interface DynamicWorkspaceMenuContentProps {
  */
 const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) => {
   const {
-    workspaceInfo: { name, namespace, selectedWorkspace, loggedInUser },
+    workspaceInfo: { name, namespace, selectedWorkspace, accessLevel },
     callbacks,
   } = props;
 
@@ -127,7 +120,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       namespace,
       name,
       selectedWorkspace,
-      loggedInUser: loggedInUser ?? {},
+      accessLevel,
     },
     [
       'accessLevel',
@@ -159,7 +152,7 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       cloudProvider: !workspace ? undefined : getCloudProviderFromWorkspace(workspace),
       namespace,
       name,
-      accessLevel: loggedInUser?.accessLevel,
+      accessLevel,
     },
     // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
     // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
