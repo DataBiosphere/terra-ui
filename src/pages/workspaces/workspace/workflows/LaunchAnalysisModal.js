@@ -18,6 +18,7 @@ import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { commentValidation } from 'src/pages/workspaces/workspace/submissionHistory/UpdateUserCommentModal';
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
+import { isBatchSetting } from 'src/workspaces/SettingsModal/utils';
 
 const LaunchAnalysisModal = ({
   onDismiss,
@@ -49,6 +50,9 @@ const LaunchAnalysisModal = ({
   const [bucketLocation, setBucketLocation] = useState({});
   const [userComment, setUserComment] = useState(undefined);
   const [userCommentError, setUserCommentError] = useState(undefined);
+  // Currently, default backend is LifeSciences if there is no 'UseCromwellGcpBatchBackend' setting found for a workspace.
+  // As part of https://broadworkbench.atlassian.net/browse/AN-510 it will be switched to Batch.
+  const [workflowBackend, setWorkflowBackend] = useState('LifeSciences');
   const signal = useCancellation();
 
   useOnMount(() => {
@@ -57,7 +61,20 @@ const LaunchAnalysisModal = ({
       setBucketLocation({ location, locationType });
     });
 
+    // This should be removed once GCP Batch migration is GA and LifeSciences has been deprecated.
+    // See https://broadworkbench.atlassian.net/browse/AN-507
+    const workflowBackend = async () => {
+      const settings = await Workspaces(signal).workspaceV2(namespace, workspaceName).getSettings();
+      const batchSetting = settings.find((setting) => isBatchSetting(setting));
+      // This logic will be modified in https://broadworkbench.atlassian.net/browse/AN-510 to reflect
+      // absence of 'UseCromwellGcpBatchBackend' workspace setting as running on Batch
+      if (batchSetting?.config.enabled) {
+        setWorkflowBackend('Batch');
+      }
+    };
+
     loadBucketLocation();
+    workflowBackend();
   });
 
   const doLaunch = async () => {
@@ -102,7 +119,7 @@ const LaunchAnalysisModal = ({
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },
       });
-      onSuccess(submissionId);
+      onSuccess(submissionId, workflowBackend);
     } catch (error) {
       setLaunchError(await (error instanceof Response ? error.json().then((data) => data.message) : error.message));
       setMessage(undefined);
