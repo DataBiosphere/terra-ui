@@ -1,6 +1,6 @@
 import _ from 'lodash/fp';
 import { useState } from 'react';
-import { RawAccessEntry, RawWorkspaceAcl } from 'src/libs/ajax/workspaces/workspace-models';
+import { SamResources } from 'src/libs/ajax/SamResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { withErrorReporting } from 'src/libs/error';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -12,14 +12,11 @@ export const useWorkspaceDetails = (
     namespace: string;
     name: string;
     selectedWorkspace?: Workspace;
-    loggedInUser: { userEmail?: string; accessLevel: WorkspaceAccessLevel } | {};
+    accessLevel: WorkspaceAccessLevel;
   },
   fields: string[]
 ) => {
-  const { namespace, name, selectedWorkspace, loggedInUser } = workspaceName;
-  const userEmail = (loggedInUser as { userEmail?: string })?.userEmail ?? '';
-  const initialAccessLevel = (loggedInUser as { accessLevel?: WorkspaceAccessLevel })?.accessLevel ?? 'NO ACCESS';
-
+  const { namespace, name, selectedWorkspace, accessLevel: initialAccessLevel } = workspaceName;
   const [workspace, setWorkspace] = useState<Workspace>();
   const [loading, setLoading] = useState(true);
   const signal = useCancellation();
@@ -29,18 +26,18 @@ export const useWorkspaceDetails = (
       // Fetch workspace details if the user has read access
       return await Workspaces(signal).workspace(namespace, name).details(fields);
     }
-    // Fetch ACL and construct workspace object for users without read access
-    const wsAcls: Record<'acl', RawWorkspaceAcl> = await Workspaces(signal).workspace(namespace, name).getAcl();
-    const accessEntry = _.flow(
-      _.toPairs,
-      _.find(([key]: [string, RawAccessEntry]) => key === userEmail),
-      _.last
-    )(wsAcls.acl) as RawAccessEntry | undefined;
+    // Fetch Workspace User Resource Roles and construct workspace object for users without read access
+    const workspaceUserRoles: string[] = await SamResources(signal).getResourceRolesV2({
+      resourceTypeName: 'workspace',
+      resourceId: `${selectedWorkspace?.workspace?.workspaceId}`,
+    });
+    const isProjectOwner = workspaceUserRoles.includes('project-owner');
+    const isOwner = workspaceUserRoles.includes('owner');
 
     return {
-      accessLevel: accessEntry?.accessLevel ?? 'NO ACCESS',
-      canCompute: accessEntry?.canCompute ?? false,
-      canShare: accessEntry?.canShare ?? false,
+      accessLevel: isProjectOwner ? 'PROJECT_OWNER' : (isOwner && 'OWNER') || 'NO ACCESS',
+      canCompute: isProjectOwner || isOwner,
+      canShare: isProjectOwner || isOwner,
       policies: selectedWorkspace?.policies ?? [],
       workspace: {
         ...selectedWorkspace?.workspace,
