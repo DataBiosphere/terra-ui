@@ -65,7 +65,7 @@ const LaunchAnalysisModal = ({
     const workflowBackend = async () => {
       const settings = await Workspaces(signal).workspaceV2(namespace, workspaceName).getSettings();
       const batchSetting = settings.find((setting) => isBatchSetting(setting));
-      if (batchSetting !== undefined && batchSetting?.config.enabled) {
+      if (batchSetting?.config.enabled) {
         setWorkflowBackend('Batch');
       }
     };
