@@ -507,7 +507,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
 
   it('requests expected fields', async () => {
     // Arrange
-    asMockedFn(useWorkspaceDetails).mockReturnValue({
+    const workspaceDetails = asMockedFn(useWorkspaceDetails).mockReturnValue({
       workspace: googleWorkspace,
       refresh: jest.fn(),
       loading: false,
@@ -530,7 +530,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
     render(h(WorkspaceMenu, workspaceMenuProps));
 
     // Assert
-    expect(asMockedFn(useWorkspaceDetails)).toHaveBeenCalledWith(
+    expect(workspaceDetails).toHaveBeenCalledWith(
       {
         namespace,
         name,
