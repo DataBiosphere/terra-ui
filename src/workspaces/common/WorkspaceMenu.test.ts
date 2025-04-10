@@ -67,10 +67,7 @@ const azureWorkspace: AzureWorkspace = {
   policies: [protectedDataPolicy],
 };
 
-const loggedInUser = {
-  userEmail: 'test@example.com',
-  accessLevel: 'OWNER' as WorkspaceAccessLevel,
-};
+const accessLevel: WorkspaceAccessLevel = 'OWNER';
 
 const workspaceMenuProps = {
   iconSize: 20,
@@ -87,7 +84,7 @@ const workspaceMenuProps = {
     name: 'example1',
     namespace: 'example-billing-project',
     selectedWorkspace: googleWorkspace,
-    loggedInUser,
+    accessLevel,
   },
 };
 
@@ -504,7 +501,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
       name,
       namespace,
       selectedWorkspace: googleWorkspace,
-      loggedInUser,
+      accessLevel,
     },
   };
 
@@ -538,7 +535,7 @@ describe('DynamicWorkspaceMenuContent fetches specific workspace details', () =>
         namespace,
         name,
         selectedWorkspace: googleWorkspace,
-        loggedInUser,
+        accessLevel,
       },
       expectedRequestedFields
     );

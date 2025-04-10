@@ -1,19 +1,30 @@
 import { act } from '@testing-library/react';
+import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { asMockedFn, partial, renderHookInAct } from 'src/testing/test-utils';
+import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { canRead } from 'src/workspaces/utils';
 
 import { useWorkspaceDetails } from './useWorkspaceDetails';
 
+jest.mock('src/libs/ajax/SamResources');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
 jest.mock('src/workspaces/utils', () => ({
   ...jest.requireActual('src/workspaces/utils'),
   canRead: jest.fn(),
 }));
+type NotificationExports = typeof import('src/libs/notifications');
+jest.mock<NotificationExports>(
+  'src/libs/notifications',
+  (): NotificationExports => ({
+    ...jest.requireActual('src/libs/notifications'),
+    notify: jest.fn(),
+  })
+);
 
 describe('useWorkspaceDetails', () => {
   const mockWorkspaceDetails = { workspace: { name: 'test-workspace' }, accessLevel: 'READER' };
-  const mockGetAcl = { acl: { user1: { accessLevel: 'OWNER', canShare: true, canCompute: true } } };
+  const mockRoles = ['project-owner', 'owner'];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -23,9 +34,13 @@ describe('useWorkspaceDetails', () => {
         workspace: jest.fn(() =>
           partial<WorkspaceContract>({
             details: jest.fn().mockResolvedValue(mockWorkspaceDetails),
-            getAcl: jest.fn().mockResolvedValue(mockGetAcl),
           })
         ),
+      })
+    );
+    asMockedFn(SamResources).mockReturnValue(
+      partial<SamResourcesContract>({
+        getResourceRolesV2: jest.fn().mockResolvedValue(mockRoles),
       })
     );
   });
@@ -34,7 +49,12 @@ describe('useWorkspaceDetails', () => {
     // Arrange & Act
     const { result } = await renderHookInAct(() =>
       useWorkspaceDetails(
-        { namespace: 'test-namespace', name: 'test-name', loggedInUser: { userEmail: 'user1', accessLevel: 'READER' } },
+        {
+          namespace: 'test-namespace',
+          name: 'test-name',
+          selectedWorkspace: defaultGoogleWorkspace,
+          accessLevel: 'READER',
+        },
         ['field1', 'field2']
       )
     );
@@ -45,7 +65,7 @@ describe('useWorkspaceDetails', () => {
     expect(Workspaces().workspace).toHaveBeenCalledWith('test-namespace', 'test-name');
   });
 
-  it('fetches ACL and sets workspace when user does not have read access', async () => {
+  it('fetches workspace user roles and sets workspace when user does not have read access', async () => {
     // Arrange
     asMockedFn(canRead).mockReturnValue(false);
 
@@ -55,7 +75,8 @@ describe('useWorkspaceDetails', () => {
         {
           namespace: 'test-namespace',
           name: 'test-name',
-          loggedInUser: { userEmail: 'user1', accessLevel: 'NO ACCESS' },
+          selectedWorkspace: defaultGoogleWorkspace,
+          accessLevel: 'READER',
         },
         ['field1', 'field2']
       )
@@ -63,7 +84,7 @@ describe('useWorkspaceDetails', () => {
 
     // Assert
     expect(result.current.workspace).toEqual({
-      accessLevel: 'OWNER',
+      accessLevel: 'PROJECT_OWNER', // Updated to match new logic
       canCompute: true,
       canShare: true,
       policies: [],
@@ -73,14 +94,22 @@ describe('useWorkspaceDetails', () => {
       }),
     });
     expect(result.current.loading).toBe(false);
-    expect(Workspaces().workspace).toHaveBeenCalledWith('test-namespace', 'test-name');
+    expect(SamResources().getResourceRolesV2).toHaveBeenCalledWith({
+      resourceTypeName: 'workspace',
+      resourceId: defaultGoogleWorkspace.workspace.workspaceId,
+    });
   });
 
   it('refreshes workspace details when refresh is called', async () => {
     // Arrange
     const { result } = await renderHookInAct(() =>
       useWorkspaceDetails(
-        { namespace: 'test-namespace', name: 'test-name', loggedInUser: { userEmail: 'user1', accessLevel: 'READER' } },
+        {
+          namespace: 'test-namespace',
+          name: 'test-name',
+          selectedWorkspace: defaultGoogleWorkspace,
+          accessLevel: 'READER',
+        },
         ['field1', 'field2']
       )
     );
