@@ -57,6 +57,13 @@ export const SamResources = (signal?: AbortSignal) => ({
       _.mergeAll([authOpts(), { signal }])
     ).then((r) => r.json());
   },
+
+  getResourceRolesV2: async (fqResourceId: FullyQualifiedResourceId): Promise<string[]> => {
+    return fetchSam(
+      `api/resources/v2/${fqResourceId.resourceTypeName}/${fqResourceId.resourceId}/roles`,
+      _.mergeAll([authOpts(), { signal }])
+    ).then((r) => r.json());
+  },
 });
 
 export type SamResourcesContract = ReturnType<typeof SamResources>;
