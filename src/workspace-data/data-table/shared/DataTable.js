@@ -85,6 +85,14 @@ const displayData = ({ itemsType, items }) => {
     : div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, ['No items']);
 };
 
+// Synchronizes column settings by updating visibility based on the searched or selected column settings
+export const columnStateSynchronizer = (initialUpdatingColumnSettings, updatingColumnSettings) => {
+  return _.map((column) => {
+    const updatedColumn = _.find({ name: column.name }, updatingColumnSettings);
+    return { ...column, visible: updatedColumn ? updatedColumn.visible : false };
+  }, initialUpdatingColumnSettings);
+};
+
 const DataTable = (props) => {
   const {
     defaultItemsPerPage = 100,
@@ -182,6 +190,10 @@ const DataTable = (props) => {
 
   const table = useRef();
   const signal = useCancellation();
+
+  // This ensures that the initialUpdatingColumnSettings is set only once after first render
+  const initialUpdatingColumnSettings = useRef(updatingColumnSettings);
+  initialUpdatingColumnSettings.current ??= updatingColumnSettings;
 
   const getColumnFilterQueryString = () => {
     return !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
@@ -738,7 +750,7 @@ const DataTable = (props) => {
             ButtonPrimary,
             {
               onClick: () => {
-                setColumnState(updatingColumnSettings);
+                setColumnState(columnStateSynchronizer(initialUpdatingColumnSettings.current, updatingColumnSettings));
                 setUpdatingColumnSettings(undefined);
               },
             },
