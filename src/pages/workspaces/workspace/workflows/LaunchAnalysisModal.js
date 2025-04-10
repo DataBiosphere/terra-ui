@@ -50,7 +50,8 @@ const LaunchAnalysisModal = ({
   const [bucketLocation, setBucketLocation] = useState({});
   const [userComment, setUserComment] = useState(undefined);
   const [userCommentError, setUserCommentError] = useState(undefined);
-  // Currently, default backend is LifeSciences if there is no 'UseCromwellGcpBatchBackend' setting found for a workspace
+  // Currently, default backend is LifeSciences if there is no 'UseCromwellGcpBatchBackend' setting found for a workspace.
+  // As part of https://broadworkbench.atlassian.net/browse/AN-510 it will be switched to Batch.
   const [workflowBackend, setWorkflowBackend] = useState('LifeSciences');
   const signal = useCancellation();
 
@@ -65,6 +66,8 @@ const LaunchAnalysisModal = ({
     const workflowBackend = async () => {
       const settings = await Workspaces(signal).workspaceV2(namespace, workspaceName).getSettings();
       const batchSetting = settings.find((setting) => isBatchSetting(setting));
+      // This logic will be modified in https://broadworkbench.atlassian.net/browse/AN-510 to reflect
+      // absence of 'UseCromwellGcpBatchBackend' workspace setting as running on Batch
       if (batchSetting?.config.enabled) {
         setWorkflowBackend('Batch');
       }
