@@ -11,7 +11,7 @@ import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
-import DataTable from './DataTable';
+import DataTable, { columnStateSynchronizer } from './DataTable';
 
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
@@ -392,5 +392,66 @@ describe('DataTable', () => {
     // Should include all (filtered) entities + select all checkbox
     const allChecks = screen.getAllByRole('checkbox', { checked: true });
     expect(allChecks.length).toEqual(11);
+  });
+});
+
+describe('columnStateSynchronizer', () => {
+  it('updates column visibility based on updatingColumnSettings', () => {
+    // Arrange
+    const initialUpdatingColumnSettings = [
+      { name: 'column1', visible: true },
+      { name: 'column2', visible: true },
+      { name: 'column3', visible: true },
+    ];
+    const updatingColumnSettings = [
+      { name: 'column1', visible: false },
+      { name: 'column3', visible: false },
+    ];
+
+    // Act
+    const result = columnStateSynchronizer(initialUpdatingColumnSettings, updatingColumnSettings);
+
+    // Assert
+    expect(result).toEqual([
+      { name: 'column1', visible: false },
+      { name: 'column2', visible: false },
+      { name: 'column3', visible: false },
+    ]);
+  });
+
+  it('retains visibility for columns not in updatingColumnSettings', () => {
+    // Arrange
+    const initialUpdatingColumnSettings = [
+      { name: 'column1', visible: true },
+      { name: 'column2', visible: false },
+    ];
+    const updatingColumnSettings = [{ name: 'column1', visible: false }];
+
+    // Act
+    const result = columnStateSynchronizer(initialUpdatingColumnSettings, updatingColumnSettings);
+
+    // Assert
+    expect(result).toEqual([
+      { name: 'column1', visible: false },
+      { name: 'column2', visible: false },
+    ]);
+  });
+
+  it('handles empty updatingColumnSettings', () => {
+    // Arrange
+    const initialUpdatingColumnSettings = [
+      { name: 'column1', visible: true },
+      { name: 'column2', visible: false },
+    ];
+    const updatingColumnSettings = [];
+
+    // Act
+    const result = columnStateSynchronizer(initialUpdatingColumnSettings, updatingColumnSettings);
+
+    // Assert
+    expect(result).toEqual([
+      { name: 'column1', visible: false },
+      { name: 'column2', visible: false },
+    ]);
   });
 });
