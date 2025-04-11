@@ -352,8 +352,8 @@ export const updateColumnSettings = (columnSettingsRef, newColumnSettings, colum
   columnSettingsRef.current?.updateItems(columnSettingsSynchronizer(newColumnSettings, columnSettingsToPersist));
 };
 
-export const handleSearch = (searchTerm, columnSettings, columnSettingsRef, initialColumnSettings) => {
-  const filteredSettings = filterColumnSettings(searchTerm, columnSettings);
+export const handleSearch = (searchTerm, columnSettingsRef, initialColumnSettings) => {
+  const filteredSettings = filterColumnSettings(searchTerm, initialColumnSettings.current);
   const currentColumnSettings = columnSettingsRef.current?.getItems();
 
   // Sync initial column settings with the latest visibility state
@@ -368,7 +368,7 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
   const initialColumnSettings = useRef(columnSettings);
 
   const debouncedHandleSearch = _.debounce(300, (searchTerm) => {
-    handleSearch(searchTerm, columnSettings, columnSettingsRef, initialColumnSettings);
+    handleSearch(searchTerm, columnSettingsRef, initialColumnSettings);
   });
 
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
@@ -394,6 +394,7 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
             'aria-label': 'Search',
             placeholder: 'Search',
             onChange: debouncedHandleSearch,
+            onKeyUp: (e) => debouncedHandleSearch(e.target.value),
             defaultValue: '',
           }),
         ]),

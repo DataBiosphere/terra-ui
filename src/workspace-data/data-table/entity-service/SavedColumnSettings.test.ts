@@ -189,7 +189,7 @@ describe('handleSearch', () => {
 
     const initialColumnSettings = { current: columnSettings };
 
-    handleSearch('Column A', columnSettings, columnSettingsRef, initialColumnSettings);
+    handleSearch('Column A', columnSettingsRef, initialColumnSettings);
 
     expect(mockUpdateItems).toHaveBeenCalledWith([{ name: 'Column A', visible: true, id: 'Column A' }]);
   });
