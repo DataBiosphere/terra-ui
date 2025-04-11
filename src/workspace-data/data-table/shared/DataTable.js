@@ -40,6 +40,7 @@ import { renderDataCell } from '../entity-service/renderDataCell';
 import {
   allSavedColumnSettingsEntityTypeKey,
   allSavedColumnSettingsInWorkspace,
+  columnSettingsSynchronizer,
   ColumnSettingsWithSavedColumnSettings,
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
@@ -83,14 +84,6 @@ const displayData = ({ itemsType, items }) => {
         )
       )
     : div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, ['No items']);
-};
-
-// Synchronizes column settings by updating visibility based on the searched or selected column settings
-export const columnStateSynchronizer = (initialUpdatingColumnSettings, updatingColumnSettings) => {
-  return _.map((column) => {
-    const updatedColumn = _.find({ name: column.name }, updatingColumnSettings);
-    return { ...column, visible: updatedColumn ? updatedColumn.visible : false };
-  }, initialUpdatingColumnSettings);
 };
 
 const DataTable = (props) => {
@@ -191,9 +184,11 @@ const DataTable = (props) => {
   const table = useRef();
   const signal = useCancellation();
 
-  // This ensures that the initialUpdatingColumnSettings is set only once after first render
+  // This ensures that the initialUpdatingColumnSettings updated initially or when all settings are (un)checked
   const initialUpdatingColumnSettings = useRef(updatingColumnSettings);
-  initialUpdatingColumnSettings.current ??= updatingColumnSettings;
+  if (initialUpdatingColumnSettings.current === undefined || initialUpdatingColumnSettings.current?.length === updatingColumnSettings?.length) {
+    initialUpdatingColumnSettings.current = updatingColumnSettings;
+  }
 
   const getColumnFilterQueryString = () => {
     return !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
@@ -750,7 +745,7 @@ const DataTable = (props) => {
             ButtonPrimary,
             {
               onClick: () => {
-                setColumnState(columnStateSynchronizer(initialUpdatingColumnSettings.current, updatingColumnSettings));
+                setColumnState(columnSettingsSynchronizer(initialUpdatingColumnSettings.current, updatingColumnSettings));
                 setUpdatingColumnSettings(undefined);
               },
             },
