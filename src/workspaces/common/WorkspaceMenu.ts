@@ -279,7 +279,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed' || noAccess,
+        disabled: !workspaceLoaded || state === 'Deleting' || state === 'DeleteFailed',
         onClick: () => {
           menuClicked('Leave');
           onLeave();
