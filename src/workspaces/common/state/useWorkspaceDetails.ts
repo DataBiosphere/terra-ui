@@ -34,6 +34,7 @@ export const useWorkspaceDetails = (
     const isProjectOwner = workspaceUserRoles.includes('project-owner');
     const isOwner = workspaceUserRoles.includes('owner');
 
+    // Construct a workspace object (contains dummy values for TS compliance) for users without read access
     return {
       accessLevel: isProjectOwner ? 'PROJECT_OWNER' : (isOwner && 'OWNER') || 'NO ACCESS',
       canCompute: isProjectOwner || isOwner,
