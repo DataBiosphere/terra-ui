@@ -222,8 +222,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
           cloudProvider !== cloudProviderTypes.GCP ||
           !workspaceLoaded ||
           state === 'Deleting' ||
-          state === 'DeleteFailed' ||
-          noAccess,
+          state === 'DeleteFailed',
         onClick: () => {
           menuClicked('Settings');
           onShowSettings();
