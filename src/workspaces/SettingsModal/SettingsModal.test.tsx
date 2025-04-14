@@ -4,6 +4,7 @@ import { axe } from 'jest-axe';
 import _ from 'lodash/fp';
 import React from 'react';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { SeparateSubmissionFinalOutputsSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -20,6 +21,7 @@ import {
   suggestedPrefixes,
   WorkspaceSetting,
 } from 'src/workspaces/SettingsModal/utils';
+import { isOwner as isWorkspaceOwner } from 'src/workspaces/utils';
 
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
@@ -31,6 +33,17 @@ jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
     isFeaturePreviewEnabled: jest.fn(),
   };
 });
+
+jest.mock('src/libs/ajax/SamResources', () => ({
+  SamResources: jest.fn(() => ({
+    getResourceRolesV2: jest.fn(),
+  })),
+}));
+
+jest.mock('src/workspaces/utils', () => ({
+  ...jest.requireActual('src/workspaces/utils'),
+  isOwner: jest.fn(),
+}));
 
 describe('SettingsModal', () => {
   const captureEvent = jest.fn();
@@ -144,6 +157,22 @@ describe('SettingsModal', () => {
           }),
       })
     );
+
+    asMockedFn(SamResources).mockReturnValue(
+      partial<SamResourcesContract>({
+        getResourceRolesV2: jest.fn().mockResolvedValue(['owner']),
+      })
+    );
+    asMockedFn(isWorkspaceOwner).mockReturnValue(true);
+  };
+
+  const mockNotOwner = () => {
+    asMockedFn(SamResources).mockReturnValue(
+      partial<SamResourcesContract>({
+        getResourceRolesV2: jest.fn().mockResolvedValue(['reader']),
+      })
+    );
+    asMockedFn(isWorkspaceOwner).mockReturnValue(false);
   };
 
   it('has no accessibility errors', async () => {
@@ -200,6 +229,7 @@ describe('SettingsModal', () => {
     // Arrange
     setup([], jest.fn());
     const onDismiss = jest.fn();
+    mockNotOwner();
 
     // Act
     await act(async () => {
@@ -225,6 +255,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       setup([twoRules], jest.fn());
+      mockNotOwner();
 
       // Act
       await act(async () => {
@@ -623,6 +654,7 @@ describe('SettingsModal', () => {
     it('renders all options as disabled if the user is not an owner', async () => {
       // Arrange
       setup([], jest.fn());
+      mockNotOwner();
 
       // Act
       await act(async () => {
@@ -756,6 +788,7 @@ describe('SettingsModal', () => {
     it('renders the option as disabled if the user is not an owner', async () => {
       // Arrange
       setup([], jest.fn());
+      mockNotOwner();
 
       // Act
       await act(async () => {
@@ -769,6 +802,7 @@ describe('SettingsModal', () => {
     it('renders the option as off if no settings exist', async () => {
       // Arrange
       setup([], jest.fn());
+      mockNotOwner();
 
       // Act
       await act(async () => {
@@ -881,6 +915,7 @@ describe('SettingsModal', () => {
     it('renders the option as disabled if the user is not an owner', async () => {
       // Arrange
       setup([], jest.fn());
+      mockNotOwner();
 
       // Act
       await act(async () => {
@@ -894,6 +929,7 @@ describe('SettingsModal', () => {
     it('renders the option as off if no settings exist', async () => {
       // Arrange
       setup([], jest.fn());
+      mockNotOwner();
 
       // Act
       await act(async () => {
