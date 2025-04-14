@@ -40,6 +40,7 @@ import { renderDataCell } from '../entity-service/renderDataCell';
 import {
   allSavedColumnSettingsEntityTypeKey,
   allSavedColumnSettingsInWorkspace,
+  columnSettingsSynchronizer,
   ColumnSettingsWithSavedColumnSettings,
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
@@ -182,6 +183,12 @@ const DataTable = (props) => {
 
   const table = useRef();
   const signal = useCancellation();
+
+  // This ensures that the initialUpdatingColumnSettings updated initially or when all settings are (un)checked
+  const initialUpdatingColumnSettings = useRef(updatingColumnSettings);
+  if (initialUpdatingColumnSettings.current === undefined || initialUpdatingColumnSettings.current?.length === updatingColumnSettings?.length) {
+    initialUpdatingColumnSettings.current = updatingColumnSettings;
+  }
 
   const getColumnFilterQueryString = () => {
     return !!columnFilter.filterColAttr && !!columnFilter.filterColTerm ? `${columnFilter.filterColAttr}=${columnFilter.filterColTerm}` : '';
@@ -732,13 +739,13 @@ const DataTable = (props) => {
         Modal,
         {
           title: 'Select columns',
-          width: 800,
+          width: 1000,
           onDismiss: () => setUpdatingColumnSettings(undefined),
           okButton: h(
             ButtonPrimary,
             {
               onClick: () => {
-                setColumnState(updatingColumnSettings);
+                setColumnState(columnSettingsSynchronizer(initialUpdatingColumnSettings.current, updatingColumnSettings));
                 setUpdatingColumnSettings(undefined);
               },
             },
