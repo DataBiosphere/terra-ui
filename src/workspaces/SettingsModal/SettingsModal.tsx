@@ -2,6 +2,7 @@ import { ButtonPrimary, Modal, SpinnerOverlay } from '@terra-ui-packages/compone
 import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { SamResources } from 'src/libs/ajax/SamResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -45,7 +46,7 @@ interface SettingsModalProps {
  */
 const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const { namespace, name } = props.workspace.workspace;
-  const isOwner = isWorkspaceOwner(props.workspace.accessLevel);
+  const [isOwner, setIsOwner] = useState(false);
 
   const [lifecycleRulesEnabled, setLifecycleRulesEnabled] = useState(false);
   const [prefixes, setPrefixes] = useState<string[]>([]);
@@ -64,6 +65,24 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [busy, setBusy] = useState(true);
 
   const signal = useCancellation();
+
+  // Check if the user has owner access to the workspace
+  useEffect(() => {
+    const checkOwnerAccess = async () => {
+      const ownerAccess =
+        isWorkspaceOwner(props.workspace.accessLevel) ||
+        _.some(
+          (role) => _.includes(role, ['project-owner', 'owner']),
+          await SamResources(signal).getResourceRolesV2({
+            resourceTypeName: 'workspace',
+            resourceId: `${props.workspace.workspace.workspaceId}`,
+          })
+        );
+
+      setIsOwner(ownerAccess);
+    };
+    void checkOwnerAccess();
+  }, [props.workspace, signal]);
 
   const getFirstBucketLifecycleSetting = (
     settings: WorkspaceSetting[],
