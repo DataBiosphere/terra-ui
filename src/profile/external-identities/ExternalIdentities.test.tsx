@@ -2,6 +2,8 @@ import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import React from 'react';
 import { AppConfigSettings, getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { SAGE_ACCOUNT_LINKING } from 'src/libs/feature-previews-config';
 import { TerraUserState, userStore } from 'src/libs/state';
 import { ExternalIdentities } from 'src/profile/external-identities/ExternalIdentities';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -9,6 +11,11 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
   getConfig: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
 }));
 
 jest.mock('src/profile/external-identities/OAuth2Account', () => ({
@@ -20,17 +27,16 @@ jest.mock('src/profile/external-identities/NihAccount', () => ({
   ...jest.requireActual('src/profile/external-identities/NihAccount'),
   NihAccount: jest.fn(() => <div>Nih Account</div>),
 }));
+
 describe('ExternalIdentities', () => {
-  beforeEach(() =>
-    asMockedFn(getConfig).mockReturnValue(
-      partial<AppConfigSettings>({
-        externalCreds: { providers: ['github'], urlRoot: 'https/foo.bar.com' },
-      })
-    )
-  );
   describe('when the user has access to GitHub Account Linking', () => {
     it('shows the GitHub Account Linking card', async () => {
       // Arrange
+      asMockedFn(getConfig).mockReturnValue(
+        partial<AppConfigSettings>({
+          externalCreds: { providers: ['github'], urlRoot: 'https/foo.bar.com' },
+        })
+      );
       await act(async () => {
         userStore.update((state: TerraUserState) => ({ ...state, enterpriseFeatures: ['github-account-linking'] }));
       });
@@ -45,6 +51,11 @@ describe('ExternalIdentities', () => {
   describe('when the user does not have access to GitHub Account Linking', () => {
     it('hides the GitHub Account Linking card', async () => {
       // Arrange
+      asMockedFn(getConfig).mockReturnValue(
+        partial<AppConfigSettings>({
+          externalCreds: { providers: ['github'], urlRoot: 'https/foo.bar.com' },
+        })
+      );
       await act(async () => {
         userStore.update((state: TerraUserState) => ({ ...state, enterpriseFeatures: [] }));
       });
@@ -54,6 +65,42 @@ describe('ExternalIdentities', () => {
 
       // Assert
       expect(screen.queryByText('GitHub')).toBeNull();
+    });
+  });
+  describe('when the user has the Sage Account Linking feature preview enabled', () => {
+    it('shows the Sage Account Linking card', async () => {
+      // Arrange
+      asMockedFn(getConfig).mockReturnValue(
+        partial<AppConfigSettings>({
+          externalCreds: { providers: ['sage'], urlRoot: 'https/foo.bar.com' },
+        })
+      );
+      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === SAGE_ACCOUNT_LINKING);
+      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+
+      // Act
+      render(<ExternalIdentities queryParams={{}} />);
+
+      // Assert
+      screen.getByText('Sage Bionetworks');
+    });
+  });
+  describe('when the user has the Sage Account Linking feature preview disabled', () => {
+    it('hides the Sage Account Linking card', async () => {
+      // Arrange
+      asMockedFn(getConfig).mockReturnValue(
+        partial<AppConfigSettings>({
+          externalCreds: { providers: ['sage'], urlRoot: 'https/foo.bar.com' },
+        })
+      );
+      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === SAGE_ACCOUNT_LINKING);
+      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
+
+      // Act
+      render(<ExternalIdentities queryParams={{}} />);
+
+      // Assert
+      expect(screen.queryByText('Sage')).toBeNull();
     });
   });
 
