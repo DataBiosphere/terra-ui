@@ -1033,8 +1033,11 @@ export const ColumnSettings = forwardRef(({ columnSettings, onChange }, ref) => 
   const [items, setItems] = useState(indexedColumnSettings);
 
   useImperativeHandle(ref, () => ({
+    getItems,
     updateItems,
   }));
+
+  const getItems = () => items;
 
   const updateItems = (modifiedItems) => {
     setItems(modifiedItems);

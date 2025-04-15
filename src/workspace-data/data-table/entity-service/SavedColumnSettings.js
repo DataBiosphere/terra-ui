@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { div, h, hr, li, p, span, ul } from 'react-hyperscript-helpers';
 import { ButtonOutline, Clickable, IdContainer, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { AutocompleteTextInput } from 'src/components/input';
+import { AutocompleteTextInput, ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { ColumnSettings } from 'src/components/table';
@@ -333,22 +333,46 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
   ]);
 };
 
+export const filterColumnSettings = (searchTerm, columnSettings) => {
+  const filterTerm = searchTerm.toString().trim().toLowerCase();
+  return _.filter(({ name }) => name.toLowerCase().includes(filterTerm), columnSettings);
+};
+
+export const columnSettingsSynchronizer = (sourceSettings, targetSettings) =>
+  _.map((sourceSetting) => {
+    const targetSetting = _.find({ name: sourceSetting.name }, targetSettings);
+    return {
+      ...sourceSetting,
+      visible: targetSetting?.visible ?? sourceSetting.visible,
+      id: sourceSetting.name,
+    };
+  }, sourceSettings);
+
+export const updateColumnSettings = (columnSettingsRef, newColumnSettings, columnSettingsToPersist) => {
+  columnSettingsRef.current?.updateItems(columnSettingsSynchronizer(newColumnSettings, columnSettingsToPersist));
+};
+
+export const handleSearch = (searchTerm, columnSettingsRef, initialColumnSettings) => {
+  const filteredSettings = filterColumnSettings(searchTerm, initialColumnSettings.current);
+  const currentColumnSettings = columnSettingsRef.current?.getItems();
+
+  // Sync initial column settings with the latest visibility state
+  initialColumnSettings.current = columnSettingsSynchronizer(initialColumnSettings.current, currentColumnSettings);
+
+  // Update column settings and persist visible state based on initial column settings
+  updateColumnSettings(columnSettingsRef, filteredSettings, initialColumnSettings.current);
+};
+
 export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange, ...otherProps }) => {
   const columnSettingsRef = useRef();
+  const initialColumnSettings = useRef(columnSettings);
 
-  // This will update the state of the ColumnSettings component currently in use
-  const updateColumnSettings = (newColumnSettings) => {
-    if (columnSettingsRef.current) {
-      // Need to update the indices and ids as well
-      const indexedColumnSettings = _.map.convert({ cap: false })((value) => {
-        return _.merge(value, { id: value.name });
-      })(newColumnSettings);
-      columnSettingsRef.current.updateItems(indexedColumnSettings);
-    }
-  };
+  const debouncedHandleSearch = _.debounce(300, (searchTerm) => {
+    handleSearch(searchTerm, columnSettingsRef, initialColumnSettings);
+  });
 
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-    div({ style: { flex: '1 1 0' } }, [
+    div({ style: { flex: '1 1 0', marginTop: '0.5rem' } }, [
       h(ColumnSettings, {
         ref: columnSettingsRef,
         columnSettings,
@@ -358,20 +382,28 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
     div(
       {
         style: {
-          width: '275px',
+          width: '400px',
           paddingLeft: '1rem',
           borderLeft: `1px solid ${colors.light()}`,
           marginLeft: '1rem',
-          marginTop: '2rem',
         },
       },
       [
+        div({ style: { width: 350, marginBottom: '1rem' } }, [
+          h(ConfirmedSearchInput, {
+            'aria-label': 'Search',
+            placeholder: 'Search',
+            onChange: debouncedHandleSearch,
+            onKeyUp: (e) => debouncedHandleSearch(e.target.value),
+            defaultValue: '',
+          }),
+        ]),
         h(SavedColumnSettings, {
           ...otherProps,
           columnSettings,
           onLoad: (updatedColumnSettings) => {
             onChange(updatedColumnSettings);
-            updateColumnSettings(updatedColumnSettings);
+            updateColumnSettings(columnSettingsRef, updatedColumnSettings, updatedColumnSettings);
           },
         }),
       ]

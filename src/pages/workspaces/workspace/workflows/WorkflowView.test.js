@@ -603,6 +603,9 @@ describe('Workflow View (GCP)', () => {
           launch: jest.fn(mockLaunchResponse),
         }),
       }),
+      workspaceV2: (_namespace, _name) => ({
+        getSettings: jest.fn().mockReturnValue([]),
+      }),
     }));
 
     // Act

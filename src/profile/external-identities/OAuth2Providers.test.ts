@@ -22,7 +22,7 @@ describe('OAuth2Provider', () => {
     { key: 'kids-first', expectedToolTip: true },
     { key: 'anvil', expectedToolTip: false },
     { key: 'github', expectedToolTip: false },
-    { key: 'sage', expectedToolTip: false },
+    { key: 'sage', expectedToolTip: true },
   ] as Array<{ key: OAuth2ProviderKey; expectedToolTip: boolean }>)(
     'should have toolTip set correctly for %s',
     ({ key, expectedToolTip }) => {
