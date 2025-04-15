@@ -678,4 +678,9 @@ export const navPaths = [
     public: false,
     title: 'Data Browser',
   },
+  {
+    name: 'library', // legacy (redirected from portal.firecloud.org/library)
+    path: '/library',
+    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('library-datasets', props) }),
+  },
 ];
