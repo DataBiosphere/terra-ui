@@ -244,8 +244,13 @@ export const navPaths = [
     title: 'Workflows',
   },
   {
-    name: 'library-methods', // legacy (redirected from portal.firecloud.org/methods)
+    name: 'library-methods', // legacy
     path: '/library/methods',
+    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('library-workflows', props), search: '' }),
+  },
+  {
+    name: 'methods', // legacy (redirected from portal.firecloud.org/methods)
+    path: '/methods',
     component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('library-workflows', props), search: '' }),
   },
 ];
