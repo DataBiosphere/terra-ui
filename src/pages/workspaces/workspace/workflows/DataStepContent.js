@@ -4,7 +4,7 @@ import pluralize from 'pluralize';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { ButtonPrimary, ButtonSecondary, IdContainer, RadioButton } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, RadioButton } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
@@ -30,7 +30,7 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
     setSelectedEntities({});
   };
 
-  const willCreateSet = type === chooseBaseType || _.size(selectedEntities) > 1;
+  const [willCreateSet, setWillCreateSet] = useState(false);
 
   // Render
   const isSet = _.endsWith('_set', rootEntityType);
@@ -61,7 +61,7 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
         {
           tooltip: _.isEmpty(selectedEntities) ? 'Please select data' : undefined,
           disabled: !!errors || _.isEmpty(selectedEntities) || (!newSetName && willCreateSet),
-          onClick: () => onSuccess({ type, selectedEntities, newSetName }),
+          onClick: () => onSuccess({ type, selectedEntities, newSetName, willCreateSet }),
         },
         'OK'
       ),
@@ -160,6 +160,16 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
             }),
           ]
         ),
+        h(
+          LabeledCheckbox,
+          {
+            checked: willCreateSet,
+            onChange: () => {
+              setWillCreateSet(!willCreateSet);
+            },
+          },
+          [` Create a new set for selected ${rootEntityType}`]
+        ),
         willCreateSet &&
           h(IdContainer, [
             (id) =>
@@ -196,7 +206,7 @@ DataStepContent.propTypes = {
     })
   ).isRequired,
   entitySelectionModel: PropTypes.shape({
-    newSetName: PropTypes.string.isRequired,
+    newSetName: PropTypes.string,
     selectedElements: PropTypes.array,
     type: PropTypes.oneOf([chooseSetType, chooseRootType, chooseBaseType]),
   }),

@@ -12,6 +12,7 @@ export const launch = async ({
   selectedEntityType,
   selectedEntityNames,
   newSetName,
+  willCreateSet,
   useCallCache = true,
   deleteIntermediateOutputFiles,
   useReferenceDisks,
@@ -47,7 +48,11 @@ export const launch = async ({
       'Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.'
     );
   }
-  const { entityName, processSet = false } = await Utils.cond(
+  const {
+    entityName,
+    processSet = false,
+    entityNames = undefined,
+  } = await Utils.cond(
     [isSnapshot || selectedEntityType === undefined, () => ({})],
     [
       `${selectedEntityType}_set` === rootEntityType,
@@ -59,11 +64,15 @@ export const launch = async ({
     [
       selectedEntityType === rootEntityType,
       async () => {
+        if (willCreateSet) {
+          await createSet();
+          return { entityName: newSetName, processSet: true };
+        }
         if (_.size(selectedEntityNames) === 1) {
           return { entityName: selectedEntityNames[0] };
         }
-        await createSet();
-        return { entityName: newSetName, processSet: true };
+
+        return { entityNames: selectedEntityNames };
       },
     ],
     [
@@ -81,8 +90,12 @@ export const launch = async ({
     .workspace(namespace, name)
     .methodConfig(configNamespace, configName)
     .launch({
-      entityType: Utils.cond([entityName === undefined, () => undefined], [processSet, () => `${rootEntityType}_set`], () => rootEntityType),
-      entityName,
+      entityType: Utils.cond(
+        [entityName === undefined && !entityNames, () => undefined],
+        [processSet, () => `${rootEntityType}_set`],
+        () => rootEntityType
+      ),
+      entityName: Utils.cond([!entityNames, () => entityName], () => undefined),
       expression: processSet ? `this.${rootEntityType}s` : undefined,
       useCallCache,
       deleteIntermediateOutputFiles,
@@ -94,5 +107,6 @@ export const launch = async ({
       monitoringImage,
       monitoringImageScript,
       perWorkflowCostCap,
+      entityNames: Utils.cond([!entityNames, () => undefined], () => entityNames),
     });
 };
