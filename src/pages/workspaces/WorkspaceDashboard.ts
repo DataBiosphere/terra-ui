@@ -1,11 +1,19 @@
 import { DashboardAuthContainer } from 'src/pages/workspaces/DashboardAuthContainer';
 
+const workspacePathConfig = {
+  name: 'workspace-dashboard',
+  component: DashboardAuthContainer,
+  public: true,
+};
+
 export const navPaths = [
   {
-    name: 'workspace-dashboard',
     path: '/workspaces/:namespace/:name',
-    component: DashboardAuthContainer,
     title: ({ name }) => `${name} - Dashboard`,
-    public: true,
+    ...workspacePathConfig,
+  },
+  {
+    path: '/workspaces/:id',
+    ...workspacePathConfig,
   },
 ];
