@@ -2,6 +2,7 @@ import { InfoBox } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
 import { getPolicyDescriptions } from 'src/workspaces/utils';
@@ -35,5 +36,12 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
         ]
       );
     }, policyDescriptions),
+    h(InfoRow, { title: 'Permalink to this workspace' }, [
+      h(ClipboardButton, {
+        'aria-label': 'Copy Permalink to this workspace to clipboard',
+        text: `${window.location.origin}/#workspaces/${workspace.workspace.workspaceId}`,
+        style: { marginLeft: '0.25rem' },
+      }),
+    ]),
   ]);
 };
