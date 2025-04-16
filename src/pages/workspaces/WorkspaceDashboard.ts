@@ -14,6 +14,7 @@ export const navPaths = [
   },
   {
     path: '/workspaces/:id',
+    title: '',
     ...workspacePathConfig,
   },
 ];

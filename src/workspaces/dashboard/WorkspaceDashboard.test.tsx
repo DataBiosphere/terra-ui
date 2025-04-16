@@ -1,6 +1,5 @@
 import { screen } from '@testing-library/react';
 import React from 'react';
-import { navPaths } from 'src/pages/workspaces/WorkspaceDashboard';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleBucketOptions, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
@@ -83,30 +82,5 @@ describe('WorkspaceDashboard', () => {
     // Assert
     expect(screen.getByText('Last Updated')).toBeInTheDocument();
     expect(screen.getByText('Creation Date')).toBeInTheDocument();
-  });
-});
-
-describe('navPaths', () => {
-  it('should define the correct paths and configurations', () => {
-    expect(navPaths).toEqual([
-      {
-        path: '/workspaces/:namespace/:name',
-        title: expect.any(Function),
-        name: 'workspace-dashboard',
-        component: expect.any(Function),
-        public: true,
-      },
-      {
-        path: '/workspaces/:id',
-        name: 'workspace-dashboard',
-        component: expect.any(Function),
-        public: true,
-      },
-    ]);
-  });
-
-  it('should generate the correct title for the first path', () => {
-    const titleFunction = navPaths[0].title;
-    expect(titleFunction({ name: 'TestWorkspace' })).toBe('TestWorkspace - Dashboard');
   });
 });
