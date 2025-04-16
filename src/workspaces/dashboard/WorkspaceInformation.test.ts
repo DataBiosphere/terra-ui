@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as clipboard from 'clipboard-polyfill/text';
 import { axe } from 'jest-axe';
 import { h } from 'react-hyperscript-helpers';
 import { azureRegions } from 'src/libs/azure-regions';
@@ -16,7 +17,20 @@ import { WorkspacePolicy } from 'src/workspaces/utils';
 
 jest.mock('src/libs/notifications');
 
+type ClipboardPolyfillExports = typeof import('clipboard-polyfill/text');
+jest.mock('clipboard-polyfill/text', (): ClipboardPolyfillExports => {
+  const actual = jest.requireActual<ClipboardPolyfillExports>('clipboard-polyfill/text');
+  return {
+    ...actual,
+    writeText: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
 describe('WorkspaceInformation', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('renders information for a non-protected workspace without region constraints and does not fail accessibility tests', async () => {
     // Act
     const { container } = render(
@@ -142,4 +156,38 @@ describe('WorkspaceInformation', () => {
       }
     }
   );
+
+  it('renders the permalink to the workspace', async () => {
+    // Act
+    const { container } = render(
+      h(WorkspaceInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true } })
+    );
+
+    // Assert
+    const permalinkButton = screen.getByLabelText('Copy Permalink to this workspace to clipboard');
+    expect(permalinkButton).toBeInTheDocument();
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it('copies the correct permalink to the clipboard', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { container } = render(
+      h(WorkspaceInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true } })
+    );
+
+    // Act
+    const permalinkButton = screen.getByLabelText('Copy Permalink to this workspace to clipboard');
+    await user.click(permalinkButton);
+
+    // Assert
+    expect(clipboard.writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/#workspaces/${defaultGoogleWorkspace.workspace.workspaceId}`
+    );
+
+    // Accessibility
+    expect(await axe(container)).toHaveNoViolations();
+  });
 });
