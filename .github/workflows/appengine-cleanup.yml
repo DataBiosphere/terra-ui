@@ -22,7 +22,7 @@ jobs:
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
           service_account: 'appengine-cleanup-non-prod@bvdp-saturn-dev.iam.gserviceaccount.com'
       - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v1'
+        uses: 'google-github-actions/setup-gcloud@v2'
       # Delete old AppEngine versions in each environment
       - run: ./scripts/delete-old-app-engine-versions.sh dev
       - run: ./scripts/delete-old-app-engine-versions.sh staging
