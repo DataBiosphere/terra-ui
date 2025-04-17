@@ -168,7 +168,7 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
               setWillCreateSet(!willCreateSet);
             },
           },
-          [` Create a new set for selected ${rootEntityType}`]
+          [` Create a new set for selected ${rootEntityType}s`]
         ),
         willCreateSet &&
           h(IdContainer, [
