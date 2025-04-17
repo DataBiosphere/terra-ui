@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { dd, div, dt } from 'react-hyperscript-helpers';
 
 interface InfoRowProps {
-  title: string;
+  title: string | ReactNode;
   subtitle?: string;
   children?: ReactNode;
 }
