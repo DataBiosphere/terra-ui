@@ -1,4 +1,4 @@
-import { icon, InfoBox, Link } from '@terra-ui-packages/components';
+import { InfoBox, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
@@ -37,15 +37,8 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
         ]
       );
     }, policyDescriptions),
-    h(
-      InfoRow,
-      {
-        title: h(Link, { href: workspaceUrl }, [
-          'Permalink to this workspace',
-          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
-        ]),
-      },
-      [h(ClipboardButton, { 'aria-label': 'Copy Permalink to this workspace to clipboard', text: workspaceUrl })]
-    ),
+    h(InfoRow, { title: h(Link, { href: workspaceUrl }, ['Permalink to this workspace']) }, [
+      h(ClipboardButton, { 'aria-label': 'Copy Permalink to this workspace to clipboard', text: workspaceUrl }),
+    ]),
   ]);
 };
