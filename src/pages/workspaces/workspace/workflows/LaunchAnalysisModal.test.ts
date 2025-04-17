@@ -67,6 +67,7 @@ describe('Launch Analysis Modal', () => {
           },
         },
       ],
+      willCreateSet: true,
     };
 
     const perWorkflowCostCap = '10.00';
@@ -134,6 +135,7 @@ describe('Launch Analysis Modal', () => {
           },
         },
       ],
+      willCreateSet: true,
     };
 
     const perWorkflowCostCap = '';
