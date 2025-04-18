@@ -26,9 +26,13 @@ const getWorkspaceNamespaceAndName = async (
   props: DashboardAuthContainerProps,
   signal: AbortSignal
 ): Promise<DashboardAuthContainerNameProps> => {
-  const { id } = props as DashboardAuthContainerIdProps;
-  const workspace: WorkspaceWrapper = await Workspaces(signal).getById(id, []);
-  return { namespace: workspace.workspace.namespace, name: workspace.workspace.name };
+  try {
+    const { id } = props as DashboardAuthContainerIdProps;
+    const workspace: WorkspaceWrapper = await Workspaces(signal).getById(id, []);
+    return { namespace: workspace.workspace.namespace, name: workspace.workspace.name };
+  } catch {
+    return { namespace: ' ', name: ' ' };
+  }
 };
 
 export const DashboardAuthContainer = (props: DashboardAuthContainerProps): ReactNode => {
