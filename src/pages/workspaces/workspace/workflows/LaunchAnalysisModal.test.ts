@@ -51,6 +51,7 @@ describe('Launch Analysis Modal', () => {
     const workspace = { workspace: { namespace, name, googleProject } };
     const config = { rootEntityType: 'sample' };
     const entitySelectionModel = {
+      preserveSet: true,
       type: chooseRootType,
       newSetName: 'sampleSet',
       selectedEntities: [
@@ -118,6 +119,7 @@ describe('Launch Analysis Modal', () => {
     const workspace = { workspace: { namespace, name, googleProject } };
     const config = { rootEntityType: 'sample' };
     const entitySelectionModel = {
+      preserveSet: true,
       type: chooseRootType,
       newSetName: 'sampleSet',
       selectedEntities: [
