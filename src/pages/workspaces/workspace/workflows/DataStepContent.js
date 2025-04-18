@@ -4,7 +4,7 @@ import pluralize from 'pluralize';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { ButtonPrimary, ButtonSecondary, IdContainer, RadioButton } from 'src/components/common';
+import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, RadioButton } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
@@ -31,6 +31,7 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
   };
 
   const willCreateSet = type === chooseBaseType || _.size(selectedEntities) > 1;
+  const [preserveSet, setPreserveSet] = useState(true);
 
   // Render
   const isSet = _.endsWith('_set', rootEntityType);
@@ -61,7 +62,7 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
         {
           tooltip: _.isEmpty(selectedEntities) ? 'Please select data' : undefined,
           disabled: !!errors || _.isEmpty(selectedEntities) || (!newSetName && willCreateSet),
-          onClick: () => onSuccess({ type, selectedEntities, newSetName }),
+          onClick: () => onSuccess({ type, selectedEntities, newSetName, preserveSet }),
         },
         'OK'
       ),
@@ -160,6 +161,17 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
             }),
           ]
         ),
+        willCreateSet &&
+          h(
+            LabeledCheckbox,
+            {
+              checked: preserveSet,
+              onChange: () => {
+                setPreserveSet(!preserveSet);
+              },
+            },
+            [` Retain the new set created for selected ${rootEntityType}s.  If unchecked, the set will be deleted after submission.`]
+          ),
         willCreateSet &&
           h(IdContainer, [
             (id) =>

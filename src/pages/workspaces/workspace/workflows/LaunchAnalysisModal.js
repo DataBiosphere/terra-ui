@@ -28,7 +28,7 @@ const LaunchAnalysisModal = ({
     workspace: { namespace, name: workspaceName, googleProject },
   },
   processSingle,
-  entitySelectionModel: { type, selectedEntities, newSetName },
+  entitySelectionModel: { type, selectedEntities, newSetName, preserveSet },
   config,
   config: { rootEntityType },
   useCallCache,
@@ -115,6 +115,7 @@ const LaunchAnalysisModal = ({
         monitoringImage: enableResourceMonitoring && monitoringImage ? monitoringImage : undefined,
         monitoringImageScript: enableResourceMonitoring && monitoringImageScript ? monitoringImageScript : undefined,
         perWorkflowCostCap: perWorkflowCostCap || undefined,
+        preserveSet,
         onProgress: (stage) => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },
