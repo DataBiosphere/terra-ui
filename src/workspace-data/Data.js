@@ -37,7 +37,6 @@ import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
 import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
-import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
 import { dataTableVersionsPathRoot, useDataTableVersions } from './data-table/versioning/data-table-versioning-utils';
@@ -607,19 +606,6 @@ export const WorkspaceData = _.flow(
         ? Promise.all([refreshRunningImportJobs(), loadWdsData()])
         : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
 
-    const loadSnapshotEntities = async (snapshotName) => {
-      try {
-        setSnapshotDetails(_.set([snapshotName, 'error'], false));
-        const entities = await Workspaces(signal).workspace(namespace, name).snapshotEntityMetadata(googleProject, snapshotName);
-        // Prevent duplicate id columns
-        const entitiesWithoutIds = _.mapValues((entity) => _.update(['attributeNames'], _.without([entity.idName]), entity), entities);
-        setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entitiesWithoutIds));
-      } catch (error) {
-        reportError(`Error loading entities in snapshot ${snapshotName}`, error);
-        setSnapshotDetails(_.set([snapshotName, 'error'], true));
-      }
-    };
-
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
     const searchAcrossTables = async (typeNames, activeCrossTableTextFilter) => {
@@ -1157,28 +1143,6 @@ export const WorkspaceData = _.flow(
                       noticeForPrefix: (prefix) =>
                         prefix.startsWith(`${dataTableVersionsPathRoot}/`) ? 'Files in this folder are managed via data table versioning.' : null,
                       shouldDisableEditForPrefix: (prefix) => prefix.startsWith(`${dataTableVersionsPathRoot}/`),
-                    }),
-                ],
-                [
-                  workspaceDataTypes.snapshot,
-                  () =>
-                    h(SnapshotContent, {
-                      key: refreshKey,
-                      workspace,
-                      snapshotDetails,
-                      snapshotName: selectedData.snapshotName,
-                      tableName: selectedData.tableName,
-                      loadMetadata: () => loadSnapshotEntities(selectedData.snapshotName),
-                      onUpdate: async (newSnapshotName) => {
-                        await loadSnapshotMetadata();
-                        setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName: newSnapshotName });
-                        forceRefresh();
-                      },
-                      onDelete: async () => {
-                        await loadSnapshotMetadata();
-                        setSelectedData(undefined);
-                        forceRefresh();
-                      },
                     }),
                 ],
                 [
