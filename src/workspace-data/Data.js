@@ -502,7 +502,7 @@ const DataTableActions = ({
   ]);
 };
 
-const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
 
 export const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
