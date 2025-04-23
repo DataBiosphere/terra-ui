@@ -608,7 +608,7 @@ export const WorkflowView = _.flow(
         const selection = workflowSelectionStore.get();
         const readSelection = selectionKey && selection.key === selectionKey;
 
-        const { gcpDataRepoSnapshots: snapshots } = await Workspaces(signal).workspace(namespace, name).listSnapshots(1000, 0);
+        const snapshots = [];
         const snapshotMetadata = _.map('metadata', snapshots);
 
         // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.

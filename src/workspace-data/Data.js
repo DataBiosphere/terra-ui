@@ -1,4 +1,4 @@
-import { Interactive, Spinner } from '@terra-ui-packages/components';
+import { Interactive } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -931,136 +931,13 @@ export const WorkspaceData = _.flow(
                         retryFunction: loadSnapshotMetadata,
                       },
                       [
-                        _.map(
-                          ([
-                            snapshotName,
-                            {
-                              resource: { resourceId, snapshotId },
-                              entityMetadata: snapshotTables,
-                              error: snapshotTablesError,
-                            },
-                          ]) => {
-                            const snapshotTablePairs = toSortedPairs(snapshotTables);
-                            return h(
-                              Collapse,
-                              {
-                                key: snapshotName,
-                                titleFirst: true,
-                                noTitleWrap: true,
-                                summaryStyle: { height: 50, paddingRight: '0.5rem', fontWeight: 600 },
-                                tooltip: snapshotName,
-                                tooltipDelay: 250,
-                                style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-                                title: snapshotName,
-                                role: 'listitem',
-                                afterTitle: h(
-                                  Link,
-                                  {
-                                    style: { marginLeft: 'auto' },
-                                    tooltip: 'Snapshot Info',
-                                    onClick: () => {
-                                      setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName });
-                                      forceRefresh();
-                                    },
-                                  },
-                                  [
-                                    icon(
-                                      `info-circle${
-                                        selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName
-                                          ? ''
-                                          : '-regular'
-                                      }`,
-                                      { size: 20 }
-                                    ),
-                                  ]
-                                ),
-                                initialOpenState: selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName,
-                                onFirstOpen: () => loadSnapshotEntities(snapshotName),
-                              },
-                              [
-                                Utils.cond(
-                                  [
-                                    snapshotTablesError,
-                                    () =>
-                                      div(
-                                        {
-                                          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
-                                        },
-                                        [
-                                          'Failed to load tables',
-                                          h(
-                                            Link,
-                                            {
-                                              onClick: () => loadSnapshotEntities(snapshotName),
-                                              tooltip: 'Error loading, click to retry.',
-                                            },
-                                            [icon('sync', { size: 24, style: { marginLeft: '1rem' } })]
-                                          ),
-                                        ]
-                                      ),
-                                  ],
-                                  [
-                                    snapshotTables === undefined,
-                                    () =>
-                                      div(
-                                        {
-                                          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
-                                        },
-                                        ['Loading snapshot contents...', h(Spinner, { style: { marginLeft: '1rem' } })]
-                                      ),
-                                  ],
-                                  () =>
-                                    div({ role: 'list', style: { fontSize: 14, lineHeight: '1.5' } }, [
-                                      _.map(([tableName, { count }]) => {
-                                        const canCompute = !!workspace?.canCompute;
-                                        return h(
-                                          DataTypeButton,
-                                          {
-                                            wrapperProps: { role: 'listitem' },
-                                            buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
-                                            // TODO: Remove nested ternary to align with style guide
-                                            // eslint-disable-next-line no-nested-ternary
-                                            tooltip: canCompute
-                                              ? tableName
-                                                ? `${tableName} (${count} row${count === 1 ? '' : 's'})`
-                                                : undefined
-                                              : [
-                                                  div(
-                                                    { key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } },
-                                                    'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
-                                                      'Contact the owner of this workspace to change your permissions.'
-                                                  ),
-                                                ],
-                                            tooltipSide: canCompute ? 'bottom' : 'left',
-                                            key: `${snapshotName}_${tableName}`,
-                                            selected:
-                                              selectedData?.type === workspaceDataTypes.snapshot &&
-                                              selectedData.snapshotName === snapshotName &&
-                                              selectedData.tableName === tableName,
-                                            entityName: tableName,
-                                            entityCount: count,
-                                            onClick: () => {
-                                              if (canCompute) {
-                                                setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName, tableName });
-                                                void Metrics().captureEvent(Events.workspaceSnapshotContentsView, {
-                                                  ...extractWorkspaceDetails(workspace.workspace),
-                                                  resourceId,
-                                                  snapshotId,
-                                                  entityType: tableName,
-                                                });
-                                                forceRefresh();
-                                              }
-                                            },
-                                          },
-                                          [`${tableName} (${count})`]
-                                        );
-                                      }, snapshotTablePairs),
-                                    ])
-                                ),
-                              ]
-                            );
-                          },
-                          sortedSnapshotPairs
+                        div(
+                          // File Browser Banner
+                          { style: { padding: '1rem', margin: '0.75rem', backgroundColor: colors.dark(0.1), borderRadius: '0.5rem' } },
+                          [
+                            span({ style: { fontWeight: 'bold' } }, ['Looking for your snapshots?']),
+                            div(["They're gone; we don't want them anymore."]),
+                          ]
                         ),
                       ]
                     ),
