@@ -5,6 +5,7 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
+import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
@@ -65,6 +66,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [busy, setBusy] = useState(true);
 
   const signal = useCancellation();
+
+  // GCP Batch is default backend in BEEs and Dev environment. Note: 'isProd' is true for both staging and prod
+  const isBatchDefaultBackend = !getConfig().isProd;
 
   // Check if the user has owner access to the workspace
   useEffect(() => {
@@ -179,12 +183,12 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       setRequesterPaysEnabled(requesterPaysEnabled);
 
       const batchSetting = getBatchSetting(settings);
-      const batchEnabled = batchSetting === undefined ? false : batchSetting.config.enabled;
+      const batchEnabled = batchSetting === undefined ? isBatchDefaultBackend : batchSetting.config.enabled;
       setBatchEnabled(batchEnabled);
     });
 
     loadSettings();
-  }, [namespace, name, signal]);
+  }, [namespace, name, signal, isBatchDefaultBackend]);
 
   const persistSettings = _.flow(
     Utils.withBusyState(setBusy),
@@ -265,13 +269,11 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       });
     }
 
-    // Event about batch setting only if something actually changed.
+    // Event about batch setting only if it changed
     const originalBatchSetting = getBatchSetting(workspaceSettings || []);
     const newBatchSetting = getBatchSetting(newSettings);
-    if (originalBatchSetting === undefined && !newBatchSetting?.config.enabled) {
-      // If the bucket had no batch setting before, and the current one is disabled, don't event.
-    } else if (!_.isEqual(originalBatchSetting, newBatchSetting)) {
-      // Event if the setting changed.
+    if (!_.isEqual(originalBatchSetting, newBatchSetting)) {
+      // Event if the setting changed
       void Metrics().captureEvent(Events.workspaceSettingsBatch, {
         enabled: batchEnabled,
         ...extractWorkspaceDetails(props.workspace),
