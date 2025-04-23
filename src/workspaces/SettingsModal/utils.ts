@@ -245,24 +245,14 @@ const modifySeparateSubmissionOutputsSetting = (
 };
 
 /**
- * Modifies the batch setting in the workspace settings.
- * If no such setting exists and batch is set to enabled, it will be created.
+ * Modifies the Batch setting in the workspace settings. If no such setting exists, it will be created.
  *
  * Note that any other settings will be preserved but moved to the end of the array.
  */
 export const modifyBatchSetting = (originalSettings: WorkspaceSetting[], enabled: boolean): WorkspaceSetting[] => {
-  // Clone original for testing purposes and to allow eventing only if there was a change.
-  const workspaceSettings = _.cloneDeep(originalSettings);
+  const otherSettings: WorkspaceSetting[] = originalSettings.filter((setting) => !isBatchSetting(setting));
 
-  const batchSettings: BatchSetting[] = workspaceSettings.filter((setting: WorkspaceSetting) =>
-    isBatchSetting(setting)
-  ) as BatchSetting[];
-  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isBatchSetting(setting));
-
-  // If no batchSetting existed and batch is set to disabled, do nothing
-  if (batchSettings.length === 0 && !enabled) {
-    return workspaceSettings;
-  }
+  // Save the current Batch setting preference. Rawls will handle it appropriately if there's no change in the setting.
   return _.concat(
     [
       {
