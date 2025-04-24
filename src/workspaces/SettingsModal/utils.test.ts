@@ -1,5 +1,6 @@
 import {
   BucketLifecycleSetting,
+  modifyBatchSetting,
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
   removeFirstBucketDeletionRule,
@@ -499,6 +500,46 @@ describe('modifyFirstSoftDeleteSetting', () => {
       },
       {
         settingType: 'OtherSetting', // Algorithm concats other settings at the end
+      },
+    ]);
+  });
+});
+
+describe('modifyBatchSetting', () => {
+  it('adds Batch setting if one did not exist', async () => {
+    // Act
+    const result = modifyBatchSetting([], false);
+
+    // Assert
+    expect(result).toEqual([
+      {
+        settingType: 'UseCromwellGcpBatchBackend',
+        config: { enabled: false },
+      },
+    ]);
+  });
+
+  it('modifies Batch setting', async () => {
+    // Arrange
+    const originalSettings: WorkspaceSetting[] = [
+      otherSetting,
+      {
+        settingType: 'UseCromwellGcpBatchBackend',
+        config: { enabled: false },
+      },
+    ];
+
+    // Act
+    const result = modifyBatchSetting(originalSettings, true);
+
+    // Assert
+    expect(result).toEqual([
+      {
+        settingType: 'UseCromwellGcpBatchBackend',
+        config: { enabled: true },
+      },
+      {
+        settingType: 'OtherSetting', // function appends other settings at the end
       },
     ]);
   });
