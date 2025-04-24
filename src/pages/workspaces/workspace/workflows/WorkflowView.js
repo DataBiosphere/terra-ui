@@ -54,7 +54,7 @@ import {
 } from 'src/libs/workflow-utils';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal';
-import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
+import { chooseBaseType, chooseRootType, chooseSetType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink';
 import { sanitizeAttributeUpdateString } from 'src/pages/workspaces/workspace/workflows/workflow-view-utils';
@@ -114,22 +114,8 @@ const filterConfigIO = ({ inputs, outputs }) => {
   return _.flow(_.update('inputs', _.pick(_.map('name', inputs))), _.update('outputs', _.pick(_.map('name', outputs))));
 };
 
-const WorkflowIOTable = ({
-  which,
-  inputsOutputs: data,
-  config,
-  errors,
-  onChange,
-  onSetDefaults,
-  onBrowse,
-  suggestions,
-  availableSnapshots,
-  readOnly,
-}) => {
+const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' });
-
-  // will only match if the current root entity type comes from a snapshot
-  const isSnapshot = _.some({ name: config.dataReferenceName }, availableSnapshots);
 
   const taskSort = (o) => ioTask(o.name).toLowerCase();
   const varSort = (o) => ioVariable(o.name).toLowerCase();
@@ -177,7 +163,6 @@ const WorkflowIOTable = ({
           h(Fragment, [
             h(HeaderCell, [WorkflowTableColumnNames.INPUT_VALUE]),
             !readOnly &&
-              !isSnapshot &&
               which === 'outputs' &&
               h(Fragment, [div({ style: { whiteSpace: 'pre' } }, ['  |  ']), h(Link, { onClick: onSetDefaults }, ['Use defaults'])]),
           ]),
@@ -370,10 +355,10 @@ export const WorkflowView = _.flow(
   withCancellationSignal
 )(
   class WorkflowView extends Component {
-    resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, isSnapshot) {
+    resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata) {
       const { workflowName } = this.props;
       return {
-        type: Utils.cond([isSnapshot, () => processSnapshotTable], [_.has(value, entityMetadata), () => chooseRootType], () => chooseBaseType),
+        type: Utils.cond([_.has(value, entityMetadata), () => chooseRootType], () => chooseBaseType),
         selectedEntities,
         newSetName: Utils.sanitizeEntityName(`${workflowName}_${new Date().toISOString().slice(0, -5)}`),
       };
@@ -470,8 +455,6 @@ export const WorkflowView = _.flow(
         variableSelected,
         modifiedConfig,
         updatingConfig,
-        selectedSnapshotEntityMetadata,
-        availableSnapshots,
         perWorkflowCostCap,
       } = this.state;
       const { namespace, name, workspace } = this.props;
@@ -491,7 +474,6 @@ export const WorkflowView = _.flow(
               h(LaunchAnalysisModal, {
                 workspace,
                 config: savedConfig,
-                entityMetadata: selectedSnapshotEntityMetadata,
                 accessLevel: workspace.accessLevel,
                 bucketName: workspace.workspace.bucketName,
                 processSingle: this.isSingle(),
@@ -512,12 +494,8 @@ export const WorkflowView = _.flow(
                   const {
                     methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
                   } = modifiedConfig;
-                  // will only match if the current root entity type comes from a snapshot
-                  const snapshot = _.find({ metadata: { name: modifiedConfig.dataReferenceName } }, availableSnapshots);
                   void Metrics().captureEvent(Events.workflowLaunch, {
                     ...extractWorkspaceDetails(workspace),
-                    snapshotId: snapshot?.reference.snapshot,
-                    referenceId: snapshot?.referenceId,
                     methodVersion,
                     sourceRepo,
                     methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath,
@@ -551,30 +529,13 @@ export const WorkflowView = _.flow(
     async getValidation() {
       const { namespace, name, workflowNamespace, workflowName, signal } = this.props;
 
-      this.setState({ snapshotReferenceError: undefined });
       try {
         return await Workspaces(signal).workspace(namespace, name).methodConfig(workflowNamespace, workflowName).validate();
       } catch (e) {
         if (e.status === 404) {
-          const errmsg = await e.text();
-          // distinguish between snapshot-reference-not-found and workflow-not-found
-          if (errmsg?.includes('Reference name') && errmsg?.includes('does not exist in workspace')) {
-            this.setState(_.set(['snapshotReferenceError', errmsg]));
-            return true;
-          }
           return false;
         }
         throw e;
-      }
-    }
-
-    async maybeGetSnapshotEntityMetadata(googleProject, modifiedConfig) {
-      const { namespace, name, signal } = this.props;
-
-      try {
-        return await Workspaces(signal).workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName);
-      } catch (error) {
-        return undefined;
       }
     }
 
@@ -585,7 +546,7 @@ export const WorkflowView = _.flow(
         workflowNamespace,
         workflowName,
         workspace: {
-          workspace: { attributes, googleProject },
+          workspace: { attributes },
         },
         signal,
         queryParams: { selectionKey },
@@ -608,9 +569,6 @@ export const WorkflowView = _.flow(
         const selection = workflowSelectionStore.get();
         const readSelection = selectionKey && selection.key === selectionKey;
 
-        const snapshots = [];
-        const snapshotMetadata = _.map('metadata', snapshots);
-
         // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
         // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
         // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
@@ -620,18 +578,12 @@ export const WorkflowView = _.flow(
           !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
         )(config);
 
-        const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName
-          ? await this.maybeGetSnapshotEntityMetadata(googleProject, modifiedConfig)
-          : undefined;
-
         this.setState({
           savedConfig: config,
           modifiedConfig,
           currentSnapRedacted: isRedacted,
           savedSnapRedacted: isRedacted,
           entityMetadata,
-          availableSnapshots: _.sortBy(_.lowerCase, snapshotMetadata),
-          selectedSnapshotEntityMetadata,
           savedInputsOutputs: inputsOutputs,
           modifiedInputsOutputs: inputsOutputs,
           errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
@@ -776,8 +728,7 @@ export const WorkflowView = _.flow(
         [!count, () => 'No data selected'],
         [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
         [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
-        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
-        [type === processSnapshotTable, () => 'process entire snapshot table']
+        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`]
       );
     }
 
@@ -808,7 +759,6 @@ export const WorkflowView = _.flow(
 
     renderSummary() {
       const {
-        signal,
         workspace: ws,
         workspace: { workspace },
         namespace,
@@ -827,8 +777,6 @@ export const WorkflowView = _.flow(
         errors,
         synopsis,
         documentation,
-        availableSnapshots,
-        selectedSnapshotEntityMetadata,
         selectedEntityType,
         entityMetadata,
         entitySelectionModel,
@@ -847,7 +795,6 @@ export const WorkflowView = _.flow(
         currentSnapRedacted,
         savedSnapRedacted,
         wdl,
-        snapshotReferenceError,
       } = this.state;
       const {
         name,
@@ -859,22 +806,12 @@ export const WorkflowView = _.flow(
       const modified = !_.isEqual(modifiedConfig, savedConfig);
       const noLaunchReason = Utils.cond(
         [saving || modified, () => 'Save or cancel to Launch Analysis'],
-        [
-          entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !modifiedConfig.dataReferenceName),
-          () => 'A snapshot and table must be selected',
-        ],
         [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
         [
-          entitySelectionModel.type !== processSnapshotTable &&
-            this.isMultiple() &&
-            !entityMetadata[rootEntityType] &&
-            !_.includes(rootEntityType, possibleSetTypes),
+          this.isMultiple() && !entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes),
           () => `There are no ${selectedEntityType}s in this workspace.`,
         ],
-        [
-          entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && !_.size(entitySelectionModel.selectedEntities),
-          () => 'Select data for analysis',
-        ]
+        [this.isMultiple() && !_.size(entitySelectionModel.selectedEntities), () => 'Select data for analysis']
       );
 
       const inputsValid = _.isEmpty(errors.inputs);
@@ -1006,17 +943,6 @@ export const WorkflowView = _.flow(
                     div([
                       div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                       label(['Select data table:']),
-                      snapshotReferenceError &&
-                        h(
-                          TooltipTrigger,
-                          { content: `The requested snapshot reference '${modifiedConfig.dataReferenceName}' could not be found in this workspace.` },
-                          [
-                            icon('error-standard', {
-                              size: 14,
-                              style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' },
-                            }),
-                          ]
-                        ),
                       h(GroupedSelect, {
                         'aria-label': 'Entity type selector',
                         isClearable: false,
@@ -1025,30 +951,13 @@ export const WorkflowView = _.flow(
                         placeholder: 'Select data type...',
                         styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                         value: selectedEntityType,
-                        onChange: async ({ value, source }) => {
-                          this.setState({ snapshotReferenceError: undefined });
-                          if (source === 'snapshot') {
-                            const selectedSnapshotEntityMetadata = await Workspaces(signal)
-                              .workspace(namespace, workspaceName)
-                              .snapshotEntityMetadata(workspace.googleProject, value);
-
-                            this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value));
-                            this.setState(_.unset(['modifiedConfig', 'rootEntityType']));
-
-                            this.setState({
-                              selectedSnapshotEntityMetadata,
-                              selectedEntityType: value,
-                              entitySelectionModel: this.resetSelectionModel(value, undefined, undefined, true),
-                            });
-                          } else {
-                            this.setState(_.set(['modifiedConfig', 'rootEntityType'], value));
-                            this.setState(_.unset(['modifiedConfig', 'dataReferenceName']));
-                            this.setState({
-                              selectedEntityType: value,
-                              entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false),
-                              selectedSnapshotEntityMetadata: undefined,
-                            });
-                          }
+                        onChange: async ({ value }) => {
+                          this.setState(_.set(['modifiedConfig', 'rootEntityType'], value));
+                          this.setState(_.unset(['modifiedConfig', 'dataReferenceName']));
+                          this.setState({
+                            selectedEntityType: value,
+                            entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false),
+                          });
                         },
                         options: [
                           {
@@ -1058,47 +967,28 @@ export const WorkflowView = _.flow(
                               _.sortBy(_.lowerCase, [...entityTypes, ...possibleSetTypes])
                             ),
                           },
-                          {
-                            label: 'SNAPSHOTS',
-                            options: _.map(({ name }) => ({ value: name, source: 'snapshot' }), availableSnapshots),
-                          },
                         ],
                       }),
                     ]),
-                    entitySelectionModel.type === processSnapshotTable
-                      ? div({ style: { margin: '2rem 0 0 2rem' } }, [
-                          h(Select, {
-                            isDisabled: !WorkspaceUtils.canEditWorkspace(ws).value || !!snapshotReferenceError,
-                            'aria-label': 'Snapshot table selector',
-                            isClearable: false,
-                            value: modifiedConfig.dataReferenceName && !snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
-                            onChange: ({ value }) => {
-                              this.setState(_.set(['modifiedConfig', 'rootEntityType'], value));
-                              this.setState(_.unset(['modifiedConfig', 'entityName']));
-                            },
-                            styles: { container: (old) => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                            options: _.sortBy(_.identity, _.keys(selectedSnapshotEntityMetadata)),
-                          }),
-                        ])
-                      : div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
-                          div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
-                          div({ style: { display: 'flex', alignItems: 'center' } }, [
-                            h(
-                              ButtonPrimary,
-                              {
-                                disabled:
-                                  currentSnapRedacted ||
-                                  this.isSingle() ||
-                                  !rootEntityType ||
-                                  !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]),
-                                onClick: () => this.setState({ selectingData: true }),
-                                ...WorkspaceUtils.getWorkspaceEditControlProps(ws),
-                              },
-                              ['Select Data']
-                            ),
-                            label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`]),
-                          ]),
-                        ]),
+                    div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
+                      div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
+                      div({ style: { display: 'flex', alignItems: 'center' } }, [
+                        h(
+                          ButtonPrimary,
+                          {
+                            disabled:
+                              currentSnapRedacted ||
+                              this.isSingle() ||
+                              !rootEntityType ||
+                              !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]),
+                            onClick: () => this.setState({ selectingData: true }),
+                            ...WorkspaceUtils.getWorkspaceEditControlProps(ws),
+                          },
+                          ['Select Data']
+                        ),
+                        label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`]),
+                      ]),
+                    ]),
                   ]),
               ]),
               div([
@@ -1345,7 +1235,7 @@ export const WorkflowView = _.flow(
                   ButtonPrimary,
                   {
                     style: { marginLeft: '1rem' },
-                    disabled: !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
+                    disabled: !!noLaunchReason || currentSnapRedacted,
                     tooltip: noLaunchReason || (currentSnapRedacted && 'Workflow version was deleted.'),
                     ...WorkspaceUtils.getWorkspaceAnalysisControlProps(ws),
                     onClick: () => this.setState({ launching: true }),
@@ -1369,7 +1259,6 @@ export const WorkflowView = _.flow(
                     ]),
                   ]),
                   !!rootEntityType &&
-                    entitySelectionModel.type !== processSnapshotTable &&
                     h(Fragment, [
                       div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
                       div({ style: styles.outputInfoLabel }, 'References to outputs will be written to'),
@@ -1530,22 +1419,19 @@ export const WorkflowView = _.flow(
         includeOptionalInputs,
         currentSnapRedacted,
         filter,
-        selectedSnapshotEntityMetadata,
-        availableSnapshots,
         entitySelectionModel: { selectedEntities },
       } = this.state;
       // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
       const selectedTableName = modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined;
-      const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata;
-      const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || [];
+      const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || [];
 
       const suggestions = [
         ...(!selectedTableName && !modifiedConfig.dataReferenceName && modifiedConfig.rootEntityType
           ? [`this.${modifiedConfig.rootEntityType}_id`]
           : []),
         ...(modifiedConfig.rootEntityType ? _.map((name) => `this.${name}`, attributeNames) : []),
-        ...getWorkflowInputSuggestionsForAttributesOfSetMembers(selectedEntities, selectionMetadata),
+        ...getWorkflowInputSuggestionsForAttributesOfSetMembers(selectedEntities, entityMetadata),
         ..._.map((name) => `workspace.${name}`, workspaceAttributes),
       ];
       const data = currentSnapRedacted ? _.map((k) => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) : modifiedInputsOutputs[key];
@@ -1652,7 +1538,6 @@ export const WorkflowView = _.flow(
                         });
                       },
                       suggestions,
-                      availableSnapshots,
                     }),
                   ]),
                 ]),
@@ -1662,11 +1547,7 @@ export const WorkflowView = _.flow(
 
     async save() {
       const { namespace, name, workflowNamespace, workflowName } = this.props;
-      const {
-        modifiedConfig,
-        modifiedInputsOutputs,
-        entitySelectionModel: { type },
-      } = this.state;
+      const { modifiedConfig, modifiedInputsOutputs } = this.state;
 
       this.setState({ saving: true });
 
@@ -1688,12 +1569,7 @@ export const WorkflowView = _.flow(
             modifiedConfig: validationResponse.methodConfiguration,
             errors: augmentErrors(validationResponse),
             savedInputsOutputs: modifiedInputsOutputs,
-            ...(type === processSnapshotTable
-              ? {
-                  selectedEntityType: validationResponse.methodConfiguration.dataReferenceName,
-                  selectedTableName: validationResponse.methodConfiguration.rootEntityType,
-                }
-              : { selectedEntityType: validationResponse.methodConfiguration.rootEntityType, selectedTableName: undefined }),
+            ...{ selectedEntityType: validationResponse.methodConfiguration.rootEntityType, selectedTableName: undefined },
           },
           () => setTimeout(() => this.setState({ saved: false }), 3000)
         );

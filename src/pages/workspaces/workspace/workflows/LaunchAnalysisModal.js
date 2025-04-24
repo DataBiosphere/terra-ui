@@ -17,12 +17,11 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { commentValidation } from 'src/pages/workspaces/workspace/submissionHistory/UpdateUserCommentModal';
-import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
+import { chooseBaseType, chooseRootType, chooseSetType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 import { isBatchSetting } from 'src/workspaces/SettingsModal/utils';
 
 const LaunchAnalysisModal = ({
   onDismiss,
-  entityMetadata,
   workspace,
   workspace: {
     workspace: { namespace, name: workspaceName, googleProject },
@@ -94,11 +93,9 @@ const LaunchAnalysisModal = ({
                 };
           },
         ],
-        [type === chooseBaseType, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })],
-        [type === processSnapshotTable, () => ({ selectedEntityType: rootEntityType })]
+        [type === chooseBaseType, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })]
       );
       const { submissionId } = await launch({
-        isSnapshot: type === processSnapshotTable,
         workspace,
         config,
         selectedEntityType,
@@ -129,7 +126,6 @@ const LaunchAnalysisModal = ({
   const mergeSets = _.flatMap(`attributes.${rootEntityType}s.items`);
   const entityCount = Utils.cond(
     [processSingle, () => 1],
-    [type === processSnapshotTable, () => entityMetadata[rootEntityType].count],
     [type === chooseRootType, () => _.size(selectedEntities)],
     [type === chooseBaseType, () => 1],
     [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
