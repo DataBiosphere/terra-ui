@@ -192,7 +192,7 @@ describe('Launch Analysis Modal', () => {
     expect(screen.getByText('You did not set a cost threshold', { exact: false })).toBeInTheDocument();
   });
 
-  it('passes the preserveSet parameter upon launch', async () => {
+  it('passes the deleteEntity parameters upon launch', async () => {
     // Arrange
 
     mockDefaultAjax();
@@ -267,14 +267,14 @@ describe('Launch Analysis Modal', () => {
       monitoringImage: undefined,
       monitoringImageScript: undefined,
       perWorkflowCostCap: undefined,
-      preserveSet: false,
+      deleteEntityType: 'sample_set',
+      deleteEntityName: 'sampleSet',
     });
 
     expect(createEntity).toHaveBeenCalledWith({
       entityType: 'sample_set',
       name: 'sampleSet',
       attributes: {
-        deleteTerraCreatedSet: true,
         samples: {
           itemsType: 'EntityReference',
           items: [

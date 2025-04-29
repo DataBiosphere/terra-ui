@@ -39,7 +39,6 @@ export const launch = async ({
             itemsType: 'EntityReference',
             items: _.map((entityName) => ({ entityName, entityType: selectedEntityType }), selectedEntityNames),
           },
-          ...(preserveSet === false && { deleteTerraCreatedSet: true }),
         },
       });
   };
@@ -99,6 +98,7 @@ export const launch = async ({
       monitoringImage,
       monitoringImageScript,
       perWorkflowCostCap,
-      preserveSet,
+      deleteEntityType: preserveSet ? undefined : `${selectedEntityType}_set`,
+      deleteEntityName: preserveSet ? undefined : newSetName,
     });
 };

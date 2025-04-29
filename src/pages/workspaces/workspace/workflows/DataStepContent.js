@@ -170,9 +170,10 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
                 setPreserveSet(!preserveSet);
               },
             },
-            [` Retain the new set created for selected ${rootEntityType}s.  If unchecked, the set will be deleted after submission.`]
+            [` Save a new set for selected ${rootEntityType}s.`]
           ),
         willCreateSet &&
+          preserveSet &&
           h(IdContainer, [
             (id) =>
               div({ style: { marginTop: '1rem' } }, [

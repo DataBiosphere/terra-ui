@@ -117,7 +117,7 @@ describe('DataStepContent', () => {
     const selectAll = screen.getByRole('checkbox', { name: 'Select all' });
     await user.click(selectAll);
     const checkbox = screen.getByRole('checkbox', {
-      name: 'Retain the new set created for selected samples. If unchecked, the set will be deleted after submission.',
+      name: 'Save a new set for selected samples.',
     });
     expect(checkbox).toBeChecked();
     await user.click(checkbox);
@@ -192,7 +192,7 @@ describe('DataStepContent', () => {
     // Assert
     const selectAll = screen.getByRole('checkbox', { name: 'Select all' });
     await user.click(selectAll);
-    expect(screen.queryByText('Retain the new set created for selected', { exact: false })).toBeInTheDocument();
+    expect(screen.queryByText('Save a new set for selected', { exact: false })).toBeInTheDocument();
 
     const okButton = screen.getByRole('button', { name: 'OK' });
     await user.click(okButton);
