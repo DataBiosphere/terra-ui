@@ -5,6 +5,7 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Methods } from 'src/libs/ajax/methods/Methods';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
@@ -292,6 +293,7 @@ describe('Workflow View (GCP)', () => {
     Apps.mockReturnValue({ list: jest.fn().mockReturnValue([]) });
     Runtimes.mockReturnValue({ listV2: jest.fn() });
     asMockedFn(leoDiskProvider.list).mockImplementation(jest.fn());
+    Metrics.mockReturnValue({ captureEvent: jest.fn() });
   };
 
   it('view workflow in workspace from mock import', async () => {
@@ -619,7 +621,7 @@ describe('Workflow View (GCP)', () => {
             workspace: { namespace, name, bucketName, googleProject },
           },
           processSingle: false,
-          entitySelectionModel: { type: chooseRootType, selectedEntities, newSetName: 'newSetName' },
+          entitySelectionModel: { type: chooseRootType, selectedEntities, newSetName: 'newSetName', preserveSet: true },
           mockValidate,
           config: { rootEntityType },
           useCallCache: true,
