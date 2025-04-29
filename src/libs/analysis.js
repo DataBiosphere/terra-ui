@@ -37,6 +37,7 @@ export const launch = async ({
             itemsType: 'EntityReference',
             items: _.map((entityName) => ({ entityName, entityType: selectedEntityType }), selectedEntityNames),
           },
+          ...(preserveSet === false && { deleteTerraCreatedSet: true }),
         },
       });
   };

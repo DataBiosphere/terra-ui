@@ -26,6 +26,7 @@ asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === PREVIEW_CO
 describe('Launch Analysis Modal', () => {
   let workspaceMethodConfigAjax: MockedFn<WorkspaceContract['methodConfig']>;
   let launchMethodConfig: MockedFn<ReturnType<WorkspaceContract['methodConfig']>['launch']>;
+  const createEntity = jest.fn();
 
   type MethodConfigContract = ReturnType<WorkspaceContract['methodConfig']>;
   beforeEach(() => {
@@ -44,7 +45,7 @@ describe('Launch Analysis Modal', () => {
           partial<WorkspaceContract>({
             checkBucketLocation: jest.fn().mockResolvedValue({ location: 'us-south', locationType: 'region' }),
             checkBucketAccess: jest.fn().mockResolvedValue({}),
-            createEntity: jest.fn(),
+            createEntity,
             methodConfig: workspaceMethodConfigAjax,
           }),
         workspaceV2: () =>
@@ -267,6 +268,21 @@ describe('Launch Analysis Modal', () => {
       monitoringImageScript: undefined,
       perWorkflowCostCap: undefined,
       preserveSet: false,
+    });
+
+    expect(createEntity).toHaveBeenCalledWith({
+      entityType: 'sample_set',
+      name: 'sampleSet',
+      attributes: {
+        deleteTerraCreatedSet: true,
+        samples: {
+          itemsType: 'EntityReference',
+          items: [
+            { entityName: 'sample1', entityType: 'sample' },
+            { entityName: 'sample2', entityType: 'sample' },
+          ],
+        },
+      },
     });
   });
 });
