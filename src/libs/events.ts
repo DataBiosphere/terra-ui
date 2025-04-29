@@ -134,6 +134,8 @@ const eventsList = {
   workflowsAppLaunchWorkflow: 'workflowsApp:launchWorkflow',
   workflowsAppCloseLogViewer: 'workflowsApp:closeLogViewer',
   workflowsTabView: 'workflowsApp:tab:view',
+  workflowCreateSet: 'workflow:createSet',
+  workflowDeleteSet: 'workflow:deleteSet',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceCreateBasic: 'workspace:creation:basicTab',

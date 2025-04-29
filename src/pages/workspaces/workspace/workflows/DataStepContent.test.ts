@@ -120,7 +120,6 @@ describe('DataStepContent', () => {
       name: 'Retain the new set created for selected samples. If unchecked, the set will be deleted after submission.',
     });
     expect(checkbox).toBeChecked();
-    // expect(screen.queryByText('Retain the new set created for selected', { exact: false })).toBeInTheDocument();
     await user.click(checkbox);
     const okButton = screen.getByRole('button', { name: 'OK' });
     await user.click(okButton);
