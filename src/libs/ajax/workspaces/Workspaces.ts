@@ -285,28 +285,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
         );
       },
 
-      snapshot: (snapshotId: string) => {
-        const snapshotPath = `${root}/snapshots/v2/${snapshotId}`;
-
-        return {
-          details: async () => {
-            const res = await fetchRawls(snapshotPath, _.merge(authOpts(), { signal }));
-            return res.json();
-          },
-
-          update: (updateInfo) => {
-            return fetchRawls(
-              snapshotPath,
-              _.mergeAll([authOpts(), jsonBody(updateInfo), { signal, method: 'PATCH' }])
-            );
-          },
-
-          delete: (): Promise<Response> => {
-            return fetchRawls(snapshotPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
-          },
-        };
-      },
-
       submission: (submissionId: string) => {
         const submissionPath = `${root}/submissions/${submissionId}`;
 
