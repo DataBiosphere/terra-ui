@@ -728,7 +728,7 @@ export const WorkflowView = _.flow(
         [!count, () => 'No data selected'],
         [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
         [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
-        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`]
+        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 && preserveSet ? newSetMessage(setType) : ''}`]
       );
     }
 
