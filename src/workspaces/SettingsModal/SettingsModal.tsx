@@ -5,7 +5,6 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
@@ -66,9 +65,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [busy, setBusy] = useState(true);
 
   const signal = useCancellation();
-
-  // GCP Batch is default backend in BEEs and Dev environment. Note: 'isProd' is true for both staging and prod
-  const isBatchDefaultBackend = !getConfig().isProd;
 
   // Check if the user has owner access to the workspace
   useEffect(() => {
@@ -182,13 +178,14 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       const requesterPaysEnabled = requesterPays === undefined ? false : requesterPays.config.enabled;
       setRequesterPaysEnabled(requesterPaysEnabled);
 
+      // Batch is the default backend
       const batchSetting = getBatchSetting(settings);
-      const batchEnabled = batchSetting === undefined ? isBatchDefaultBackend : batchSetting.config.enabled;
+      const batchEnabled = batchSetting === undefined ? true : batchSetting.config.enabled;
       setBatchEnabled(batchEnabled);
     });
 
     loadSettings();
-  }, [namespace, name, signal, isBatchDefaultBackend]);
+  }, [namespace, name, signal]);
 
   const persistSettings = _.flow(
     Utils.withBusyState(setBusy),
