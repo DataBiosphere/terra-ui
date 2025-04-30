@@ -1,4 +1,4 @@
-import { Interactive, Spinner } from '@terra-ui-packages/components';
+import { Interactive } from '@terra-ui-packages/components';
 import FileSaver from 'file-saver';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
@@ -37,7 +37,6 @@ import EntitiesContent from './data-table/entity-service/EntitiesContent';
 import { ExportDataModal } from './data-table/entity-service/ExportDataModal';
 import { RenameTableModal } from './data-table/entity-service/RenameTableModal';
 import { useSavedColumnSettings } from './data-table/entity-service/SavedColumnSettings';
-import { SnapshotContent } from './data-table/entity-service/SnapshotContent';
 import { getRootTypeForSetTable } from './data-table/entity-service/table-utils';
 import { EntityUploader } from './data-table/shared/EntityUploader';
 import { dataTableVersionsPathRoot, useDataTableVersions } from './data-table/versioning/data-table-versioning-utils';
@@ -503,7 +502,7 @@ const DataTableActions = ({
   ]);
 };
 
-const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
 
 export const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
@@ -606,19 +605,6 @@ export const WorkspaceData = _.flow(
       isAzureWorkspace
         ? Promise.all([refreshRunningImportJobs(), loadWdsData()])
         : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
-
-    const loadSnapshotEntities = async (snapshotName) => {
-      try {
-        setSnapshotDetails(_.set([snapshotName, 'error'], false));
-        const entities = await Workspaces(signal).workspace(namespace, name).snapshotEntityMetadata(googleProject, snapshotName);
-        // Prevent duplicate id columns
-        const entitiesWithoutIds = _.mapValues((entity) => _.update(['attributeNames'], _.without([entity.idName]), entity), entities);
-        setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entitiesWithoutIds));
-      } catch (error) {
-        reportError(`Error loading entities in snapshot ${snapshotName}`, error);
-        setSnapshotDetails(_.set([snapshotName, 'error'], true));
-      }
-    };
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
@@ -931,136 +917,13 @@ export const WorkspaceData = _.flow(
                         retryFunction: loadSnapshotMetadata,
                       },
                       [
-                        _.map(
-                          ([
-                            snapshotName,
-                            {
-                              resource: { resourceId, snapshotId },
-                              entityMetadata: snapshotTables,
-                              error: snapshotTablesError,
-                            },
-                          ]) => {
-                            const snapshotTablePairs = toSortedPairs(snapshotTables);
-                            return h(
-                              Collapse,
-                              {
-                                key: snapshotName,
-                                titleFirst: true,
-                                noTitleWrap: true,
-                                summaryStyle: { height: 50, paddingRight: '0.5rem', fontWeight: 600 },
-                                tooltip: snapshotName,
-                                tooltipDelay: 250,
-                                style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-                                title: snapshotName,
-                                role: 'listitem',
-                                afterTitle: h(
-                                  Link,
-                                  {
-                                    style: { marginLeft: 'auto' },
-                                    tooltip: 'Snapshot Info',
-                                    onClick: () => {
-                                      setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName });
-                                      forceRefresh();
-                                    },
-                                  },
-                                  [
-                                    icon(
-                                      `info-circle${
-                                        selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName
-                                          ? ''
-                                          : '-regular'
-                                      }`,
-                                      { size: 20 }
-                                    ),
-                                  ]
-                                ),
-                                initialOpenState: selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName,
-                                onFirstOpen: () => loadSnapshotEntities(snapshotName),
-                              },
-                              [
-                                Utils.cond(
-                                  [
-                                    snapshotTablesError,
-                                    () =>
-                                      div(
-                                        {
-                                          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
-                                        },
-                                        [
-                                          'Failed to load tables',
-                                          h(
-                                            Link,
-                                            {
-                                              onClick: () => loadSnapshotEntities(snapshotName),
-                                              tooltip: 'Error loading, click to retry.',
-                                            },
-                                            [icon('sync', { size: 24, style: { marginLeft: '1rem' } })]
-                                          ),
-                                        ]
-                                      ),
-                                  ],
-                                  [
-                                    snapshotTables === undefined,
-                                    () =>
-                                      div(
-                                        {
-                                          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' },
-                                        },
-                                        ['Loading snapshot contents...', h(Spinner, { style: { marginLeft: '1rem' } })]
-                                      ),
-                                  ],
-                                  () =>
-                                    div({ role: 'list', style: { fontSize: 14, lineHeight: '1.5' } }, [
-                                      _.map(([tableName, { count }]) => {
-                                        const canCompute = !!workspace?.canCompute;
-                                        return h(
-                                          DataTypeButton,
-                                          {
-                                            wrapperProps: { role: 'listitem' },
-                                            buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
-                                            // TODO: Remove nested ternary to align with style guide
-                                            // eslint-disable-next-line no-nested-ternary
-                                            tooltip: canCompute
-                                              ? tableName
-                                                ? `${tableName} (${count} row${count === 1 ? '' : 's'})`
-                                                : undefined
-                                              : [
-                                                  div(
-                                                    { key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } },
-                                                    'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
-                                                      'Contact the owner of this workspace to change your permissions.'
-                                                  ),
-                                                ],
-                                            tooltipSide: canCompute ? 'bottom' : 'left',
-                                            key: `${snapshotName}_${tableName}`,
-                                            selected:
-                                              selectedData?.type === workspaceDataTypes.snapshot &&
-                                              selectedData.snapshotName === snapshotName &&
-                                              selectedData.tableName === tableName,
-                                            entityName: tableName,
-                                            entityCount: count,
-                                            onClick: () => {
-                                              if (canCompute) {
-                                                setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName, tableName });
-                                                void Metrics().captureEvent(Events.workspaceSnapshotContentsView, {
-                                                  ...extractWorkspaceDetails(workspace.workspace),
-                                                  resourceId,
-                                                  snapshotId,
-                                                  entityType: tableName,
-                                                });
-                                                forceRefresh();
-                                              }
-                                            },
-                                          },
-                                          [`${tableName} (${count})`]
-                                        );
-                                      }, snapshotTablePairs),
-                                    ])
-                                ),
-                              ]
-                            );
-                          },
-                          sortedSnapshotPairs
+                        div(
+                          // File Browser Banner
+                          { style: { padding: '1rem', margin: '0.75rem', backgroundColor: colors.dark(0.1), borderRadius: '0.5rem' } },
+                          [
+                            span({ style: { fontWeight: 'bold' } }, ['Looking for your snapshots?']),
+                            div(['Snapshots of this type are no longer supported in this workspace. Please contact support for assistance.']),
+                          ]
                         ),
                       ]
                     ),
@@ -1280,28 +1143,6 @@ export const WorkspaceData = _.flow(
                       noticeForPrefix: (prefix) =>
                         prefix.startsWith(`${dataTableVersionsPathRoot}/`) ? 'Files in this folder are managed via data table versioning.' : null,
                       shouldDisableEditForPrefix: (prefix) => prefix.startsWith(`${dataTableVersionsPathRoot}/`),
-                    }),
-                ],
-                [
-                  workspaceDataTypes.snapshot,
-                  () =>
-                    h(SnapshotContent, {
-                      key: refreshKey,
-                      workspace,
-                      snapshotDetails,
-                      snapshotName: selectedData.snapshotName,
-                      tableName: selectedData.tableName,
-                      loadMetadata: () => loadSnapshotEntities(selectedData.snapshotName),
-                      onUpdate: async (newSnapshotName) => {
-                        await loadSnapshotMetadata();
-                        setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName: newSnapshotName });
-                        forceRefresh();
-                      },
-                      onDelete: async () => {
-                        await loadSnapshotMetadata();
-                        setSelectedData(undefined);
-                        forceRefresh();
-                      },
                     }),
                 ],
                 [

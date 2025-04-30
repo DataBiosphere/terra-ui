@@ -5,7 +5,6 @@ import Events from 'src/libs/events';
 import * as Utils from 'src/libs/utils';
 
 export const launch = async ({
-  isSnapshot,
   workspace: {
     workspace: { namespace, name, googleProject, bucketName },
     accessLevel,
@@ -51,7 +50,7 @@ export const launch = async ({
     );
   }
   const { entityName, processSet = false } = await Utils.cond(
-    [isSnapshot || selectedEntityType === undefined, () => ({})],
+    [selectedEntityType === undefined, () => ({})],
     [
       `${selectedEntityType}_set` === rootEntityType,
       async () => {
