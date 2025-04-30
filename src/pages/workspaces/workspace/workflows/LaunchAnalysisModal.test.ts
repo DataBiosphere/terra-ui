@@ -197,7 +197,6 @@ describe('Launch Analysis Modal', () => {
     const namespace = 'test-namespace';
     const name = 'test-workspace';
     const googleProject = 'google-project-id';
-    const entityMetadata = {};
     const workspace = { workspace: { namespace, name, googleProject } };
     const config = { rootEntityType: 'sample' };
     const entitySelectionModel = {
@@ -224,7 +223,6 @@ describe('Launch Analysis Modal', () => {
       render(
         h(LaunchAnalysisModal, {
           workspace,
-          entityMetadata,
           config,
           entitySelectionModel,
           perWorkflowCostCap,
