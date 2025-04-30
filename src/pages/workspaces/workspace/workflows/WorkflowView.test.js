@@ -657,29 +657,8 @@ describe('Workflow View (GCP)', () => {
     );
   });
 
-  it('does not show cost capping input if the feature flag is disabled', async () => {
+  it('does show cost capping input', async () => {
     // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-    const namespace = 'gatk';
-    const name = 'echo_to_file-configured';
-
-    mockDefaultAjax();
-
-    // Act
-    await act(async () => {
-      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
-    });
-
-    // Assert
-    // check that workflow cost capping is not shown
-    expect(screen.queryByText('Set cost threshold per workflow')).toBeNull();
-  });
-
-  it('does show cost capping input if the feature flag is enabled', async () => {
-    // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
-
     const namespace = 'gatk';
     const name = 'echo_to_file-configured';
 
