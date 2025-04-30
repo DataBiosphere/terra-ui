@@ -7,7 +7,6 @@ import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Methods } from 'src/libs/ajax/methods/Methods';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
@@ -658,8 +657,6 @@ describe('Workflow View (GCP)', () => {
     );
   });
 
-  asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === PREVIEW_COST_CAPPING);
-
   it('does not show cost capping input if the feature flag is disabled', async () => {
     // Arrange
     asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
@@ -676,7 +673,7 @@ describe('Workflow View (GCP)', () => {
 
     // Assert
     // check that workflow cost capping is not shown
-    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).toBeNull();
+    expect(screen.queryByText('Set cost threshold per workflow')).toBeNull();
   });
 
   it('does show cost capping input if the feature flag is enabled', async () => {
@@ -695,7 +692,7 @@ describe('Workflow View (GCP)', () => {
 
     // Assert
     // check that workflow cost capping is shown
-    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).not.toBeNull();
+    expect(screen.queryByText('Set cost threshold per workflow')).not.toBeNull();
   });
 
   it('updates perWorkflowCostCap state on input change', async () => {
