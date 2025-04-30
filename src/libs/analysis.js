@@ -97,7 +97,6 @@ export const launch = async ({
       monitoringImage,
       monitoringImageScript,
       perWorkflowCostCap,
-      deleteEntityType: preserveSet ? undefined : `${selectedEntityType}_set`,
-      deleteEntityName: preserveSet ? undefined : newSetName,
+      deleteEntity: preserveSet ? undefined : `${selectedEntityType}_set/${newSetName}`,
     });
 };
