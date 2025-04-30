@@ -8,6 +8,8 @@ import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, RadioButt
 import { icon } from 'src/components/icons';
 import { ValidatedInput } from 'src/components/input';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import Events from 'src/libs/events';
 import { FormLabel } from 'src/libs/forms';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -62,7 +64,10 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
         {
           tooltip: _.isEmpty(selectedEntities) ? 'Please select data' : undefined,
           disabled: !!errors || _.isEmpty(selectedEntities) || (!newSetName && willCreateSet),
-          onClick: () => onSuccess({ type, selectedEntities, newSetName, preserveSet }),
+          onClick: () => {
+            void Metrics().captureEvent(type === chooseSetType ? Events.workflowUseExistingSet : Events.workflowSelectSpecificEntities);
+            onSuccess({ type, selectedEntities, newSetName, preserveSet });
+          },
         },
         'OK'
       ),

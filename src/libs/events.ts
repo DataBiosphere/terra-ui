@@ -136,6 +136,8 @@ const eventsList = {
   workflowsTabView: 'workflowsApp:tab:view',
   workflowCreateSet: 'workflow:createSet',
   workflowDeleteSet: 'workflow:deleteSet',
+  workflowUseExistingSet: 'workflow:useExistingSet',
+  workflowSelectSpecificEntities: 'workflow:selectSpecificEntities',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceCreateBasic: 'workspace:creation:basicTab',
