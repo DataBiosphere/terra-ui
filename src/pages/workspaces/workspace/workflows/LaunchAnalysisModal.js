@@ -11,8 +11,6 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { launch } from 'src/libs/analysis';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -201,16 +199,15 @@ const LaunchAnalysisModal = ({
       div({ style: { marginTop: '0.25rem' } }, [
         ul({ style: { paddingLeft: '1.5rem' } }, [
           li([`You are launching ${entityCount} workflow `, entityCount === 1 ? 'run' : 'runs', ' in this submission.']),
-          isFeaturePreviewEnabled(PREVIEW_COST_CAPPING) &&
-            (perWorkflowCostCap !== ''
-              ? li([
-                  `You set a cost threshold of ${Utils.formatUSD(perWorkflowCostCap)} per workflow run`,
-                  h('br'),
-                  `x ${entityCount} workflow runs = ${Utils.formatUSD(entityCount * perWorkflowCostCap)}`,
-                  b(' approximate maximum'),
-                  ' submission cost.',
-                ])
-              : li(['You did not set a cost threshold.'])),
+          perWorkflowCostCap !== ''
+            ? li([
+                `You set a cost threshold of ${Utils.formatUSD(perWorkflowCostCap)} per workflow run`,
+                h('br'),
+                `x ${entityCount} workflow runs = ${Utils.formatUSD(entityCount * perWorkflowCostCap)}`,
+                b(' approximate maximum'),
+                ' submission cost.',
+              ])
+            : li(['You did not set a cost threshold.']),
         ]),
       ]),
       h(IdContainer, [
