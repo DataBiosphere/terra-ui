@@ -922,7 +922,7 @@ export const WorkspaceData = _.flow(
                           { style: { padding: '1rem', margin: '0.75rem', backgroundColor: colors.dark(0.1), borderRadius: '0.5rem' } },
                           [
                             span({ style: { fontWeight: 'bold' } }, ['Looking for your snapshots?']),
-                            div(["They're gone; we don't want them anymore."]),
+                            div(['Snapshots of this type are no longer supported in this workspace. Please contact support for assistance.']),
                           ]
                         ),
                       ]
