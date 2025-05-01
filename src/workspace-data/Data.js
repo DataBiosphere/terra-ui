@@ -820,6 +820,7 @@ export const WorkspaceData = _.flow(
                                 },
                                 isShowingVersionHistory,
                                 onSaveVersion: withErrorReporting('Error saving version')((versionOpts) => {
+                                  type = type.endsWith('_set') ? getRootTypeForSetTable(type) : type;
                                   setShowDataTableVersionHistory(_.set(type, true));
                                   return saveDataTableVersion(type, versionOpts);
                                 }),
