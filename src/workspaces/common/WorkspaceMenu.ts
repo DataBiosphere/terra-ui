@@ -264,7 +264,7 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
     h(
       MenuButton,
       {
-        disabled: !workspaceLoaded || !isOwner || state === 'Deleting' || state === 'DeleteFailed' || noAccess,
+        disabled: !workspaceLoaded || !isOwner || state === 'Deleting' || state === 'DeleteFailed',
         tooltip: workspaceLoaded &&
           !isOwner && [isLocked ? tooltipText.unlockNoPermission : tooltipText.lockNoPermission],
         tooltipSide: 'left',
