@@ -8,7 +8,6 @@ import {
   WorkspaceV2Contract,
 } from 'src/libs/ajax/workspaces/Workspaces';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -19,8 +18,6 @@ jest.mock('src/libs/feature-previews', () => ({
   ...jest.requireActual('src/libs/feature-previews'),
   isFeaturePreviewEnabled: jest.fn(),
 }));
-
-asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === PREVIEW_COST_CAPPING);
 
 describe('Launch Analysis Modal', () => {
   const mockDefaultAjax = () => {

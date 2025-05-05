@@ -1,8 +1,6 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
-export const PREVIEW_COST_CAPPING = 'previewCostCapping';
-export const ENHANCED_WORKSPACE_CREATION = 'enhancedWorkspaceCreation';
 export const SAGE_ACCOUNT_LINKING = 'sageAccountLinking';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
@@ -66,14 +64,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
       'Feedback on Cohort Builder Card'
     )}`,
     lastUpdated: '7/25/2024',
-  },
-  {
-    id: PREVIEW_COST_CAPPING,
-    title: 'Workflow Cost Thresholds',
-    description:
-      'Enabling this feature will show a new workflow configuration option to add a user-configurable cost threshold to the workflow. Workflows will be terminated once they exceed the configured value.',
-    feedbackUrl: 'https://support.terra.bio/hc/en-us/articles/31269696049307',
-    lastUpdated: '2/28/2025',
   },
   {
     id: SAGE_ACCOUNT_LINKING,
