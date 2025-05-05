@@ -1,8 +1,7 @@
 import { screen } from '@testing-library/react';
 import React from 'react';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { navPaths, SubmissionWorkflowsTable } from 'src/pages/workspaces/workspace/submissionHistory/SubmissionDetails';
-import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
+import { renderWithAppContexts } from 'src/testing/test-utils';
 
 type NavExports = typeof import('src/libs/nav');
 jest.mock(
@@ -90,25 +89,11 @@ describe('Cost Threshold', () => {
     validOutputs: ['echo_strings.echo_to_file.out'],
   };
 
-  test('should render the Cost Threshold when enabled', () => {
-    // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
-
-    // Act
+  test('should render the Cost Threshold', () => {
+    // Arrange & Act
     renderWithAppContexts(<SubmissionWorkflowsTable workspace={testGoogleWorkspace} submission={testSubmission} />);
 
     // Assert
     expect(screen.getByText('Per Workflow Cost Threshold:')).toBeInTheDocument();
-  });
-
-  test('should not render the Cost Threshold when disabled', () => {
-    // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-    // Act
-    renderWithAppContexts(<SubmissionWorkflowsTable workspace={testGoogleWorkspace} submission={testSubmission} />);
-
-    // Assert
-    expect(screen.queryByText('Per Workflow Cost Threshold:')).not.toBeInTheDocument();
   });
 });
