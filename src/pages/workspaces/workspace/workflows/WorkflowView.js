@@ -1,6 +1,7 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import pluralize from 'pluralize';
 import { Component, Fragment, useEffect, useState } from 'react';
 import { b, div, h, label, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -714,7 +715,7 @@ export const WorkflowView = _.flow(
     describeSelectionModel() {
       const {
         modifiedConfig: { rootEntityType },
-        entitySelectionModel: { newSetName, selectedEntities, type },
+        entitySelectionModel: { newSetName, selectedEntities, type, preserveSet },
       } = this.state;
       const count = _.size(selectedEntities);
       const newSetMessage = (t) => `(will create a new ${t} named "${newSetName}")`;
@@ -724,9 +725,12 @@ export const WorkflowView = _.flow(
       return Utils.cond(
         [this.isSingle() || !rootEntityType, () => ''],
         [!count, () => 'No data selected'],
-        [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
+        [
+          type === chooseSetType,
+          () => `${pluralize(rootEntityType, count)} from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`,
+        ],
         [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
-        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`]
+        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 && preserveSet ? newSetMessage(setType) : ''}`]
       );
     }
 
