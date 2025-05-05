@@ -175,7 +175,7 @@ function DataStepContent({ entitySelectionModel, onDismiss, onSuccess, entityMet
                 setPreserveSet(!preserveSet);
               },
             },
-            [` Save a new set for selected ${rootEntityType}s.`]
+            [` Save a new set for selected ${pluralize(rootEntityType)}.`]
           ),
         willCreateSet &&
           preserveSet &&
