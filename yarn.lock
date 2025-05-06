@@ -4182,7 +4182,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4196,10 +4196,10 @@ __metadata:
     "@rollup/plugin-typescript": ^11.1.6
     tslib: ^2.6.1
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
   peerDependencies:
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
   languageName: unknown
   linkType: soft
 
@@ -4236,7 +4236,7 @@ __metadata:
     react-select: ^5.7.4
     react-switch: ^6.1.0
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
     vite-plugin-svgr: ^3.3.0
   peerDependencies:
     react: 18.2.0
@@ -4256,7 +4256,7 @@ __metadata:
     jest: ^27.4.3
     lodash: ^4.17.21
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
   languageName: unknown
   linkType: soft
 
@@ -4269,7 +4269,7 @@ __metadata:
     "@types/jest": ^28.1.8
     jest: ^27.4.3
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
   languageName: unknown
   linkType: soft
 
@@ -4285,7 +4285,7 @@ __metadata:
     jest: ^27.4.3
     qs: ^6.10.1
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
   languageName: unknown
   linkType: soft
 
@@ -4309,7 +4309,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4340,7 +4340,7 @@ __metadata:
     jest-fail-on-console: ^3.1.1
     jest-watch-typeahead: ^1.0.0
     typescript: ~5.1.6
-    vite: ^5.4.15
+    vite: ^5.4.19
     whatwg-fetch: ^3.6.2
   peerDependencies:
     "@testing-library/react": ^14.0.0
@@ -16826,7 +16826,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.4.15, vite@npm:^5.4.19":
+"vite@npm:^5.4.19":
   version: 5.4.19
   resolution: "vite@npm:5.4.19"
   dependencies:
