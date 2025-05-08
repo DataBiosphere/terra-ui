@@ -6,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/c
 import { centeredSpinner } from 'src/components/icons';
 import { EmailSelect } from 'src/groups/Members/EmailSelect';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { SamResources } from 'src/libs/ajax/SamResources';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { reportError } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -21,7 +22,14 @@ import {
 } from 'src/workspaces/acl-utils';
 import { AclInput } from 'src/workspaces/ShareWorkspaceModal/Collaborator';
 import { CurrentCollaborators } from 'src/workspaces/ShareWorkspaceModal/CurrentCollaborators';
-import { isAzureWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
+import {
+  canRead,
+  canWrite,
+  isAzureWorkspace,
+  isOwner,
+  WorkspaceAccessLevel,
+  WorkspaceWrapper,
+} from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 import validate from 'validate.js';
 
@@ -29,6 +37,27 @@ interface ShareWorkspaceModalProps {
   workspace: WorkspaceWrapper;
   onDismiss: () => void;
 }
+
+export const getAccessLevel = async (
+  workspaceId: string,
+  accessLevel: WorkspaceAccessLevel,
+  signal: AbortSignal
+): Promise<WorkspaceAccessLevel> => {
+  if (canRead(accessLevel) || canWrite(accessLevel) || isOwner(accessLevel)) {
+    return accessLevel;
+  }
+  const workspaceUserRoles: string[] = await SamResources(signal).getResourceRolesV2({
+    resourceTypeName: 'workspace',
+    resourceId: `${workspaceId}`,
+  });
+
+  const roleHierarchy: WorkspaceAccessLevel[] = ['OWNER', 'WRITER', 'READER'];
+  const mappedRoles: string[] = workspaceUserRoles.map((role) =>
+    role === 'project-owner' || role === 'owner' ? 'OWNER' : role.toUpperCase()
+  );
+
+  return roleHierarchy.find((role) => mappedRoles.includes(role)) ?? 'NO ACCESS';
+};
 
 const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWorkspaceModalProps) => {
   const { onDismiss, workspace } = props;
@@ -52,6 +81,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
   const [updateError, setUpdateError] = useState(undefined);
   const [lastAddedEmail, setLastAddedEmail] = useState<string | undefined>(undefined);
   const list = useRef<HTMLDivElement>(null);
+  const [workspaceAccessLevel, setWorkspaceAccessLevel] = useState<WorkspaceAccessLevel>(workspace.accessLevel);
 
   const signal = useCancellation();
 
@@ -64,6 +94,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         const fixedAcl: WorkspaceAcl = transformAcl(acl);
         setAcl(fixedAcl);
         setOriginalAcl(fixedAcl);
+        setWorkspaceAccessLevel(await getAccessLevel(workspace.workspace.workspaceId, workspace.accessLevel, signal));
         setLoaded(true);
       } catch (error) {
         onDismiss();
@@ -146,7 +177,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
             value={newAcl}
             onChange={setNewAcl}
             disabled={false}
-            maxAccessLevel={workspace.accessLevel}
+            maxAccessLevel={workspaceAccessLevel}
             isAzureWorkspace={isAzureWorkspace(workspace)}
             showRow={false}
           />
@@ -167,7 +198,7 @@ const ShareWorkspaceModal: React.FC<ShareWorkspaceModalProps> = (props: ShareWor
         setAcl={setAcl}
         originalAcl={originalAcl}
         lastAddedEmail={lastAddedEmail}
-        workspaceAccessLevel={workspace.accessLevel}
+        workspaceAccessLevel={workspaceAccessLevel}
         isAzureWorkspace={isAzureWorkspace(workspace)}
       />
       <WorkspacePolicies workspace={workspace} noCheckboxes />
