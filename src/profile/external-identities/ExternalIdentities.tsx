@@ -15,7 +15,6 @@ type ExternalIdentitiesProps = {
 export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode => {
   const { queryParams } = props;
   const providers = (getConfig().externalCreds?.providers || []) as OAuth2ProviderKey[];
-  const hasRas = providers.includes('ras');
   const filteredProviders = providers.filter(
     (p: any) =>
       (p !== 'github' && p !== 'sage') ||
@@ -25,7 +24,7 @@ export const ExternalIdentities = (props: ExternalIdentitiesProps): ReactNode =>
 
   return (
     <PageBox role='main' style={{ flexGrow: 1 }} variant={PageBoxVariants.light}>
-      {!hasRas && <NihAccount nihToken={queryParams?.['nih-username-token']} />}
+      <NihAccount nihToken={queryParams?.['nih-username-token']} />
       {filteredProviders.map((providerKey: OAuth2ProviderKey) => (
         <OAuth2Account
           key={`oauth2link-${providerKey}`}
