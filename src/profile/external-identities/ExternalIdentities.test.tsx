@@ -104,32 +104,7 @@ describe('ExternalIdentities', () => {
     });
   });
 
-  it('sorts providers based on desiredOrder without RAS', async () => {
-    // Arrange
-    asMockedFn(getConfig).mockReturnValue(
-      partial<AppConfigSettings>({
-        externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['era-commons', 'fence', 'dcf-fence', 'kids-first', 'anvil'],
-        }),
-      })
-    );
-
-    // Act
-    render(<ExternalIdentities queryParams={{}} />);
-
-    // Assert
-    const providerElements = Array.from(screen.getByRole('main').querySelectorAll('div')).map((div) => div.textContent);
-    expect(providerElements).toStrictEqual([
-      'Nih Account',
-      'eRA Commons',
-      'NHLBI BioData Catalyst Framework Services',
-      'NCI CRDC Framework Services',
-      'Kids First DRC Framework Services',
-      'NHGRI AnVIL Data Commons Framework Services',
-    ]);
-  });
-
-  it('sorts providers based on desiredOrder with RAS', async () => {
+  it('sorts providers based on desiredOrder', async () => {
     // Arrange
     asMockedFn(getConfig).mockReturnValue(
       partial<AppConfigSettings>({
@@ -145,6 +120,7 @@ describe('ExternalIdentities', () => {
     // Assert
     const providerElements = Array.from(screen.getByRole('main').querySelectorAll('div')).map((div) => div.textContent);
     expect(providerElements).toStrictEqual([
+      'Nih Account',
       'NIH Researcher Auth Service (RAS)',
       'NHLBI BioData Catalyst Framework Services',
       'NCI CRDC Framework Services',
