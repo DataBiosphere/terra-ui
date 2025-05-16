@@ -7,7 +7,6 @@ import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { SeparateSubmissionFinalOutputsSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
-import { AppConfigSettings, getConfig } from 'src/libs/config';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -44,11 +43,6 @@ jest.mock('src/libs/ajax/SamResources', () => ({
 jest.mock('src/workspaces/utils', () => ({
   ...jest.requireActual('src/workspaces/utils'),
   isOwner: jest.fn(),
-}));
-
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
 }));
 
 describe('SettingsModal', () => {
@@ -170,8 +164,6 @@ describe('SettingsModal', () => {
       })
     );
     asMockedFn(isWorkspaceOwner).mockReturnValue(true);
-
-    asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ isProd: true }));
   };
 
   const mockNotOwner = () => {
@@ -181,10 +173,6 @@ describe('SettingsModal', () => {
       })
     );
     asMockedFn(isWorkspaceOwner).mockReturnValue(false);
-  };
-
-  const mockNonProd = () => {
-    asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ isProd: false }));
   };
 
   const getBatchToggle = () => screen.getByLabelText('Run Workflows on GCP Batch:');
@@ -217,7 +205,7 @@ describe('SettingsModal', () => {
     // Assert
     expect(onDismiss).toHaveBeenCalled();
     // On save we do persist the default soft delete setting and Batch setting, so it is now explicit.
-    expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
+    expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
   });
 
   it('calls onDismiss on Cancel and does not event', async () => {
@@ -909,7 +897,7 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
+        batchEnabledSetting,
         requesterPaysEnabledSetting,
         defaultSoftDeleteSetting,
       ]);
@@ -941,7 +929,7 @@ describe('SettingsModal', () => {
     });
   });
 
-  describe('Batch Setting (prod environment)', () => {
+  describe('Batch Setting', () => {
     it('renders the option as disabled if the user is not an owner', async () => {
       // Arrange
       setup([], jest.fn());
@@ -954,19 +942,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getBatchToggle()).toBeDisabled();
-    });
-
-    it('renders the option as off if no settings exist', async () => {
-      // Arrange
-      setup([], jest.fn());
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).not.toBeChecked();
     });
 
     it('renders the option as off if batch is disabled', async () => {
@@ -999,7 +974,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([batchEnabledSetting], updateSettingsMock);
+      setup([], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -1025,7 +1000,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
+      setup([batchDisabledSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -1078,34 +1053,16 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: false,
+        enabled: true,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
     });
-  });
 
-  describe('Batch Setting (non-prod environment)', () => {
-    it('renders the option as disabled if the user is not an owner', async () => {
+    it('renders the option as ON if no settings exist', async () => {
       // Arrange
       setup([], jest.fn());
-      mockNotOwner();
-      mockNonProd();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).toBeDisabled();
-    });
-
-    it('renders the option as on if no settings exist', async () => {
-      // Arrange
-      setup([], jest.fn());
-      mockNonProd();
 
       // Act
       await act(async () => {
@@ -1114,28 +1071,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getBatchToggle()).toBeChecked();
-    });
-
-    it('saves default batch setting if no such setting previously existed', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
-      mockNonProd();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: true,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
     });
   });
 });
