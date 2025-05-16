@@ -21,6 +21,7 @@ import * as Showcase from 'src/pages/library/Showcase';
 import * as WorkflowsLibrary from 'src/pages/library/WorkflowsLibrary';
 import * as NotFound from 'src/pages/NotFound';
 import * as Profile from 'src/pages/ProfilePage';
+import * as ServicesLandingPage from 'src/pages/scientificServices/NavPaths';
 import * as Support from 'src/pages/SupportPage';
 import * as UploadData from 'src/pages/UploadDataPage';
 import * as WorkflowDetails from 'src/pages/workflows/workflow-details/WorkflowSummary';
@@ -83,6 +84,7 @@ const routes = _.flatten([
   Support.navPaths,
   WorkflowsLibrary.navPaths,
   WorkflowWdl.navPaths,
+  ServicesLandingPage.navPaths,
   NotFound.navPaths, // must be last
 ]);
 

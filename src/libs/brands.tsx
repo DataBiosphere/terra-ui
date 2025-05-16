@@ -1,4 +1,6 @@
 import { Theme } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
+import React from 'react';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
@@ -18,9 +20,12 @@ import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg
 import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
+import scientificServicesHeaderLogo from 'src/images/brands/scientificServices/headerLogo.svg';
+import scientificServicesLogo from 'src/images/brands/scientificServices/logo.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg';
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg';
+import { ScientificServicesLandingPage } from 'src/pages/scientificServices/ScientificServicesLandingPage';
 
 const nonBreakingHyphen = '\u2011';
 
@@ -32,10 +37,10 @@ export interface BrandConfiguration {
   queryName: string;
 
   /** Landing page header text */
-  welcomeHeader: string;
+  welcomeHeader?: string;
 
   /** Landing page text */
-  description: string;
+  description: string | ReactNode;
 
   /** Host name for branded site */
   hostName: string;
@@ -414,6 +419,31 @@ export const brands: Record<string, BrandConfiguration> = {
         light: '#f4efea',
       },
     },
+  },
+  scientificServices: {
+    name: 'Broad Data Science Services',
+    queryName: 'dss',
+    landingPageBackground: 'none',
+    welcomeHeader: undefined,
+    description: <ScientificServicesLandingPage />,
+    hostName: 'app.terra.bio', // TODO
+    docLinks: [],
+    landingPageCards: [],
+    logos: {
+      color: scientificServicesHeaderLogo,
+      white: scientificServicesLogo,
+    },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#074770',
+        secondary: '#074770',
+        dark: '#333F52',
+        accent: '#4e6888',
+        light: '#074770',
+      },
+    },
+    showRoadmap: false,
   },
   terra: {
     name: 'Terra',
