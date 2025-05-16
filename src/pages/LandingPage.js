@@ -108,6 +108,7 @@ export const LandingPage = () => {
     }
   }, [signInStatus, setBillingProjects, signal]);
 
+  // TODO: TSPS-486 - hide menu (or display a trimmed down menu without Terra navigation)
   return h(HeroWrapper, { bigSubhead: true }, [
     isTerra() &&
       !_.isUndefined(billingProjects) &&
