@@ -1,5 +1,6 @@
-import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
+import { asMockedFn, MockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import {
   WorkspaceContract,
@@ -8,7 +9,6 @@ import {
   WorkspaceV2Contract,
 } from 'src/libs/ajax/workspaces/Workspaces';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -20,15 +20,30 @@ jest.mock('src/libs/feature-previews', () => ({
   isFeaturePreviewEnabled: jest.fn(),
 }));
 
-asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === PREVIEW_COST_CAPPING);
-
 describe('Launch Analysis Modal', () => {
+  let workspaceMethodConfigAjax: MockedFn<WorkspaceContract['methodConfig']>;
+  let launchMethodConfig: MockedFn<ReturnType<WorkspaceContract['methodConfig']>['launch']>;
+  const createEntity = jest.fn();
+
+  type MethodConfigContract = ReturnType<WorkspaceContract['methodConfig']>;
+  beforeEach(() => {
+    launchMethodConfig = jest.fn(async (_) => partial<Response>({}));
+
+    workspaceMethodConfigAjax = jest.fn((_namespace, _name) =>
+      partial<MethodConfigContract>({
+        launch: launchMethodConfig,
+      })
+    );
+  });
   const mockDefaultAjax = () => {
     asMockedFn(Workspaces).mockReturnValue(
       partial<WorkspacesAjaxContract>({
         workspace: () =>
           partial<WorkspaceContract>({
             checkBucketLocation: jest.fn().mockResolvedValue({ location: 'us-south', locationType: 'region' }),
+            checkBucketAccess: jest.fn().mockResolvedValue({}),
+            createEntity,
+            methodConfig: workspaceMethodConfigAjax,
           }),
         workspaceV2: () =>
           partial<WorkspaceV2Contract>({
@@ -50,6 +65,7 @@ describe('Launch Analysis Modal', () => {
     const workspace = { workspace: { namespace, name, googleProject } };
     const config = { rootEntityType: 'sample' };
     const entitySelectionModel = {
+      preserveSet: true,
       type: chooseRootType,
       newSetName: 'sampleSet',
       selectedEntities: [
@@ -115,6 +131,7 @@ describe('Launch Analysis Modal', () => {
     const workspace = { workspace: { namespace, name, googleProject } };
     const config = { rootEntityType: 'sample' };
     const entitySelectionModel = {
+      preserveSet: true,
       type: chooseRootType,
       newSetName: 'sampleSet',
       selectedEntities: [
@@ -166,5 +183,96 @@ describe('Launch Analysis Modal', () => {
     ).toBeInTheDocument();
 
     expect(screen.getByText('You did not set a cost threshold', { exact: false })).toBeInTheDocument();
+  });
+
+  it('passes the deleteEntity parameter upon launch', async () => {
+    // Arrange
+
+    mockDefaultAjax();
+    const user = userEvent.setup();
+
+    const namespace = 'test-namespace';
+    const name = 'test-workspace';
+    const googleProject = 'google-project-id';
+    const workspace = { workspace: { namespace, name, googleProject } };
+    const config = { rootEntityType: 'sample' };
+    const entitySelectionModel = {
+      preserveSet: false,
+      type: chooseRootType,
+      newSetName: 'sampleSet',
+      selectedEntities: {
+        sample1: {
+          entityType: 'samples',
+          name: 'sample1',
+        },
+
+        sample2: {
+          entityType: 'samples',
+          name: 'sample2',
+        },
+      },
+    };
+
+    const perWorkflowCostCap = '';
+
+    // Act
+    await act(async () => {
+      render(
+        h(LaunchAnalysisModal, {
+          workspace,
+          config,
+          entitySelectionModel,
+          perWorkflowCostCap,
+          useCallCache: true,
+          deleteIntermediateOutputFiles: false,
+          useReferenceDisks: false,
+          retryWithMoreMemory: false,
+          retryMemoryFactor: 1.5,
+          ignoreEmptyOutputs: false,
+          enableResourceMonitoring: false,
+          monitoringScript: '',
+          monitoringImage: '',
+          monitoringImageScript: '',
+          onDismiss: jest.fn(),
+          onSuccess: jest.fn(),
+          processSingle: false,
+        })
+      );
+    });
+
+    const launchButton = screen.getByRole('button', { name: 'Launch' });
+    await user.click(launchButton);
+
+    // Assert
+    expect(launchMethodConfig).toHaveBeenCalledWith({
+      entityType: 'sample_set',
+      entityName: 'sampleSet',
+      expression: 'this.samples',
+      ignoreEmptyOutputs: false,
+      useCallCache: true,
+      deleteIntermediateOutputFiles: false,
+      useReferenceDisks: false,
+      userComment: '',
+      memoryRetryMultiplier: undefined,
+      monitoringScript: undefined,
+      monitoringImage: undefined,
+      monitoringImageScript: undefined,
+      perWorkflowCostCap: undefined,
+      deleteEntity: 'sample_set/sampleSet',
+    });
+
+    expect(createEntity).toHaveBeenCalledWith({
+      entityType: 'sample_set',
+      name: 'sampleSet',
+      attributes: {
+        samples: {
+          itemsType: 'EntityReference',
+          items: [
+            { entityName: 'sample1', entityType: 'sample' },
+            { entityName: 'sample2', entityType: 'sample' },
+          ],
+        },
+      },
+    });
   });
 });

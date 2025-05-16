@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import React from 'react';
 import { CurrentUserGroupMembership, Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
+import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { getTerraUser } from 'src/libs/state';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -13,7 +14,7 @@ import {
   protectedGoogleWorkspace,
 } from 'src/testing/workspace-fixtures';
 import { AccessEntry, RawWorkspaceAcl } from 'src/workspaces/acl-utils';
-import ShareWorkspaceModal from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
+import ShareWorkspaceModal, { getAccessLevel } from 'src/workspaces/ShareWorkspaceModal/ShareWorkspaceModal';
 import { GoogleWorkspace } from 'src/workspaces/utils';
 
 jest.mock('src/libs/state', () => ({
@@ -24,6 +25,7 @@ jest.mock('src/libs/state', () => ({
 jest.mock('src/libs/ajax/Groups');
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
+jest.mock('src/libs/ajax/SamResources');
 
 describe('the share workspace modal', () => {
   beforeEach(() => {
@@ -244,6 +246,100 @@ describe('the share workspace modal', () => {
       });
       expect(defaultAzureWorkspace.policies).toEqual([]);
       expect(screen.queryByText(policyTitle)).toBeNull();
+    });
+  });
+
+  describe('Enable Acl selection when user has NoAccess', () => {
+    // Helper function to set up mocks
+    const setupMock = (roles: string[]) => {
+      const mockGetResourceRolesV2 = jest.fn(() => Promise.resolve(roles));
+      asMockedFn(SamResources).mockReturnValue(
+        partial<SamResourcesContract>({
+          getResourceRolesV2: mockGetResourceRolesV2,
+        })
+      );
+      return mockGetResourceRolesV2;
+    };
+
+    it('returns the correct access level based on user roles', async () => {
+      // Arrange
+      const mockGetResourceRolesV2 = setupMock(['reader', 'writer', 'owner']);
+      const workspaceId = 'test-workspace-id';
+      const accessLevel = 'NO ACCESS';
+      const mockAbortSignal = {} as AbortSignal;
+
+      // Act
+      const result = await getAccessLevel(workspaceId, accessLevel, mockAbortSignal);
+
+      // Assert
+      expect(mockGetResourceRolesV2).toHaveBeenCalledWith({
+        resourceTypeName: 'workspace',
+        resourceId: workspaceId,
+      });
+      expect(result).toBe('OWNER');
+    });
+
+    it('returns NO ACCESS if no roles match', async () => {
+      // Arrange
+      const mockGetResourceRolesV2 = setupMock([]);
+      const workspaceId = 'test-workspace-id';
+      const accessLevel = 'NO ACCESS';
+      const mockAbortSignal = {} as AbortSignal;
+
+      // Act
+      const result = await getAccessLevel(workspaceId, accessLevel, mockAbortSignal);
+
+      // Assert
+      expect(mockGetResourceRolesV2).toHaveBeenCalledWith({
+        resourceTypeName: 'workspace',
+        resourceId: workspaceId,
+      });
+      expect(result).toBe('NO ACCESS');
+    });
+
+    it('returns OWNER for project-owner or owner roles', async () => {
+      // Arrange
+      const mockGetResourceRolesV2 = setupMock(['project-owner', 'owner']);
+      const workspaceId = 'test-workspace-id';
+      const accessLevel = 'NO ACCESS';
+      const mockAbortSignal = {} as AbortSignal;
+
+      // Act
+      const result = await getAccessLevel(workspaceId, accessLevel, mockAbortSignal);
+
+      // Assert
+      expect(mockGetResourceRolesV2).toHaveBeenCalledWith({
+        resourceTypeName: 'workspace',
+        resourceId: workspaceId,
+      });
+      expect(result).toBe('OWNER');
+    });
+
+    it('returns WRITER for writer role and READER for reader role', async () => {
+      // Arrange
+      const mockGetResourceRolesV2 = setupMock(['writer']);
+      const workspaceId = 'test-workspace-id';
+      const accessLevel = 'NO ACCESS';
+      const mockAbortSignal = {} as AbortSignal;
+
+      // Act
+      const writerResult = await getAccessLevel(workspaceId, accessLevel, mockAbortSignal);
+
+      // Assert
+      expect(mockGetResourceRolesV2).toHaveBeenCalledWith({
+        resourceTypeName: 'workspace',
+        resourceId: workspaceId,
+      });
+      expect(writerResult).toBe('WRITER');
+
+      // Arrange for reader
+      mockGetResourceRolesV2.mockResolvedValueOnce(['reader']);
+
+      // Act
+      const readerResult = await getAccessLevel(workspaceId, accessLevel, mockAbortSignal);
+
+      // Assert
+      expect(readerResult).toBe('READER');
     });
   });
 });

@@ -1,6 +1,7 @@
 import { Modal, TooltipTrigger } from '@terra-ui-packages/components';
 import { readFileAsText } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
+import pluralize from 'pluralize';
 import { Component, Fragment, useEffect, useState } from 'react';
 import { b, div, h, label, span } from 'react-hyperscript-helpers';
 import * as breadcrumbs from 'src/components/breadcrumbs';
@@ -35,8 +36,6 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -716,7 +715,7 @@ export const WorkflowView = _.flow(
     describeSelectionModel() {
       const {
         modifiedConfig: { rootEntityType },
-        entitySelectionModel: { newSetName, selectedEntities, type },
+        entitySelectionModel: { newSetName, selectedEntities, type, preserveSet },
       } = this.state;
       const count = _.size(selectedEntities);
       const newSetMessage = (t) => `(will create a new ${t} named "${newSetName}")`;
@@ -726,9 +725,12 @@ export const WorkflowView = _.flow(
       return Utils.cond(
         [this.isSingle() || !rootEntityType, () => ''],
         [!count, () => 'No data selected'],
-        [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
+        [
+          type === chooseSetType,
+          () => `${pluralize(rootEntityType, count)} from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`,
+        ],
         [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
-        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`]
+        [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 && preserveSet ? newSetMessage(setType) : ''}`]
       );
     }
 
@@ -999,54 +1001,53 @@ export const WorkflowView = _.flow(
                   ]),
                 ]),
               ]),
-              isFeaturePreviewEnabled(PREVIEW_COST_CAPPING) &&
-                div(
-                  {
-                    style: {
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignSelf: 'flex-start',
-                      marginTop: '0.0rem',
-                      fontSize: 12,
-                    },
+              div(
+                {
+                  style: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignSelf: 'flex-start',
+                    marginTop: '0.0rem',
+                    fontSize: 12,
                   },
-                  [
-                    span([
-                      'Set cost threshold per workflow (BETA) ',
-                      h(InfoBox, { style: { marginLeft: '0.1rem', whiteSpace: 'pre-line' } }, [
-                        'Important considerations:',
-                        h('br'),
-                        '1. Costs are in USD.',
-                        h('br'),
-                        '2. Costs are VM and disk costs only. Bucket storage and egress costs are not included.',
-                        h('br'),
-                        '3. Based on GCP list prices. Discounts are not included.',
-                        h('br'),
-                        '4. GPU costs are not included.',
-                        h('br'),
-                        '5. Workflows may not terminate immediately upon hitting threshold, plan for a margin of error.',
-                        h('br'),
-                        '6. Workflow costs vary by input. Set a threshold that considers variability.',
-                      ]),
+                },
+                [
+                  span([
+                    'Set cost threshold per workflow',
+                    h(InfoBox, { style: { marginLeft: '0.1rem', whiteSpace: 'pre-line' } }, [
+                      'Important considerations:',
+                      h('br'),
+                      '1. Costs are in USD.',
+                      h('br'),
+                      '2. Costs are VM and disk costs only. Bucket storage and egress costs are not included.',
+                      h('br'),
+                      '3. Based on GCP list prices. Discounts are not included.',
+                      h('br'),
+                      '4. GPU costs are not included.',
+                      h('br'),
+                      '5. Workflows may not terminate immediately upon hitting threshold, plan for a margin of error.',
+                      h('br'),
+                      '6. Workflow costs vary by input. Set a threshold that considers variability.',
                     ]),
-                    div({ style: { display: 'flex', alignItems: 'center', marginLeft: '0rem', marginBottom: '0.5rem' } }, [
-                      span({ style: { marginRight: '0.5rem' } }, ['$']),
-                      h(NumberInput, {
-                        id: 'workflow-run-budget',
-                        value: perWorkflowCostCap || '',
-                        min: 0.01,
-                        max: 9999999999.99,
-                        placeholder: 'Example: 1.00',
-                        onChange: (v) => this.setState({ perWorkflowCostCap: v ? v.toFixed(2) : '' }),
-                        style: { fontSize: 12, marginTop: '0.5rem', width: '100%', marginLeft: '0.1rem' },
-                      }),
-                    ]),
-                    span([
-                      h(Link, { href: this.getSupportLink('31269696049307'), ...Utils.newTabLinkProps }, ['Learn more']),
-                      ' about how Terra implements cost thresholds',
-                    ]),
-                  ]
-                ),
+                  ]),
+                  div({ style: { display: 'flex', alignItems: 'center', marginLeft: '0rem', marginBottom: '0.5rem' } }, [
+                    span({ style: { marginRight: '0.5rem' } }, ['$']),
+                    h(NumberInput, {
+                      id: 'workflow-run-budget',
+                      value: perWorkflowCostCap || '',
+                      min: 0.01,
+                      max: 9999999999.99,
+                      placeholder: 'Example: 1.00',
+                      onChange: (v) => this.setState({ perWorkflowCostCap: v ? v.toFixed(2) : '' }),
+                      style: { fontSize: 12, marginTop: '0.5rem', width: '100%', marginLeft: '0.1rem' },
+                    }),
+                  ]),
+                  span([
+                    h(Link, { href: this.getSupportLink('31269696049307'), ...Utils.newTabLinkProps }, ['Learn more']),
+                    ' about how Terra implements cost thresholds',
+                  ]),
+                ]
+              ),
               div({ style: { fontSize: 12, display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
                 span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
                   div([

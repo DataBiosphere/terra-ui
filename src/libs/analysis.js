@@ -1,5 +1,7 @@
 import _ from 'lodash/fp';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
+import Events from 'src/libs/events';
 import * as Utils from 'src/libs/utils';
 
 export const launch = async ({
@@ -21,6 +23,7 @@ export const launch = async ({
   monitoringImage,
   monitoringImageScript,
   perWorkflowCostCap,
+  preserveSet,
   onProgress,
 }) => {
   const createSet = () => {
@@ -76,6 +79,7 @@ export const launch = async ({
     ]
   );
   onProgress('launch');
+  void Metrics().captureEvent(preserveSet ? Events.workflowCreateSet : Events.workflowDeleteSet);
   return Workspaces()
     .workspace(namespace, name)
     .methodConfig(configNamespace, configName)
@@ -93,5 +97,6 @@ export const launch = async ({
       monitoringImage,
       monitoringImageScript,
       perWorkflowCostCap,
+      deleteEntity: preserveSet ? undefined : `${selectedEntityType}_set/${newSetName}`,
     });
 };
