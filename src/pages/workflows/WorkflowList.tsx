@@ -340,6 +340,8 @@ const getColumns = (
   onEditNamespacePermissions: (namespace: string) => void,
   paginatedWorkflows: MethodDefinition[]
 ) => {
+  console.log('paginatedWorkflows', paginatedWorkflows);
+
   return [
     // Note: for sortable columns 'field' values should be MethodDefinition property names for sorting
     // to work properly. This doesn't apply to 'Actions' column as it is not sortable.

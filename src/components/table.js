@@ -276,6 +276,9 @@ export function FlexTable({
 }) {
   const [scrollbarSize, setScrollbarSize] = useState(0);
   const body = useRef();
+  console.log(rowCount)
+
+  console.log('columnz', columns);
 
   useOnMount(() => {
     body.current.scrollToPosition({ scrollTop: initialY });
@@ -337,6 +340,8 @@ export function FlexTable({
           setScrollbarSize(vertical ? size : 0);
         },
         cellRenderer: (data) => {
+          console.log(data)
+          console.log('blabla')
           return h(
             Interactive,
             {
