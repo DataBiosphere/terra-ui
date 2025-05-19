@@ -2,8 +2,6 @@ import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import React from 'react';
 import { AppConfigSettings, getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { SAGE_ACCOUNT_LINKING } from 'src/libs/feature-previews-config';
 import { TerraUserState, userStore } from 'src/libs/state';
 import { ExternalIdentities } from 'src/profile/external-identities/ExternalIdentities';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -67,49 +65,13 @@ describe('ExternalIdentities', () => {
       expect(screen.queryByText('GitHub')).toBeNull();
     });
   });
-  describe('when the user has the Sage Account Linking feature preview enabled', () => {
-    it('shows the Sage Account Linking card', async () => {
-      // Arrange
-      asMockedFn(getConfig).mockReturnValue(
-        partial<AppConfigSettings>({
-          externalCreds: { providers: ['sage'], urlRoot: 'https/foo.bar.com' },
-        })
-      );
-      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === SAGE_ACCOUNT_LINKING);
-      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
-
-      // Act
-      render(<ExternalIdentities queryParams={{}} />);
-
-      // Assert
-      screen.getByText('Sage Bionetworks');
-    });
-  });
-  describe('when the user has the Sage Account Linking feature preview disabled', () => {
-    it('hides the Sage Account Linking card', async () => {
-      // Arrange
-      asMockedFn(getConfig).mockReturnValue(
-        partial<AppConfigSettings>({
-          externalCreds: { providers: ['sage'], urlRoot: 'https/foo.bar.com' },
-        })
-      );
-      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === SAGE_ACCOUNT_LINKING);
-      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-      // Act
-      render(<ExternalIdentities queryParams={{}} />);
-
-      // Assert
-      expect(screen.queryByText('Sage')).toBeNull();
-    });
-  });
 
   it('sorts providers based on desiredOrder', async () => {
     // Arrange
     asMockedFn(getConfig).mockReturnValue(
       partial<AppConfigSettings>({
         externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'anvil'],
+          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
         }),
       })
     );
@@ -126,6 +88,7 @@ describe('ExternalIdentities', () => {
       'NCI CRDC Framework Services',
       'Kids First DRC Framework Services',
       'NHGRI AnVIL Data Commons Framework Services',
+      'Sage Bionetworks',
     ]);
   });
 });
