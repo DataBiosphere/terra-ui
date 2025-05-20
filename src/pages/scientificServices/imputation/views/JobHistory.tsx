@@ -1,26 +1,28 @@
 import { Icon, Spinner } from '@terra-ui-packages/components';
-import _, { capitalize } from 'lodash';
-import React, { ReactNode, useState } from 'react';
+import _, { capitalize, toString } from 'lodash';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator } from 'src/components/table';
 import { GetJobsResponse, JobReport, Teaspoons, TeaspoonsJobStatus } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { useCancellation, useOnMount } from 'src/libs/react-utils';
+import { useCancellation } from 'src/libs/react-utils';
 import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
 
 export const JobHistory = () => {
   const signal = useCancellation();
 
+  const [pageNumber, setPageNumber] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [jobsResponse, setJobsResponse] = useState<GetJobsResponse>();
 
-  useOnMount(() => {
+  useEffect(() => {
     // TODO: pagination
     async function fetchJobs() {
-      const response = await Teaspoons(signal).getAllJobs();
+      const response = await Teaspoons(signal).getAllJobs(itemsPerPage, toString(pageNumber)); // jobsResponse?.pageToken || undefined);
       setJobsResponse(response);
     }
     fetchJobs();
-  });
+  }, [itemsPerPage, pageNumber, signal]);
 
   return (
     <FooterWrapper alwaysShow>
@@ -57,7 +59,7 @@ export const JobHistory = () => {
                   aria-label='job history table'
                   width={width}
                   height={height}
-                  rowHeight={64}
+                  rowHeight={55}
                   // @ts-expect-error - FlexTable is not yet converted to TypeScript
                   sort='asc'
                   rowCount={jobsResponse.results.length}
@@ -76,12 +78,15 @@ export const JobHistory = () => {
             {
               // @ts-expect-error
               <Paginator
-                filteredDataLength={jobsResponse?.results.length}
-                unfilteredDataLength={jobsResponse?.results.length}
-                pageNumber={1}
-                setPageNumber={() => {}}
-                itemsPerPage={10}
-                setItemsPerPage={() => {}}
+                filteredDataLength={jobsResponse?.totalResults}
+                unfilteredDataLength={jobsResponse?.totalResults}
+                pageNumber={pageNumber}
+                setPageNumber={setPageNumber}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={(v) => {
+                  setPageNumber(1);
+                  setItemsPerPage(v);
+                }}
               />
             }
           </div>
@@ -99,7 +104,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <JobIdCell job={paginatedJobs[rowIndex]} />;
       },
-      size: { basis: 120 },
+      size: { basis: 140 },
     },
     {
       field: 'description',
@@ -107,7 +112,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell job={paginatedJobs[rowIndex]} />;
       },
-      size: { basis: 120 },
+      size: { basis: 140 },
     },
     {
       field: 'status',
@@ -123,7 +128,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell job={paginatedJobs[rowIndex]} />;
       },
-      size: { basis: 100 },
+      size: { basis: 90 },
     },
     {
       field: 'completed',
@@ -131,7 +136,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell job={paginatedJobs[rowIndex]} />;
       },
-      size: { basis: 100 },
+      size: { basis: 90 },
     },
     {
       field: 'quotaUsed',
@@ -139,7 +144,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <QuotaUsedCell job={paginatedJobs[rowIndex]} />;
       },
-      size: { basis: 50 },
+      size: { basis: 30 },
     },
     {
       field: 'resultURL',
