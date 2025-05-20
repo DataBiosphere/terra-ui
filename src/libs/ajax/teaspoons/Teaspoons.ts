@@ -15,17 +15,16 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   },
 
   getAllJobs: async (): Promise<GetJobsResponse> => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const res = await fetchTeaspoons('job/v1/jobs', _.merge(authOpts(), { signal }));
-    console.log('actual response was: ', await res.json());
-
-    return mockJobResponse;
+    return mockJobResponse; // TODO: remove mock data
   },
 });
 
 export interface JobReport {
   id: string;
   description: string;
-  status: string;
+  status: TeaspoonsJobStatus;
   statusCode: string;
   submitted: string;
   completed: string;
@@ -38,6 +37,8 @@ export interface GetJobsResponse {
   results: JobReport[];
 }
 
+export type TeaspoonsJobStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+
 export const mockJobResponse: GetJobsResponse = {
   totalResults: 2,
   pageToken: '1',
@@ -45,27 +46,27 @@ export const mockJobResponse: GetJobsResponse = {
     {
       id: '12345',
       description: 'Test job',
-      status: 'DONE',
+      status: 'SUCCEEDED',
       statusCode: '0',
-      submitted: '2023-10-01T12:00:00Z',
-      completed: '2023-10-02T12:00:00Z',
-      resultURL: 'https://example.com/results/12345',
+      submitted: 'Feb 2, 2025',
+      completed: 'Feb 3, 2025',
+      resultURL: 'bazbar',
     },
     {
       id: '67890',
       description: 'Another test job',
       status: 'FAILED',
       statusCode: '1',
-      submitted: '2023-10-03T12:00:00Z',
-      completed: '2023-10-04T12:00:00Z',
-      resultURL: 'https://example.com/results/67890',
+      submitted: 'Feb 3, 2025',
+      completed: 'Feb 3, 2025',
+      resultURL: 'foobar',
     },
     {
       id: '54321',
       description: 'Third test job',
       status: 'RUNNING',
       statusCode: '2',
-      submitted: '2023-10-05T12:00:00Z',
+      submitted: 'Feb 7, 2025',
       completed: '',
       resultURL: '',
     },
