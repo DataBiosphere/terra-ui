@@ -1,3 +1,4 @@
+import { reverse } from 'lodash';
 import _ from 'lodash/fp';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
@@ -43,6 +44,7 @@ export interface JobReport {
   submitted: string;
   completed: string;
   resultURL: string;
+  quotaConsumed?: number;
 }
 
 export interface GetJobsResponse {
@@ -56,7 +58,7 @@ export type TeaspoonsJobStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED
 export const mockJobResponse: GetJobsResponse = {
   totalResults: 12,
   pageToken: '1',
-  results: [
+  results: reverse([
     {
       id: '12345',
       description: 'Test job',
@@ -149,7 +151,8 @@ export const mockJobResponse: GetJobsResponse = {
     },
     {
       id: '77777',
-      description: 'Eleventh test job',
+      description:
+        'Eleventh test job also this is an extremely long description lets see if it breaks the table maybe it does maybe it doesnt but we cant really be sure until we see it with our own eyes',
       status: 'RUNNING',
       statusCode: '2',
       submitted: 'Feb 19, 2025',
@@ -165,5 +168,5 @@ export const mockJobResponse: GetJobsResponse = {
       completed: '',
       resultURL: '',
     },
-  ],
+  ]),
 };

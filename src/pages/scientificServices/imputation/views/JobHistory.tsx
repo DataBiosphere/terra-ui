@@ -3,7 +3,7 @@ import _, { capitalize, toString } from 'lodash';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { FlexTable, HeaderCell, Paginator } from 'src/components/table';
+import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
 import { GetJobsResponse, JobReport, Teaspoons, TeaspoonsJobStatus } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { useCancellation } from 'src/libs/react-utils';
 import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
@@ -16,7 +16,6 @@ export const JobHistory = () => {
   const [jobsResponse, setJobsResponse] = useState<GetJobsResponse>();
 
   useEffect(() => {
-    // TODO: pagination
     async function fetchJobs() {
       const response = await Teaspoons(signal).getAllJobs(itemsPerPage, toString(pageNumber)); // jobsResponse?.pageToken || undefined);
       setJobsResponse(response);
@@ -59,7 +58,7 @@ export const JobHistory = () => {
                   aria-label='job history table'
                   width={width}
                   height={height}
-                  rowHeight={55}
+                  // rowHeight={55}
                   // @ts-expect-error - FlexTable is not yet converted to TypeScript
                   sort='asc'
                   rowCount={jobsResponse.results.length}
@@ -157,11 +156,6 @@ const getColumns = (paginatedJobs: JobReport[]) => {
   ];
 };
 
-// interface SortProperties {
-//   field: keyof JobReport;
-//   direction: 'asc' | 'desc';
-// }
-
 interface CellProps {
   // eslint-disable-next-line react/no-unused-prop-types
   job: JobReport;
@@ -187,7 +181,8 @@ const JobIdCell = (props: CellProps): ReactNode => {
 };
 
 const DescriptionCell = (props: CellProps): ReactNode => {
-  return <div>{props.job.description}</div>;
+  // descriptions can be long, so truncate them and allow the user to hover over them to see the full description
+  return <TooltipCell tooltip={null}>{props.job.description}</TooltipCell>;
 };
 
 const StatusCell = (props: CellProps): ReactNode => {
@@ -203,7 +198,7 @@ const CompletedCell = (props: CellProps): ReactNode => {
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
-  return <div>500</div>;
+  return <div>{props.job.quotaConsumed}</div>;
 };
 
 const ActionCell = (props: CellProps): ReactNode => {
