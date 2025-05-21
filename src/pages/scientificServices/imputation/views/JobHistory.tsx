@@ -9,6 +9,10 @@ import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/lib
 import { useCancellation } from 'src/libs/react-utils';
 import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
 
+/*
+   Right now, this will show all pipeline runs. Once we support more than one pipeline,
+   we'll need to add a filter for the pipeline name.
+*/
 export const JobHistory = () => {
   const signal = useCancellation();
 
@@ -222,6 +226,7 @@ const QuotaUsedCell = (props: CellProps): ReactNode => {
 };
 
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
+  // TODO these actions will be implemented in a later ticket
   return (
     <div>
       {pipelineRun.status === 'SUCCEEDED' && (
