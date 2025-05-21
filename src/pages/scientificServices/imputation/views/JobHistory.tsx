@@ -80,22 +80,20 @@ export const JobHistory = () => {
         </div>
         {!_.isEmpty(pipelineRunsResponse?.results) && (
           <div style={{ marginBottom: '0.5rem' }}>
-            {
-              // @ts-expect-error
-              <Paginator
-                filteredDataLength={pipelineRunsResponse?.totalResults}
-                unfilteredDataLength={pipelineRunsResponse?.totalResults}
-                pageNumber={pageNumber}
-                setPageNumber={(v) => {
-                  setPageNumber(v);
-                }}
-                itemsPerPage={itemsPerPage}
-                setItemsPerPage={(v) => {
-                  setPageNumber(1);
-                  setItemsPerPage(v);
-                }}
-              />
-            }
+            {/* @ts-ignore */}
+            <Paginator
+              filteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+              unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+              pageNumber={pageNumber}
+              setPageNumber={(v) => {
+                setPageNumber(v);
+              }}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={(v) => {
+                setPageNumber(1);
+                setItemsPerPage(v);
+              }}
+            />
           </div>
         )}
       </main>
@@ -165,16 +163,17 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
 };
 
 interface CellProps {
+  // I have absolutely no clue why TS thinks this is unused
   // eslint-disable-next-line react/no-unused-prop-types
   pipelineRun: PipelineRun;
 }
 
-const JobIdCell = (props: CellProps): ReactNode => {
+const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
       <div style={{ width: '100%', overflow: 'hidden' }}>
         <TooltipCell
-          tooltip={props.pipelineRun.jobId}
+          tooltip={pipelineRun.jobId}
           style={{
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -182,7 +181,7 @@ const JobIdCell = (props: CellProps): ReactNode => {
             width: '100%',
           }}
         >
-          {props.pipelineRun.jobId}
+          {pipelineRun.jobId}
         </TooltipCell>
       </div>
       <div
@@ -195,45 +194,45 @@ const JobIdCell = (props: CellProps): ReactNode => {
           fontSize: '10px',
         }}
       >
-        {props.pipelineRun.pipelineName}
+        {pipelineRun.pipelineName}
       </div>
     </div>
   );
 };
 
-const DescriptionCell = (props: CellProps): ReactNode => {
+const DescriptionCell = ({ pipelineRun }: CellProps): ReactNode => {
   // descriptions can be long, so truncate them and allow the user to hover over them to see the full description
-  return <TooltipCell tooltip={null}>{props.pipelineRun.description}</TooltipCell>;
+  return <TooltipCell tooltip={null}>{pipelineRun.description}</TooltipCell>;
 };
 
-const StatusCell = (props: CellProps): ReactNode => {
-  return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(props.pipelineRun.status)}</div>;
+const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
+  return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun.status)}</div>;
 };
 
-const SubmittedCell = (props: CellProps): ReactNode => {
-  return <div>{props.pipelineRun.timeSubmitted}</div>;
+const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
+  return <div>{new Date(pipelineRun.timeSubmitted).toLocaleDateString()}</div>;
 };
 
-const CompletedCell = (props: CellProps): ReactNode => {
-  return <div>{props.pipelineRun.timeCompleted}</div>;
+const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
+  return <div>{pipelineRun.timeCompleted ? new Date(pipelineRun.timeCompleted).toLocaleDateString() : ''}</div>;
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
   return <div>N/A</div>;
 };
 
-const ActionCell = (props: CellProps): ReactNode => {
+const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   return (
     <div>
-      {props.pipelineRun.status === 'SUCCEEDED' && (
+      {pipelineRun.status === 'SUCCEEDED' && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
-        <a href='' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
+        <a href='#' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
           Download Output
         </a>
       )}
-      {props.pipelineRun.status === 'FAILED' && (
+      {pipelineRun.status === 'FAILED' && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
-        <a href='' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
+        <a href='#' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
           See Details
         </a>
       )}
