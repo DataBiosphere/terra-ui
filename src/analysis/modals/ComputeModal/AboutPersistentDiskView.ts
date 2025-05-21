@@ -55,9 +55,7 @@ export const AboutPersistentDiskView = (props: PersistentDiskAboutProps): ReactN
       titleChildren: [],
     }),
     div({ style: { lineHeight: 1.5 } }, [
-      p([
-        'Besides the persistent disk, an additional boot disk is attached to your cloud compute. This disk pre-caches the container images so your cloud compute starts up faster.',
-      ]),
+      p(['An additional boot disk is attached to spin up your cloud compute faster']),
       p([
         'The boot disk is automatically deleted along with your cloud compute. You cannot delete the boot disk separately.',
       ]),
