@@ -56,12 +56,14 @@ export const AboutPersistentDiskView = (props: PersistentDiskAboutProps): ReactN
     }),
     div({ style: { lineHeight: 1.5 } }, [
       p([
-        'An additional `boot` disk is attached to your cloud compute. This disk pre-caches the container images so your cloud compute starts up faster.',
+        'Besides the persistent disk, an additional boot disk is attached to your cloud compute. This disk pre-caches the container images so your cloud compute starts up faster.',
       ]),
       p([
-        'The boot disk is automatically deleted when you delete your cloud compute. You cannot delete the boot disk separately.',
+        'The boot disk is automatically deleted along with your cloud compute. You cannot delete the boot disk separately.',
       ]),
-      p(['The cost of this extra boot disk is ~0.01$ / hr, which is accounted for in the Paused cloud compute cost.']),
+      p([
+        'The cost of this extra boot disk amounts to ~0.01$ / hr, which is accounted for in the paused cloud compute cost.',
+      ]),
     ]),
   ]);
 };

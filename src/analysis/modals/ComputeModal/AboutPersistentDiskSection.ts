@@ -20,7 +20,7 @@ export const AboutPersistentDiskSection: React.FC<AboutPersistentDiskSectionProp
           style: { marginLeft: '0.5rem' },
         },
         [
-          'Learn more about persistent disks and where your disk is mounted.',
+          'Learn more about the disks mounted to your cloud compute',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } }),
         ]
       ),
