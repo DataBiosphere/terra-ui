@@ -24,3 +24,5 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     return res.json();
   },
 });
+
+export type TeaspoonsContract = ReturnType<typeof Teaspoons>;
