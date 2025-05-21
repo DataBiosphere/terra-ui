@@ -1,10 +1,11 @@
 import { Icon, Spinner } from '@terra-ui-packages/components';
-import _, { capitalize, toString } from 'lodash';
-import React, { ReactNode, useEffect, useState } from 'react';
+import _, { capitalize } from 'lodash';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
-import { GetJobsResponse, JobReport, Teaspoons, TeaspoonsJobStatus } from 'src/libs/ajax/teaspoons/Teaspoons';
+import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
+import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
 
@@ -13,15 +14,17 @@ export const JobHistory = () => {
 
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [jobsResponse, setJobsResponse] = useState<GetJobsResponse>();
+  const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
+  const nextPageToken = useRef<string>();
 
   useEffect(() => {
-    async function fetchJobs() {
-      const response = await Teaspoons(signal).getAllJobs(itemsPerPage, toString(pageNumber)); // jobsResponse?.pageToken || undefined);
-      setJobsResponse(response);
+    async function fetchPipelineRuns() {
+      const response = await Teaspoons(signal).getAllPipelineRuns(itemsPerPage, nextPageToken.current);
+      setPipelineRunsResponse(response);
+      nextPageToken.current = response.pageToken;
     }
-    fetchJobs();
-  }, [itemsPerPage, pageNumber, signal]);
+    fetchPipelineRuns();
+  }, [pageNumber, signal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <FooterWrapper alwaysShow>
@@ -39,7 +42,7 @@ export const JobHistory = () => {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <h3>Job History</h3>
-          <div>All files associated with jobs will be auto deleted after 2 weeks from completed.</div>
+          <div>All files associated with jobs will be automatically deleted after 2 weeks from completed.</div>
           <div>
             For support, email{' '}
             <a
@@ -51,20 +54,23 @@ export const JobHistory = () => {
           </div>
         </div>
         <div style={{ flex: 1, marginTop: '1rem' }}>
-          {jobsResponse ? (
+          {pipelineRunsResponse ? (
             <AutoSizer>
               {({ width, height }) => (
+                // Sorting is unsupported on this table for now. Eventually
+                // we may update the paginated Teaspoons getAllPipelineRuns endpoint
+                // to support filters and sorting. Until then, the results will be
+                // sorted by creation date, with the most recent displayed first.
                 <FlexTable
                   aria-label='job history table'
                   width={width}
                   height={height}
-                  // rowHeight={55}
-                  // @ts-expect-error - FlexTable is not yet converted to TypeScript
-                  sort='asc'
-                  rowCount={jobsResponse.results.length}
-                  columns={getColumns(jobsResponse.results)}
-                  noContentMessage={jobsResponse.totalResults === 0 ? ' ' : 'Nothing to display'}
+                  rowHeight={55}
+                  rowCount={pipelineRunsResponse.results.length}
+                  columns={getColumns(pipelineRunsResponse.results)}
+                  noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
                   tabIndex={-1}
+                  variant={undefined}
                 />
               )}
             </AutoSizer>
@@ -72,15 +78,17 @@ export const JobHistory = () => {
             <Spinner />
           )}
         </div>
-        {!_.isEmpty(jobsResponse?.results) && (
+        {!_.isEmpty(pipelineRunsResponse?.results) && (
           <div style={{ marginBottom: '0.5rem' }}>
             {
               // @ts-expect-error
               <Paginator
-                filteredDataLength={jobsResponse?.totalResults}
-                unfilteredDataLength={jobsResponse?.totalResults}
+                filteredDataLength={pipelineRunsResponse?.totalResults}
+                unfilteredDataLength={pipelineRunsResponse?.totalResults}
                 pageNumber={pageNumber}
-                setPageNumber={setPageNumber}
+                setPageNumber={(v) => {
+                  setPageNumber(v);
+                }}
                 itemsPerPage={itemsPerPage}
                 setItemsPerPage={(v) => {
                   setPageNumber(1);
@@ -95,13 +103,13 @@ export const JobHistory = () => {
   );
 };
 
-const getColumns = (paginatedJobs: JobReport[]) => {
+const getColumns = (paginatedRuns: PipelineRun[]) => {
   return [
     {
       field: 'id',
       headerRenderer: () => <HeaderCell>Job ID</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
-        return <JobIdCell job={paginatedJobs[rowIndex]} />;
+        return <JobIdCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
       size: { basis: 140 },
     },
@@ -109,7 +117,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       field: 'description',
       headerRenderer: () => <HeaderCell>Description</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
-        return <DescriptionCell job={paginatedJobs[rowIndex]} />;
+        return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
       size: { basis: 140 },
     },
@@ -117,7 +125,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       field: 'status',
       headerRenderer: () => <HeaderCell>Status</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
-        return <StatusCell job={paginatedJobs[rowIndex]} />;
+        return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
       size: { basis: 50 },
     },
@@ -125,7 +133,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       field: 'submitted',
       headerRenderer: () => <HeaderCell>Submitted</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
-        return <SubmittedCell job={paginatedJobs[rowIndex]} />;
+        return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
       size: { basis: 90 },
     },
@@ -133,7 +141,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       field: 'completed',
       headerRenderer: () => <HeaderCell>Completed</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
-        return <CompletedCell job={paginatedJobs[rowIndex]} />;
+        return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
       size: { basis: 90 },
     },
@@ -141,7 +149,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       field: 'quotaUsed',
       headerRenderer: () => <HeaderCell>Quota Used</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
-        return <QuotaUsedCell job={paginatedJobs[rowIndex]} />;
+        return <QuotaUsedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
       size: { basis: 30 },
     },
@@ -149,7 +157,7 @@ const getColumns = (paginatedJobs: JobReport[]) => {
       field: 'resultURL',
       headerRenderer: () => <HeaderCell>Actions</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
-        return <ActionCell job={paginatedJobs[rowIndex]} />;
+        return <ActionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
       size: { basis: 100 },
     },
@@ -158,15 +166,28 @@ const getColumns = (paginatedJobs: JobReport[]) => {
 
 interface CellProps {
   // eslint-disable-next-line react/no-unused-prop-types
-  job: JobReport;
+  pipelineRun: PipelineRun;
 }
 
 const JobIdCell = (props: CellProps): ReactNode => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>{props.job.id}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
+      <div style={{ width: '100%', overflow: 'hidden' }}>
+        <TooltipCell
+          tooltip={props.pipelineRun.jobId}
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            width: '100%',
+          }}
+        >
+          {props.pipelineRun.jobId}
+        </TooltipCell>
+      </div>
       <div
         style={{
+          width: 'fit-content',
           fontWeight: 600,
           backgroundColor: '#4D72AA4D',
           padding: '0.33rem',
@@ -174,7 +195,7 @@ const JobIdCell = (props: CellProps): ReactNode => {
           fontSize: '10px',
         }}
       >
-        array_imputation v1
+        {props.pipelineRun.pipelineName}
       </div>
     </div>
   );
@@ -182,35 +203,37 @@ const JobIdCell = (props: CellProps): ReactNode => {
 
 const DescriptionCell = (props: CellProps): ReactNode => {
   // descriptions can be long, so truncate them and allow the user to hover over them to see the full description
-  return <TooltipCell tooltip={null}>{props.job.description}</TooltipCell>;
+  return <TooltipCell tooltip={null}>{props.pipelineRun.description}</TooltipCell>;
 };
 
 const StatusCell = (props: CellProps): ReactNode => {
-  return <div style={{ display: 'flex', alignItems: 'center' }}>{getJobStatusIcon(props.job.status)}</div>;
+  return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(props.pipelineRun.status)}</div>;
 };
 
 const SubmittedCell = (props: CellProps): ReactNode => {
-  return <div>{props.job.submitted}</div>;
+  return <div>{props.pipelineRun.timeSubmitted}</div>;
 };
 
 const CompletedCell = (props: CellProps): ReactNode => {
-  return <div>{props.job.completed}</div>;
+  return <div>{props.pipelineRun.timeCompleted}</div>;
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
-  return <div>{props.job.quotaConsumed}</div>;
+  return <div>N/A</div>;
 };
 
 const ActionCell = (props: CellProps): ReactNode => {
   return (
     <div>
-      {props.job.status === 'SUCCEEDED' && (
-        <a href={props.job.resultURL} style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
+      {props.pipelineRun.status === 'SUCCEEDED' && (
+        // eslint-disable-next-line jsx-a11y/anchor-is-valid
+        <a href='' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
           Download Output
         </a>
       )}
-      {props.job.status === 'FAILED' && (
-        <a href={props.job.resultURL} style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
+      {props.pipelineRun.status === 'FAILED' && (
+        // eslint-disable-next-line jsx-a11y/anchor-is-valid
+        <a href='' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
           See Details
         </a>
       )}
@@ -218,7 +241,7 @@ const ActionCell = (props: CellProps): ReactNode => {
   );
 };
 
-const getJobStatusIcon = (status: TeaspoonsJobStatus): ReactNode => {
+const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
   switch (status) {
     case 'SUCCEEDED':
       return (

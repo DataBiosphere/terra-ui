@@ -15,3 +15,20 @@ export interface PipelineQuotaWithDetails {
   quotaConsumed: number;
   quotaUnits: string;
 }
+
+export interface PipelineRun {
+  jobId: string;
+  pipelineName: string;
+  status: PipelineRunStatus;
+  description?: string;
+  timeSubmitted: string;
+  timeCompleted?: string;
+}
+
+export interface GetPipelineRunsResponse {
+  totalResults: number;
+  pageToken: string;
+  results: PipelineRun[];
+}
+
+export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
