@@ -222,7 +222,7 @@ const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
-  return <div>N/A</div>;
+  return <div>{props.pipelineRun.quotaConsumed ? props.pipelineRun.quotaConsumed : 'N/A'}</div>;
 };
 
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
