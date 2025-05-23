@@ -585,16 +585,16 @@ function getFacetClass(facet) {
 
 function getFriendlyFacetName(facet) {
   const friendlyNames = {
-    VT: 'Variant type',
-    AA: 'Ancestral allele',
-    AC: 'Allele count',
-    AF: 'Allele frequency',
+    VT: 'Variant Type',
+    AA: 'Ancestral Allele',
+    AC: 'Allele Count',
+    AF: 'Allele Frequency',
     AFR_AF: 'AF: African',
     AMR_AF: 'AF: Admixed American',
     EAS_AF: 'AF: East Asian',
     EUR_AF: 'AF: European',
     SAS_AF: 'AF: South Asian',
-    DP: 'Read depth',
+    DP: 'Read Depth',
   };
 
   let friendlyName = facet.name;
@@ -1010,7 +1010,10 @@ function getFacetsHtml(facets) {
     })
     .join('');
 
-  const facetsHtml = `<div>${facetList}</div>`;
+  const facetsHtml = `
+    <h3>FILTER VARIANTS</h3>
+    <div>${facetList}</div>
+  `;
   return [facetsHtml, brushesByNumericFacetName];
 }
 
