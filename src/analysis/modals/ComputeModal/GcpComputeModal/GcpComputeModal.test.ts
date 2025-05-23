@@ -1245,7 +1245,7 @@ describe('GcpComputeModal', () => {
     await user.click(link);
 
     // Assert
-    screen.getByText('About persistent disk');
+    screen.getByText('Persistent disk');
     screen.getByText(/Your persistent disk is mounted in the directory/);
   });
 
@@ -1380,7 +1380,7 @@ describe('GcpComputeModal', () => {
     // Assert
     const link = screen.getByText('Learn more about the disks mounted to your cloud compute');
     await user.click(link);
-    screen.getByText('About persistent disk');
+    screen.getByText('Persistent disk');
     screen.getByText(expectedLabel);
   });
 
