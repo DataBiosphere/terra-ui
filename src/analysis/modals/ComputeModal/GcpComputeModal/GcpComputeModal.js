@@ -1593,7 +1593,7 @@ export const GcpComputeModalBase = ({
                     Metrics().captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
                   },
                 },
-                ['Learn more about Persistent disks and where your disk is mounted']
+                ['Learn more about the disks mounted to your cloud compute']
               ),
             ]),
             h(

@@ -1241,12 +1241,13 @@ describe('GcpComputeModal', () => {
 
     // Act
     render(h(GcpComputeModalBase, defaultModalProps));
-    const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
+    const link = screen.getByText('Learn more about the disks mounted to your cloud compute');
     await user.click(link);
 
     // Assert
-    screen.getByText('About persistent disk');
+    screen.getByText('Persistent disks');
     screen.getByText(/Your persistent disk is mounted in the directory/);
+    screen.getByText('Boot disks');
   });
 
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
@@ -1378,10 +1379,11 @@ describe('GcpComputeModal', () => {
     });
 
     // Assert
-    const link = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
+    const link = screen.getByText('Learn more about the disks mounted to your cloud compute');
     await user.click(link);
-    screen.getByText('About persistent disk');
+    screen.getByText('Persistent disks');
     screen.getByText(expectedLabel);
+    screen.getByText('Boot disks');
   });
 
   it('correctly renders and updates timeoutInMinutes', async () => {

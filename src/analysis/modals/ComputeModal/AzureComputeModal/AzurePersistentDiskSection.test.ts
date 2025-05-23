@@ -72,7 +72,7 @@ describe('AzurePersistentDiskSection', () => {
     render(h(AzurePersistentDiskSection, defaultAzurePersistentDiskSectionProps));
 
     // Act
-    const aboutLink = screen.getByText('Learn more about persistent disks and where your disk is mounted.');
+    const aboutLink = screen.getByText('Learn more about the disks mounted to your cloud compute');
     await userEvent.click(aboutLink);
 
     // Assert
