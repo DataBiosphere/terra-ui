@@ -1247,6 +1247,7 @@ describe('GcpComputeModal', () => {
     // Assert
     screen.getByText('Persistent disks');
     screen.getByText(/Your persistent disk is mounted in the directory/);
+    screen.getByText('Boot disks');
   });
 
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
@@ -1382,6 +1383,7 @@ describe('GcpComputeModal', () => {
     await user.click(link);
     screen.getByText('Persistent disks');
     screen.getByText(expectedLabel);
+    screen.getByText('Boot disks');
   });
 
   it('correctly renders and updates timeoutInMinutes', async () => {
