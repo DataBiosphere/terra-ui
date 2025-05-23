@@ -17,13 +17,13 @@ describe('AboutPersistentDiskSection', () => {
     render(h(AboutPersistentDiskSection, defaultAboutPersistentDiskSectionProps));
     // Assert
     expect(screen.getByText('Persistent disk')).toBeTruthy();
-    expect(screen.getByText('Learn more about the disks mounted to your cloud compute.')).toBeTruthy();
+    expect(screen.getByText('Learn more about the disks mounted to your cloud compute')).toBeTruthy();
   });
 
   it('should call onClick when clicked', async () => {
     // Arrange
     render(h(AboutPersistentDiskSection, defaultAboutPersistentDiskSectionProps));
-    await userEvent.click(screen.getByText('Learn more about the disks mounted to your cloud compute.'));
+    await userEvent.click(screen.getByText('Learn more about the disks mounted to your cloud compute'));
 
     // Assert
     expect(defaultAboutPersistentDiskSectionProps.onClick).toBeCalled();

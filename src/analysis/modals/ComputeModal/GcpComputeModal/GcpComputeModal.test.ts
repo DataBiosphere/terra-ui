@@ -1241,7 +1241,7 @@ describe('GcpComputeModal', () => {
 
     // Act
     render(h(GcpComputeModalBase, defaultModalProps));
-    const link = screen.getByText('Learn more about the disks mounted to your cloud compute.');
+    const link = screen.getByText('Learn more about the disks mounted to your cloud compute');
     await user.click(link);
 
     // Assert
@@ -1378,7 +1378,7 @@ describe('GcpComputeModal', () => {
     });
 
     // Assert
-    const link = screen.getByText('Learn more about the disks mounted to your cloud compute.');
+    const link = screen.getByText('Learn more about the disks mounted to your cloud compute');
     await user.click(link);
     screen.getByText('About persistent disk');
     screen.getByText(expectedLabel);
