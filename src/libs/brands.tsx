@@ -391,7 +391,7 @@ export const brands: Record<string, BrandConfiguration> = {
   },
   scientificServices: {
     name: 'Broad Data Science Services',
-    queryName: 'dss',
+    queryName: 'scientificServices',
     landingPageBackground: 'none',
     welcomeHeader: undefined,
     description: <ScientificServicesLandingPage />,
