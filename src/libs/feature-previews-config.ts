@@ -1,7 +1,6 @@
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
-export const SAGE_ACCOUNT_LINKING = 'sageAccountLinking';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -64,13 +63,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
       'Feedback on Cohort Builder Card'
     )}`,
     lastUpdated: '7/25/2024',
-  },
-  {
-    id: SAGE_ACCOUNT_LINKING,
-    title: 'Sage AD Knowledge Portal Account Linking',
-    description: 'Enabling this feature will allow linking a Terra account to a Sage AD Knowledge Portal account.',
-    groups: ['preview-sage-account-linking'],
-    lastUpdated: '4/15/2025',
   },
 ];
 
