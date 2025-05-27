@@ -1,5 +1,6 @@
 import { Icon, Spinner } from '@terra-ui-packages/components';
 import _, { capitalize } from 'lodash';
+import pluralize from 'pluralize';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -233,7 +234,13 @@ const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
-  return <div>{props.pipelineRun.quotaConsumed ? props.pipelineRun.quotaConsumed : 'N/A'}</div>;
+  return (
+    <div>
+      {props.pipelineRun.quotaConsumed
+        ? `${props.pipelineRun.quotaConsumed} ${pluralize('sample', props.pipelineRun.quotaConsumed)}`
+        : 'N/A'}
+    </div>
+  );
 };
 
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
@@ -261,13 +268,15 @@ const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
     case 'SUCCEEDED':
       return (
         <div style={{ display: 'flex', alignItems: 'center', color: '#74AE43', gap: '0.5rem' }}>
-          <Icon icon='success-standard' /> {capitalize(status)}
+          <Icon icon='success-standard' /> Done
         </div>
       );
+    case 'RUNNING':
+      return <div style={{ display: 'flex', alignItems: 'center' }}>In Progress</div>;
     case 'FAILED':
       return (
         <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
-          <Icon icon='warning-standard' /> {capitalize(status)}
+          <Icon icon='warning-standard' /> Failed
         </div>
       );
     default:
