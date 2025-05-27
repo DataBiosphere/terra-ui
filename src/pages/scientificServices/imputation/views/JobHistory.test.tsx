@@ -63,6 +63,6 @@ describe('job history table', () => {
 
     expect(await screen.findByText('Job History')).toBeInTheDocument();
     expect(screen.queryAllByText('Test Job')).toHaveLength(2);
-    expect(screen.getByText('Running')).toBeInTheDocument();
+    expect(screen.getByText('In Progress')).toBeInTheDocument();
   });
 });
