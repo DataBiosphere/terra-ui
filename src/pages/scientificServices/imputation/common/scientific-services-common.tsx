@@ -13,8 +13,7 @@ const TAB_LINKS = {
 export const imputationTopBar = (activeTab: string) => {
   return (
     <>
-      {/* TODO: TSPS-486 TopBar.showMenu should be false */}
-      <TopBar title='' href={Nav.getLink('root')} />
+      <TopBar title='' href={Nav.getLink('root')} compact />
       <TabBar
         aria-label='imputation menu'
         activeTab={activeTab}
