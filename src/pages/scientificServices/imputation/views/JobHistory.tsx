@@ -213,8 +213,25 @@ const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun.status)}</div>;
 };
 
+/** Format date like "Feb 15, 2025", and enable tooltip with precise time */
+const MediumDateWithTooltip = (date: string | Date): string => {
+  const mediumDate = new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  
+  return (
+    <TooltipCell tooltip={date}>
+      {mediumDate}
+    </TooltipCell>
+  );
+};
+
 const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
-  return <div>{new Date(pipelineRun.timeSubmitted).toLocaleDateString()}</div>;
+  return (
+    <div><MediumDateWithTooltip date={pipelineRun.timeSubmitted} /></div>
+  );
 };
 
 const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
