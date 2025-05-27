@@ -214,28 +214,22 @@ const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 /** Format date like "Feb 15, 2025", and enable tooltip with precise time */
-const MediumDateWithTooltip = (date: string | Date): string => {
+const MediumDateWithTooltip = ({ date }: { date: string | Date }): React.JSX.Element => {
   const mediumDate = new Date(date).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
-  
-  return (
-    <TooltipCell tooltip={date}>
-      {mediumDate}
-    </TooltipCell>
-  );
+
+  return <TooltipCell tooltip={date}>{mediumDate}</TooltipCell>;
 };
 
 const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
-  return (
-    <div><MediumDateWithTooltip date={pipelineRun.timeSubmitted} /></div>
-  );
+  return <MediumDateWithTooltip date={pipelineRun.timeSubmitted} />;
 };
 
 const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
-  return <div>{pipelineRun.timeCompleted ? <MediumFormatDate date={pipelineRun.timeCompleted} /> : ''}</div>;
+  return <div>{pipelineRun.timeCompleted ? <MediumDateWithTooltip date={pipelineRun.timeCompleted} /> : ''}</div>;
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
