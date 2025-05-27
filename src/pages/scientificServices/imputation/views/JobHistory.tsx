@@ -235,7 +235,7 @@ const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
-  return <div>{pipelineRun.timeCompleted ? new Date(pipelineRun.timeCompleted).toLocaleDateString() : ''}</div>;
+  return <div>{pipelineRun.timeCompleted ? <MediumFormatDate date={pipelineRun.timeCompleted} /> : ''}</div>;
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
