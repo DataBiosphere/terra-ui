@@ -171,7 +171,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
     document.body.classList.remove('overlayOpen', 'overHeight');
   };
 
-  const buildNav = (transitionState) => {
+  const buildNav = (transitionState: string) => {
     const { signInStatus } = authState;
     const {
       profile: { firstName = 'Loading...', lastName = '' },
