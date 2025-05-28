@@ -148,10 +148,11 @@ export const TopBar = (props: TopBarProps): ReactNode => {
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
   const [openSupportMenu, setOpenSupportMenu] = useState(false);
   const [openPlatformNewsMenu, setOpenPlatformNewsMenu] = useState(false);
-  const compact = getEnabledBrand().compactSidebar;
 
   const authState = useStore(authStore);
   const userState = useStore(userStore);
+
+  const compact = getEnabledBrand().compactTopBar;
 
   const showNav = () => {
     setNavShown(true);
