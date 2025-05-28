@@ -105,7 +105,7 @@ export interface BrandConfiguration {
     body: string;
   };
 
-  /** Optional flag to use the compact the TopBar with login/logout only */
+  /** Optional flag to use the compact TopBar with login/logout only */
   compactTopBar?: boolean;
 }
 
