@@ -10,7 +10,14 @@ import { signOut } from 'src/auth/signout/sign-out';
 import { Clickable, Link } from 'src/components/common';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
 import headerRightHexes from 'src/images/brands/terra/header-right-hexes.svg';
-import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils';
+import {
+  getEnabledBrand,
+  isBaseline,
+  isBioDataCatalyst,
+  isDatastage,
+  isFirecloud,
+  isTerra,
+} from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { getBuildTimestamp, getConfig } from 'src/libs/config';
 import { topBarLogo } from 'src/libs/logos';
@@ -132,7 +139,6 @@ interface TopBarProps extends PropsWithChildren {
   title: string;
   showMenu?: boolean;
   href?: string;
-  compact?: boolean; // whether to show only sign-in/sign-out (used for Teaspoons UI)
 }
 
 export const TopBar = (props: TopBarProps): ReactNode => {
@@ -142,6 +148,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
   const [openSupportMenu, setOpenSupportMenu] = useState(false);
   const [openPlatformNewsMenu, setOpenPlatformNewsMenu] = useState(false);
+  const compact = getEnabledBrand().compactSidebar;
 
   const authState = useStore(authStore);
   const userState = useStore(userStore);
@@ -163,7 +170,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
     document.body.classList.remove('overlayOpen', 'overHeight');
   };
 
-  const buildNav = (transitionState: string, compact?: boolean) => {
+  const buildNav = (transitionState) => {
     const { signInStatus } = authState;
     const {
       profile: { firstName = 'Loading...', lastName = '' },
@@ -402,7 +409,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
     <div role='banner' style={{ flex: 'none', display: 'flex', flexFlow: 'column nowrap' }}>
       <SkipNavLink ref={mainRef} />
       <Transition in={navShown} timeout={{ exit: 200 }} mountOnEnter unmountOnExit>
-        {(transitionState) => buildNav(transitionState, props.compact)}
+        {(transitionState) => buildNav(transitionState)}
       </Transition>
       <div
         style={{
