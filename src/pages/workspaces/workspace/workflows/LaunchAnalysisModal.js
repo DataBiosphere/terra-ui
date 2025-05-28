@@ -224,6 +224,29 @@ const LaunchAnalysisModal = ({
             }),
           ]),
       ]),
+      workflowBackend === 'LifeSciences' &&
+        div(
+          {
+            style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' },
+          },
+          [
+            div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+              icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+              'LifeSciences API Deprecation Warning',
+            ]),
+            div({ style: { fontWeight: 'normal', marginTop: '0.5rem' } }, [
+              'This workspace is launching workflows with the LifeSciences API, which will be removed from Terra on or after June 16, 2025. Please switch to using its successor, Batch API, by updating your Workspace Settings. ',
+              h(
+                Link,
+                {
+                  href: 'https://support.terra.bio/hc/en-us/articles/31190930435483-Cromwell-on-Google-Batch-API-released-May-19',
+                  ...Utils.newTabLinkProps,
+                },
+                ['Learn more', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+              ),
+            ]),
+          ]
+        ),
       warnDuplicateAnalyses &&
         div(
           {
