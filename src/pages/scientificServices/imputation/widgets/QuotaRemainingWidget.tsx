@@ -5,17 +5,17 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineQuotaWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 
-const QuotaRemaining = () => {
+export const QuotaRemainingWidget = ({ pipelineName }: { pipelineName: string }) => {
   const signal = useCancellation();
   const [quota, setQuota] = useState<PipelineQuotaWithDetails>();
 
   useEffect(() => {
     async function fetchQuota() {
-      const response = await Teaspoons(signal).getQuotaForPipeline('array_imputation');
+      const response = await Teaspoons(signal).getQuotaForPipeline(pipelineName);
       setQuota(response);
     }
     fetchQuota();
-  }, [signal]);
+  }, [pipelineName, signal]);
 
   return (
     <div
@@ -42,7 +42,7 @@ const QuotaRemaining = () => {
       )}
       <div style={{ marginTop: '1rem' }}>
         <span style={{ fontWeight: 'bold' }}>
-          Every submitted job will consume at least 500 samples from your quota.
+          {`Every submitted job will consume at least 500 ${quota ? quota.quotaUnits : 'units'} from your quota.`}
         </span>
       </div>
       <div style={{ marginTop: '1rem' }}>
@@ -66,31 +66,3 @@ const QuotaRemaining = () => {
     </div>
   );
 };
-
-const HelpfulTips = () => (
-  <div
-    style={{
-      backgroundColor: '#f4f6f9',
-      width: 400,
-      padding: '1rem',
-      borderRadius: '4px',
-    }}
-  >
-    <h3 style={{ marginTop: '0.5rem' }}>
-      <Icon icon='info-circle' style={{ color: '#5CC88D' }} /> Helpful Tips
-    </h3>
-    <ul style={{ paddingInlineStart: '1.5rem' }}>
-      <li style={{ marginTop: '1rem' }}>Ensure that your file is a valid vcf file</li>
-      <li style={{ marginTop: '1rem' }}>VCFs must be generated from GRCh38/hg38</li>
-      <li style={{ marginTop: '1rem' }}>Ensure your multi-sample file contains no more than your remaining quota.</li>
-      <li style={{ marginTop: '1rem' }}>More guidelines for data formatting</li>
-    </ul>
-  </div>
-);
-
-export const SidebarWidgets = () => (
-  <div>
-    <QuotaRemaining />
-    <HelpfulTips />
-  </div>
-);

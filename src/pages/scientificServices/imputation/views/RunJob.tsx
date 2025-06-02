@@ -8,7 +8,8 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
-import { SidebarWidgets } from 'src/pages/scientificServices/imputation/common/SidebarWidgets';
+import { HelpfulTips } from 'src/pages/scientificServices/imputation/widgets/HelpfulTipsWidget';
+import { QuotaRemainingWidget } from 'src/pages/scientificServices/imputation/widgets/QuotaRemainingWidget';
 
 export const RunJob = () => {
   const signal = useCancellation();
@@ -117,7 +118,10 @@ export const RunJob = () => {
             Submit
           </ButtonPrimary>
         </div>
-        <SidebarWidgets />
+        <div>
+          <QuotaRemainingWidget pipelineName='array_imputation' />
+          <HelpfulTips />
+        </div>
       </div>
     </FooterWrapper>
   );
