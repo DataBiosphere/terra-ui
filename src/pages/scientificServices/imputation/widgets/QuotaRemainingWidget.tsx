@@ -1,6 +1,5 @@
 import { Icon } from '@terra-ui-packages/components';
-import { useEffect, useState } from 'react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineQuotaWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
