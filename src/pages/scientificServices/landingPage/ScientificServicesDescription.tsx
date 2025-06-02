@@ -1,21 +1,12 @@
 import { ButtonPrimary } from '@terra-ui-packages/components';
 import React from 'react';
 
-export const ScientificServicesLandingPage = () => {
+export const ScientificServicesDescription = () => {
   return (
     <>
-      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '0rem' }}>
-        <span style={{ fontSize: '32px', marginBottom: '0.5rem' }}>Welcome to</span>
-        {/* TODO for a11y, probably want to break the text `Broad Data Science Services` out of the below .svg */}
-        <img
-          src='src/images/brands/scientificServices/welcomeLogo.svg'
-          alt='Broad Data Science Services logo'
-          style={{ width: '400px', marginBottom: '1.5rem' }}
-        />
-      </div>
       <div>
-        The Broad Data Science Services on Terra provide the community with fast, scalable, and secure analysis
-        capabilities against valuable data resources.
+        Our scientific services provide the community with fast, scalable, and secure analysis capabilities that
+        leverage valuable data resources.
       </div>
       <div style={{ fontWeight: 'bold', marginTop: '2rem' }}>Our current offerings:</div>
       <div>
