@@ -20,12 +20,13 @@ import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg
 import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
+import dspLogoLight from 'src/images/brands/scientificServices/dspLogoLight.svg';
 import scientificServicesHeaderLogo from 'src/images/brands/scientificServices/headerLogo.svg';
-import scientificServicesLogo from 'src/images/brands/scientificServices/logo.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg';
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg';
-import { ScientificServicesLandingPage } from 'src/pages/scientificServices/ScientificServicesLandingPage';
+import { ScientificServicesDescription } from 'src/pages/scientificServices/landingPage/ScientificServicesDescription';
+import { ScientificServicesWelcomeHeader } from 'src/pages/scientificServices/landingPage/ScientificServicesWelcomeHeader';
 
 const nonBreakingHyphen = '\u2011';
 
@@ -37,7 +38,7 @@ export interface BrandConfiguration {
   queryName: string;
 
   /** Landing page header text */
-  welcomeHeader?: string;
+  welcomeHeader: string | ReactNode;
 
   /** Landing page text */
   description: string | ReactNode;
@@ -427,15 +428,15 @@ export const brands: Record<string, BrandConfiguration> = {
     name: 'Broad Data Science Services',
     queryName: 'scientificServices',
     landingPageBackground: 'none',
-    welcomeHeader: undefined,
-    description: <ScientificServicesLandingPage />,
+    welcomeHeader: <ScientificServicesWelcomeHeader />,
+    description: <ScientificServicesDescription />,
     hostName: 'app.terra.bio', // TODO
     compactTopBar: true,
     docLinks: [],
     landingPageCards: [],
     logos: {
       color: scientificServicesHeaderLogo,
-      white: scientificServicesLogo,
+      white: dspLogoLight,
     },
     theme: {
       colorPalette: {
