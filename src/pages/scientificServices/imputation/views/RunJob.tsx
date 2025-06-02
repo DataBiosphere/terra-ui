@@ -12,6 +12,8 @@ import { HelpfulTipsWidget } from 'src/pages/scientificServices/imputation/widge
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/imputation/widgets/QuotaRemainingWidget';
 
 export const RunJob = () => {
+  // TODO: For now, this is hardcoded to the array_imputation pipeline. At some point, we'll want
+  // a React hook or something to fetch the pipeline name dynamically based on the current path or context.
   const PIPELINE_NAME = 'array_imputation';
 
   const signal = useCancellation();

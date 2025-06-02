@@ -2,8 +2,9 @@ import { Icon } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 
 export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]> = {
-  // Add tips for new pipelines here, and they'll automatically be displayed
-  // If a pipeline doesn't have any tips, this widget won't be rendered at all
+  // Add tips for new pipelines here, and they'll automatically be displayed.
+  // If a pipeline doesn't have any tips, this widget won't be rendered at all.
+  // This supports ReactNodes in case you want to include links or other non-string elements in the tips.
   array_imputation: [
     { id: 'vcf-valid', content: 'Ensure that your file is a valid vcf file' },
     { id: 'grch38', content: 'VCFs must be generated from GRCh38/hg38' },
