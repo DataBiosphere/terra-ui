@@ -49,6 +49,8 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
           !!quota,
           () => {
             if (!quota) {
+              // this should never happen because of the cond predicate above, but typescript
+              // has no idea what cond is doing, so we sadly need the extra type guard
               return <div style={{ marginTop: '1rem' }}>No quota information available for this pipeline.</div>;
             }
             return (

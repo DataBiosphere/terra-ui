@@ -5,6 +5,7 @@ export interface Pipeline {
   description: string;
 }
 
+/* Represents the quota settings for a particular pipeline */
 export interface PipelineQuota {
   pipelineName: string;
   defaultQuota: number;
@@ -20,7 +21,7 @@ export interface PipelineList {
   results: Pipeline[];
 }
 
-/* Represents the user quota */
+/* Represents an individual user's quota for a particular pipeline */
 export interface UserPipelineQuotaDetails {
   pipelineName: string;
   quotaLimit: number;
