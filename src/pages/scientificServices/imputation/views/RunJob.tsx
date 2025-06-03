@@ -8,10 +8,14 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
-import { HelpfulTips } from 'src/pages/scientificServices/imputation/widgets/HelpfulTipsWidget';
+import { HelpfulTipsWidget } from 'src/pages/scientificServices/imputation/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/imputation/widgets/QuotaRemainingWidget';
 
 export const RunJob = () => {
+  // TODO: For now, this is hardcoded to the array_imputation pipeline. At some point, we'll want
+  // a React hook or something to fetch the pipeline name dynamically based on the current path or context.
+  const PIPELINE_NAME = 'array_imputation';
+
   const signal = useCancellation();
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
@@ -26,13 +30,11 @@ export const RunJob = () => {
     async function fetchData() {
       const response = await Teaspoons(signal).getPipelines();
 
-      // TODO: for now, just filter for array_imputation on the frontend.
+      // TODO: for now, just filter for the selected pipeline on the frontend.
       // Eventually we'll want this filtering to be done via the API
-      const arrayImputationVersions = response.results.filter((pipeline) =>
-        pipeline.pipelineName.includes('array_imputation')
-      );
+      const pipelineVersions = response.results.filter((pipeline) => pipeline.pipelineName.includes(PIPELINE_NAME));
 
-      const options = arrayImputationVersions.map((pipeline) => ({
+      const options = pipelineVersions.map((pipeline) => ({
         value: pipeline.pipelineVersion as unknown as string,
         label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
       }));
@@ -119,8 +121,8 @@ export const RunJob = () => {
           </ButtonPrimary>
         </div>
         <div>
-          <QuotaRemainingWidget pipelineName='array_imputation' />
-          <HelpfulTips />
+          <QuotaRemainingWidget pipelineName={PIPELINE_NAME} />
+          <HelpfulTipsWidget pipelineName={PIPELINE_NAME} />
         </div>
       </div>
     </FooterWrapper>
