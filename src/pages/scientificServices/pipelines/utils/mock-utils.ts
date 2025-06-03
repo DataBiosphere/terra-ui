@@ -1,6 +1,3 @@
-// mockPipeline function
-
-// returns a mock Pipeline object with the given name
 import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 export function mockPipeline(name: string): Pipeline {

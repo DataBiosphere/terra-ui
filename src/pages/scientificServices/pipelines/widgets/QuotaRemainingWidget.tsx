@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
+import { cond, DEFAULT } from 'src/libs/utils';
 
 export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
   const signal = useCancellation();
@@ -42,27 +43,32 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
       <h3 style={{ marginTop: '0.5rem' }}>
         <Icon icon='info-circle' style={{ color: '#5CC88D' }} /> Quota Remaining
       </h3>
-      {/* eslint-disable-next-line no-nested-ternary */}
-      {!selectedPipeline ? (
-        <div style={{ marginTop: '1rem' }}>Select a pipeline to see quota</div>
-      ) : quota ? (
-        <div style={{ marginTop: '1rem' }}>
-          {quota.pipelineName}:{' '}
-          <span style={{ fontWeight: 'bold' }}>
-            {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
-          </span>
-          {pipelineDetails && (
-            <div style={{ marginTop: '1rem' }}>
-              <span style={{ fontWeight: 'bold' }}>
-                {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota.minQuotaConsumed} ${
-                  quota ? quota.quotaUnits : 'units'
-                } from your quota.`}
-              </span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div style={{ marginTop: '1rem' }}>Loading quota...</div>
+      {cond(
+        [!selectedPipeline, () => <div style={{ marginTop: '1rem' }}>Select a pipeline to see quota</div>],
+        [
+          !!quota,
+          () => {
+            if (!quota) {
+              return <div style={{ marginTop: '1rem' }}>No quota information available for this pipeline.</div>;
+            }
+            return (
+              <div style={{ marginTop: '1rem' }}>
+                {quota!.pipelineName}:{' '}
+                <span style={{ fontWeight: 'bold' }}>
+                  {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
+                </span>
+                {pipelineDetails && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <span style={{ fontWeight: 'bold' }}>
+                      {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota.minQuotaConsumed} ${quota.quotaUnits} from your quota.`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          },
+        ],
+        [DEFAULT, () => <div style={{ marginTop: '1rem' }}>Loading quota...</div>]
       )}
       <div style={{ marginTop: '1rem' }}>
         <a
