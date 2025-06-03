@@ -1,20 +1,33 @@
 import { Icon } from '@terra-ui-packages/components';
 import React, { useEffect, useState } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { PipelineQuotaWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 
-export const QuotaRemainingWidget = ({ pipelineName }: { pipelineName: string }) => {
+export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
   const signal = useCancellation();
-  const [quota, setQuota] = useState<PipelineQuotaWithDetails>();
+  const [quota, setQuota] = useState<UserPipelineQuotaDetails>();
+  const [pipelineDetails, setPipelineDetails] = useState<PipelineWithDetails>();
 
   useEffect(() => {
-    async function fetchQuota() {
-      const response = await Teaspoons(signal).getQuotaForPipeline(pipelineName);
+    async function fetchUserQuota() {
+      if (!selectedPipeline) return;
+      const response = await Teaspoons(signal).getQuotaForPipeline(selectedPipeline.pipelineName);
       setQuota(response);
     }
-    fetchQuota();
-  }, [pipelineName, signal]);
+
+    async function fetchPipelineDetails() {
+      if (!selectedPipeline) return;
+      const response = await Teaspoons(signal).getPipelineDetails(
+        selectedPipeline.pipelineName,
+        selectedPipeline.pipelineVersion
+      );
+      setPipelineDetails(response);
+    }
+
+    fetchPipelineDetails();
+    fetchUserQuota();
+  }, [selectedPipeline, signal]);
 
   return (
     <div
@@ -29,21 +42,28 @@ export const QuotaRemainingWidget = ({ pipelineName }: { pipelineName: string })
       <h3 style={{ marginTop: '0.5rem' }}>
         <Icon icon='info-circle' style={{ color: '#5CC88D' }} /> Quota Remaining
       </h3>
-      {quota ? (
+      {/* eslint-disable-next-line no-nested-ternary */}
+      {!selectedPipeline ? (
+        <div style={{ marginTop: '1rem' }}>Select a pipeline to see quota</div>
+      ) : quota ? (
         <div style={{ marginTop: '1rem' }}>
           {quota.pipelineName}:{' '}
           <span style={{ fontWeight: 'bold' }}>
             {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
           </span>
+          {pipelineDetails && (
+            <div style={{ marginTop: '1rem' }}>
+              <span style={{ fontWeight: 'bold' }}>
+                {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota.minQuotaConsumed} ${
+                  quota ? quota.quotaUnits : 'units'
+                } from your quota.`}
+              </span>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{ marginTop: '1rem' }}>Loading quota...</div>
       )}
-      <div style={{ marginTop: '1rem' }}>
-        <span style={{ fontWeight: 'bold' }}>
-          {`Every submitted job will consume at least 500 ${quota ? quota.quotaUnits : 'units'} from your quota.`}
-        </span>
-      </div>
       <div style={{ marginTop: '1rem' }}>
         <a
           href='mailto:dsp-scientific-services@broadinstitute.org?subject=Imputation%20Quota%20Increase%20Request'

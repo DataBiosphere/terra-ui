@@ -7,22 +7,18 @@ import { getPopupRoot } from 'src/components/popup-utils';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
-import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
-import { HelpfulTipsWidget } from 'src/pages/scientificServices/imputation/widgets/HelpfulTipsWidget';
-import { QuotaRemainingWidget } from 'src/pages/scientificServices/imputation/widgets/QuotaRemainingWidget';
+import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
+import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
 export const RunJob = () => {
-  // TODO: For now, this is hardcoded to the array_imputation pipeline. At some point, we'll want
-  // a React hook or something to fetch the pipeline name dynamically based on the current path or context.
-  const PIPELINE_NAME = 'array_imputation';
-
   const signal = useCancellation();
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
-  const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: string; label: string }[]>([]);
+  const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
 
   // User inputs for the run
-  const [selectedPipelineVersion, setSelectedPipelineVersion] = useState<string>();
+  const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runOutputFilePrefix, setRunOutputFilePrefix] = useState<string>('');
   const [runDescription, setRunDescription] = useState<string>('');
 
@@ -30,12 +26,8 @@ export const RunJob = () => {
     async function fetchData() {
       const response = await Teaspoons(signal).getPipelines();
 
-      // TODO: for now, just filter for the selected pipeline on the frontend.
-      // Eventually we'll want this filtering to be done via the API
-      const pipelineVersions = response.results.filter((pipeline) => pipeline.pipelineName.includes(PIPELINE_NAME));
-
-      const options = pipelineVersions.map((pipeline) => ({
-        value: pipeline.pipelineVersion as unknown as string,
+      const options = response.results.map((pipeline) => ({
+        value: pipeline,
         label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
       }));
 
@@ -47,7 +39,7 @@ export const RunJob = () => {
 
   return (
     <FooterWrapper alwaysShow>
-      {imputationTopBar('run job')}
+      {pipelinesTopBar('run job')}
       <div style={{ display: 'flex', justifyContent: 'space-between', margin: '1rem 2rem' }}>
         <div style={{ flex: 1, marginRight: '2rem' }}>
           <h3 style={{ marginBottom: '0.5rem' }}>Select a pipeline version</h3>
@@ -55,26 +47,26 @@ export const RunJob = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <div style={{ width: 400 }}>
                 <Select
-                  aria-label={`selected role ${selectedPipelineVersion}`}
+                  aria-label={`selected role ${selectedPipeline}`}
                   isDisabled={isEmpty(pipelineVersionOptions)}
-                  value={selectedPipelineVersion}
+                  value={selectedPipeline}
                   options={pipelineVersionOptions}
                   getOptionLabel={(r) => r.label}
                   onChange={(r) => {
                     if (r === null) {
                       return;
                     }
-                    setSelectedPipelineVersion(r.value);
+                    setSelectedPipeline(r.value);
                   }}
                   menuPortalTarget={getPopupRoot()}
                 />
               </div>
               {isEmpty(pipelineVersionOptions) && <Spinner />}
             </div>
-            {selectedPipelineVersion && (
+            {selectedPipeline && (
               <div style={{ width: '400px', marginTop: '0.5rem' }}>
                 {
-                  pipelinesList.find((pipeline) => pipeline.pipelineVersion === parseInt(selectedPipelineVersion))
+                  pipelinesList.find((pipeline) => pipeline.pipelineVersion === selectedPipeline.pipelineVersion)
                     ?.description
                 }
               </div>
@@ -116,13 +108,13 @@ export const RunJob = () => {
               }}
             />
           </div>
-          <ButtonPrimary style={{ marginTop: '2rem', padding: '1rem', fontSize: '1rem' }} href='#services/imputation'>
+          <ButtonPrimary style={{ marginTop: '2rem', padding: '1rem', fontSize: '1rem' }} href='#services/pipelines'>
             Submit
           </ButtonPrimary>
         </div>
         <div>
-          <QuotaRemainingWidget pipelineName={PIPELINE_NAME} />
-          <HelpfulTipsWidget pipelineName={PIPELINE_NAME} />
+          <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
+          <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
         </div>
       </div>
     </FooterWrapper>

@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { mockPipeline } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 
 import { HelpfulTipsWidget, PIPELINE_TIPS } from './HelpfulTipsWidget';
 
 describe('HelpfulTips', () => {
   it('renders all tips for a pipeline', () => {
-    render(<HelpfulTipsWidget pipelineName='array_imputation' />);
+    render(<HelpfulTipsWidget selectedPipeline={mockPipeline('array_imputation')} />);
 
     expect(screen.getByText('Helpful Tips')).toBeInTheDocument();
 
@@ -15,7 +16,7 @@ describe('HelpfulTips', () => {
   });
 
   it('does not display the widget if a pipeline doesnt have tips', () => {
-    render(<HelpfulTipsWidget pipelineName='some_fake_pipeline' />);
+    render(<HelpfulTipsWidget selectedPipeline={mockPipeline('some_fake_pipeline')} />);
 
     expect(screen.queryByText('Helpful Tips')).not.toBeInTheDocument();
   });

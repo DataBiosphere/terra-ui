@@ -1,24 +1,24 @@
-import { Home } from 'src/pages/scientificServices/imputation/views/Home';
-import { JobHistory } from 'src/pages/scientificServices/imputation/views/JobHistory';
-import { RunJob } from 'src/pages/scientificServices/imputation/views/RunJob';
+import { Home } from 'src/pages/scientificServices/pipelines/views/Home';
+import { JobHistory } from 'src/pages/scientificServices/pipelines/views/JobHistory';
+import { RunJob } from 'src/pages/scientificServices/pipelines/views/RunJob';
 
 export const navPaths = [
   {
-    name: 'imputation-home',
-    path: '/services/imputation',
+    name: 'pipelines-home',
+    path: '/services/pipelines',
     component: Home,
-    title: 'Imputation Service - Home',
+    title: 'Home',
   },
   {
-    name: 'imputation-run',
-    path: '/services/imputation/run',
+    name: 'pipelines-run',
+    path: '/services/pipelines/run',
     component: RunJob,
-    title: 'Imputation Service - Run Job',
+    title: 'Run Job',
   },
   {
-    name: 'imputation-history',
-    path: '/services/imputation/history',
+    name: 'pipelines-history',
+    path: '/services/pipelines/history',
     component: JobHistory,
-    title: 'Imputation Service - Job History',
+    title: 'Job History',
   },
 ];

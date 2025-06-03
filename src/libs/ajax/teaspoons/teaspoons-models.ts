@@ -5,11 +5,23 @@ export interface Pipeline {
   description: string;
 }
 
+export interface PipelineQuota {
+  pipelineName: string;
+  defaultQuota: number;
+  minQuotaConsumed: number;
+  quotaUnits: string;
+}
+
+export interface PipelineWithDetails extends Pipeline {
+  pipelineQuota: PipelineQuota;
+}
+
 export interface PipelineList {
   results: Pipeline[];
 }
 
-export interface PipelineQuotaWithDetails {
+/* Represents the user quota */
+export interface UserPipelineQuotaDetails {
   pipelineName: string;
   quotaLimit: number;
   quotaConsumed: number;
