@@ -47,7 +47,7 @@ export const RunJob = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <div style={{ width: 400 }}>
                 <Select
-                  aria-label={`selected role ${selectedPipeline}`}
+                  aria-label={`selected pipeline ${selectedPipeline?.displayName}`}
                   isDisabled={isEmpty(pipelineVersionOptions)}
                   value={selectedPipeline}
                   options={pipelineVersionOptions}
