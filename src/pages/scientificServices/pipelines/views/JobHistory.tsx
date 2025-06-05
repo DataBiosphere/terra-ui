@@ -8,7 +8,7 @@ import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/ta
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
-import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
+import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
@@ -33,7 +33,7 @@ export const JobHistory = () => {
 
   return (
     <FooterWrapper alwaysShow>
-      {imputationTopBar('job history')}
+      {pipelinesTopBar('job history')}
       <main
         style={{
           paddingLeft: '2rem',

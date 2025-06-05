@@ -17,7 +17,7 @@ export const ScientificServicesDescription = () => {
       <ButtonPrimary
         height={100}
         style={{ marginTop: '2rem', width: '9.4rem', height: '3.2rem', fontSize: '1rem' }}
-        href='#services/imputation'
+        href='#services/pipelines'
       >
         Get started
       </ButtonPrimary>
