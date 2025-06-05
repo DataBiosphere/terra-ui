@@ -1,5 +1,6 @@
 import { Icon } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
+import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]> = {
   // Add tips for new pipelines here, and they'll automatically be displayed.
@@ -13,8 +14,8 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
   ],
 };
 
-export const HelpfulTipsWidget = ({ pipelineName }: { pipelineName: keyof typeof PIPELINE_TIPS }) => {
-  const pipelineTips = PIPELINE_TIPS[pipelineName];
+export const HelpfulTipsWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
+  const pipelineTips = selectedPipeline && PIPELINE_TIPS[selectedPipeline.pipelineName];
   if (!pipelineTips || pipelineTips.length === 0) return null;
 
   return (

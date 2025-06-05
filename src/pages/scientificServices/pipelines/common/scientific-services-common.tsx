@@ -5,17 +5,17 @@ import { TopBar } from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
 
 const TAB_LINKS = {
-  home: 'imputation-home',
-  'run job': 'imputation-run',
-  'job history': 'imputation-history',
+  home: 'pipelines-home',
+  'run job': 'pipelines-run',
+  'job history': 'pipelines-history',
 };
 
-export const imputationTopBar = (activeTab: string) => {
+export const pipelinesTopBar = (activeTab: string) => {
   return (
     <>
       <TopBar title='' href={Nav.getLink('root')} />
       <TabBar
-        aria-label='imputation menu'
+        aria-label='pipelines menu'
         activeTab={activeTab}
         tabNames={_.keys(TAB_LINKS)}
         getHref={(currentTab) => {

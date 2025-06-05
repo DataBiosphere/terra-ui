@@ -1,11 +1,11 @@
 import React from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { imputationTopBar } from 'src/pages/scientificServices/imputation/common/scientific-services-common';
+import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
 export const Home = () => {
   return (
     <FooterWrapper alwaysShow>
-      {imputationTopBar('home')}
+      {pipelinesTopBar('home')}
       <div style={{ marginLeft: '2rem', marginTop: '1rem' }}>
         <h1>Imputation from the Broad Data Science Services</h1>
         <h2>Reference Panel</h2>
@@ -22,12 +22,12 @@ export const Home = () => {
         </div>
         <h2 style={{ marginTop: '2rem' }}>User Documentation</h2>
         <div style={{ marginTop: '1rem' }}>
-          <a href='services/imputation' style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}>
+          <a href='services/pipelines' style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}>
             Get Started
           </a>
         </div>
         <div style={{ marginTop: '1rem' }}>
-          <a href='services/imputation' style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}>
+          <a href='services/pipelines' style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}>
             About this Service
           </a>
         </div>
