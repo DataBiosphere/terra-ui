@@ -8,6 +8,7 @@ import planet from 'src/images/register-planet.svg';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { TermsOfService } from 'src/libs/ajax/TermsOfService';
 import { User } from 'src/libs/ajax/User';
+import { isScientificServices } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { reportError } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -97,7 +98,7 @@ export const Register = (): ReactNode => {
   const mainStyle = {
     flexGrow: 1,
     padding: '5rem',
-    backgroundImage: `url(${planet})`,
+    backgroundImage: !isScientificServices() ? `url(${planet})` : undefined,
     backgroundRepeat: 'no-repeat',
     backgroundSize: '750px',
     backgroundPosition: 'right 0px bottom -600px',
@@ -177,29 +178,33 @@ export const Register = (): ReactNode => {
           labelStyle={{ display: 'block' }}
         />
       </div>
-      <FormLabel style={{ marginTop: '2rem' }}>
-        I am most interested in using Terra to (Check all that apply):
-      </FormLabel>
-      <div style={{ marginRight: '1rem' }}>
-        {[
-          'Collaborate with individuals within my organization',
-          'Collaborate with individuals outside of my organization',
-          'Access data',
-          'Manage datasets',
-          'Launch workflows',
-          'Complete interactive analyses',
-          'Build tools',
-        ].map((title: string) => {
-          return (
-            <InterestInTerraCheckbox
-              key={title}
-              title={title}
-              interestInTerra={interestInTerra}
-              onChange={setInterestInTerra}
-            />
-          );
-        })}
-      </div>
+      {!isScientificServices() && (
+        <>
+          <FormLabel style={{ marginTop: '2rem' }}>
+            I am most interested in using Terra to (Check all that apply):
+          </FormLabel>
+          <div style={{ marginRight: '1rem' }}>
+            {[
+              'Collaborate with individuals within my organization',
+              'Collaborate with individuals outside of my organization',
+              'Access data',
+              'Manage datasets',
+              'Launch workflows',
+              'Complete interactive analyses',
+              'Build tools',
+            ].map((title: string) => {
+              return (
+                <InterestInTerraCheckbox
+                  key={title}
+                  title={title}
+                  interestInTerra={interestInTerra}
+                  onChange={setInterestInTerra}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
       <RegistrationPageCheckbox title='Necessary communications related to platform operations' checked />
       <RegistrationPageCheckbox

@@ -8,7 +8,7 @@ export const ScientificServicesWelcomeHeader = () => {
       </span>
       <img
         src='src/images/brands/scientificServices/dspLogo.svg'
-        alt='Broad Data Science Services logo'
+        alt='Broad Institute Data Sciences Platform'
         style={{ width: '200px' }}
       />
     </div>

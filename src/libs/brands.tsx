@@ -20,6 +20,7 @@ import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg
 import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
+import dspLogo from 'src/images/brands/scientificServices/dspLogo.svg';
 import dspLogoLight from 'src/images/brands/scientificServices/dspLogoLight.svg';
 import scientificServicesHeaderLogo from 'src/images/brands/scientificServices/headerLogo.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
@@ -425,18 +426,19 @@ export const brands: Record<string, BrandConfiguration> = {
     },
   },
   scientificServices: {
-    name: 'Broad Data Science Services',
+    name: 'Scientific Services',
     queryName: 'scientificServices',
     landingPageBackground: 'none',
     welcomeHeader: <ScientificServicesWelcomeHeader />,
     description: <ScientificServicesDescription />,
-    hostName: 'app.terra.bio', // TODO
+    hostName: 'app.terra.bio', // TODO: TSPS-484, provision scientificservices.terra.bio (or something)
     compactTopBar: true,
     docLinks: [],
     landingPageCards: [],
     logos: {
       color: scientificServicesHeaderLogo,
       white: dspLogoLight,
+      dspLogo,
     },
     theme: {
       colorPalette: {
