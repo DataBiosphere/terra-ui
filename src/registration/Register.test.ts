@@ -6,7 +6,7 @@ import { loadTerraUser } from 'src/auth/user-profile/user';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { TermsOfService, TermsOfServiceContract } from 'src/libs/ajax/TermsOfService';
 import { SamUserResponse, User, UserContract, UserProfileContract } from 'src/libs/ajax/User';
-import { TerraUserProfile } from 'src/libs/state';
+import { configOverridesStore, TerraUserProfile } from 'src/libs/state';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { Register } from './Register';
@@ -241,6 +241,25 @@ describe('Register', () => {
 
       // Assert
       expect(signOutFn).toHaveBeenCalled();
+    });
+
+    it('displays interest text for new user registration by default', () => {
+      // Arrange
+      render(h(Register));
+
+      // Assert
+      expect(screen.getByText('I am most interested in using Terra to (Check all that apply):')).toBeInTheDocument();
+    });
+
+    it('does not display interest text for scientificServices branding', () => {
+      // Arrange
+      configOverridesStore.set({ brand: 'scientificServices' });
+      render(h(Register));
+
+      // Assert
+      expect(
+        screen.queryByText('I am most interested in using Terra to (Check all that apply):')
+      ).not.toBeInTheDocument();
     });
   });
 });
