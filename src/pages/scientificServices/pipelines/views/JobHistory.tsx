@@ -6,7 +6,12 @@ import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import {
+  GetPipelineRunsResponse,
+  PipelineRun,
+  PipelineRunResponse,
+  PipelineRunStatus,
+} from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
@@ -244,19 +249,56 @@ const QuotaUsedCell = (props: CellProps): ReactNode => {
 };
 
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
+  const signal = useCancellation();
+  const [pipelineRunResult, setPipelineRunResult] = useState<PipelineRunResponse>();
+
+  async function fetchPipelineRunResults() {
+    const results = await Teaspoons(signal).getPipelineRunResult(pipelineRun.jobId);
+    setPipelineRunResult(results);
+  }
+
+  console.log(pipelineRunResult?.pipelineRunReport.outputs);
+
   // TODO these actions will be implemented in a later ticket
   return (
     <div>
       {pipelineRun.status === 'SUCCEEDED' && (
-        // eslint-disable-next-line jsx-a11y/anchor-is-valid
-        <a href='#' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
-          Download Output
-        </a>
+        <>
+          {!pipelineRunResult ? (
+            <a
+              href='#'
+              style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}
+              onClick={(e) => {
+                e.preventDefault();
+                fetchPipelineRunResults();
+              }}
+            >
+              View Outputs
+            </a>
+          ) : (
+            <>
+              {pipelineRunResult.pipelineRunReport.outputs &&
+                Object.entries(pipelineRunResult.pipelineRunReport.outputs).map(([key, url]) => (
+                  <div key={key}>
+                    <a
+                      href={url}
+                      style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}
+                      target='_blank'
+                      rel='noreferrer'
+                      download
+                    >
+                      {key}
+                    </a>
+                  </div>
+                ))}
+            </>
+          )}
+        </>
       )}
       {pipelineRun.status === 'FAILED' && (
         // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <a href='#' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
-          See Details
+          View Error
         </a>
       )}
     </div>
