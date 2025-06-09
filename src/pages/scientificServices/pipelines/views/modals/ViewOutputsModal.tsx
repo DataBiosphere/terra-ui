@@ -1,4 +1,5 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
+import { formatDate } from '@terra-ui-packages/core-utils';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -91,11 +92,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                   >
                     All output files for this job will be automatically deleted on{' '}
                     <span style={{ fontWeight: 'bold' }}>
-                      {new Date(result.pipelineRunReport.outputExpirationDate).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {formatDate(result.pipelineRunReport.outputExpirationDate)}
                     </span>
                     . Please download them before this date.
                   </div>
