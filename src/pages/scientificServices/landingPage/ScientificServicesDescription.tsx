@@ -1,7 +1,12 @@
 import { ButtonPrimary } from '@terra-ui-packages/components';
-import React from 'react';
+import React, { useState } from 'react';
+import { getCurrentLocation } from 'src/libs/nav/location-utils';
 
 export const ScientificServicesDescription = () => {
+  const [buttonVisible, setButtonVisible] = useState(() => {
+    return !getCurrentLocation().hash.includes('services/pipelines');
+  });
+
   return (
     <>
       <div>
@@ -13,14 +18,17 @@ export const ScientificServicesDescription = () => {
         <span style={{ fontStyle: 'italic' }}>All of Us</span> + AnVIL Imputation Service
       </div>
       <div style={{ fontWeight: 'bold', marginTop: '2rem', marginBottom: '1rem' }}>First time using this service?</div>
+      {buttonVisible && (
+        <ButtonPrimary
+          height={100}
+          style={{ marginTop: '0.25rem', marginBottom: '0.5rem', width: '9.4rem', height: '3.2rem', fontSize: '1rem' }}
+          href='#services/pipelines'
+          onClick={() => setButtonVisible(false)}
+        >
+          Get started
+        </ButtonPrimary>
+      )}
       <div>You’ll be directed to create a Terra account and complete the registration process.</div>
-      <ButtonPrimary
-        height={100}
-        style={{ marginTop: '2rem', width: '9.4rem', height: '3.2rem', fontSize: '1rem' }}
-        href='#services/pipelines'
-      >
-        Get started
-      </ButtonPrimary>
     </>
   );
 };
