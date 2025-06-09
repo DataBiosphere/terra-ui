@@ -43,7 +43,8 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
         // specify the resourceId to avoid waiting for state to update
         submit(result.resourceId);
       } catch (error) {
-        await reportError('Error looking up id', error);
+        const errorMessage = error.status === 404 ? `${lookupValue} not found` : `Error looking up id: ${error}`;
+        await reportError(errorMessage);
       }
     }
   };
