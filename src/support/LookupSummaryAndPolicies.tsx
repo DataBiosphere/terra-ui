@@ -14,8 +14,8 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
   const [resourceId, setResourceId] = useState<string>(props.fqResourceId.resourceId);
   const [lookupValue, setLookupValue] = useState<string>('');
 
-  function submit() {
-    Nav.updateSearch({ ...query, resourceId: resourceId || undefined });
+  function submit(overrideResourceId?: string) {
+    Nav.updateSearch({ ...query, resourceId: overrideResourceId || resourceId || undefined });
   }
 
   // event hook to clear the resourceId when resourceType changes
@@ -40,7 +40,8 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
       try {
         const result = await currentResourceType.lookupResourceIdFn(lookupValue);
         setResourceId(result.resourceId);
-        submit();
+        // specify the resourceId to avoid waiting for state to update
+        submit(result.resourceId);
       } catch (error) {
         await reportError('Error looking up id', error);
       }
