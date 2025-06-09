@@ -18,6 +18,8 @@ export interface SupportResourceType {
   resourceType: string;
   loadSupportSummaryFn: ((id: FullyQualifiedResourceId) => Promise<SupportSummary>) | undefined;
   skipPolicies?: boolean;
+  lookupResourceIdFn?: (value: string) => Promise<FullyQualifiedResourceId>;
+  lookupResourceIdBoxPlaceholder?: string;
 }
 
 // Define the supported resources, add your own here
@@ -31,6 +33,16 @@ export const supportResources: SupportResourceType[] = [
     displayName: 'Workspace',
     resourceType: 'workspace',
     loadSupportSummaryFn: (id: FullyQualifiedResourceId) => Workspaces().adminGetById(id.resourceId),
+    lookupResourceIdFn: async (namespaceSlashName: string) => {
+      const nameParts = namespaceSlashName.split('/');
+      if (nameParts.length !== 2) {
+        return Promise.reject('enter namespace and name separated by a /');
+      }
+      const id = await Workspaces().adminGetId(nameParts[0], nameParts[1]);
+      const fqResourceId: FullyQualifiedResourceId = { resourceId: id, resourceTypeName: 'workspace' };
+      return fqResourceId;
+    },
+    lookupResourceIdBoxPlaceholder: 'Namespace/Name',
   },
   {
     displayName: 'Billing Project',
