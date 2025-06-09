@@ -1,5 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
