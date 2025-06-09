@@ -7,7 +7,7 @@ import {
   PipelineList,
   PipelineWithDetails,
   PreparePipelineRunResponse,
-  // StartPipelineRunResponse,
+  StartPipelineResponse,
   UserPipelineQuotaDetails,
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
@@ -64,7 +64,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  startPipelineRun: async (jobId: string): Promise<Record<string, any>> => {
+  startPipelineRun: async (jobId: string): Promise<StartPipelineResponse> => {
     const res = await fetchTeaspoons(
       'pipelineruns/v1/start',
       _.mergeAll([
