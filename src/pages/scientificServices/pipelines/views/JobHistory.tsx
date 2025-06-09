@@ -387,6 +387,28 @@ const OutputsModal = ({ jobId, result, onDismiss }: OutputsModalProps): ReactNod
                     </ButtonPrimary>
                   </div>
                 ))}
+                {result.pipelineRunReport.outputExpirationDate && (
+                  <div
+                    style={{
+                      backgroundColor: '#f8d7da',
+                      color: '#842029',
+                      padding: '1rem',
+                      borderRadius: '4px',
+                      marginBottom: '1rem',
+                      marginTop: '1rem',
+                    }}
+                  >
+                    All output files for this job will be automatically deleted on{' '}
+                    <span style={{ fontWeight: 'bold' }}>
+                      {new Date(result.pipelineRunReport.outputExpirationDate).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                    . Please download them before this date.
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{ padding: '1rem', textAlign: 'center' }}>No output files found for this job.</div>
@@ -466,11 +488,6 @@ const ErrorModal = ({ jobId, result, onDismiss }: ErrorModalProps): ReactNode =>
                     </div>
                   </div>
                 )}
-
-                <div style={{ marginTop: '1rem' }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Error Code:</div>
-                  <div>{result.errorReport.errorCode}</div>
-                </div>
               </div>
             ) : (
               <div style={{ padding: '1rem', textAlign: 'center' }}>
