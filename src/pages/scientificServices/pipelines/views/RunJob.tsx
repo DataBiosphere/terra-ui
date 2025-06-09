@@ -148,7 +148,6 @@ export const RunJob = () => {
                 // TODO: Handle multiple files
                 const file = e.target.files?.[0];
                 if (file) {
-                  // console.log(file); // TODO TSPS-493: support file upload
                   const pipeline = pipelinesList?.find(
                     (pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion
                   );
