@@ -7,12 +7,7 @@ import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import {
-  GetPipelineRunsResponse,
-  PipelineRun,
-  PipelineRunResponse,
-  PipelineRunStatus,
-} from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
@@ -232,6 +227,7 @@ const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun.status)}</div>;
 };
 
+/** Format date like "Feb 15, 2025", and enable tooltip with precise time */
 const MediumDateWithTooltip = ({ date }: { date: string | Date }): React.JSX.Element => {
   return <TooltipCell tooltip={formatDatetime(date)}>{formatDate(date)}</TooltipCell>;
 };
@@ -249,7 +245,6 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
     return <div>N/A</div>;
   }
 
-  // Calculate deletion date as 14 days after completion
   const completionDate = new Date(pipelineRun?.timeCompleted);
   const deletionDate = new Date(completionDate);
   deletionDate.setDate(deletionDate.getDate() + 14);
@@ -268,59 +263,55 @@ const QuotaUsedCell = (props: CellProps): ReactNode => {
 };
 
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
-  const signal = useCancellation();
-  const [pipelineRunResult, setPipelineRunResult] = useState<PipelineRunResponse>();
-
-  const outputsModal = useModalHandler((args: { jobId: string; result: PipelineRunResponse | undefined }, close) => {
-    return <ViewOutputsModal jobId={args.jobId} result={pipelineRunResult} onDismiss={close} />;
+  const outputsModal = useModalHandler(() => {
+    return <ViewOutputsModal jobId={pipelineRun.jobId} onDismiss={outputsModal.close} />;
   });
 
-  const errorModal = useModalHandler((args: { jobId: string; result: PipelineRunResponse | undefined }, close) => {
-    return <ViewErrorModal jobId={args.jobId} result={pipelineRunResult} onDismiss={close} />;
+  const errorModal = useModalHandler(() => {
+    return <ViewErrorModal jobId={pipelineRun.jobId} onDismiss={errorModal.close} />;
   });
-
-  async function fetchPipelineRunResults() {
-    const results = await Teaspoons(signal).getPipelineRunResult(pipelineRun.jobId);
-    setPipelineRunResult(results);
-  }
 
   return (
     <div>
       {pipelineRun.status === 'SUCCEEDED' && (
         <>
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            href='#'
-            style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}
-            onClick={async (e) => {
-              e.preventDefault();
-              if (!pipelineRunResult) {
-                await fetchPipelineRunResults();
-              }
-              outputsModal.open({ jobId: pipelineRun.jobId, result: pipelineRunResult });
+          <button
+            type='button'
+            style={{
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
             }}
+            onClick={() => outputsModal.open({ jobId: pipelineRun.jobId })}
           >
             View Outputs
-          </a>
+          </button>
           {outputsModal.maybeRender()}
         </>
       )}
       {pipelineRun.status === 'FAILED' && (
         <>
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-          <a
-            href='#'
-            style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}
-            onClick={async (e) => {
-              e.preventDefault();
-              if (!pipelineRunResult) {
-                await fetchPipelineRunResults();
-              }
-              errorModal.open({ jobId: pipelineRun.jobId, result: pipelineRunResult });
+          <button
+            type='button'
+            style={{
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
             }}
+            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
           >
             View Error
-          </a>
+          </button>
           {errorModal.maybeRender()}
         </>
       )}

@@ -1,30 +1,49 @@
 import { ButtonPrimary, Modal, Spinner } from '@terra-ui-packages/components';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { useCancellation } from 'src/libs/react-utils';
 
 /**
  * Modal component for displaying pipeline errors
  */
 interface ErrorModalProps {
   jobId: string;
-  result: PipelineRunResponse | undefined;
   onDismiss: () => void;
 }
 
-export const ViewErrorModal = ({ jobId, result, onDismiss }: ErrorModalProps): ReactNode => {
+export const ViewErrorModal = ({ jobId, onDismiss }: ErrorModalProps): ReactNode => {
+  const [result, setResult] = useState<PipelineRunResponse>();
+  const [loading, setLoading] = useState(true);
+  const signal = useCancellation();
+
+  useEffect(() => {
+    const fetchPipelineRunResults = async () => {
+      try {
+        setLoading(true);
+        const results = await Teaspoons(signal).getPipelineRunResult(jobId);
+        setResult(results);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPipelineRunResults();
+  }, [jobId, signal]);
+
   return (
     <Modal width={800} title={`Pipeline Error - ${jobId}`} onDismiss={onDismiss} showButtons={false}>
       <div>
         <h3>Error Details</h3>
 
-        {!result ? (
+        {loading ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
             <Spinner />
             <div style={{ marginTop: '1rem' }}>Loading error details...</div>
           </div>
         ) : (
           <div>
-            {result.errorReport ? (
+            {result?.errorReport ? (
               <div style={{ margin: '1rem 0' }}>
                 <div
                   style={{

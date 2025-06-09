@@ -1,30 +1,49 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { useCancellation } from 'src/libs/react-utils';
 
 /**
  * Modal component for displaying pipeline outputs
  */
 interface OutputsModalProps {
   jobId: string;
-  result: PipelineRunResponse | undefined;
   onDismiss: () => void;
 }
 
-export const ViewOutputsModal = ({ jobId, result, onDismiss }: OutputsModalProps): ReactNode => {
+export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
+  const [result, setResult] = useState<PipelineRunResponse>();
+  const [loading, setLoading] = useState(true);
+  const signal = useCancellation();
+
+  useEffect(() => {
+    const fetchPipelineRunResults = async () => {
+      try {
+        setLoading(true);
+        const results = await Teaspoons(signal).getPipelineRunResult(jobId);
+        setResult(results);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPipelineRunResults();
+  }, [jobId, signal]);
+
   return (
     <Modal width={800} title={`Pipeline Outputs - ${jobId}`} onDismiss={onDismiss} showButtons={false}>
       <div>
         <h3>Available Output Files</h3>
 
-        {!result ? (
+        {loading ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
             <Spinner />
             <div style={{ marginTop: '1rem' }}>Loading outputs...</div>
           </div>
         ) : (
           <div>
-            {result.pipelineRunReport.outputs && Object.entries(result.pipelineRunReport.outputs).length > 0 ? (
+            {result?.pipelineRunReport.outputs && Object.entries(result.pipelineRunReport.outputs).length > 0 ? (
               <div
                 style={{
                   display: 'flex',
