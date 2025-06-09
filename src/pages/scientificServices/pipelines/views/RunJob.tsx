@@ -9,13 +9,48 @@ import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
-import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
+
+async function uploadFileWithSignedUrl(inputFile, signedUrl) {
+  return await fetch(signedUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/octet-stream' },
+    body: inputFile,
+  });
+}
+
+export async function prepareUploadStartPipelineRun(
+  file: File,
+  pipelineName: string,
+  pipelineVersion: number,
+  pipelineInputs: Record<string, any>,
+  description: string
+): Promise<string> {
+  const jobId = crypto.randomUUID();
+
+  const { fileInputUploadUrls } = await Teaspoons().preparePipelineRun(
+    jobId,
+    pipelineName,
+    pipelineVersion,
+    pipelineInputs,
+    description
+  );
+
+  const signedUrl = fileInputUploadUrls.multiSampleVcf.signedUrl;
+
+  await uploadFileWithSignedUrl(file, signedUrl);
+
+  await Teaspoons().startPipelineRun(jobId);
+  return jobId;
+}
 
 export const RunJob = () => {
   const signal = useCancellation();
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
+
+  // Input parameter names by pipeline name and version
+  const [pipelineInputs, setPipelineInputs] = useState<Record<string, any>>({});
 
   // User inputs for the run
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
@@ -33,9 +68,19 @@ export const RunJob = () => {
 
       setPipelinesList(response.results);
       setPipelineVersionOptions(options);
+
+      response.results.map(async (pipeline) => {
+        const pipelineName = pipeline.pipelineName;
+        const pipelineVersion = pipeline.pipelineVersion;
+        const { inputs } = await Teaspoons(signal).getPipelineDetails(pipelineName, pipelineVersion);
+        const pipelineNameVersion = `${pipelineName}${pipelineVersion}`;
+        const newInputs = {};
+        newInputs[pipelineNameVersion] = inputs;
+        setPipelineInputs(Object.assign(pipelineInputs, newInputs));
+      });
     }
     fetchData();
-  }, [signal]);
+  }, [signal, pipelineInputs]);
 
   return (
     <FooterWrapper alwaysShow>
@@ -100,10 +145,47 @@ export const RunJob = () => {
             <input
               type='file'
               onChange={(e) => {
+                // TODO: Handle multiple files
                 const file = e.target.files?.[0];
                 if (file) {
+                  // console.log(file); // TODO TSPS-493: support file upload
+                  const pipeline = pipelinesList?.find(
+                    (pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion
+                  );
+                  const pipelineName = pipeline?.pipelineName;
+                  const pipelineVersion = selectedPipeline?.pipelineVersion || 0;
+
+                  // Only proceed if we have a valid pipeline name
+                  if (!pipelineName) {
+                    console.error('No pipeline selected or pipeline name not found');
+                    return;
+                  }
+
+                  const pipelineInputsForVersion = pipelineInputs[`${pipelineName}${pipelineVersion}`];
+
+                  const selectedPipelineInputs = {};
+
+                  // E.g. "multiSampleVcf" for array_imputation v1
+                  const fileNameParam = pipelineInputsForVersion.find(
+                    (input) => input.type === 'FILE' && input.isRequired
+                  )?.name;
+                  selectedPipelineInputs[fileNameParam] = file.name;
+
+                  // E.g. "outputBasename" for array_imputation v1
+                  const outputPrefixParamName = pipelineInputsForVersion.find(
+                    (input) => input.type === 'STRING' && input.isRequired
+                  )?.name;
+
+                  selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
+
                   // eslint-disable-next-line no-console
-                  console.log(file); // TODO TSPS-493: support file upload
+                  prepareUploadStartPipelineRun(
+                    file,
+                    pipelineName,
+                    pipelineVersion,
+                    selectedPipelineInputs,
+                    runDescription
+                  );
                 }
               }}
             />
@@ -113,7 +195,8 @@ export const RunJob = () => {
           </ButtonPrimary>
         </div>
         <div>
-          <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
+          {/* Uncomment below when dev API is updated to version >= 1.0.14 */}
+          {/* <QuotaRemainingWidget selectedPipeline={selectedPipeline} /> */}
           <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
         </div>
       </div>

@@ -62,7 +62,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                 {pipelineDetails && (
                   <div style={{ marginTop: '1rem' }}>
                     <span style={{ fontWeight: 'bold' }}>
-                      {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota.minQuotaConsumed} ${quota.quotaUnits} from your quota.`}
+                      {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota?.minQuotaConsumed} ${quota.quotaUnits} from your quota.`}
                     </span>
                   </div>
                 )}
