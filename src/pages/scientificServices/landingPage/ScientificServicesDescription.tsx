@@ -15,7 +15,14 @@ export const ScientificServicesDescription = () => {
       </div>
       <div style={{ fontWeight: 'bold', marginTop: '2rem' }}>Our current offerings:</div>
       <div>
-        <span style={{ fontStyle: 'italic' }}>All of Us</span> + AnVIL Imputation Service
+        <a
+          href='https://allofus-anvil-imputation.terra.bio/'
+          target='_blank'
+          rel='noopener noreferrer'
+          style={{ textDecoration: 'underline' }}
+        >
+          <span style={{ fontStyle: 'italic' }}>All of Us</span> + AnVIL Imputation Service
+        </a>
       </div>
       <div style={{ fontWeight: 'bold', marginTop: '2rem', marginBottom: '1rem' }}>First time using this service?</div>
       {buttonVisible && (

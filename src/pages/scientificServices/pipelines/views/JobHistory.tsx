@@ -1,4 +1,5 @@
-import { ButtonPrimary, Icon, Modal, Spinner, useModalHandler } from '@terra-ui-packages/components';
+import { Icon, Spinner, useModalHandler } from '@terra-ui-packages/components';
+import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
@@ -14,6 +15,8 @@ import {
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
+import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
@@ -52,7 +55,9 @@ export const JobHistory = () => {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <h3>Job History</h3>
-          <div>All files associated with jobs will be automatically deleted after 2 weeks from completed.</div>
+          <div style={{ marginBottom: '0.25rem' }}>
+            All files associated with jobs will be automatically deleted after 2 weeks from completed.
+          </div>
           <div>
             For support, email{' '}
             <a
@@ -143,7 +148,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 90 },
+      size: { basis: 80 },
     },
     {
       field: 'completed',
@@ -151,7 +156,15 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 90 },
+      size: { basis: 80 },
+    },
+    {
+      field: 'dataDeletionDate',
+      headerRenderer: () => <HeaderCell>Deletion Date</HeaderCell>,
+      cellRenderer: ({ rowIndex }) => {
+        return <DataDeletionDateCell pipelineRun={paginatedRuns[rowIndex]} />;
+      },
+      size: { basis: 80 },
     },
     {
       field: 'quotaUsed',
@@ -219,15 +232,8 @@ const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun.status)}</div>;
 };
 
-/** Format date like "Feb 15, 2025", and enable tooltip with precise time */
 const MediumDateWithTooltip = ({ date }: { date: string | Date }): React.JSX.Element => {
-  const mediumDate = new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-  return <TooltipCell tooltip={date}>{mediumDate}</TooltipCell>;
+  return <TooltipCell tooltip={formatDatetime(date)}>{formatDate(date)}</TooltipCell>;
 };
 
 const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
@@ -236,6 +242,19 @@ const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
 
 const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div>{pipelineRun.timeCompleted ? <MediumDateWithTooltip date={pipelineRun.timeCompleted} /> : ''}</div>;
+};
+
+const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
+  if (!pipelineRun.timeCompleted || !(pipelineRun.status === 'SUCCEEDED')) {
+    return <div>N/A</div>;
+  }
+
+  // Calculate deletion date as 14 days after completion
+  const completionDate = new Date(pipelineRun?.timeCompleted);
+  const deletionDate = new Date(completionDate);
+  deletionDate.setDate(deletionDate.getDate() + 14);
+
+  return <MediumDateWithTooltip date={deletionDate} />;
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
@@ -253,11 +272,11 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   const [pipelineRunResult, setPipelineRunResult] = useState<PipelineRunResponse>();
 
   const outputsModal = useModalHandler((args: { jobId: string; result: PipelineRunResponse | undefined }, close) => {
-    return <OutputsModal jobId={args.jobId} result={pipelineRunResult} onDismiss={close} />;
+    return <ViewOutputsModal jobId={args.jobId} result={pipelineRunResult} onDismiss={close} />;
   });
 
   const errorModal = useModalHandler((args: { jobId: string; result: PipelineRunResponse | undefined }, close) => {
-    return <ErrorModal jobId={args.jobId} result={pipelineRunResult} onDismiss={close} />;
+    return <ViewErrorModal jobId={args.jobId} result={pipelineRunResult} onDismiss={close} />;
   });
 
   async function fetchPipelineRunResults() {
@@ -328,185 +347,4 @@ const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
     default:
       return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(status)}</div>;
   }
-};
-
-/**
- * Modal component for displaying pipeline outputs
- */
-interface OutputsModalProps {
-  jobId: string;
-  result: PipelineRunResponse | undefined;
-  onDismiss: () => void;
-}
-
-const OutputsModal = ({ jobId, result, onDismiss }: OutputsModalProps): ReactNode => {
-  return (
-    <Modal width={800} title={`Pipeline Outputs - ${jobId}`} onDismiss={onDismiss} showButtons={false}>
-      <div>
-        <h3>Available Output Files</h3>
-
-        {!result ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <Spinner />
-            <div style={{ marginTop: '1rem' }}>Loading outputs...</div>
-          </div>
-        ) : (
-          <div>
-            {result.pipelineRunReport.outputs && Object.entries(result.pipelineRunReport.outputs).length > 0 ? (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem',
-                  margin: '1rem 0',
-                }}
-              >
-                {Object.entries(result.pipelineRunReport.outputs).map(([key, url]) => (
-                  <div
-                    key={key}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0.5rem',
-                      borderRadius: '4px',
-                      backgroundColor: '#f5f5f5',
-                    }}
-                  >
-                    <div style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{key}</div>
-                    <ButtonPrimary
-                      onClick={() => {
-                        window.open(url, '_blank');
-                      }}
-                      style={{ marginLeft: '1rem' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Icon icon='download' size={16} />
-                        Download
-                      </div>
-                    </ButtonPrimary>
-                  </div>
-                ))}
-                {result.pipelineRunReport.outputExpirationDate && (
-                  <div
-                    style={{
-                      backgroundColor: '#f8d7da',
-                      color: '#842029',
-                      padding: '1rem',
-                      borderRadius: '4px',
-                      marginBottom: '1rem',
-                      marginTop: '1rem',
-                    }}
-                  >
-                    All output files for this job will be automatically deleted on{' '}
-                    <span style={{ fontWeight: 'bold' }}>
-                      {new Date(result.pipelineRunReport.outputExpirationDate).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
-                    . Please download them before this date.
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ padding: '1rem', textAlign: 'center' }}>No output files found for this job.</div>
-            )}
-          </div>
-        )}
-
-        <div
-          style={{
-            marginTop: '1.5rem',
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <ButtonPrimary onClick={onDismiss}>Close</ButtonPrimary>
-        </div>
-      </div>
-    </Modal>
-  );
-};
-
-/**
- * Modal component for displaying pipeline errors
- */
-interface ErrorModalProps {
-  jobId: string;
-  result: PipelineRunResponse | undefined;
-  onDismiss: () => void;
-}
-
-const ErrorModal = ({ jobId, result, onDismiss }: ErrorModalProps): ReactNode => {
-  return (
-    <Modal width={800} title={`Pipeline Error - ${jobId}`} onDismiss={onDismiss} showButtons={false}>
-      <div>
-        <h3>Error Details</h3>
-
-        {!result ? (
-          <div style={{ textAlign: 'center', padding: '2rem' }}>
-            <Spinner />
-            <div style={{ marginTop: '1rem' }}>Loading error details...</div>
-          </div>
-        ) : (
-          <div>
-            {result.errorReport ? (
-              <div style={{ margin: '1rem 0' }}>
-                <div
-                  style={{
-                    backgroundColor: '#f8d7da',
-                    color: '#842029',
-                    padding: '1rem',
-                    borderRadius: '4px',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Error Message:</div>
-                  <div style={{ fontFamily: 'monospace' }}>{result.errorReport.message}</div>
-                </div>
-
-                {result.errorReport.causes && result.errorReport.causes.length > 0 && (
-                  <div style={{ marginTop: '1rem' }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Error Causes:</div>
-                    <div
-                      style={{
-                        backgroundColor: '#f8f9fa',
-                        padding: '1rem',
-                        borderRadius: '4px',
-                        fontFamily: 'monospace',
-                        whiteSpace: 'pre-wrap',
-                      }}
-                    >
-                      {result.errorReport.causes.map((cause, index) => (
-                        // eslint-disable-next-line react/no-array-index-key
-                        <div key={index} style={{ marginBottom: '0.5rem' }}>
-                          {cause}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ padding: '1rem', textAlign: 'center' }}>
-                No detailed error information available for this job.
-              </div>
-            )}
-          </div>
-        )}
-
-        <div
-          style={{
-            marginTop: '1.5rem',
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <ButtonPrimary onClick={onDismiss}>Close</ButtonPrimary>
-        </div>
-      </div>
-    </Modal>
-  );
 };
