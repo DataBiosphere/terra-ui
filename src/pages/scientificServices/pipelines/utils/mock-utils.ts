@@ -1,4 +1,9 @@
-import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import {
+  Pipeline,
+  PipelineInput,
+  PipelineWithDetails,
+  UserPipelineQuotaDetails,
+} from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 export function mockPipeline(name: string): Pipeline {
   return {
@@ -12,6 +17,15 @@ export function mockPipeline(name: string): Pipeline {
 export function mockPipelineWithDetails(name: string): PipelineWithDetails {
   return {
     ...mockPipeline(name),
+    type: 'test-type',
+    inputs: [
+      {
+        name: 'testInput',
+        type: 'FILE',
+        isRequired: true,
+        fileSuffix: '.vcf.gz',
+      },
+    ] as PipelineInput[],
     pipelineQuota: {
       pipelineName: name,
       defaultQuota: 2500,
