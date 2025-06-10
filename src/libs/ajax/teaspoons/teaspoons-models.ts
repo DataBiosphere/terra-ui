@@ -32,6 +32,7 @@ export interface UserPipelineQuotaDetails {
 export interface PipelineRun {
   jobId: string;
   pipelineName: string;
+  pipelineVersion?: number;
   status: PipelineRunStatus;
   description?: string;
   timeSubmitted: string;

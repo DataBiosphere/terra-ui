@@ -193,13 +193,13 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
         style={{
           width: 'fit-content',
           fontWeight: 600,
-          backgroundColor: '#4D72AA4D',
+          backgroundColor: pipelineNameToColor(pipelineRun),
           padding: '0.33rem',
           borderRadius: '4px',
           fontSize: '10px',
         }}
       >
-        {pipelineRun.pipelineName}
+        {pipelineRun.pipelineName} {pipelineRun.pipelineVersion ? `v${pipelineRun.pipelineVersion}` : ''}
       </div>
     </div>
   );
@@ -281,5 +281,14 @@ const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
       );
     default:
       return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(status)}</div>;
+  }
+};
+
+const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
+  switch (pipelineRun.pipelineName) {
+    case 'array_imputation':
+      return '#4D72AA4D';
+    default:
+      return '#AA4D8B4D';
   }
 };
