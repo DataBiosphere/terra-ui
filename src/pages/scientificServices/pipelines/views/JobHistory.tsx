@@ -51,7 +51,7 @@ export const JobHistory = () => {
           <div>
             For support, email{' '}
             <a
-              style={{ color: '#46A3E9', textDecoration: 'underline' }}
+              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
               href='mailto:scientific-services-support@broadinstitute.org'
             >
               scientific-services-support@broadinstitute.org
@@ -76,6 +76,7 @@ export const JobHistory = () => {
                   noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
                   tabIndex={-1}
                   variant={undefined}
+                  styleHeader={() => ({ backgroundColor: '#eff0f1' })}
                 />
               )}
             </AutoSizer>
