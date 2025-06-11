@@ -5,6 +5,7 @@ import { StepHeader } from 'src/billing/NewBillingProjectWizard/StepWizard/StepH
 import { ButtonOutline } from 'src/components/common';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import Events from 'src/libs/events';
+import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 interface GoToGCPConsoleStepProps {
@@ -22,7 +23,7 @@ export const GoToGCPConsoleStep = ({ isActive, ...props }: GoToGCPConsoleStepPro
         </StepInfo>
         <ButtonOutline
           disabled={false}
-          href='https://console.cloud.google.com'
+          href={`https://console.cloud.google.com?authuser=${getTerraUser().email}`}
           {...Utils.newTabLinkProps}
           onClick={() => {
             void Metrics().captureEvent(Events.billingGCPCreationStep1);
