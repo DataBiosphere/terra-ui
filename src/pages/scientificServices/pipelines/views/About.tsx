@@ -2,12 +2,12 @@ import React from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
-export const Home = () => {
+export const About = () => {
   return (
     <FooterWrapper alwaysShow>
-      {pipelinesTopBar('home')}
+      {pipelinesTopBar('about')}
       <div style={{ marginLeft: '2rem', marginTop: '1rem' }}>
-        <h1>Imputation from the Broad Data Science Services</h1>
+        <h1>Scientific Services from the Broad Data Sciences Platform</h1>
         <h2>Reference Panel</h2>
         <div style={{ width: '50%' }}>
           The imputation service leverages the <i>All of Us</i> + AnVIL reference panel of genomes from more than

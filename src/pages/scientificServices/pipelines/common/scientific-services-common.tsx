@@ -5,9 +5,9 @@ import { TopBar } from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
 
 const TAB_LINKS = {
-  home: 'pipelines-home',
   'run job': 'pipelines-run',
   'job history': 'pipelines-history',
+  about: 'pipelines-about',
 };
 
 export const pipelinesTopBar = (activeTab: string) => {
