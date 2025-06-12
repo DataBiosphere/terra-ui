@@ -9,6 +9,7 @@ import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
+import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
 async function uploadFileWithSignedUrl(inputFile, signedUrl) {
   return await fetch(signedUrl, {
@@ -199,8 +200,7 @@ export const RunJob = () => {
           </ButtonPrimary>
         </div>
         <div>
-          {/* Uncomment below when dev API is updated to version >= 1.0.14 */}
-          {/* <QuotaRemainingWidget selectedPipeline={selectedPipeline} /> */}
+          <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
           <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
         </div>
       </div>
