@@ -5,6 +5,7 @@ import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
 import {
   GetPipelineRunsResponse,
   PipelineList,
+  PipelineRunResponse,
   PipelineWithDetails,
   PreparePipelineRunResponse,
   StartPipelineResponse,
@@ -75,6 +76,11 @@ export const Teaspoons = (signal?: AbortSignal) => ({
         { signal, method: 'POST' },
       ])
     );
+    return res.json();
+  },
+
+  getPipelineRunResult: async (jobId: string): Promise<PipelineRunResponse> => {
+    const res = await fetchTeaspoons(`pipelineruns/v1/result/${jobId}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 });

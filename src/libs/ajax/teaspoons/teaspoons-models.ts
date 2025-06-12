@@ -81,4 +81,34 @@ export interface StartPipelineResponse {
   };
 }
 
+export interface PipelineRunResponse {
+  jobReport: PipelineJobReport;
+  errorReport?: PipelineRunErrorReport;
+  pipelineRunReport: PipelineRunReport;
+}
+
+export interface PipelineJobReport {
+  id: string;
+  description?: string;
+  status: PipelineRunStatus;
+  statusCode?: number;
+  submitted: string;
+  completed?: string;
+  resultURL?: string;
+}
+
+export interface PipelineRunErrorReport {
+  message: string;
+  errorCode: number;
+  causes: string[];
+}
+
+export interface PipelineRunReport {
+  pipelineName: string;
+  pipelineVersion: number;
+  toolVersion: string;
+  outputs?: Record<string, string>;
+  outputExpirationDate?: string;
+}
+
 export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
