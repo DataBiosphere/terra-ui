@@ -50,6 +50,7 @@ export function mockPipelineRun(status: PipelineRunStatus): PipelineRun {
   return {
     jobId: 'run-id-123',
     pipelineName: 'array_imputation',
+    pipelineVersion: 1,
     status,
     description: 'Test pipeline run',
     timeSubmitted: '2023-10-01T00:00:00Z',
