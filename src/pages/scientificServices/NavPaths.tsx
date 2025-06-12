@@ -1,5 +1,5 @@
 import { CliAuth } from 'src/pages/scientificServices/cli-auth/CliAuth';
-import { Home } from 'src/pages/scientificServices/pipelines/views/Home';
+import { About } from 'src/pages/scientificServices/pipelines/views/About';
 import { JobHistory } from 'src/pages/scientificServices/pipelines/views/JobHistory';
 import { RunJob } from 'src/pages/scientificServices/pipelines/views/RunJob';
 
@@ -12,9 +12,9 @@ export const navPaths = [
     public: true,
   },
   {
-    name: 'pipelines-home',
+    name: 'pipelines-about',
     path: '/services/pipelines',
-    component: Home,
+    component: About,
     title: 'Home',
   },
   {
