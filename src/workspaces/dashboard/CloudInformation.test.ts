@@ -232,4 +232,46 @@ describe('CloudInformation', () => {
     expect(screen.getByText('50 B')).not.toBeNull();
     expect(mockStorageCostEstimateV2).toHaveBeenCalled();
   });
+
+  it('emits an event when the Open project in Google Cloud Console link is clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const captureEvent = jest.fn();
+    const mockStorageCostEstimateV2 = jest.fn();
+
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimateV2: mockStorageCostEstimateV2,
+          }),
+      })
+    );
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
+
+    // Act
+    render(
+      h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: false }, storageDetails })
+    );
+    const consoleLink = screen.getByText('Open project in Google Cloud Console');
+    expect(consoleLink).toBeInTheDocument();
+
+    // Check the href attribute has the correct URL format
+    const linkElement = consoleLink.closest('a');
+    expect(linkElement).toHaveAttribute(
+      'href',
+      expect.stringMatching(
+        `https://console.cloud.google.com/welcome\\?project=${defaultGoogleWorkspace.workspace.googleProject}&authuser=.*`
+      )
+    );
+
+    // Simulate clicking the link
+    await user.click(consoleLink);
+
+    // Assert
+    expect(captureEvent).toHaveBeenCalledWith(
+      Events.workspaceOpenedProjectInConsole,
+      extractWorkspaceDetails(defaultGoogleWorkspace)
+    );
+  });
 });

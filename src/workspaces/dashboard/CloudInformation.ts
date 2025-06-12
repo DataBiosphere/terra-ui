@@ -12,6 +12,7 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
+import { getTerraUser } from 'src/libs/state';
 import { formatBytes, newTabLinkProps } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
@@ -240,7 +241,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               ...extractWorkspaceDetails(workspace),
             });
           },
-          href: `https://console.cloud.google.com/welcome?project=${googleProject}`,
+          href: `https://console.cloud.google.com/welcome?project=${googleProject}&authuser=${getTerraUser().email}`,
         },
         ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       ),
