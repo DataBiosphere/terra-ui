@@ -69,6 +69,11 @@ export const RunJob = () => {
       setPipelinesList(response.results);
       setPipelineVersionOptions(options);
 
+      // Automatically select the first pipeline if there's only one available
+      if (response.results.length === 1) {
+        setSelectedPipeline(response.results[0]);
+      }
+
       response.results.map(async (pipeline) => {
         const pipelineName = pipeline.pipelineName;
         const pipelineVersion = pipeline.pipelineVersion;

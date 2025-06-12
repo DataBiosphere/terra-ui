@@ -1,6 +1,8 @@
 import {
   Pipeline,
   PipelineInput,
+  PipelineRun,
+  PipelineRunStatus,
   PipelineWithDetails,
   UserPipelineQuotaDetails,
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -41,5 +43,17 @@ export function mockUserPipelineQuotaDetails(name: string): UserPipelineQuotaDet
     quotaLimit: 2000,
     quotaConsumed: 750,
     quotaUnits: 'things',
+  };
+}
+
+export function mockPipelineRun(status: PipelineRunStatus): PipelineRun {
+  return {
+    jobId: 'run-id-123',
+    pipelineName: 'array_imputation',
+    status,
+    description: 'Test pipeline run',
+    timeSubmitted: '2023-10-01T00:00:00Z',
+    timeCompleted: status === 'SUCCEEDED' || status === 'FAILED' ? '2023-10-01T01:00:00Z' : undefined,
+    quotaConsumed: status === 'SUCCEEDED' ? 500 : undefined,
   };
 }

@@ -1,4 +1,5 @@
-import { Icon, Spinner } from '@terra-ui-packages/components';
+import { Icon, Spinner, useModalHandler } from '@terra-ui-packages/components';
+import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
@@ -9,6 +10,8 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
+import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
@@ -47,11 +50,13 @@ export const JobHistory = () => {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <h3>Job History</h3>
-          <div>All files associated with jobs will be automatically deleted after 2 weeks from completed.</div>
+          <div style={{ marginBottom: '0.25rem' }}>
+            All files associated with jobs will be automatically deleted after 2 weeks from completion.
+          </div>
           <div>
             For support, email{' '}
             <a
-              style={{ color: '#46A3E9', textDecoration: 'underline' }}
+              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
               href='mailto:scientific-services-support@broadinstitute.org'
             >
               scientific-services-support@broadinstitute.org
@@ -76,6 +81,7 @@ export const JobHistory = () => {
                   noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
                   tabIndex={-1}
                   variant={undefined}
+                  styleHeader={() => ({ backgroundColor: '#eff0f1' })}
                 />
               )}
             </AutoSizer>
@@ -138,7 +144,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 90 },
+      size: { basis: 80 },
     },
     {
       field: 'completed',
@@ -146,7 +152,15 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 90 },
+      size: { basis: 80 },
+    },
+    {
+      field: 'dataDeletionDate',
+      headerRenderer: () => <HeaderCell>Deletion Date</HeaderCell>,
+      cellRenderer: ({ rowIndex }) => {
+        return <DataDeletionDateCell pipelineRun={paginatedRuns[rowIndex]} />;
+      },
+      size: { basis: 80 },
     },
     {
       field: 'quotaUsed',
@@ -216,13 +230,7 @@ const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
 
 /** Format date like "Feb 15, 2025", and enable tooltip with precise time */
 const MediumDateWithTooltip = ({ date }: { date: string | Date }): React.JSX.Element => {
-  const mediumDate = new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-  return <TooltipCell tooltip={date}>{mediumDate}</TooltipCell>;
+  return <TooltipCell tooltip={formatDatetime(date)}>{formatDate(date)}</TooltipCell>;
 };
 
 const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
@@ -231,6 +239,18 @@ const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
 
 const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div>{pipelineRun.timeCompleted ? <MediumDateWithTooltip date={pipelineRun.timeCompleted} /> : ''}</div>;
+};
+
+const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
+  if (!pipelineRun.timeCompleted || !(pipelineRun.status === 'SUCCEEDED')) {
+    return <div>N/A</div>;
+  }
+
+  const completionDate = new Date(pipelineRun?.timeCompleted);
+  const deletionDate = new Date(completionDate);
+  deletionDate.setDate(deletionDate.getDate() + 14);
+
+  return <MediumDateWithTooltip date={deletionDate} />;
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
@@ -244,20 +264,57 @@ const QuotaUsedCell = (props: CellProps): ReactNode => {
 };
 
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
-  // TODO these actions will be implemented in a later ticket
+  const outputsModal = useModalHandler(() => {
+    return <ViewOutputsModal jobId={pipelineRun.jobId} onDismiss={outputsModal.close} />;
+  });
+
+  const errorModal = useModalHandler(() => {
+    return <ViewErrorModal jobId={pipelineRun.jobId} onDismiss={errorModal.close} />;
+  });
+
   return (
     <div>
       {pipelineRun.status === 'SUCCEEDED' && (
-        // eslint-disable-next-line jsx-a11y/anchor-is-valid
-        <a href='#' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
-          Download Output
-        </a>
+        <>
+          <button
+            type='button'
+            style={{
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
+            onClick={() => outputsModal.open({ jobId: pipelineRun.jobId })}
+          >
+            View Outputs
+          </button>
+          {outputsModal.maybeRender()}
+        </>
       )}
       {pipelineRun.status === 'FAILED' && (
-        // eslint-disable-next-line jsx-a11y/anchor-is-valid
-        <a href='#' style={{ color: '#46A3E9', fontWeight: 700, textDecoration: 'underline' }}>
-          See Details
-        </a>
+        <>
+          <button
+            type='button'
+            style={{
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
+            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+          >
+            View Error
+          </button>
+          {errorModal.maybeRender()}
+        </>
       )}
     </div>
   );
