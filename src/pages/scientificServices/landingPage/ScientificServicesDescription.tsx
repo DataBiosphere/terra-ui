@@ -22,7 +22,7 @@ export const ScientificServicesDescription = () => {
         <ButtonPrimary
           height={100}
           style={{ marginTop: '0.25rem', marginBottom: '0.5rem', width: '9.4rem', height: '3.2rem', fontSize: '1rem' }}
-          href='#services/pipelines'
+          href='#services/pipelines/run'
           onClick={() => setButtonVisible(false)}
         >
           Get started
