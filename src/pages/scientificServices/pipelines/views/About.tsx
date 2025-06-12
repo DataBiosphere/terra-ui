@@ -4,7 +4,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineList } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-import { BrandedDiv } from 'src/pages/scientificServices/pipelines/utils/text-utils';
 
 export const About = () => {
   const [pipelines, setPipelines] = useState<PipelineList | null>(null);
@@ -40,15 +39,9 @@ export const About = () => {
         {pipelines &&
           pipelines.results.map((pipeline) => (
             <div key={pipeline.pipelineName}>
-              <h3>
-                <BrandedDiv>{pipeline.displayName}</BrandedDiv>
-              </h3>
+              <h3>{pipeline.displayName}</h3>
               <div style={{ width: '50%' }}>
-                {pipeline.description ? (
-                  <BrandedDiv>{pipeline.description}</BrandedDiv>
-                ) : (
-                  <em>No description available</em>
-                )}
+                {pipeline.description ? pipeline.description : <em>No description available</em>}
               </div>
             </div>
           ))}
