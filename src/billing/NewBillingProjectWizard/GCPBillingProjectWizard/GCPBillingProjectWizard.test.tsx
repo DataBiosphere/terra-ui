@@ -180,7 +180,7 @@ describe('GCPBillingProjectWizard Steps', () => {
     });
     it('has Step 1 buttons enabled', () => {
       verifyEnabled(getStep1Button());
-      expect(getStep1Button().getAttribute('href')).toBe('https://console.cloud.google.com');
+      expect(getStep1Button().getAttribute('href')).toBe('https://console.cloud.google.com?authuser=undefined');
     });
     it('has Step 2 buttons enabled and unchecked', () => {
       testStep2ButtonsEnabled();
