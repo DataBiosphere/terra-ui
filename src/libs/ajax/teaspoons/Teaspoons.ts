@@ -6,6 +6,8 @@ import {
   GetPipelineRunsResponse,
   PipelineList,
   PipelineWithDetails,
+  PreparePipelineRunResponse,
+  StartPipelineResponse,
   UserPipelineQuotaDetails,
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
@@ -35,6 +37,44 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   getAllPipelineRuns: async (pageSize: number, pageToken?: string): Promise<GetPipelineRunsResponse> => {
     const queryString = `?limit=${pageSize}${pageToken ? `&pageToken=${pageToken}` : ''}`;
     const res = await fetchTeaspoons(`pipelineruns/v1/pipelineruns${queryString}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+
+  preparePipelineRun: async (
+    jobId: string,
+    pipelineName: string,
+    pipelineVersion: number,
+    pipelineInputs: Record<string, any>,
+    description: string
+  ): Promise<PreparePipelineRunResponse> => {
+    const res = await fetchTeaspoons(
+      'pipelineruns/v1/prepare',
+      _.mergeAll([
+        authOpts(),
+        jsonBody({
+          jobId,
+          pipelineName,
+          pipelineVersion,
+          pipelineInputs,
+          description,
+        }),
+        { signal, method: 'POST' },
+      ])
+    );
+    return res.json();
+  },
+
+  startPipelineRun: async (jobId: string): Promise<StartPipelineResponse> => {
+    const res = await fetchTeaspoons(
+      'pipelineruns/v1/start',
+      _.mergeAll([
+        authOpts(),
+        jsonBody({
+          jobControl: { id: jobId },
+        }),
+        { signal, method: 'POST' },
+      ])
+    );
     return res.json();
   },
 });

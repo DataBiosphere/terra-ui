@@ -5,6 +5,13 @@ export interface Pipeline {
   description: string;
 }
 
+export interface PipelineInput {
+  name: string;
+  type: 'FILE' | 'STRING';
+  isRequired: boolean;
+  fileSuffix?: string; // Only present for FILE types
+}
+
 /* Represents the quota settings for a particular pipeline */
 export interface PipelineQuota {
   pipelineName: string;
@@ -13,8 +20,16 @@ export interface PipelineQuota {
   quotaUnits: string;
 }
 
+/**
+ * Interface for POST endpoint /api/pipelines/v1/{pipelineName}
+ *
+ * API reference:
+ * https://teaspoons.dsde-dev.broadinstitute.org/#/pipelines/getPipelineDetails
+ */
 export interface PipelineWithDetails extends Pipeline {
-  pipelineQuota: PipelineQuota;
+  type: string; // e.g. "imputation"
+  inputs: PipelineInput[];
+  pipelineQuota?: PipelineQuota;
 }
 
 export interface PipelineList {
@@ -44,6 +59,27 @@ export interface GetPipelineRunsResponse {
   totalResults: number;
   pageToken: string;
   results: PipelineRun[];
+}
+
+export interface PreparePipelineRunResponse {
+  fileInputUploadUrls: Record<string, Record<string, string>>;
+  jobId: string;
+}
+
+export interface StartPipelineResponse {
+  jobReport: {
+    id: string; // UUIDv4 job ID
+    description: string;
+    status: PipelineRunStatus;
+    statusCode: number; // HTTP status code
+    submitted: string; // ISO 8601 datetime
+    resultURL: string;
+  };
+  pipelineRunReport: {
+    pipelineName: string;
+    pipelineVersion: number;
+    toolVersion: string;
+  };
 }
 
 export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
