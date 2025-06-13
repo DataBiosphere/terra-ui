@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { mockUserPipelineQuotaDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { prepareUploadStartPipelineRun, RunJob } from './RunJob';
@@ -71,6 +72,7 @@ describe('RunJob Component', () => {
       jobId: 'mock-job-id',
     }),
     startPipelineRun: jest.fn().mockResolvedValue({ success: true }),
+    getQuotaForPipeline: jest.fn().mockResolvedValue(mockUserPipelineQuotaDetails('array_imputation')),
   });
 
   beforeEach(() => {
