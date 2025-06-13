@@ -587,7 +587,7 @@ describe('GcpComputeModal', () => {
   );
 
   it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
-    'Updating a runtime and changing a field that requires no downtime should call update for tool $tool.label',
+    'Updating a runtime and increasing the disk size (requires no downtime) should call update for tool $tool.label',
     async ({ tool }) => {
       // Arrange
       const disk = getPersistentDiskDetail();
@@ -636,6 +636,60 @@ describe('GcpComputeModal', () => {
           runtimeConfig: expect.objectContaining({
             diskSize: 51,
           }),
+        })
+      );
+    }
+  );
+
+  it.each([{ tool: runtimeTools.Jupyter }, { tool: runtimeTools.RStudio }])(
+    'Updating a runtime and changing the autopause threshold (requires no downtime) should call update for tool $tool.label',
+    async ({ tool }) => {
+      // Arrange
+      const disk = getPersistentDiskDetail();
+      const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id }), tool };
+      const runtime = getGoogleRuntime(runtimeProps);
+
+      const updateRuntimeFunc = jest.fn();
+
+      const runtimeFunc: RuntimesAjaxContract['runtime'] = jest.fn(() =>
+        partial<RuntimeAjaxContractV1>({
+          details: async () => runtime,
+          update: updateRuntimeFunc,
+        })
+      );
+      asMockedFn(Runtimes).mockReturnValue(
+        partial<RuntimesAjaxContract>({
+          runtime: runtimeFunc,
+        })
+      );
+      asMockedFn(leoDiskProvider.details).mockResolvedValue(getDetailFromDisk(disk));
+
+      // Act
+      await act(async () => {
+        render(
+          h(GcpComputeModalBase, {
+            ...defaultModalProps,
+            currentDisk: disk,
+            currentRuntime: runtime,
+          })
+        );
+      });
+      await act(async () => {
+        selectRuntimeImage(GcpComputeImageSection, runtime);
+      });
+
+      // Autopause threshold is 30 minutes by default
+      const numberInput = await screen.getByDisplayValue(30);
+      await fireEvent.change(numberInput, { target: { value: 20 } });
+
+      const updateButton = await screen.findByText('Update');
+      await userEvent.click(updateButton);
+
+      // Assert
+      expect(runtimeFunc).toHaveBeenCalledWith(defaultModalProps.workspace.workspace.googleProject, expect.anything());
+      expect(updateRuntimeFunc).toHaveBeenCalledWith(
+        expect.objectContaining({
+          autopauseThreshold: 20,
         })
       );
     }
