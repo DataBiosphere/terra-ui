@@ -13,6 +13,7 @@ import {
   generateTestDiskWithAzureWorkspace,
   generateTestDiskWithGoogleWorkspace,
   generateTestListGoogleRuntime,
+  listGoogleRuntime,
 } from 'src/analysis/_testData/testData';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
 import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
@@ -109,7 +110,7 @@ describe('Environments Component', () => {
     it('Renders page correctly with runtimes and no found workspaces', async () => {
       // Arrange
       const props = getEnvironmentsProps();
-      const runtime1 = generateTestListGoogleRuntime();
+      const runtime1 = listGoogleRuntime();
       const otherGoogleWorkspace = generateGoogleWorkspace();
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
@@ -126,13 +127,13 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstRuntimeRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getAllByRole(firstRuntimeRow, 'cell')[1].textContent;
-      expect(workspaceForFirstRuntimeCell).toBe(`${runtime1.labels.saturnWorkspaceName} (unavailable)`);
+      expect(workspaceForFirstRuntimeCell).toBe(`${runtime1.workspace.name} (unavailable)`);
     });
 
     it('Renders page correctly with a runtime', async () => {
       // Arrange
       const props = getEnvironmentsProps();
-      const runtime1 = generateTestListGoogleRuntime();
+      const runtime1 = listGoogleRuntime();
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
 
       // Act
@@ -145,8 +146,8 @@ describe('Environments Component', () => {
       const firstRuntimeRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstRuntimeRow, 1);
 
-      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(runtime1.labels.saturnWorkspaceNamespace);
-      expect(workspaceForFirstRuntimeCell).toBe(`${runtime1.labels.saturnWorkspaceName}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(runtime1.workspace.namespace);
+      expect(workspaceForFirstRuntimeCell).toBe(`${runtime1.workspace.name}`);
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime1.status);
@@ -158,7 +159,7 @@ describe('Environments Component', () => {
     it('Renders page correctly with multiple runtimes and workspaces', async () => {
       // Arrange
       const props = getEnvironmentsProps();
-      const runtime1 = generateTestListGoogleRuntime();
+      const runtime1 = listGoogleRuntime();
       const runtime2 = azureRuntime;
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1, runtime2]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
@@ -175,8 +176,8 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstRuntimeRow: HTMLElement = tableRows[1];
-      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${runtime2.labels.saturnWorkspaceNamespace}`);
-      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${runtime2.labels.saturnWorkspaceName}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${runtime2.workspace.namespace}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${runtime2.workspace.name}`);
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime2.runtimeConfig.cloudService);
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(_.capitalize(runtime2.labels.tool));
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime2.status);
@@ -184,8 +185,8 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(formatDatetime(runtime2.auditInfo.createdDate));
       expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(formatDatetime(runtime2.auditInfo.dateAccessed));
 
-      expect(getTextContentForColumn(tableRows[2], 0)).toBe(`${runtime1.labels.saturnWorkspaceNamespace}`);
-      expect(getTextContentForColumn(tableRows[2], 1)).toBe(`${runtime1.labels.saturnWorkspaceName}`);
+      expect(getTextContentForColumn(tableRows[2], 0)).toBe(`${runtime1.workspace.namespace}`);
+      expect(getTextContentForColumn(tableRows[2], 1)).toBe(`${runtime1.workspace.name}`);
       expect(getTextContentForColumn(tableRows[2], 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(tableRows[2], 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(tableRows[2], 5)).toBe(runtime1.status);
@@ -212,8 +213,8 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstRuntimeRow: HTMLElement = tableRows[1];
-      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${dataprocRuntime.labels.saturnWorkspaceNamespace}`);
-      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${dataprocRuntime.labels.saturnWorkspaceName}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${dataprocRuntime.workspace.namespace}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${dataprocRuntime.workspace.name}`);
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(
         _.capitalize(dataprocRuntime.runtimeConfig.cloudService)
       );
@@ -449,8 +450,8 @@ describe('Environments Component', () => {
       const firstAppRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstAppRow, 1);
 
-      expect(getTextContentForColumn(firstAppRow, 0)).toBe(galaxyApp.labels.saturnWorkspaceNamespace);
-      expect(workspaceForFirstRuntimeCell).toBe(galaxyApp.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstAppRow, 0)).toBe(galaxyApp.workspace.namespace);
+      expect(workspaceForFirstRuntimeCell).toBe(galaxyApp.workspace.name);
       expect(getTextContentForColumn(firstAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(galaxyApp.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(galaxyApp.status));
@@ -484,8 +485,8 @@ describe('Environments Component', () => {
       // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
-      expect(getTextContentForColumn(firstAppRow, 0)).toBe(googleApp1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(firstAppRow, 1)).toBe(googleApp1.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstAppRow, 0)).toBe(googleApp1.workspace.namespace);
+      expect(getTextContentForColumn(firstAppRow, 1)).toBe(googleApp1.workspace.name);
       expect(getTextContentForColumn(firstAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(googleApp1.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(googleApp1.status));
@@ -494,8 +495,8 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(firstAppRow, 8)).toBe(formatDatetime(googleApp1.auditInfo.dateAccessed));
 
       const secondAppRow: HTMLElement = tableRows[1];
-      expect(getTextContentForColumn(secondAppRow, 0)).toBe(googleApp2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(secondAppRow, 1)).toBe(googleApp2.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(secondAppRow, 0)).toBe(googleApp2.workspace.namespace);
+      expect(getTextContentForColumn(secondAppRow, 1)).toBe(googleApp2.workspace.name);
       expect(getTextContentForColumn(secondAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(secondAppRow, 3)).toBe(_.capitalize(googleApp2.appType));
       expect(getTextContentForColumn(secondAppRow, 5)).toBe(_.capitalize(googleApp2.status));
@@ -504,8 +505,8 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(secondAppRow, 8)).toBe(formatDatetime(googleApp1.auditInfo.dateAccessed));
 
       const thirdAppRow: HTMLElement = tableRows[2];
-      expect(getTextContentForColumn(thirdAppRow, 0)).toBe(azureApp1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(thirdAppRow, 1)).toBe(azureApp1.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(thirdAppRow, 0)).toBe(azureApp1.workspace.namespace);
+      expect(getTextContentForColumn(thirdAppRow, 1)).toBe(azureApp1.workspace.name);
       expect(getTextContentForColumn(thirdAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(thirdAppRow, 3)).toBe(_.capitalize(azureApp1.appType));
       expect(getTextContentForColumn(thirdAppRow, 5)).toBe(_.capitalize(azureApp1.status));
@@ -514,8 +515,8 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(thirdAppRow, 8)).toBe(formatDatetime(azureApp1.auditInfo.dateAccessed));
 
       const fourthAppRow: HTMLElement = tableRows[3];
-      expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(fourthAppRow, 1)).toBe(azureApp2.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.workspace.namespace);
+      expect(getTextContentForColumn(fourthAppRow, 1)).toBe(azureApp2.workspace.name);
       expect(getTextContentForColumn(fourthAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(fourthAppRow, 3)).toBe(_.capitalize(azureApp2.appType));
       expect(getTextContentForColumn(fourthAppRow, 5)).toBe(_.capitalize(azureApp2.status));
@@ -663,8 +664,8 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const firstDiskRow: HTMLElement = tableRows[3];
 
-      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(disk.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(disk.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(disk.workspace.namespace);
+      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(disk.workspace.name);
       expect(getTextContentForColumn(firstDiskRow, 3)).toBe(`${disk.size}`);
       expect(getTextContentForColumn(firstDiskRow, 4)).toBe(disk.status);
       expect(getTextContentForColumn(firstDiskRow, 5)).toBe(disk.zone);
@@ -700,8 +701,8 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstDiskRow: HTMLElement = tableRows[3];
-      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(googleDisk1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(googleDisk1.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(googleDisk1.workspace.namespace);
+      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(googleDisk1.workspace.name);
       expect(getTextContentForColumn(firstDiskRow, 3)).toBe(`${googleDisk1.size}`);
       expect(getTextContentForColumn(firstDiskRow, 4)).toBe(googleDisk1.status);
       expect(getTextContentForColumn(firstDiskRow, 5)).toBe(googleDisk1.zone);
@@ -709,8 +710,8 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(firstDiskRow, 7)).toBe(formatDatetime(googleDisk1.auditInfo.dateAccessed));
 
       const secondDiskRow: HTMLElement = tableRows[4];
-      expect(getTextContentForColumn(secondDiskRow, 0)).toBe(googleDisk2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(secondDiskRow, 1)).toBe(googleDisk2.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(secondDiskRow, 0)).toBe(googleDisk2.workspace.namespace);
+      expect(getTextContentForColumn(secondDiskRow, 1)).toBe(googleDisk2.workspace.name);
       expect(getTextContentForColumn(secondDiskRow, 3)).toBe(`${googleDisk2.size}`);
       expect(getTextContentForColumn(secondDiskRow, 4)).toBe(googleDisk2.status);
       expect(getTextContentForColumn(secondDiskRow, 5)).toBe(googleDisk2.zone);
@@ -718,8 +719,8 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(secondDiskRow, 7)).toBe(formatDatetime(googleDisk2.auditInfo.dateAccessed));
 
       const thirdDiskRow: HTMLElement = tableRows[5];
-      expect(getTextContentForColumn(thirdDiskRow, 0)).toBe(azureDisk1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(thirdDiskRow, 1)).toBe(azureDisk1.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(thirdDiskRow, 0)).toBe(azureDisk1.workspace.namespace);
+      expect(getTextContentForColumn(thirdDiskRow, 1)).toBe(azureDisk1.workspace.name);
       expect(getTextContentForColumn(thirdDiskRow, 3)).toBe(`${azureDisk1.size}`);
       expect(getTextContentForColumn(thirdDiskRow, 4)).toBe(azureDisk1.status);
       expect(getTextContentForColumn(thirdDiskRow, 5)).toBe(azureDisk1.zone);
@@ -727,8 +728,8 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(thirdDiskRow, 7)).toBe(formatDatetime(azureDisk1.auditInfo.dateAccessed));
 
       const fourthDiskRow: HTMLElement = tableRows[6];
-      expect(getTextContentForColumn(fourthDiskRow, 0)).toBe(azureDisk2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(fourthDiskRow, 1)).toBe(azureDisk2.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(fourthDiskRow, 0)).toBe(azureDisk2.workspace.namespace);
+      expect(getTextContentForColumn(fourthDiskRow, 1)).toBe(azureDisk2.workspace.name);
       expect(getTextContentForColumn(fourthDiskRow, 3)).toBe(`${azureDisk2.size}`);
       expect(getTextContentForColumn(fourthDiskRow, 4)).toBe(azureDisk2.status);
       expect(getTextContentForColumn(fourthDiskRow, 5)).toBe(azureDisk2.zone);
