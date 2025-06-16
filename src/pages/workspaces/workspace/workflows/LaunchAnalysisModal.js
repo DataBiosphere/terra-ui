@@ -57,7 +57,7 @@ const LaunchAnalysisModal = ({
       setBucketLocation({ location, locationType });
     });
 
-    // This should be removed once GCP Batch migration is GA and LifeSciences has been deprecated.
+    // This should be removed once LifeSciences support has been completely removed.
     // See https://broadworkbench.atlassian.net/browse/AN-507
     const workflowBackend = async () => {
       const settings = await Workspaces(signal).workspaceV2(namespace, workspaceName).getSettings();
@@ -224,6 +224,7 @@ const LaunchAnalysisModal = ({
             }),
           ]),
       ]),
+      // Remove this as part of https://broadworkbench.atlassian.net/browse/AN-507
       workflowBackend === 'LifeSciences' &&
         div(
           {
@@ -232,18 +233,10 @@ const LaunchAnalysisModal = ({
           [
             div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
               icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
-              'LifeSciences API Deprecation Warning',
+              'LifeSciences API Shutdown Warning',
             ]),
             div({ style: { fontWeight: 'normal', marginTop: '0.5rem' } }, [
-              'This workspace is launching workflows with the LifeSciences API, which will be removed from Terra on or after June 16, 2025. Please switch to using its successor, Batch API, by updating your Workspace Settings. ',
-              h(
-                Link,
-                {
-                  href: 'https://support.terra.bio/hc/en-us/articles/31190930435483-Cromwell-on-Google-Batch-API-released-May-19',
-                  ...Utils.newTabLinkProps,
-                },
-                ['Learn more', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-              ),
+              'This workspace is launching workflows with the LifeSciences API, which will be shut down on July 8th, 2025. To switch to its successor Batch API, please contact Terra Support team.',
             ]),
           ]
         ),
