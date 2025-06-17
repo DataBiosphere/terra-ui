@@ -53,7 +53,7 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
     },
     [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
-      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (>${Math.floor(deletionDelayDays / 31)} months old).`]),
+      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (>${Math.round(deletionDelayDays / 31)} months old).`]),
       div([
         'Please refer to the ',
         h(
