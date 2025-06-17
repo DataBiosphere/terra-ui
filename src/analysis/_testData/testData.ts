@@ -805,7 +805,7 @@ export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): Persi
   },
   id: getRandomInt(randomMaxInt),
   workspaceId: null,
-  labels: { saturnApplication: 'galaxy' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
   status: 'Ready',
@@ -831,8 +831,8 @@ export const galaxyDisk: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 10,
-  workspaceId: null,
-  labels: { saturnApplication: 'galaxy' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
+  labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
   status: 'Ready',
