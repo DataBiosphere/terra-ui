@@ -184,6 +184,7 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
 
 export const defaultTestDisk: PersistentDisk = {
   id: 15778,
+  workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
   cloudContext: {
     cloudProvider: 'GCP',
     cloudResource: defaultGoogleWorkspace.workspace.googleProject,
