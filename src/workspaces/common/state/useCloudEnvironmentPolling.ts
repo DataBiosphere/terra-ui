@@ -33,8 +33,6 @@ export const useCloudEnvironmentPolling = (
   const [persistentDisks, setPersistentDisks] = useState<PersistentDisk[]>();
   const [appDataDisks, setAppDataDisks] = useState<PersistentDisk[]>();
 
-  const saturnWorkspaceName = workspace?.workspace?.name;
-
   const reschedule = (ms) => {
     clearTimeout(timeout.current);
     timeout.current = setTimeout(refreshRuntimesSilently, ms);
@@ -43,7 +41,6 @@ export const useCloudEnvironmentPolling = (
     try {
       const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), {
         role: 'creator',
-        saturnWorkspaceName,
       }) as Record<string, string>; // we literally just filtered out the undefined values, but ts doesn't know this
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
@@ -52,7 +49,7 @@ export const useCloudEnvironmentPolling = (
         leoDiskProvider.list(
           {
             ...cloudEnvFilters,
-            includeLabels: 'saturnApplication,saturnWorkspaceName',
+            includeLabels: 'saturnApplication',
           },
           { signal: controller.current.signal }
         ),
