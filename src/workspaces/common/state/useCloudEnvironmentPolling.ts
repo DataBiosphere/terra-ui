@@ -56,11 +56,12 @@ export const useCloudEnvironmentPolling = (
         Runtimes(controller.current.signal).listV2(cloudEnvFilters),
       ]);
 
-      const workspaceRuntimes = newRuntimes.filter(
-        (runtime) => runtime.workspaceId === workspace?.workspace?.workspaceId
+      const workspaceRuntimes = _.filter(
+        (runtime) => runtime.workspaceId === workspace?.workspace?.workspaceId,
+        newRuntimes
       );
       setRuntimes(workspaceRuntimes);
-      const workspaceDisks = newDisks.filter((disk) => disk.workspaceId === workspace?.workspace?.workspaceId);
+      const workspaceDisks = _.filter((disk) => disk.workspaceId === workspace?.workspace?.workspaceId, newDisks);
       setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), workspaceDisks));
       setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), workspaceDisks));
       const runtime = getCurrentRuntime(workspaceRuntimes);
