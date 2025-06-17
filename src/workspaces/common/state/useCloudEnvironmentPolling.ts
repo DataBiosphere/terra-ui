@@ -33,9 +33,6 @@ export const useCloudEnvironmentPolling = (
   const [persistentDisks, setPersistentDisks] = useState<PersistentDisk[]>();
   const [appDataDisks, setAppDataDisks] = useState<PersistentDisk[]>();
 
-  const saturnWorkspaceNamespace = workspace?.workspace?.namespace;
-  const saturnWorkspaceName = workspace?.workspace?.name;
-
   const reschedule = (ms) => {
     clearTimeout(timeout.current);
     timeout.current = setTimeout(refreshRuntimesSilently, ms);
@@ -44,8 +41,6 @@ export const useCloudEnvironmentPolling = (
     try {
       const cloudEnvFilters = _.pickBy((l) => !_.isUndefined(l), {
         role: 'creator',
-        saturnWorkspaceName,
-        saturnWorkspaceNamespace,
       }) as Record<string, string>; // we literally just filtered out the undefined values, but ts doesn't know this
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
@@ -54,17 +49,21 @@ export const useCloudEnvironmentPolling = (
         leoDiskProvider.list(
           {
             ...cloudEnvFilters,
-            includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
+            includeLabels: 'saturnApplication',
           },
           { signal: controller.current.signal }
         ),
         Runtimes(controller.current.signal).listV2(cloudEnvFilters),
       ]);
 
-      setRuntimes(newRuntimes);
-      setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
-      setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), newDisks));
-      const runtime = getCurrentRuntime(newRuntimes);
+      const workspaceRuntimes = newRuntimes.filter(
+        (runtime) => runtime.workspaceId === workspace?.workspace?.workspaceId
+      );
+      setRuntimes(workspaceRuntimes);
+      const workspaceDisks = newDisks.filter((disk) => disk.workspaceId === workspace?.workspace?.workspaceId);
+      setAppDataDisks(_.remove((disk) => _.isUndefined(getDiskAppType(disk)), workspaceDisks));
+      setPersistentDisks(_.filter((disk) => _.isUndefined(getDiskAppType(disk)), workspaceDisks));
+      const runtime = getCurrentRuntime(workspaceRuntimes);
       setIsLoadingCloudEnvironments(false);
       reschedule(
         maybeStale ||
