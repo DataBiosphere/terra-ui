@@ -53,7 +53,6 @@ import { DeleteRuntimeModal } from './DeleteRuntimeModal';
 import {
   AppWithWorkspace,
   DecoratedComputeResource,
-  DecoratedResourceAttributes,
   DiskWithWorkspace,
   LeoResourceDeletableProvider,
   RuntimeWithWorkspace,
@@ -154,12 +153,10 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
 
     const startTimeForLeoCallsEpochMs = Date.now();
 
-    const listArgs: Record<string, string> = shouldFilterByCreator
-      ? { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
-      : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' };
+    const listArgs: Record<string, string> = shouldFilterByCreator ? { role: 'creator' } : {};
     const diskArgs: Record<string, string> = {
       ...listArgs,
-      includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName',
+      includeLabels: 'saturnApplication',
     };
 
     const [newRuntimes, newDisks, newApps] = await Promise.all([
@@ -167,6 +164,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       leoDiskData.list(diskArgs, { signal }),
       leoAppData.listWithoutProject(listArgs, { signal }),
     ]);
+
     const endTimeForLeoCallsEpochMs = Date.now();
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs;
@@ -180,24 +178,23 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       });
     }
 
-    const decorateLabeledResourceWithWorkspace = <T extends ListRuntimeItem | PersistentDisk | App>(
-      cloudObject: T
-    ): DecoratedResourceAttributes & T => {
-      const {
-        labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
-      } = cloudObject;
-      const { workspace } = workspaces[saturnWorkspaceNamespace]?.[saturnWorkspaceName] || {};
-      // Attempting to catch resources related to GCP v1 workspaces (Rawls no longer returns them).
+    const workspaceIdToWorkspace = _.flow(
+      _.values, // get array of namespaces
+      _.flatMap(_.values), // get array of names (WorkspaceWrapper)
+      _.keyBy((w) => w.workspace.workspaceId)
+    )(workspaces);
+
+    const decorateWithWorkspace = (cloudObject) => {
+      const workspace = workspaceIdToWorkspace[cloudObject.workspaceId]?.workspace;
       const unsupportedWorkspace =
         isGcpContext(cloudObject.cloudContext) &&
         (!workspace || cloudObject.cloudContext.cloudResource !== (workspace as GoogleWorkspaceInfo).googleProject);
-
       return { ...cloudObject, workspace, unsupportedWorkspace };
     };
 
-    const decoratedRuntimes = newRuntimes.map(decorateLabeledResourceWithWorkspace);
-    const decoratedDisks = newDisks.map(decorateLabeledResourceWithWorkspace);
-    const decoratedApps = newApps.map(decorateLabeledResourceWithWorkspace);
+    const decoratedRuntimes = newRuntimes.map(decorateWithWorkspace);
+    const decoratedDisks = newDisks.map(decorateWithWorkspace);
+    const decoratedApps = newApps.map(decorateWithWorkspace);
 
     setRuntimes(decoratedRuntimes);
     setDisks(decoratedDisks);
@@ -267,8 +264,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const filteredRuntimes = _.orderBy(
     [
       {
-        project: 'labels.saturnWorkspaceNamespace',
-        workspace: 'labels.saturnWorkspaceName',
+        project: 'workspace.namespace',
+        workspace: 'workspace.name',
         type: getCloudProvider,
         tool: getCloudEnvTool,
         status: 'status',
@@ -286,7 +283,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     [
       {
         project: 'googleProject',
-        workspace: 'labels.saturnWorkspaceName',
+        workspace: 'workspace.namespace',
         status: 'status',
         created: 'auditInfo.createdDate',
         accessed: 'auditInfo.dateAccessed',
@@ -303,7 +300,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     [
       {
         project: 'googleProject',
-        workspace: 'labels.saturnWorkspaceName',
+        workspace: 'workspace.name',
         status: 'status',
         created: 'auditInfo.createdDate',
         accessed: 'auditInfo.dateAccessed',
@@ -368,39 +365,26 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   // created, workspace namespace (a.k.a billing project) value used to equal the google project.
   // Therefore we use google project if the namespace label is not defined.
   const renderWorkspaceForApps = (app: AppWithWorkspace) => {
+    const workspaceNamespace = app.workspace?.namespace;
+    const workspaceName = app.workspace?.name;
     const {
       appType,
       cloudContext: { cloudResource },
-      labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
     } = app;
-    // Here, we use the saturnWorkspaceNamespace label if its defined, otherwise use cloudResource for older runtimes
-    const resolvedSaturnWorkspaceNamespace = saturnWorkspaceNamespace || cloudResource;
-    return getWorkspaceCell(
-      resolvedSaturnWorkspaceNamespace,
-      saturnWorkspaceName,
-      appType,
-      false,
-      app.unsupportedWorkspace
-    );
+    // Here, we use the workspaceNamespace from the workspace if its defined, otherwise use cloudResource for older runtimes
+    const resolvedSaturnWorkspaceNamespace = workspaceNamespace || cloudResource;
+    return getWorkspaceCell(resolvedSaturnWorkspaceNamespace, workspaceName, appType, false, app.unsupportedWorkspace);
   };
 
   const renderWorkspaceForRuntimes = (runtime: RuntimeWithWorkspace) => {
-    const {
-      status,
-      googleProject,
-      labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName = undefined },
-    } = runtime;
+    const { status, googleProject } = runtime;
+    const workspaceNamespace = runtime.workspace?.namespace ? runtime.workspace.namespace : googleProject;
+    const workspaceName = runtime.workspace?.name;
     // TODO: Azure runtimes are not covered in this logic
     const shouldWarn =
       doesUserHaveDuplicateRuntimes(getCreatorForCompute(runtime), runtimesByProject[googleProject]) &&
       !_.includes(status, ['Deleting', 'Error']);
-    return getWorkspaceCell(
-      saturnWorkspaceNamespace,
-      saturnWorkspaceName,
-      null,
-      shouldWarn,
-      runtime.unsupportedWorkspace
-    );
+    return getWorkspaceCell(workspaceNamespace, workspaceName, null, shouldWarn, runtime.unsupportedWorkspace);
   };
 
   const doesUserHaveDuplicateRuntimes = (user, runtimes) => {
@@ -529,11 +513,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
                 cellRenderer: ({ rowIndex }) => {
                   const cloudEnv: DecoratedComputeResource = filteredCloudEnvironments[rowIndex];
-                  const workspaceNamespace = cloudEnv.workspace?.namespace;
-                  const {
-                    labels: { saturnWorkspaceNamespace = workspaceNamespace },
-                  } = cloudEnv;
-                  return saturnWorkspaceNamespace;
+                  return cloudEnv.workspace?.namespace;
                 },
               },
               {
@@ -658,11 +638,8 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                 headerRenderer: () =>
                   h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
                 cellRenderer: ({ rowIndex }) => {
-                  const {
-                    cloudContext,
-                    labels: { saturnWorkspaceNamespace = cloudContext.cloudResource },
-                  } = filteredDisks[rowIndex];
-                  return saturnWorkspaceNamespace;
+                  const { cloudContext, workspace } = filteredDisks[rowIndex];
+                  return workspace?.namespace || cloudContext.cloudResource;
                 },
               },
               {

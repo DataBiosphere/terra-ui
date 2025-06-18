@@ -24,6 +24,7 @@ export const diskStatuses: { [label: string]: DiskStatus } = {
 
 export interface RawListDiskItem {
   id: number;
+  workspaceId: string | null;
   cloudContext: CloudContext;
   zone: string;
   name: string;

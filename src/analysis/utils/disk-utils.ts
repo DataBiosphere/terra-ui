@@ -48,14 +48,14 @@ export const workspaceUserHasMultipleDisks = (disks: PersistentDisk[], diskAppTy
  * @param {string} appType App type to retrieve app data disk for
  * @param {App[]} apps List of apps in the current workspace
  * @param {AppDataDisk[]} appDataDisks List of appDataDisks in the workspace
- * @param {string} workspaceName Name of the workspace
+ * @param {string} workspaceId Id of the workspace
  * @returns The appDataDisk from appDataDisks attached to the appType
  */
 export const getCurrentAppDataDisk = (
   appType: AppToolLabel,
   apps: App[],
   appDataDisks: PersistentDisk[],
-  workspaceName: string
+  workspaceId: string
 ): PersistentDisk | undefined => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType, apps);
@@ -72,7 +72,7 @@ export const getCurrentAppDataDisk = (
       getDiskAppType(disk) === appType &&
       disk.status !== 'Deleting' &&
       !_.includes(disk.name, attachedDiskNames) &&
-      disk.labels.saturnWorkspaceName === workspaceName,
+      disk.workspaceId === workspaceId,
     appDataDisks
   );
   const sortedDisks: PersistentDisk[] = _.sortBy('auditInfo.createdDate', filteredDisks);
