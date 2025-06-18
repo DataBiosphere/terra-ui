@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react';
-import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
 import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { WorkspaceData, WorkspaceDataAjaxContract } from 'src/libs/ajax/WorkspaceDataService';
@@ -8,8 +7,6 @@ import { asMockedFn, MockedFn, partial } from 'src/testing/test-utils';
 import { useDataTableProvider } from './useDataTableProvider';
 
 const CWDS_WORKSPACE_ID = 'cwdsWorkspaceId';
-const WDS_APP_WORKSPACE_ID = 'wdsAppWorkspaceId';
-const IS_AZURE_WORKSPACE = true;
 
 type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
 
@@ -71,42 +68,14 @@ describe('useDataTableProvider', () => {
   );
   asMockedFn(Apps).mockReturnValue(partial<AppsAjaxContract>({ listAppsV2: mockListAppsV2 }));
 
-  it('should only check CWDS once', async () => {
-    // Arrange
-    // Act
-    await act(() => {
-      renderHook(() => useDataTableProvider(WDS_APP_WORKSPACE_ID, IS_AZURE_WORKSPACE)); // Must be an Azure workspace to check CWDS
-    });
-
-    // Assert
-    // Fetch wds might be called for other purpose, we only care about the call to check for collections
-    const mockFetchWDS = fetchWDS as jest.Mock;
-    const mockInnerFunction = mockFetchWDS.mock.results[0].value;
-
-    // Now verify that we only called CWDS once
-    expect(mockInnerFunction).toHaveBeenCalledTimes(1);
-    expect(mockInnerFunction).toHaveBeenCalledWith(`collections/v1/${WDS_APP_WORKSPACE_ID}`, expect.anything());
-  });
-
   it('should not call list apps if cwds is in use', async () => {
     // Arrange
     // Act
-    await act(() => {
-      renderHook(() => useDataTableProvider(CWDS_WORKSPACE_ID, IS_AZURE_WORKSPACE));
+    act(() => {
+      renderHook(() => useDataTableProvider(CWDS_WORKSPACE_ID));
     });
 
     // Assert
     expect(mockListAppsV2).not.toHaveBeenCalled();
-  });
-
-  it('should call list apps if cwds is not in use', async () => {
-    // Arrange
-    // Act
-    await act(() => {
-      renderHook(() => useDataTableProvider(WDS_APP_WORKSPACE_ID, IS_AZURE_WORKSPACE));
-    });
-
-    // Assert
-    expect(mockListAppsV2).toHaveBeenCalled();
   });
 });

@@ -555,7 +555,7 @@ export const WorkspaceData = _.flow(
 
     const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name);
     const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
-    const [wdsDataTableProvider, wdsApp, wdsTypes, setWdsTypes, loadWdsData] = useDataTableProvider(workspaceId, isAzureWorkspace);
+    const [wdsDataTableProvider, wdsApp, wdsTypes, setWdsTypes, loadWdsData] = useDataTableProvider(workspaceId);
 
     const loadEntityMetadata = async () => {
       try {
