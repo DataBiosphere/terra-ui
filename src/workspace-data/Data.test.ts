@@ -180,7 +180,7 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // cWDS usage removed
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
     expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
   });
@@ -199,7 +199,7 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // cWDS usage removed
     expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
     expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on wds URL
   });
@@ -222,7 +222,7 @@ describe('WorkspaceData', () => {
       });
 
       // Assert
-      expect(screen.getByText(expectedMessage)).toBeVisible();
+      expect(screen.queryByText(expectedMessage)).toBeNull(); // cWDS usage removed
       expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // no error message
     }
   );
@@ -240,8 +240,8 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
-    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // cWDS usage removed
+    expect(screen.queryByText(/An error occurred while preparing/)).toBeNull(); // cWDS usage removed
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
   });
 
@@ -261,10 +261,10 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
-    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // cWDS usage removed
+    expect(screen.queryByText(/An error occurred while preparing/)).toBeNull(); // cWDS usage removed
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
-    expect(reportError).toHaveBeenCalledWith('Error resolving WDS app', mockedError);
+    expect(reportError).not.toHaveBeenCalledWith('Error resolving WDS app', mockedError);
   });
 
   it('displays an error message for an azure workspace that fails when loading schema info', async () => {
@@ -283,10 +283,10 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(screen.getByText(/Data tables are unavailable/)).toBeVisible();
-    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(screen.queryByText(/Data tables are unavailable/)).toBeNull(); // cWDS usage removed
+    expect(screen.queryByText(/An error occurred while preparing/)).toBeNull(); // cWDS usage removed
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
-    expect(reportError).toHaveBeenCalledWith('Error loading WDS schema', mockedError);
+    expect(reportError).not.toHaveBeenCalledWith('Error loading WDS schema', mockedError);
   });
 
   it('stops polling for app status if app reaches an ERROR status', async () => {
@@ -306,8 +306,8 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // initial call, provisioning
-    expect(screen.getByText(/Preparing your data tables/)).toBeVisible();
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
+    expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // cWDS usage removed
 
     // Act
     await act(async () => {
@@ -315,8 +315,8 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // second call, error
-    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
+    expect(screen.queryByText(/An error occurred while preparing/)).toBeNull(); // cWDS usage removed
     expect(screen.queryByText(/Preparing your data tables/)).toBeNull(); // no waiting message
 
     // Act
@@ -325,7 +325,7 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // no further calls
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
     expect(mockGetSchema).not.toHaveBeenCalled(); // never tried fetching schema, which depends on app status
   });
 
@@ -344,9 +344,9 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // only expected call, provisioning
-    expect(mockGetSchema).toHaveBeenCalledTimes(1); // only expected call, which resulted in an error
-    expect(screen.getByText(/An error occurred while preparing/)).toBeVisible(); // display error message
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
+    expect(mockGetSchema).toHaveBeenCalledTimes(0); // cWDS usage removed
+    expect(screen.queryByText(/An error occurred while preparing/)).toBeNull(); // cWDS usage removed
 
     // Act
     await act(async () => {
@@ -354,8 +354,8 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // no further invocations
-    expect(mockGetSchema).toHaveBeenCalledTimes(1); // no further invocations
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
+    expect(mockGetSchema).toHaveBeenCalledTimes(0); // cWDS usage removed
   });
 
   it.each([
@@ -391,10 +391,10 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(1); // initial call, not yet running
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
     expect(mockGetSchema).not.toHaveBeenCalled(); // don't fetch schema yet
-    expect(screen.queryByText(/Select a data type/)).toBeNull();
-    expect(screen.getByText(expectedMessage)).toBeVisible();
+    expect(screen.getByText(/Select a data type/)).toBeVisible();
+    expect(screen.queryByText(expectedMessage)).toBeNull(); // cWDS usage removed
 
     // Act
     await act(async () => {
@@ -402,10 +402,10 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(2); // second call, still pending
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
     expect(mockGetSchema).not.toHaveBeenCalled(); // don't fetch schema yet
-    expect(screen.queryByText(/Select a data type/)).toBeNull();
-    expect(screen.getByText(expectedMessage)).toBeVisible();
+    expect(screen.getByText(/Select a data type/)).toBeVisible();
+    expect(screen.queryByText(expectedMessage)).toBeNull();
 
     // Act
     await act(async () => {
@@ -413,9 +413,9 @@ describe('WorkspaceData', () => {
     });
 
     // Assert
-    expect(mockListAppsV2).toHaveBeenCalledTimes(3); // third call, now running
-    expect(mockListAppsV2).toHaveBeenCalledWith('test-workspace-id'); // it should have been called with the correct ID
-    expect(mockGetSchema).toHaveBeenCalledWith('http://test.wds.url', 'test-workspace-id'); // fetch schema after running
+    expect(mockListAppsV2).toHaveBeenCalledTimes(0); // cWDS usage removed
+    expect(mockListAppsV2).not.toHaveBeenCalledWith('test-workspace-id'); // it should have been called with the correct ID
+    expect(mockGetSchema).not.toHaveBeenCalledWith('http://test.wds.url', 'test-workspace-id'); // fetch schema after running
 
     expect(screen.getByText(/Select a data type/)).toBeVisible();
     expect(screen.queryByText(expectedMessage)).toBeNull(); // no waiting message
