@@ -153,7 +153,7 @@ export const useDataTableProvider = (
         setUseCwds({ status: 'Ready', state: false });
       }
     };
-  }, [signal, workspaceId, cwdsURL]);
+  }, [signal, workspaceId, useCwds, wdsTypes, cwdsURL]);
 
   return [wdsDataTableProvider, wdsApp, wdsTypes, setWdsTypes, loadWdsData];
 };
