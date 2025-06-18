@@ -9,6 +9,7 @@ import { useDataTableProvider } from './useDataTableProvider';
 
 const CWDS_WORKSPACE_ID = 'cwdsWorkspaceId';
 const WDS_APP_WORKSPACE_ID = 'wdsAppWorkspaceId';
+const IS_AZURE_WORKSPACE = true;
 
 type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
 
@@ -74,7 +75,7 @@ describe('useDataTableProvider', () => {
     // Arrange
     // Act
     await act(() => {
-      renderHook(() => useDataTableProvider(WDS_APP_WORKSPACE_ID)); // It doesn't matter which workspaceId is used in this test
+      renderHook(() => useDataTableProvider(WDS_APP_WORKSPACE_ID, IS_AZURE_WORKSPACE)); // Must be an Azure workspace to check CWDS
     });
 
     // Assert
@@ -91,7 +92,7 @@ describe('useDataTableProvider', () => {
     // Arrange
     // Act
     await act(() => {
-      renderHook(() => useDataTableProvider(CWDS_WORKSPACE_ID));
+      renderHook(() => useDataTableProvider(CWDS_WORKSPACE_ID, IS_AZURE_WORKSPACE));
     });
 
     // Assert
@@ -102,7 +103,7 @@ describe('useDataTableProvider', () => {
     // Arrange
     // Act
     await act(() => {
-      renderHook(() => useDataTableProvider(WDS_APP_WORKSPACE_ID));
+      renderHook(() => useDataTableProvider(WDS_APP_WORKSPACE_ID, IS_AZURE_WORKSPACE));
     });
 
     // Assert
