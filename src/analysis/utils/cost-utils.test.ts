@@ -41,6 +41,7 @@ const jupyterDisk: PersistentDisk = {
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   id: 29,
+  workspaceId: 'bd0d0405-c048-4212-bccf-568435933081',
   labels: {},
   name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',
   size: 50,
