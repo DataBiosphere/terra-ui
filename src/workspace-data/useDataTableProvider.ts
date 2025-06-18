@@ -20,6 +20,7 @@ import { useCancellation } from 'src/libs/react-utils';
  * Get a workspace data table provider.
  *
  * @param workspaceId - Workspace id
+ * @param isAzureWorkspace - Is this an Azure workspace (default: false)
  * @returns WdsDataTableProvider - Workspace data table provider
  * @returns LoadedState<ListAppItem, string> - WDS app state
  * @returns LoadedState<RecordTypeSchema[], string> - WDS types state
@@ -27,7 +28,8 @@ import { useCancellation } from 'src/libs/react-utils';
  *  @returns () => Promise<void> - Function to load WDS data
  */
 export const useDataTableProvider = (
-  workspaceId: string
+  workspaceId: string,
+  isAzureWorkspace = false
 ): [
   WdsDataTableProvider,
   LoadedState<ListAppItem | null, string>,
@@ -153,10 +155,10 @@ export const useDataTableProvider = (
       }
     };
 
-    if (useCwds.status !== 'Ready') {
+    if (useCwds.status !== 'Ready' && isAzureWorkspace) {
       checkCWDS();
     }
-  }, [signal, workspaceId, useCwds, wdsTypes, cwdsURL]);
+  }, [signal, workspaceId, useCwds, wdsTypes, cwdsURL, isAzureWorkspace]);
 
   return [wdsDataTableProvider, wdsApp, wdsTypes, setWdsTypes, loadWdsData];
 };
