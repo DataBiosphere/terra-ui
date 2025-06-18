@@ -184,6 +184,7 @@ export const generateAzureWorkspace = (prefix: string = uuid().substring(0, 8)):
 
 export const defaultTestDisk: PersistentDisk = {
   id: 15778,
+  workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
   cloudContext: {
     cloudProvider: 'GCP',
     cloudResource: defaultGoogleWorkspace.workspace.googleProject,
@@ -234,6 +235,7 @@ export const getAzureDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
   size,
 });
 
+// Leonardo includes labels in the runtime response by default
 export const defaultWorkspaceLabels = {
   saturnWorkspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
   saturnWorkspaceName: defaultGoogleWorkspace.workspace.name,
@@ -654,7 +656,7 @@ export const generateTestAppWithGoogleWorkspace = (
   overrides: Partial<ListAppItem> = {},
   workspace: GoogleWorkspace = defaultGoogleWorkspace
 ): ListAppItem => ({
-  workspaceId: null,
+  workspaceId: workspace.workspace.workspaceId,
   accessScope: null,
   cloudContext: {
     cloudProvider: cloudProviderTypes.GCP,
@@ -671,10 +673,7 @@ export const generateTestAppWithGoogleWorkspace = (
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   errors: [],
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {
-    saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
-  },
+  labels: {},
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
@@ -692,7 +691,7 @@ export const generateTestAppWithAzureWorkspace = (
   overrides: Partial<ListAppItem> = {},
   workspace: AzureWorkspace = defaultAzureWorkspace
 ): ListAppItem => ({
-  workspaceId: null,
+  workspaceId: workspace.workspace.workspaceId,
   accessScope: null,
   cloudContext: {
     cloudProvider: 'AZURE',
@@ -709,10 +708,7 @@ export const generateTestAppWithAzureWorkspace = (
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   errors: [],
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {
-    saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
-  },
+  labels: {},
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
@@ -747,10 +743,9 @@ export const generateTestDiskWithGoogleWorkspace = (
     cloudResource: workspace.workspace.googleProject,
   },
   id: getRandomInt(randomMaxInt),
+  workspaceId: workspace.workspace.workspaceId,
   labels: {
     saturnApplication: 'galaxy',
-    saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
   }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
@@ -780,10 +775,9 @@ export const generateTestDiskWithAzureWorkspace = (
     cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
   },
   id: getRandomInt(randomMaxInt),
+  workspaceId: workspace.workspace.workspaceId,
   labels: {
     saturnApplication: 'galaxy',
-    saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
   }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
@@ -810,6 +804,7 @@ export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): Persi
     cloudResource: 'terra-test-e4000484',
   },
   id: getRandomInt(randomMaxInt),
+  workspaceId: null,
   labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
@@ -836,7 +831,8 @@ export const galaxyDisk: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 10,
-  labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
+  labels: { saturnApplication: 'galaxy' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
   status: 'Ready',
@@ -865,10 +861,8 @@ export const azureDisk: PersistentDisk = {
     regionToPricesName: 'monthlyStandardDiskPrice',
   }, // TODO: This should be stored in backend as Standard_LRS
   blockSize: 4096,
-  labels: {
-    saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
-    saturnWorkspaceName: defaultAzureWorkspace.workspace.name,
-  },
+  workspaceId: defaultAzureWorkspace.workspace.workspaceId,
+  labels: {},
 };
 
 export const azureRuntime: ListRuntimeItem = {
@@ -918,7 +912,7 @@ export const dataprocRuntime: ListRuntimeItem = {
   id: 81666,
   runtimeName: 'saturn-a5eec7f3-857d-4fab-b26c-6f1291082641',
   googleProject: defaultGoogleWorkspace.workspace.googleProject,
-  workspaceId: null,
+  workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
   cloudContext: { cloudProvider: 'GCP', cloudResource: defaultGoogleWorkspace.workspace.googleProject },
   auditInfo: {
     creator: 'jcanas@broadinstitute.org',
