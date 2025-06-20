@@ -43,7 +43,7 @@ const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborti
 const deletionDelayDays = 190;
 const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayDays;
 
-const deletedStyleIcon = ({ name, icon: iconName }) => {
+const deletedInfoIcon = ({ name, icon: iconName }) => {
   return h(
     InfoBox,
     {
@@ -221,8 +221,8 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                     h(Fragment, [
                       isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate)
                         ? [
-                            deletedStyleIcon({ name: 'Job Manager', icon: 'tasks' }),
-                            deletedStyleIcon({ name: 'Workflow Dashboard', icon: 'tachometer' }),
+                            deletedInfoIcon({ name: 'Job Manager', icon: 'tasks' }),
+                            deletedInfoIcon({ name: 'Workflow Dashboard', icon: 'tachometer' }),
                           ]
                         : [
                             h(
