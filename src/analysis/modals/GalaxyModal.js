@@ -60,7 +60,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false);
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false);
 
-    const currentDataDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, workspace.workspaceId);
+    const currentDataDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, workspaceName);
     const updateDataDisk = _.curry((key, value) => setDataDisk(_.set(key, value)));
 
     const createGalaxy = _.flow(
