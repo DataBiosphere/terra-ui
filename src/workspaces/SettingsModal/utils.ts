@@ -243,23 +243,3 @@ const modifySeparateSubmissionOutputsSetting = (
     otherSettings
   );
 };
-
-/**
- * Modifies the Batch setting in the workspace settings. If no such setting exists, it will be created.
- *
- * Note that any other settings will be preserved but moved to the end of the array.
- */
-export const modifyBatchSetting = (originalSettings: WorkspaceSetting[], enabled: boolean): WorkspaceSetting[] => {
-  const otherSettings: WorkspaceSetting[] = originalSettings.filter((setting) => !isBatchSetting(setting));
-
-  // Save the current Batch setting preference. Rawls will handle it appropriately if there's no change in the setting.
-  return _.concat(
-    [
-      {
-        settingType: 'UseCromwellGcpBatchBackend',
-        config: { enabled },
-      } as BatchSetting,
-    ],
-    otherSettings
-  );
-};

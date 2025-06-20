@@ -12,7 +12,6 @@ import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } fr
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import {
-  BatchSetting,
   BucketLifecycleSetting,
   RequesterPaysSetting,
   secondsInADay,
@@ -124,16 +123,6 @@ describe('SettingsModal', () => {
     config: { enabled: false },
   };
 
-  const batchEnabledSetting: BatchSetting = {
-    settingType: 'UseCromwellGcpBatchBackend',
-    config: { enabled: true },
-  };
-
-  const batchDisabledSetting: BatchSetting = {
-    settingType: 'UseCromwellGcpBatchBackend',
-    config: { enabled: false },
-  };
-
   const separateSubmissionOutputsDisabledSetting: SeparateSubmissionFinalOutputsSetting = {
     settingType: 'SeparateSubmissionFinalOutputs',
     config: { enabled: false },
@@ -175,8 +164,6 @@ describe('SettingsModal', () => {
     asMockedFn(isWorkspaceOwner).mockReturnValue(false);
   };
 
-  const getBatchToggle = () => screen.getByLabelText('Run Workflows on GCP Batch:');
-
   it('has no accessibility errors', async () => {
     // Arrange
     setup([twoRules], jest.fn());
@@ -204,8 +191,8 @@ describe('SettingsModal', () => {
 
     // Assert
     expect(onDismiss).toHaveBeenCalled();
-    // On save we do persist the default soft delete setting and Batch setting, so it is now explicit.
-    expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
+    // On save we do persist the default soft delete setting, so it is now explicit.
+    expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
   });
 
   it('calls onDismiss on Cancel and does not event', async () => {
@@ -382,7 +369,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([fourDaysAllObjects, batchDisabledSetting], updateSettingsMock);
+      setup([fourDaysAllObjects], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -403,7 +390,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsDisabledSetting,
         noLifecycleRules,
@@ -420,7 +406,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([twoRules, batchDisabledSetting], updateSettingsMock);
+      setup([twoRules], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -441,7 +427,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsDisabledSetting,
         {
@@ -473,7 +458,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([twoRules, batchDisabledSetting], updateSettingsMock);
+      setup([twoRules], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -489,7 +474,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsEnabledSetting,
         {
@@ -530,7 +514,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([zeroDaysTwoPrefixes, batchDisabledSetting], updateSettingsMock);
+      setup([zeroDaysTwoPrefixes], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -545,7 +529,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsEnabledSetting,
         {
@@ -577,7 +560,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([fourDaysAllObjects, batchDisabledSetting], updateSettingsMock);
+      setup([fourDaysAllObjects], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -604,7 +587,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsEnabledSetting,
         {
@@ -710,7 +692,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([defaultSoftDeleteSetting, batchDisabledSetting], updateSettingsMock);
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -726,7 +708,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         {
           settingType: 'GcpBucketSoftDelete',
           config: { retentionDurationInSeconds: 80 * secondsInADay },
@@ -743,7 +724,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([defaultSoftDeleteSetting, batchDisabledSetting], updateSettingsMock);
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -757,7 +738,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         {
           settingType: 'GcpBucketSoftDelete',
           config: { retentionDurationInSeconds: 0 },
@@ -774,7 +754,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([defaultSoftDeleteSetting, batchDisabledSetting], updateSettingsMock);
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -783,7 +763,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
       // An above case captures testing that there is no event if Save is pressed and the user initially
       // had no soft delete setting (although the default setting is then persisted).
       expect(captureEvent).not.toHaveBeenCalledWith();
@@ -851,7 +831,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([requesterPaysEnabledSetting, batchDisabledSetting], updateSettingsMock);
+      setup([requesterPaysEnabledSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -866,11 +846,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
-        requesterPaysDisabledSetting,
-        defaultSoftDeleteSetting,
-      ]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysDisabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsRequesterPays, {
         enabled: false,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
@@ -896,11 +872,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchEnabledSetting,
-        requesterPaysEnabledSetting,
-        defaultSoftDeleteSetting,
-      ]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsRequesterPays, {
         enabled: true,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
@@ -911,7 +883,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([requesterPaysEnabledSetting, batchDisabledSetting], updateSettingsMock);
+      setup([requesterPaysEnabledSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -920,157 +892,8 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
-        requesterPaysEnabledSetting,
-        defaultSoftDeleteSetting,
-      ]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
-    });
-  });
-
-  describe('Batch Setting', () => {
-    it('renders the option as disabled if the user is not an owner', async () => {
-      // Arrange
-      setup([], jest.fn());
-      mockNotOwner();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).toBeDisabled();
-    });
-
-    it('renders the option as off if batch is disabled', async () => {
-      // Arrange
-      setup([batchDisabledSetting], jest.fn());
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).not.toBeChecked();
-    });
-
-    it('renders the option as on if batch is enabled', async () => {
-      // Arrange
-      setup([batchEnabledSetting], jest.fn());
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).toBeChecked();
-    });
-
-    it('supports disabling batch', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getBatchToggle();
-      expect(toggle).toBeChecked();
-      await user.click(toggle);
-      expect(toggle).not.toBeChecked();
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: false,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-
-    it('supports enabling batch', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([batchDisabledSetting], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getBatchToggle();
-      expect(toggle).not.toBeChecked();
-      await user.click(toggle);
-      expect(toggle).toBeChecked();
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: true,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-
-    it('does not event if batch did not change', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([batchEnabledSetting], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).not.toHaveBeenCalledWith();
-    });
-
-    it('saves default batch setting if no such setting previously existed', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: true,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-
-    it('renders the option as ON if no settings exist', async () => {
-      // Arrange
-      setup([], jest.fn());
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).toBeChecked();
     });
   });
 });
