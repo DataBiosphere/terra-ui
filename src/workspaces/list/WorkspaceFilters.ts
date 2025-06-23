@@ -11,12 +11,7 @@ import { useInstance } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { WorkspaceTagSelect } from 'src/workspaces/common/WorkspaceTagSelect';
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
-import {
-  cloudProviderLabels,
-  cloudProviderTypes,
-  workspaceAccessLevels,
-  WorkspaceWrapper as Workspace,
-} from 'src/workspaces/utils';
+import { workspaceAccessLevels, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 const styles = {
   filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' },
@@ -103,23 +98,6 @@ export const WorkspaceFilters = (props: WorkspaceFiltersProps): ReactNode => {
         options: _.flow(_.map('workspace.namespace'), _.uniq, _.sortBy(_.identity))(workspaces),
       }),
     ]),
-    div({ style: { ...styles.filter, marginRight: 0 } }, [
-      h(Select<string | undefined>, {
-        isClearable: true,
-        isMulti: false,
-        placeholder: 'Cloud platform',
-        'aria-label': 'Filter by cloud platform',
-        value: filters.cloudPlatform,
-        hideSelectedOptions: true,
-        onChange: (data) => {
-          const option = data?.value || undefined;
-          void Metrics().captureEvent(Events.workspaceListFilter, { filter: 'cloudPlatform', option });
-          Nav.updateSearch({ ...query, cloudPlatform: option });
-        },
-        options: _.sortBy((cloudProvider) => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
-        getOptionLabel: ({ value }) => (value ? cloudProviderLabels[value] : undefined),
-      }),
-    ]),
   ]);
 };
 
@@ -136,7 +114,6 @@ export const getWorkspaceFiltersFromQuery = (query: any): WorkspaceFilterValues 
   keywordFilter: query.filter || '',
   accessLevels: query.accessLevelsFilter || EMPTY_LIST,
   projects: query.projectsFilter || undefined,
-  cloudPlatform: query.cloudPlatform || undefined,
   tab: query.tab || 'myWorkspaces',
   tags: query.tagsFilter || EMPTY_LIST,
 });

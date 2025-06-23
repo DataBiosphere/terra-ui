@@ -45,12 +45,6 @@ describe('WorkspaceFilters', () => {
       eventData: { filter: 'billingProject', option: defaultGoogleWorkspace.workspace.namespace },
       filterParam: { projectsFilter: defaultGoogleWorkspace.workspace.namespace },
     },
-    {
-      label: 'Filter by cloud platform',
-      item: 'Microsoft Azure',
-      eventData: { filter: 'cloudPlatform', option: 'AZURE' },
-      filterParam: { cloudPlatform: 'AZURE' },
-    },
   ] as { label: string; item: string; eventData: object; filterParam: object }[])(
     'can update the filter for "$label" and emit an event',
     async ({ label, item, eventData, filterParam }) => {
