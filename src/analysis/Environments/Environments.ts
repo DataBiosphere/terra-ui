@@ -100,10 +100,10 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
   const { withErrorReporting } = useNotificationsFromContext();
   const signal = useCancellation();
 
-  type WorkspaceWrapperLookup = { [namespace: string]: { [name: string]: WorkspaceWrapper } };
+  type WorkspaceWrapperLookup = { [googleProject: string]: WorkspaceWrapper };
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
     useWorkspaces,
-    _.update('workspaces', _.flow(_.groupBy('workspace.namespace'), _.mapValues(_.keyBy('workspace.name'))))
+    _.update('workspaces', _.keyBy('workspace.googleProject'))
   )() as Mutate<UseWorkspacesResult, 'workspaces', WorkspaceWrapperLookup>;
   const getWorkspaces = useGetter(workspaces);
   const [workspacesLoaded, setWorkspacesLoaded] = useState(false);
@@ -178,14 +178,9 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       });
     }
 
-    const workspaceIdToWorkspace = _.flow(
-      _.values, // get array of namespaces
-      _.flatMap(_.values), // get array of names (WorkspaceWrapper)
-      _.keyBy((w) => w.workspace.workspaceId)
-    )(workspaces);
-
     const decorateWithWorkspace = (cloudObject) => {
-      const workspace = workspaceIdToWorkspace[cloudObject.workspaceId]?.workspace;
+      const googleProject = cloudObject.googleProject || cloudObject.cloudContext?.cloudResource;
+      const workspace = workspaces[googleProject]?.workspace;
       const unsupportedWorkspace =
         isGcpContext(cloudObject.cloudContext) &&
         (!workspace || cloudObject.cloudContext.cloudResource !== (workspace as GoogleWorkspaceInfo).googleProject);
