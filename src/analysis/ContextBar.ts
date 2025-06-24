@@ -213,12 +213,7 @@ export const ContextBar = ({
   // This excludes cromwellapp in the calculation.
   const getTotalToolAndDiskCostDisplay = () => {
     const galaxyApp = getCurrentApp(appTools.GALAXY.label, apps);
-    const galaxyDisk = getCurrentAppDataDisk(
-      appTools.GALAXY.label,
-      apps,
-      appDataDisks,
-      workspace.workspace.workspaceId
-    );
+    const galaxyDisk = getCurrentAppDataDisk(appTools.GALAXY.label, apps, appDataDisks, name);
     const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0;
     const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0;
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0;

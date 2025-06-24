@@ -187,7 +187,6 @@ const cromwellDisk: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 16,
-  workspaceId: '026594ac-d829-423d-a8df-55fe36f5b4e8',
   labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
   size: 500,
@@ -366,7 +365,6 @@ const jupyterLabRunning: Runtime = {
 
 const runtimeDisk: PersistentDisk = {
   id: 15778,
-  workspaceId: 'c4aea6ef-5618-47d3-b674-5d456c9dcf4f',
   cloudContext: {
     cloudProvider: 'GCP',
     cloudResource: 'terra-dev-cf677740',

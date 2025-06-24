@@ -53,6 +53,7 @@ import { DeleteRuntimeModal } from './DeleteRuntimeModal';
 import {
   AppWithWorkspace,
   DecoratedComputeResource,
+  DecoratedResourceAttributes,
   DiskWithWorkspace,
   LeoResourceDeletableProvider,
   RuntimeWithWorkspace,
@@ -178,8 +179,10 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       });
     }
 
-    const decorateWithWorkspace = (cloudObject) => {
-      const googleProject = cloudObject.googleProject || cloudObject.cloudContext?.cloudResource;
+    const decorateWithWorkspace = <T extends ListRuntimeItem | PersistentDisk | App>(
+      cloudObject: T
+    ): DecoratedResourceAttributes & T => {
+      const googleProject = cloudObject.cloudContext?.cloudResource;
       const workspace = workspaces[googleProject]?.workspace;
       const unsupportedWorkspace =
         isGcpContext(cloudObject.cloudContext) &&

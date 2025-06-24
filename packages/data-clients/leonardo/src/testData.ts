@@ -3,7 +3,6 @@ import { RawListDiskItem } from './disk-models';
 
 export const azureDisk: RawListDiskItem = {
   id: 16902,
-  workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
   cloudContext: {
     cloudProvider: 'AZURE',
     cloudResource: 'testCloudResource',
@@ -40,7 +39,6 @@ export const galaxyDisk: RawListDiskItem = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 10,
-  workspaceId: 'fafbb550-62eb-4135-8b82-3ce4d53446af',
   labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,

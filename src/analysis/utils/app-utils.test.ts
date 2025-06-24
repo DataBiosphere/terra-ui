@@ -37,8 +37,6 @@ jest.mock('src/libs/feature-previews', () => ({
   isFeaturePreviewEnabled: jest.fn(),
 }));
 
-const workspaceId = '9000df2c-4d3d-44e6-a459-5bf778acbeb1';
-
 const cromwellRunning: App = {
   workspaceId: null,
   accessScope: null,
@@ -114,7 +112,7 @@ const galaxy1Workspace1: App = {
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-87fe07f6b5e8', // galaxyDisk1Workspace1
   errors: [],
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {},
+  labels: { saturnWorkspaceName: 'test-workspace' },
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
@@ -140,7 +138,7 @@ const galaxy2Workspace1: App = {
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-98fe18f7b6e9', // galaxyDisk2Workspace1
   errors: [],
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {},
+  labels: { saturnWorkspaceName: 'test-workspace' },
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
@@ -166,7 +164,7 @@ const cromwell1Workspace1: App = {
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8', // cromwellDisk1Workspace1
   errors: [],
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {},
+  labels: { saturnWorkspaceName: 'test-workspace' },
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
@@ -194,8 +192,7 @@ const galaxyDiskUpdatedPd: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 10,
-  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
-  labels: { saturnApplication: 'galaxy' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
   status: 'Ready',
@@ -221,8 +218,7 @@ const galaxyDeletingDisk: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 10,
-  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
-  labels: { saturnApplication: 'GALAXY' },
+  labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
   size: 500,
   status: 'Deleting',
@@ -247,8 +243,7 @@ const galaxyDeletingDiskUpdatedPd: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 10,
-  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
-  labels: { saturnApplication: 'GALAXY' },
+  labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
   size: 500,
   status: 'Deleting',
@@ -273,8 +268,7 @@ const cromwellUnattachedDisk: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 12,
-  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
-  labels: { saturnApplication: 'CROMWELL' },
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-7fc0c398-63fe-4441-aea5-1e794c961310',
   size: 500,
   status: 'Ready',
@@ -299,8 +293,7 @@ const cromwellUnattachedDiskUpdatedPd: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 12,
-  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
-  labels: { saturnApplication: 'CROMWELL' },
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-7fc0c398-63fe-4441-aea5-1e794c961310',
   size: 500,
   status: 'Ready',
@@ -326,8 +319,7 @@ const cromwellProvisioningDisk: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 11,
-  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
-  labels: { saturnApplication: 'CROMWELL' },
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
   size: 500,
   status: 'Creating',
@@ -352,8 +344,7 @@ const cromwellProvisioningDiskUpdatedPd: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 11,
-  workspaceId: '9000df2c-4d3d-44e6-a459-5bf778acbeb1',
-  labels: { saturnApplication: 'CROMWELL' },
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
   size: 500,
   status: 'Creating',
@@ -375,7 +366,6 @@ const jupyterDisk: PersistentDisk = {
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   id: 29,
-  workspaceId: null,
   labels: {},
   name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',
   size: 50,
@@ -403,8 +393,7 @@ const galaxyDisk1Workspace1: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 13,
-  workspaceId: null,
-  labels: { saturnApplication: 'GALAXY' },
+  labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-87fe07f6b5e8',
   size: 500,
   status: 'Ready',
@@ -429,8 +418,7 @@ const galaxyDisk2Workspace1: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 14,
-  workspaceId: null,
-  labels: { saturnApplication: 'GALAXY' },
+  labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-98fe18f7b6e9',
   size: 500,
   status: 'Ready',
@@ -455,8 +443,7 @@ const galaxyDisk3Workspace2: PersistentDisk = {
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   id: 15,
-  workspaceId: '12345678-1234-1234-1234-123456789101',
-  labels: { saturnApplication: 'GALAXY' },
+  labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace-2' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-33fe36f5b4e4',
   size: 500,
   status: 'Ready',
@@ -481,8 +468,7 @@ const cromwellDisk1Workspace1: PersistentDisk = {
     cloudResource: 'terra-test-e4000484',
   },
   id: 16,
-  workspaceId: null,
-  labels: { saturnApplication: 'CROMWELL' },
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
   name: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
   size: 500,
   status: 'Ready',
@@ -563,27 +549,27 @@ describe('getDiskAppType', () => {
 describe('getCurrentAppDataDisk', () => {
   it('returns undefined if no disk exists for the given app type', () => {
     expect(
-      getCurrentAppDataDisk(appTools.GALAXY.label, [cromwellProvisioning], [cromwellProvisioningDisk], workspaceId)
+      getCurrentAppDataDisk(appTools.GALAXY.label, [cromwellProvisioning], [cromwellProvisioningDisk], 'test-workspace')
     ).toBeUndefined();
   });
   it('returns the newest attached disk, even if app is deleting', () => {
-    expect(getCurrentAppDataDisk(appTools.GALAXY.label, mockApps, mockAppDisks, workspaceId)).toStrictEqual(
+    expect(getCurrentAppDataDisk(appTools.GALAXY.label, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(
       galaxyDeletingDiskUpdatedPd
     );
-    expect(getCurrentAppDataDisk(appTools.CROMWELL.label, mockApps, mockAppDisks, workspaceId)).toStrictEqual(
+    expect(getCurrentAppDataDisk(appTools.CROMWELL.label, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(
       cromwellProvisioningDiskUpdatedPd
     );
   });
   it('returns the newest unattached disk that is not deleting if no app instance exists', () => {
-    expect(getCurrentAppDataDisk(appTools.GALAXY.label, [], mockAppDisks, workspaceId)).toStrictEqual(
+    expect(getCurrentAppDataDisk(appTools.GALAXY.label, [], mockAppDisks, 'test-workspace')).toStrictEqual(
       galaxyDiskUpdatedPd
     );
-    expect(getCurrentAppDataDisk(appTools.CROMWELL.label, [galaxyRunning], mockAppDisks, workspaceId)).toStrictEqual(
-      cromwellUnattachedDiskUpdatedPd
-    );
+    expect(
+      getCurrentAppDataDisk(appTools.CROMWELL.label, [galaxyRunning], mockAppDisks, 'test-workspace')
+    ).toStrictEqual(cromwellUnattachedDiskUpdatedPd);
   });
   it('returns a galaxy disk only if it is in the same workspace as the previous app it was attached to', () => {
-    expect(getCurrentAppDataDisk(appTools.GALAXY.label, [], mockAppDisks, workspaceId)).toStrictEqual(
+    expect(getCurrentAppDataDisk(appTools.GALAXY.label, [], mockAppDisks, 'test-workspace')).toStrictEqual(
       galaxyDiskUpdatedPd
     );
     expect(getCurrentAppDataDisk(appTools.GALAXY.label, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined();
