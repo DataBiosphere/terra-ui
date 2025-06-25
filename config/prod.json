@@ -9,7 +9,7 @@
   "duosUrlRoot": "https://duos.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "externalCreds": {
-    "providers": ["fence", "dcf-fence", "kids-first", "github", "sage"],
+    "providers": ["ras", "era-commons", "fence", "dcf-fence", "kids-first", "github", "sage"],
     "urlRoot": "https://externalcreds.dsde-prod.broadinstitute.org"
   },
   "isProd": true,
