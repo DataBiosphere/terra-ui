@@ -52,7 +52,7 @@ export const useCloudEnvironmentPolling = (
         leoDiskProvider.list(
           {
             ...cloudEnvFilters,
-            includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace',
+            includeLabels: 'saturnApplication,saturnWorkspaceName',
           },
           { signal: controller.current.signal }
         ),
