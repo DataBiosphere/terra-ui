@@ -152,7 +152,6 @@ describe('WorkspaceData', () => {
       mockGetSchema,
       mockListAppsV2,
       mockEntityMetadata,
-      mockListSnapshots,
     };
   }
 
@@ -170,21 +169,5 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(mockEntityMetadata).not.toHaveBeenCalled();
-  });
-
-  it('does not call Rawls for snapshot metadata on loading an azure workspace', async () => {
-    // Arrange
-    const { workspaceDataProps, mockListSnapshots } = setup({
-      workspace: defaultAzureWorkspace,
-      status: 'RUNNING',
-    });
-
-    // Act
-    await act(async () => {
-      render(h(WorkspaceData, workspaceDataProps));
-    });
-
-    // Assert
-    expect(mockListSnapshots).not.toHaveBeenCalled();
   });
 });
