@@ -6,6 +6,7 @@ import { ImportRequest } from './import-types';
 export const getRequiredCloudPlatform = (importRequest: ImportRequest): CloudProvider | undefined => {
   switch (importRequest.type) {
     case 'tdr-snapshot-export':
+      return importRequest.snapshot.cloudPlatform === 'gcp' ? 'GCP' : undefined;
     case 'pfb':
       // restrict PFB imports to GCP unless the user has the right feature flag enabled
       return 'GCP';
@@ -36,6 +37,13 @@ const pfbRequiresSecurityMonitoring = (pfbUrl: URL): boolean => {
 };
 
 /**
+ * Determine if a TDR snapshot requires security monitoring.
+ */
+const snapshotRequiresSecurityMonitoring = (snapshot: Snapshot): boolean => {
+  return snapshot.source.some((source) => source.dataset.secureMonitoringEnabled);
+};
+
+/**
  * Determine whether an import requires security monitoring.
  */
 export const requiresSecurityMonitoring = (importRequest: ImportRequest): boolean => {
@@ -43,6 +51,7 @@ export const requiresSecurityMonitoring = (importRequest: ImportRequest): boolea
     case 'pfb':
       return pfbRequiresSecurityMonitoring(importRequest.url);
     case 'tdr-snapshot-export':
+      return snapshotRequiresSecurityMonitoring(importRequest.snapshot);
     default:
       return false;
   }
@@ -66,6 +75,8 @@ export const sourceHasAccessControl = (importRequest: ImportRequest): boolean | 
       // Currently, only PFBs from AnVIL are expected to reference snapshots.
       return isAnvilImport(importRequest) ? undefined : false;
     case 'tdr-snapshot-export':
+      // The snapshot has access controls if it has an auth domain.
+      return importRequest.snapshotAccessControls.length !== 0;
     default:
       return false;
   }
@@ -84,7 +95,7 @@ export const sourceHasAccessControl = (importRequest: ImportRequest): boolean | 
  */
 export const importWillUpdateAccessControl = (
   importRequest: ImportRequest,
-  _workspace: WorkspaceWrapper
+  workspace: WorkspaceWrapper
 ): boolean | undefined => {
   switch (importRequest.type) {
     case 'pfb':
@@ -93,6 +104,10 @@ export const importWillUpdateAccessControl = (
       // Currently, only PFBs from AnVIL are expected to reference snapshots.
       return isAnvilImport(importRequest) ? undefined : false;
     case 'tdr-snapshot-export':
+      // TDR snapshot imports require an access control update if the snapshot requires an auth do main
+      // that the workspace does not already have.
+      const workspaceAuthDomainGroups = workspace.workspace.authorizationDomain.map((ad) => ad.membersGroupName);
+      return _.difference(importRequest.snapshotAccessControls, workspaceAuthDomainGroups).length !== 0;
     default:
       return false;
   }
