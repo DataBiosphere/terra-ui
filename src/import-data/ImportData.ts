@@ -28,7 +28,6 @@ import {
   ImportRequest,
   PFBImportRequest,
   TDRSnapshotExportImportRequest,
-  TDRSnapshotReferenceImportRequest,
   TemplateWorkspaceInfo,
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
@@ -47,12 +46,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   const [templateWorkspaces, setTemplateWorkspaces] = useState<{ [key: string]: TemplateWorkspaceInfo[] }>();
   const [userHasBillingProjects, setUserHasBillingProjects] = useState(true);
   const [isImporting, setIsImporting] = useState(false);
-
-  // Normalize the snapshot name:
-  // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
-  // Replace all whitespace characters with _
-  // Then replace all non alphanumeric characters with nothing
-  const normalizeSnapshotName = (input) => _.flow(_.replace(/\s/g, '_'), _.replace(/[^A-Za-z0-9-_]/g, ''))(input);
 
   useOnMount(() => {
     const loadTemplateWorkspaces = _.flow(
@@ -138,14 +131,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
     }
   };
 
-  const importSnapshot = async (importRequest: TDRSnapshotReferenceImportRequest, workspace: WorkspaceInfo) => {
-    const { namespace, name } = workspace;
-    await Workspaces()
-      .workspace(namespace, name)
-      .importSnapshot(importRequest.snapshot.id, normalizeSnapshotName(importRequest.snapshot.name));
-    notify('success', 'Snapshot imported successfully.', { timeout: 3000 });
-  };
-
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
@@ -162,9 +147,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         break;
       case 'tdr-snapshot-export':
         await importTdrExport(importRequest, workspace);
-        break;
-      case 'tdr-snapshot-reference':
-        await importSnapshot(importRequest, workspace);
         break;
       default:
         // Use TypeScript to verify that this switch handles all possible values.

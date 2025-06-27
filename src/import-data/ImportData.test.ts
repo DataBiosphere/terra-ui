@@ -127,14 +127,12 @@ const setup = async (opts: SetupOptions) => {
     jobId: 'new-job',
   }));
   const importJSON: MockedFn<WorkspaceContract['importJSON']> = jest.fn();
-  const importSnapshot: MockedFn<WorkspaceContract['importSnapshot']> = jest.fn();
 
   const getWorkspaceApi: WorkspacesAjaxContract['workspace'] = jest.fn((_namespace, _name) =>
     partial<WorkspaceContract>({
       importBagit,
       importJob,
       importJSON,
-      importSnapshot,
     })
   );
 

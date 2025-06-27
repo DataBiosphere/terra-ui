@@ -9,7 +9,6 @@ import {
   ImportRequest,
   PFBImportRequest,
   TDRSnapshotExportImportRequest,
-  TDRSnapshotReferenceImportRequest,
 } from './import-types';
 import { getImportRequest } from './useImportRequest';
 
@@ -110,19 +109,6 @@ describe('getImportRequest', () => {
         snapshotAccessControls: [],
         syncPermissions: true,
       } satisfies TDRSnapshotExportImportRequest,
-    },
-    // TDR snapshot by reference
-    {
-      queryParams: {
-        format: 'snapshot',
-        snapshotId: googleSnapshotFixture.id,
-        snapshotName: 'test-snapshot',
-      },
-      expectedResult: {
-        type: 'tdr-snapshot-reference',
-        snapshot: googleSnapshotFixture,
-        snapshotAccessControls: [],
-      } satisfies TDRSnapshotReferenceImportRequest,
     },
   ];
 

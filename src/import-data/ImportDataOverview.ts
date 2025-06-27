@@ -35,8 +35,6 @@ const getTitleForImportRequest = (importRequest: ImportRequest): string => {
   switch (importRequest.type) {
     case 'tdr-snapshot-export':
       return `Import snapshot ${importRequest.snapshot.name}`;
-    case 'tdr-snapshot-reference':
-      return 'Link data to a workspace';
     default:
       return 'Import data to a workspace';
   }
