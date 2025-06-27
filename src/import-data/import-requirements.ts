@@ -1,3 +1,5 @@
+import _ from 'lodash';
+import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { anvilSources, biodatacatalystSources, isAnvilImport, urlMatchesSource, UrlSource } from './import-sources';
@@ -104,7 +106,7 @@ export const importWillUpdateAccessControl = (
       // Currently, only PFBs from AnVIL are expected to reference snapshots.
       return isAnvilImport(importRequest) ? undefined : false;
     case 'tdr-snapshot-export':
-      // TDR snapshot imports require an access control update if the snapshot requires an auth do main
+      // TDR snapshot imports require an access control update if the snapshot requires an auth domain
       // that the workspace does not already have.
       const workspaceAuthDomainGroups = workspace.workspace.authorizationDomain.map((ad) => ad.membersGroupName);
       return _.difference(importRequest.snapshotAccessControls, workspaceAuthDomainGroups).length !== 0;
