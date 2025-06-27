@@ -193,7 +193,6 @@ const setup = async (opts: SetupOptions) => {
     importBagit,
     importJob,
     importJSON,
-    importSnapshot,
     startImportJob,
     wdsProxyUrl,
   };
@@ -325,30 +324,6 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(queryParams.tdrmanifest, 'tdrexport', { tdrSyncPermissions: true });
-      });
-    });
-
-    describe('snapshot references', () => {
-      it('imports a snapshot by reference', async () => {
-        // Arrange
-        const user = userEvent.setup();
-
-        const queryParams = {
-          format: 'snapshot',
-          snapshotId: googleSnapshotFixture.id,
-        };
-        const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
-
-        // Act
-        await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
-
-        // Assert
-        expect(getWorkspaceApi).toHaveBeenCalledWith(
-          defaultGoogleWorkspace.workspace.namespace,
-          defaultGoogleWorkspace.workspace.name
-        );
-
-        expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, googleSnapshotFixture.name);
       });
     });
   });

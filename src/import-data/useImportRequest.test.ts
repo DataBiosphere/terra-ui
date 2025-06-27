@@ -158,13 +158,6 @@ describe('getImportRequest', () => {
           url: 'https://data.terra.bio',
         },
       },
-      // Snapshot reference
-      {
-        queryParams: {
-          format: 'snapshot',
-          snapshotId: '00001111-2222-3333-xxxx-yyyyyyzzzzzz',
-        },
-      },
     ] as { queryParams: Record<string, any> }[])(
       'throws an error if unable to load the snapshot',
       async ({ queryParams }) => {
@@ -185,14 +178,6 @@ describe('getImportRequest', () => {
           tdrmanifest: 'https://example.com/path/to/manifest.json',
           tdrSyncPermissions: 'true',
           url: 'https://data.terra.bio',
-        },
-      },
-      // Snapshot by reference
-      {
-        queryParams: {
-          format: 'snapshot',
-          snapshotId: googleSnapshotFixture.id,
-          snapshotName: 'test-snapshot',
         },
       },
     ] as { queryParams: Record<string, any> }[])(

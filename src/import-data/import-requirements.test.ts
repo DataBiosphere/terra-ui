@@ -5,10 +5,8 @@ import {
   anvilPfbImportRequests,
   biodataCatalystPfbImportRequests,
   gcpTdrSnapshotImportRequest,
-  gcpTdrSnapshotReferenceImportRequest,
   genericPfbImportRequest,
   protectedGcpTdrSnapshotImportRequest,
-  protectedGcpTdrSnapshotReferenceImportRequest,
 } from './__fixtures__/import-request-fixtures';
 import {
   getRequiredCloudPlatform,
@@ -50,14 +48,12 @@ describe('security monitoring requirements', () => {
     ...biodataCatalystPfbImportRequests,
     // Protected TDR snapshots
     protectedGcpTdrSnapshotImportRequest,
-    protectedGcpTdrSnapshotReferenceImportRequest,
   ];
 
   const importsExpectedToNotRequireSecurityMonitoring: ImportRequest[] = [
     genericPfbImportRequest,
     { type: 'entities', url: new URL('https://example.com/file.json') },
     gcpTdrSnapshotImportRequest,
-    gcpTdrSnapshotReferenceImportRequest,
   ];
 
   describe('isProtectedSource', () => {
@@ -103,7 +99,7 @@ describe('access control requirements', () => {
       expect(hasAccessControl).toBe(undefined);
     });
 
-    it.each([genericPfbImportRequest, gcpTdrSnapshotImportRequest, gcpTdrSnapshotReferenceImportRequest])(
+    it.each([genericPfbImportRequest, gcpTdrSnapshotImportRequest])(
       'returns false for data without access controls',
       (importRequest: ImportRequest) => {
         // Act
@@ -162,7 +158,7 @@ describe('access control requirements', () => {
       expect(willUpdateAccessControl).toBe(undefined);
     });
 
-    it.each([genericPfbImportRequest, gcpTdrSnapshotImportRequest, gcpTdrSnapshotReferenceImportRequest])(
+    it.each([genericPfbImportRequest, gcpTdrSnapshotImportRequest])(
       'returns false for data without access controls',
       (importRequest: ImportRequest) => {
         // Act
