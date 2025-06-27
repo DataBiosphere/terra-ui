@@ -276,20 +276,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      listSnapshots: async (limit: number, offset: number) => {
-        const res = await fetchRawls(
-          `${root}/snapshots/v2?offset=${offset}&limit=${limit}`,
-          _.merge(authOpts(), { signal })
-        );
-        // The list snapshots endpoint returns a "snapshot" field that should really be named "snapshotId". Ideally, this should be fixed in the
-        // backend, but we've sequestered it here for now.
-        return _.update(
-          'gcpDataRepoSnapshots',
-          _.map(_.update('attributes', (a) => ({ ...a, snapshotId: a.snapshot }))),
-          await res.json()
-        );
-      },
-
       submission: (submissionId: string) => {
         const submissionPath = `${root}/submissions/${submissionId}`;
 
