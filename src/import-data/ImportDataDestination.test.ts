@@ -16,7 +16,6 @@ import {
   anvilPfbImportRequests,
   azureTdrSnapshotImportRequest,
   gcpTdrSnapshotImportRequest,
-  gcpTdrSnapshotReferenceImportRequest,
   genericPfbImportRequest,
 } from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
@@ -258,10 +257,6 @@ describe('ImportDataDestination', () => {
     {
       importRequest: gcpTdrSnapshotImportRequest,
       shouldShowNotice: true,
-    },
-    {
-      importRequest: gcpTdrSnapshotReferenceImportRequest,
-      shouldShowNotice: false,
     },
   ] as {
     importRequest: ImportRequest;

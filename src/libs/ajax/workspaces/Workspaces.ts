@@ -547,14 +547,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
         return res.json();
       },
 
-      importSnapshot: async (snapshotId: string, name: string, description?: string) => {
-        const res = await fetchRawls(
-          `${root}/snapshots/v2`,
-          _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: 'POST' }])
-        );
-        return res.json();
-      },
-
       importAttributes: (file: File) => {
         const formData = new FormData();
         formData.set('attributes', file);
