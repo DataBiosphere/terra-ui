@@ -84,7 +84,6 @@ describe('WorkspaceData', () => {
     mockGetSchema: MockedFn<WorkspaceDataAjaxContract['getSchema']>;
     mockListAppsV2: MockedFn<AppsAjaxContract['listAppsV2']>;
     mockEntityMetadata: MockedFn<WorkspaceContract['entityMetadata']>;
-    mockListSnapshots: MockedFn<WorkspaceContract['listSnapshots']>;
   };
 
   const populatedAzureStorageOptions = {
@@ -116,14 +115,12 @@ describe('WorkspaceData', () => {
     const mockListAppsV2: MockedFn<AppsAjaxContract['listAppsV2']> = jest.fn();
     const mockDetails: MockedFn<WorkspaceContract['details']> = jest.fn();
     const mockEntityMetadata: MockedFn<WorkspaceContract['entityMetadata']> = jest.fn();
-    const mockListSnapshots: MockedFn<WorkspaceContract['listSnapshots']> = jest.fn();
 
     asMockedFn(Workspaces).mockReturnValue(
       partial<WorkspacesAjaxContract>({
         workspace: (_namespace, _name) =>
           partial<WorkspaceContract>({
             details: mockDetails.mockResolvedValue(workspace),
-            listSnapshots: mockListSnapshots.mockRejectedValue({}),
             entityMetadata: mockEntityMetadata.mockRejectedValue([]),
           }),
       })
@@ -155,7 +152,6 @@ describe('WorkspaceData', () => {
       mockGetSchema,
       mockListAppsV2,
       mockEntityMetadata,
-      mockListSnapshots,
     };
   }
 
@@ -173,21 +169,5 @@ describe('WorkspaceData', () => {
 
     // Assert
     expect(mockEntityMetadata).not.toHaveBeenCalled();
-  });
-
-  it('does not call Rawls for snapshot metadata on loading an azure workspace', async () => {
-    // Arrange
-    const { workspaceDataProps, mockListSnapshots } = setup({
-      workspace: defaultAzureWorkspace,
-      status: 'RUNNING',
-    });
-
-    // Act
-    await act(async () => {
-      render(h(WorkspaceData, workspaceDataProps));
-    });
-
-    // Assert
-    expect(mockListSnapshots).not.toHaveBeenCalled();
   });
 });
