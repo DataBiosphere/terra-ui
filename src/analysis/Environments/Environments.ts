@@ -370,13 +370,13 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
       cloudContext: { cloudResource },
     } = app;
     // Here, we use the workspaceNamespace from the workspace if its defined, otherwise use cloudResource for older runtimes
-    const resolvedSaturnWorkspaceNamespace = workspaceNamespace || cloudResource;
+    const resolvedSaturnWorkspaceNamespace = workspaceNamespace ?? cloudResource;
     return getWorkspaceCell(resolvedSaturnWorkspaceNamespace, workspaceName, appType, false, app.unsupportedWorkspace);
   };
 
   const renderWorkspaceForRuntimes = (runtime: RuntimeWithWorkspace) => {
     const { status, googleProject } = runtime;
-    const workspaceNamespace = runtime.workspace?.namespace ? runtime.workspace.namespace : googleProject;
+    const workspaceNamespace = runtime.workspace?.namespace ?? googleProject;
     const workspaceName = runtime.workspace?.name;
     // TODO: Azure runtimes are not covered in this logic
     const shouldWarn =
@@ -637,7 +637,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
                   h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
                 cellRenderer: ({ rowIndex }) => {
                   const { cloudContext, workspace } = filteredDisks[rowIndex];
-                  return workspace?.namespace || cloudContext.cloudResource;
+                  return workspace?.namespace ?? cloudContext.cloudResource;
                 },
               },
               {
