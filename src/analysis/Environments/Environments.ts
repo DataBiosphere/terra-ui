@@ -281,7 +281,7 @@ export const Environments = (props: EnvironmentsProps): ReactNode => {
     [
       {
         project: 'googleProject',
-        workspace: 'workspace.namespace',
+        workspace: 'workspace.name',
         status: 'status',
         created: 'auditInfo.createdDate',
         accessed: 'auditInfo.dateAccessed',
