@@ -2,6 +2,7 @@ import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import React from 'react';
 import { AppConfigSettings, getConfig } from 'src/libs/config';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { TerraUserState, userStore } from 'src/libs/state';
 import { ExternalIdentities } from 'src/profile/external-identities/ExternalIdentities';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -71,10 +72,11 @@ describe('ExternalIdentities', () => {
     asMockedFn(getConfig).mockReturnValue(
       partial<AppConfigSettings>({
         externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
+          providers: ['ras', 'era-commons', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
         }),
       })
     );
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true); // Mock RAS_PROVIDER as enabled
 
     // Act
     render(<ExternalIdentities queryParams={{}} />);
@@ -82,8 +84,8 @@ describe('ExternalIdentities', () => {
     // Assert
     const providerElements = Array.from(screen.getByRole('main').querySelectorAll('div')).map((div) => div.textContent);
     expect(providerElements).toStrictEqual([
-      'Nih Account',
       'NIH Researcher Auth Service (RAS)',
+      'Nih Account',
       'NHLBI BioData Catalyst Framework Services',
       'NCI CRDC Framework Services',
       'Kids First DRC Framework Services',

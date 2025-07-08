@@ -234,6 +234,7 @@ export const getAzureDisk = ({ size = defaultGcePersistentDiskSize } = {}) => ({
   size,
 });
 
+// Leonardo includes labels in the runtime response by default
 export const defaultWorkspaceLabels = {
   saturnWorkspaceNamespace: defaultGoogleWorkspace.workspace.namespace,
   saturnWorkspaceName: defaultGoogleWorkspace.workspace.name,
@@ -671,10 +672,7 @@ export const generateTestAppWithGoogleWorkspace = (
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   errors: [],
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {
-    saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
-  },
+  labels: { saturnWorkspaceName: workspace.workspace.name },
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
@@ -709,10 +707,7 @@ export const generateTestAppWithAzureWorkspace = (
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   errors: [],
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: {
-    saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
-  },
+  labels: { saturnWorkspaceName: workspace.workspace.name },
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',
   },
@@ -750,40 +745,6 @@ export const generateTestDiskWithGoogleWorkspace = (
   labels: {
     saturnApplication: 'galaxy',
     saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
-  }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
-  name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
-  size: 500,
-  status: 'Ready',
-  zone: 'us-central1-a',
-  ...overrides,
-});
-
-export const generateTestDiskWithAzureWorkspace = (
-  overrides: Partial<PersistentDisk> = {},
-  workspace: AzureWorkspace = defaultAzureWorkspace
-): PersistentDisk => ({
-  auditInfo: {
-    creator: 'cahrens@gmail.com',
-    createdDate: '2021-11-29T20:19:13.162484Z',
-    destroyedDate: null,
-    dateAccessed: '2021-11-29T20:19:14.114Z',
-  },
-  blockSize: 4096,
-  diskType: {
-    value: 'pd-standard',
-    label: 'Standard',
-    regionToPricesName: 'monthlyStandardDiskPrice',
-  },
-  cloudContext: {
-    cloudProvider: cloudProviderTypes.AZURE,
-    cloudResource: `${workspace.azureContext.tenantId}/${workspace.azureContext.subscriptionId}/${workspace.azureContext.managedResourceGroupId}`,
-  },
-  id: getRandomInt(randomMaxInt),
-  labels: {
-    saturnApplication: 'galaxy',
-    saturnWorkspaceName: workspace.workspace.name,
-    saturnWorkspaceNamespace: workspace.workspace.namespace,
   }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
@@ -865,10 +826,7 @@ export const azureDisk: PersistentDisk = {
     regionToPricesName: 'monthlyStandardDiskPrice',
   }, // TODO: This should be stored in backend as Standard_LRS
   blockSize: 4096,
-  labels: {
-    saturnWorkspaceNamespace: defaultAzureWorkspace.workspace.namespace,
-    saturnWorkspaceName: defaultAzureWorkspace.workspace.name,
-  },
+  labels: { saturnWorkspaceName: defaultAzureWorkspace.workspace.name },
 };
 
 export const azureRuntime: ListRuntimeItem = {
