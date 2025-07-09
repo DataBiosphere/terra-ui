@@ -8,10 +8,11 @@ type SettingsProps = PropsWithChildren<{
   label: string;
   isOwner: boolean;
   description: ReactNode;
+  disabled?: boolean;
 }>;
 
 const Setting = (props: SettingsProps): ReactNode => {
-  const { settingEnabled, setSettingEnabled, label, isOwner, description, children } = props;
+  const { settingEnabled, setSettingEnabled, label, isOwner, description, children, disabled } = props;
 
   const switchId = useUniqueId('switch');
   const descriptionId = useUniqueId('description');
@@ -36,7 +37,7 @@ const Setting = (props: SettingsProps): ReactNode => {
           width={40}
           height={20}
           aria-describedby={descriptionId}
-          disabled={!isOwner}
+          disabled={!isOwner || disabled}
         />
       </div>
       <div id={descriptionId} style={{ marginTop: '.5rem', fontSize: '12px' }}>
