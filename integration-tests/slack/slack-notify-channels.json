@@ -51,9 +51,6 @@
       "id": "C07Q8H7F8LV",
       "tests": [
         {
-          "name": "import-cohort-data"
-        },
-        {
           "name": "preview-drs-uri"
         },
         {
