@@ -22,7 +22,8 @@ const ImprovedDataTables = (props: ImprovedDataTablesProps): ReactNode => {
       isOwner={isOwner}
       description={
         <>
-          Enabling the setting will improve your DataTable performance. <br />
+          Enabling this setting will improve data table performance. This may take a few minutes to enable depending on
+          the size of the data tables in this workspace. <br />
           <span style={{ fontWeight: 'bold' }}>Once enabled, the setting is read-only and cannot be disabled.</span>
         </>
       }
