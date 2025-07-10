@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
 import { Metrics } from 'src/libs/ajax/Metrics';
+import { NihDatasetPermission, User } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
@@ -12,6 +13,7 @@ import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { LinkOAuth2Account } from 'src/profile/external-identities/LinkOAuth2Account';
+import { NihResources } from 'src/profile/external-identities/NihResources';
 import { OAuth2Callback, OAuth2Provider } from 'src/profile/external-identities/OAuth2Providers';
 import { UnlinkOAuth2Account } from 'src/profile/external-identities/UnlinkOAuth2Account';
 import { SpacedSpinner } from 'src/profile/SpacedSpinner';
@@ -30,7 +32,7 @@ const styles = {
       border: `1px solid ${colors.dark(0.55)}`,
       borderRadius: 4,
     },
-    linkContentTop: (hasBottom) => ({
+    linkContentTop: (hasBottom: any) => ({
       display: 'grid',
       rowGap: '0.6rem',
       backgroundColor: colors.light(0.2),
@@ -75,6 +77,9 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
   const [isLinking, setIsLinking] = useState(
     callbacks.includes(Nav.getCurrentRoute().name) && state && JSON.parse(atob(state)).provider === provider.key
   );
+  const isRASProvider = provider.key === 'ras';
+  const [authorizedDatasets, setAuthorizedDatasets] = useState<NihDatasetPermission[]>([]);
+  const [unauthorizedDatasets, setUnauthorizedDatasets] = useState<NihDatasetPermission[]>([]);
 
   useOnMount(() => {
     const linkAccount = withErrorReporting(`Error linking ${provider.short} account`)(async (code, state) => {
@@ -84,10 +89,24 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
       setIsLinking(false);
     });
 
+    const getNihResources = withErrorReporting('Error fetching NIH resources')(async () => {
+      const nihStatus = await User().getNihResources();
+      const [authorized, unauthorized]: [NihDatasetPermission[], NihDatasetPermission[]] = _.flow(
+        _.sortBy<NihDatasetPermission>('name'),
+        _.partition<NihDatasetPermission>('authorized')
+      )(nihStatus?.datasetPermissions || []);
+      setAuthorizedDatasets(authorized);
+      setUnauthorizedDatasets(unauthorized);
+    });
+
     if (isLinking) {
       const profileLink = `/${Nav.getLink('profile', {}, { tab: 'externalIdentities' })}`;
       window.history.replaceState({}, '', profileLink);
       linkAccount(code, state);
+    }
+
+    if (isRASProvider && !isLinking) {
+      getNihResources();
     }
   });
 
@@ -127,6 +146,9 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
           </>
         )}
       </div>
+      {isRASProvider && (
+        <NihResources authorizedDatasets={authorizedDatasets} unauthorizedDatasets={unauthorizedDatasets} />
+      )}
     </div>
   );
 };
