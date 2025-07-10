@@ -292,6 +292,18 @@ export const User = (signal?: AbortSignal) => {
       return res.json();
     },
 
+    getNihResources: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
+      try {
+        const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
+        return res.json();
+      } catch (error: unknown) {
+        if (error instanceof Response && error.status === 404) {
+          return;
+        }
+        throw error;
+      }
+    },
+
     getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
       try {
         const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
