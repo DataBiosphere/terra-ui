@@ -597,19 +597,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
         const res = await fetchRawls(`${root}/fileTransfers`, _.merge(authOpts(), { signal }));
         return res.json();
       },
-
-      quicksilverMigration: async (cleanup = false) => {
-        const consent = 'I understand that this API will delete all my data tables.';
-        const res = await fetchRawls(
-          `${root}/quicksilverMigration?cleanup=${cleanup}`,
-          _.mergeAll([
-            authOpts(),
-            { body: consent, headers: { 'Content-Type': 'text/plain' } },
-            { signal, method: 'POST' },
-          ])
-        );
-        return res.json();
-      },
     };
   },
 });

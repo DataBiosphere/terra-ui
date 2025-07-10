@@ -209,9 +209,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
 
     if (isFeaturePreviewEnabled(IMPROVED_DATA_TABLES) && improvedDataTablesEnabled) {
       newSettings = modifyImprovedDataTablesSetting(newSettings, improvedDataTablesEnabled);
-      // Pass a cleanup flag (true/false) to the quicksilverMigration method to delete all unnecessary data after the migration
-      // Default is false, which means the migration will not delete any data.
-      await Workspaces().workspace(namespace, name).quicksilverMigration();
     }
     await Workspaces().workspaceV2(namespace, name).updateSettings(newSettings);
 

@@ -9,12 +9,7 @@ import {
   ImprovedDataTablesSetting,
   SeparateSubmissionFinalOutputsSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
-import {
-  WorkspaceContract,
-  Workspaces,
-  WorkspacesAjaxContract,
-  WorkspaceV2Contract,
-} from 'src/libs/ajax/workspaces/Workspaces';
+import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -60,7 +55,6 @@ jest.mock('src/libs/feature-previews', () => ({
 
 describe('SettingsModal', () => {
   const captureEvent = jest.fn();
-  const quicksilverMigration = jest.fn();
 
   const fourDaysAllObjects: BucketLifecycleSetting = {
     config: {
@@ -168,10 +162,6 @@ describe('SettingsModal', () => {
           partial<WorkspaceV2Contract>({
             getSettings: jest.fn().mockResolvedValue(currentSetting),
             updateSettings: updateSettingsMock,
-          }),
-        workspace: () =>
-          partial<WorkspaceContract>({
-            quicksilverMigration,
           }),
       })
     );
@@ -1027,7 +1017,6 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(quicksilverMigration).toHaveBeenCalled();
       expect(updateSettingsMock).toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsImprovedDataTables, {
         enabled: true,
@@ -1049,7 +1038,6 @@ describe('SettingsModal', () => {
       expect(toggle).toBeDisabled();
 
       // Assert
-      expect(quicksilverMigration).not.toHaveBeenCalled();
       expect(updateSettingsMock).not.toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
     });
