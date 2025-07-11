@@ -90,11 +90,11 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
     });
 
     const getNihResources = withErrorReporting('Error fetching NIH resources')(async () => {
-      const nihStatus = await User().getNihResources();
+      const nihResources = await User().getNihResources();
       const [authorized, unauthorized]: [NihDatasetPermission[], NihDatasetPermission[]] = _.flow(
         _.sortBy<NihDatasetPermission>('name'),
         _.partition<NihDatasetPermission>('authorized')
-      )(nihStatus?.datasetPermissions || []);
+      )(nihResources?.datasetPermissions || []);
       setAuthorizedDatasets(authorized);
       setUnauthorizedDatasets(unauthorized);
     });

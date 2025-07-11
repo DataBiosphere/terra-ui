@@ -294,7 +294,7 @@ export const User = (signal?: AbortSignal) => {
 
     getNihResources: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
       try {
-        const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
+        const res = await fetchOrchestration('api/nih/resources', _.merge(authOpts(), { signal }));
         return res.json();
       } catch (error: unknown) {
         if (error instanceof Response && error.status === 404) {
