@@ -12,7 +12,6 @@ import {
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { notify } from 'src/libs/notifications';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
@@ -29,7 +28,6 @@ import { isOwner as isWorkspaceOwner } from 'src/workspaces/utils';
 
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
-jest.mock('src/libs/notifications');
 
 type FeaturePreviewsExports = typeof import('src/libs/feature-previews');
 jest.mock('src/libs/feature-previews', (): FeaturePreviewsExports => {
@@ -158,10 +156,6 @@ describe('SettingsModal', () => {
     jest.resetAllMocks();
     jest.spyOn(console, 'log').mockImplementation(() => {});
     asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
-
-    // Mock the updateSettings returns a resolved promise
-    updateSettingsMock.mockResolvedValue(undefined);
-
     asMockedFn(Workspaces).mockReturnValue(
       partial<WorkspacesAjaxContract>({
         workspaceV2: () =>
@@ -193,16 +187,6 @@ describe('SettingsModal', () => {
     asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true); // Mock IMPROVED_DATA_TABLES as enabled
   };
 
-  const waitForPromiseResolution = async () => {
-    // Wait for the promise to resolve and the .then() callback to execute
-    await act(async () => {
-      // First wait for the promise itself
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      // Then wait for the .then() callback to execute
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-  };
-
   it('has no accessibility errors', async () => {
     // Arrange
     setup([twoRules], jest.fn());
@@ -214,7 +198,7 @@ describe('SettingsModal', () => {
     });
   });
 
-  it('calls notify on Save and does not event if there are no changes (no initial workspace settings)', async () => {
+  it('calls onDismiss on Save and does not event if there are no changes (no initial workspace settings)', async () => {
     // Arrange
     const user = userEvent.setup();
     const updateSettingsMock = jest.fn();
@@ -229,7 +213,7 @@ describe('SettingsModal', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     // Assert
-    expect(notify).toHaveBeenCalled();
+    expect(onDismiss).toHaveBeenCalled();
     // On save we do persist the default soft delete setting, so it is now explicit.
     expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
   });
@@ -426,7 +410,6 @@ describe('SettingsModal', () => {
       expect(getDays()).toHaveValue(null);
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
@@ -464,7 +447,6 @@ describe('SettingsModal', () => {
       expect(getDays()).toHaveValue(null);
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
@@ -512,7 +494,6 @@ describe('SettingsModal', () => {
       expect(daysInput).toHaveValue(7);
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
@@ -568,7 +549,6 @@ describe('SettingsModal', () => {
       expect(prefixInput.getSelectedOptions()).toEqual([suggestedPrefixes.allObjects]);
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
@@ -627,7 +607,6 @@ describe('SettingsModal', () => {
       expect(saveButton).toHaveAttribute('aria-disabled', 'false');
       expect(screen.queryByText('Please specify all lifecycle rule options')).toBeNull();
       await user.click(saveButton);
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
@@ -749,7 +728,6 @@ describe('SettingsModal', () => {
       expect(daysInput).toHaveValue(80);
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
@@ -780,7 +758,6 @@ describe('SettingsModal', () => {
       expect(getRetention()).toBeDisabled();
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
@@ -890,7 +867,6 @@ describe('SettingsModal', () => {
       expect(toggle).not.toBeChecked();
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysDisabledSetting, defaultSoftDeleteSetting]);
@@ -917,7 +893,6 @@ describe('SettingsModal', () => {
       expect(toggle).toBeChecked();
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
@@ -1040,7 +1015,6 @@ describe('SettingsModal', () => {
       expect(toggle).toBeChecked();
 
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitForPromiseResolution();
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
