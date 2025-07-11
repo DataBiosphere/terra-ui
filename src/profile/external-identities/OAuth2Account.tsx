@@ -1,4 +1,4 @@
-import { InfoBox } from '@terra-ui-packages/components';
+import { ExternalLink, InfoBox } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -6,6 +6,7 @@ import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { NihDatasetPermission, User } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
+import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
@@ -68,10 +69,14 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
 
   const { oAuth2AccountStatus: storedOAuth2AccountStatus } = useStore(authStore);
 
-  const { externalUserId, expirationTimestamp } = storedOAuth2AccountStatus[provider.key] ?? {
+  const { externalUserId, expirationTimestamp, additionalProperties } = storedOAuth2AccountStatus[provider.key] ?? {
     externalUserId: undefined,
     expirationTimestamp: undefined,
+    additionalProperties: undefined,
   };
+  const eraUserId = additionalProperties?.era_user_id ?? 'none';
+  const nihSettingsPage = `${getConfig().nihAuthRoot}/settings/profile/loadIdentities`;
+
   const signal = useCancellation();
   const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback', 'fence-callback']; // ecm-callback is deprecated, but still needs to be supported
   const [isLinking, setIsLinking] = useState(
@@ -129,6 +134,15 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
               <span style={styles.idLink.linkDetailLabel}>Username:</span>
               {externalUserId}
             </div>
+            {isRASProvider && (
+              <div>
+                <span style={styles.idLink.linkDetailLabel}>eRA Commons ID:</span>
+                {eraUserId}
+                <span style={{ marginLeft: '0.5rem' }}>
+                  <ExternalLink href={nihSettingsPage}>Manage your linked identities</ExternalLink>
+                </span>
+              </div>
+            )}
             <div>
               <span style={styles.idLink.linkDetailLabel}>Link Expiration:</span>
               <span>{Utils.makeCompleteDate(expirationTimestamp)}</span>
