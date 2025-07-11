@@ -24,5 +24,6 @@
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_prod",
   "terraDeploymentEnv": "prod",
-  "cwdsUrlRoot": "https://cwds.dsde-prod.broadinstitute.org"
+  "cwdsUrlRoot": "https://cwds.dsde-prod.broadinstitute.org",
+  "nihAuthRoot": "https://auth.nih.gov"
 }
