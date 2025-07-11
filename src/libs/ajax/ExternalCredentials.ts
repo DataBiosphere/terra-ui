@@ -8,6 +8,7 @@ export interface EcmLinkAccountResponse {
   externalUserId: string;
   expirationTimestamp: Date;
   authenticated: boolean;
+  additionalProperties?: Record<string, string>;
 }
 export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OAuth2Provider) => {
   const { key: providerKey, queryParams, supportsAccessToken, supportsIdToken } = oAuth2Provider;
@@ -23,6 +24,7 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
           externalUserId: json.externalUserId,
           expirationTimestamp: new Date(json.expirationTimestamp),
           authenticated: json.authenticated,
+          additionalProperties: json.additionalProperties,
         };
       } catch (error: unknown) {
         if (error instanceof Response && error.status === 404) {
@@ -55,6 +57,7 @@ export const ExternalCredentials = (signal?: AbortSignal) => (oAuth2Provider: OA
         externalUserId: json.externalUserId,
         expirationTimestamp: new Date(json.expirationTimestamp),
         authenticated: json.authenticated,
+        additionalProperties: json.additionalProperties,
       };
     },
     unlinkAccount: async (): Promise<void> => {
