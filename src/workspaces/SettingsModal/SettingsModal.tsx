@@ -10,6 +10,7 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { IMPROVED_DATA_TABLES } from 'src/libs/feature-previews-config';
+import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
@@ -210,82 +211,94 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     if (isFeaturePreviewEnabled(IMPROVED_DATA_TABLES) && improvedDataTablesEnabled) {
       newSettings = modifyImprovedDataTablesSetting(newSettings, improvedDataTablesEnabled);
     }
-    await Workspaces().workspaceV2(namespace, name).updateSettings(newSettings);
 
-    props.onDismiss();
-
-    // Event about bucket lifecycle setting only if something actually changed.
-    const originalLifecycleSetting = getFirstBucketLifecycleSetting(workspaceSettings || []);
-    const newLifecycleSetting = getFirstBucketLifecycleSetting(newSettings);
-    if (!_.isEqual(originalLifecycleSetting, newLifecycleSetting)) {
-      let prefixesChoice: string | null = null;
-      if (lifecycleRulesEnabled) {
-        if (_.without(_.values(suggestedPrefixes), prefixes).length > 0) {
-          prefixesChoice = 'Custom';
-        } else if (_.contains(suggestedPrefixes.allObjects, prefixes)) {
-          prefixesChoice = 'AllObjects';
-        } else {
-          const submissions = _.contains(suggestedPrefixes.submissions, prefixes);
-          const intermediaries = _.contains(suggestedPrefixes.submissionIntermediaries, prefixes);
-          if (submissions && intermediaries) {
-            prefixesChoice = 'AllSubmissionsAndSubmissionsIntermediaries';
-          } else if (submissions) {
-            prefixesChoice = 'AllSubmissions';
-          } else if (intermediaries) {
-            prefixesChoice = 'SubmissionsIntermediaries';
+    const handleEvents = () => {
+      // Event about bucket lifecycle setting only if something actually changed.
+      const originalLifecycleSetting = getFirstBucketLifecycleSetting(workspaceSettings || []);
+      const newLifecycleSetting = getFirstBucketLifecycleSetting(newSettings);
+      if (!_.isEqual(originalLifecycleSetting, newLifecycleSetting)) {
+        let prefixesChoice: string | null = null;
+        if (lifecycleRulesEnabled) {
+          if (_.without(_.values(suggestedPrefixes), prefixes).length > 0) {
+            prefixesChoice = 'Custom';
+          } else if (_.contains(suggestedPrefixes.allObjects, prefixes)) {
+            prefixesChoice = 'AllObjects';
+          } else {
+            const submissions = _.contains(suggestedPrefixes.submissions, prefixes);
+            const intermediaries = _.contains(suggestedPrefixes.submissionIntermediaries, prefixes);
+            if (submissions && intermediaries) {
+              prefixesChoice = 'AllSubmissionsAndSubmissionsIntermediaries';
+            } else if (submissions) {
+              prefixesChoice = 'AllSubmissions';
+            } else if (intermediaries) {
+              prefixesChoice = 'SubmissionsIntermediaries';
+            }
           }
         }
+        void Metrics().captureEvent(Events.workspaceSettingsBucketLifecycle, {
+          enabled: lifecycleRulesEnabled,
+          prefix: prefixesChoice,
+          age: lifecycleAge, // will be null if lifecycleRulesEnabled is false
+          ...extractWorkspaceDetails(props.workspace),
+        });
       }
-      void Metrics().captureEvent(Events.workspaceSettingsBucketLifecycle, {
-        enabled: lifecycleRulesEnabled,
-        prefix: prefixesChoice,
-        age: lifecycleAge, // will be null if lifecycleRulesEnabled is false
-        ...extractWorkspaceDetails(props.workspace),
-      });
-    }
 
-    // Event about soft delete setting only if something actually changed.
-    const originalSoftDeleteSetting = getFirstSoftDeleteSetting(workspaceSettings || []);
-    const newSoftDeleteSetting = getFirstSoftDeleteSetting(newSettings);
-    if (
-      originalSoftDeleteSetting === undefined &&
-      newSoftDeleteSetting?.config.retentionDurationInSeconds === softDeleteDefaultRetention
-    ) {
-      // If the bucket had no soft delete setting before, and the current one is the default retention, don't event.
-    } else if (!_.isEqual(originalSoftDeleteSetting, newSoftDeleteSetting)) {
-      // Event if the setting changed.
-      void Metrics().captureEvent(Events.workspaceSettingsSoftDelete, {
-        enabled: softDeleteEnabled,
-        retention: softDeleteRetention, // will be null if soft delete is disabled
-        ...extractWorkspaceDetails(props.workspace),
-      });
-    }
+      // Event about soft delete setting only if something actually changed.
+      const originalSoftDeleteSetting = getFirstSoftDeleteSetting(workspaceSettings || []);
+      const newSoftDeleteSetting = getFirstSoftDeleteSetting(newSettings);
+      if (
+        originalSoftDeleteSetting === undefined &&
+        newSoftDeleteSetting?.config.retentionDurationInSeconds === softDeleteDefaultRetention
+      ) {
+        // If the bucket had no soft delete setting before, and the current one is the default retention, don't event.
+      } else if (!_.isEqual(originalSoftDeleteSetting, newSoftDeleteSetting)) {
+        // Event if the setting changed.
+        void Metrics().captureEvent(Events.workspaceSettingsSoftDelete, {
+          enabled: softDeleteEnabled,
+          retention: softDeleteRetention, // will be null if soft delete is disabled
+          ...extractWorkspaceDetails(props.workspace),
+        });
+      }
 
-    // Event about requester pays setting only if something actually changed.
-    const originalRequesterPaysSetting = getRequesterPaysSetting(workspaceSettings || []);
-    const newRequesterPaysSetting = getRequesterPaysSetting(newSettings);
-    if (originalRequesterPaysSetting === undefined && !newRequesterPaysSetting?.config.enabled) {
-      // If the bucket had no requester pays setting before, and the current one is disabled, don't event.
-    } else if (!_.isEqual(originalRequesterPaysSetting, newRequesterPaysSetting)) {
-      // Event if the setting changed.
-      void Metrics().captureEvent(Events.workspaceSettingsRequesterPays, {
-        enabled: requesterPaysEnabled,
-        ...extractWorkspaceDetails(props.workspace),
-      });
-    }
+      // Event about requester pays setting only if something actually changed.
+      const originalRequesterPaysSetting = getRequesterPaysSetting(workspaceSettings || []);
+      const newRequesterPaysSetting = getRequesterPaysSetting(newSettings);
+      if (originalRequesterPaysSetting === undefined && !newRequesterPaysSetting?.config.enabled) {
+        // If the bucket had no requester pays setting before, and the current one is disabled, don't event.
+      } else if (!_.isEqual(originalRequesterPaysSetting, newRequesterPaysSetting)) {
+        // Event if the setting changed.
+        void Metrics().captureEvent(Events.workspaceSettingsRequesterPays, {
+          enabled: requesterPaysEnabled,
+          ...extractWorkspaceDetails(props.workspace),
+        });
+      }
 
-    // Event about improved data tables setting only if something actually changed.
-    const originalImprovedDataTablesSetting = getImproveDataTableSetting(workspaceSettings || []);
-    const newImprovedDataTablesSetting = getImproveDataTableSetting(newSettings);
-    if (originalImprovedDataTablesSetting === undefined && !newImprovedDataTablesSetting?.config.enabled) {
-      // If the workspace had no improved data tables setting before, and the current one is disabled, don't event.
-    } else if (!_.isEqual(originalImprovedDataTablesSetting, newImprovedDataTablesSetting)) {
-      // Event if the setting changed.
-      void Metrics().captureEvent(Events.workspaceSettingsImprovedDataTables, {
-        enabled: improvedDataTablesEnabled,
-        ...extractWorkspaceDetails(props.workspace),
+      // Event about improved data tables setting only if something actually changed.
+      const originalImprovedDataTablesSetting = getImproveDataTableSetting(workspaceSettings || []);
+      const newImprovedDataTablesSetting = getImproveDataTableSetting(newSettings);
+      if (originalImprovedDataTablesSetting === undefined && !newImprovedDataTablesSetting?.config.enabled) {
+        // If the workspace had no improved data tables setting before, and the current one is disabled, don't event.
+      } else if (!_.isEqual(originalImprovedDataTablesSetting, newImprovedDataTablesSetting)) {
+        // Event if the setting changed.
+        void Metrics().captureEvent(Events.workspaceSettingsImprovedDataTables, {
+          enabled: improvedDataTablesEnabled,
+          ...extractWorkspaceDetails(props.workspace),
+        });
+      }
+    };
+
+    notify('info', 'Saving workspace settings...');
+    Workspaces()
+      .workspaceV2(namespace, name)
+      .updateSettings(newSettings)
+      .then(() => {
+        notify('success', 'Workspace settings saved successfully');
+        props.onDismiss();
+        handleEvents();
+      })
+      .catch((error) => {
+        notify('error', `Failed to save workspace settings: ${error}`);
       });
-    }
   });
 
   const getSaveTooltip = () => {
