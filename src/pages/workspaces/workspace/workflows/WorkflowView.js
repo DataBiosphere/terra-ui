@@ -786,6 +786,8 @@ export const WorkflowView = _.flow(
         useCallCache,
         deleteIntermediateOutputFiles,
         useReferenceDisks,
+        // Memory Retry will return
+        // https://broadworkbench.atlassian.net/browse/AN-539
         // retryWithMoreMemory,
         // retryMemoryFactor,
         ignoreEmptyOutputs,
