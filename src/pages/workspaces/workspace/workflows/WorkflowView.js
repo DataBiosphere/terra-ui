@@ -786,7 +786,7 @@ export const WorkflowView = _.flow(
         useCallCache,
         deleteIntermediateOutputFiles,
         useReferenceDisks,
-        // Memory Retry will return
+        // Memory Retry may return
         // https://broadworkbench.atlassian.net/browse/AN-539
         // retryWithMoreMemory,
         // retryMemoryFactor,
@@ -1104,7 +1104,7 @@ export const WorkflowView = _.flow(
                       h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
                   ]),
-                  // Memory Retry will return
+                  // Memory Retry may return
                   // https://broadworkbench.atlassian.net/browse/AN-539
                   //
                   // div([
