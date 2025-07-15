@@ -160,7 +160,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
           </>
         )}
       </div>
-      {isRASProvider && (
+      {externalUserId && isRASProvider && (
         <NihResources authorizedDatasets={authorizedDatasets} unauthorizedDatasets={unauthorizedDatasets} />
       )}
     </div>
