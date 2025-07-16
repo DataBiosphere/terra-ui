@@ -215,4 +215,33 @@ describe('WorkspaceAttributes', () => {
     // Assert
     within(rows[1]).getByRole('button', { name: 'Key must be unique' });
   });
+
+  it('correctly allows editing when filtered', async () => {
+    // Arrange
+    setup({
+      attributes: [
+        ['attribute1', 'value1', 'description1'],
+        ['attribute2', 'value2', 'description2'],
+        ['attribute3', 'value3', 'description3'],
+      ],
+    });
+
+    // Act
+    const filterInput = screen.getByLabelText('Search');
+    fireEvent.change(filterInput, { target: { value: 'attribute3' } });
+
+    await act(() => delay(250)); // debounced input
+
+    const rows = screen.getAllByRole('row');
+    const editMenuButton = within(rows[1]).getByRole('button', { name: 'Edit variable' });
+    fireEvent.click(editMenuButton);
+
+    const input = within(rows[1]).getAllByRole('textbox')[1];
+    await userEvent.clear(input);
+    await userEvent.type(input, 'new value');
+
+    // Assert
+    const uniqueKeyError = within(rows[1]).queryByRole('button', { name: 'Key must be unique' });
+    expect(uniqueKeyError).not.toBeInTheDocument();
+  });
 });
