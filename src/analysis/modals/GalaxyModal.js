@@ -289,7 +289,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
               div([
                 div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Ongoing costs']),
                 div({ style: { lineHeight: 1.5 } }, [
-                  div(["Autopause is not supported. Delete the app once you've"]),
+                  div(['Autopause is not supported. Delete the app once you have']),
                   div(['completed your analysis to avoid unnecessary costs.']),
                   h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
                     'Pausing/Resuming a Galaxy instance.',
