@@ -530,13 +530,11 @@ export const WorkspaceData = _.flow(
     const forceRefresh = () => setRefreshKey(_.add(1));
     const [selectedData, setSelectedData] = useState(() => StateHistory.get().selectedData);
     const [entityMetadata, setEntityMetadata] = useState(() => StateHistory.get().entityMetadata);
-    const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails);
     const [importingReference, setImportingReference] = useState(false);
     const [deletingReference, setDeletingReference] = useState(undefined);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [uploadingWDSFile, setUploadingWDSFile] = useState(false);
     const [entityMetadataError, setEntityMetadataError] = useState();
-    const [snapshotMetadataError, setSnapshotMetadataError] = useState();
     const [sidebarWidth, setSidebarWidth] = useState(280);
     const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('');
     const [crossTableResultCounts, setCrossTableResultCounts] = useState({});
@@ -575,36 +573,8 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadSnapshotMetadata = async () => {
-      try {
-        setSnapshotMetadataError(false);
-        const { gcpDataRepoSnapshots: snapshotBody } = await Workspaces(signal).workspace(namespace, name).listSnapshots(1000, 0);
-
-        const snapshots = _.reduce(
-          (acc, { metadata: { name, ...metadata }, attributes }) => {
-            return _.set([name, 'resource'], _.merge(metadata, attributes), acc);
-          },
-          _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
-          _.filter((snapshot) => {
-            // Do not display snapshot references that are only created for linking policies.
-            const isForPolicy = snapshot.metadata.properties.some((p) => p.key === 'purpose' && p.value === 'policy');
-            return !isForPolicy;
-          }, snapshotBody)
-        );
-
-        setSnapshotDetails(snapshots);
-      } catch (error) {
-        reportError('Error loading workspace snapshot data', error);
-        setSnapshotMetadataError(true);
-        setSelectedData(undefined);
-        setSnapshotDetails({});
-      }
-    };
-
     const loadMetadata = () =>
-      isAzureWorkspace
-        ? Promise.all([refreshRunningImportJobs(), loadWdsData()])
-        : Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), refreshRunningImportJobs()]);
+      isAzureWorkspace ? Promise.all([refreshRunningImportJobs(), loadWdsData()]) : Promise.all([loadEntityMetadata(), refreshRunningImportJobs()]);
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
@@ -638,8 +608,8 @@ export const WorkspaceData = _.flow(
     });
 
     useEffect(() => {
-      StateHistory.update({ entityMetadata, selectedData, snapshotDetails });
-    }, [entityMetadata, selectedData, snapshotDetails]);
+      StateHistory.update({ entityMetadata, selectedData });
+    }, [entityMetadata, selectedData]);
 
     useImperativeHandle(ref, () => ({
       refresh: () => {
@@ -651,7 +621,6 @@ export const WorkspaceData = _.flow(
     // Render
     const referenceData = getReferenceData(attributes);
     const sortedEntityPairs = toSortedPairs(entityMetadata);
-    const sortedSnapshotPairs = toSortedPairs(snapshotDetails);
 
     const { value: canEditWorkspace, message: editWorkspaceErrorMessage } = WorkspaceUtils.canEditWorkspace(workspace);
 
@@ -664,7 +633,6 @@ export const WorkspaceData = _.flow(
     useEffect(() => {
       if (isAzureWorkspace) {
         // These aren't needed for Azure workspaces; just set them to empty objects
-        setSnapshotMetadataError(false);
         setEntityMetadata({});
 
         if (!wdsReady && !wdsError && !pollWdsInterval.current) {
@@ -906,26 +874,6 @@ export const WorkspaceData = _.flow(
                               }),
                             ]);
                           }, wdsTypes.state),
-                      ]
-                    ),
-                  (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) &&
-                    isGoogleWorkspace &&
-                    h(
-                      DataTypeSection,
-                      {
-                        title: 'Snapshots',
-                        error: snapshotMetadataError,
-                        retryFunction: loadSnapshotMetadata,
-                      },
-                      [
-                        div(
-                          // File Browser Banner
-                          { style: { padding: '1rem', margin: '0.75rem', backgroundColor: colors.dark(0.1), borderRadius: '0.5rem' } },
-                          [
-                            span({ style: { fontWeight: 'bold' } }, ['Looking for your snapshots?']),
-                            div(['Snapshots of this type are no longer supported in this workspace. Please contact support for assistance.']),
-                          ]
-                        ),
                       ]
                     ),
                   isGoogleWorkspace &&

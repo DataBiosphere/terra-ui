@@ -1,8 +1,5 @@
 import { LoadedState } from '@terra-ui-packages/core-utils';
-import _ from 'lodash';
 import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
-import { authOpts } from 'src/auth/auth-session';
-import { fetchWDS } from 'src/libs/ajax/ajax-common';
 import {
   RecordTypeSchema,
   resolveWdsApp,
@@ -12,7 +9,6 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { appStatuses, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { Capabilities } from 'src/libs/ajax/WorkspaceDataService';
-import { getConfig } from 'src/libs/config';
 import { reportError } from 'src/libs/error';
 import { useCancellation } from 'src/libs/react-utils';
 
@@ -42,10 +38,9 @@ export const useDataTableProvider = (
   // Defines what capabilities the data tables app currently has
   const [wdsCapabilities, setWdsCapabilities] = useState<LoadedState<Capabilities, string>>({ status: 'None' });
   // Identifies if the workspace is using CWDS instead of an in-workspace WDS app
-  const [useCwds, setUseCwds] = useState<LoadedState<boolean>>({ status: 'None' });
+  const [useCwds] = useState<LoadedState<boolean>>({ status: 'None' });
   // The URL to contact WDS - either the app or the central cWDS
   const [wdsUrl, setWdsUrl] = useState<LoadedState<string>>({ status: 'None' });
-  const cwdsURL = getConfig().cwdsUrlRoot;
 
   const signal = useCancellation();
   const wdsDataTableProvider = useMemo(() => {
@@ -132,31 +127,6 @@ export const useDataTableProvider = (
       loadWdsCapabilities();
     }
   }, [wdsUrl, loadWdsTypes, loadWdsCapabilities, useCwds, wdsApp, loadWdsApp]);
-
-  useEffect(() => {
-    const checkCWDS = async (): Promise<void> => {
-      try {
-        const response = await fetchWDS(cwdsURL)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
-        const data = await response.json();
-        if (response.status === 200 && Object.keys(data).length !== 0) {
-          setWdsUrl({ status: 'Ready', state: cwdsURL });
-          setUseCwds({ status: 'Ready', state: true });
-          setWdsApp({ status: 'Ready', state: null });
-        } else {
-          setWdsUrl({ status: 'Loading', state: null });
-          setUseCwds({ status: 'Ready', state: false });
-        }
-      } catch (error) {
-        console.error(error);
-        setWdsUrl({ status: 'Loading', state: null });
-        setUseCwds({ status: 'Ready', state: false });
-      }
-    };
-
-    if (useCwds.status !== 'Ready') {
-      checkCWDS();
-    }
-  }, [signal, workspaceId, useCwds, wdsTypes, cwdsURL]);
 
   return [wdsDataTableProvider, wdsApp, wdsTypes, setWdsTypes, loadWdsData];
 };
