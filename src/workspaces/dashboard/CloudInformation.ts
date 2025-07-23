@@ -250,14 +250,13 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               h(
                 InfoBox,
                 {
-                  key: 'bucketSizeInfoBox',
                   style: { marginLeft: '1ch' },
                   side: 'top',
                   label: 'Bucket Size Details',
                 },
                 [
                   Object.entries(bucketSizeByState).map(([key, value]) =>
-                    h(InfoRow, { title: key }, [span({ 'aria-label': `${key}: ${value}` }, [value])])
+                    h(InfoRow, { key, title: key }, [span({ 'aria-label': `${key}: ${value}` }, [value])])
                   ),
                   div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, [
                     'Data storage fees apply to objects during their retention period.',
