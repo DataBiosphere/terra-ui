@@ -234,6 +234,7 @@ export interface AttributeEntityReference {
 export interface StorageCostEstimate {
   estimate: number;
   usageInBytes: number;
+  usage: { [key: string]: number };
   lastUpdated?: string;
 }
 

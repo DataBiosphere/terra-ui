@@ -91,22 +91,39 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
   const signal = useCancellation();
 
   const [storageCost, setStorageCost] = useState<{ isSuccess: boolean; estimate: string; lastUpdated?: string }>();
-  const [bucketSize, setBucketSize] = useState<{ isSuccess: boolean; usageInBytes: string; lastUpdated?: string }>();
+  const [bucketSize, setBucketSize] = useState<{
+    isSuccess: boolean;
+    usageInBytes: string;
+    usage: { [key: string]: number };
+    lastUpdated?: string;
+  }>();
+  const [bucketSizeByState, setBucketSizeByState] = useState<{ [key: string]: string }>();
 
   useEffect(() => {
     const { namespace, name } = workspace.workspace;
 
     const loadStorageCost = withErrorReporting('Error loading storage cost data')(async () => {
       try {
-        const { estimate, usageInBytes, lastUpdated } = await Workspaces(signal)
+        const { estimate, usageInBytes, usage, lastUpdated } = await Workspaces(signal)
           .workspace(namespace, name)
           .storageCostEstimateV2();
         setStorageCost({ isSuccess: true, estimate: formatUSD(estimate), lastUpdated });
-        setBucketSize({ isSuccess: true, usageInBytes: formatBytes(usageInBytes), lastUpdated });
+        setBucketSize({ isSuccess: true, usageInBytes: formatBytes(usageInBytes), usage, lastUpdated });
+        // We will only display the sizes-by-state if the usage contains any state other than "live-object"
+        const showStates = Object.keys(usage).filter((key) => key !== 'live-object').length > 0;
+        // Format the sizes-by-state for display
+        const sizesByState = !showStates
+          ? undefined
+          : (Object.fromEntries(
+              Object.entries(usage).map(([key, value]) => {
+                return [key, formatBytes(value)];
+              })
+            ) as { [key: string]: string });
+        setBucketSizeByState(sizesByState);
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
           setStorageCost({ isSuccess: false, estimate: 'Not available' });
-          setBucketSize({ isSuccess: false, usageInBytes: 'Not available' });
+          setBucketSize({ isSuccess: false, usageInBytes: 'Not available', usage: {} });
         } else {
           throw error;
         }
@@ -211,7 +228,15 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               ]
             ),
           },
-          [bucketSize?.usageInBytes]
+          [
+            bucketSize?.usageInBytes,
+            bucketSizeByState !== undefined &&
+              h(
+                InfoBox,
+                { style: { marginLeft: '1ch' }, side: 'top' },
+                Object.entries(bucketSizeByState).map(([key, value]) => [`${key}: ${value}`, h(br)])
+              ),
+          ]
         ),
     ]),
     div({ style: { paddingBottom: '0.5rem' } }, [
