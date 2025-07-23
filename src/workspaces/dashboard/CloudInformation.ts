@@ -83,6 +83,22 @@ const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => 
   ]);
 };
 
+const storageStateDisplayName = (rawState: string): string => {
+  switch (rawState) {
+    case 'live-object':
+      return 'Live';
+    case 'soft-deleted-object':
+      return 'Soft Deleted';
+    // we do not expect to see noncurrent-object or multipart-upload in Terra
+    case 'noncurrent-object':
+      return 'Object Version';
+    case 'multipart-upload':
+      return 'Multipart Upload';
+    default:
+      return rawState;
+  }
+};
+
 const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode => {
   const { workspace, storageDetails } = props;
   const { accessLevel } = workspace;
@@ -116,7 +132,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           ? undefined
           : (Object.fromEntries(
               Object.entries(usage).map(([key, value]) => {
-                return [key, formatBytes(value)];
+                return [storageStateDisplayName(key), formatBytes(value)];
               })
             ) as { [key: string]: string });
         setBucketSizeByState(sizesByState);
@@ -231,11 +247,10 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           [
             bucketSize?.usageInBytes,
             bucketSizeByState !== undefined &&
-              h(
-                InfoBox,
-                { style: { marginLeft: '1ch' }, side: 'top' },
-                Object.entries(bucketSizeByState).map(([key, value]) => [`${key}: ${value}`, h(br)])
-              ),
+              h(InfoBox, { style: { marginLeft: '1ch' }, side: 'top' }, [
+                'Here is some intro text to explain storage states:',
+                Object.entries(bucketSizeByState).map(([key, value]) => h(InfoRow, { title: key }, [value])),
+              ]),
           ]
         ),
     ]),
