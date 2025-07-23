@@ -13,8 +13,8 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
-import { formatBytes, newTabLinkProps } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
+import { formatBytes, newTabLinkProps } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
@@ -91,7 +91,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
   const signal = useCancellation();
 
   const [storageCost, setStorageCost] = useState<{ isSuccess: boolean; estimate: string; lastUpdated?: string }>();
-  const [bucketSize, setBucketSize] = useState<{ isSuccess: boolean; usage: string; lastUpdated?: string }>();
+  const [bucketSize, setBucketSize] = useState<{ isSuccess: boolean; usageInBytes: string; lastUpdated?: string }>();
 
   useEffect(() => {
     const { namespace, name } = workspace.workspace;
@@ -102,11 +102,11 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           .workspace(namespace, name)
           .storageCostEstimateV2();
         setStorageCost({ isSuccess: true, estimate: formatUSD(estimate), lastUpdated });
-        setBucketSize({ isSuccess: true, usage: formatBytes(usageInBytes), lastUpdated });
+        setBucketSize({ isSuccess: true, usageInBytes: formatBytes(usageInBytes), lastUpdated });
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
           setStorageCost({ isSuccess: false, estimate: 'Not available' });
-          setBucketSize({ isSuccess: false, usage: 'Not available' });
+          setBucketSize({ isSuccess: false, usageInBytes: 'Not available' });
         } else {
           throw error;
         }
@@ -211,7 +211,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               ]
             ),
           },
-          [bucketSize?.usage]
+          [bucketSize?.usageInBytes]
         ),
     ]),
     div({ style: { paddingBottom: '0.5rem' } }, [
