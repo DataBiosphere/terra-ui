@@ -87,6 +87,7 @@ describe('CloudInformation', () => {
     const mockStorageCostEstimateV2 = jest.fn().mockResolvedValue({
       estimate: 1000000,
       usageInBytes: 100,
+      usage: {},
       lastUpdated: '2023-12-01',
     });
     asMockedFn(Workspaces).mockReturnValue(
@@ -178,6 +179,7 @@ describe('CloudInformation', () => {
     const mockStorageCostEstimateV2 = jest.fn().mockResolvedValue({
       estimate: 2.0,
       usageInBytes: 15,
+      usage: {},
       lastUpdated: '2024-07-15',
     });
     asMockedFn(Workspaces).mockReturnValue(
@@ -210,7 +212,7 @@ describe('CloudInformation', () => {
     // Arrange
     const mockStorageCostEstimateV2 = jest
       .fn()
-      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, lastUpdated: '2024-07-26' });
+      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, usage: {}, lastUpdated: '2024-07-26' });
     asMockedFn(Workspaces).mockReturnValue(
       partial<WorkspacesAjaxContract>({
         workspace: () => partial<WorkspaceContract>({ storageCostEstimateV2: mockStorageCostEstimateV2 }),
