@@ -37,7 +37,8 @@ export type WorkspaceSetting =
   | SoftDeleteSetting
   | RequesterPaysSetting
   | BatchSetting
-  | SeparateSubmissionFinalOutputsSetting;
+  | SeparateSubmissionFinalOutputsSetting
+  | ImprovedDataTablesSetting;
 
 export interface BucketLifecycleSetting {
   settingType: 'GcpBucketLifecycle';
@@ -51,6 +52,11 @@ export interface SoftDeleteSetting {
 
 export interface RequesterPaysSetting {
   settingType: 'GcpBucketRequesterPays';
+  config: { enabled: boolean };
+}
+
+export interface ImprovedDataTablesSetting {
+  settingType: 'CompactDataTables';
   config: { enabled: boolean };
 }
 
