@@ -3,13 +3,17 @@ import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamResources } from 'src/libs/ajax/SamResources';
+import { ImprovedDataTablesSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { IMPROVED_DATA_TABLES } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
+import ImprovedDataTables from 'src/workspaces/SettingsModal/ImprovedDataTables';
 import RequesterPays from 'src/workspaces/SettingsModal/RequesterPays';
 import SoftDelete from 'src/workspaces/SettingsModal/SoftDelete';
 import {
@@ -17,10 +21,12 @@ import {
   DeleteBucketLifecycleRule,
   isBucketLifecycleSetting,
   isDeleteBucketLifecycleRule,
+  isImprovedDataTablesSetting,
   isRequesterPaysSetting,
   isSoftDeleteSetting,
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
+  modifyImprovedDataTablesSetting,
   modifyRequesterPaysSetting,
   removeFirstBucketDeletionRule,
   RequesterPaysSetting,
@@ -52,6 +58,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [softDeleteRetention, setSoftDeleteRetention] = useState<number | null>(null);
 
   const [requesterPaysEnabled, setRequesterPaysEnabled] = useState(false);
+
+  const [originalImprovedDataTablesSetting, setOriginalImprovedDataTablesSetting] = useState(false);
+  const [improvedDataTablesEnabled, setImprovedDataTablesEnabled] = useState(false);
 
   // Original settings from server, may contain multiple types
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSetting[] | undefined>(undefined);
@@ -131,6 +140,12 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     return settings.find((setting: WorkspaceSetting) => isRequesterPaysSetting(setting)) as RequesterPaysSetting;
   };
 
+  const getImproveDataTableSetting = (settings: WorkspaceSetting[]): ImprovedDataTablesSetting | undefined => {
+    return settings.find((setting: WorkspaceSetting) =>
+      isImprovedDataTablesSetting(setting)
+    ) as ImprovedDataTablesSetting;
+  };
+
   useEffect(() => {
     const loadSettings = _.flow(
       Utils.withBusyState(setBusy),
@@ -167,6 +182,11 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       const requesterPays = getRequesterPaysSetting(settings);
       const requesterPaysEnabled = requesterPays === undefined ? false : requesterPays.config.enabled;
       setRequesterPaysEnabled(requesterPaysEnabled);
+
+      const improvedDataTables = getImproveDataTableSetting(settings);
+      const improvedDataTablesEnabled = improvedDataTables ? improvedDataTables.config.enabled : false;
+      setOriginalImprovedDataTablesSetting(improvedDataTablesEnabled);
+      setImprovedDataTablesEnabled(improvedDataTablesEnabled);
     });
 
     loadSettings();
@@ -187,7 +207,11 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     newSettings = modifyFirstSoftDeleteSetting(newSettings, softDeleteInDays);
     newSettings = modifyRequesterPaysSetting(newSettings, requesterPaysEnabled);
 
+    if (isFeaturePreviewEnabled(IMPROVED_DATA_TABLES) && improvedDataTablesEnabled) {
+      newSettings = modifyImprovedDataTablesSetting(newSettings, improvedDataTablesEnabled);
+    }
     await Workspaces().workspaceV2(namespace, name).updateSettings(newSettings);
+
     props.onDismiss();
 
     // Event about bucket lifecycle setting only if something actually changed.
@@ -249,6 +273,19 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         ...extractWorkspaceDetails(props.workspace),
       });
     }
+
+    // Event about improved data tables setting only if something actually changed.
+    const originalImprovedDataTablesSetting = getImproveDataTableSetting(workspaceSettings || []);
+    const newImprovedDataTablesSetting = getImproveDataTableSetting(newSettings);
+    if (originalImprovedDataTablesSetting === undefined && !newImprovedDataTablesSetting?.config.enabled) {
+      // If the workspace had no improved data tables setting before, and the current one is disabled, don't event.
+    } else if (!_.isEqual(originalImprovedDataTablesSetting, newImprovedDataTablesSetting)) {
+      // Event if the setting changed.
+      void Metrics().captureEvent(Events.workspaceSettingsImprovedDataTables, {
+        enabled: improvedDataTablesEnabled,
+        ...extractWorkspaceDetails(props.workspace),
+      });
+    }
   });
 
   const getSaveTooltip = () => {
@@ -294,12 +331,21 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           isOwner={isOwner}
         />
       </div>
-      <RequesterPays
-        requesterPaysEnabled={requesterPaysEnabled}
-        setRequesterPaysEnabled={setRequesterPaysEnabled}
-        isOwner={isOwner}
-      />
-
+      <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
+        <RequesterPays
+          requesterPaysEnabled={requesterPaysEnabled}
+          setRequesterPaysEnabled={setRequesterPaysEnabled}
+          isOwner={isOwner}
+        />
+      </div>
+      {isFeaturePreviewEnabled(IMPROVED_DATA_TABLES) && (
+        <ImprovedDataTables
+          originalImprovedDataTablesEnabled={originalImprovedDataTablesSetting}
+          improvedDataTablesEnabled={improvedDataTablesEnabled}
+          setImprovedDataTablesEnabled={setImprovedDataTablesEnabled}
+          isOwner={isOwner}
+        />
+      )}
       {busy && <SpinnerOverlay />}
     </Modal>
   );
