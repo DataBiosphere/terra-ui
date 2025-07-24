@@ -268,6 +268,36 @@ describe('CloudInformation', () => {
     expect(screen.queryByText(/10 B Soft Deleted/i)).toBeInTheDocument();
   });
 
+  it('hides soft-deleted bucket size when no soft-deleted objects exist', async () => {
+    // Arrange
+    const usageByState = {
+      'live-object': 50,
+    };
+    const mockStorageCostEstimateV2 = jest
+      .fn()
+      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, usage: usageByState, lastUpdated: '2024-07-26' });
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () => partial<WorkspaceContract>({ storageCostEstimateV2: mockStorageCostEstimateV2 }),
+      })
+    );
+
+    // Act
+    await act(() =>
+      render(
+        h(CloudInformation, {
+          workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true, accessLevel: 'READER' },
+          storageDetails,
+        })
+      )
+    );
+
+    // Assert
+    expect(mockStorageCostEstimateV2).toHaveBeenCalled();
+    expect(screen.queryByText(/50 B Live/i)).toBeInTheDocument();
+    expect(screen.queryByText(/.*Soft Deleted/i)).not.toBeInTheDocument();
+  });
+
   it('emits an event when the Open project in Google Cloud Console link is clicked', async () => {
     // Arrange
     const user = userEvent.setup();
