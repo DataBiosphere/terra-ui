@@ -3,6 +3,7 @@ import { axe } from 'jest-axe';
 import React from 'react';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import Events from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
@@ -289,7 +290,7 @@ describe('WorkspaceTabs', () => {
     await waitFor(() => {
       expect(setShowSettingsModal).toHaveBeenCalledWith(true);
       expect(captureEvent).toHaveBeenCalledWith(
-        expect.any(String),
+        Events.workspaceSettingsMenuTab,
         expect.objectContaining({
           workspaceNamespace: props.namespace,
           workspaceName: props.name,
