@@ -3,6 +3,8 @@ import { Dispatch, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { analysisTabName } from 'src/analysis/runtime-common-text';
 import { TabBar } from 'src/components/tabBars';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import { WorkspaceAttributeNotice } from 'src/workspaces/container/WorkspaceAttributeNotice';
@@ -65,7 +67,27 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
       activeTab,
       refresh,
       tabNames: _.map('name', tabs),
-      getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
+      getHref: (currentTab: string) => {
+        const tab = _.find({ name: currentTab }, tabs);
+        // If the tab is 'settings', we return the current URL to ensure getOnClick is triggered
+        if (tab?.name === 'settings') return window.location.href;
+        return Nav.getLink(tab?.link ?? '', { namespace, name });
+      },
+      getOnClick: (currentTab: string) => {
+        // Only 'settings' tab triggers the modal
+        if (currentTab === 'settings') {
+          // Capture the event for metrics
+          void Metrics().captureEvent(Events.workspaceSettingsMenuTab, {
+            ...extractWorkspaceDetails({
+              namespace,
+              name,
+            }),
+          });
+          // Trigger the modal to show settings
+          return onShowSettings;
+        }
+        return undefined;
+      },
     },
     [
       workspace &&
@@ -109,6 +131,7 @@ const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
       ...commonTabs,
       { name: 'workflows', link: 'workspace-workflows' },
       { name: 'submission history', link: 'workspace-submission-history' },
+      { name: 'settings', link: '#' },
     ];
   }
   if (!!workspace && isAzureWorkspace(workspace)) {
