@@ -87,7 +87,9 @@ describe('CloudInformation', () => {
     const mockStorageCostEstimateV2 = jest.fn().mockResolvedValue({
       estimate: 1000000,
       usageInBytes: 100,
-      usage: {},
+      usage: {
+        'live-object': 100,
+      },
       lastUpdated: '2023-12-01',
     });
     asMockedFn(Workspaces).mockReturnValue(
@@ -113,7 +115,7 @@ describe('CloudInformation', () => {
     expect(screen.getAllByText('Updated on 12/1/2023')).not.toBeNull();
     expect(screen.getByText('$1,000,000.00')).not.toBeNull();
     // Bucket usage
-    expect(screen.getByText('100 B')).not.toBeNull();
+    expect(screen.getByText('100 B Live')).not.toBeNull();
 
     expect(mockStorageCostEstimateV2).toHaveBeenCalled();
   });
@@ -212,7 +214,7 @@ describe('CloudInformation', () => {
     // Arrange
     const mockStorageCostEstimateV2 = jest
       .fn()
-      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, usage: {}, lastUpdated: '2024-07-26' });
+      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, usage: { 'live-object': 50 }, lastUpdated: '2024-07-26' });
     asMockedFn(Workspaces).mockReturnValue(
       partial<WorkspacesAjaxContract>({
         workspace: () => partial<WorkspaceContract>({ storageCostEstimateV2: mockStorageCostEstimateV2 }),
@@ -231,72 +233,12 @@ describe('CloudInformation', () => {
 
     // Assert
     expect(screen.getByText('Updated on 7/26/2024')).not.toBeNull();
-    expect(screen.getByText('50 B')).not.toBeNull();
+    expect(screen.getByText('50 B Live')).not.toBeNull();
     expect(mockStorageCostEstimateV2).toHaveBeenCalled();
-  });
-
-  it('displays an info button when the bucket has soft-deleted objects', async () => {
-    // Arrange
-    const usageByState = {
-      'live-object': 40,
-      'soft-deleted-object': 10,
-    };
-    const mockStorageCostEstimateV2 = jest
-      .fn()
-      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, usage: usageByState, lastUpdated: '2024-07-26' });
-    asMockedFn(Workspaces).mockReturnValue(
-      partial<WorkspacesAjaxContract>({
-        workspace: () => partial<WorkspaceContract>({ storageCostEstimateV2: mockStorageCostEstimateV2 }),
-      })
-    );
-
-    // Act
-    await act(() =>
-      render(
-        h(CloudInformation, {
-          workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true, accessLevel: 'READER' },
-          storageDetails,
-        })
-      )
-    );
-
-    // Assert
-    expect(mockStorageCostEstimateV2).toHaveBeenCalled();
-    expect(screen.queryByLabelText(/Bucket Size Details/i)).toBeInTheDocument();
-  });
-
-  it('does not display an info button when the bucket does not have soft-deleted objects', async () => {
-    // Arrange
-    const usageByState = {
-      'live-object': 50,
-    };
-    const mockStorageCostEstimateV2 = jest
-      .fn()
-      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, usage: usageByState, lastUpdated: '2024-07-26' });
-    asMockedFn(Workspaces).mockReturnValue(
-      partial<WorkspacesAjaxContract>({
-        workspace: () => partial<WorkspaceContract>({ storageCostEstimateV2: mockStorageCostEstimateV2 }),
-      })
-    );
-
-    // Act
-    await act(() =>
-      render(
-        h(CloudInformation, {
-          workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true, accessLevel: 'READER' },
-          storageDetails,
-        })
-      )
-    );
-
-    // Assert
-    expect(mockStorageCostEstimateV2).toHaveBeenCalled();
-    expect(screen.queryByLabelText(/Bucket Size Details/i)).not.toBeInTheDocument();
   });
 
   it('renders the bucket size by storage state', async () => {
     // Arrange
-    const user = userEvent.setup();
     const usageByState = {
       'live-object': 40,
       'soft-deleted-object': 10,
@@ -322,17 +264,8 @@ describe('CloudInformation', () => {
 
     // Assert
     expect(mockStorageCostEstimateV2).toHaveBeenCalled();
-    expect(screen.queryByLabelText(/Bucket Size Details/i)).toBeInTheDocument();
-
-    expect(screen.queryByText(/Live/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/40 B/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Soft Deleted/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/10 B/i)).not.toBeInTheDocument();
-
-    await user.click(screen.getByLabelText('Bucket Size Details'));
-
-    expect(screen.queryByLabelText(/Live: 40 B/i)).toBeInTheDocument();
-    expect(screen.queryByLabelText(/Soft Deleted: 10 B/i)).toBeInTheDocument();
+    expect(screen.queryByText(/40 B Live/i)).toBeInTheDocument();
+    expect(screen.queryByText(/10 B Soft Deleted/i)).toBeInTheDocument();
   });
 
   it('emits an event when the Open project in Google Cloud Console link is clicked', async () => {
