@@ -13,8 +13,8 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
-import { formatBytes, newTabLinkProps } from 'src/libs/utils';
 import * as Utils from 'src/libs/utils';
+import { formatBytes, newTabLinkProps } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
@@ -83,6 +83,22 @@ const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => 
   ]);
 };
 
+const storageStateDisplayName = (rawState: string): string => {
+  switch (rawState) {
+    case 'live-object':
+      return 'Live';
+    case 'soft-deleted-object':
+      return 'Soft Deleted';
+    // we do not expect to see noncurrent-object or multipart-upload in Terra
+    case 'noncurrent-object':
+      return 'Object Version';
+    case 'multipart-upload':
+      return 'Multipart Upload';
+    default:
+      return rawState;
+  }
+};
+
 const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode => {
   const { workspace, storageDetails } = props;
   const { accessLevel } = workspace;
@@ -91,22 +107,34 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
   const signal = useCancellation();
 
   const [storageCost, setStorageCost] = useState<{ isSuccess: boolean; estimate: string; lastUpdated?: string }>();
-  const [bucketSize, setBucketSize] = useState<{ isSuccess: boolean; usage: string; lastUpdated?: string }>();
+  const [bucketSize, setBucketSize] = useState<{
+    isSuccess: boolean;
+    usageByState: { [key: string]: string };
+    lastUpdated?: string;
+  }>();
 
   useEffect(() => {
     const { namespace, name } = workspace.workspace;
 
     const loadStorageCost = withErrorReporting('Error loading storage cost data')(async () => {
       try {
-        const { estimate, usageInBytes, lastUpdated } = await Workspaces(signal)
+        const { estimate, usage, lastUpdated } = await Workspaces(signal)
           .workspace(namespace, name)
           .storageCostEstimateV2();
+
+        // Format the sizes-by-state for display
+        const sizesByState = Object.fromEntries(
+          Object.entries(usage).map(([key, value]) => {
+            return [storageStateDisplayName(key), formatBytes(value)];
+          })
+        ) as { [key: string]: string };
+
         setStorageCost({ isSuccess: true, estimate: formatUSD(estimate), lastUpdated });
-        setBucketSize({ isSuccess: true, usage: formatBytes(usageInBytes), lastUpdated });
+        setBucketSize({ isSuccess: true, usageByState: sizesByState, lastUpdated });
       } catch (error) {
         if (error instanceof Response && error.status === 404) {
           setStorageCost({ isSuccess: false, estimate: 'Not available' });
-          setBucketSize({ isSuccess: false, usage: 'Not available' });
+          setBucketSize({ isSuccess: false, usageByState: { 'Not available': '' } });
         } else {
           throw error;
         }
@@ -211,7 +239,9 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
               ]
             ),
           },
-          [bucketSize?.usage]
+          !bucketSize?.usageByState
+            ? []
+            : Object.entries(bucketSize.usageByState).map(([key, value]) => [`${value} ${key}`, br({ key })])
         ),
     ]),
     div({ style: { paddingBottom: '0.5rem' } }, [
