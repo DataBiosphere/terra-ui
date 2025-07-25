@@ -3,6 +3,8 @@ import { Dispatch, ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { analysisTabName } from 'src/analysis/runtime-common-text';
 import { TabBar } from 'src/components/tabBars';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { WorkspaceMenu } from 'src/workspaces/common/WorkspaceMenu';
 import { WorkspaceAttributeNotice } from 'src/workspaces/container/WorkspaceAttributeNotice';
@@ -31,6 +33,10 @@ export interface WorkspaceTabsProps {
   setShowSettingsModal: Dispatch<boolean>;
 }
 
+type TabClickHandlers = {
+  onShowSettings?: () => void;
+};
+
 export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const {
     workspace,
@@ -56,7 +62,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const onLeave = () => setLeavingWorkspace(true);
   const onShowSettings = () => setShowSettingsModal(true);
 
-  const tabs = getTabs(workspace);
+  const tabs = getTabs(workspace, { onShowSettings });
 
   return h(
     TabBar,
@@ -65,7 +71,11 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
       activeTab,
       refresh,
       tabNames: _.map('name', tabs),
-      getHref: (currentTab) => Nav.getLink(_.find({ name: currentTab }, tabs)?.link ?? '', { namespace, name }),
+      getHref: (currentTab: string) => {
+        const link = _.find({ name: currentTab }, tabs)?.link;
+        return link ? Nav.getLink(link, { namespace, name }) : window.location.href;
+      },
+      getOnClick: (currentTab: string) => _.find({ name: currentTab }, tabs)?.onClick ?? undefined,
     },
     [
       workspace &&
@@ -94,7 +104,10 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   );
 };
 
-const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
+const getTabs = (
+  workspace?: Workspace,
+  clickHandlers: TabClickHandlers = {}
+): { name: string; link?: string; onClick?: () => void }[] => {
   if (workspace?.workspace?.state === 'Deleting' || workspace?.workspace?.state === 'DeleteFailed') {
     return [{ name: 'dashboard', link: 'workspace-dashboard' }];
   }
@@ -109,6 +122,17 @@ const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
       ...commonTabs,
       { name: 'workflows', link: 'workspace-workflows' },
       { name: 'submission history', link: 'workspace-submission-history' },
+      {
+        name: 'settings',
+        onClick: () => {
+          const { namespace, name } = workspace?.workspace || {};
+          const { onShowSettings } = clickHandlers;
+          void Metrics().captureEvent(Events.workspaceSettingsMenuTab, {
+            ...extractWorkspaceDetails({ namespace, name }),
+          });
+          onShowSettings?.();
+        },
+      },
     ];
   }
   if (!!workspace && isAzureWorkspace(workspace)) {
