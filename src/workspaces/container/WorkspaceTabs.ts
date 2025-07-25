@@ -33,6 +33,10 @@ export interface WorkspaceTabsProps {
   setShowSettingsModal: Dispatch<boolean>;
 }
 
+type TabClickHandlers = {
+  onShowSettings?: () => void;
+};
+
 export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const {
     workspace,
@@ -58,7 +62,7 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   const onLeave = () => setLeavingWorkspace(true);
   const onShowSettings = () => setShowSettingsModal(true);
 
-  const tabs = getTabs(workspace);
+  const tabs = getTabs(workspace, { onShowSettings });
 
   return h(
     TabBar,
@@ -68,26 +72,10 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
       refresh,
       tabNames: _.map('name', tabs),
       getHref: (currentTab: string) => {
-        const tab = _.find({ name: currentTab }, tabs);
-        // If the tab is 'settings', we return the current URL to ensure getOnClick is triggered
-        if (tab?.name === 'settings') return window.location.href;
-        return Nav.getLink(tab?.link ?? '', { namespace, name });
+        const link = _.find({ name: currentTab }, tabs)?.link;
+        return link ? Nav.getLink(link, { namespace, name }) : window.location.href;
       },
-      getOnClick: (currentTab: string) => {
-        // Only 'settings' tab triggers the modal
-        if (currentTab === 'settings') {
-          // Capture the event for metrics
-          void Metrics().captureEvent(Events.workspaceSettingsMenuTab, {
-            ...extractWorkspaceDetails({
-              namespace,
-              name,
-            }),
-          });
-          // Trigger the modal to show settings
-          return onShowSettings;
-        }
-        return undefined;
-      },
+      getOnClick: (currentTab: string) => _.find({ name: currentTab }, tabs)?.onClick ?? undefined,
     },
     [
       workspace &&
@@ -116,7 +104,10 @@ export const WorkspaceTabs = (props: WorkspaceTabsProps): ReactNode => {
   );
 };
 
-const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
+const getTabs = (
+  workspace?: Workspace,
+  clickHandlers: TabClickHandlers = {}
+): { name: string; link?: string; onClick?: () => void }[] => {
   if (workspace?.workspace?.state === 'Deleting' || workspace?.workspace?.state === 'DeleteFailed') {
     return [{ name: 'dashboard', link: 'workspace-dashboard' }];
   }
@@ -131,7 +122,17 @@ const getTabs = (workspace?: Workspace): { name: string; link: string }[] => {
       ...commonTabs,
       { name: 'workflows', link: 'workspace-workflows' },
       { name: 'submission history', link: 'workspace-submission-history' },
-      { name: 'settings', link: '#' },
+      {
+        name: 'settings',
+        onClick: () => {
+          const { namespace, name } = workspace?.workspace || {};
+          const { onShowSettings } = clickHandlers;
+          void Metrics().captureEvent(Events.workspaceSettingsMenuTab, {
+            ...extractWorkspaceDetails({ namespace, name }),
+          });
+          onShowSettings?.();
+        },
+      },
     ];
   }
   if (!!workspace && isAzureWorkspace(workspace)) {
