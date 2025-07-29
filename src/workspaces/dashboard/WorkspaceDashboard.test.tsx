@@ -34,6 +34,7 @@ describe('WorkspaceDashboard', () => {
     expect(screen.getByText('About the workspace')).toBeInTheDocument();
     expect(screen.getByText('Workspace information')).toBeInTheDocument();
     expect(screen.getByText('Cloud information')).toBeInTheDocument();
+    expect(screen.getByText('Storage details')).toBeInTheDocument();
     expect(screen.getByText('Owners')).toBeInTheDocument();
     expect(screen.getByText('Notifications')).toBeInTheDocument();
     expect(screen.getByText('Tags')).toBeInTheDocument();
