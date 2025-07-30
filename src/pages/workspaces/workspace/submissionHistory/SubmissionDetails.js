@@ -467,6 +467,9 @@ const SubmissionDetails = _.flow(
    */
   const hasWorkflowCostEstimates = _.some((w) => !('costType' in w) || w.costType === 'Estimated', workflows);
 
+  // Style for text wrapping
+  const wrapStyle = { whiteSpace: 'normal', overflowWrap: 'break-word' };
+
   /*
    * Page render
    */
@@ -552,7 +555,7 @@ const SubmissionDetails = _.flow(
               makeSection('Total Run Cost', [
                 typeof cost === 'number' ? `${Utils.formatUSD(cost)} ${hasWorkflowCostEstimates ? 'Estimated' : 'Actual'} cost` : 'N/A',
               ]),
-              makeSection('Data Entity', [div([entityName]), div([entityType])]),
+              makeSection('Data Entity', [div({ style: wrapStyle }, [entityName]), div({ style: wrapStyle }, [entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
                 h(ClipboardButton, {

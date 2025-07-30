@@ -1,7 +1,9 @@
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { axe } from 'jest-axe';
+import React from 'react';
 import { ReactNode } from 'react';
 import { h } from 'react-hyperscript-helpers';
+import Events from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { WorkspaceTabs } from 'src/workspaces/container/WorkspaceTabs';
@@ -23,7 +25,7 @@ const mockWorkspaceMenu = jest.fn();
 jest.mock(
   'src/workspaces/common/WorkspaceMenu',
   () =>
-    function (props) {
+    function (props: any) {
       mockWorkspaceMenu(props);
       return null;
     }
@@ -109,12 +111,13 @@ describe('WorkspaceTabs', () => {
     const { container } = render(h(WorkspaceTabs, props));
     // Assert
     const tabs = screen.getAllByRole('menuitem');
-    expect(tabs.length).toBe(5);
+    expect(tabs.length).toBe(6);
     expect(within(tabs[0]).getByText('dashboard')).not.toBeNull();
     expect(within(tabs[1]).getByText('data')).not.toBeNull();
     expect(within(tabs[2]).getByText('analyses')).not.toBeNull();
     expect(within(tabs[3]).getByText('workflows')).not.toBeNull();
     expect(within(tabs[4]).getByText('submission history')).not.toBeNull();
+    expect(within(tabs[5]).getByText('settings')).not.toBeNull();
     expect(await axe(container)).toHaveNoViolations();
   });
 
@@ -236,5 +239,65 @@ describe('WorkspaceTabs', () => {
     const tabs = screen.getAllByRole('menuitem');
     expect(tabs.length).toBe(1);
     expect(within(tabs[0]).getByText('dashboard')).not.toBeNull();
+  });
+
+  it('calls setShowSettingsModal and emits Metrics event when settings tab is clicked', async () => {
+    jest.resetModules();
+
+    // Arrange: Mock Metrics and TabBar
+    const captureEvent = jest.fn();
+    jest.doMock('src/libs/ajax/Metrics', () => ({
+      Metrics: () => ({ captureEvent }),
+      __esModule: true,
+      default: () => ({ captureEvent }),
+    }));
+
+    jest.doMock('src/components/tabBars', () => ({
+      TabBar: ({ tabNames, getOnClick }) => (
+        <div>
+          {tabNames.map((name: string) => (
+            <button key={name} role='menuitem' type='button' onClick={getOnClick(name) || (() => {})}>
+              {name}
+            </button>
+          ))}
+        </div>
+      ),
+    }));
+
+    // Act: Import component and render, then simulate click
+    const { WorkspaceTabs } = await import('src/workspaces/container/WorkspaceTabs');
+    const setShowSettingsModal = jest.fn();
+
+    const props = {
+      name: defaultGoogleWorkspace.workspace.name,
+      namespace: defaultGoogleWorkspace.workspace.namespace,
+      workspace: defaultGoogleWorkspace,
+      setDeletingWorkspace: () => {},
+      setCloningWorkspace: () => {},
+      setSharingWorkspace: () => {},
+      setShowLockWorkspaceModal: () => {},
+      setLeavingWorkspace: () => {},
+      refresh: () => {},
+      setShowSettingsModal,
+    };
+
+    render(h(WorkspaceTabs, props));
+
+    const settingsTab = screen.getAllByRole('menuitem').find((tab) => within(tab).queryByText(/settings/i));
+    fireEvent.click(settingsTab!);
+
+    // Assert: Modal and metrics event are triggered
+    await waitFor(() => {
+      expect(setShowSettingsModal).toHaveBeenCalledWith(true);
+      expect(captureEvent).toHaveBeenCalledWith(
+        Events.workspaceSettingsMenuTab,
+        expect.objectContaining({
+          workspaceNamespace: props.namespace,
+          workspaceName: props.name,
+        })
+      );
+    });
+
+    jest.resetModules();
   });
 });

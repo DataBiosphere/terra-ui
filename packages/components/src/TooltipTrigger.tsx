@@ -19,6 +19,8 @@ const styles = {
     boxShadow: '0 1px 3px 2px rgba(0,0,0,0.3)',
     lineHeight: 1.5,
     pointerEvents: 'none',
+    whiteSpace: 'pre-line',
+    wordBreak: 'break-word',
   },
   notch: {
     position: 'absolute',
