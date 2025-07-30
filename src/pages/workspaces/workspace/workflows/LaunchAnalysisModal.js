@@ -47,9 +47,8 @@ const LaunchAnalysisModal = ({
   const [bucketLocation, setBucketLocation] = useState({});
   const [userComment, setUserComment] = useState(undefined);
   const [userCommentError, setUserCommentError] = useState(undefined);
-  // Currently, default backend is LifeSciences if there is no 'UseCromwellGcpBatchBackend' setting found for a workspace.
-  // As part of https://broadworkbench.atlassian.net/browse/AN-510 it will be switched to Batch.
-  const [workflowBackend, setWorkflowBackend] = useState('LifeSciences');
+  // Default backend is Batch if there is no 'UseCromwellGcpBatchBackend' setting found for a workspace.
+  const [workflowBackend, setWorkflowBackend] = useState('Batch');
   const signal = useCancellation();
 
   useOnMount(() => {
@@ -58,15 +57,13 @@ const LaunchAnalysisModal = ({
       setBucketLocation({ location, locationType });
     });
 
-    // This should be removed once GCP Batch migration is GA and LifeSciences has been deprecated.
+    // This should be removed once LifeSciences support has been completely removed.
     // See https://broadworkbench.atlassian.net/browse/AN-507
     const workflowBackend = async () => {
       const settings = await Workspaces(signal).workspaceV2(namespace, workspaceName).getSettings();
       const batchSetting = settings.find((setting) => isBatchSetting(setting));
-      // This logic will be modified in https://broadworkbench.atlassian.net/browse/AN-510 to reflect
-      // absence of 'UseCromwellGcpBatchBackend' workspace setting as running on Batch
-      if (batchSetting?.config.enabled) {
-        setWorkflowBackend('Batch');
+      if (batchSetting?.config.enabled === false) {
+        setWorkflowBackend('LifeSciences');
       }
     };
 
@@ -227,6 +224,22 @@ const LaunchAnalysisModal = ({
             }),
           ]),
       ]),
+      // Remove this as part of https://broadworkbench.atlassian.net/browse/AN-507
+      workflowBackend === 'LifeSciences' &&
+        div(
+          {
+            style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' },
+          },
+          [
+            div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+              icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+              'LifeSciences API Shutdown Warning',
+            ]),
+            div({ style: { fontWeight: 'normal', marginTop: '0.5rem' } }, [
+              'This workspace is launching workflows with the LifeSciences API, which will be shut down on July 8th, 2025. To switch to its successor Batch API, please contact Terra Support team.',
+            ]),
+          ]
+        ),
       warnDuplicateAnalyses &&
         div(
           {

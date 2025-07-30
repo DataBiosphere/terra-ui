@@ -7,8 +7,14 @@ describe('CreatingWorkspaceMessage', () => {
     // Act
     render(<CreatingWorkspaceMessage />);
     // Assert
-    waitFor(() => expect(screen.getByText('Creating and provisioning your workspace')).not.toBeNull(), {
-      timeout: 1000,
-    });
+    waitFor(
+      () => {
+        expect(screen.getByText('Creating and provisioning your workspace.')).not.toBeNull();
+        expect(
+          screen.getByText('Remember to configure your workspace settings to optimize cloud storage costs.')
+        ).not.toBeNull();
+      },
+      { timeout: 1000 }
+    );
   });
 });

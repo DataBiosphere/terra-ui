@@ -4,6 +4,7 @@ import React, { CSSProperties, PropsWithChildren, ReactNode, useRef, useState } 
 import { UnmountClosed as RCollapse } from 'react-collapse';
 import { Transition } from 'react-transition-group';
 import { AlertsIndicator } from 'src/alerts/Alerts';
+import { BlockerAlerts } from 'src/alerts/BlockerAlerts';
 import { RequiredUpdateAlert } from 'src/alerts/RequiredUpdateAlert';
 import { signIn } from 'src/auth/auth';
 import { signOut } from 'src/auth/signout/sign-out';
@@ -474,6 +475,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
         </div>
       </div>
       <RequiredUpdateAlert />
+      <BlockerAlerts />
       <SkipNavTarget ref={mainRef} />
     </div>
   );

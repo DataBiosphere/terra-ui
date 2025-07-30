@@ -13,7 +13,7 @@ import {
 import { CategorizedWorkspaces } from 'src/workspaces/list/CategorizedWorkspaces';
 import { getWorkspaceFiltersFromQuery } from 'src/workspaces/list/WorkspaceFilters';
 import { filterWorkspaces, WorkspacesListTabs } from 'src/workspaces/list/WorkspacesListTabs';
-import { AzureWorkspace, cloudProviderTypes } from 'src/workspaces/utils';
+import { AzureWorkspace } from 'src/workspaces/utils';
 
 // the FlexTable uses react-virtualized's AutoSizer to size the table.
 // This makes the virtualized window large enough for all rows/columns to be rendered in tests.
@@ -164,22 +164,6 @@ describe('The filterWorkspaces method', () => {
     // Assert
     expect(defaultGoogleWorkspace.workspace.namespace).toEqual(defaultInitializedGoogleWorkspace.workspace.namespace);
     expect(filteredWorkspaces.myWorkspaces).toEqual([defaultGoogleWorkspace, defaultInitializedGoogleWorkspace]);
-  });
-
-  it('should filter based on cloudPlatform', () => {
-    // Arrange
-    const workspaces: CategorizedWorkspaces = {
-      myWorkspaces: [defaultAzureWorkspace, defaultGoogleWorkspace],
-      public: [],
-      featured: [],
-    };
-    const filters = getWorkspaceFiltersFromQuery({ cloudPlatform: cloudProviderTypes.GCP });
-
-    // Act
-    const filteredWorkspaces = filterWorkspaces(workspaces, filters);
-
-    // Assert
-    expect(filteredWorkspaces.myWorkspaces).toEqual([defaultGoogleWorkspace]);
   });
 
   it('should filter based on access level', () => {

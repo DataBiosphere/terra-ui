@@ -3,7 +3,6 @@ import { act, screen } from '@testing-library/react';
 import React from 'react';
 import { AppConfigSettings, getConfig } from 'src/libs/config';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { SAGE_ACCOUNT_LINKING } from 'src/libs/feature-previews-config';
 import { TerraUserState, userStore } from 'src/libs/state';
 import { ExternalIdentities } from 'src/profile/external-identities/ExternalIdentities';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -67,77 +66,17 @@ describe('ExternalIdentities', () => {
       expect(screen.queryByText('GitHub')).toBeNull();
     });
   });
-  describe('when the user has the Sage Account Linking feature preview enabled', () => {
-    it('shows the Sage Account Linking card', async () => {
-      // Arrange
-      asMockedFn(getConfig).mockReturnValue(
-        partial<AppConfigSettings>({
-          externalCreds: { providers: ['sage'], urlRoot: 'https/foo.bar.com' },
-        })
-      );
-      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === SAGE_ACCOUNT_LINKING);
-      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
 
-      // Act
-      render(<ExternalIdentities queryParams={{}} />);
-
-      // Assert
-      screen.getByText('Sage Bionetworks');
-    });
-  });
-  describe('when the user has the Sage Account Linking feature preview disabled', () => {
-    it('hides the Sage Account Linking card', async () => {
-      // Arrange
-      asMockedFn(getConfig).mockReturnValue(
-        partial<AppConfigSettings>({
-          externalCreds: { providers: ['sage'], urlRoot: 'https/foo.bar.com' },
-        })
-      );
-      asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === SAGE_ACCOUNT_LINKING);
-      asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-      // Act
-      render(<ExternalIdentities queryParams={{}} />);
-
-      // Assert
-      expect(screen.queryByText('Sage')).toBeNull();
-    });
-  });
-
-  it('sorts providers based on desiredOrder without RAS', async () => {
+  it('sorts providers based on desiredOrder', async () => {
     // Arrange
     asMockedFn(getConfig).mockReturnValue(
       partial<AppConfigSettings>({
         externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['era-commons', 'fence', 'dcf-fence', 'kids-first', 'anvil'],
+          providers: ['ras', 'era-commons', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
         }),
       })
     );
-
-    // Act
-    render(<ExternalIdentities queryParams={{}} />);
-
-    // Assert
-    const providerElements = Array.from(screen.getByRole('main').querySelectorAll('div')).map((div) => div.textContent);
-    expect(providerElements).toStrictEqual([
-      'Nih Account',
-      'eRA Commons',
-      'NHLBI BioData Catalyst Framework Services',
-      'NCI CRDC Framework Services',
-      'Kids First DRC Framework Services',
-      'NHGRI AnVIL Data Commons Framework Services',
-    ]);
-  });
-
-  it('sorts providers based on desiredOrder with RAS', async () => {
-    // Arrange
-    asMockedFn(getConfig).mockReturnValue(
-      partial<AppConfigSettings>({
-        externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'anvil'],
-        }),
-      })
-    );
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true); // Mock RAS_PROVIDER as enabled
 
     // Act
     render(<ExternalIdentities queryParams={{}} />);
@@ -146,10 +85,12 @@ describe('ExternalIdentities', () => {
     const providerElements = Array.from(screen.getByRole('main').querySelectorAll('div')).map((div) => div.textContent);
     expect(providerElements).toStrictEqual([
       'NIH Researcher Auth Service (RAS)',
+      'Nih Account',
       'NHLBI BioData Catalyst Framework Services',
       'NCI CRDC Framework Services',
       'Kids First DRC Framework Services',
       'NHGRI AnVIL Data Commons Framework Services',
+      'Sage Bionetworks',
     ]);
   });
 });

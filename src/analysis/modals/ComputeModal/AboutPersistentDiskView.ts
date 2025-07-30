@@ -18,7 +18,7 @@ export const AboutPersistentDiskView = (props: PersistentDiskAboutProps): ReactN
   return div({ style: computeStyles.drawerContent }, [
     h(TitleBar, {
       id: titleId,
-      title: 'About persistent disk',
+      title: 'Persistent disks',
       style: computeStyles.titleBar,
       titleChildren: [],
       hideCloseButton: true,
@@ -44,6 +44,23 @@ export const AboutPersistentDiskView = (props: PersistentDiskAboutProps): ReactN
       h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
         'Learn more about persistent disks',
         h(Icon, { icon: 'pop-out', size: 12, style: { marginLeft: '0.25rem' } }),
+      ]),
+    ]),
+    br(),
+    br(),
+    h(TitleBar, {
+      id: titleId,
+      title: 'Boot disks',
+      style: computeStyles.titleBar,
+      titleChildren: [],
+    }),
+    div({ style: { lineHeight: 1.5 } }, [
+      p(['An additional boot disk is attached to spin up your cloud compute faster']),
+      p([
+        'The boot disk is automatically deleted along with your cloud compute. You cannot delete the boot disk separately.',
+      ]),
+      p([
+        'The cost of this extra boot disk amounts to ~0.01$ / hr, which is accounted for in the paused cloud compute cost.',
       ]),
     ]),
   ]);

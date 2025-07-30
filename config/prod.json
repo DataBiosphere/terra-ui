@@ -9,7 +9,7 @@
   "duosUrlRoot": "https://duos.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "externalCreds": {
-    "providers": ["fence", "dcf-fence", "kids-first", "github", "sage"],
+    "providers": ["ras", "era-commons", "fence", "dcf-fence", "kids-first", "github", "sage"],
     "urlRoot": "https://externalcreds.dsde-prod.broadinstitute.org"
   },
   "isProd": true,
@@ -24,5 +24,6 @@
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_prod",
   "terraDeploymentEnv": "prod",
-  "cwdsUrlRoot": "https://cwds.dsde-prod.broadinstitute.org"
+  "cwdsUrlRoot": "https://cwds.dsde-prod.broadinstitute.org",
+  "nihAuthRoot": "https://auth.nih.gov"
 }

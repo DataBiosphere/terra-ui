@@ -46,6 +46,14 @@ jest.mock(
   })
 );
 
+jest.mock('src/libs/ajax/User', () => ({
+  User: jest.fn(() => ({
+    getNihResources: jest.fn().mockResolvedValue({
+      datasetPermissions: [],
+    }),
+  })),
+}));
+
 const testAccessTokenProvider: OAuth2Provider = {
   key: 'github',
   name: 'Test Provider',
@@ -226,6 +234,100 @@ describe('OAuth2Account', () => {
       });
 
       expect(await axe(container)).toHaveNoViolations();
+    });
+  });
+  describe('When the provider is a RAS provider', () => {
+    const rasProvider: OAuth2Provider = {
+      key: 'ras',
+      name: 'RAS Provider',
+      short: 'RAS',
+      queryParams: {
+        redirectUri: 'localhost/oauth_callback',
+      },
+      supportsAccessToken: true,
+      supportsIdToken: false,
+      isFence: false,
+    };
+
+    it('shows the eRA Commons ID when linked to RAS provider', async () => {
+      // Arrange
+      const linkStatus = {
+        externalUserId: 'testUser',
+        expirationTimestamp: new Date('2025-07-25T19:49:45.736+00:00'),
+        authenticated: true,
+        additionalProperties: {
+          era_user_id: 'testEraUser123',
+        },
+      };
+
+      authStore.update((state) => ({ ...state, oAuth2AccountStatus: { [rasProvider.key]: linkStatus } }));
+
+      // Act
+      await act(() => render(<OAuth2Account queryParams={{}} provider={rasProvider} />));
+
+      // Assert
+      screen.getByText('eRA Commons ID:');
+      screen.getByText('testEraUser123');
+      screen.getByText('Manage your linked identities');
+    });
+
+    it('shows "none" when eRA Commons ID is not available for RAS provider', async () => {
+      // Arrange
+      const linkStatus = {
+        externalUserId: 'testUser',
+        expirationTimestamp: new Date('2025-07-25T19:49:45.736+00:00'),
+        authenticated: true,
+        additionalProperties: {},
+      };
+
+      authStore.update((state) => ({ ...state, oAuth2AccountStatus: { [rasProvider.key]: linkStatus } }));
+
+      // Act
+      await act(() => render(<OAuth2Account queryParams={{}} provider={rasProvider} />));
+
+      // Assert
+      screen.getByText('eRA Commons ID:');
+      screen.getByText('none');
+    });
+
+    it('shows the external link to manage linked identities for RAS provider', async () => {
+      // Arrange
+      const linkStatus = {
+        externalUserId: 'testUser',
+        expirationTimestamp: new Date('2025-07-25T19:49:45.736+00:00'),
+        authenticated: true,
+        additionalProperties: {
+          era_user_id: 'testEraUser123',
+        },
+      };
+
+      authStore.update((state) => ({ ...state, oAuth2AccountStatus: { [rasProvider.key]: linkStatus } }));
+
+      // Act
+      await act(() => render(<OAuth2Account queryParams={{}} provider={rasProvider} />));
+
+      // Assert
+      const manageLink = screen.getByRole('link', { name: 'Manage your linked identities' });
+      expect(manageLink).toHaveAttribute('href', expect.stringContaining('/settings/profile/loadIdentities'));
+      expect(manageLink).toHaveAttribute('target', '_blank');
+    });
+
+    it('does not show the manage linked identities link for non-RAS providers', async () => {
+      // Arrange
+      const linkStatus = {
+        externalUserId: 'testUser',
+        expirationTimestamp: new Date('2025-07-25T19:49:45.736+00:00'),
+        authenticated: true,
+      };
+
+      authStore.update((state) => ({ ...state, oAuth2AccountStatus: { [testAccessTokenProvider.key]: linkStatus } }));
+
+      // Act
+      await act(() => render(<OAuth2Account queryParams={{}} provider={testAccessTokenProvider} />));
+
+      // Assert
+      expect(screen.queryByText('Manage your linked identities')).not.toBeInTheDocument();
+      expect(screen.queryByText('eRA Commons ID:')).not.toBeInTheDocument();
     });
   });
 });

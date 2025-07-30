@@ -9,7 +9,7 @@
   "drsHubUrlRoot": "https://drshub.dsde-staging.broadinstitute.org",
   "duosUrlRoot": "https://duos-k8s.dsde-staging.broadinstitute.org",
   "externalCreds": {
-    "providers": ["ras", "fence", "dcf-fence", "kids-first", "github", "sage"],
+    "providers": ["ras", "era-commons", "fence", "dcf-fence", "kids-first", "github", "sage"],
     "urlRoot": "https://externalcreds.dsde-staging.broadinstitute.org"
   },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
@@ -25,5 +25,6 @@
   "terraDockerImageBucket": "terra-docker-image-documentation-staging",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_staging",
   "terraDeploymentEnv": "staging",
-  "cwdsUrlRoot": "https://cwds.dsde-staging.broadinstitute.org"
+  "cwdsUrlRoot": "https://cwds.dsde-staging.broadinstitute.org",
+  "nihAuthRoot": "https://authtest.nih.gov"
 }

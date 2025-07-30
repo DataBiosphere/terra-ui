@@ -9,8 +9,17 @@ import { Alert } from './Alert';
 export const getServiceAlerts = async (): Promise<Alert[]> => {
   const serviceAlerts = await FirecloudBucket().getServiceAlerts();
   const hashes = await Promise.all(_.map(_.flow(JSON.stringify, Utils.sha256), serviceAlerts));
+  const severityMap = {
+    blocker: 'error',
+    critical: 'warn',
+    default: 'info',
+  };
   return _.flow(
-    _.map(_.defaults({ severity: 'warn' })),
+    _.map(_.defaults({ severity: 'critical' })),
+    _.map((alert: Alert) => ({
+      ...alert,
+      severity: severityMap[alert.severity ?? 'default'] ?? 'info',
+    })),
     _.zip(hashes),
     _.map(([id, alert]) => ({ ...alert, id })),
     _.uniqBy('id')

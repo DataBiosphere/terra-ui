@@ -5,15 +5,17 @@ import _ from 'lodash/fp';
 import React from 'react';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
-import { SeparateSubmissionFinalOutputsSetting } from 'src/libs/ajax/workspaces/workspace-models';
+import {
+  ImprovedDataTablesSetting,
+  SeparateSubmissionFinalOutputsSetting,
+} from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
-import { AppConfigSettings, getConfig } from 'src/libs/config';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
 import {
-  BatchSetting,
   BucketLifecycleSetting,
   RequesterPaysSetting,
   secondsInADay,
@@ -46,9 +48,9 @@ jest.mock('src/workspaces/utils', () => ({
   isOwner: jest.fn(),
 }));
 
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({}),
+jest.mock('src/libs/feature-previews', () => ({
+  ...jest.requireActual('src/libs/feature-previews'),
+  isFeaturePreviewEnabled: jest.fn(),
 }));
 
 describe('SettingsModal', () => {
@@ -130,13 +132,13 @@ describe('SettingsModal', () => {
     config: { enabled: false },
   };
 
-  const batchEnabledSetting: BatchSetting = {
-    settingType: 'UseCromwellGcpBatchBackend',
+  const improvedDataTablesEnabledSetting: ImprovedDataTablesSetting = {
+    settingType: 'CompactDataTables',
     config: { enabled: true },
   };
 
-  const batchDisabledSetting: BatchSetting = {
-    settingType: 'UseCromwellGcpBatchBackend',
+  const improvedDataTablesDisabledSetting: ImprovedDataTablesSetting = {
+    settingType: 'CompactDataTables',
     config: { enabled: false },
   };
 
@@ -170,8 +172,6 @@ describe('SettingsModal', () => {
       })
     );
     asMockedFn(isWorkspaceOwner).mockReturnValue(true);
-
-    asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ isProd: true }));
   };
 
   const mockNotOwner = () => {
@@ -183,11 +183,9 @@ describe('SettingsModal', () => {
     asMockedFn(isWorkspaceOwner).mockReturnValue(false);
   };
 
-  const mockNonProd = () => {
-    asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ isProd: false }));
+  const enableFeaturePreview = () => {
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true); // Mock IMPROVED_DATA_TABLES as enabled
   };
-
-  const getBatchToggle = () => screen.getByLabelText('Run Workflows on GCP Batch:');
 
   it('has no accessibility errors', async () => {
     // Arrange
@@ -216,8 +214,8 @@ describe('SettingsModal', () => {
 
     // Assert
     expect(onDismiss).toHaveBeenCalled();
-    // On save we do persist the default soft delete setting and Batch setting, so it is now explicit.
-    expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
+    // On save we do persist the default soft delete setting, so it is now explicit.
+    expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
   });
 
   it('calls onDismiss on Cancel and does not event', async () => {
@@ -394,7 +392,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([fourDaysAllObjects, batchDisabledSetting], updateSettingsMock);
+      setup([fourDaysAllObjects], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -415,7 +413,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsDisabledSetting,
         noLifecycleRules,
@@ -432,7 +429,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([twoRules, batchDisabledSetting], updateSettingsMock);
+      setup([twoRules], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -453,7 +450,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsDisabledSetting,
         {
@@ -485,7 +481,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([twoRules, batchDisabledSetting], updateSettingsMock);
+      setup([twoRules], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -501,7 +497,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsEnabledSetting,
         {
@@ -542,7 +537,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([zeroDaysTwoPrefixes, batchDisabledSetting], updateSettingsMock);
+      setup([zeroDaysTwoPrefixes], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -557,7 +552,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsEnabledSetting,
         {
@@ -589,7 +583,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([fourDaysAllObjects, batchDisabledSetting], updateSettingsMock);
+      setup([fourDaysAllObjects], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -616,7 +610,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         defaultSoftDeleteSetting,
         separateSubmissionOutputsEnabledSetting,
         {
@@ -722,7 +715,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([defaultSoftDeleteSetting, batchDisabledSetting], updateSettingsMock);
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -738,7 +731,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         {
           settingType: 'GcpBucketSoftDelete',
           config: { retentionDurationInSeconds: 80 * secondsInADay },
@@ -755,7 +747,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([defaultSoftDeleteSetting, batchDisabledSetting], updateSettingsMock);
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -769,7 +761,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
         {
           settingType: 'GcpBucketSoftDelete',
           config: { retentionDurationInSeconds: 0 },
@@ -786,7 +777,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([defaultSoftDeleteSetting, batchDisabledSetting], updateSettingsMock);
+      setup([defaultSoftDeleteSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -795,7 +786,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
       // An above case captures testing that there is no event if Save is pressed and the user initially
       // had no soft delete setting (although the default setting is then persisted).
       expect(captureEvent).not.toHaveBeenCalledWith();
@@ -863,7 +854,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([requesterPaysEnabledSetting, batchDisabledSetting], updateSettingsMock);
+      setup([requesterPaysEnabledSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -878,11 +869,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
-        requesterPaysDisabledSetting,
-        defaultSoftDeleteSetting,
-      ]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysDisabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsRequesterPays, {
         enabled: false,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
@@ -908,11 +895,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
-        requesterPaysEnabledSetting,
-        defaultSoftDeleteSetting,
-      ]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsRequesterPays, {
         enabled: true,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
@@ -923,7 +906,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([requesterPaysEnabledSetting, batchDisabledSetting], updateSettingsMock);
+      setup([requesterPaysEnabledSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -932,20 +915,19 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([
-        batchDisabledSetting,
-        requesterPaysEnabledSetting,
-        defaultSoftDeleteSetting,
-      ]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
     });
   });
 
-  describe('Batch Setting (prod environment)', () => {
+  describe('Improved DataTables Settings', () => {
+    const getImprovedDataTablesToggle = () => screen.getByLabelText('Improved Data Tables:');
+
     it('renders the option as disabled if the user is not an owner', async () => {
       // Arrange
       setup([], jest.fn());
       mockNotOwner();
+      enableFeaturePreview();
 
       // Act
       await act(async () => {
@@ -953,159 +935,14 @@ describe('SettingsModal', () => {
       });
 
       // Assert
-      expect(getBatchToggle()).toBeDisabled();
+      expect(getImprovedDataTablesToggle()).toBeDisabled();
     });
 
     it('renders the option as off if no settings exist', async () => {
       // Arrange
       setup([], jest.fn());
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).not.toBeChecked();
-    });
-
-    it('renders the option as off if batch is disabled', async () => {
-      // Arrange
-      setup([batchDisabledSetting], jest.fn());
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).not.toBeChecked();
-    });
-
-    it('renders the option as on if batch is enabled', async () => {
-      // Arrange
-      setup([batchEnabledSetting], jest.fn());
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).toBeChecked();
-    });
-
-    it('supports disabling batch', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([batchEnabledSetting], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getBatchToggle();
-      expect(toggle).toBeChecked();
-      await user.click(toggle);
-      expect(toggle).not.toBeChecked();
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: false,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-
-    it('supports enabling batch', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getBatchToggle();
-      expect(toggle).not.toBeChecked();
-      await user.click(toggle);
-      expect(toggle).toBeChecked();
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: true,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-
-    it('does not event if batch did not change', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([batchEnabledSetting], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).not.toHaveBeenCalledWith();
-    });
-
-    it('saves default batch setting if no such setting previously existed', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchDisabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
-        enabled: false,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-  });
-
-  describe('Batch Setting (non-prod environment)', () => {
-    it('renders the option as disabled if the user is not an owner', async () => {
-      // Arrange
-      setup([], jest.fn());
       mockNotOwner();
-      mockNonProd();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getBatchToggle()).toBeDisabled();
-    });
-
-    it('renders the option as on if no settings exist', async () => {
-      // Arrange
-      setup([], jest.fn());
-      mockNonProd();
+      enableFeaturePreview();
 
       // Act
       await act(async () => {
@@ -1113,29 +950,96 @@ describe('SettingsModal', () => {
       });
 
       // Assert
-      expect(getBatchToggle()).toBeChecked();
+      expect(getImprovedDataTablesToggle()).not.toBeChecked();
     });
 
-    it('saves default batch setting if no such setting previously existed', async () => {
+    it('renders the option as off if improved data tables is disabled', async () => {
+      // Arrange
+      setup([improvedDataTablesDisabledSetting], jest.fn());
+      enableFeaturePreview();
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getImprovedDataTablesToggle()).not.toBeChecked();
+    });
+
+    it('renders the option as on but disabled if improved data tables is enabled', async () => {
+      // Arrange
+      setup([improvedDataTablesEnabledSetting], jest.fn());
+      enableFeaturePreview();
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getImprovedDataTablesToggle()).toBeChecked();
+      expect(getImprovedDataTablesToggle()).toBeDisabled();
+    });
+
+    it('does not support disabling improved data tables', async () => {
+      // Arrange
+      const updateSettingsMock = jest.fn();
+      setup([improvedDataTablesEnabledSetting], updateSettingsMock);
+      enableFeaturePreview();
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const toggle = getImprovedDataTablesToggle();
+      expect(toggle).toBeDisabled();
+    });
+
+    it('supports enabling improved data tables', async () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
       setup([], updateSettingsMock);
-      mockNonProd();
+      enableFeaturePreview();
 
       // Act
       await act(async () => {
         render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
       });
 
+      const toggle = getImprovedDataTablesToggle();
+      expect(toggle).not.toBeChecked();
+      await user.click(toggle);
+      expect(toggle).toBeChecked();
+
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([batchEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsBatch, {
+      expect(updateSettingsMock).toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsImprovedDataTables, {
         enabled: true,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
+    });
+
+    it('does not event if improved data tables did not change', async () => {
+      // Arrange
+      const updateSettingsMock = jest.fn();
+      setup([improvedDataTablesEnabledSetting], updateSettingsMock);
+      enableFeaturePreview();
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+      const toggle = getImprovedDataTablesToggle();
+      expect(toggle).toBeDisabled();
+
+      // Assert
+      expect(updateSettingsMock).not.toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
+      expect(captureEvent).not.toHaveBeenCalledWith();
     });
   });
 });
