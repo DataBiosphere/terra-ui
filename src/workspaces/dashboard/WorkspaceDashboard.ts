@@ -8,7 +8,6 @@ import { AuthDomainPanel } from 'src/workspaces/dashboard/AuthDomainPanel';
 import { CloudInformation } from 'src/workspaces/dashboard/CloudInformation';
 import { DatasetAttributes } from 'src/workspaces/dashboard/DatasetAttributes';
 import { OwnerNotice } from 'src/workspaces/dashboard/OwnerNotice';
-import { StorageInformation } from 'src/workspaces/dashboard/StorageInformation';
 import { WorkspaceDescription } from 'src/workspaces/dashboard/WorkspaceDescription';
 import { WorkspaceInformation } from 'src/workspaces/dashboard/WorkspaceInformation';
 import { WorkspaceNotifications } from 'src/workspaces/dashboard/WorkspaceNotifications';
@@ -77,20 +76,6 @@ export const WorkspaceDashboard = forwardRef(
               workspace,
             },
             [h(CloudInformation, { workspace, storageDetails })]
-          ),
-          h(
-            WorkspaceRightBoxSection,
-            {
-              title: 'Storage details',
-              persistenceId: `${persistenceId}/cloudInfoPanelOpen`,
-              workspace,
-            },
-            [
-              div({ style: { marginLeft: '0.5rem', fontWeight: 400, fontSize: 12 } }, [
-                `Updated on: ${new Date().toLocaleString()}`,
-              ]),
-              h(StorageInformation, { workspace, storageDetails }),
-            ]
           ),
           h(
             WorkspaceRightBoxSection,
