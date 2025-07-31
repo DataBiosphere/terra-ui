@@ -148,7 +148,13 @@ export const RunJob = () => {
           />
           <h3 style={{ marginBottom: '0.5rem' }}>Upload file *</h3>
           <div
-            style={{ width: 500, marginBottom: '1rem', border: '1px solid #ccc', padding: '1rem', borderRadius: '4px' }}
+            style={{
+              width: 500,
+              marginBottom: '1rem',
+              border: '1px solid #8f95a0',
+              padding: '1rem',
+              borderRadius: '4px',
+            }}
           >
             <div
               style={{
