@@ -112,6 +112,14 @@ export const RunJob = () => {
     }
   };
 
+  const handleClearFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedFile || !selectedPipeline || !runOutputFilePrefix) {
       console.error('Missing required fields');
@@ -151,8 +159,8 @@ export const RunJob = () => {
         selectedPipelineInputs,
         runDescription
       );
-      // Navigate to pipelines page after successful submission
-      window.location.href = '#services/pipelines';
+      // todo cleanup
+      window.location.href = '#services/pipelines/history';
     } catch (error) {
       console.error('Failed to submit pipeline run:', error);
     }
@@ -260,10 +268,51 @@ export const RunJob = () => {
               />
               <div>
                 {!selectedFile ? (
-                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}>
-                    <Icon icon='success-standard' size={34} style={{ color: '#74AE43' }} />
-                    <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>foo.vcf</span>
-                    {/* <span style={{ color: '#333' }}>{selectedFile.name}</span> */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div
+                      style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}
+                    >
+                      <Icon icon='success-standard' size={24} style={{ color: '#74AE43' }} />
+                      {/* <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>{selectedFile.name}</span> */}
+                      <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>fooooooo.vcf</span>
+                    </div>
+                    <button
+                      type='button'
+                      onClick={handleClearFile}
+                      style={{
+                        marginLeft: '0.5rem',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem',
+                        color: '#666',
+                        padding: '0.25rem',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '24px',
+                        height: '24px',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f0f0f0';
+                        e.currentTarget.style.color = '#333';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = '#666';
+                      }}
+                      aria-label='Remove selected file'
+                    >
+                      <Icon icon='times' size={24} color='#4D72AA' />
+                    </button>
                   </div>
                 ) : (
                   <>
