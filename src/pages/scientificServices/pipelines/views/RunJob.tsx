@@ -147,53 +147,63 @@ export const RunJob = () => {
             onChange={setRunDescription}
           />
           <h3 style={{ marginBottom: '0.5rem' }}>Upload file *</h3>
-          <div style={{ width: 500, marginBottom: '1rem' }}>
-            <input
-              type='file'
-              onChange={(e) => {
-                // TODO: Handle multiple files
-                const file = e.target.files?.[0];
-                if (file) {
-                  const pipeline = pipelinesList?.find(
-                    (pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion
-                  );
-                  const pipelineName = pipeline?.pipelineName;
-                  const pipelineVersion = selectedPipeline?.pipelineVersion || 0;
-
-                  // Only proceed if we have a valid pipeline name
-                  if (!pipelineName) {
-                    console.error('No pipeline selected or pipeline name not found');
-                    return;
-                  }
-
-                  const pipelineInputsForVersion = pipelineInputs[`${pipelineName}${pipelineVersion}`];
-
-                  const selectedPipelineInputs = {};
-
-                  // E.g. "multiSampleVcf" for array_imputation v1
-                  const fileNameParam = pipelineInputsForVersion.find(
-                    (input) => input.type === 'FILE' && input.isRequired
-                  )?.name;
-                  selectedPipelineInputs[fileNameParam] = file.name;
-
-                  // E.g. "outputBasename" for array_imputation v1
-                  const outputPrefixParamName = pipelineInputsForVersion.find(
-                    (input) => input.type === 'STRING' && input.isRequired
-                  )?.name;
-
-                  selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
-
-                  // eslint-disable-next-line no-console
-                  prepareUploadStartPipelineRun(
-                    file,
-                    pipelineName,
-                    pipelineVersion,
-                    selectedPipelineInputs,
-                    runDescription
-                  );
-                }
+          <div
+            style={{ width: 500, marginBottom: '1rem', border: '1px solid #ccc', padding: '1rem', borderRadius: '4px' }}
+          >
+            <div
+              style={{
+                borderRadius: '8px',
+                border: '1px dashed #46A3E9',
+                padding: '1rem',
+                background: 'rgba(128, 198, 236, 0.20)',
               }}
-            />
+            >
+              <input
+                type='file'
+                onChange={(e) => {
+                  // TODO: Handle multiple files
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const pipeline = pipelinesList?.find(
+                      (pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion
+                    );
+                    const pipelineName = pipeline?.pipelineName;
+                    const pipelineVersion = selectedPipeline?.pipelineVersion || 0;
+
+                    // Only proceed if we have a valid pipeline name
+                    if (!pipelineName) {
+                      console.error('No pipeline selected or pipeline name not found');
+                      return;
+                    }
+
+                    const pipelineInputsForVersion = pipelineInputs[`${pipelineName}${pipelineVersion}`];
+
+                    const selectedPipelineInputs = {};
+
+                    // E.g. "multiSampleVcf" for array_imputation v1
+                    const fileNameParam = pipelineInputsForVersion.find(
+                      (input) => input.type === 'FILE' && input.isRequired
+                    )?.name;
+                    selectedPipelineInputs[fileNameParam] = file.name;
+
+                    // E.g. "outputBasename" for array_imputation v1
+                    const outputPrefixParamName = pipelineInputsForVersion.find(
+                      (input) => input.type === 'STRING' && input.isRequired
+                    )?.name;
+
+                    selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
+
+                    prepareUploadStartPipelineRun(
+                      file,
+                      pipelineName,
+                      pipelineVersion,
+                      selectedPipelineInputs,
+                      runDescription
+                    );
+                  }
+                }}
+              />
+            </div>
           </div>
           <ButtonPrimary style={{ marginTop: '2rem', padding: '1rem', fontSize: '1rem' }} href='#services/pipelines'>
             Submit
