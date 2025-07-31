@@ -1,4 +1,4 @@
-import { ButtonPrimary, Select, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -58,6 +58,7 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runOutputFilePrefix, setRunOutputFilePrefix] = useState<string>('');
   const [runDescription, setRunDescription] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -105,37 +106,55 @@ export const RunJob = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // TODO: Handle multiple files
     const file = e.target.files?.[0];
     if (file) {
-      const pipeline = pipelinesList?.find(
-        (pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedFile || !selectedPipeline || !runOutputFilePrefix) {
+      console.error('Missing required fields');
+      return;
+    }
+
+    const pipeline = pipelinesList?.find((pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion);
+    const pipelineName = pipeline?.pipelineName;
+    const pipelineVersion = selectedPipeline?.pipelineVersion || 0;
+
+    // Only proceed if we have a valid pipeline name
+    if (!pipelineName) {
+      console.error('No pipeline selected or pipeline name not found');
+      return;
+    }
+
+    const pipelineInputsForVersion = pipelineInputs[`${pipelineName}${pipelineVersion}`];
+
+    const selectedPipelineInputs = {};
+
+    // E.g. "multiSampleVcf" for array_imputation v1
+    const fileNameParam = pipelineInputsForVersion.find((input) => input.type === 'FILE' && input.isRequired)?.name;
+    selectedPipelineInputs[fileNameParam] = selectedFile.name;
+
+    // E.g. "outputBasename" for array_imputation v1
+    const outputPrefixParamName = pipelineInputsForVersion.find(
+      (input) => input.type === 'STRING' && input.isRequired
+    )?.name;
+
+    selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
+
+    try {
+      await prepareUploadStartPipelineRun(
+        selectedFile,
+        pipelineName,
+        pipelineVersion,
+        selectedPipelineInputs,
+        runDescription
       );
-      const pipelineName = pipeline?.pipelineName;
-      const pipelineVersion = selectedPipeline?.pipelineVersion || 0;
-
-      // Only proceed if we have a valid pipeline name
-      if (!pipelineName) {
-        console.error('No pipeline selected or pipeline name not found');
-        return;
-      }
-
-      const pipelineInputsForVersion = pipelineInputs[`${pipelineName}${pipelineVersion}`];
-
-      const selectedPipelineInputs = {};
-
-      // E.g. "multiSampleVcf" for array_imputation v1
-      const fileNameParam = pipelineInputsForVersion.find((input) => input.type === 'FILE' && input.isRequired)?.name;
-      selectedPipelineInputs[fileNameParam] = file.name;
-
-      // E.g. "outputBasename" for array_imputation v1
-      const outputPrefixParamName = pipelineInputsForVersion.find(
-        (input) => input.type === 'STRING' && input.isRequired
-      )?.name;
-
-      selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
-
-      prepareUploadStartPipelineRun(file, pipelineName, pipelineVersion, selectedPipelineInputs, runDescription);
+      // Navigate to pipelines page after successful submission
+      window.location.href = '#services/pipelines';
+    } catch (error) {
+      console.error('Failed to submit pipeline run:', error);
     }
   };
 
@@ -240,22 +259,32 @@ export const RunJob = () => {
                 }}
               />
               <div>
-                Drop file or{' '}
-                <span
-                  style={{
-                    color: '#46A3E9',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Browse
-                </span>
+                {!selectedFile ? (
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}>
+                    <Icon icon='success-standard' size={34} style={{ color: '#74AE43' }} />
+                    <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>foo.vcf</span>
+                    {/* <span style={{ color: '#333' }}>{selectedFile.name}</span> */}
+                  </div>
+                ) : (
+                  <>
+                    Drop file or{' '}
+                    <span
+                      style={{
+                        color: '#46A3E9',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Browse
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             <ButtonPrimary
-              disabled={!selectedPipeline || !runOutputFilePrefix}
+              disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile}
               style={{ marginTop: '1rem', padding: '1rem', fontSize: '1rem' }}
-              // href='#services/pipelines'
+              onClick={handleSubmit}
             >
               Submit
             </ButtonPrimary>
