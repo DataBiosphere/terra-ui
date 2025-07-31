@@ -254,10 +254,10 @@ export const RunJob = () => {
             </div>
             <ButtonPrimary
               disabled={!selectedPipeline || !runOutputFilePrefix}
-              style={{ marginTop: '2rem', padding: '1rem', fontSize: '1rem' }}
+              style={{ marginTop: '1rem', padding: '1rem', fontSize: '1rem' }}
               // href='#services/pipelines'
             >
-              OK
+              Submit
             </ButtonPrimary>
           </div>
         </div>
