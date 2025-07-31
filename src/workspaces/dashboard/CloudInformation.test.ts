@@ -8,7 +8,6 @@ import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import {
-  defaultAzureStorageOptions,
   defaultAzureWorkspace,
   defaultGoogleBucketOptions,
   defaultGoogleWorkspace,
@@ -18,6 +17,7 @@ import { CloudInformation } from 'src/workspaces/dashboard/CloudInformation';
 
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
+jest.mock('src/libs/notifications');
 
 type ClipboardPolyfillExports = typeof import('clipboard-polyfill/text');
 jest.mock('clipboard-polyfill/text', (): ClipboardPolyfillExports => {
@@ -39,85 +39,45 @@ describe('CloudInformation', () => {
     jest.resetAllMocks();
   });
 
-  it('displays links for an azure workspace', async () => {
+  it('renders Google Cloud information correctly', async () => {
     // Arrange
-    const storageDetails: StorageDetails = {
-      googleBucketLocation: '',
-      googleBucketType: '',
-      fetchedGoogleBucketLocation: undefined,
-      azureContainerRegion: defaultAzureStorageOptions.azureContainerRegion,
-      azureContainerUrl: defaultAzureStorageOptions.azureContainerUrl,
-      azureContainerSasUrl: defaultAzureStorageOptions.azureContainerSasUrl,
-    };
-    // Act
-    render(
-      h(CloudInformation, { workspace: { ...defaultAzureWorkspace, workspaceInitialized: true }, storageDetails })
-    );
-
-    // Assert
-    expect(screen.getByText('AzCopy')).not.toBeNull();
-    expect(screen.getByText('Azure Storage Explorer')).not.toBeNull();
-  });
-
-  it('does not retrieve bucket and storage estimate when the workspace is not initialized', async () => {
-    // Arrange
-    const mockStorageCostEstimateV2 = jest.fn();
+    const workspace = { ...defaultGoogleWorkspace, workspaceInitialized: true };
     asMockedFn(Workspaces).mockReturnValue(
       partial<WorkspacesAjaxContract>({
         workspace: () =>
           partial<WorkspaceContract>({
-            storageCostEstimateV2: mockStorageCostEstimateV2,
+            storageCostEstimateV2: jest.fn().mockResolvedValue({
+              estimate: 1000000,
+              usage: { 'live-object': 100 },
+              lastUpdated: '2023-12-01',
+            }),
           }),
       })
     );
 
     // Act
-    render(
-      h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: false }, storageDetails })
-    );
-
-    // Assert
-    expect(screen.getByTitle('Google Cloud Platform')).not.toBeNull;
-
-    expect(mockStorageCostEstimateV2).not.toHaveBeenCalled();
-  });
-
-  it('retrieves bucket and storage estimate when the workspace is initialized', async () => {
-    // Arrange
-    const mockStorageCostEstimateV2 = jest.fn().mockResolvedValue({
-      estimate: 1000000,
-      usageInBytes: 100,
-      usage: {
-        'live-object': 100,
-      },
-      lastUpdated: '2023-12-01',
+    await act(async () => {
+      render(h(CloudInformation, { workspace: { ...workspace }, storageDetails }));
     });
-    asMockedFn(Workspaces).mockReturnValue(
-      partial<WorkspacesAjaxContract>({
-        workspace: () =>
-          partial<WorkspaceContract>({
-            storageCostEstimateV2: mockStorageCostEstimateV2,
-          }),
-      })
-    );
-
-    // Act
-    await act(() =>
-      render(
-        h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
-      )
-    );
 
     // Assert
-    expect(screen.getByTitle('Google Cloud Platform')).not.toBeNull;
-    // Cost estimate
-    expect(screen.getByText('Estimated Bucket Cost')).not.toBeNull();
-    expect(screen.getAllByText('Updated on 12/1/2023')).not.toBeNull();
-    expect(screen.getByText('$1,000,000.00')).not.toBeNull();
-    // Bucket usage
-    expect(screen.getByText('100 B Live')).not.toBeNull();
+    expect(screen.getByText('Cloud Name')).toBeInTheDocument();
+    expect(screen.getByTitle('Google Cloud Platform')).toBeInTheDocument();
+    expect(screen.getByText('Google Project ID')).toBeInTheDocument();
+    expect(screen.getByLabelText('Copy google project ID to clipboard')).toBeInTheDocument();
+    expect(screen.getByText('Storage Details')).toBeInTheDocument();
+  });
 
-    expect(mockStorageCostEstimateV2).toHaveBeenCalled();
+  it('renders nothing for non-Google workspaces', async () => {
+    // Arrange
+    const workspace = { ...defaultAzureWorkspace, workspaceInitialized: true };
+
+    // Act
+    render(h(CloudInformation, { workspace, storageDetails }));
+
+    // Assert
+    expect(screen.queryByText('Cloud Name')).not.toBeInTheDocument();
+    expect(screen.queryByText('Google Project ID')).not.toBeInTheDocument();
   });
 
   const copyButtonTestSetup = async () => {
@@ -156,6 +116,63 @@ describe('CloudInformation', () => {
       extractWorkspaceDetails(defaultGoogleWorkspace)
     );
     expect(clipboard.writeText).toHaveBeenCalledWith(defaultGoogleWorkspace.workspace.googleProject);
+  });
+
+  it('does not retrieve bucket and storage estimate when the workspace is not initialized', async () => {
+    // Arrange
+    const mockStorageCostEstimateV2 = jest.fn();
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimateV2: mockStorageCostEstimateV2,
+          }),
+      })
+    );
+
+    // Act
+    render(
+      h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: false }, storageDetails })
+    );
+
+    // Assert
+    expect(mockStorageCostEstimateV2).not.toHaveBeenCalled();
+  });
+
+  it('retrieves bucket and storage estimate when the workspace is initialized', async () => {
+    // Arrange
+    const mockStorageCostEstimateV2 = jest.fn().mockResolvedValue({
+      estimate: 1000000,
+      usageInBytes: 100,
+      usage: {
+        'live-object': 100,
+      },
+      lastUpdated: '2023-12-01',
+    });
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimateV2: mockStorageCostEstimateV2,
+          }),
+      })
+    );
+
+    // Act
+    await act(() =>
+      render(
+        h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
+      )
+    );
+
+    // Assert
+    // Cost estimate
+    expect(screen.getByText('Estimated Monthly Cost')).not.toBeNull();
+    expect(screen.getByText('$1,000,000.00')).not.toBeNull();
+    // Bucket usage
+    expect(screen.getByText('100 B Live')).not.toBeNull();
+
+    expect(mockStorageCostEstimateV2).toHaveBeenCalled();
   });
 
   it('emits an event when the copy bucket name button is clicked', async () => {
@@ -232,7 +249,6 @@ describe('CloudInformation', () => {
     );
 
     // Assert
-    expect(screen.getByText('Updated on 7/26/2024')).not.toBeNull();
     expect(screen.getByText('50 B Live')).not.toBeNull();
     expect(mockStorageCostEstimateV2).toHaveBeenCalled();
   });

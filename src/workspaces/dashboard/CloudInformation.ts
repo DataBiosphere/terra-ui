@@ -1,10 +1,9 @@
-import { InfoBox, Link } from '@terra-ui-packages/components';
-import { cond, formatUSD } from '@terra-ui-packages/core-utils';
-import { Fragment, ReactNode, useEffect, useState } from 'react';
-import { br, div, dl, h, span } from 'react-hyperscript-helpers';
+import { icon, InfoBox, Link } from '@terra-ui-packages/components';
+import { formatBytes, formatUSD } from '@terra-ui-packages/core-utils';
+import { CSSProperties, Fragment, ReactNode, useEffect, useState } from 'react';
+import { br, div, dl, h, h3, hr, span } from 'react-hyperscript-helpers';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import { ClipboardButton } from 'src/components/ClipboardButton';
-import { icon } from 'src/components/icons';
 import { TooltipCell } from 'src/components/table';
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg';
 import { Metrics } from 'src/libs/ajax/Metrics';
@@ -13,75 +12,22 @@ import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { getTerraUser } from 'src/libs/state';
+import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { formatBytes, newTabLinkProps } from 'src/libs/utils';
+import { newTabLinkProps } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
-import { AzureStorageDetails } from 'src/workspaces/dashboard/AzureStorageDetails';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
-import {
-  AzureWorkspace,
-  canRead,
-  canWrite,
-  GoogleWorkspace,
-  isAzureWorkspace,
-  isGoogleWorkspace,
-} from 'src/workspaces/utils';
+import { canRead, canWrite, GoogleWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
 
 interface CloudInformationProps {
   storageDetails: StorageDetails;
   workspace: Workspace;
 }
 
-interface AzureCloudInformationProps extends CloudInformationProps {
-  workspace: AzureWorkspace & { workspaceInitialized: boolean };
-}
-
 interface GoogleCloudInformationProps extends CloudInformationProps {
   workspace: GoogleWorkspace & { workspaceInitialized: boolean };
 }
-
-const AzureCloudInformation = (props: AzureCloudInformationProps): ReactNode => {
-  const { workspace, storageDetails } = props;
-  const azureContext = workspace.azureContext;
-  return h(Fragment, [
-    dl([
-      h(AzureStorageDetails, {
-        azureContext,
-        storageDetails,
-        eventWorkspaceDetails: extractWorkspaceDetails(workspace),
-      }),
-    ]),
-    div({ style: { margin: '0.5rem', fontSize: 12 } }, [
-      div([
-        'Use SAS URL in conjunction with ',
-        h(
-          Link,
-          {
-            ...newTabLinkProps,
-            href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
-            style: { textDecoration: 'underline' },
-          },
-          ['AzCopy']
-        ),
-        ' or ',
-        h(
-          Link,
-          {
-            ...newTabLinkProps,
-            href: 'https://azure.microsoft.com/en-us/products/storage/storage-explorer',
-            style: { textDecoration: 'underline' },
-          },
-          ['Azure Storage Explorer']
-        ),
-        ' to access storage associated with this workspace.',
-      ]),
-      div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } }, [
-        'The SAS URL expires after 8 hours. To generate a new SAS URL, refresh this page.',
-      ]),
-    ]),
-  ]);
-};
 
 const storageStateDisplayName = (rawState: string): string => {
   switch (rawState) {
@@ -167,6 +113,15 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           },
         }),
       ]),
+      h(hr),
+      h(InfoRow, {
+        title: h3({ style: { ...Style.dashboard.collapsibleHeader, padding: 0, margin: 0 } as CSSProperties }, [
+          'Storage Details',
+        ]),
+        subtitle: `Updated on: ${
+          storageCost?.lastUpdated ? new Date(storageCost.lastUpdated).toLocaleDateString() : 'Loading last updated...'
+        }`,
+      }),
       h(InfoRow, { title: 'Bucket Name' }, [
         h(TooltipCell, [bucketName]),
         h(ClipboardButton, {
@@ -184,19 +139,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
         h(
           InfoRow,
           {
-            title: 'Estimated Bucket Cost',
-            subtitle: cond(
-              [!storageCost, () => 'Loading last updated...'],
-              [
-                !!storageCost?.isSuccess,
-                () => {
-                  if (storageCost?.lastUpdated) {
-                    return `Updated on ${new Date(storageCost?.lastUpdated).toLocaleDateString()}`;
-                  }
-                  return 'Unable to determine last date updated';
-                },
-              ]
-            ),
+            title: 'Estimated Monthly Cost',
           },
           [
             storageCost?.estimate || '$ ...',
@@ -225,19 +168,7 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
         h(
           InfoRow,
           {
-            title: 'Bucket Size',
-            subtitle: cond(
-              [!bucketSize, () => 'Loading last updated...'],
-              [
-                !!bucketSize?.isSuccess,
-                () => {
-                  if (bucketSize?.lastUpdated) {
-                    return `Updated on ${new Date(bucketSize?.lastUpdated).toLocaleDateString()}`;
-                  }
-                  return 'Unable to determine last date updated';
-                },
-              ]
-            ),
+            title: 'Estimated Size',
           },
           !bucketSize?.usageByState
             ? []
@@ -281,9 +212,6 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
 
 export const CloudInformation = (props: CloudInformationProps): ReactNode => {
   const { workspace, ...rest } = props;
-  if (isAzureWorkspace(workspace)) {
-    return h(AzureCloudInformation, { workspace, ...rest });
-  }
   if (isGoogleWorkspace(workspace)) {
     return h(GoogleCloudInformation, { workspace, ...rest });
   }
