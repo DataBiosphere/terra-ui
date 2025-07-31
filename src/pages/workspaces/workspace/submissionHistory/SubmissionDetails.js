@@ -38,11 +38,10 @@ import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted'];
 
-// Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
-// 'cromwell.conf.ctmpl' file:
-const deletionDelayYears = 1;
-const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`;
-const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayYears * 365;
+// Note: This 'deletionDelayDays' value should reflect the current `archiveMetadata.deletion.delay` value configured for PROD in
+// the `values/app/cromwell/live.yaml.gotmpl` file of `terra-helmfile`
+const deletionDelayDays = 190;
+const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayDays;
 
 const deletedInfoIcon = ({ name, icon: iconName }) => {
   return h(
@@ -54,7 +53,7 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
     },
     [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
-      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${deletionDelayString} old).`]),
+      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (>${Math.round(deletionDelayDays / 31)} months old).`]),
       div([
         'Please refer to the ',
         h(
