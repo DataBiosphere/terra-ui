@@ -1,4 +1,3 @@
-// test.js
 import { act, fireEvent, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import * as DataUtils from 'src/components/data/data-utils';
@@ -58,7 +57,7 @@ jest.mock('igv', () => {
   return { __esModule: true, default: igv, ...igv };
 });
 
-// Mock data-utils (keep real parseGsUri)
+// Mock data-utils but keep real parseGsUri
 jest.mock('src/components/data/data-utils', () => {
   const actual = jest.requireActual('src/components/data/data-utils');
   return {
@@ -67,10 +66,10 @@ jest.mock('src/components/data/data-utils', () => {
   };
 });
 
-// ✅ Mock RequesterPaysModal to trigger onSuccess AFTER render without useEffect or inline require
+// Mock RequesterPaysModal to trigger onSuccess AFTER render without useEffect or inline require
 jest.mock('src/workspaces/common/requester-pays/RequesterPaysModal', () => {
   const RequesterPaysModal = ({ onSuccess }) => {
-    // Schedule after render to avoid "setState during render" warning.
+    // Schedule after render to avoid "setState during render" warning
     Promise.resolve().then(() => onSuccess('test-project'));
     return null;
   };
