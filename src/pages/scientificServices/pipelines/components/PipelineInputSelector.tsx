@@ -1,5 +1,6 @@
 import { Icon } from '@terra-ui-packages/components';
 import React, { useRef } from 'react';
+import Dropzone from 'src/components/Dropzone';
 
 interface PipelineInputSelectorProps {
   selectedFile: File | null;
@@ -8,24 +9,6 @@ interface PipelineInputSelectorProps {
 
 export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({ selectedFile, onFileSelect }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleBrowseClick = () => {
-    // Only open file picker if no file is selected
-    if (!selectedFile) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ') && !selectedFile) {
-      e.preventDefault();
-      handleBrowseClick();
-    }
-  };
-
-  const handleFileInputClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,14 +26,21 @@ export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({ se
     }
   };
 
-  const handleFilePickerClick = (e: React.MouseEvent) => {
-    // Prevent file picker from opening if a file is already selected
-    if (selectedFile) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
+  const handleDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0 && !selectedFile) {
+      onFileSelect(acceptedFiles[0]);
     }
-    handleBrowseClick();
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleBrowseClick();
+    }
   };
 
   return (
@@ -65,9 +55,9 @@ export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({ se
         flexDirection: 'column',
       }}
     >
-      <div
-        role='button'
-        tabIndex={0}
+      <Dropzone
+        onDrop={handleDrop}
+        disabled={!!selectedFile}
         style={{
           borderRadius: '8px',
           border: '1px dashed #46A3E9',
@@ -76,72 +66,88 @@ export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({ se
           textAlign: 'center',
           cursor: selectedFile ? 'default' : 'pointer',
           height: '120px',
+          outline: 'none',
         }}
-        onClick={handleFilePickerClick}
-        onKeyDown={handleKeyPress}
+        activeStyle={{
+          border: '1px dashed #4D72AA',
+          background: 'rgba(77, 114, 170, 0.20)',
+        }}
       >
-        <input
-          ref={fileInputRef}
-          type='file'
-          onChange={handleFileChange}
-          onClick={handleFileInputClick}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            opacity: 0,
-            cursor: 'pointer',
-          }}
-        />
-        <div>
-          {selectedFile ? (
-            <div
+        {({ dragging }) => (
+          <>
+            <input
+              ref={fileInputRef}
+              type='file'
+              onChange={handleFileChange}
               style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                opacity: 0,
+                pointerEvents: 'none',
               }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}>
-                <Icon icon='success-standard' size={24} style={{ color: '#74AE43', marginLeft: '1rem' }} />
-                <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>{selectedFile.name}</span>
-              </div>
-              <button
-                type='button'
-                onClick={handleClearFile}
-                style={{
-                  zIndex: 1,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#666',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  // UX: padding here to make the clickable area larger
-                  padding: '1rem',
-                }}
-                aria-label='Remove selected file'
-              >
-                <Icon icon='times' size={24} color='#4D72AA' />
-              </button>
+            />
+            <div>
+              {selectedFile ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}>
+                    <Icon icon='success-standard' size={24} style={{ color: '#74AE43', marginLeft: '1rem' }} />
+                    <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>{selectedFile.name}</span>
+                  </div>
+                  <button
+                    type='button'
+                    onClick={handleClearFile}
+                    style={{
+                      zIndex: 1,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#666',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      // UX: padding here to make the clickable area larger
+                      padding: '1rem',
+                    }}
+                    aria-label='Remove selected file'
+                  >
+                    <Icon icon='times' size={24} color='#4D72AA' />
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontWeight: 600, paddingTop: '1.25rem' }}>
+                  {dragging ? 'Drop file here' : 'Drop file or'}{' '}
+                  {!dragging && (
+                    <button
+                      type='button'
+                      onClick={handleBrowseClick}
+                      onKeyDown={handleKeyPress}
+                      style={{
+                        color: '#46A3E9',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        font: 'inherit',
+                        fontWeight: 'inherit',
+                      }}
+                    >
+                      browse
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-          ) : (
-            <div style={{ fontWeight: 600, paddingTop: '1.25rem' }}>
-              Drop file or{' '}
-              <span
-                style={{
-                  color: '#46A3E9',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                }}
-              >
-                browse
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+          </>
+        )}
+      </Dropzone>
     </div>
   );
 };
