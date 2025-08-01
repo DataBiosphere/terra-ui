@@ -6,6 +6,7 @@ import { TextArea, TextInput } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
@@ -58,7 +59,7 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runOutputFilePrefix, setRunOutputFilePrefix] = useState<string>('');
   const [runDescription, setRunDescription] = useState<string>('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -115,7 +116,7 @@ export const RunJob = () => {
 
   const handleClearFile = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedFile(null);
+    setSelectedFile(undefined);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -161,10 +162,12 @@ export const RunJob = () => {
         selectedPipelineInputs,
         runDescription
       );
-      // todo cleanup
+      // TODO: use a better way to navigate to the pipelines history page
       window.location.href = '#services/pipelines/history';
+      notify('success', 'Pipeline run submitted.');
     } catch (error) {
-      console.error('Failed to submit pipeline run:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      notify('error', `Pipeline failed to submit: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -275,32 +278,34 @@ export const RunJob = () => {
                   <div
                     style={{
                       display: 'flex',
-                      flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      padding: '0.5rem 0',
                     }}
                   >
                     <div
-                      style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
                     >
                       <Icon icon='success-standard' size={24} style={{ color: '#74AE43' }} />
                       <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>{selectedFile.name}</span>
                     </div>
+
                     <button
                       type='button'
                       onClick={handleClearFile}
                       style={{
-                        zIndex: 1,
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
                         color: '#666',
+                        width: '36px', //  The clickable area for the button is 1.5x
+                        height: '36px', // larger than the icon to make it easier to click
+                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        // UX note: the click-space of the button is 1.5x larger than the icon
-                        // to make it easier to click
-                        width: '36px',
-                        height: '36px',
                       }}
                       aria-label='Remove selected file'
                     >
@@ -309,7 +314,7 @@ export const RunJob = () => {
                   </div>
                 ) : (
                   <>
-                    {/* TODO (TSPS-554): actually implement a Dropzone here */}
+                    {/* TODO (TSPS-554): implement a Dropzone here */}
                     Drop file or{' '}
                     <span
                       style={{
@@ -330,7 +335,13 @@ export const RunJob = () => {
               style={{ marginTop: '1rem', padding: '1rem', fontSize: '1rem' }}
               onClick={handleSubmit}
             >
-              {isSubmitting ? <Spinner size={16} /> : 'Submit'}
+              {isSubmitting ? (
+                <>
+                  <Spinner size={16} /> Submitting...
+                </>
+              ) : (
+                'Submit'
+              )}
             </ButtonPrimary>
           </div>
         </div>
