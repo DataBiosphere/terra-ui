@@ -1,6 +1,6 @@
-import { ButtonPrimary, Icon, Select, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { TextArea, TextInput } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -9,6 +9,7 @@ import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { PipelineInputSelector } from 'src/pages/scientificServices/pipelines/components/PipelineInputSelector';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
@@ -47,7 +48,6 @@ export async function prepareUploadStartPipelineRun(
 
 export const RunJob = () => {
   const signal = useCancellation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
@@ -59,7 +59,7 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runOutputFilePrefix, setRunOutputFilePrefix] = useState<string>('');
   const [runDescription, setRunDescription] = useState<string>('');
-  const [selectedFile, setSelectedFile] = useState<File>();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -91,36 +91,6 @@ export const RunJob = () => {
     }
     fetchData();
   }, [signal, pipelineInputs]);
-
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleBrowseClick();
-    }
-  };
-
-  const handleFileInputClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
-  const handleClearFile = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedFile(undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleSubmit = async () => {
     if (!selectedFile || !selectedPipeline || !runOutputFilePrefix) {
@@ -164,7 +134,7 @@ export const RunJob = () => {
       );
       // TODO: use a better way to navigate to the pipelines history page
       window.location.href = '#services/pipelines/history';
-      notify('success', 'Pipeline run submitted.');
+      notify('success', 'Pipeline run submitted');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       notify('error', `Pipeline failed to submit: ${errorMessage}`);
@@ -232,118 +202,15 @@ export const RunJob = () => {
             onChange={setRunDescription}
           />
           <h3 style={{ marginBottom: '0.5rem' }}>Upload file *</h3>
-          <div
-            style={{
-              width: 500,
-              marginBottom: '1rem',
-              border: '1px solid #8f95a0',
-              padding: '1rem',
-              borderRadius: '4px',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <div
-              role='button'
-              tabIndex={0}
-              style={{
-                borderRadius: '8px',
-                border: '1px dashed #46A3E9',
-                padding: '2rem',
-                minHeight: '120px',
-                background: 'rgba(128, 198, 236, 0.20)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
-              onClick={handleBrowseClick}
-              onKeyDown={handleKeyPress}
-            >
-              <input
-                ref={fileInputRef}
-                type='file'
-                onChange={handleFileChange}
-                onClick={handleFileInputClick}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  opacity: 0,
-                  cursor: 'pointer',
-                }}
-              />
-              <div>
-                {selectedFile ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.5rem 0',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Icon icon='success-standard' size={24} style={{ color: '#74AE43' }} />
-                      <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>{selectedFile.name}</span>
-                    </div>
+          <PipelineInputSelector selectedFile={selectedFile} onFileSelect={setSelectedFile} />
 
-                    <button
-                      type='button'
-                      onClick={handleClearFile}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: '#666',
-                        width: '36px', //  The clickable area for the button is 1.5x
-                        height: '36px', // larger than the icon to make it easier to click
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      aria-label='Remove selected file'
-                    >
-                      <Icon icon='times' size={24} color='#4D72AA' />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {/* TODO (TSPS-554): implement a Dropzone here */}
-                    Drop file or{' '}
-                    <span
-                      style={{
-                        color: '#46A3E9',
-                        fontWeight: 600,
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      browse
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-            <ButtonPrimary
-              disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
-              style={{ marginTop: '1rem', padding: '1rem', fontSize: '1rem' }}
-              onClick={handleSubmit}
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner size={16} /> Submitting...
-                </>
-              ) : (
-                'Submit'
-              )}
-            </ButtonPrimary>
-          </div>
+          <ButtonPrimary
+            disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
+            style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
+            onClick={handleSubmit}
+          >
+            {isSubmitting ? <Spinner size={16} /> : 'Submit'}
+          </ButtonPrimary>
         </div>
         <div>
           <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
