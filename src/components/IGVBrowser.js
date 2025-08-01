@@ -88,7 +88,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const simpleUrl = _.last(url.split('/')).split('?')[0];
 
       const fullUrl = isSignedUrl ? url : Utils.mergeQueryParams(userProjectParam, url);
-      const fullIndexUrl = isSignedUrl ? indexURL : Utils.mergeQueryParams(userProjectParam, indexURL);
+      const fullIndexUrl = isSignedUrl ? indexURL : indexURL && Utils.mergeQueryParams(userProjectParam, indexURL);
 
       // Enable viewing features upon searching most genes, without needing to zoom several times
       const visibilityWindow = 75_000;
