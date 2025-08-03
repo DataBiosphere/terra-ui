@@ -1,6 +1,7 @@
 import { Icon } from '@terra-ui-packages/components';
 import React, { useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
+import { formatBytes } from 'src/libs/utils';
 
 interface PipelineInputSelectorProps {
   selectedFile: File | null;
@@ -8,7 +9,7 @@ interface PipelineInputSelectorProps {
   requiredSuffix?: string;
 }
 
-export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({
+export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   selectedFile,
   onFileSelect,
   requiredSuffix,
@@ -109,7 +110,9 @@ export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({
                     ) : (
                       <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', marginLeft: '1rem' }} />
                     )}
-                    <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>{selectedFile.name}</span>
+                    <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>
+                      {selectedFile.name} ({formatBytes(selectedFile?.size)})
+                    </span>
                   </div>
                   <button
                     type='button'

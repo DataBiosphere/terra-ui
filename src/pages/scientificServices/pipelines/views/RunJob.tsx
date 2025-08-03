@@ -9,7 +9,7 @@ import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-import { PipelineInputSelector } from 'src/pages/scientificServices/pipelines/components/PipelineInputSelector';
+import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
@@ -202,7 +202,7 @@ export const RunJob = () => {
             onChange={setRunDescription}
           />
           <h3 style={{ marginBottom: '0.5rem' }}>Upload file *</h3>
-          <PipelineInputSelector
+          <PipelineFileInput
             selectedFile={selectedFile}
             onFileSelect={setSelectedFile}
             requiredSuffix={selectedPipeline?.pipelineName === 'array_imputation' ? '.vcf.gz' : undefined}
