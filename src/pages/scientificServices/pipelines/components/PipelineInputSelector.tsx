@@ -5,10 +5,16 @@ import Dropzone from 'src/components/Dropzone';
 interface PipelineInputSelectorProps {
   selectedFile: File | null;
   onFileSelect: (file: File | null) => void;
+  requiredSuffix?: string;
 }
 
-export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({ selectedFile, onFileSelect }) => {
+export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({
+  selectedFile,
+  onFileSelect,
+  requiredSuffix,
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isFileValid = selectedFile?.name.endsWith(requiredSuffix || '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,7 +104,11 @@ export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({ se
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}>
-                    <Icon icon='success-standard' size={24} style={{ color: '#74AE43', marginLeft: '1rem' }} />
+                    {isFileValid ? (
+                      <Icon icon='success-standard' size={24} style={{ color: '#74AE43', marginLeft: '1rem' }} />
+                    ) : (
+                      <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', marginLeft: '1rem' }} />
+                    )}
                     <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>{selectedFile.name}</span>
                   </div>
                   <button
@@ -112,7 +122,7 @@ export const PipelineInputSelector: React.FC<PipelineInputSelectorProps> = ({ se
                       color: '#666',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      // UX: padding here to make the clickable area larger
+                      // UX consideration: the padding is here to make the clickable area larger
                       padding: '1rem',
                     }}
                     aria-label='Remove selected file'

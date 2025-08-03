@@ -202,8 +202,18 @@ export const RunJob = () => {
             onChange={setRunDescription}
           />
           <h3 style={{ marginBottom: '0.5rem' }}>Upload file *</h3>
-          <PipelineInputSelector selectedFile={selectedFile} onFileSelect={setSelectedFile} />
-
+          <PipelineInputSelector
+            selectedFile={selectedFile}
+            onFileSelect={setSelectedFile}
+            requiredSuffix={selectedPipeline?.pipelineName === 'array_imputation' ? '.vcf.gz' : undefined}
+          />
+          {selectedFile &&
+            !selectedFile.name.endsWith('.vcf.gz') &&
+            selectedPipeline?.pipelineName === 'array_imputation' && (
+              <div style={{ color: 'red', marginTop: '0.5rem' }}>
+                The selected file must have a .vcf.gz extension for the array_imputation pipeline.
+              </div>
+            )}
           <ButtonPrimary
             disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
             style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
