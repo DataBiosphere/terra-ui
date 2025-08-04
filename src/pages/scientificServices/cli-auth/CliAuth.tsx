@@ -1,0 +1,63 @@
+import React from 'react';
+import { ClipboardButton } from 'src/components/ClipboardButton';
+import colors from 'src/libs/colors';
+
+export const CliAuth = () => {
+  const hash = window.location.hash;
+  const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+  const queryParams = new URLSearchParams(queryString);
+  const authCode = queryParams.get('code');
+
+  return (
+    <div style={{ width: '20%', alignItems: 'center', margin: 'auto', padding: '2rem' }}>
+      <img
+        src='src/images/brands/scientificServices/dspLogo.svg'
+        alt='Broad Institute Data Sciences Platform'
+        style={{ width: '200px', alignItems: 'center', margin: 'auto', display: 'block' }}
+      />
+      <h1>Sign in to the terralab CLI</h1>
+      <div style={{ margin: '2rem 0' }}>
+        You have reached this page because you ran <code style={{ backgroundColor: '#eee' }}>terralab login</code> from
+        this or another machine. If this is not the case, close this tab.
+      </div>
+      <div style={{ margin: '2rem 0' }}>
+        Enter the following verification code in the terralab CLI. This is a credential{' '}
+        <strong>similar to your password</strong> and should not be shared with others.
+      </div>
+      {authCode ? (
+        <>
+          <div
+            style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              margin: '1rem 0',
+              backgroundColor: '#f0f0f0',
+              padding: '1rem',
+            }}
+          >
+            <code>{authCode}</code>
+          </div>
+          <ClipboardButton
+            style={{
+              border: `1px solid ${colors.accent(1.2)}`,
+              backgroundColor: colors.accent(),
+              color: '#fff',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+            text={authCode}
+          >
+            Copy
+          </ClipboardButton>
+        </>
+      ) : (
+        <div style={{ color: colors.danger(), fontWeight: 'bold' }}>
+          Error: no verification code found in the URL. Please contact support if you need help.
+        </div>
+      )}
+      <div style={{ margin: '2rem 0' }}>You can close this tab when you&apos;re done.</div>
+    </div>
+  );
+};
