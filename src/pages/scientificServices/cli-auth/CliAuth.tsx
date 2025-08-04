@@ -9,11 +9,11 @@ export const CliAuth = () => {
   const authCode = queryParams.get('code');
 
   return (
-    <div style={{ width: '500px', alignItems: 'center', margin: 'auto', padding: '2rem' }}>
+    <div style={{ width: '525px', alignItems: 'center', margin: 'auto', padding: '2rem' }}>
       <img
         src='src/images/brands/scientificServices/dspLogo.svg'
         alt='Broad Institute Data Sciences Platform'
-        style={{ width: '200px', alignItems: 'center', margin: 'auto', display: 'block' }}
+        style={{ width: '200px', alignItems: 'center', margin: 'auto', display: 'block', marginBottom: '2rem' }}
       />
       <h1>Sign in to the terralab CLI</h1>
       <div style={{ margin: '2rem 0' }}>
@@ -34,6 +34,7 @@ export const CliAuth = () => {
               margin: '1rem 0',
               backgroundColor: '#f0f0f0',
               padding: '1rem',
+              marginBottom: '2rem',
             }}
           >
             <code>{authCode}</code>
@@ -54,7 +55,7 @@ export const CliAuth = () => {
         </>
       ) : (
         <div style={{ color: colors.danger(), fontWeight: 'bold' }}>
-          Error: no verification code found in the URL. Please contact support if you need help.
+          Error: no verification code found. Please try again and contact support if this problem persists.
         </div>
       )}
       <div style={{ margin: '2rem 0' }}>You can close this tab when you&apos;re done.</div>

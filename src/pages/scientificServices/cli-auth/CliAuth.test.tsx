@@ -37,7 +37,9 @@ describe('CliAuth', () => {
     render(<CliAuth />);
 
     expect(
-      screen.getByText('Error: no verification code found in the URL. Please contact support if you need help.')
+      screen.getByText(
+        'Error: no verification code found. Please try again and contact support if this problem persists.'
+      )
     ).toBeInTheDocument();
   });
 });
