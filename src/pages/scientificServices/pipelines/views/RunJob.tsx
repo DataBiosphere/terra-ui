@@ -1,6 +1,7 @@
 import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useState } from 'react';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { TextArea, TextInput } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -11,6 +12,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
+import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
@@ -55,18 +57,33 @@ export const RunJob = () => {
 
   // Input parameter names by pipeline name and version
   const [pipelineInputs, setPipelineInputs] = useState<PipelineInput[]>([]);
-  console.log(pipelineInputs);
 
   // User inputs for the run
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
-  const [runOutputFilePrefix, setRunOutputFilePrefix] = useState<string>('');
   const [runDescription, setRunDescription] = useState<string>('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // TODO: replace this with generic dict of inputs, to support more pipelines
+  const [runOutputFilePrefix, setRunOutputFilePrefix] = useState<string>('');
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    // Update selected user inputs when pipeline inputs change
+    const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
+      acc[input.name] = selectedUserInputs[input.name] || '';
+      return acc;
+    }, {});
+    setSelectedUserInputs(newSelectedUserInputs);
+  }, [pipelineInputs]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showSuccessfulSubmissionMessage, setShowSuccessfulSubmissionMessage] = useState<boolean>(false);
+  const [submittedJobId, setSubmittedJobId] = useState<string>();
 
   useEffect(() => {
     async function fetchData() {
+      setIsLoading(true);
       const response = await Teaspoons(signal).getPipelines();
 
       const options = response.results.map((pipeline) => ({
@@ -87,20 +104,20 @@ export const RunJob = () => {
         const pipelineVersion = pipeline.pipelineVersion;
         const { inputs } = await Teaspoons(signal).getPipelineDetails(pipelineName, pipelineVersion);
         setPipelineInputs(inputs);
+        setIsLoading(false);
       });
     }
     fetchData();
   }, [signal]);
 
   const handleSubmit = async () => {
-    if (!selectedFile || !selectedPipeline || !runOutputFilePrefix) {
+    if (!selectedPipeline || !runOutputFilePrefix) {
       console.error('Missing required fields');
       return;
     }
 
     const pipeline = pipelinesList?.find((pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion);
     const pipelineName = pipeline?.pipelineName;
-    const pipelineVersion = selectedPipeline?.pipelineVersion || 0;
 
     // Only proceed if we have a valid pipeline name
     if (!pipelineName) {
@@ -108,35 +125,42 @@ export const RunJob = () => {
       return;
     }
 
-    const pipelineInputsForVersion = pipelineInputs[`${pipelineName}${pipelineVersion}`];
-
+    const pipelineInputsForVersion = pipelineInputs;
     const selectedPipelineInputs = {};
-
-    // E.g. "multiSampleVcf" for array_imputation v1
-    const fileNameParam = pipelineInputsForVersion.find((input) => input.type === 'FILE' && input.isRequired)?.name;
-    selectedPipelineInputs[fileNameParam] = selectedFile.name;
 
     // E.g. "outputBasename" for array_imputation v1
     const outputPrefixParamName = pipelineInputsForVersion.find(
       (input) => input.type === 'STRING' && input.isRequired
     )?.name;
+    if (outputPrefixParamName) {
+      selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
+    }
 
-    selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
+    // Converts the input values to the format expected by the backend (i.e. file names for File inputs)
+    const finalInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
+      if (value instanceof File) {
+        acc[key] = value.name; // Use the file name for File inputs
+      } else {
+        acc[key] = value; // All other inputs can be used as-is
+      }
+      return acc;
+    }, {});
 
     try {
       setIsSubmitting(true);
-      await prepareUploadStartPipelineRun(
-        selectedFile,
-        pipelineName,
-        pipelineVersion,
-        selectedPipelineInputs,
-        runDescription
-      );
-      notify('success', 'Pipeline run submitted');
-      setShowSuccessfulSubmissionMessage(true);
+      // const jobId = await prepareUploadStartPipelineRun(
+      //   selectedFile,
+      //   pipelineName,
+      //   pipelineVersion,
+      //   selectedPipelineInputs,
+      //   runDescription
+      // );
+      const jobId = crypto.randomUUID(); // Placeholder for actual job ID generation logic
+      notify('success', `Pipeline run submitted. Job ID: ${jobId}`);
+      setSubmittedJobId(jobId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      notify('error', `Pipeline failed to submit: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : '';
+      notify('error', `Pipeline failed to submit. ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -177,88 +201,118 @@ export const RunJob = () => {
               </div>
             )}
           </div>
-          <h3 style={{ marginBottom: '0.5rem' }}>Enter prefix for output file *</h3>
-          <TextInput
-            aria-label='output file prefix'
-            type='text'
-            value={runOutputFilePrefix}
-            placeholder='Enter prefix name'
-            style={{ width: 400 }}
-            onChange={setRunOutputFilePrefix}
-          />
-          <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic' }}>
-            May only contain alphanumeric characters, dashes, and underscores.
-          </div>
-          <h3 style={{ marginBottom: '0.5rem' }}>
-            Enter description <span style={{ fontStyle: 'italic', fontWeight: 'normal' }}> - optional</span>
-          </h3>
-          <TextArea
-            rows={4}
-            aria-label='description'
-            value={runDescription}
-            placeholder='Enter optional description'
-            style={{ width: 500 }}
-            onChange={setRunDescription}
-          />
-          <h3 style={{ marginBottom: '0.5rem' }}>Upload file *</h3>
-          {pipelineInputs
-            .filter((input) => input.type === 'FILE' && input.isRequired)
-            .map((input) => {
-              return (
-                <PipelineFileInput
-                  key={`${input.name}`}
-                  selectedFile={selectedFile}
-                  onFileSelect={setSelectedFile}
-                  requiredSuffix={selectedPipeline?.pipelineName === 'array_imputation' ? '.vcf.gz' : undefined}
-                />
-              );
-            })}
-          {!showSuccessfulSubmissionMessage && (
-            <ButtonPrimary
-              disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
-              style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
-              onClick={handleSubmit}
-            >
-              {isSubmitting ? <Spinner size={16} /> : 'Submit'}
-            </ButtonPrimary>
-          )}
-          {showSuccessfulSubmissionMessage && (
+
+          {!isLoading && (
             <>
-              <div
-                style={{
-                  width: 500,
-                  border: '1px solid #8f95a0',
-                  borderRadius: '4px',
-                  padding: '1rem',
-                  marginTop: '1rem',
-                  backgroundColor: '#fff',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
-                <Icon icon='success-standard' size={24} style={{ color: '#74AE43', margin: '0 1rem' }} />
-                <div>
-                  Your job has been submitted. You can check the status of that job by going to the{' '}
-                  <Link style={{ color: '#46A3E9' }} href={Nav.getLink('pipelines-history')}>
-                    Job History
-                  </Link>{' '}
-                  tab.
-                </div>
-              </div>
-              <ButtonPrimary
-                disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
-                style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
-                onClick={() => {
-                  setSelectedFile(null);
-                  setRunOutputFilePrefix('');
-                  setRunDescription('');
-                  setShowSuccessfulSubmissionMessage(false);
-                }}
-              >
-                Run another job
-              </ButtonPrimary>
+              {/* Displays all STRING inputs, one after another */}
+              {pipelineInputs
+                .filter((input) => input.type === 'STRING')
+                .map((input) => {
+                  return (
+                    <PipelineStringInput
+                      input={input}
+                      onChange={() =>
+                        setSelectedUserInputs((prev) => ({
+                          ...prev,
+                          [input.name]: '',
+                        }))
+                      }
+                      value={selectedUserInputs[input.name] || ''}
+                      key={`${input.name}`}
+                    />
+                  );
+                })}
+
+              {/* Displays optional run description */}
+              <h3 style={{ marginBottom: '0.5rem' }}>
+                Enter description <span style={{ fontStyle: 'italic', fontWeight: 'normal' }}> - optional</span>
+              </h3>
+              <TextArea
+                rows={4}
+                aria-label='description'
+                value={runDescription}
+                placeholder='Enter optional description'
+                style={{ width: 500 }}
+                onChange={setRunDescription}
+              />
+
+              {/* Displays all FILE inputs, one after another */}
+              {pipelineInputs
+                .filter((input) => input.type === 'FILE')
+                .map((input) => {
+                  return (
+                    <PipelineFileInput
+                      key={`${input.name}`}
+                      input={input}
+                      selectedFile={selectedUserInputs[input.name] || null}
+                      onFileSelect={(file) => {
+                        setSelectedUserInputs((prev) => ({
+                          ...prev,
+                          [input.name]: file,
+                        }));
+                      }}
+                      requiredSuffix={input.fileSuffix}
+                    />
+                  );
+                })}
+              {!submittedJobId && (
+                <ButtonPrimary
+                  disabled={!selectedPipeline || !runOutputFilePrefix || isSubmitting}
+                  style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
+                  onClick={handleSubmit}
+                >
+                  {isSubmitting ? <Spinner size={16} /> : 'Submit'}
+                </ButtonPrimary>
+              )}
+              {submittedJobId && (
+                <>
+                  <div>
+                    <div
+                      style={{
+                        width: 500,
+                        border: '1px solid #8f95a0',
+                        borderRadius: '4px',
+                        padding: '1rem',
+                        marginTop: '1rem',
+                        backgroundColor: '#fff',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Icon icon='success-standard' size={36} style={{ color: '#74AE43', margin: '0 1rem' }} />
+                      <div>
+                        Your job has been submitted. You can check the status of that job by going to the{' '}
+                        <Link style={{ color: '#46A3E9' }} href={Nav.getLink('pipelines-history')}>
+                          Job History
+                        </Link>{' '}
+                        tab.
+                        <div style={{ marginTop: '1rem' }}>
+                          <span style={{ fontWeight: 'bold' }}>Job ID:</span> <code>{submittedJobId}</code>
+                          <ClipboardButton style={{ marginLeft: '0.5rem' }} text={submittedJobId} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <ButtonPrimary
+                    disabled={!selectedPipeline || !runOutputFilePrefix || isSubmitting}
+                    style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
+                    onClick={() => {
+                      setRunOutputFilePrefix('');
+                      setRunDescription('');
+                      setSubmittedJobId(undefined);
+                    }}
+                  >
+                    Run another job
+                  </ButtonPrimary>
+                </>
+              )}
             </>
+          )}
+          {isLoading && (
+            <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Spinner /> Loading pipeline details...
+            </div>
           )}
         </div>
         <div>

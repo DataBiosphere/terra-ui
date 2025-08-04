@@ -1,21 +1,25 @@
 import { Icon } from '@terra-ui-packages/components';
 import React, { useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
+import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { formatBytes } from 'src/libs/utils';
+import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/components/inputs/input-utils';
 
 interface PipelineInputSelectorProps {
+  input: PipelineInput;
   selectedFile: File | null;
   onFileSelect: (file: File | null) => void;
   requiredSuffix?: string;
 }
 
 export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
+  input,
   selectedFile,
   onFileSelect,
   requiredSuffix,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isFileValid = selectedFile?.name.endsWith(requiredSuffix || '');
+  const isFileValid = selectedFile && selectedFile.name.endsWith(requiredSuffix || '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,133 +55,140 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   };
 
   return (
-    <div
-      style={{
-        width: 500,
-        marginBottom: '1rem',
-        border: '1px solid #8f95a0',
-        backgroundColor: '#fff',
-        padding: '1rem',
-        borderRadius: '4px',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <Dropzone
-        onDrop={handleDrop}
-        disabled={!!selectedFile}
+    <div>
+      <h3 style={{ marginBottom: '0.5rem' }}>
+        {INPUT_DESCRIPTIONS[input.name]} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+      </h3>
+      <div
         style={{
-          borderRadius: '8px',
-          border: '1px dashed #46A3E9',
-          padding: '2rem 0.5rem',
-          background: 'rgba(128, 198, 236, 0.20)',
-          textAlign: 'center',
-          cursor: selectedFile ? 'default' : 'pointer',
-          height: '120px',
-          outline: 'none',
-        }}
-        activeStyle={{
-          border: '1px dashed #4D72AA',
-          background: 'rgba(77, 114, 170, 0.20)',
+          width: 500,
+          marginBottom: '1rem',
+          border: '1px solid #8f95a0',
+          backgroundColor: '#fff',
+          padding: '1rem',
+          borderRadius: '4px',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {({ dragging }) => (
-          <>
-            <input
-              ref={fileInputRef}
-              type='file'
-              onChange={handleFileChange}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                opacity: 0,
-                pointerEvents: 'none',
-              }}
-            />
-            <div>
-              {selectedFile ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}>
-                    {isFileValid ? (
-                      <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
-                    ) : (
-                      <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
-                    )}
-                    <div
-                      style={{
-                        color: '#333',
-                        paddingLeft: '0.5rem',
-                        fontWeight: 600,
-                        overflowWrap: 'anywhere',
-                        textAlign: 'left',
-                      }}
-                    >
-                      {selectedFile.name}{' '}
-                      <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
-                        ({formatBytes(selectedFile?.size)})
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    type='button'
-                    onClick={handleClearFile}
+        <Dropzone
+          onDrop={handleDrop}
+          disabled={!!selectedFile}
+          style={{
+            borderRadius: '8px',
+            border: '1px dashed #46A3E9',
+            padding: '2rem 0.5rem',
+            background: 'rgba(128, 198, 236, 0.20)',
+            textAlign: 'center',
+            cursor: selectedFile ? 'default' : 'pointer',
+            height: '120px',
+            outline: 'none',
+          }}
+          activeStyle={{
+            border: '1px dashed #4D72AA',
+            background: 'rgba(77, 114, 170, 0.20)',
+          }}
+        >
+          {({ dragging }) => (
+            <>
+              <input
+                ref={fileInputRef}
+                type='file'
+                onChange={handleFileChange}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  opacity: 0,
+                  pointerEvents: 'none',
+                }}
+              />
+              <div>
+                {selectedFile ? (
+                  <div
                     style={{
-                      zIndex: 1,
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#666',
+                      display: 'flex',
+                      flexDirection: 'row',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      // UX consideration: the padding is here to make the clickable area larger
-                      padding: '1rem',
+                      justifyContent: 'space-between',
                     }}
-                    aria-label='Remove selected file'
                   >
-                    <Icon icon='times' size={24} color='#4D72AA' />
-                  </button>
-                </div>
-              ) : (
-                <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
-                  {dragging ? `Drop ${requiredSuffix} file here` : `Drop ${requiredSuffix} file or`}{' '}
-                  {!dragging && (
+                    <div
+                      style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}
+                    >
+                      {isFileValid ? (
+                        <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
+                      ) : (
+                        <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
+                      )}
+                      <div
+                        style={{
+                          color: '#333',
+                          paddingLeft: '0.5rem',
+                          fontWeight: 600,
+                          overflowWrap: 'anywhere',
+                          textAlign: 'left',
+                        }}
+                      >
+                        {selectedFile.name}{' '}
+                        <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
+                          ({formatBytes(selectedFile?.size)})
+                        </span>
+                      </div>
+                    </div>
                     <button
                       type='button'
-                      onClick={handleBrowseClick}
-                      onKeyDown={handleKeyPress}
+                      onClick={handleClearFile}
                       style={{
-                        color: '#46A3E9',
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
+                        zIndex: 1,
                         background: 'none',
                         border: 'none',
-                        padding: 0,
-                        font: 'inherit',
-                        fontWeight: 'inherit',
+                        cursor: 'pointer',
+                        color: '#666',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        // UX consideration: the padding is here to make the clickable area larger
+                        padding: '1rem',
                       }}
+                      aria-label='Remove selected file'
                     >
-                      browse
+                      <Icon icon='times' size={24} color='#4D72AA' />
                     </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </>
+                  </div>
+                ) : (
+                  <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
+                    {dragging ? `Drop ${requiredSuffix} file here` : `Drop ${requiredSuffix} file or`}{' '}
+                    {!dragging && (
+                      <button
+                        type='button'
+                        onClick={handleBrowseClick}
+                        onKeyDown={handleKeyPress}
+                        style={{
+                          color: '#46A3E9',
+                          textDecoration: 'underline',
+                          cursor: 'pointer',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          font: 'inherit',
+                          fontWeight: 'inherit',
+                        }}
+                      >
+                        browse
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </Dropzone>
+        {!isFileValid && selectedFile && (
+          <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
+            Invalid file type. Please upload a <strong>{requiredSuffix}</strong> file.
+          </div>
         )}
-      </Dropzone>
-      {!isFileValid && selectedFile && (
-        <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
-          Invalid file type. Please upload a <strong>{requiredSuffix}</strong> file.
-        </div>
-      )}
+      </div>
     </div>
   );
 };
