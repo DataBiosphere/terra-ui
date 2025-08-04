@@ -51,35 +51,35 @@ export async function prepareUploadStartPipelineRun(
 
 export const RunJob = () => {
   const signal = useCancellation();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
 
-  // Input parameter names by pipeline name and version
+  // Input parameter names for the selected pipeline
   const [pipelineInputs, setPipelineInputs] = useState<PipelineInput[]>([]);
 
   // User inputs for the run
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runDescription, setRunDescription] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // TODO: replace this with generic dict of inputs, to support more pipelines
-  const [runOutputFilePrefix, setRunOutputFilePrefix] = useState<string>('');
-  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
 
-  useEffect(() => {
-    // Update selected user inputs when pipeline inputs change
+  // Submission state
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submittedJobId, setSubmittedJobId] = useState<string>();
+
+  const resetSelectedUserInputs = () => {
     const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
       acc[input.name] = selectedUserInputs[input.name] || '';
       return acc;
     }, {});
     setSelectedUserInputs(newSelectedUserInputs);
-  }, [pipelineInputs]); // eslint-disable-line react-hooks/exhaustive-deps
+  };
 
-  // Submission state
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submittedJobId, setSubmittedJobId] = useState<string>();
+  useEffect(() => {
+    // Update selected user inputs when pipeline inputs change
+    resetSelectedUserInputs();
+  }, [pipelineInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     async function fetchData() {
@@ -111,7 +111,7 @@ export const RunJob = () => {
   }, [signal]);
 
   const handleSubmit = async () => {
-    if (!selectedPipeline || !runOutputFilePrefix) {
+    if (!selectedPipeline) {
       console.error('Missing required fields');
       return;
     }
@@ -125,17 +125,6 @@ export const RunJob = () => {
       return;
     }
 
-    const pipelineInputsForVersion = pipelineInputs;
-    const selectedPipelineInputs = {};
-
-    // E.g. "outputBasename" for array_imputation v1
-    const outputPrefixParamName = pipelineInputsForVersion.find(
-      (input) => input.type === 'STRING' && input.isRequired
-    )?.name;
-    if (outputPrefixParamName) {
-      selectedPipelineInputs[outputPrefixParamName] = runOutputFilePrefix;
-    }
-
     // Converts the input values to the format expected by the backend (i.e. file names for File inputs)
     const finalInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
       if (value instanceof File) {
@@ -145,6 +134,8 @@ export const RunJob = () => {
       }
       return acc;
     }, {});
+
+    console.log(finalInputs);
 
     try {
       setIsSubmitting(true);
@@ -211,13 +202,13 @@ export const RunJob = () => {
                   return (
                     <PipelineStringInput
                       input={input}
-                      onChange={() =>
+                      onChange={(value) =>
                         setSelectedUserInputs((prev) => ({
                           ...prev,
-                          [input.name]: '',
+                          [input.name]: value,
                         }))
                       }
-                      value={selectedUserInputs[input.name] || ''}
+                      value={selectedUserInputs[input.name]}
                       key={`${input.name}`}
                     />
                   );
@@ -251,13 +242,12 @@ export const RunJob = () => {
                           [input.name]: file,
                         }));
                       }}
-                      requiredSuffix={input.fileSuffix}
                     />
                   );
                 })}
               {!submittedJobId && (
                 <ButtonPrimary
-                  disabled={!selectedPipeline || !runOutputFilePrefix || isSubmitting}
+                  disabled={!selectedPipeline || isSubmitting}
                   style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                   onClick={handleSubmit}
                 >
@@ -295,10 +285,10 @@ export const RunJob = () => {
                     </div>
                   </div>
                   <ButtonPrimary
-                    disabled={!selectedPipeline || !runOutputFilePrefix || isSubmitting}
+                    disabled={!selectedPipeline || isSubmitting}
                     style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                     onClick={() => {
-                      setRunOutputFilePrefix('');
+                      resetSelectedUserInputs();
                       setRunDescription('');
                       setSubmittedJobId(undefined);
                     }}

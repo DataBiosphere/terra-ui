@@ -9,17 +9,11 @@ interface PipelineInputSelectorProps {
   input: PipelineInput;
   selectedFile: File | null;
   onFileSelect: (file: File | null) => void;
-  requiredSuffix?: string;
 }
 
-export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
-  input,
-  selectedFile,
-  onFileSelect,
-  requiredSuffix,
-}) => {
+export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({ input, selectedFile, onFileSelect }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isFileValid = selectedFile && selectedFile.name.endsWith(requiredSuffix || '');
+  const isFileValid = selectedFile && selectedFile.name.endsWith(input.fileSuffix || '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,7 +70,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           disabled={!!selectedFile}
           style={{
             borderRadius: '8px',
-            border: '1px dashed #46A3E9',
+            border: `1px #46A3E9 ${selectedFile ? 'none' : 'dashed'}`,
             padding: '2rem 0.5rem',
             background: 'rgba(128, 198, 236, 0.20)',
             textAlign: 'center',
@@ -95,6 +89,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                 ref={fileInputRef}
                 type='file'
                 onChange={handleFileChange}
+                accept={input.fileSuffix}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -140,7 +135,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                       type='button'
                       onClick={handleClearFile}
                       style={{
-                        zIndex: 1,
+                        // zIndex: 1,
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
@@ -157,7 +152,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   </div>
                 ) : (
                   <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
-                    {dragging ? `Drop ${requiredSuffix} file here` : `Drop ${requiredSuffix} file or`}{' '}
+                    {dragging ? `Drop ${input.fileSuffix} file here` : `Drop ${input.fileSuffix} file or`}{' '}
                     {!dragging && (
                       <button
                         type='button'
@@ -185,7 +180,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         </Dropzone>
         {!isFileValid && selectedFile && (
           <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
-            Invalid file type. Please upload a <strong>{requiredSuffix}</strong> file.
+            Invalid file type. Please upload a <strong>{input.fileSuffix}</strong> file.
           </div>
         )}
       </div>

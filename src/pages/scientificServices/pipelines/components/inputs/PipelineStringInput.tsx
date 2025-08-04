@@ -18,7 +18,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({ input,
       <TextInput
         aria-label='output file prefix'
         type='text'
-        value={value}
+        value={value || ''}
         placeholder='Enter prefix name'
         style={{ width: 400 }}
         onChange={onChange}
