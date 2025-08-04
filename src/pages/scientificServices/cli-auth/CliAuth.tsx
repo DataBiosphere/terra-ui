@@ -9,7 +9,7 @@ export const CliAuth = () => {
   const authCode = queryParams.get('code');
 
   return (
-    <div style={{ width: '20%', alignItems: 'center', margin: 'auto', padding: '2rem' }}>
+    <div style={{ width: '500px', alignItems: 'center', margin: 'auto', padding: '2rem' }}>
       <img
         src='src/images/brands/scientificServices/dspLogo.svg'
         alt='Broad Institute Data Sciences Platform'
@@ -17,12 +17,13 @@ export const CliAuth = () => {
       />
       <h1>Sign in to the terralab CLI</h1>
       <div style={{ margin: '2rem 0' }}>
-        You have reached this page because you ran <code style={{ backgroundColor: '#eee' }}>terralab login</code> from
+        You have reached this page because you ran{' '}
+        <code style={{ backgroundColor: '#eee', padding: '0.1rem', borderRadius: '4px' }}>terralab login</code> from
         this or another machine. If this is not the case, close this tab.
       </div>
       <div style={{ margin: '2rem 0' }}>
         Enter the following verification code in the terralab CLI. This is a credential{' '}
-        <strong>similar to your password</strong> and should not be shared with others.
+        <span style={{ fontWeight: 'bold' }}>similar to your password</span> and should not be shared with others.
       </div>
       {authCode ? (
         <>
@@ -45,7 +46,6 @@ export const CliAuth = () => {
               padding: '0.5rem 1rem',
               borderRadius: '4px',
               textDecoration: 'none',
-              cursor: 'pointer',
             }}
             text={authCode}
           >
