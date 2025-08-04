@@ -56,6 +56,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         width: 500,
         marginBottom: '1rem',
         border: '1px solid #8f95a0',
+        backgroundColor: '#fff',
         padding: '1rem',
         borderRadius: '4px',
         display: 'flex',
@@ -68,7 +69,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         style={{
           borderRadius: '8px',
           border: '1px dashed #46A3E9',
-          padding: '2rem',
+          padding: '2rem 0.5rem',
           background: 'rgba(128, 198, 236, 0.20)',
           textAlign: 'center',
           cursor: selectedFile ? 'default' : 'pointer',
@@ -106,13 +107,24 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                 >
                   <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'left' }}>
                     {isFileValid ? (
-                      <Icon icon='success-standard' size={24} style={{ color: '#74AE43', marginLeft: '1rem' }} />
+                      <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
                     ) : (
-                      <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', marginLeft: '1rem' }} />
+                      <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
                     )}
-                    <span style={{ color: '#333', paddingLeft: '0.5rem', fontWeight: 600 }}>
-                      {selectedFile.name} ({formatBytes(selectedFile?.size)})
-                    </span>
+                    <div
+                      style={{
+                        color: '#333',
+                        paddingLeft: '0.5rem',
+                        fontWeight: 600,
+                        overflowWrap: 'anywhere',
+                        textAlign: 'left',
+                      }}
+                    >
+                      {selectedFile.name}{' '}
+                      <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
+                        ({formatBytes(selectedFile?.size)})
+                      </span>
+                    </div>
                   </div>
                   <button
                     type='button'
@@ -134,8 +146,8 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   </button>
                 </div>
               ) : (
-                <div style={{ fontWeight: 600, paddingTop: '1.25rem' }}>
-                  {dragging ? 'Drop file here' : 'Drop file or'}{' '}
+                <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
+                  {dragging ? `Drop ${requiredSuffix} file here` : `Drop ${requiredSuffix} file or`}{' '}
                   {!dragging && (
                     <button
                       type='button'
@@ -161,6 +173,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           </>
         )}
       </Dropzone>
+      {!isFileValid && selectedFile && (
+        <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
+          Invalid file type. Please upload a <strong>{requiredSuffix}</strong> file.
+        </div>
+      )}
     </div>
   );
 };

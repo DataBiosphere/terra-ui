@@ -1,11 +1,12 @@
-import { ButtonPrimary, Select, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { TextArea, TextInput } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
@@ -53,7 +54,8 @@ export const RunJob = () => {
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
 
   // Input parameter names by pipeline name and version
-  const [pipelineInputs, setPipelineInputs] = useState<Record<string, any>>({});
+  const [pipelineInputs, setPipelineInputs] = useState<PipelineInput[]>([]);
+  console.log(pipelineInputs);
 
   // User inputs for the run
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
@@ -61,6 +63,7 @@ export const RunJob = () => {
   const [runDescription, setRunDescription] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showSuccessfulSubmissionMessage, setShowSuccessfulSubmissionMessage] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -83,14 +86,11 @@ export const RunJob = () => {
         const pipelineName = pipeline.pipelineName;
         const pipelineVersion = pipeline.pipelineVersion;
         const { inputs } = await Teaspoons(signal).getPipelineDetails(pipelineName, pipelineVersion);
-        const pipelineNameVersion = `${pipelineName}${pipelineVersion}`;
-        const newInputs = {};
-        newInputs[pipelineNameVersion] = inputs;
-        setPipelineInputs(Object.assign(pipelineInputs, newInputs));
+        setPipelineInputs(inputs);
       });
     }
     fetchData();
-  }, [signal, pipelineInputs]);
+  }, [signal]);
 
   const handleSubmit = async () => {
     if (!selectedFile || !selectedPipeline || !runOutputFilePrefix) {
@@ -132,9 +132,8 @@ export const RunJob = () => {
         selectedPipelineInputs,
         runDescription
       );
-      // TODO: use a better way to navigate to the pipelines history page
-      window.location.href = '#services/pipelines/history';
       notify('success', 'Pipeline run submitted');
+      setShowSuccessfulSubmissionMessage(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       notify('error', `Pipeline failed to submit: ${errorMessage}`);
@@ -202,25 +201,65 @@ export const RunJob = () => {
             onChange={setRunDescription}
           />
           <h3 style={{ marginBottom: '0.5rem' }}>Upload file *</h3>
-          <PipelineFileInput
-            selectedFile={selectedFile}
-            onFileSelect={setSelectedFile}
-            requiredSuffix={selectedPipeline?.pipelineName === 'array_imputation' ? '.vcf.gz' : undefined}
-          />
-          {selectedFile &&
-            !selectedFile.name.endsWith('.vcf.gz') &&
-            selectedPipeline?.pipelineName === 'array_imputation' && (
-              <div style={{ color: 'red', marginTop: '0.5rem' }}>
-                The selected file must have a .vcf.gz extension for the array_imputation pipeline.
+          {pipelineInputs
+            .filter((input) => input.type === 'FILE' && input.isRequired)
+            .map((input) => {
+              return (
+                <PipelineFileInput
+                  key={`${input.name}`}
+                  selectedFile={selectedFile}
+                  onFileSelect={setSelectedFile}
+                  requiredSuffix={selectedPipeline?.pipelineName === 'array_imputation' ? '.vcf.gz' : undefined}
+                />
+              );
+            })}
+          {!showSuccessfulSubmissionMessage && (
+            <ButtonPrimary
+              disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
+              style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
+              onClick={handleSubmit}
+            >
+              {isSubmitting ? <Spinner size={16} /> : 'Submit'}
+            </ButtonPrimary>
+          )}
+          {showSuccessfulSubmissionMessage && (
+            <>
+              <div
+                style={{
+                  width: 500,
+                  border: '1px solid #8f95a0',
+                  borderRadius: '4px',
+                  padding: '1rem',
+                  marginTop: '1rem',
+                  backgroundColor: '#fff',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Icon icon='success-standard' size={24} style={{ color: '#74AE43', margin: '0 1rem' }} />
+                <div>
+                  Your job has been submitted. You can check the status of that job by going to the{' '}
+                  <Link style={{ color: '#46A3E9' }} href={Nav.getLink('pipelines-history')}>
+                    Job History
+                  </Link>{' '}
+                  tab.
+                </div>
               </div>
-            )}
-          <ButtonPrimary
-            disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
-            style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
-            onClick={handleSubmit}
-          >
-            {isSubmitting ? <Spinner size={16} /> : 'Submit'}
-          </ButtonPrimary>
+              <ButtonPrimary
+                disabled={!selectedPipeline || !runOutputFilePrefix || !selectedFile || isSubmitting}
+                style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
+                onClick={() => {
+                  setSelectedFile(null);
+                  setRunOutputFilePrefix('');
+                  setRunDescription('');
+                  setShowSuccessfulSubmissionMessage(false);
+                }}
+              >
+                Run another job
+              </ButtonPrimary>
+            </>
+          )}
         </div>
         <div>
           <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
