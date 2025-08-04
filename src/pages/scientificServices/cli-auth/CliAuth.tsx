@@ -35,6 +35,7 @@ export const CliAuth = () => {
               backgroundColor: '#f0f0f0',
               padding: '1rem',
               marginBottom: '2rem',
+              wordWrap: 'break-word',
             }}
           >
             <code>{authCode}</code>
