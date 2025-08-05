@@ -786,10 +786,8 @@ export const WorkflowView = _.flow(
         useCallCache,
         deleteIntermediateOutputFiles,
         useReferenceDisks,
-        // Memory Retry may return
-        // https://broadworkbench.atlassian.net/browse/AN-539
-        // retryWithMoreMemory,
-        // retryMemoryFactor,
+        retryWithMoreMemory,
+        retryMemoryFactor,
         ignoreEmptyOutputs,
         enableResourceMonitoring,
         monitoringScript,
@@ -1104,63 +1102,60 @@ export const WorkflowView = _.flow(
                       h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
                     ]),
                   ]),
-                  // Memory Retry may return
-                  // https://broadworkbench.atlassian.net/browse/AN-539
-                  //
-                  // div([
-                  //   span({ style: styles.checkBoxSpanMargins }, [
-                  //     h(
-                  //       LabeledCheckbox,
-                  //       {
-                  //         checked: retryWithMoreMemory,
-                  //         onChange: (v) => this.setState({ retryWithMoreMemory: v }),
-                  //         style: styles.checkBoxLeftMargin,
-                  //       },
-                  //       [' Retry with more memory']
-                  //     ),
-                  //   ]),
-                  //   // We show either an info message or a warning, based on whether increasing memory on retries is
-                  //   // enabled and the value of the retry multiplier.
-                  //   retryWithMoreMemory && retryMemoryFactor > 2
-                  //     ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
-                  //         'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
-                  //         h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  //       ])
-                  //     : h(InfoBox, [
-                  //         'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
-                  //         h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                  //       ]),
-                  // ]),
-                  // div([
-                  //   retryWithMoreMemory &&
-                  //     span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
-                  //       h(IdContainer, [
-                  //         (id) =>
-                  //           h(Fragment, [
-                  //             label(
-                  //               {
-                  //                 htmlFor: id,
-                  //                 style: { ...styles.label, verticalAlign: 'middle', marginLeft: '1.5rem' },
-                  //               },
-                  //               ['Memory factor:']
-                  //             ),
-                  //             div({ style: { display: 'inline-block', marginLeft: '0.5rem', height: '1.75rem', marginTop: '0.5rem' } }, [
-                  //               h(NumberInput, {
-                  //                 id,
-                  //                 min: 1.1,
-                  //                 max: 10,
-                  //                 step: 0.1,
-                  //                 isClearable: false,
-                  //                 onlyInteger: false,
-                  //                 value: retryMemoryFactor,
-                  //                 style: { fontSize: 12, width: '5rem' },
-                  //                 onChange: (v) => this.setState({ retryMemoryFactor: v }),
-                  //               }),
-                  //             ]),
-                  //           ]),
-                  //       ]),
-                  //     ]),
-                  // ]),
+                  div([
+                    span({ style: styles.checkBoxSpanMargins }, [
+                      h(
+                        LabeledCheckbox,
+                        {
+                          checked: retryWithMoreMemory,
+                          onChange: (v) => this.setState({ retryWithMoreMemory: v }),
+                          style: styles.checkBoxLeftMargin,
+                        },
+                        [' Retry with more memory']
+                      ),
+                    ]),
+                    // We show either an info message or a warning, based on whether increasing memory on retries is
+                    // enabled and the value of the retry multiplier.
+                    retryWithMoreMemory && retryMemoryFactor > 2
+                      ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
+                          'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
+                          h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                        ])
+                      : h(InfoBox, [
+                          'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
+                          h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                        ]),
+                  ]),
+                  div([
+                    retryWithMoreMemory &&
+                      span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
+                        h(IdContainer, [
+                          (id) =>
+                            h(Fragment, [
+                              label(
+                                {
+                                  htmlFor: id,
+                                  style: { ...styles.label, verticalAlign: 'middle', marginLeft: '1.5rem' },
+                                },
+                                ['Memory factor:']
+                              ),
+                              div({ style: { display: 'inline-block', marginLeft: '0.5rem', height: '1.75rem', marginTop: '0.5rem' } }, [
+                                h(NumberInput, {
+                                  id,
+                                  min: 1.1,
+                                  max: 10,
+                                  step: 0.1,
+                                  isClearable: false,
+                                  onlyInteger: false,
+                                  value: retryMemoryFactor,
+                                  style: { fontSize: 12, width: '5rem' },
+                                  onChange: (v) => this.setState({ retryMemoryFactor: v }),
+                                }),
+                              ]),
+                            ]),
+                        ]),
+                      ]),
+                  ]),
                 ]),
                 span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
                   div([
