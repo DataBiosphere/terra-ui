@@ -13,18 +13,39 @@ import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/s
 import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
-import {
-  SubmissionState,
-  SubmissionStatusBar,
-} from 'src/pages/scientificServices/pipelines/components/SubmissionStatusBar';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
-async function uploadFileWithSignedUrl(inputFile, signedUrl) {
-  return await fetch(signedUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/octet-stream' },
-    body: inputFile,
+async function uploadFileWithSignedUrl(
+  inputFile: File,
+  signedUrl: string,
+  onProgress?: (percent: number) => void
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable && onProgress) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        onProgress(percent);
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      reject(new Error('Upload failed'));
+    });
+
+    xhr.open('PUT', signedUrl);
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    xhr.send(inputFile);
   });
 }
 
@@ -34,7 +55,7 @@ export async function prepareUploadStartPipelineRun(
   selectedUserInputs: Record<string, any>,
   description: string,
   pipelineInputs: PipelineInput[],
-  setLoadingMessage: (submissionState?: SubmissionState) => void
+  setUploadProgress: (percentage: Record<string, any>) => void = () => {}
 ): Promise<string> {
   const jobId = crypto.randomUUID();
 
@@ -47,7 +68,6 @@ export async function prepareUploadStartPipelineRun(
     return acc;
   }, {});
 
-  setLoadingMessage('preparing');
   const { fileInputUploadUrls } = await Teaspoons().preparePipelineRun(
     jobId,
     pipelineName,
@@ -57,7 +77,6 @@ export async function prepareUploadStartPipelineRun(
   );
 
   // Gather all FILE inputs and wait for their uploads to complete
-  setLoadingMessage('uploading');
   await Promise.all(
     pipelineInputs
       .filter((input) => input.type === 'FILE')
@@ -65,17 +84,18 @@ export async function prepareUploadStartPipelineRun(
         const file = selectedUserInputs[input.name];
         const signedUrl = fileInputUploadUrls[input.name].signedUrl;
         if (file instanceof File) {
-          // Upload the file using the signed URL
-          return await uploadFileWithSignedUrl(file, signedUrl);
+          return await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
+            setUploadProgress((prev) => ({
+              ...prev,
+              [input.name]: percent,
+            }));
+          });
         }
         throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
       })
   );
 
-  setLoadingMessage('starting');
-  await Teaspoons().startPipelineRun(jobId);
-  setLoadingMessage(undefined); // Clear loading message after starting the run
-
+  // await Teaspoons().startPipelineRun(jobId);
   return jobId;
 }
 
@@ -85,6 +105,7 @@ export const RunJob = () => {
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
 
   // Input parameter names for the selected pipeline
   const [pipelineInputs, setPipelineInputs] = useState<PipelineInput[]>([]);
@@ -97,7 +118,6 @@ export const RunJob = () => {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
-  const [submissionState, setSubmissionState] = useState<SubmissionState>();
 
   const resetSelectedUserInputs = () => {
     const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
@@ -177,7 +197,7 @@ export const RunJob = () => {
         selectedUserInputs,
         runDescription,
         pipelineInputs,
-        setSubmissionState
+        setUploadProgress
       );
       notify('success', `Pipeline run submitted. Job ID: ${jobId}`);
       setSubmittedJobId(jobId);
@@ -247,10 +267,8 @@ export const RunJob = () => {
                     />
                   );
                 })}
-
               {/* Displays optional run description */}
               <PipelineRunDescription value={runDescription} onChange={setRunDescription} />
-
               {/* Displays all FILE inputs, one after another */}
               {pipelineInputs
                 .filter((input) => input.type === 'FILE')
@@ -269,9 +287,33 @@ export const RunJob = () => {
                     />
                   );
                 })}
-
-              {isSubmitting && submissionState && <SubmissionStatusBar submissionState={submissionState} />}
-
+              {/* {isSubmitting && submissionState && <SubmissionStatusBar submissionState={submissionState} />} */}
+              {pipelineInputs
+                .filter((input) => input.type === 'FILE')
+                .map((input) => {
+                  const progress = uploadProgress[input.name] || 0;
+                  return (
+                    <div key={input.name} style={{ marginTop: '1rem' }}>
+                      <div
+                        style={{
+                          width: '500px',
+                          backgroundColor: '#f0f0f0',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${progress}%`,
+                            height: '20px',
+                            backgroundColor: '#5CC88D',
+                            transition: 'width 0.3s ease-in-out',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               {!submittedJobId && (
                 <ButtonPrimary
                   disabled={!selectedPipeline || isSubmitting || !areAllRequiredInputsFilled()}
