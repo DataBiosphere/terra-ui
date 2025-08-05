@@ -24,6 +24,7 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
   React.useEffect(() => {
     setResourceId('');
     setLookupValue('');
+    setGoogleProjectId('');
   }, [props.fqResourceId.resourceTypeName]);
 
   // the resourceType may be configured to skip policy retrieval/display
@@ -143,13 +144,13 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
           </ButtonPrimary>
         </div>
 
-        {currentResourceType?.loadSupportSummaryByGoogleProjectId && (
+        {currentResourceType?.lookupByGoogleProjectPlaceHolder && (
           <div style={{ marginRight: '0.5rem', marginLeft: '1rem', flex: 1, marginBottom: '0.5rem' }}>
             <div style={{ fontWeight: 500 }}>or</div>
           </div>
         )}
 
-        {currentResourceType?.loadSupportSummaryByGoogleProjectId && (
+        {currentResourceType?.lookupByGoogleProjectPlaceHolder && (
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
             <TextInput
               style={{ marginRight: '0.5rem', marginLeft: '1rem', flex: 1 }}
@@ -159,7 +160,7 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
                 if (e.key === 'Enter') {
                   setIsGoogleProjectLookup(true);
 
-                  submit();
+                  submit(googleProjectId);
                 }
               }}
               value={googleProjectId}
@@ -168,7 +169,7 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
               onClick={() => {
                 setIsGoogleProjectLookup(true);
 
-                submit();
+                submit(googleProjectId);
               }}
             >
               Load By {currentResourceType.lookupByGoogleProjectPlaceHolder}

@@ -21,6 +21,7 @@ export interface SupportResourceType {
   lookupResourceIdFn?: (value: string) => Promise<FullyQualifiedResourceId>;
   lookupResourceIdBoxPlaceholder?: string;
   lookupByGoogleProjectPlaceHolder?: string;
+  loadSupportSummaryByGoogleProjectId?: (id: string) => Promise<SupportSummary>;
 }
 
 // Define the supported resources, add your own here
@@ -45,6 +46,7 @@ export const supportResources: SupportResourceType[] = [
     },
     lookupResourceIdBoxPlaceholder: 'Namespace/Name',
     lookupByGoogleProjectPlaceHolder: 'Google Project Id',
+    loadSupportSummaryByGoogleProjectId: (id: string) => Workspaces().adminGetByGoogleProjectId(id),
   },
   {
     displayName: 'Billing Project',
