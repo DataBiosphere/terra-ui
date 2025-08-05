@@ -36,6 +36,8 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors, { terraSpecial } from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
+import { WORKFLOW_RETRY_WITH_MORE_MEMORY } from 'src/libs/feature-previews-config';
 import { HiddenLabel } from 'src/libs/forms';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -373,14 +375,17 @@ export const WorkflowView = _.flow(
       const resourceMonitoringPref = workflowOptionsPref?.resourceMonitoring;
       const resourceMonitoringEnabledPref = resourceMonitoringPref?.enabled;
 
+      const retryWithMoreMemorySettingEnabledFlag = isFeaturePreviewEnabled(WORKFLOW_RETRY_WITH_MORE_MEMORY);
+
       this.state = {
         activeTab: 'inputs',
         entitySelectionModel: { selectedEntities: {} },
         useCallCache: workflowOptionsPref && 'useCallCache' in workflowOptionsPref ? workflowOptionsPref.useCallCache : true,
         deleteIntermediateOutputFiles: workflowOptionsPref?.deleteIntermediateOutputFiles || false,
         useReferenceDisks: workflowOptionsPref?.useReferenceDisks || false,
-        retryWithMoreMemory: retryWithMoreMemoryPref?.enabled || false,
-        retryMemoryFactor: retryWithMoreMemoryPref?.enabled ? retryWithMoreMemoryPref?.factor : 1.2,
+        retryWithMoreMemorySettingEnabled: retryWithMoreMemorySettingEnabledFlag,
+        retryWithMoreMemory: (retryWithMoreMemorySettingEnabledFlag && retryWithMoreMemoryPref?.enabled) || false,
+        retryMemoryFactor: retryWithMoreMemorySettingEnabledFlag && retryWithMoreMemoryPref?.enabled ? retryWithMoreMemoryPref?.factor : 1.2,
         ignoreEmptyOutputs: workflowOptionsPref?.ignoreEmptyOutputs || false,
         enableResourceMonitoring: resourceMonitoringEnabledPref || false,
         monitoringScript: resourceMonitoringEnabledPref ? resourceMonitoringPref?.script : '',
@@ -786,6 +791,7 @@ export const WorkflowView = _.flow(
         useCallCache,
         deleteIntermediateOutputFiles,
         useReferenceDisks,
+        retryWithMoreMemorySettingEnabled,
         retryWithMoreMemory,
         retryMemoryFactor,
         ignoreEmptyOutputs,
@@ -1103,31 +1109,35 @@ export const WorkflowView = _.flow(
                     ]),
                   ]),
                   div([
-                    span({ style: styles.checkBoxSpanMargins }, [
-                      h(
-                        LabeledCheckbox,
-                        {
-                          checked: retryWithMoreMemory,
-                          onChange: (v) => this.setState({ retryWithMoreMemory: v }),
-                          style: styles.checkBoxLeftMargin,
-                        },
-                        [' Retry with more memory']
-                      ),
-                    ]),
-                    // We show either an info message or a warning, based on whether increasing memory on retries is
-                    // enabled and the value of the retry multiplier.
-                    retryWithMoreMemory && retryMemoryFactor > 2
-                      ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
-                          'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
-                          h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
-                        ])
-                      : h(InfoBox, [
-                          'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
-                          h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                    retryWithMoreMemorySettingEnabled &&
+                      span([
+                        span({ style: styles.checkBoxSpanMargins }, [
+                          h(
+                            LabeledCheckbox,
+                            {
+                              checked: retryWithMoreMemory,
+                              onChange: (v) => this.setState({ retryWithMoreMemory: v }),
+                              style: styles.checkBoxLeftMargin,
+                            },
+                            [' Retry with more memory']
+                          ),
                         ]),
+                        // We show either an info message or a warning, based on whether increasing memory on retries is
+                        // enabled and the value of the retry multiplier.
+                        retryWithMoreMemory && retryMemoryFactor > 2
+                          ? h(InfoBox, { style: { color: colors.warning() }, icon: 'warning-standard' }, [
+                              'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
+                              h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                            ])
+                          : h(InfoBox, [
+                              'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
+                              h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps }, [clickToLearnMore]),
+                            ]),
+                      ]),
                   ]),
                   div([
-                    retryWithMoreMemory &&
+                    retryWithMoreMemorySettingEnabled &&
+                      retryWithMoreMemory &&
                       span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
                         h(IdContainer, [
                           (id) =>
