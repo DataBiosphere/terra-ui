@@ -27,18 +27,32 @@ export const CliAuth = () => {
       </div>
       {authCode ? (
         <>
-          <div
-            style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              margin: '1rem 0',
-              backgroundColor: '#f0f0f0',
-              padding: '1rem',
-              marginBottom: '2rem',
-              wordWrap: 'break-word',
-            }}
-          >
-            <code>{authCode}</code>
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                fontSize: '24px',
+                fontWeight: 'bold',
+                margin: '1rem 0',
+                backgroundColor: '#f0f0f0',
+                padding: '1rem',
+                marginBottom: '2rem',
+                overflow: 'auto',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <code>{authCode}</code>
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                top: '0rem',
+                right: 0,
+                bottom: '0rem',
+                width: '20px',
+                background: 'linear-gradient(to right, transparent, #e0e0e0)',
+                pointerEvents: 'none',
+              }}
+            />
           </div>
           <ClipboardButton
             style={{
