@@ -38,7 +38,7 @@ export async function prepareUploadStartPipelineRun(
 ): Promise<string> {
   const jobId = crypto.randomUUID();
 
-  const finalInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
+  const finalUserInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
     if (value instanceof File) {
       acc[key] = value.name; // Use the file name for File inputs
     } else {
@@ -52,12 +52,11 @@ export async function prepareUploadStartPipelineRun(
     jobId,
     pipelineName,
     pipelineVersion,
-    finalInputs,
+    finalUserInputs,
     description
   );
-  // await new Promise((resolve) => setTimeout(resolve, 2500));
 
-  // Gather all FILE inputs wait for their uploads to complete
+  // Gather all FILE inputs and wait for their uploads to complete
   setLoadingMessage('uploading');
   await Promise.all(
     pipelineInputs
@@ -72,12 +71,11 @@ export async function prepareUploadStartPipelineRun(
         throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
       })
   );
-  // await new Promise((resolve) => setTimeout(resolve, 5000));
 
   setLoadingMessage('starting');
   await Teaspoons().startPipelineRun(jobId);
-  // await new Promise((resolve) => setTimeout(resolve, 3000));
   setLoadingMessage(undefined); // Clear loading message after starting the run
+
   return jobId;
 }
 

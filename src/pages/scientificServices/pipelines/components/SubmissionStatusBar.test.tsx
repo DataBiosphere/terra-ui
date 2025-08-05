@@ -15,9 +15,9 @@ describe('SubmissionStatusBar', () => {
     const startingIcon = screen.getByTestId('icon-starting');
 
     expect(preparingText).toHaveStyle('color: #000');
-    expect(preparingIcon).toHaveStyle('color: #74AE43'); // success icon color
+    expect(preparingIcon).toHaveStyle('color: #74AE43');
     expect(uploadingText).toHaveStyle('color: #000');
     expect(startingText).toHaveStyle('color: #8f95a0');
-    expect(startingIcon).toHaveStyle('color: #8f95a0'); // incomplete circle icon color
+    expect(startingIcon).toHaveStyle('color: #8f95a0');
   });
 });
