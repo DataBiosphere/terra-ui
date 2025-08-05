@@ -1,4 +1,4 @@
-import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, IconId, Link, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -29,7 +29,8 @@ export async function prepareUploadStartPipelineRun(
   pipelineVersion: number,
   selectedUserInputs: Record<string, any>,
   description: string,
-  pipelineInputs: PipelineInput[]
+  pipelineInputs: PipelineInput[],
+  setLoadingMessage: (submissionState?: SubmissionState) => void
 ): Promise<string> {
   const jobId = crypto.randomUUID();
 
@@ -42,6 +43,7 @@ export async function prepareUploadStartPipelineRun(
     return acc;
   }, {});
 
+  setLoadingMessage('preparing');
   const { fileInputUploadUrls } = await Teaspoons().preparePipelineRun(
     jobId,
     pipelineName,
@@ -49,21 +51,29 @@ export async function prepareUploadStartPipelineRun(
     finalInputs,
     description
   );
+  // await new Promise((resolve) => setTimeout(resolve, 2500));
 
-  // Gather all FILE inputs and upload them one by one
-  pipelineInputs
-    .filter((input) => input.type === 'FILE')
-    .map(async (input) => {
-      const file = selectedUserInputs[input.name];
-      const signedUrl = fileInputUploadUrls[input.name].signedUrl;
-      if (file instanceof File) {
-        // Upload the file using the signed URL
-        return uploadFileWithSignedUrl(file, signedUrl);
-      }
-      throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
-    });
+  // Gather all FILE inputs wait for their uploads to complete
+  setLoadingMessage('uploading');
+  await Promise.all(
+    pipelineInputs
+      .filter((input) => input.type === 'FILE')
+      .map(async (input) => {
+        const file = selectedUserInputs[input.name];
+        const signedUrl = fileInputUploadUrls[input.name].signedUrl;
+        if (file instanceof File) {
+          // Upload the file using the signed URL
+          return await uploadFileWithSignedUrl(file, signedUrl);
+        }
+        throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
+      })
+  );
+  // await new Promise((resolve) => setTimeout(resolve, 5000));
 
+  setLoadingMessage('starting');
   await Teaspoons().startPipelineRun(jobId);
+  // await new Promise((resolve) => setTimeout(resolve, 3000));
+  setLoadingMessage(undefined); // Clear loading message after starting the run
   return jobId;
 }
 
@@ -85,6 +95,7 @@ export const RunJob = () => {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
+  const [loadingMessage, setLoadingMessage] = useState<SubmissionState>();
 
   const resetSelectedUserInputs = () => {
     const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
@@ -156,26 +167,16 @@ export const RunJob = () => {
       return;
     }
 
-    // Converts the input values to the format expected by the backend (i.e. file names for File inputs)
-    const finalInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
-      if (value instanceof File) {
-        acc[key] = value.name; // Use the file name for File inputs
-      } else {
-        acc[key] = value; // All other inputs can be used as-is
-      }
-      return acc;
-    }, {});
-
     try {
       setIsSubmitting(true);
-      // const jobId = await prepareUploadStartPipelineRun(
-      //   pipelineName,
-      //   selectedPipeline.pipelineVersion,
-      //   selectedUserInputs,
-      //   runDescription,
-      //   pipelineInputs
-      // );
-      const jobId = crypto.randomUUID(); // Placeholder for actual job ID generation logic
+      const jobId = await prepareUploadStartPipelineRun(
+        pipelineName,
+        selectedPipeline.pipelineVersion,
+        selectedUserInputs,
+        runDescription,
+        pipelineInputs,
+        setLoadingMessage
+      );
       notify('success', `Pipeline run submitted. Job ID: ${jobId}`);
       setSubmittedJobId(jobId);
     } catch (error) {
@@ -266,13 +267,16 @@ export const RunJob = () => {
                     />
                   );
                 })}
+
+              {isSubmitting && loadingMessage && <SubmissionStateMessage submissionState={loadingMessage} />}
+
               {!submittedJobId && (
                 <ButtonPrimary
                   disabled={!selectedPipeline || isSubmitting || !areAllRequiredInputsFilled()}
                   style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                   onClick={handleSubmit}
                 >
-                  {isSubmitting ? <Spinner size={16} /> : 'Submit'}
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
                 </ButtonPrimary>
               )}
               {submittedJobId && (
@@ -332,5 +336,71 @@ export const RunJob = () => {
         </div>
       </div>
     </FooterWrapper>
+  );
+};
+
+type SubmissionState = 'preparing' | 'uploading' | 'starting';
+
+const SubmissionStateMessage = ({ submissionState }: { submissionState: SubmissionState }) => {
+  const getStepStatus = (step: SubmissionState) => {
+    const stepOrder = ['preparing', 'uploading', 'starting'];
+    const currentIndex = stepOrder.indexOf(submissionState);
+    const stepIndex = stepOrder.indexOf(step);
+    return stepIndex <= currentIndex;
+  };
+
+  const getIconProps = (step: SubmissionState) => {
+    const isComplete = getStepStatus(step);
+
+    return {
+      icon: isComplete ? ('success-standard' as IconId) : ('circle' as IconId),
+      style: {
+        color: isComplete ? '#74AE43' : '#8f95a0',
+        fontSize: '16px',
+      },
+    };
+  };
+
+  const isCurrent = (step: SubmissionState) => {
+    return step === submissionState;
+  };
+
+  const steps = [
+    { key: 'preparing', label: 'Preparing' },
+    { key: 'uploading', label: 'Uploading' },
+    { key: 'starting', label: 'Starting' },
+  ] as const;
+
+  return (
+    <div
+      style={{
+        marginTop: '1rem',
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '0.5rem',
+        width: '500px',
+        border: '1px solid #8f95a0',
+        borderRadius: '4px',
+        padding: '1rem',
+        backgroundColor: '#f4f6f9',
+      }}
+    >
+      {steps.map((step) => (
+        <div
+          key={step.key}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center' }}
+        >
+          {isCurrent(step.key) ? (
+            <Spinner size={32} />
+          ) : (
+            <Icon size={32} icon={getIconProps(step.key).icon} style={getIconProps(step.key).style} />
+          )}
+          <span style={{ color: getStepStatus(step.key) ? '#000' : '#8f95a0' }}>
+            {step.label}
+            {step.key === submissionState}
+          </span>
+        </div>
+      ))}
+    </div>
   );
 };
