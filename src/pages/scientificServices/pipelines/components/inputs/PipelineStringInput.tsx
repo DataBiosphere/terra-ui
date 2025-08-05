@@ -1,7 +1,7 @@
 import React from 'react';
 import { TextInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/components/inputs/input-utils';
+import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
 
 interface PipelineStringInputProps {
   input: PipelineInput;
@@ -10,22 +10,22 @@ interface PipelineStringInputProps {
 }
 
 export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({ input, value, onChange }) => {
+  const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name];
+
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {INPUT_DESCRIPTIONS[input.name]} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        {label} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
       </h3>
       <TextInput
-        aria-label='output file prefix'
+        aria-label={`${input.name} text input`}
         type='text'
         value={value || ''}
-        placeholder='Enter prefix name'
+        placeholder={placeholder || ''}
         style={{ width: 400 }}
         onChange={onChange}
       />
-      <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic' }}>
-        May only contain alphanumeric characters, dashes, and underscores.
-      </div>
+      {helpText && <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic' }}>{helpText}</div>}
     </>
   );
 };

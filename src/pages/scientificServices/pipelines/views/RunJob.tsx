@@ -3,7 +3,7 @@ import { isEmpty } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { TextArea, TextInput } from 'src/components/input';
+import { TextArea } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -135,18 +135,16 @@ export const RunJob = () => {
       return acc;
     }, {});
 
-    console.log(finalInputs);
-
     try {
       setIsSubmitting(true);
-      // const jobId = await prepareUploadStartPipelineRun(
-      //   selectedFile,
-      //   pipelineName,
-      //   pipelineVersion,
-      //   selectedPipelineInputs,
-      //   runDescription
-      // );
-      const jobId = crypto.randomUUID(); // Placeholder for actual job ID generation logic
+      const jobId = await prepareUploadStartPipelineRun(
+        selectedUserInputs.multiSampleVcf, // TODO: this is hardcoded for array_imputation
+        pipelineName,
+        selectedPipeline.pipelineVersion,
+        finalInputs,
+        runDescription
+      );
+      // const jobId = crypto.randomUUID(); // Placeholder for actual job ID generation logic
       notify('success', `Pipeline run submitted. Job ID: ${jobId}`);
       setSubmittedJobId(jobId);
     } catch (error) {

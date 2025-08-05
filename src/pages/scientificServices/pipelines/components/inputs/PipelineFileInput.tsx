@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { formatBytes } from 'src/libs/utils';
-import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/components/inputs/input-utils';
+import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
 
 interface PipelineInputSelectorProps {
   input: PipelineInput;
@@ -14,6 +14,7 @@ interface PipelineInputSelectorProps {
 export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({ input, selectedFile, onFileSelect }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isFileValid = selectedFile && selectedFile.name.endsWith(input.fileSuffix || '');
+  const { label } = INPUT_DESCRIPTIONS[input.name];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,7 +52,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({ input,
   return (
     <div>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {INPUT_DESCRIPTIONS[input.name]} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        {label} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
       </h3>
       <div
         style={{
@@ -135,7 +136,6 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({ input,
                       type='button'
                       onClick={handleClearFile}
                       style={{
-                        // zIndex: 1,
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
