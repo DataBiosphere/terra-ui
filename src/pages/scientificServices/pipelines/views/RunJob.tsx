@@ -1,4 +1,4 @@
-import { ButtonPrimary, Icon, IconId, Link, Select, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -13,6 +13,10 @@ import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/s
 import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
+import {
+  SubmissionState,
+  SubmissionStatusBar,
+} from 'src/pages/scientificServices/pipelines/components/SubmissionStatusBar';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
@@ -95,7 +99,7 @@ export const RunJob = () => {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
-  const [loadingMessage, setLoadingMessage] = useState<SubmissionState>();
+  const [submissionState, setSubmissionState] = useState<SubmissionState>();
 
   const resetSelectedUserInputs = () => {
     const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
@@ -175,7 +179,7 @@ export const RunJob = () => {
         selectedUserInputs,
         runDescription,
         pipelineInputs,
-        setLoadingMessage
+        setSubmissionState
       );
       notify('success', `Pipeline run submitted. Job ID: ${jobId}`);
       setSubmittedJobId(jobId);
@@ -268,7 +272,7 @@ export const RunJob = () => {
                   );
                 })}
 
-              {isSubmitting && loadingMessage && <SubmissionStateMessage submissionState={loadingMessage} />}
+              {isSubmitting && submissionState && <SubmissionStatusBar submissionState={submissionState} />}
 
               {!submittedJobId && (
                 <ButtonPrimary
@@ -336,71 +340,5 @@ export const RunJob = () => {
         </div>
       </div>
     </FooterWrapper>
-  );
-};
-
-type SubmissionState = 'preparing' | 'uploading' | 'starting';
-
-const SubmissionStateMessage = ({ submissionState }: { submissionState: SubmissionState }) => {
-  const getStepStatus = (step: SubmissionState) => {
-    const stepOrder = ['preparing', 'uploading', 'starting'];
-    const currentIndex = stepOrder.indexOf(submissionState);
-    const stepIndex = stepOrder.indexOf(step);
-    return stepIndex <= currentIndex;
-  };
-
-  const getIconProps = (step: SubmissionState) => {
-    const isComplete = getStepStatus(step);
-
-    return {
-      icon: isComplete ? ('success-standard' as IconId) : ('circle' as IconId),
-      style: {
-        color: isComplete ? '#74AE43' : '#8f95a0',
-        fontSize: '16px',
-      },
-    };
-  };
-
-  const isCurrent = (step: SubmissionState) => {
-    return step === submissionState;
-  };
-
-  const steps = [
-    { key: 'preparing', label: 'Preparing' },
-    { key: 'uploading', label: 'Uploading' },
-    { key: 'starting', label: 'Starting' },
-  ] as const;
-
-  return (
-    <div
-      style={{
-        marginTop: '1rem',
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '0.5rem',
-        width: '500px',
-        border: '1px solid #8f95a0',
-        borderRadius: '4px',
-        padding: '1rem',
-        backgroundColor: '#f4f6f9',
-      }}
-    >
-      {steps.map((step) => (
-        <div
-          key={step.key}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center' }}
-        >
-          {isCurrent(step.key) ? (
-            <Spinner size={32} />
-          ) : (
-            <Icon size={32} icon={getIconProps(step.key).icon} style={getIconProps(step.key).style} />
-          )}
-          <span style={{ color: getStepStatus(step.key) ? '#000' : '#8f95a0' }}>
-            {step.label}
-            {step.key === submissionState}
-          </span>
-        </div>
-      ))}
-    </div>
   );
 };
