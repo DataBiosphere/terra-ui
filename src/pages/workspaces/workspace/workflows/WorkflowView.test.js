@@ -650,7 +650,7 @@ describe('Workflow View (GCP)', () => {
       }),
     });
 
-    getLocalPref.mockReturnValue({ retryWithMoreMemory: true });
+    getLocalPref.mockReturnValue({ retryWithMoreMemory: { enabled: true, factor: 1.1 } });
 
     // Mock WORKFLOW_RETRY_WITH_MORE_MEMORY as disabled
     asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
