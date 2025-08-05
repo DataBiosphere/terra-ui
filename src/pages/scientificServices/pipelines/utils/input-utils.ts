@@ -4,7 +4,7 @@
 // Eventually, we may want to return these from the backend, but for now we'll put them here.
 
 export interface PipelineInputDescription {
-  label: string;
+  label?: string;
   placeholder?: string;
   helpText?: string;
 }

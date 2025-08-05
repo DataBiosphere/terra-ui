@@ -25,25 +25,45 @@ async function uploadFileWithSignedUrl(inputFile, signedUrl) {
 }
 
 export async function prepareUploadStartPipelineRun(
-  file: File,
   pipelineName: string,
   pipelineVersion: number,
-  pipelineInputs: Record<string, any>,
-  description: string
+  selectedUserInputs: Record<string, any>,
+  description: string,
+  pipelineInputs: PipelineInput[]
 ): Promise<string> {
   const jobId = crypto.randomUUID();
+
+  const finalInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
+    if (value instanceof File) {
+      acc[key] = value.name; // Use the file name for File inputs
+    } else {
+      acc[key] = value; // All other inputs can be used as-is
+    }
+    return acc;
+  }, {});
+
+  console.log(finalInputs);
 
   const { fileInputUploadUrls } = await Teaspoons().preparePipelineRun(
     jobId,
     pipelineName,
     pipelineVersion,
-    pipelineInputs,
+    finalInputs,
     description
   );
 
-  const signedUrl = fileInputUploadUrls.multiSampleVcf.signedUrl;
-
-  await uploadFileWithSignedUrl(file, signedUrl);
+  // Gather all FILE inputs and upload them one by one
+  pipelineInputs
+    .filter((input) => input.type === 'FILE')
+    .map(async (input) => {
+      const file = selectedUserInputs[input.name];
+      const signedUrl = fileInputUploadUrls[input.name].signedUrl;
+      if (file instanceof File) {
+        // Upload the file using the signed URL
+        return uploadFileWithSignedUrl(file, signedUrl);
+      }
+      throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
+    });
 
   await Teaspoons().startPipelineRun(jobId);
   return jobId;
@@ -70,7 +90,7 @@ export const RunJob = () => {
 
   const resetSelectedUserInputs = () => {
     const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
-      acc[input.name] = selectedUserInputs[input.name] || '';
+      acc[input.name] = '';
       return acc;
     }, {});
     setSelectedUserInputs(newSelectedUserInputs);
@@ -150,14 +170,14 @@ export const RunJob = () => {
 
     try {
       setIsSubmitting(true);
-      const jobId = await prepareUploadStartPipelineRun(
-        selectedUserInputs.multiSampleVcf, // TODO: this is hardcoded for array_imputation
-        pipelineName,
-        selectedPipeline.pipelineVersion,
-        finalInputs,
-        runDescription
-      );
-      // const jobId = crypto.randomUUID(); // Placeholder for actual job ID generation logic
+      // const jobId = await prepareUploadStartPipelineRun(
+      //   pipelineName,
+      //   selectedPipeline.pipelineVersion,
+      //   selectedUserInputs,
+      //   runDescription,
+      //   pipelineInputs
+      // );
+      const jobId = crypto.randomUUID(); // Placeholder for actual job ID generation logic
       notify('success', `Pipeline run submitted. Job ID: ${jobId}`);
       setSubmittedJobId(jobId);
     } catch (error) {

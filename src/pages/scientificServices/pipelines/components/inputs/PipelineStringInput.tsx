@@ -15,7 +15,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({ input,
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
       </h3>
       <TextInput
         aria-label={`${input.name} text input`}

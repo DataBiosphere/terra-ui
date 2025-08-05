@@ -52,7 +52,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({ input,
   return (
     <div>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
       </h3>
       <div
         style={{
