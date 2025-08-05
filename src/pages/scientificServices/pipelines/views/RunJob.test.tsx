@@ -186,7 +186,20 @@ describe('RunJob Component', () => {
 
 describe('prepareUploadStartPipelineRun function', () => {
   const mockFile = new File(['test content'], 'test.vcf', { type: 'text/plain' });
-  const mockPipelineInputs = { multiSampleVcf: 'test.vcf', outputBasename: 'test_output' };
+  const mockPipelineInputs: PipelineInput[] = [
+    {
+      name: 'multiSampleVcf',
+      type: 'FILE',
+      isRequired: true,
+      fileSuffix: '.vcf.gz',
+    },
+    {
+      name: 'outputBasename',
+      type: 'STRING',
+      isRequired: true,
+    },
+  ];
+  const mockUserPipelineInputs = { multiSampleVcf: mockFile, outputBasename: 'test_output' };
 
   const mockTeaspoonsContract = partial<TeaspoonsContract>({
     preparePipelineRun: jest.fn().mockResolvedValue({
@@ -213,11 +226,12 @@ describe('prepareUploadStartPipelineRun function', () => {
 
   it('successfully uploads file and starts pipeline run', async () => {
     const jobId = await prepareUploadStartPipelineRun(
-      mockFile,
       'array_imputation',
       1,
+      mockUserPipelineInputs,
+      'Test description',
       mockPipelineInputs,
-      'Test description'
+      jest.fn()
     );
 
     // Verify that preparePipelineRun was called with correct parameters
@@ -225,7 +239,7 @@ describe('prepareUploadStartPipelineRun function', () => {
       'mock-uuid-1234',
       'array_imputation',
       1,
-      mockPipelineInputs,
+      { multiSampleVcf: mockFile.name, outputBasename: 'test_output' },
       'Test description'
     );
 
@@ -248,7 +262,7 @@ describe('prepareUploadStartPipelineRun function', () => {
     asMockedFn(mockTeaspoonsContract.preparePipelineRun).mockRejectedValue(new Error(errorMessage));
 
     await expect(
-      prepareUploadStartPipelineRun(mockFile, 'array_imputation', 1, mockPipelineInputs, 'Test description')
+      prepareUploadStartPipelineRun('array_imputation', 1, mockUserPipelineInputs, 'Test description', [], jest.fn())
     ).rejects.toThrow(errorMessage);
   });
 
@@ -266,7 +280,14 @@ describe('prepareUploadStartPipelineRun function', () => {
     asMockedFn(fetch).mockRejectedValue(new Error('Network error'));
 
     await expect(
-      prepareUploadStartPipelineRun(mockFile, 'array_imputation', 1, mockPipelineInputs, 'Test description')
+      prepareUploadStartPipelineRun(
+        'array_imputation',
+        1,
+        mockUserPipelineInputs,
+        'Test description',
+        mockPipelineInputs,
+        jest.fn()
+      )
     ).rejects.toThrow('Network error');
   });
 
@@ -274,7 +295,14 @@ describe('prepareUploadStartPipelineRun function', () => {
     asMockedFn(mockTeaspoonsContract.startPipelineRun).mockRejectedValue(new Error('Failed to start pipeline'));
 
     await expect(
-      prepareUploadStartPipelineRun(mockFile, 'array_imputation', 1, mockPipelineInputs, 'Test description')
+      prepareUploadStartPipelineRun(
+        'array_imputation',
+        1,
+        mockUserPipelineInputs,
+        'Test description',
+        mockPipelineInputs,
+        jest.fn()
+      )
     ).rejects.toThrow('Failed to start pipeline');
   });
 });
