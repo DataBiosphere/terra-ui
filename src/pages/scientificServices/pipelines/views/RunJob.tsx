@@ -76,6 +76,19 @@ export const RunJob = () => {
     setSelectedUserInputs(newSelectedUserInputs);
   };
 
+  const areAllRequiredInputsFilled = () => {
+    return pipelineInputs.every((input) => {
+      if (input.isRequired) {
+        const value = selectedUserInputs[input.name];
+        if (input.type === 'FILE') {
+          return value instanceof File && value.name;
+        }
+        return value && value.trim() !== '';
+      }
+      return true;
+    });
+  };
+
   useEffect(() => {
     // Update selected user inputs when pipeline inputs change
     resetSelectedUserInputs();
@@ -235,7 +248,7 @@ export const RunJob = () => {
                 })}
               {!submittedJobId && (
                 <ButtonPrimary
-                  disabled={!selectedPipeline || isSubmitting}
+                  disabled={!selectedPipeline || isSubmitting || !areAllRequiredInputsFilled()}
                   style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                   onClick={handleSubmit}
                 >
