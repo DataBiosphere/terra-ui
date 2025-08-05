@@ -689,6 +689,68 @@ describe('Workflow View (GCP)', () => {
     );
   });
 
+  it('uses stored preferences for retry with more memory when the feature flag is ON', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    mockDefaultAjax();
+
+    const currentMock = Workspaces.getMockImplementation()();
+    Workspaces.mockReturnValue({
+      ...currentMock,
+      workspace: (ns, nm) => ({
+        ...currentMock.workspace(ns, nm),
+        checkBucketAccess: jest.fn().mockResolvedValue({}),
+        checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
+        createEntity: jest.fn().mockResolvedValue(mockCreateEntity),
+        methodConfig: () => ({
+          ...currentMock.workspace(ns, nm).methodConfig(),
+          launch: jest.fn(mockLaunchResponse),
+        }),
+      }),
+    });
+
+    getLocalPref.mockReturnValue({ retryWithMoreMemory: { enabled: true, factor: 1.1 } });
+
+    // Mock WORKFLOW_RETRY_WITH_MORE_MEMORY as disabled
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Lots of clicking around to launch submission
+    const fileInputsRadioButton = screen.getByRole('radio', { name: 'Run workflow with inputs defined by file paths' });
+    await user.click(fileInputsRadioButton);
+
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    await user.click(saveButton);
+
+    const launchButton = screen.getByRole('button', { name: 'Launch' });
+    await user.click(launchButton);
+
+    const launchModalHeader = screen.getByText('Confirm launch');
+    expect(launchModalHeader).toBeInTheDocument;
+
+    const secondLaunchButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Launch'))[0];
+    await user.click(secondLaunchButton);
+
+    // Assert
+    // Check that submission is launched
+    expect(mockLaunchResponse).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Launching analysis...')).toBeInTheDocument;
+
+    // check that retry factor is undefined
+    expect(mockLaunchResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        memoryRetryMultiplier: 1.1,
+      })
+    );
+  });
+
   it('renders run analysis modal and check workflow option expectations', async () => {
     // Arrange
     const user = userEvent.setup();
