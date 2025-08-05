@@ -22,8 +22,8 @@ export const CliAuth = () => {
         this or another machine. If this is not the case, close this tab.
       </div>
       <div style={{ margin: '2rem 0' }}>
-        Enter the following verification code in the terralab CLI. This is a credential similar to your
-        password and <span style={{ fontWeight: 'bold' }}>should not be shared with others</span>.
+        Enter the following verification code in the terralab CLI. This is a credential similar to your password and{' '}
+        <span style={{ fontWeight: 'bold' }}>should not be shared with others</span>.
       </div>
       {authCode ? (
         <>
