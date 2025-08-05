@@ -3,7 +3,6 @@ import { isEmpty } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { TextArea } from 'src/components/input';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -12,6 +11,7 @@ import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
+import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
@@ -213,17 +213,7 @@ export const RunJob = () => {
                 })}
 
               {/* Displays optional run description */}
-              <h3 style={{ marginBottom: '0.5rem' }}>
-                Enter description <span style={{ fontStyle: 'italic', fontWeight: 'normal' }}> - optional</span>
-              </h3>
-              <TextArea
-                rows={4}
-                aria-label='description'
-                value={runDescription}
-                placeholder='Enter optional description'
-                style={{ width: 500 }}
-                onChange={setRunDescription}
-              />
+              <PipelineRunDescription value={runDescription} onChange={setRunDescription} />
 
               {/* Displays all FILE inputs, one after another */}
               {pipelineInputs
