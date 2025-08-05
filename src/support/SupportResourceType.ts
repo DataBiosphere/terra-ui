@@ -20,6 +20,7 @@ export interface SupportResourceType {
   skipPolicies?: boolean;
   lookupResourceIdFn?: (value: string) => Promise<FullyQualifiedResourceId>;
   lookupResourceIdBoxPlaceholder?: string;
+  lookupByGoogleProjectPlaceHolder?: string;
 }
 
 // Define the supported resources, add your own here
@@ -43,6 +44,7 @@ export const supportResources: SupportResourceType[] = [
       return fqResourceId;
     },
     lookupResourceIdBoxPlaceholder: 'Namespace/Name',
+    lookupByGoogleProjectPlaceHolder: 'Google Project Id',
   },
   {
     displayName: 'Billing Project',
