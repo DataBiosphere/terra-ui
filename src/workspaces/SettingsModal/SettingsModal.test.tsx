@@ -7,6 +7,7 @@ import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import {
   ImprovedDataTablesSetting,
+  LogBucketRetentionSetting,
   SeparateSubmissionFinalOutputsSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
@@ -150,6 +151,11 @@ describe('SettingsModal', () => {
   const separateSubmissionOutputsEnabledSetting: SeparateSubmissionFinalOutputsSetting = {
     settingType: 'SeparateSubmissionFinalOutputs',
     config: { enabled: true },
+  };
+
+  const logBucketRetentionSetting: LogBucketRetentionSetting = {
+    settingType: 'GcpLogBucketRetention',
+    config: { retentionDurationInDays: 45 },
   };
 
   const setup = (currentSetting: WorkspaceSetting[], updateSettingsMock: jest.Mock<any, any>) => {
@@ -660,7 +666,7 @@ describe('SettingsModal', () => {
 
   describe('Soft Delete Settings', () => {
     const getSoftDeleteToggle = () => screen.getByLabelText('Soft Delete:');
-    const getRetention = () => screen.getByLabelText('Days to retain:');
+    const getRetention = () => screen.getAllByLabelText('Days to retain:')[0];
 
     it('renders all options as disabled if the user is not an owner', async () => {
       // Arrange
@@ -1040,6 +1046,135 @@ describe('SettingsModal', () => {
       // Assert
       expect(updateSettingsMock).not.toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
+    });
+  });
+
+  describe('Workflow Log Retention Settings', () => {
+    const getRetentionDaysElement = () => screen.getAllByLabelText('Days to retain:')[1];
+
+    it('renders retention settings as disabled if the user is not an owner', async () => {
+      // Arrange
+      setup([], jest.fn());
+      mockNotOwner();
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getRetentionDaysElement()).toHaveAttribute('disabled');
+    });
+
+    it('renders default retention days if no setting exists', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getRetentionDaysElement()).toHaveValue(30);
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(captureEvent).not.toHaveBeenCalledWith();
+    });
+
+    it('does not save default retention period and does not event', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      // Assert
+      expect(getRetentionDaysElement()).toHaveValue(30);
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([defaultSoftDeleteSetting]);
+      expect(captureEvent).not.toHaveBeenCalledWith();
+    });
+
+    it('allows changing the retention days and events as expected', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const daysInput = getRetentionDaysElement();
+      await user.clear(daysInput);
+      await user.type(daysInput, '60');
+      expect(daysInput).toHaveValue(60);
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([
+        {
+          settingType: 'GcpLogBucketRetention',
+          config: { retentionDurationInDays: 60 },
+        },
+        defaultSoftDeleteSetting,
+      ]);
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsLogBucketRetention, {
+        retentionDurationInDays: 60,
+        ...extractWorkspaceDetails(defaultGoogleWorkspace),
+      });
+    });
+
+    it('does not event if the retention days did not change', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const updateSettingsMock = jest.fn();
+      setup([logBucketRetentionSetting], updateSettingsMock);
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      // Assert
+      expect(updateSettingsMock).toHaveBeenCalledWith([logBucketRetentionSetting, defaultSoftDeleteSetting]);
+      expect(captureEvent).not.toHaveBeenCalledWith();
+    });
+
+    it('disables Save if there is no retention value specified', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      setup([], jest.fn());
+
+      // Act
+      await act(async () => {
+        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
+      });
+
+      const daysInput = getRetentionDaysElement();
+      await user.clear(daysInput);
+      expect(daysInput).toHaveValue(null);
+
+      // Assert
+      const saveButton = screen.getByRole('button', { name: 'Save' });
+      expect(saveButton).toHaveAttribute('aria-disabled', 'true');
+      screen.getByText('Please specify workflow log bucket retention value');
     });
   });
 });

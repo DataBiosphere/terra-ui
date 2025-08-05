@@ -38,7 +38,8 @@ export type WorkspaceSetting =
   | RequesterPaysSetting
   | BatchSetting
   | SeparateSubmissionFinalOutputsSetting
-  | ImprovedDataTablesSetting;
+  | ImprovedDataTablesSetting
+  | LogBucketRetentionSetting;
 
 export interface BucketLifecycleSetting {
   settingType: 'GcpBucketLifecycle';
@@ -63,6 +64,11 @@ export interface ImprovedDataTablesSetting {
 export interface BatchSetting {
   settingType: 'UseCromwellGcpBatchBackend';
   config: { enabled: boolean };
+}
+
+export interface LogBucketRetentionSetting {
+  settingType: 'GcpLogBucketRetention';
+  config: { retentionDurationInDays: number };
 }
 
 export interface SeparateSubmissionFinalOutputsSetting {
