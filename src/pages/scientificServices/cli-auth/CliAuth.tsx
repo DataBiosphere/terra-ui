@@ -56,7 +56,14 @@ export const CliAuth = () => {
         </>
       ) : (
         <div style={{ color: colors.danger(), fontWeight: 'bold' }}>
-          Error: no verification code found. Please try again and contact support if this problem persists.
+          Error: no verification code found. Please try again and{' '}
+          <a
+            href='mailto:scientific-services-support@broadinstitute.org'
+            style={{ color: colors.danger(), textDecoration: 'underline' }}
+          >
+            contact support
+          </a>{' '}
+          if this problem persists.
         </div>
       )}
       <div style={{ margin: '2rem 0' }}>You can close this tab when you&apos;re done.</div>
