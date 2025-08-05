@@ -90,12 +90,15 @@ describe('RunJob Component', () => {
   it('renders the RunJob component with expected elements', async () => {
     render(<RunJob />);
 
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
     // Check for main headings and form elements
     expect(screen.getByText('Select a pipeline version')).toBeInTheDocument();
-    expect(screen.getByText('Enter prefix for output file *')).toBeInTheDocument();
+    expect(screen.getByText('Enter prefix for output file')).toBeInTheDocument();
     expect(screen.getByText(/Enter description/)).toBeInTheDocument();
-    expect(screen.getByText('Upload file *')).toBeInTheDocument();
-    expect(screen.getByText('Submit')).toBeInTheDocument();
+    expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
 
     // Wait for pipeline options to load
     await waitFor(() => {
@@ -131,7 +134,7 @@ describe('RunJob Component', () => {
     });
 
     // Enter output file prefix
-    const outputPrefixInput = screen.getByLabelText('output file prefix');
+    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     expect(outputPrefixInput).toHaveValue('test_output');
@@ -166,6 +169,10 @@ describe('RunJob Component', () => {
 
   it('validates required fields before allowing submission', async () => {
     render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
 
     const submitButton = screen.getByText('Submit');
     expect(submitButton).toBeInTheDocument();
