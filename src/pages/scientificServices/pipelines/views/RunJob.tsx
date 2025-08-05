@@ -42,8 +42,6 @@ export async function prepareUploadStartPipelineRun(
     return acc;
   }, {});
 
-  console.log(finalInputs);
-
   const { fileInputUploadUrls } = await Teaspoons().preparePipelineRun(
     jobId,
     pipelineName,
@@ -193,7 +191,9 @@ export const RunJob = () => {
       {pipelinesTopBar('run job')}
       <div style={{ display: 'flex', justifyContent: 'space-between', margin: '1rem 2rem' }}>
         <div style={{ flex: 1, marginRight: '2rem' }}>
-          <h3 style={{ marginBottom: '0.5rem' }}>Select a pipeline version</h3>
+          <h3 style={{ marginBottom: '0.5rem' }}>
+            Select a pipeline version <span style={{ color: '#DB3214' }}>*</span>
+          </h3>
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <div style={{ width: 400 }}>
