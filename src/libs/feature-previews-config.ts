@@ -88,7 +88,8 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
   {
     id: WORKFLOW_RETRY_WITH_MORE_MEMORY,
     title: 'Retry Workflow Tasks with More Memory',
-    description: 'Opt-in to enable access to the Retry with More Memory workflow submission setting.',
+    description:
+      'Opt-in to enable access to the Retry with More Memory workflow submission setting. This setting currently works best for Java tasks that are killed by the JVM when using too much memory, see the documentation for more details.',
     feedbackUrl: `mailto:dsp-analysis@broadinstitute.org?subject=${encodeURIComponent(
       'Retry with More Memory Feedback'
     )}`,
