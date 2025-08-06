@@ -335,7 +335,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       return 'Please specify a soft delete retention value';
     }
     if (logRetention === null) {
-      return 'Please specify workflow log bucket retention value';
+      return 'Please specify workspace analysis log retention value';
     }
   };
 

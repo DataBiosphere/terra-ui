@@ -1175,7 +1175,7 @@ describe('SettingsModal', () => {
       // Assert
       const saveButton = screen.getByRole('button', { name: 'Save' });
       expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-      screen.getByText('Please specify workflow log bucket retention value');
+      screen.getByText('Please specify workspace analysis log retention value');
     });
   });
 });
