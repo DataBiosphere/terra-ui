@@ -199,7 +199,6 @@ export const RunJob = () => {
         pipelineInputs,
         setUploadProgress
       );
-      notify('success', `Pipeline run submitted. Job ID: ${jobId}`);
       setSubmittedJobId(jobId);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '';
