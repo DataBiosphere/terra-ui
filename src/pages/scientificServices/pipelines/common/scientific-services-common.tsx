@@ -4,6 +4,8 @@ import { TabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
 
+export const SCIENTIFIC_SERVICES_SUPPORT_EMAIL = 'scientific-services-support@broadinstitute.org';
+
 const TAB_LINKS = {
   'run job': 'pipelines-run',
   'job history': 'pipelines-history',
