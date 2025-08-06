@@ -3,7 +3,10 @@ import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamResources } from 'src/libs/ajax/SamResources';
-import { ImprovedDataTablesSetting, LogBucketRetentionSetting } from 'src/libs/ajax/workspaces/workspace-models';
+import {
+  ImprovedDataTablesSetting,
+  WorkspaceAnalysisLogRetentionSetting,
+} from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -14,7 +17,6 @@ import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
 import ImprovedDataTables from 'src/workspaces/SettingsModal/ImprovedDataTables';
-import LogBucketRetention from 'src/workspaces/SettingsModal/LogBucketRetention';
 import RequesterPays from 'src/workspaces/SettingsModal/RequesterPays';
 import SoftDelete from 'src/workspaces/SettingsModal/SoftDelete';
 import {
@@ -23,13 +25,13 @@ import {
   isBucketLifecycleSetting,
   isDeleteBucketLifecycleRule,
   isImprovedDataTablesSetting,
-  isLogBucketRetentionSetting,
+  isLogRetentionSetting,
   isRequesterPaysSetting,
   isSoftDeleteSetting,
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
   modifyImprovedDataTablesSetting,
-  modifyLogBucketRetentionSetting,
+  modifyLogRetentionSetting,
   modifyRequesterPaysSetting,
   removeFirstBucketDeletionRule,
   RequesterPaysSetting,
@@ -39,6 +41,7 @@ import {
   suggestedPrefixes,
   WorkspaceSetting,
 } from 'src/workspaces/SettingsModal/utils';
+import WorkspaceAnalysisLogRetention from 'src/workspaces/SettingsModal/WorkspaceAnalysisLogRetention';
 import { isOwner as isWorkspaceOwner, WorkspaceWrapper as Workspace } from 'src/workspaces/utils';
 
 interface SettingsModalProps {
@@ -65,7 +68,8 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [originalImprovedDataTablesSetting, setOriginalImprovedDataTablesSetting] = useState(false);
   const [improvedDataTablesEnabled, setImprovedDataTablesEnabled] = useState(false);
 
-  const [logBucketRetention, setLogBucketRetention] = useState<number>(30);
+  // initial is null so that the input is empty when the modal opens
+  const [logRetention, setLogRetention] = useState<number | null>(null);
 
   // Original settings from server, may contain multiple types
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSetting[] | undefined>(undefined);
@@ -151,10 +155,10 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     ) as ImprovedDataTablesSetting;
   };
 
-  const getLogBucketRetentionSetting = (settings: WorkspaceSetting[]): LogBucketRetentionSetting | undefined => {
+  const getLogRetentionSetting = (settings: WorkspaceSetting[]): WorkspaceAnalysisLogRetentionSetting | undefined => {
     return settings.find((setting: WorkspaceSetting) =>
-      isLogBucketRetentionSetting(setting)
-    ) as LogBucketRetentionSetting;
+      isLogRetentionSetting(setting)
+    ) as WorkspaceAnalysisLogRetentionSetting;
   };
 
   useEffect(() => {
@@ -200,11 +204,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       setImprovedDataTablesEnabled(improvedDataTablesEnabled);
 
       // if GcpLogBucketRetention setting doesn't exist, default to 30 days
-      const logBucketRetentionSetting = getLogBucketRetentionSetting(settings);
-      const logBucketRetentionDays = logBucketRetentionSetting
-        ? logBucketRetentionSetting.config.retentionDurationInDays
-        : 30;
-      setLogBucketRetention(logBucketRetentionDays);
+      const logRetentionSetting = getLogRetentionSetting(settings);
+      const logRetentionDays = logRetentionSetting ? logRetentionSetting.config.retentionDurationInDays : 30;
+      setLogRetention(logRetentionDays);
     });
 
     loadSettings();
@@ -224,7 +226,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     const softDeleteInDays = softDeleteEnabled ? softDeleteRetention! : 0;
     newSettings = modifyFirstSoftDeleteSetting(newSettings, softDeleteInDays);
     newSettings = modifyRequesterPaysSetting(newSettings, requesterPaysEnabled);
-    newSettings = modifyLogBucketRetentionSetting(newSettings, logBucketRetention);
+
+    const logRetentionInDays = logRetention ? logRetention! : 30; // default to 30 days if null
+    newSettings = modifyLogRetentionSetting(newSettings, logRetentionInDays);
 
     if (isFeaturePreviewEnabled(IMPROVED_DATA_TABLES) && improvedDataTablesEnabled) {
       newSettings = modifyImprovedDataTablesSetting(newSettings, improvedDataTablesEnabled);
@@ -306,18 +310,15 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       });
     }
 
-    // event about log bucket retention setting only if something actually changed
-    const originalLogBucketRetentionSetting = getLogBucketRetentionSetting(workspaceSettings || []);
-    const newLogBucketRetentionSetting = getLogBucketRetentionSetting(newSettings);
-    if (
-      originalLogBucketRetentionSetting === undefined &&
-      newLogBucketRetentionSetting?.config.retentionDurationInDays === 30
-    ) {
+    // Event about log bucket retention setting only if something actually changed
+    const originalLogRetentionSetting = getLogRetentionSetting(workspaceSettings || []);
+    const newLogRetentionSetting = getLogRetentionSetting(newSettings);
+    if (originalLogRetentionSetting === undefined && newLogRetentionSetting?.config.retentionDurationInDays === 30) {
       // if the workspace had no log retention setting before and the current one is the default retention, don't event.
-    } else if (!_.isEqual(originalLogBucketRetentionSetting, newLogBucketRetentionSetting)) {
-      // Event if the setting changed.
-      void Metrics().captureEvent(Events.workspaceSettingsLogBucketRetention, {
-        retentionDurationInDays: logBucketRetention,
+    } else if (!_.isEqual(originalLogRetentionSetting, newLogRetentionSetting)) {
+      // event if the setting changed
+      void Metrics().captureEvent(Events.workspaceSettingsLogRetention, {
+        retentionDurationInDays: logRetention,
         ...extractWorkspaceDetails(props.workspace),
       });
     }
@@ -333,7 +334,7 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     if (softDeleteEnabled && softDeleteRetention === null) {
       return 'Please specify a soft delete retention value';
     }
-    if (logBucketRetention === null) {
+    if (logRetention === null) {
       return 'Please specify workflow log bucket retention value';
     }
   };
@@ -385,9 +386,9 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
         />
       )}
       <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
-        <LogBucketRetention
-          retentionPeriodInDays={logBucketRetention}
-          setRetentionPeriod={setLogBucketRetention}
+        <WorkspaceAnalysisLogRetention
+          retentionPeriodInDays={logRetention}
+          setRetentionPeriod={setLogRetention}
           isOwner={isOwner}
         />
       </div>

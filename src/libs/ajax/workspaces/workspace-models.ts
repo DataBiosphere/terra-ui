@@ -39,7 +39,7 @@ export type WorkspaceSetting =
   | BatchSetting
   | SeparateSubmissionFinalOutputsSetting
   | ImprovedDataTablesSetting
-  | LogBucketRetentionSetting;
+  | WorkspaceAnalysisLogRetentionSetting;
 
 export interface BucketLifecycleSetting {
   settingType: 'GcpBucketLifecycle';
@@ -66,7 +66,7 @@ export interface BatchSetting {
   config: { enabled: boolean };
 }
 
-export interface LogBucketRetentionSetting {
+export interface WorkspaceAnalysisLogRetentionSetting {
   settingType: 'GcpLogBucketRetention';
   config: { retentionDurationInDays: number };
 }

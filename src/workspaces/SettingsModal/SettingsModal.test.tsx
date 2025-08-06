@@ -7,8 +7,8 @@ import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import {
   ImprovedDataTablesSetting,
-  LogBucketRetentionSetting,
   SeparateSubmissionFinalOutputsSetting,
+  WorkspaceAnalysisLogRetentionSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -153,7 +153,7 @@ describe('SettingsModal', () => {
     config: { enabled: true },
   };
 
-  const logBucketRetentionSetting: LogBucketRetentionSetting = {
+  const logRetentionSetting: WorkspaceAnalysisLogRetentionSetting = {
     settingType: 'GcpLogBucketRetention',
     config: { retentionDurationInDays: 45 },
   };
@@ -1049,7 +1049,7 @@ describe('SettingsModal', () => {
     });
   });
 
-  describe('Workflow Log Retention Settings', () => {
+  describe('Workspace Analysis Log Retention Settings', () => {
     const getRetentionDaysElement = () => screen.getAllByLabelText('Days to retain:')[1];
 
     it('renders retention settings as disabled if the user is not an owner', async () => {
@@ -1063,7 +1063,7 @@ describe('SettingsModal', () => {
       });
 
       // Assert
-      expect(screen.getByText('Workspace Log Retention:')).toBeInTheDocument();
+      expect(screen.getByText('Workspace Analysis Log Retention:')).toBeInTheDocument();
       expect(getRetentionDaysElement()).toHaveAttribute('disabled');
     });
 
@@ -1135,7 +1135,7 @@ describe('SettingsModal', () => {
         },
         defaultSoftDeleteSetting,
       ]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsLogBucketRetention, {
+      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsLogRetention, {
         retentionDurationInDays: 60,
         ...extractWorkspaceDetails(defaultGoogleWorkspace),
       });
@@ -1145,7 +1145,7 @@ describe('SettingsModal', () => {
       // Arrange
       const user = userEvent.setup();
       const updateSettingsMock = jest.fn();
-      setup([logBucketRetentionSetting], updateSettingsMock);
+      setup([logRetentionSetting], updateSettingsMock);
 
       // Act
       await act(async () => {
@@ -1154,7 +1154,7 @@ describe('SettingsModal', () => {
       await user.click(screen.getByRole('button', { name: 'Save' }));
 
       // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([logBucketRetentionSetting, defaultSoftDeleteSetting]);
+      expect(updateSettingsMock).toHaveBeenCalledWith([logRetentionSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
     });
 

@@ -3,13 +3,13 @@ import React, { ReactNode } from 'react';
 import { NumberInput } from 'src/components/input';
 import { FormLabel } from 'src/libs/forms';
 
-interface LogBucketRetentionProps {
+interface WorkspaceAnalysisLogRetentionProps {
   retentionPeriodInDays: number | null;
   setRetentionPeriod: (retentionPeriodInDays: number) => void;
   isOwner: boolean;
 }
 
-const LogBucketRetention = (props: LogBucketRetentionProps): ReactNode => {
+const WorkspaceAnalysisLogRetention = (props: WorkspaceAnalysisLogRetentionProps): ReactNode => {
   const { retentionPeriodInDays, setRetentionPeriod, isOwner } = props;
 
   const daysId = useUniqueId('log-retention-days');
@@ -23,7 +23,7 @@ const LogBucketRetention = (props: LogBucketRetentionProps): ReactNode => {
           htmlFor={formId}
           style={{ fontWeight: 600, whiteSpace: 'nowrap', marginRight: '.5rem', marginTop: '.5rem' }}
         >
-          Workspace Log Retention:
+          Workspace Analysis Log Retention:
         </FormLabel>
       </div>
       <div id={descriptionId} style={{ marginTop: '.5rem', fontSize: '12px' }}>
@@ -65,4 +65,4 @@ const LogBucketRetention = (props: LogBucketRetentionProps): ReactNode => {
   );
 };
 
-export default LogBucketRetention;
+export default WorkspaceAnalysisLogRetention;

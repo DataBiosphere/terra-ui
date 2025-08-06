@@ -5,10 +5,10 @@ import {
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
   ImprovedDataTablesSetting,
-  LogBucketRetentionSetting,
   RequesterPaysSetting,
   SeparateSubmissionFinalOutputsSetting,
   SoftDeleteSetting,
+  WorkspaceAnalysisLogRetentionSetting,
   WorkspaceSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 
@@ -49,7 +49,7 @@ export const isImprovedDataTablesSetting = (setting: WorkspaceSetting): setting 
 export const isBatchSetting = (setting: WorkspaceSetting): setting is BatchSetting =>
   setting.settingType === 'UseCromwellGcpBatchBackend';
 
-export const isLogBucketRetentionSetting = (setting: WorkspaceSetting): setting is LogBucketRetentionSetting =>
+export const isLogRetentionSetting = (setting: WorkspaceSetting): setting is WorkspaceAnalysisLogRetentionSetting =>
   setting.settingType === 'GcpLogBucketRetention';
 
 const isSeparateSubmissionFinalOutputsSetting = (
@@ -259,22 +259,20 @@ export const modifyImprovedDataTablesSetting = (
   );
 };
 
-export const modifyLogBucketRetentionSetting = (
+export const modifyLogRetentionSetting = (
   originalSettings: WorkspaceSetting[],
   retentionInDays: number
 ): WorkspaceSetting[] => {
   // clone original for testing purposes and to allow eventing only if there was a change.
   const workspaceSettings = _.cloneDeep(originalSettings);
 
-  const logBucketRetentionSettings: LogBucketRetentionSetting[] = workspaceSettings.filter(
-    (setting: WorkspaceSetting) => isLogBucketRetentionSetting(setting)
-  ) as LogBucketRetentionSetting[];
-  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter(
-    (setting) => !isLogBucketRetentionSetting(setting)
-  );
+  const logRetentionSettings: WorkspaceAnalysisLogRetentionSetting[] = workspaceSettings.filter(
+    (setting: WorkspaceSetting) => isLogRetentionSetting(setting)
+  ) as WorkspaceAnalysisLogRetentionSetting[];
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isLogRetentionSetting(setting));
 
-  // if no LogBucketRetention setting exists and retention days is same as default, don't create a new setting
-  if (logBucketRetentionSettings.length === 0 && retentionInDays === 30) {
+  // if no GcpLogBucketRetention setting exists and retention days is same as default, don't create a new setting
+  if (logRetentionSettings.length === 0 && retentionInDays === 30) {
     return workspaceSettings;
   }
 
@@ -283,7 +281,7 @@ export const modifyLogBucketRetentionSetting = (
       {
         settingType: 'GcpLogBucketRetention',
         config: { retentionDurationInDays: retentionInDays },
-      } as LogBucketRetentionSetting,
+      } as WorkspaceAnalysisLogRetentionSetting,
     ],
     otherSettings
   );

@@ -2,7 +2,7 @@ import {
   BucketLifecycleSetting,
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
-  modifyLogBucketRetentionSetting,
+  modifyLogRetentionSetting,
   removeFirstBucketDeletionRule,
   secondsInADay,
   SoftDeleteSetting,
@@ -504,10 +504,10 @@ describe('modifyFirstSoftDeleteSetting', () => {
     ]);
   });
 
-  describe('modifyLogBucketRetentionSetting', () => {
+  describe('modifyLogRetentionSetting', () => {
     it('does not add log retention when no previous setting exists and retention period remains 30 days', async () => {
       // Act
-      const result = modifyLogBucketRetentionSetting([], 30);
+      const result = modifyLogRetentionSetting([], 30);
 
       // Assert
       expect(result).toEqual([]);
@@ -515,7 +515,7 @@ describe('modifyFirstSoftDeleteSetting', () => {
 
     it('adds log bucket setting if one did not already exist and retention period is changed', async () => {
       // Act
-      const result = modifyLogBucketRetentionSetting([], 60);
+      const result = modifyLogRetentionSetting([], 60);
 
       // Assert
       expect(result).toEqual([
@@ -528,7 +528,7 @@ describe('modifyFirstSoftDeleteSetting', () => {
 
     it('returns same retention setting if one already existed and retention period has not changed', async () => {
       // Act
-      const result = modifyLogBucketRetentionSetting(
+      const result = modifyLogRetentionSetting(
         [
           {
             settingType: 'GcpLogBucketRetention',
@@ -549,7 +549,7 @@ describe('modifyFirstSoftDeleteSetting', () => {
 
     it('preserves other settings', async () => {
       // Act
-      const result = modifyLogBucketRetentionSetting(
+      const result = modifyLogRetentionSetting(
         [
           otherSetting,
           {

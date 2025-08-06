@@ -191,7 +191,7 @@ const eventsList = {
   workspaceSettingsSoftDelete: 'workspace:settings:softDelete',
   workspaceSettingsRequesterPays: 'workspace:settings:requesterPays',
   workspaceSettingsImprovedDataTables: 'workspace:settings:improvedDataTables',
-  workspaceSettingsLogBucketRetention: 'workspace:settings:logBucketRetention',
+  workspaceSettingsLogRetention: 'workspace:settings:logRetention',
   workspaceSettingsMenuTab: 'workspace:settings:menuTab',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
