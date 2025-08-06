@@ -32,8 +32,8 @@ const getCompoundExtension = (fileUrl) => {
 export const getIgvMetricDetails = (selectedFiles, refGenome) => {
   const igvNumTracks = selectedFiles.length;
   const igvHasDrsUris = selectedFiles.some((f) => f.isSignedUrl);
-  const igvFileExtensions = selectedFiles.map((f) => getCompoundExtension(f.filePath));
-  const igvIndexExtensions = selectedFiles.map((f) => getCompoundExtension(f.indexFilePath));
+  const igvFileExtensions = selectedFiles.map((f) => f.filePath && getCompoundExtension(f.filePath));
+  const igvIndexExtensions = selectedFiles.map((f) => f.indexFilePath && getCompoundExtension(f.indexFilePath));
   const igvGenome = refGenome.genome;
   return {
     igvNumTracks,

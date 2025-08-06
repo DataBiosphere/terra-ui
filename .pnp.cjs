@@ -148,7 +148,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["husky", "npm:7.0.2"],\
             ["iframe-resizer", "npm:4.3.2"],\
             ["ignore", "npm:5.2.4"],\
-            ["igv", "npm:2.11.2"],\
+            ["igv", "npm:3.4.1"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jest-html-reporter", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.10.2"],\
@@ -14344,10 +14344,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["igv", [\
-        ["npm:2.11.2", {\
-          "packageLocation": "./.yarn/cache/igv-npm-2.11.2-ecb88934b3-d389340bf6.zip/node_modules/igv/",\
+        ["npm:3.4.1", {\
+          "packageLocation": "./.yarn/cache/igv-npm-3.4.1-777a08a9e9-e02cd3e8e3.zip/node_modules/igv/",\
           "packageDependencies": [\
-            ["igv", "npm:2.11.2"]\
+            ["igv", "npm:3.4.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -21883,7 +21883,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["husky", "npm:7.0.2"],\
             ["iframe-resizer", "npm:4.3.2"],\
             ["ignore", "npm:5.2.4"],\
-            ["igv", "npm:2.11.2"],\
+            ["igv", "npm:3.4.1"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jest-html-reporter", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.10.2"],\
