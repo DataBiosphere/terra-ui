@@ -8,6 +8,7 @@ import {
   RequesterPaysSetting,
   SeparateSubmissionFinalOutputsSetting,
   SoftDeleteSetting,
+  WorkspaceAnalysisLogRetentionSetting,
   WorkspaceSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 
@@ -47,6 +48,9 @@ export const isImprovedDataTablesSetting = (setting: WorkspaceSetting): setting 
 
 export const isBatchSetting = (setting: WorkspaceSetting): setting is BatchSetting =>
   setting.settingType === 'UseCromwellGcpBatchBackend';
+
+export const isLogRetentionSetting = (setting: WorkspaceSetting): setting is WorkspaceAnalysisLogRetentionSetting =>
+  setting.settingType === 'GcpLogBucketRetention';
 
 const isSeparateSubmissionFinalOutputsSetting = (
   setting: WorkspaceSetting
@@ -250,6 +254,34 @@ export const modifyImprovedDataTablesSetting = (
         settingType: 'CompactDataTables',
         config: { enabled },
       } as ImprovedDataTablesSetting,
+    ],
+    otherSettings
+  );
+};
+
+export const modifyLogRetentionSetting = (
+  originalSettings: WorkspaceSetting[],
+  retentionInDays: number
+): WorkspaceSetting[] => {
+  // clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
+
+  const logRetentionSettings: WorkspaceAnalysisLogRetentionSetting[] = workspaceSettings.filter(
+    (setting: WorkspaceSetting) => isLogRetentionSetting(setting)
+  ) as WorkspaceAnalysisLogRetentionSetting[];
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isLogRetentionSetting(setting));
+
+  // if no GcpLogBucketRetention setting exists and retention days is same as default, don't create a new setting
+  if (logRetentionSettings.length === 0 && retentionInDays === 30) {
+    return workspaceSettings;
+  }
+
+  return _.concat(
+    [
+      {
+        settingType: 'GcpLogBucketRetention',
+        config: { retentionDurationInDays: retentionInDays },
+      } as WorkspaceAnalysisLogRetentionSetting,
     ],
     otherSettings
   );

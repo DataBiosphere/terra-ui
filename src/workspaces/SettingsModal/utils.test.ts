@@ -2,6 +2,7 @@ import {
   BucketLifecycleSetting,
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
+  modifyLogRetentionSetting,
   removeFirstBucketDeletionRule,
   secondsInADay,
   SoftDeleteSetting,
@@ -501,5 +502,76 @@ describe('modifyFirstSoftDeleteSetting', () => {
         settingType: 'OtherSetting', // Algorithm concats other settings at the end
       },
     ]);
+  });
+
+  describe('modifyLogRetentionSetting', () => {
+    it('does not add log retention when no previous setting exists and retention period remains 30 days', async () => {
+      // Act
+      const result = modifyLogRetentionSetting([], 30);
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+
+    it('adds log bucket setting if one did not already exist and retention period is changed', async () => {
+      // Act
+      const result = modifyLogRetentionSetting([], 60);
+
+      // Assert
+      expect(result).toEqual([
+        {
+          settingType: 'GcpLogBucketRetention',
+          config: { retentionDurationInDays: 60 },
+        },
+      ]);
+    });
+
+    it('returns same retention setting if one already existed and retention period has not changed', async () => {
+      // Act
+      const result = modifyLogRetentionSetting(
+        [
+          {
+            settingType: 'GcpLogBucketRetention',
+            config: { retentionDurationInDays: 45 },
+          },
+        ],
+        45
+      );
+
+      // Assert
+      expect(result).toEqual([
+        {
+          settingType: 'GcpLogBucketRetention',
+          config: { retentionDurationInDays: 45 },
+        },
+      ]);
+    });
+
+    it('preserves other settings', async () => {
+      // Act
+      const result = modifyLogRetentionSetting(
+        [
+          otherSetting,
+          {
+            settingType: 'GcpLogBucketRetention',
+            config: { retentionDurationInDays: 30 },
+          },
+          {
+            settingType: 'GcpLogBucketRetention',
+            config: { retentionDurationInDays: 45 },
+          },
+        ],
+        90
+      );
+
+      // Assert
+      expect(result).toEqual([
+        {
+          settingType: 'GcpLogBucketRetention',
+          config: { retentionDurationInDays: 90 },
+        },
+        otherSetting, // function appends other settings at the end
+      ]);
+    });
   });
 });
