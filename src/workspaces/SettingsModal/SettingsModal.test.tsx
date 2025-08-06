@@ -1063,6 +1063,7 @@ describe('SettingsModal', () => {
       });
 
       // Assert
+      expect(screen.getByText('Workspace Log Retention:')).toBeInTheDocument();
       expect(getRetentionDaysElement()).toHaveAttribute('disabled');
     });
 
