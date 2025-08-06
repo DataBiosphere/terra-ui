@@ -96,6 +96,11 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return res.json();
   },
 
+  adminGetByGoogleProjectId: async (googleProjectId: string): Promise<SupportSummary> => {
+    const res = await fetchRawls(`admin/workspaces/googleProject/${googleProjectId}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+
   adminGetId: async (namespace: string, name: string): Promise<string> => {
     const res = await fetchRawls(`admin/workspaces/${namespace}/${name}/id`, _.merge(authOpts(), { signal }));
     return res.json();

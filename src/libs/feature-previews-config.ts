@@ -3,6 +3,7 @@ export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
 export const RAS_PROVIDER = 'rasProvider';
 export const IMPROVED_DATA_TABLES = 'improvedDataTables';
+export const WORKFLOW_RETRY_WITH_MORE_MEMORY = 'retryWithMoreMemory';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -83,6 +84,18 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
       'Support for Improved Data Table Performance'
     )}`,
     lastUpdated: '7/10/2025',
+  },
+  {
+    id: WORKFLOW_RETRY_WITH_MORE_MEMORY,
+    title: 'Retry Workflow Tasks with More Memory',
+    description:
+      'Opt-in to enable access to the Retry with More Memory workflow submission setting. This setting currently works best for Java tasks that are killed by the JVM when using too much memory, see the documentation for more details.',
+    feedbackUrl: `mailto:dsp-analysis@broadinstitute.org?subject=${encodeURIComponent(
+      'Retry with More Memory Feedback'
+    )}`,
+    documentationUrl:
+      'https://support.terra.bio/hc/en-us/articles/39412460844699-Automatically-retrying-workflows-with-more-memory',
+    lastUpdated: '8/8/2025',
   },
 ];
 
