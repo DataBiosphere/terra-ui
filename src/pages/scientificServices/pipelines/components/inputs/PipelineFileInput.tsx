@@ -73,7 +73,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           flexDirection: 'column',
         }}
       >
-        {!uploadProgress || uploadProgress === 100 ? (
+        {!uploadProgress ? (
           <Dropzone
             onDrop={handleDrop}
             disabled={!!selectedFile}
@@ -195,28 +195,37 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         ) : (
           <>
             <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Upload status</div>
-            <div>
-              <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on your
-              input file size. <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
-            </div>
-            <div key={input.name} style={{ marginTop: '1rem' }}>
-              <div
-                style={{
-                  backgroundColor: '#e4e5e6',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${uploadProgress}%`,
-                    height: '21px',
-                    backgroundColor: '#5CC88D',
-                    transition: 'width 0.3s ease-in-out',
-                  }}
-                />
+            {uploadProgress < 100 ? (
+              <>
+                <div>
+                  <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on your
+                  input file size. <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
+                </div>
+                <div key={input.name} style={{ marginTop: '1rem' }}>
+                  <div
+                    style={{
+                      backgroundColor: '#e4e5e6',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${uploadProgress}%`,
+                        height: '21px',
+                        backgroundColor: '#5CC88D',
+                        transition: 'width 0.3s ease-in-out',
+                      }}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icon icon='success-standard' size={24} style={{ color: '#74AE43' }} />{' '}
+                <span style={{ fontWeight: 'bold' }}>Upload successful.</span>
               </div>
-            </div>
+            )}
           </>
         )}
         {!isFileValid && selectedFile && (
