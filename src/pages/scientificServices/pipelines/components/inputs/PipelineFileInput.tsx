@@ -202,7 +202,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             <div key={input.name} style={{ marginTop: '1rem' }}>
               <div
                 style={{
-                  backgroundColor: '#f0f0f0',
+                  backgroundColor: '#e4e5e6',
                   borderRadius: '4px',
                   overflow: 'hidden',
                 }}
