@@ -13,6 +13,8 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
   const { query } = Nav.useRoute();
   const [resourceId, setResourceId] = useState<string>(props.fqResourceId.resourceId);
   const [lookupValue, setLookupValue] = useState<string>('');
+  const [googleProjectId, setGoogleProjectId] = useState<string>('');
+  const [isGoogleProjectLookup, setIsGoogleProjectLookup] = useState<boolean>(false);
 
   function submit(overrideResourceId?: string) {
     Nav.updateSearch({ ...query, resourceId: overrideResourceId || resourceId || undefined });
@@ -22,6 +24,7 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
   React.useEffect(() => {
     setResourceId('');
     setLookupValue('');
+    setGoogleProjectId('');
   }, [props.fqResourceId.resourceTypeName]);
 
   // the resourceType may be configured to skip policy retrieval/display
@@ -33,6 +36,31 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
     (res) => res.resourceType === props.fqResourceId.resourceTypeName,
     supportResources
   );
+
+  const supportSummaryProps: ResourceTypeSummaryProps = React.useMemo(() => {
+    if (isGoogleProjectLookup && googleProjectId) {
+      // Override loadSupportSummaryFn to use Google Project ID lookup
+      return {
+        ...props,
+        fqResourceId: { resourceId: googleProjectId, resourceTypeName: props.fqResourceId.resourceTypeName },
+        loadSupportSummaryFn: currentResourceType?.loadSupportSummaryByGoogleProjectId
+          ? () => currentResourceType.loadSupportSummaryByGoogleProjectId!(googleProjectId)
+          : undefined,
+      };
+    }
+    // Default behavior for workspace ID lookup
+    return {
+      ...props,
+      fqResourceId: { resourceId, resourceTypeName: props.fqResourceId.resourceTypeName },
+    };
+  }, [props, resourceId, googleProjectId, isGoogleProjectLookup, currentResourceType]);
+
+  // event hook to clear the resourceId when resourceType changes
+  React.useEffect(() => {
+    setResourceId('');
+    setLookupValue('');
+    setGoogleProjectId('');
+  }, [props.fqResourceId.resourceTypeName]);
 
   // Handle lookup when the resource type has a lookupResourceId function
   const handleLookup = async () => {
@@ -100,15 +128,56 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                setIsGoogleProjectLookup(false);
                 submit();
               }
             }}
             value={resourceId}
           />
-          <ButtonPrimary onClick={() => submit()}>Load By ID</ButtonPrimary>
+          <ButtonPrimary
+            onClick={() => {
+              setIsGoogleProjectLookup(false);
+              submit();
+            }}
+          >
+            Load By ID
+          </ButtonPrimary>
         </div>
+
+        {currentResourceType?.lookupByGoogleProjectPlaceHolder && (
+          <div style={{ marginRight: '0.5rem', marginLeft: '1rem', flex: 1, marginBottom: '0.5rem' }}>
+            <div style={{ fontWeight: 500 }}>or</div>
+          </div>
+        )}
+
+        {currentResourceType?.lookupByGoogleProjectPlaceHolder && (
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <TextInput
+              style={{ marginRight: '0.5rem', marginLeft: '1rem', flex: 1 }}
+              placeholder={`Enter ${currentResourceType.lookupByGoogleProjectPlaceHolder}`}
+              onChange={setGoogleProjectId}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setIsGoogleProjectLookup(true);
+
+                  submit(googleProjectId);
+                }
+              }}
+              value={googleProjectId}
+            />
+            <ButtonPrimary
+              onClick={() => {
+                setIsGoogleProjectLookup(true);
+
+                submit(googleProjectId);
+              }}
+            >
+              Load By {currentResourceType.lookupByGoogleProjectPlaceHolder}
+            </ButtonPrimary>
+          </div>
+        )}
       </div>
-      {!!props.loadSupportSummaryFn && <SupportSummary {...props} />}
+      {!!supportSummaryProps.loadSupportSummaryFn && <SupportSummary {...supportSummaryProps} />}
       {displayPolicies && <ResourcePolicies {...props} />}
     </>
   );
