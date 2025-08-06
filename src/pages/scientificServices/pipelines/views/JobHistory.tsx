@@ -9,7 +9,10 @@ import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/ta
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
-import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import {
+  pipelinesTopBar,
+  SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
+} from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
@@ -57,9 +60,9 @@ export const JobHistory = () => {
             For support, email{' '}
             <a
               style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-              href='mailto:scientific-services-support@broadinstitute.org'
+              href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
             >
-              scientific-services-support@broadinstitute.org
+              {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
             </a>
           </div>
         </div>

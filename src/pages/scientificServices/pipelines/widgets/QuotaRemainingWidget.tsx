@@ -4,6 +4,7 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
 import { cond, DEFAULT } from 'src/libs/utils';
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
 export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
   const signal = useCancellation();
@@ -55,7 +56,6 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
             }
             return (
               <div style={{ marginTop: '1rem' }}>
-                {quota!.pipelineName}:{' '}
                 <span style={{ fontWeight: 'bold' }}>
                   {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
                 </span>
@@ -74,7 +74,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
       )}
       <div style={{ marginTop: '1rem' }}>
         <a
-          href='mailto:dsp-scientific-services@broadinstitute.org?subject=Imputation%20Quota%20Increase%20Request'
+          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20Quota%20Increase%20Request`}
           style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
         >
           Apply
@@ -83,7 +83,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
       </div>
       <div style={{ marginTop: '1rem' }}>
         <a
-          href='mailto:dsp-scientific-services@broadinstitute.org?subject=Imputation%20Quota%20Dispute'
+          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20Quota%20Dispute`}
           style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
         >
           Get help
