@@ -55,7 +55,6 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
             }
             return (
               <div style={{ marginTop: '1rem' }}>
-                {quota!.pipelineName}:{' '}
                 <span style={{ fontWeight: 'bold' }}>
                   {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
                 </span>
@@ -74,7 +73,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
       )}
       <div style={{ marginTop: '1rem' }}>
         <a
-          href='mailto:dsp-scientific-services@broadinstitute.org?subject=Imputation%20Quota%20Increase%20Request'
+          href='mailto:scientific-services-support@broadinstitute.org?subject=Imputation%20Quota%20Increase%20Request'
           style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
         >
           Apply
@@ -83,7 +82,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
       </div>
       <div style={{ marginTop: '1rem' }}>
         <a
-          href='mailto:dsp-scientific-services@broadinstitute.org?subject=Imputation%20Quota%20Dispute'
+          href='mailto:scientific-services-support@broadinstitute.org?subject=Imputation%20Quota%20Dispute'
           style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
         >
           Get help

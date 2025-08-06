@@ -20,9 +20,7 @@ describe('QuotaRemainingWidget', () => {
   it('displays the correct remaining quota', async () => {
     render(<QuotaRemainingWidget selectedPipeline={mockPipeline('test_pipeline')} />);
 
-    await waitFor(() => expect(screen.getByText(/test_pipeline:/i)).toBeInTheDocument());
-
-    await expect(screen.getByText('1250 things', { exact: false })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('1250 things', { exact: false })).toBeInTheDocument());
   });
 
   it('displays the minimum quota consumed for the pipeline', async () => {
