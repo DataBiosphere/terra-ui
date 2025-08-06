@@ -23,16 +23,17 @@ const LogBucketRetention = (props: LogBucketRetentionProps): ReactNode => {
           htmlFor={formId}
           style={{ fontWeight: 600, whiteSpace: 'nowrap', marginRight: '.5rem', marginTop: '.5rem' }}
         >
-          Workflow Log Retention:
+          Workspace Log Retention:
         </FormLabel>
       </div>
       <div id={descriptionId} style={{ marginTop: '.5rem', fontSize: '12px' }}>
         This{' '}
         <ExternalLink href='https://cloud.google.com/logging/docs/buckets#custom-retention'>
-          log bucket retention setting
+          log retention setting
         </ExternalLink>{' '}
-        specifies the number of days to retain workflow task logs in the bucket. After the retention period has passed,
-        logs will be deleted. Valid values range from 1 to 3650 days (10 years).{' '}
+        specifies the number of days to retain workspace logs, including those from workflow tasks and compute
+        environment VMs. After the retention period has passed, logs will be deleted. Valid values range from 1 to 3650
+        days (10 years).{' '}
         <span style={{ fontWeight: 'bold' }}>
           Note increasing the retention period beyond 30 days will incur{' '}
           <ExternalLink href='https://cloud.google.com/stackdriver/pricing#logging-pricing-summary'>
