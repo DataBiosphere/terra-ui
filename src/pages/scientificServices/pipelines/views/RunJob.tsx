@@ -95,7 +95,7 @@ export async function prepareUploadStartPipelineRun(
       })
   );
 
-  // await Teaspoons().startPipelineRun(jobId);
+  await Teaspoons().startPipelineRun(jobId);
   return jobId;
 }
 
