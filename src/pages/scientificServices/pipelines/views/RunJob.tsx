@@ -267,8 +267,10 @@ export const RunJob = () => {
                     />
                   );
                 })}
+
               {/* Displays optional run description */}
               <PipelineRunDescription value={runDescription} onChange={setRunDescription} />
+
               {/* Displays all FILE inputs, one after another */}
               {pipelineInputs
                 .filter((input) => input.type === 'FILE')
@@ -277,6 +279,7 @@ export const RunJob = () => {
                     <PipelineFileInput
                       key={`${input.name}`}
                       input={input}
+                      uploadProgress={uploadProgress[input.name]}
                       selectedFile={selectedUserInputs[input.name] || null}
                       onFileSelect={(file) => {
                         setSelectedUserInputs((prev) => ({
@@ -285,33 +288,6 @@ export const RunJob = () => {
                         }));
                       }}
                     />
-                  );
-                })}
-              {/* {isSubmitting && submissionState && <SubmissionStatusBar submissionState={submissionState} />} */}
-              {pipelineInputs
-                .filter((input) => input.type === 'FILE')
-                .map((input) => {
-                  const progress = uploadProgress[input.name] || 0;
-                  return (
-                    <div key={input.name} style={{ marginTop: '1rem' }}>
-                      <div
-                        style={{
-                          width: '500px',
-                          backgroundColor: '#f0f0f0',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${progress}%`,
-                            height: '20px',
-                            backgroundColor: '#5CC88D',
-                            transition: 'width 0.3s ease-in-out',
-                          }}
-                        />
-                      </div>
-                    </div>
                   );
                 })}
               {!submittedJobId && (
@@ -360,6 +336,7 @@ export const RunJob = () => {
                       resetSelectedUserInputs();
                       setRunDescription('');
                       setSubmittedJobId(undefined);
+                      setUploadProgress({});
                     }}
                   >
                     Run another job
