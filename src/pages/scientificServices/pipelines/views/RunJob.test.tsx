@@ -267,6 +267,25 @@ describe('prepareUploadStartPipelineRun function', () => {
   });
 
   it('handles errors during file upload', async () => {
+    const mockSend = jest.fn(() => {
+      throw new Error('Network error');
+    });
+    class MockXHR {
+      upload = {
+        addEventListener: jest.fn(),
+      };
+
+      addEventListener = jest.fn();
+
+      open = jest.fn();
+
+      setRequestHeader = jest.fn();
+
+      send = mockSend;
+    }
+
+    global.XMLHttpRequest = jest.fn(() => new MockXHR()) as any;
+
     // Ensure preparePipelineRun succeeds so we can test file upload failure
     asMockedFn(mockTeaspoonsContract.preparePipelineRun).mockResolvedValue({
       fileInputUploadUrls: {
@@ -276,8 +295,6 @@ describe('prepareUploadStartPipelineRun function', () => {
       },
       jobId: 'mock-job-id',
     });
-
-    asMockedFn(fetch).mockRejectedValue(new Error('Network error'));
 
     await expect(
       prepareUploadStartPipelineRun(
