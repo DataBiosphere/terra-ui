@@ -17,7 +17,6 @@
 /src/libs/ajax/Groups.ts @DataBiosphere/broad-core-services
 /src/libs/ajax/workflows-app/ @DataBiosphere/dsp-analysis
 /src/libs/ajax/workspaces/ @DataBiosphere/broad-core-services
-/src/pages/library/DataBrowser* @DataBiosphere/dsp-data-team-eng
 /src/pages/library/Datasets* @DataBiosphere/dsp-data-team-eng
 /src/pages/library/SearchAndFilterComponent* @DataBiosphere/dsp-data-team-eng
 /src/dataset-builder/ @DataBiosphere/dsp-data-team-eng
@@ -35,5 +34,4 @@
 /integration-tests/tests/run-analysis-azure.js @DataBiosphere/dsp-analysis
 /integration-tests/tests/run-rstudio.js @DataBiosphere/dsp-analysis
 /integration-tests/tests/analysis-context-bar.js @DataBiosphere/dsp-analysis
-/integration-tests/tests/export-*-dataset-to-workspace.js @DataBiosphere/dsp-data-team-eng
 /integration-tests/utils/import-tdr-snapshot.ts @DataBiosphere/broad-core-services
