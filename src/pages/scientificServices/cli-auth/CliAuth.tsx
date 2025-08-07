@@ -1,5 +1,6 @@
 import React from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
+import dspLogo from 'src/images/brands/scientificServices/dspLogo.svg';
 import colors from 'src/libs/colors';
 
 export const CliAuth = () => {
@@ -11,7 +12,7 @@ export const CliAuth = () => {
   return (
     <div style={{ width: '525px', alignItems: 'center', margin: 'auto', padding: '2rem' }}>
       <img
-        src='src/images/brands/scientificServices/dspLogo.svg'
+        src={dspLogo}
         alt='Broad Institute Data Sciences Platform'
         style={{ width: '200px', alignItems: 'center', margin: 'auto', display: 'block', marginBottom: '2rem' }}
       />
