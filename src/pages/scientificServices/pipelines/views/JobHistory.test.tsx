@@ -246,4 +246,63 @@ describe('job history table', () => {
 
     expect(await screen.findByText('Pipeline Error', { exact: false })).toBeInTheDocument();
   });
+
+  describe('Quota Used column', () => {
+    it("displays '0 samples' when quotaUsed is undefined", async () => {
+      const pipelineRun = mockPipelineRun('FAILED');
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('0 samples')).toBeInTheDocument();
+    });
+
+    it('displays an informational tooltip for in progress jobs', async () => {
+      const pipelineRun = {
+        ...mockPipelineRun('RUNNING'),
+        quotaConsumed: 500,
+      };
+      const pipelineRuns = [pipelineRun];
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('500 samples')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'This job is still in progress. The amount of quota consumed may change as the job progresses. If the job fails, no quota will be consumed.'
+        )
+      ).toBeInTheDocument();
+    });
+  });
 });

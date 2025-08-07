@@ -1,4 +1,4 @@
-import { Icon, Spinner, useModalHandler } from '@terra-ui-packages/components';
+import { Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packages/components';
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
@@ -8,6 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
@@ -258,10 +259,16 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
   return (
-    <div>
-      {props.pipelineRun.quotaConsumed
-        ? `${props.pipelineRun.quotaConsumed} ${pluralize('sample', props.pipelineRun.quotaConsumed)}`
-        : 'N/A'}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+      {props.pipelineRun.quotaConsumed || 0} {pluralize('sample', props.pipelineRun.quotaConsumed || 0)}
+      {props.pipelineRun.status === 'RUNNING' && (
+        <TooltipTrigger
+          content='This job is still in progress. The amount of quota consumed may change as the job progresses. If the job fails, no quota will be consumed.'
+          side='top'
+        >
+          <Icon icon='info-circle' style={{ marginLeft: '0.25rem', color: colors.primary() }} />
+        </TooltipTrigger>
+      )}
     </div>
   );
 };
