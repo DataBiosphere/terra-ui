@@ -1,18 +1,19 @@
 import { ButtonPrimary, Modal, Spinner } from '@terra-ui-packages/components';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineRun, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { useCancellation } from 'src/libs/react-utils';
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
 /**
  * Modal component for displaying pipeline errors
  */
 interface ErrorModalProps {
-  jobId: string;
+  pipelineRun: PipelineRun;
   onDismiss: () => void;
 }
 
-export const ViewErrorModal = ({ jobId, onDismiss }: ErrorModalProps): ReactNode => {
+export const ViewErrorModal = ({ pipelineRun, onDismiss }: ErrorModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
   const signal = useCancellation();
@@ -21,7 +22,7 @@ export const ViewErrorModal = ({ jobId, onDismiss }: ErrorModalProps): ReactNode
     const fetchPipelineRunResults = async () => {
       try {
         setLoading(true);
-        const results = await Teaspoons(signal).getPipelineRunResult(jobId);
+        const results = await Teaspoons(signal).getPipelineRunResult(pipelineRun.jobId);
         setResult(results);
       } finally {
         setLoading(false);
@@ -29,10 +30,10 @@ export const ViewErrorModal = ({ jobId, onDismiss }: ErrorModalProps): ReactNode
     };
 
     fetchPipelineRunResults();
-  }, [jobId, signal]);
+  }, [pipelineRun, signal]);
 
   return (
-    <Modal width={800} title={`Pipeline Error - ${jobId}`} onDismiss={onDismiss} showButtons={false}>
+    <Modal width={800} title={`Pipeline Error - ${pipelineRun.jobId}`} onDismiss={onDismiss} showButtons={false}>
       <div>
         <h3>Error Details</h3>
 
@@ -85,6 +86,19 @@ export const ViewErrorModal = ({ jobId, onDismiss }: ErrorModalProps): ReactNode
                 No detailed error information available for this job.
               </div>
             )}
+          </div>
+        )}
+
+        {pipelineRun.status === 'PREPARING' && (
+          <div style={{ padding: '1rem', textAlign: 'center' }}>
+            There was an error preparing this job. Please try again or contact{' '}
+            <a
+              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+              href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
+            >
+              {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+            </a>{' '}
+            if the issue persists.
           </div>
         )}
 

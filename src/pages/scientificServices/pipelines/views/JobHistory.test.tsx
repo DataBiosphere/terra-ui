@@ -247,6 +247,66 @@ describe('job history table', () => {
     expect(await screen.findByText('Pipeline Error', { exact: false })).toBeInTheDocument();
   });
 
+  describe('Job Status column', () => {
+    it('displays Preparing if the job was submitted less than 10 minutes ago and is in PREPARING status', async () => {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const pipelineRun = {
+        ...mockPipelineRun('PREPARING'),
+        timeSubmitted: fiveMinutesAgo,
+      };
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('Preparing')).toBeInTheDocument();
+    });
+
+    it('displays FAILED if the job was submitted more than 10 minutes ago and is in PREPARING status', async () => {
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+      const pipelineRun = {
+        ...mockPipelineRun('PREPARING'),
+        timeSubmitted: fifteenMinutesAgo,
+      };
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('Failed')).toBeInTheDocument();
+    });
+  });
+
   describe('Quota Used column', () => {
     it("displays '0 samples' when quotaUsed is undefined", async () => {
       const pipelineRun = mockPipelineRun('FAILED');

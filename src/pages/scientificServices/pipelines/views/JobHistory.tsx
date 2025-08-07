@@ -229,7 +229,11 @@ const DescriptionCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
-  return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun.status)}</div>;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      {getRunStatusIcon(pipelineRun.status, pipelineRun.timeSubmitted)}
+    </div>
+  );
 };
 
 /** Format date like "Feb 15, 2025", and enable tooltip with precise time */
@@ -279,7 +283,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   });
 
   const errorModal = useModalHandler(() => {
-    return <ViewErrorModal jobId={pipelineRun.jobId} onDismiss={errorModal.close} />;
+    return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
   return (
@@ -326,11 +330,32 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
           {errorModal.maybeRender()}
         </>
       )}
+      {pipelineRun.status === 'PREPARING' && (
+        <>
+          <button
+            type='button'
+            style={{
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
+            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+          >
+            View Error
+          </button>
+          {errorModal.maybeRender()}
+        </>
+      )}
     </div>
   );
 };
 
-const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
+const getRunStatusIcon = (status: PipelineRunStatus, timeSubmitted: string): ReactNode => {
   switch (status) {
     case 'SUCCEEDED':
       return (
@@ -340,6 +365,24 @@ const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
       );
     case 'RUNNING':
       return <div style={{ display: 'flex', alignItems: 'center' }}>In Progress</div>;
+    case 'PREPARING': {
+      // In most cases, jobs stuck in Preparing can be considered failures.
+      // However, we have a small window where we still show "Preparing" in case the user happens
+      // to check the Job History page while the job submission is still in progress (i.e. due to a slow file upload).
+      const submittedTime = new Date(timeSubmitted);
+      const currentTime = new Date();
+      const minutesElapsed = (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60);
+
+      if (minutesElapsed > 10) {
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
+            <Icon icon='warning-standard' /> Failed
+          </div>
+        );
+      }
+
+      return <div style={{ display: 'flex', alignItems: 'center' }}>Preparing</div>;
+    }
     case 'FAILED':
       return (
         <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
