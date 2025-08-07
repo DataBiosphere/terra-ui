@@ -7,7 +7,7 @@ import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { useCancellation } from 'src/libs/react-utils';
 import {
@@ -229,11 +229,7 @@ const DescriptionCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      {getRunStatusIcon(pipelineRun.status, pipelineRun.timeSubmitted)}
-    </div>
-  );
+  return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun)}</div>;
 };
 
 /** Format date like "Feb 15, 2025", and enable tooltip with precise time */
@@ -355,8 +351,8 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   );
 };
 
-const getRunStatusIcon = (status: PipelineRunStatus, timeSubmitted: string): ReactNode => {
-  switch (status) {
+const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
+  switch (pipelineRun.status) {
     case 'SUCCEEDED':
       return (
         <div style={{ display: 'flex', alignItems: 'center', color: '#74AE43', gap: '0.5rem' }}>
@@ -369,7 +365,7 @@ const getRunStatusIcon = (status: PipelineRunStatus, timeSubmitted: string): Rea
       // In most cases, jobs stuck in Preparing can be considered failures.
       // However, we have a small window where we still show "Preparing" in case the user happens
       // to check the Job History page while the job submission is still in progress (i.e. due to a slow file upload).
-      const submittedTime = new Date(timeSubmitted);
+      const submittedTime = new Date(pipelineRun.timeSubmitted);
       const currentTime = new Date();
       const minutesElapsed = (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60);
 
@@ -390,7 +386,7 @@ const getRunStatusIcon = (status: PipelineRunStatus, timeSubmitted: string): Rea
         </div>
       );
     default:
-      return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(status)}</div>;
+      return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(pipelineRun.status)}</div>;
   }
 };
 

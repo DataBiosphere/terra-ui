@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { mockPipelineRun } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { asMockedFn, partial, renderWithAppContexts } from 'src/testing/test-utils';
 
 import { ViewErrorModal } from './ViewErrorModal';
@@ -10,7 +11,7 @@ import { ViewErrorModal } from './ViewErrorModal';
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 
 describe('ViewErrorModal', () => {
-  const jobId = 'test-job-id';
+  const pipelineRun = mockPipelineRun('FAILED');
   const onDismissMock = jest.fn();
 
   it('displays loading state initially', () => {
@@ -20,10 +21,10 @@ describe('ViewErrorModal', () => {
       })
     );
 
-    renderWithAppContexts(<ViewErrorModal jobId={jobId} onDismiss={onDismissMock} />);
+    renderWithAppContexts(<ViewErrorModal pipelineRun={pipelineRun} onDismiss={onDismissMock} />);
 
     expect(screen.getByText('Loading error details...')).toBeInTheDocument();
-    expect(screen.getByText(`Pipeline Error - ${jobId}`)).toBeInTheDocument();
+    expect(screen.getByText(`Pipeline Error - ${pipelineRun.jobId}`)).toBeInTheDocument();
   });
 
   it('fetches and displays error information', async () => {
@@ -43,7 +44,7 @@ describe('ViewErrorModal', () => {
       })
     );
 
-    renderWithAppContexts(<ViewErrorModal jobId={jobId} onDismiss={onDismissMock} />);
+    renderWithAppContexts(<ViewErrorModal pipelineRun={pipelineRun} onDismiss={onDismissMock} />);
 
     await waitFor(() => {
       expect(screen.queryByText('Loading error details...')).not.toBeInTheDocument();
@@ -68,7 +69,7 @@ describe('ViewErrorModal', () => {
       })
     );
 
-    renderWithAppContexts(<ViewErrorModal jobId={jobId} onDismiss={onDismissMock} />);
+    renderWithAppContexts(<ViewErrorModal pipelineRun={pipelineRun} onDismiss={onDismissMock} />);
 
     // Wait for loading to complete
     await waitFor(() => {
@@ -94,7 +95,7 @@ describe('ViewErrorModal', () => {
       })
     );
 
-    renderWithAppContexts(<ViewErrorModal jobId={jobId} onDismiss={onDismissMock} />);
+    renderWithAppContexts(<ViewErrorModal pipelineRun={pipelineRun} onDismiss={onDismissMock} />);
 
     await waitFor(() => {
       expect(screen.queryByText('Loading error details...')).not.toBeInTheDocument();
@@ -124,7 +125,7 @@ describe('ViewErrorModal', () => {
       })
     );
 
-    renderWithAppContexts(<ViewErrorModal jobId={jobId} onDismiss={onDismissMock} />);
+    renderWithAppContexts(<ViewErrorModal pipelineRun={pipelineRun} onDismiss={onDismissMock} />);
 
     await waitFor(() => {
       expect(screen.queryByText('Loading error details...')).not.toBeInTheDocument();
@@ -135,5 +136,12 @@ describe('ViewErrorModal', () => {
 
     // Verify causes section is not displayed
     expect(screen.queryByText('Error Causes:')).not.toBeInTheDocument();
+  });
+
+  it('displays error message when pipeline run is stuck in PREPARING state', () => {
+    const preparingPipelineRun = mockPipelineRun('PREPARING');
+    renderWithAppContexts(<ViewErrorModal pipelineRun={preparingPipelineRun} onDismiss={onDismissMock} />);
+
+    expect(screen.getByText('There was an error preparing this job.', { exact: false })).toBeInTheDocument();
   });
 });
