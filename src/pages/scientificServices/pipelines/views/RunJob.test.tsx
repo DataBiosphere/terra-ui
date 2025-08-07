@@ -21,6 +21,21 @@ jest.mock('src/libs/nav', () => ({
 // Mock global fetch for file upload testing
 global.fetch = jest.fn();
 
+// Mock XMLHttpRequest for file upload testing
+class MockXMLHttpRequest {
+  upload = {
+    addEventListener: jest.fn(),
+  };
+
+  addEventListener = jest.fn();
+
+  open = jest.fn();
+
+  setRequestHeader = jest.fn();
+
+  send = jest.fn();
+}
+
 // Mock crypto.randomUUID, so we can control the job ID generation in tests
 Object.defineProperty(global, 'crypto', {
   value: {
@@ -225,6 +240,22 @@ describe('prepareUploadStartPipelineRun function', () => {
   });
 
   it('successfully uploads file and starts pipeline run', async () => {
+    const mockXHR = new MockXMLHttpRequest();
+
+    // Simulate successful upload
+    mockXHR.addEventListener = jest.fn((event, callback) => {
+      if (event === 'load') {
+        setTimeout(() => callback({ status: 200 }), 0);
+      }
+    });
+
+    Object.defineProperty(mockXHR, 'status', {
+      value: 200,
+      writable: true,
+    });
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
     const jobId = await prepareUploadStartPipelineRun(
       'array_imputation',
       1,
@@ -243,12 +274,11 @@ describe('prepareUploadStartPipelineRun function', () => {
       'Test description'
     );
 
-    // Verify that file upload was attempted
-    expect(fetch).toHaveBeenCalledWith('https://mock-signed-url.com/upload', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/octet-stream' },
-      body: mockFile,
-    });
+    // Verify that XMLHttpRequest was used for file upload
+    expect(global.XMLHttpRequest).toHaveBeenCalled();
+    expect(mockXHR.open).toHaveBeenCalledWith('PUT', 'https://mock-signed-url.com/upload');
+    expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(mockXHR.send).toHaveBeenCalledWith(mockFile);
 
     // Verify that pipeline run was started
     expect(mockTeaspoonsContract.startPipelineRun).toHaveBeenCalledWith('mock-uuid-1234');
@@ -270,21 +300,11 @@ describe('prepareUploadStartPipelineRun function', () => {
     const mockSend = jest.fn(() => {
       throw new Error('Network error');
     });
-    class MockXHR {
-      upload = {
-        addEventListener: jest.fn(),
-      };
 
-      addEventListener = jest.fn();
+    const mockXHR = new MockXMLHttpRequest();
+    mockXHR.send = mockSend;
 
-      open = jest.fn();
-
-      setRequestHeader = jest.fn();
-
-      send = mockSend;
-    }
-
-    global.XMLHttpRequest = jest.fn(() => new MockXHR()) as any;
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
 
     // Ensure preparePipelineRun succeeds so we can test file upload failure
     asMockedFn(mockTeaspoonsContract.preparePipelineRun).mockResolvedValue({
@@ -309,6 +329,22 @@ describe('prepareUploadStartPipelineRun function', () => {
   });
 
   it('handles errors during pipeline run start', async () => {
+    const mockXHR = new MockXMLHttpRequest();
+
+    // Simulate successful upload
+    mockXHR.addEventListener = jest.fn((event, callback) => {
+      if (event === 'load') {
+        setTimeout(() => callback({ status: 200 }), 0);
+      }
+    });
+
+    Object.defineProperty(mockXHR, 'status', {
+      value: 200,
+      writable: true,
+    });
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
     asMockedFn(mockTeaspoonsContract.startPipelineRun).mockRejectedValue(new Error('Failed to start pipeline'));
 
     await expect(
