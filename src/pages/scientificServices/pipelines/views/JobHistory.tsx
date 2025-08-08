@@ -7,7 +7,7 @@ import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { useCancellation } from 'src/libs/react-utils';
 import {
@@ -16,6 +16,9 @@ import {
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
+
+// If a job is still in "Preparing" state after this many hours, we consider it a failure.
+export const PREPARING_JOB_CUTOFF_HOURS = 12;
 
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
@@ -229,7 +232,7 @@ const DescriptionCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
-  return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun.status)}</div>;
+  return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun)}</div>;
 };
 
 /** Format date like "Feb 15, 2025", and enable tooltip with precise time */
@@ -279,7 +282,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   });
 
   const errorModal = useModalHandler(() => {
-    return <ViewErrorModal jobId={pipelineRun.jobId} onDismiss={errorModal.close} />;
+    return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
   return (
@@ -326,12 +329,33 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
           {errorModal.maybeRender()}
         </>
       )}
+      {pipelineRun.status === 'PREPARING' && hoursElapsedSinceSubmission(pipelineRun) > PREPARING_JOB_CUTOFF_HOURS && (
+        <>
+          <button
+            type='button'
+            style={{
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
+            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+          >
+            View Error
+          </button>
+          {errorModal.maybeRender()}
+        </>
+      )}
     </div>
   );
 };
 
-const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
-  switch (status) {
+const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
+  switch (pipelineRun.status) {
     case 'SUCCEEDED':
       return (
         <div style={{ display: 'flex', alignItems: 'center', color: '#74AE43', gap: '0.5rem' }}>
@@ -340,6 +364,22 @@ const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
       );
     case 'RUNNING':
       return <div style={{ display: 'flex', alignItems: 'center' }}>In Progress</div>;
+    case 'PREPARING': {
+      // In most cases, jobs stuck in Preparing can be considered failures.
+      // However, we have a window where we still show "Preparing" in case the user happens
+      // to check the Job History page while the job submission is still in progress (i.e. due to a slow/large file upload).
+      const hoursElapsed = hoursElapsedSinceSubmission(pipelineRun);
+
+      if (hoursElapsed > PREPARING_JOB_CUTOFF_HOURS) {
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
+            <Icon icon='warning-standard' /> Failed
+          </div>
+        );
+      }
+
+      return <div style={{ display: 'flex', alignItems: 'center' }}>Preparing</div>;
+    }
     case 'FAILED':
       return (
         <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
@@ -347,7 +387,7 @@ const getRunStatusIcon = (status: PipelineRunStatus): ReactNode => {
         </div>
       );
     default:
-      return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(status)}</div>;
+      return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(pipelineRun.status)}</div>;
   }
 };
 
@@ -358,4 +398,10 @@ const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
     default:
       return '#AA4D8B4D';
   }
+};
+
+const hoursElapsedSinceSubmission = (pipelineRun: PipelineRun): number => {
+  const submittedTime = new Date(pipelineRun.timeSubmitted);
+  const currentTime = new Date();
+  return (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60 * 60);
 };

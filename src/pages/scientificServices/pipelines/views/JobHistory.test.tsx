@@ -4,6 +4,7 @@ import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { mockPipelineRun } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
+import { PREPARING_JOB_CUTOFF_HOURS } from 'src/pages/scientificServices/pipelines/views/JobHistory';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { JobHistory } from './JobHistory';
@@ -245,6 +246,68 @@ describe('job history table', () => {
     await user.click(screen.getByText('View Error'));
 
     expect(await screen.findByText('Pipeline Error', { exact: false })).toBeInTheDocument();
+  });
+
+  describe('Job Status column', () => {
+    it(`displays PREPARING if the job was submitted less than ${PREPARING_JOB_CUTOFF_HOURS} hours ago and is in PREPARING status`, async () => {
+      const elevenHoursAgo = new Date(Date.now() - 60 * 60 * 1000 * (PREPARING_JOB_CUTOFF_HOURS - 1)).toISOString();
+      const pipelineRun = {
+        ...mockPipelineRun('PREPARING'),
+        timeSubmitted: elevenHoursAgo,
+      };
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('Preparing')).toBeInTheDocument();
+      expect(screen.queryByText('View Error')).not.toBeInTheDocument();
+    });
+
+    it(`displays FAILED if the job was submitted more than ${PREPARING_JOB_CUTOFF_HOURS} hours ago and is in PREPARING status`, async () => {
+      const thirteenHoursAgo = new Date(Date.now() - 60 * 60 * 1000 * (PREPARING_JOB_CUTOFF_HOURS + 1)).toISOString();
+      const pipelineRun = {
+        ...mockPipelineRun('PREPARING'),
+        timeSubmitted: thirteenHoursAgo,
+      };
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('Failed')).toBeInTheDocument();
+      expect(screen.getByText('View Error')).toBeInTheDocument();
+    });
   });
 
   describe('Quota Used column', () => {
