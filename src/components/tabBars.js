@@ -1,7 +1,7 @@
 import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
-import { Fragment, useRef } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { HorizontalNavigation } from 'src/components/keyboard-nav';
@@ -58,9 +58,12 @@ const styles = {
  * @param props Any additional properties to add to the container menu element
  */
 export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children, ...props }) {
+  const [hoveredTab, setHoveredTab] = useState(null);
+
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab;
     const href = getHref(currentTab);
+    const isHovered = hoveredTab === currentTab;
 
     return span(
       {
@@ -76,9 +79,11 @@ export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noo
           Clickable,
           {
             style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
-            hover: selected ? {} : Style.tabBar.hover,
+            hover: isHovered ? Style.tabBar.hover : {},
             onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
             href,
+            onMouseEnter: () => setHoveredTab(currentTab),
+            onMouseLeave: () => setHoveredTab(null),
           },
           [
             div(
