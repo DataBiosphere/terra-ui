@@ -4,6 +4,7 @@ import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { mockPipelineRun } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
+import { PREPARING_JOB_CUTOFF_HOURS } from 'src/pages/scientificServices/pipelines/views/JobHistory';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { JobHistory } from './JobHistory';
@@ -248,11 +249,11 @@ describe('job history table', () => {
   });
 
   describe('Job Status column', () => {
-    it('displays Preparing if the job was submitted less than 10 minutes ago and is in PREPARING status', async () => {
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    it(`displays PREPARING if the job was submitted less than ${PREPARING_JOB_CUTOFF_HOURS} hours ago and is in PREPARING status`, async () => {
+      const elevenHoursAgo = new Date(Date.now() - 60 * 60 * 1000 * (PREPARING_JOB_CUTOFF_HOURS - 1)).toISOString();
       const pipelineRun = {
         ...mockPipelineRun('PREPARING'),
-        timeSubmitted: fiveMinutesAgo,
+        timeSubmitted: elevenHoursAgo,
       };
       const pipelineRuns = [pipelineRun];
 
@@ -275,13 +276,14 @@ describe('job history table', () => {
       });
 
       expect(screen.getByText('Preparing')).toBeInTheDocument();
+      expect(screen.queryByText('View Error')).not.toBeInTheDocument();
     });
 
-    it('displays FAILED if the job was submitted more than 10 minutes ago and is in PREPARING status', async () => {
-      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    it(`displays FAILED if the job was submitted more than ${PREPARING_JOB_CUTOFF_HOURS} hours ago and is in PREPARING status`, async () => {
+      const thirteenHoursAgo = new Date(Date.now() - 60 * 60 * 1000 * (PREPARING_JOB_CUTOFF_HOURS + 1)).toISOString();
       const pipelineRun = {
         ...mockPipelineRun('PREPARING'),
-        timeSubmitted: fifteenMinutesAgo,
+        timeSubmitted: thirteenHoursAgo,
       };
       const pipelineRuns = [pipelineRun];
 
@@ -304,6 +306,7 @@ describe('job history table', () => {
       });
 
       expect(screen.getByText('Failed')).toBeInTheDocument();
+      expect(screen.getByText('View Error')).toBeInTheDocument();
     });
   });
 

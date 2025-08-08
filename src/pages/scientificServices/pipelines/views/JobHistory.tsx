@@ -17,6 +17,9 @@ import {
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
+// If a job is still in "Preparing" state after this many hours, we consider it a failure.
+export const PREPARING_JOB_CUTOFF_HOURS = 12;
+
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
    we'll need to add a filter for the pipeline name.
@@ -326,7 +329,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
           {errorModal.maybeRender()}
         </>
       )}
-      {pipelineRun.status === 'PREPARING' && (
+      {pipelineRun.status === 'PREPARING' && hoursElapsedSinceSubmission(pipelineRun) > PREPARING_JOB_CUTOFF_HOURS && (
         <>
           <button
             type='button'
@@ -363,13 +366,11 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
       return <div style={{ display: 'flex', alignItems: 'center' }}>In Progress</div>;
     case 'PREPARING': {
       // In most cases, jobs stuck in Preparing can be considered failures.
-      // However, we have a small window where we still show "Preparing" in case the user happens
-      // to check the Job History page while the job submission is still in progress (i.e. due to a slow file upload).
-      const submittedTime = new Date(pipelineRun.timeSubmitted);
-      const currentTime = new Date();
-      const minutesElapsed = (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60);
+      // However, we have a window where we still show "Preparing" in case the user happens
+      // to check the Job History page while the job submission is still in progress (i.e. due to a slow/large file upload).
+      const hoursElapsed = hoursElapsedSinceSubmission(pipelineRun);
 
-      if (minutesElapsed > 10) {
+      if (hoursElapsed > PREPARING_JOB_CUTOFF_HOURS) {
         return (
           <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
             <Icon icon='warning-standard' /> Failed
@@ -397,4 +398,10 @@ const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
     default:
       return '#AA4D8B4D';
   }
+};
+
+const hoursElapsedSinceSubmission = (pipelineRun: PipelineRun): number => {
+  const submittedTime = new Date(pipelineRun.timeSubmitted);
+  const currentTime = new Date();
+  return (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60 * 60);
 };
