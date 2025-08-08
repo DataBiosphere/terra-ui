@@ -15,7 +15,7 @@ const TAB_LINKS = {
 };
 
 export const pipelinesTopBar = (activeTab: string) => {
-  const isFeatureEnabled = !isFeaturePreviewEnabled(IMPUTATION_UI);
+  const isFeatureEnabled = isFeaturePreviewEnabled(IMPUTATION_UI);
 
   return (
     <>

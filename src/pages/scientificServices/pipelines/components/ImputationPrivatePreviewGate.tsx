@@ -10,7 +10,7 @@ interface FeaturePreviewLandingProps {
 }
 
 export const ImputationPrivatePreviewGate = ({ children }: FeaturePreviewLandingProps): ReactNode => {
-  const isFeatureEnabled = !isFeaturePreviewEnabled(IMPUTATION_UI);
+  const isFeatureEnabled = isFeaturePreviewEnabled(IMPUTATION_UI);
   return isFeatureEnabled ? (
     children
   ) : (
