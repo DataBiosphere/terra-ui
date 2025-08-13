@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { a, div, h } from 'react-hyperscript-helpers';
 import { Clickable, Link } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import { isBioDataCatalyst } from 'src/libs/brand-utils';
+import { isBioDataCatalyst, isScientificServices } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { footerLogo } from 'src/libs/logos';
@@ -80,14 +80,18 @@ const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) =>
       link: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture',
       displayName: 'Security',
     }),
-    popoutItem({
-      link: 'https://support.terra.bio/hc/en-us',
-      displayName: 'Documentation',
-    }),
-    popoutItem({
-      link: 'https://terra.bio',
-      displayName: 'Terra.bio',
-    }),
+    ...(!isScientificServices()
+      ? [
+          popoutItem({
+            link: 'https://support.terra.bio/hc/en-us',
+            displayName: 'Documentation',
+          }),
+          popoutItem({
+            link: 'https://terra.bio',
+            displayName: 'Terra.bio',
+          }),
+        ]
+      : []),
     div({ style: { flexGrow: 1 } }),
     div({ style: { fontWeight: 600, fontSize: '10px' } }, [`Copyright ©${buildDate.getFullYear()}`]),
   ]);
