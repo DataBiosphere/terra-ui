@@ -39,8 +39,16 @@ export const ImputationPrivatePreviewGate = ({ children }: FeaturePreviewLanding
         </h2>
       </div>
       <div style={{ marginLeft: '2.5rem', marginTop: '1rem' }}>
-        The All of Us + Anvil Imputation Service user interface is currently in private preview and is not yet available
-        to all users. If you have any questions or would like to inquire about early access, please contact us at{' '}
+        The{' '}
+        <span
+          style={{
+            fontStyle: 'italic',
+          }}
+        >
+          All of Us
+        </span>{' '}
+        + AnVIL Imputation Service user interface is currently in private preview and is not yet available to all users.
+        If you have any questions or would like to inquire about early access, please contact us at{' '}
         <a
           style={{ textDecoration: 'underline', color: '#46A3E9', fontWeight: 'bold' }}
           href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
@@ -49,8 +57,15 @@ export const ImputationPrivatePreviewGate = ({ children }: FeaturePreviewLanding
         </a>
         .
         <div style={{ marginTop: '1rem' }}>
-          In the meantime, we invite you to use the All of Us + AnVIL Imputation Service using the Command Line
-          Interface (CLI).
+          In the meantime, we invite you to use the{' '}
+          <span
+            style={{
+              fontStyle: 'italic',
+            }}
+          >
+            All of Us
+          </span>{' '}
+          + AnVIL Imputation Service using the Command Line Interface (CLI).
         </div>
         <ButtonPrimary
           style={{ marginTop: '1.5rem' }}
