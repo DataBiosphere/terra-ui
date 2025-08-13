@@ -5,6 +5,8 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { IMPUTATION_UI } from 'src/libs/feature-previews-config';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
+/* TODO: Delete this entire component once the Imputation UI is generally available. */
+
 interface FeaturePreviewLandingProps {
   children: ReactNode;
 }
@@ -19,7 +21,7 @@ export const ImputationPrivatePreviewGate = ({ children }: FeaturePreviewLanding
         margin: '4rem 3rem',
         padding: '1rem',
         width: '40%',
-        minWidth: '300px',
+        minWidth: '600px',
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '1rem' }}>
