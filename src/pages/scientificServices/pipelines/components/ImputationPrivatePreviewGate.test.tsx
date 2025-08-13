@@ -28,9 +28,7 @@ describe('ImputationPrivatePreviewGate', () => {
     );
 
     expect(screen.getByText(/Thank you for registering for the/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/The All of Us \+ Anvil Imputation Service user interface is currently in private preview/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/user interface is currently in private preview/)).toBeInTheDocument();
 
     // Feature component should not be rendered
     expect(screen.queryByTestId('private-feature')).not.toBeInTheDocument();
