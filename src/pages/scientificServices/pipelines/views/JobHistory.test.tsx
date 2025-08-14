@@ -11,6 +11,15 @@ import { JobHistory } from './JobHistory';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 
+type FeaturePreviewExports = typeof import('src/libs/feature-previews');
+jest.mock(
+  'src/libs/feature-previews',
+  (): FeaturePreviewExports => ({
+    ...jest.requireActual('src/libs/feature-previews'),
+    isFeaturePreviewEnabled: jest.fn().mockReturnValue(true),
+  })
+);
+
 jest.mock('react-virtualized', () => {
   const actual = jest.requireActual('react-virtualized');
 

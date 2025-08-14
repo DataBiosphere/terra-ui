@@ -14,6 +14,7 @@ import {
   pipelinesTopBar,
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { ImputationPrivatePreviewGate } from 'src/pages/scientificServices/pipelines/components/ImputationPrivatePreviewGate';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
@@ -44,77 +45,79 @@ export const JobHistory = () => {
   return (
     <FooterWrapper alwaysShow>
       {pipelinesTopBar('job history')}
-      <main
-        style={{
-          paddingLeft: '2rem',
-          paddingRight: '2rem',
-          paddingTop: '1rem',
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          rowGap: '1rem',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <h3>Job History</h3>
-          <div style={{ marginBottom: '0.25rem' }}>
-            All files associated with jobs will be automatically deleted after 2 weeks from completion.
+      <ImputationPrivatePreviewGate>
+        <main
+          style={{
+            paddingLeft: '2rem',
+            paddingRight: '2rem',
+            paddingTop: '1rem',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            rowGap: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <h3>Job History</h3>
+            <div style={{ marginBottom: '0.25rem' }}>
+              All files associated with jobs will be automatically deleted after 2 weeks from completion.
+            </div>
+            <div>
+              For support, email{' '}
+              <a
+                style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+                href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
+              >
+                {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+              </a>
+            </div>
           </div>
-          <div>
-            For support, email{' '}
-            <a
-              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-              href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
-            >
-              {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
-            </a>
+          <div style={{ flex: 1, marginTop: '1rem' }}>
+            {pipelineRunsResponse ? (
+              <AutoSizer>
+                {({ width, height }) => (
+                  // Sorting is unsupported on this table for now. Eventually
+                  // we may update the paginated Teaspoons getAllPipelineRuns endpoint
+                  // to support filters and sorting. Until then, the results will be
+                  // sorted by creation date, with the most recent displayed first.
+                  <FlexTable
+                    aria-label='job history table'
+                    width={width}
+                    height={height}
+                    rowHeight={55}
+                    rowCount={pipelineRunsResponse.results.length}
+                    columns={getColumns(pipelineRunsResponse.results)}
+                    noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
+                    tabIndex={-1}
+                    variant={undefined}
+                    styleHeader={() => ({ backgroundColor: '#eff0f1' })}
+                  />
+                )}
+              </AutoSizer>
+            ) : (
+              <Spinner />
+            )}
           </div>
-        </div>
-        <div style={{ flex: 1, marginTop: '1rem' }}>
-          {pipelineRunsResponse ? (
-            <AutoSizer>
-              {({ width, height }) => (
-                // Sorting is unsupported on this table for now. Eventually
-                // we may update the paginated Teaspoons getAllPipelineRuns endpoint
-                // to support filters and sorting. Until then, the results will be
-                // sorted by creation date, with the most recent displayed first.
-                <FlexTable
-                  aria-label='job history table'
-                  width={width}
-                  height={height}
-                  rowHeight={55}
-                  rowCount={pipelineRunsResponse.results.length}
-                  columns={getColumns(pipelineRunsResponse.results)}
-                  noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
-                  tabIndex={-1}
-                  variant={undefined}
-                  styleHeader={() => ({ backgroundColor: '#eff0f1' })}
-                />
-              )}
-            </AutoSizer>
-          ) : (
-            <Spinner />
+          {!_.isEmpty(pipelineRunsResponse?.results) && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              {/* @ts-ignore */}
+              <Paginator
+                filteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+                unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+                pageNumber={pageNumber}
+                setPageNumber={(v) => {
+                  setPageNumber(v);
+                }}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={(v) => {
+                  setPageNumber(1);
+                  setItemsPerPage(v);
+                }}
+              />
+            </div>
           )}
-        </div>
-        {!_.isEmpty(pipelineRunsResponse?.results) && (
-          <div style={{ marginBottom: '0.5rem' }}>
-            {/* @ts-ignore */}
-            <Paginator
-              filteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
-              unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
-              pageNumber={pageNumber}
-              setPageNumber={(v) => {
-                setPageNumber(v);
-              }}
-              itemsPerPage={itemsPerPage}
-              setItemsPerPage={(v) => {
-                setPageNumber(1);
-                setItemsPerPage(v);
-              }}
-            />
-          </div>
-        )}
-      </main>
+        </main>
+      </ImputationPrivatePreviewGate>
     </FooterWrapper>
   );
 };

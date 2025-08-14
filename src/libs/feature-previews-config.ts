@@ -1,8 +1,11 @@
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
 export const RAS_PROVIDER = 'rasProvider';
 export const IMPROVED_DATA_TABLES = 'improvedDataTables';
+export const IMPUTATION_UI = 'imputationUI';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -83,6 +86,16 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
       'Support for Improved Data Table Performance'
     )}`,
     lastUpdated: '7/10/2025',
+  },
+  {
+    id: IMPUTATION_UI,
+    title: 'Imputation UI',
+    description: 'Enables the user interface for the All of Us + AnVIL Imputation Service.',
+    groups: ['preview-imputation-ui'],
+    feedbackUrl: `mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=${encodeURIComponent(
+      'Feedback on Imputation Service UI'
+    )}`,
+    lastUpdated: '8/10/2025',
   },
 ];
 

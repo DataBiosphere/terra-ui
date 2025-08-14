@@ -1,4 +1,5 @@
 import React from 'react';
+import dspLogo from 'src/images/brands/scientificServices/dspLogo.svg';
 
 export const ScientificServicesWelcomeHeader = () => {
   return (
@@ -6,11 +7,7 @@ export const ScientificServicesWelcomeHeader = () => {
       <span style={{ fontSize: '24px', marginBottom: '1rem', fontWeight: 700 }}>
         Welcome to Scientific Services from the
       </span>
-      <img
-        src='src/images/brands/scientificServices/dspLogo.svg'
-        alt='Broad Institute Data Sciences Platform'
-        style={{ width: '200px' }}
-      />
+      <img src={dspLogo} alt='Broad Institute Data Sciences Platform' style={{ width: '200px' }} />
     </div>
   );
 };
