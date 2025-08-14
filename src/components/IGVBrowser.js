@@ -13,11 +13,17 @@ import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src
 import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
+import IGVSessionModal from './IGVSessionModal';
+
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {
   const [loadingIgv, setLoadingIgv] = useState(true);
   const [requesterPaysModal, setRequesterPaysModal] = useState(null);
   const [showAddTrackModal, setShowAddTrackModal] = useState(false);
+  const [savedSessions, setSavedSessions] = useState([]);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionAction, setSessionAction] = useState(null); // 'save' or 'load'
+
   const containerRef = useRef();
   const igvLibrary = useRef();
   const igvBrowser = useRef();
@@ -102,6 +108,84 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     }, tracks);
   });
 
+  const saveSession = withErrorReporting('Unable to save session')(async (sessionName) => {
+    if (!igvBrowser.current) return;
+
+    try {
+      const session = igvBrowser.current.toJSON();
+      const sessionData = {
+        name: sessionName,
+        timestamp: new Date().toISOString(),
+        data: session,
+        workspace: workspace.workspace.workspaceId,
+        genome,
+      };
+
+      // Save to localStorage
+      localStorage.setItem(`igvSession-${sessionName}`, JSON.stringify(sessionData));
+
+      // Update session list
+      const sessionList = getSavedSessions();
+      const existingIndex = sessionList.findIndex((s) => s.name === sessionName);
+
+      let updatedList;
+      if (existingIndex >= 0) {
+        // Update existing session timestamp
+        updatedList = [...sessionList];
+        updatedList[existingIndex] = { name: sessionName, timestamp: sessionData.timestamp };
+      } else {
+        // Add new session
+        updatedList = [...sessionList, { name: sessionName, timestamp: sessionData.timestamp }];
+      }
+
+      localStorage.setItem('igv-session-list', JSON.stringify(updatedList));
+      setSavedSessions(updatedList);
+
+      const url = new URL(window.location);
+      url.searchParams.set('session-name', sessionName);
+
+      window.history.replaceState({ igvSession: session, sessionName }, `IGV Session - ${sessionName}`, url.toString());
+
+      return true;
+    } catch (error) {
+      console.error('Failed to save session:', error);
+      return false;
+    }
+  });
+
+  const loadSession = withErrorReporting('Unable to load session')(async (sessionName) => {
+    if (!igvBrowser.current) return;
+
+    try {
+      const sessionData = localStorage.getItem(`igvSession-${sessionName}`);
+      if (!sessionData) {
+        throw new Error(`Session '${sessionName}' not found`);
+      }
+
+      const parsed = JSON.parse(sessionData);
+      await igvBrowser.current.loadSession(parsed.data);
+
+      const url = new URL(window.location);
+      url.searchParams.set('session-name', sessionName);
+
+      window.history.pushState({ igvSession: parsed.data, sessionName }, `IGV Session - ${sessionName}`, url.toString());
+
+      return true;
+    } catch (error) {
+      console.error('Failed to load session:', error);
+      return false;
+    }
+  });
+
+  const getSavedSessions = () => {
+    try {
+      const list = localStorage.getItem('igv-session-list');
+      return list ? JSON.parse(list) : [];
+    } catch {
+      return [];
+    }
+  };
+
   useOnMount(() => {
     const igvSetup = async () => {
       try {
@@ -121,6 +205,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };
         }, selectedFiles);
         addTracks(initialTracks);
+
+        setSavedSessions(getSavedSessions());
       } catch (e) {
         reportError('Error loading IGV.js', e);
       } finally {
@@ -136,14 +222,38 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   return h(Fragment, [
     div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.5rem 0' } }, [
       h(Link, { onClick: onDismiss }, [icon('arrowLeft', { style: { marginRight: '1ch' } }), 'Back to data table']),
-      h(
-        ButtonOutline,
-        {
-          disabled: loadingIgv,
-          onClick: () => setShowAddTrackModal(true),
-        },
-        ['Add track']
-      ),
+      div({ style: { display: 'flex', gap: '0.5rem' } }, [
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv,
+            onClick: () => {
+              setSessionAction('save');
+              setShowSessionModal(true);
+            },
+          },
+          ['Save Session']
+        ),
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv,
+            onClick: () => {
+              setSessionAction('load');
+              setShowSessionModal(true);
+            },
+          },
+          ['Load Session']
+        ),
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv,
+            onClick: () => setShowAddTrackModal(true),
+          },
+          ['Add Track']
+        ),
+      ]),
     ]),
     div(
       {
@@ -164,6 +274,27 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         onSubmitTrack: (track) => {
           setShowAddTrackModal(false);
           addTracks([track]);
+        },
+      }),
+
+    showSessionModal &&
+      h(IGVSessionModal, {
+        action: sessionAction,
+        savedSessions,
+        onDismiss: () => setShowSessionModal(false),
+        onSave: async (name) => {
+          const success = await saveSession(name);
+          if (success) {
+            setShowSessionModal(false);
+          }
+          return success;
+        },
+        onLoad: async (name) => {
+          const success = await loadSession(name);
+          if (success) {
+            setShowSessionModal(false);
+          }
+          return success;
         },
       }),
   ]);
