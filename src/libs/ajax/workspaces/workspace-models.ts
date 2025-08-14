@@ -36,7 +36,6 @@ export type WorkspaceSetting =
   | BucketLifecycleSetting
   | SoftDeleteSetting
   | RequesterPaysSetting
-  | BatchSetting
   | SeparateSubmissionFinalOutputsSetting
   | ImprovedDataTablesSetting
   | WorkspaceAnalysisLogRetentionSetting;
@@ -58,11 +57,6 @@ export interface RequesterPaysSetting {
 
 export interface ImprovedDataTablesSetting {
   settingType: 'CompactDataTables';
-  config: { enabled: boolean };
-}
-
-export interface BatchSetting {
-  settingType: 'UseCromwellGcpBatchBackend';
   config: { enabled: boolean };
 }
 

@@ -494,7 +494,7 @@ export const WorkflowView = _.flow(
                 monitoringImageScript,
                 perWorkflowCostCap,
                 onDismiss: () => this.setState({ launching: false }),
-                onSuccess: (submissionId, workflowBackend) => {
+                onSuccess: (submissionId) => {
                   const {
                     methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo },
                   } = modifiedConfig;
@@ -503,7 +503,6 @@ export const WorkflowView = _.flow(
                     methodVersion,
                     sourceRepo,
                     methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath,
-                    workflowBackend, // This should be removed in https://broadworkbench.atlassian.net/browse/AN-507
                   });
                   if (perWorkflowCostCap !== '') {
                     void Metrics().captureEvent(Events.workflowSetCostCap, {
