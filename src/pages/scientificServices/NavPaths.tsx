@@ -5,19 +5,19 @@ import { RunJob } from 'src/pages/scientificServices/pipelines/views/RunJob';
 export const navPaths = [
   {
     name: 'pipelines-about',
-    path: '/services/pipelines',
+    path: '/imputation',
     component: About,
     title: 'Home',
   },
   {
     name: 'pipelines-run',
-    path: '/services/pipelines/run',
+    path: '/imputation/run',
     component: RunJob,
     title: 'Run Job',
   },
   {
     name: 'pipelines-history',
-    path: '/services/pipelines/history',
+    path: '/imputation/history',
     component: JobHistory,
     title: 'Job History',
   },

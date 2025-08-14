@@ -436,7 +436,7 @@ export const brands: Record<string, BrandConfiguration> = {
     landingPageBackgroundSize: 'cover',
     welcomeHeader: <ScientificServicesWelcomeHeader />,
     description: <ScientificServicesDescription />,
-    hostName: 'app.terra.bio', // TODO: TSPS-484, provision scientificservices.terra.bio (or something)
+    hostName: 'services.terra.bio',
     compactTopBar: true,
     docLinks: [],
     landingPageCards: [],
