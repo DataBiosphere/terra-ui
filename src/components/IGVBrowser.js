@@ -112,17 +112,20 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     if (!igvBrowser.current) return;
 
     try {
+      const workspaceId = workspace.workspace.workspaceId;
       const session = igvBrowser.current.toJSON();
       const sessionData = {
         name: sessionName,
         timestamp: new Date().toISOString(),
         data: session,
-        workspace: workspace.workspace.workspaceId,
+        workspace: workspaceId,
         genome,
       };
 
       // Save to localStorage
-      localStorage.setItem(`igvSession-${sessionName}`, JSON.stringify(sessionData));
+      const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
+
+      localStorage.setItem(sessionKey, JSON.stringify(sessionData));
 
       // Update session list
       const sessionList = getSavedSessions();
@@ -138,7 +141,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         updatedList = [...sessionList, { name: sessionName, timestamp: sessionData.timestamp }];
       }
 
-      localStorage.setItem('igv-session-list', JSON.stringify(updatedList));
+      const sessionListKey = `igv-session-list-${workspaceId}`;
+
+      localStorage.setItem(sessionListKey, JSON.stringify(updatedList));
       setSavedSessions(updatedList);
 
       return true;
@@ -152,7 +157,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     if (!igvBrowser.current) return;
 
     try {
-      const sessionData = localStorage.getItem(`igvSession-${sessionName}`);
+      const workspaceId = workspace.workspace.workspaceId;
+      const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
+      const sessionData = localStorage.getItem(sessionKey);
       if (!sessionData) {
         throw new Error(`Session '${sessionName}' not found`);
       }
@@ -169,10 +176,33 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
 
   const getSavedSessions = () => {
     try {
-      const list = localStorage.getItem('igv-session-list');
+      const workspaceId = workspace.workspace.workspaceId;
+      const sessionListKey = `igv-session-list-${workspaceId}`;
+      const list = localStorage.getItem(sessionListKey);
       return list ? JSON.parse(list) : [];
     } catch {
       return [];
+    }
+  };
+
+  const deleteSession = (sessionName) => {
+    try {
+      const workspaceId = workspace.workspace.workspaceId;
+      const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
+
+      // Remove the session data
+      localStorage.removeItem(sessionKey);
+
+      // Update the session list
+      const sessionList = getSavedSessions().filter((session) => session.name !== sessionName);
+      const sessionListKey = `igv-session-list-${workspaceId}`;
+      localStorage.setItem(sessionListKey, JSON.stringify(sessionList));
+      setSavedSessions(sessionList);
+
+      return true;
+    } catch (error) {
+      console.error('Failed to delete session:', error);
+      return false;
     }
   };
 
@@ -285,6 +315,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
             setShowSessionModal(false);
           }
           return success;
+        },
+        onDelete: async (name) => {
+          return deleteSession(name); // This will update savedSessions automatically
         },
       }),
   ]);

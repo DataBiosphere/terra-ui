@@ -111,7 +111,7 @@ afterEach(() => {
 });
 
 const mockWorkspace = {
-  workspace: { googleProject: 'test-project' },
+  workspace: { googleProject: 'test-project', workspaceId: 'test-workspace-id' },
 };
 
 const mockSelectedFiles = [
@@ -281,8 +281,11 @@ describe('IGVBrowser Session Management', () => {
 
       await waitFor(() => {
         // Check localStorage was called correctly
-        expect(localStorageMock.setItem).toHaveBeenCalledWith('igvSession-Test Session', expect.stringContaining('"name":"Test Session"'));
-        expect(localStorageMock.setItem).toHaveBeenCalledWith('igv-session-list', expect.stringContaining('Test Session'));
+        expect(localStorageMock.setItem).toHaveBeenCalledWith(
+          'igvSession-test-workspace-id-Test Session',
+          expect.stringContaining('"name":"Test Session"')
+        );
+        expect(localStorageMock.setItem).toHaveBeenCalledWith('igv-session-list-test-workspace-id', expect.stringContaining('Test Session'));
       });
 
       // Modal should close
@@ -365,15 +368,18 @@ describe('IGVBrowser Session Management', () => {
 
     it('updates existing session when saving with same name', async () => {
       // Pre-populate localStorage with existing session
+      const workspaceId = 'test-workspace-id';
       const existingSession = {
         name: 'Existing Session',
         timestamp: '2023-01-01T00:00:00.000Z',
         data: { genome: 'hg38' },
-        workspace: 'test-workspace-id',
+        workspace: workspaceId,
       };
-      localStorageMock.setItem('igvSession-Existing Session', JSON.stringify(existingSession));
-      localStorageMock.setItem('igv-session-list', JSON.stringify([{ name: 'Existing Session', timestamp: '2023-01-01T00:00:00.000Z' }]));
-
+      localStorageMock.setItem(`igvSession-${workspaceId}-Existing Session`, JSON.stringify(existingSession));
+      localStorageMock.setItem(
+        `igv-session-list-${workspaceId}`,
+        JSON.stringify([{ name: 'Existing Session', timestamp: '2023-01-01T00:00:00.000Z' }])
+      );
       await act(async () => {
         render(
           h(IGVBrowser, {
@@ -399,14 +405,69 @@ describe('IGVBrowser Session Management', () => {
 
       await waitFor(() => {
         // Should update the existing session with new timestamp
-        const savedData = JSON.parse(localStorageMock.setItem.mock.calls.findLast((call) => call[0] === 'igvSession-Existing Session')[1]);
+        const savedData = JSON.parse(
+          localStorageMock.setItem.mock.calls.findLast((call) => call[0] === `igvSession-${workspaceId}-Existing Session`)[1]
+        );
         expect(savedData.timestamp).not.toBe('2023-01-01T00:00:00.000Z');
       });
+    });
+
+    it('isolates sessions by workspace', async () => {
+      const workspace1Id = 'workspace-1';
+      const workspace2Id = 'workspace-2';
+
+      // Pre-populate with sessions from different workspaces
+      localStorageMock.setItem(
+        `igvSession-${workspace1Id}-Session A`,
+        JSON.stringify({
+          name: 'Session A',
+          timestamp: '2023-01-01T00:00:00.000Z',
+          data: { genome: 'hg38' },
+          workspace: workspace1Id,
+        })
+      );
+      localStorageMock.setItem(`igv-session-list-${workspace1Id}`, JSON.stringify([{ name: 'Session A', timestamp: '2023-01-01T00:00:00.000Z' }]));
+
+      localStorageMock.setItem(
+        `igvSession-${workspace2Id}-Session B`,
+        JSON.stringify({
+          name: 'Session B',
+          timestamp: '2023-01-02T00:00:00.000Z',
+          data: { genome: 'hg38' },
+          workspace: workspace2Id,
+        })
+      );
+      localStorageMock.setItem(`igv-session-list-${workspace2Id}`, JSON.stringify([{ name: 'Session B', timestamp: '2023-01-02T00:00:00.000Z' }]));
+
+      // Render with workspace1
+      await act(async () => {
+        render(
+          h(IGVBrowser, {
+            selectedFiles: mockSelectedFiles,
+            refGenome: { genome: 'hg38', reference: null },
+            workspace: {
+              workspace: {
+                googleProject: 'test-project',
+                workspaceId: workspace1Id,
+              },
+            },
+            onDismiss: jest.fn(),
+          })
+        );
+      });
+
+      const loadButton = screen.getByText('Load Session');
+      fireEvent.click(loadButton);
+
+      // Should only see Session A, not Session B
+      expect(screen.getByText('Session A')).toBeInTheDocument();
+      expect(screen.queryByText('Session B')).not.toBeInTheDocument();
     });
   });
 
   describe('Session Loading', () => {
     beforeEach(() => {
+      const workspaceId = 'test-workspace-id';
       // Pre-populate with saved sessions
       const sessions = [
         {
@@ -418,7 +479,7 @@ describe('IGVBrowser Session Management', () => {
           timestamp: '2023-01-02T00:00:00.000Z',
         },
       ];
-      localStorageMock.setItem('igv-session-list', JSON.stringify(sessions));
+      localStorageMock.setItem(`igv-session-list-${workspaceId}`, JSON.stringify(sessions));
       sessions.forEach((session) => {
         const sessionData = {
           name: session.name,
@@ -430,7 +491,7 @@ describe('IGVBrowser Session Management', () => {
           },
           workspace: 'test-workspace-id',
         };
-        localStorageMock.setItem(`igvSession-${session.name}`, JSON.stringify(sessionData));
+        localStorageMock.setItem(`igvSession-${workspaceId}-${session.name}`, JSON.stringify(sessionData));
       });
     });
     it('loads saved sessions list', async () => {

@@ -4,15 +4,40 @@ import { div, h, input } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 
-const IGVSessionModal = ({ action, savedSessions, onDismiss, onSave, onLoad }) => {
+const IGVSessionModal = ({ action, savedSessions, onDismiss, onSave, onLoad, onDelete }) => {
   const [sessionName, setSessionName] = useState('');
   const [selectedSession, setSelectedSession] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showConfirmOverwrite, setShowConfirmOverwrite] = useState(false);
   const [error, setError] = useState(null);
+  const [showConfirmOverwrite, setShowConfirmOverwrite] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
 
   const checkForDuplicate = (name) => {
     return savedSessions.some((session) => session.name === name);
+  };
+
+  const handleDelete = async (sessionName) => {
+    setSessionToDelete(sessionName);
+    setShowConfirmDelete(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsLoading(true);
+    try {
+      await onDelete(sessionToDelete);
+      setShowConfirmDelete(false);
+      setSessionToDelete(null);
+    } catch (error) {
+      setError(error.message || 'Failed to delete session');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowConfirmDelete(false);
+    setSessionToDelete(null);
   };
 
   const handleSubmit = async (forceOverwrite = false) => {
@@ -94,6 +119,29 @@ const IGVSessionModal = ({ action, savedSessions, onDismiss, onSave, onLoad }) =
     );
   }
 
+  if (showConfirmDelete) {
+    return h(
+      Modal,
+      {
+        title: 'Delete Session',
+        onDismiss: handleDeleteCancel,
+        okButton: h(
+          ButtonPrimary,
+          {
+            onClick: handleDeleteConfirm,
+            disabled: isLoading,
+          },
+          [isLoading ? 'Deleting...' : 'Delete']
+        ),
+        cancelButton: h(ButtonSecondary, { onClick: handleDeleteCancel }, ['Cancel']),
+      },
+      [
+        div({ style: { marginBottom: '1rem' } }, [`Are you sure you want to delete session "${sessionToDelete}"?`]),
+        div({ style: { fontSize: '0.9rem', color: '#666' } }, ['This action cannot be undone.']),
+      ]
+    );
+  }
+
   return h(
     Modal,
     {
@@ -127,27 +175,12 @@ const IGVSessionModal = ({ action, savedSessions, onDismiss, onSave, onLoad }) =
                   value: sessionName,
                   onChange: (e) => {
                     setSessionName(e.target.value);
-                    setError(null); // Clear error when typing
-                    // Show visual feedback if name exists
-                    if (checkForDuplicate(e.target.value.trim())) {
-                      // Could add visual indication here
-                    }
+                    setError(null);
                   },
                   placeholder: 'Session name...',
                   style: { width: '100%', padding: '0.5rem' },
                   disabled: isLoading,
                 }),
-                checkForDuplicate(sessionName.trim()) &&
-                  div(
-                    {
-                      style: {
-                        color: '#ff6b6b',
-                        fontSize: '0.8rem',
-                        marginTop: '0.5rem',
-                      },
-                    },
-                    ['⚠️ A session with this name already exists']
-                  ),
               ]),
             ]
           : h(Fragment, { key: 'load-content' }, [
@@ -164,12 +197,29 @@ const IGVSessionModal = ({ action, savedSessions, onDismiss, onSave, onLoad }) =
                             border: selectedSession === session.name ? '2px solid blue' : '1px solid #ccc',
                             marginBottom: '0.5rem',
                             cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
                           },
                           onClick: isLoading ? undefined : () => setSelectedSession(session.name),
                         },
                         [
-                          div({ style: { fontWeight: 'bold' } }, [session.name]),
-                          div({ style: { fontSize: '0.8rem', color: '#666' } }, [new Date(session.timestamp).toLocaleString()]),
+                          div([
+                            div({ style: { fontWeight: 'bold' } }, [session.name]),
+                            div({ style: { fontSize: '0.8rem', color: '#666' } }, [new Date(session.timestamp).toLocaleString()]),
+                          ]),
+                          h(
+                            ButtonSecondary,
+                            {
+                              style: { marginLeft: '1rem' },
+                              onClick: (e) => {
+                                e.stopPropagation(); // Prevent session selection
+                                handleDelete(session.name);
+                              },
+                              disabled: isLoading,
+                            },
+                            ['Delete']
+                          ),
                         ]
                       )
                     ),
