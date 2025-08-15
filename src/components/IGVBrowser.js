@@ -141,11 +141,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       localStorage.setItem('igv-session-list', JSON.stringify(updatedList));
       setSavedSessions(updatedList);
 
-      const url = new URL(window.location);
-      url.searchParams.set('session-name', sessionName);
-
-      window.history.replaceState({ igvSession: session, sessionName }, `IGV Session - ${sessionName}`, url.toString());
-
       return true;
     } catch (error) {
       console.error('Failed to save session:', error);
@@ -164,11 +159,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
 
       const parsed = JSON.parse(sessionData);
       await igvBrowser.current.loadSession(parsed.data);
-
-      const url = new URL(window.location);
-      url.searchParams.set('session-name', sessionName);
-
-      window.history.pushState({ igvSession: parsed.data, sessionName }, `IGV Session - ${sessionName}`, url.toString());
 
       return true;
     } catch (error) {
@@ -251,7 +241,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
             disabled: loadingIgv,
             onClick: () => setShowAddTrackModal(true),
           },
-          ['Add Track']
+          ['Add track']
         ),
       ]),
     ]),

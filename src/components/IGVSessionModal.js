@@ -1,5 +1,5 @@
 import { Modal } from '@terra-ui-packages/components';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { div, h, input } from 'react-hyperscript-helpers';
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -117,75 +117,81 @@ const IGVSessionModal = ({ action, savedSessions, onDismiss, onSave, onLoad }) =
       ),
     },
     [
-      action === 'save'
-        ? [
-            div({ style: { marginBottom: '1rem' } }, ['Enter a name for this session:']),
-            input({
-              type: 'text',
-              value: sessionName,
-              onChange: (e) => {
-                setSessionName(e.target.value);
-                setError(null); // Clear error when typing
-                // Show visual feedback if name exists
-                if (checkForDuplicate(e.target.value.trim())) {
-                  // Could add visual indication here
-                }
-              },
-              placeholder: 'Session name...',
-              style: { width: '100%', padding: '0.5rem' },
-              disabled: isLoading,
-            }),
-            checkForDuplicate(sessionName.trim()) &&
-              div(
-                {
-                  style: {
-                    color: '#ff6b6b',
-                    fontSize: '0.8rem',
-                    marginTop: '0.5rem',
+      h(Fragment, { key: 'main-content' }, [
+        action === 'save'
+          ? [
+              h(Fragment, { key: 'save-content' }, [
+                div({ style: { marginBottom: '1rem' } }, ['Enter a name for this session:']),
+                input({
+                  type: 'text',
+                  value: sessionName,
+                  onChange: (e) => {
+                    setSessionName(e.target.value);
+                    setError(null); // Clear error when typing
+                    // Show visual feedback if name exists
+                    if (checkForDuplicate(e.target.value.trim())) {
+                      // Could add visual indication here
+                    }
                   },
-                },
-                ['⚠️ A session with this name already exists']
-              ),
-          ]
-        : [
-            div({ style: { marginBottom: '1rem' } }, ['Select a session to load:']),
-            div({ style: { maxHeight: '300px', overflowY: 'auto' } }, [
-              savedSessions.length === 0
-                ? div(['No saved sessions found'])
-                : savedSessions.map((session) =>
-                    div(
-                      {
-                        key: session.name,
-                        style: {
-                          padding: '0.5rem',
-                          border: selectedSession === session.name ? '2px solid blue' : '1px solid #ccc',
-                          marginBottom: '0.5rem',
-                          cursor: 'pointer',
-                        },
-                        onClick: isLoading ? undefined : () => setSelectedSession(session.name),
+                  placeholder: 'Session name...',
+                  style: { width: '100%', padding: '0.5rem' },
+                  disabled: isLoading,
+                }),
+                checkForDuplicate(sessionName.trim()) &&
+                  div(
+                    {
+                      style: {
+                        color: '#ff6b6b',
+                        fontSize: '0.8rem',
+                        marginTop: '0.5rem',
                       },
-                      [
-                        div({ style: { fontWeight: 'bold' } }, [session.name]),
-                        div({ style: { fontSize: '0.8rem', color: '#666' } }, [new Date(session.timestamp).toLocaleString()]),
-                      ]
-                    )
+                    },
+                    ['⚠️ A session with this name already exists']
                   ),
+              ]),
+            ]
+          : h(Fragment, { key: 'load-content' }, [
+              div({ style: { marginBottom: '1rem' } }, ['Select a session to load:']),
+              div({ style: { maxHeight: '300px', overflowY: 'auto' } }, [
+                savedSessions.length === 0
+                  ? div(['No saved sessions found'])
+                  : savedSessions.map((session) =>
+                      div(
+                        {
+                          key: session.name,
+                          style: {
+                            padding: '0.5rem',
+                            border: selectedSession === session.name ? '2px solid blue' : '1px solid #ccc',
+                            marginBottom: '0.5rem',
+                            cursor: 'pointer',
+                          },
+                          onClick: isLoading ? undefined : () => setSelectedSession(session.name),
+                        },
+                        [
+                          div({ style: { fontWeight: 'bold' } }, [session.name]),
+                          div({ style: { fontSize: '0.8rem', color: '#666' } }, [new Date(session.timestamp).toLocaleString()]),
+                        ]
+                      )
+                    ),
+              ]),
             ]),
-          ],
+      ]),
       error &&
-        div(
-          {
-            style: {
-              color: 'red',
-              marginTop: '1rem',
-              padding: '0.5rem',
-              backgroundColor: '#fee',
-              border: '1px solid #fcc',
-              borderRadius: '4px',
+        h(Fragment, { key: 'error-section' }, [
+          div(
+            {
+              style: {
+                color: 'red',
+                marginTop: '1rem',
+                padding: '0.5rem',
+                backgroundColor: '#fee',
+                border: '1px solid #fcc',
+                borderRadius: '4px',
+              },
             },
-          },
-          [error]
-        ),
+            [error]
+          ),
+        ]),
     ]
   );
 };
