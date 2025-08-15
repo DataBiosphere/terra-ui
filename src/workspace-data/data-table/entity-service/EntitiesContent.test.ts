@@ -64,6 +64,12 @@ jest.mock('file-saver', (): FileSaveExports => {
   };
 });
 
+jest.mock('src/libs/ajax/GoogleStorage', () => ({
+  GoogleStorage: jest.fn(() => ({
+    listNotebooks: jest.fn().mockResolvedValue([]),
+  })),
+}));
+
 describe('EntitiesContent', () => {
   it('copies to clipboard', async () => {
     // Arrange
@@ -502,5 +508,153 @@ describe('EntitiesContent', () => {
       new Blob(['membership:sample_set_id\\tsample\\nsample_set_1\\tsample_1\\nsample_set_1\\tsample_2']),
       'sample_set.zip'
     );
+  });
+});
+
+describe('IGV & Workflow Icons and Tool Drawer', () => {
+  const renderComponent = (props = {}) => {
+    return render(
+      h(EntitiesContent, {
+        workspace: {
+          ...defaultGoogleWorkspace,
+          workspace: {
+            attributes: {},
+            ...defaultGoogleWorkspace.workspace,
+          },
+          workspaceSubmissionStats: {
+            runningSubmissionsCount: 0,
+          },
+        },
+        entityKey: 'sample',
+        activeCrossTableTextFilter: '',
+        entityMetadata: {
+          sample: {
+            idName: 'sample_id',
+            attributeNames: [],
+            count: 1,
+          },
+        },
+        setEntityMetadata: jest.fn(),
+        loadMetadata: jest.fn(),
+        snapshotName: null,
+        editable: true,
+        ...props,
+      })
+    );
+  };
+
+  beforeEach(() => {
+    const paginatedEntitiesOfType: MockedFn<WorkspaceContract['paginatedEntitiesOfType']> = jest.fn();
+    paginatedEntitiesOfType.mockResolvedValue(
+      partial<EntityQueryResponse>({
+        results: [
+          {
+            entityType: 'sample',
+            name: 'sample_1',
+            attributes: {},
+          },
+        ],
+        resultMetadata: partial<EntityQueryResultMetadata>({ filteredCount: 1, unfilteredCount: 1 }),
+      })
+    );
+
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            paginatedEntitiesOfType,
+            listMethodConfigs: jest.fn().mockResolvedValue([]),
+          }),
+      })
+    );
+
+    asMockedFn(Metrics).mockReturnValue(
+      partial<MetricsContract>({
+        captureEvent: async () => {},
+      })
+    );
+  });
+
+  it('renders disabled IGV and workflow buttons when no entities selected', async () => {
+    // Arrange & Act
+    await act(async () => {
+      renderComponent();
+    });
+
+    // Assert
+    const igvButton = screen.getByTestId('igv-button');
+    const workflowButton = screen.getByTestId('workflow-button');
+
+    expect(igvButton).toHaveAttribute('aria-disabled', 'true');
+    expect(workflowButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('hides icon buttons in snapshot mode', async () => {
+    // Arrange & Act
+    await act(async () => {
+      renderComponent({ snapshotName: 'test-snapshot' });
+    });
+
+    // Assert
+    expect(screen.queryByRole('img', { name: /igv-logo/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: /wdl-logo/i })).not.toBeInTheDocument();
+  });
+
+  it('enables buttons when entities are selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    await act(async () => {
+      renderComponent();
+    });
+
+    // Act
+    const checkbox = screen.getByRole('checkbox', { name: 'sample_1' });
+    await user.click(checkbox);
+
+    // Assert
+    const igvButton = screen.getByTestId('igv-button');
+    const workflowButton = screen.getByTestId('workflow-button');
+
+    expect(igvButton).not.toBeDisabled();
+    expect(workflowButton).not.toBeDisabled();
+  });
+
+  it('opens tool drawer with IGV mode when IGV button clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    await act(async () => {
+      renderComponent();
+    });
+
+    const checkbox = screen.getByRole('checkbox', { name: 'sample_1' });
+    await user.click(checkbox);
+
+    // Act
+    const igvButton = screen.getByTestId('igv-button');
+    await user.click(igvButton);
+
+    // Assert
+    expect(screen.getByText('IGV')).toBeInTheDocument();
+  });
+
+  it('opens tool drawer with workflow mode when workflow button clicked', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    await act(async () => {
+      renderComponent();
+    });
+
+    const checkbox = screen.getByRole('checkbox', { name: 'sample_1' });
+    await user.click(checkbox);
+
+    // Act
+    const workflowButton = screen.getByTestId('workflow-button');
+    await user.click(workflowButton);
+
+    // Assert
+    expect(screen.getByText('YOUR WORKFLOWS')).toBeInTheDocument();
   });
 });
