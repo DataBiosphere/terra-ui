@@ -1,6 +1,5 @@
 import _ from 'lodash/fp';
 import {
-  BatchSetting,
   BucketLifecycleRule,
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
@@ -18,7 +17,6 @@ export type {
   RequesterPaysSetting,
   SoftDeleteSetting,
   WorkspaceSetting,
-  BatchSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 
 export const suggestedPrefixes = {
@@ -45,9 +43,6 @@ export const isRequesterPaysSetting = (setting: WorkspaceSetting): setting is Re
 
 export const isImprovedDataTablesSetting = (setting: WorkspaceSetting): setting is ImprovedDataTablesSetting =>
   setting.settingType === 'CompactDataTables';
-
-export const isBatchSetting = (setting: WorkspaceSetting): setting is BatchSetting =>
-  setting.settingType === 'UseCromwellGcpBatchBackend';
 
 export const isLogRetentionSetting = (setting: WorkspaceSetting): setting is WorkspaceAnalysisLogRetentionSetting =>
   setting.settingType === 'GcpLogBucketRetention';
