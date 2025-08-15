@@ -4,7 +4,7 @@ import { getCurrentLocation } from 'src/libs/nav/location-utils';
 
 export const ScientificServicesDescription = () => {
   const [buttonVisible, setButtonVisible] = useState(() => {
-    return !getCurrentLocation().hash.includes('services/pipelines');
+    return !getCurrentLocation().hash.includes('pipelines/imputation');
   });
 
   return (
@@ -29,7 +29,7 @@ export const ScientificServicesDescription = () => {
         <ButtonPrimary
           height={100}
           style={{ marginTop: '0.25rem', marginBottom: '0.5rem', width: '9.4rem', height: '3.2rem', fontSize: '1rem' }}
-          href='#services/pipelines/run'
+          href='#pipelines/imputation/run'
           onClick={() => setButtonVisible(false)}
         >
           Get started
