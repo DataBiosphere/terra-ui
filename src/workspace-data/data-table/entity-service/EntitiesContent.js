@@ -5,7 +5,7 @@ import JSZip from 'jszip';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { Fragment, useState } from 'react';
-import { div, h, p } from 'react-hyperscript-helpers';
+import { div, h, img, p } from 'react-hyperscript-helpers';
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/utils/notebook-utils';
 import { tools } from 'src/analysis/utils/tool-utils';
 import { ButtonSecondary } from 'src/components/common';
@@ -81,8 +81,9 @@ const ToolDrawer = _.flow(
     entityMetadata,
     entityKey,
     selectedEntities,
+    selectedViewer,
   }) => {
-    const [toolMode, setToolMode] = useState();
+    const [toolMode, setToolMode] = useState(selectedViewer);
     const [notebookNames, setNotebookNames] = useState();
     const signal = useCancellation();
 
@@ -224,11 +225,7 @@ const ToolDrawer = _.flow(
       h(TitleBar, {
         id: toolDrawerId,
         title,
-        onPrevious: toolMode
-          ? () => {
-              setToolMode(undefined);
-            }
-          : undefined,
+        onPrevious: undefined,
         onDismiss,
       }),
       div(
@@ -276,6 +273,7 @@ const EntitiesContent = ({
   const [showToolSelector, setShowToolSelector] = useState(false);
   const [igvFiles, setIgvFiles] = useState(undefined);
   const [igvRefGenome, setIgvRefGenome] = useState('');
+  const [selectedViewer, setSelectedViewer] = useState('');
   const {
     columnProvenance,
     loading: loadingColumnProvenance,
@@ -456,19 +454,85 @@ const EntitiesContent = ({
     );
   };
 
-  const renderOpenWithMenu = () => {
+  const renderIconButton = (logo, tooltip, onClick, disabled = false, style = { button: {}, image: {} }) => {
+    const buttonStyle = {
+      width: '3rem',
+      height: '2rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: '0.5rem',
+      borderRadius: '0.375rem',
+      ...style.button,
+    };
+
+    const imageStyle = {
+      opacity: disabled ? 0.5 : undefined,
+      width: 30,
+      maxWidth: 60,
+      height: 30,
+      maxHeight: 60,
+      borderRadius: '0.375rem',
+      ...style.image,
+    };
+
+    // Extract filename without extension [/images/igv-logo.png] -> [igv-logo]
+    const fileName =
+      logo
+        ?.split('/')
+        ?.pop()
+        ?.replace(/\.[^/.]+$/, '') || 'icon';
+
+    // Map known filenames to altText and testId
+    const iconMap = {
+      'igv-logo': { altText: 'igv-logo', testId: 'igv-button' },
+      'wdl-logo': { altText: 'wdl-logo', testId: 'workflow-button' },
+    };
+    const { altText, testId } = iconMap[fileName] || { altText: `${fileName}-logo`, testId: `${fileName}-button` };
+
     return (
       !snapshotName &&
       h(
         ButtonSecondary,
         {
-          disabled: !entitiesSelected,
-          tooltip: entitiesSelected ? 'Open selected data' : 'Select rows to open in the table',
-          style: { marginRight: '1.5rem' },
-          onClick: () => setShowToolSelector(true),
+          onClick,
+          disabled,
+          tooltip,
+          'data-testid': testId,
+          style: buttonStyle,
         },
-        [icon('expand-arrows-alt', { style: { marginRight: '0.5rem' } }), 'Open with...']
+        [img({ src: logo, alt: altText, style: imageStyle })]
       )
+    );
+  };
+
+  const renderIGVMenu = () => {
+    return renderIconButton(
+      igvLogo,
+      !entitiesSelected ? 'Select rows to open in IGV' : 'Open with Integrative Genomics Viewer',
+      () => {
+        setSelectedViewer('IGV');
+        setShowToolSelector(true);
+      },
+      !entitiesSelected,
+      {
+        image: { width: 25, height: 25 },
+      }
+    );
+  };
+
+  const renderWorkflowMenu = () => {
+    return renderIconButton(
+      wdlLogo,
+      !entitiesSelected ? 'Select rows to open in Workflow' : 'Open with Workflow',
+      () => {
+        setSelectedViewer('Workflow');
+        setShowToolSelector(true);
+      },
+      !entitiesSelected,
+      {
+        image: { width: 45, height: 45 },
+      }
     );
   };
 
@@ -502,8 +566,6 @@ const EntitiesContent = ({
           childrenBefore: ({ columnSettings, showColumnSettingsModal }) =>
             div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } }, [
               renderEditMenu(),
-              renderOpenWithMenu(),
-              renderExportMenu({ columnSettings }),
               !snapshotName &&
                 h(
                   ButtonSecondary,
@@ -511,17 +573,20 @@ const EntitiesContent = ({
                     onClick: showColumnSettingsModal,
                     tooltip: 'Change the order and visibility of columns in the table',
                   },
-                  [icon('cog', { style: { marginRight: '0.5rem' } }), 'Select Columns']
+                  [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']
                 ),
               div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
               div(
                 {
                   role: 'status',
                   'aria-atomic': true,
-                  style: { marginRight: '0.5rem' },
+                  style: { marginRight: '1rem' },
                 },
                 [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]
               ),
+              renderExportMenu({ columnSettings }),
+              renderIGVMenu(),
+              renderWorkflowMenu(),
             ]),
           controlPanelStyle: {
             background: colors.light(0.5),
@@ -673,6 +738,7 @@ const EntitiesContent = ({
           entityMetadata,
           entityKey,
           selectedEntities,
+          selectedViewer,
         }),
       ]);
 };
