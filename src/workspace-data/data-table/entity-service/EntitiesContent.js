@@ -225,11 +225,7 @@ const ToolDrawer = _.flow(
       h(TitleBar, {
         id: toolDrawerId,
         title,
-        onPrevious: toolMode
-          ? () => {
-              setToolMode(undefined);
-            }
-          : undefined,
+        onPrevious: undefined,
         onDismiss,
       }),
       div(
