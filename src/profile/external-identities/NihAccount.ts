@@ -58,13 +58,19 @@ export const NihAccount = ({ nihToken }) => {
 
   const isLinked = !!linkedNihUsername && !isLinking;
 
+  const toolTipLinkProps = {
+    style: { textDecoration: 'underline' },
+    target: '_blank',
+  };
+
   return div({ style: styles.idLink.container }, [
     div({ style: styles.idLink.linkContentTop(isLinked) }, [
       div({ style: { ...styles.form.title, marginBottom: 0 } }, [
-        h3({ style: { marginRight: '0.5rem', ...styles.idLink.linkName } }, ['NIH Account']),
+        h3({ style: { marginRight: '0.5rem', ...styles.idLink.linkName } }, ['NHGRI AnVIL (eRA Commons)']),
         h(InfoBox, [
-          'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) ',
-          'based on your valid dbGaP applications.',
+          'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled AnVIL datasets hosted in Terra based on your valid dbGaP applications. Visit ',
+          h(Link, { href: 'https://anvilproject.org/', ...toolTipLinkProps }, ['AnVIL Portal']),
+          ' to see what datasets are available.',
         ]),
       ]),
       Utils.cond(
