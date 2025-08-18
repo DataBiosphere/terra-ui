@@ -50,12 +50,18 @@ export const About = () => {
 
           <h2 style={{ marginTop: '2rem' }}>User Documentation</h2>
           <div style={{ marginTop: '1rem' }}>
-            <a href='services/pipelines' style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}>
+            <a
+              href='/#pipelines/imputation'
+              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+            >
               Get Started
             </a>
           </div>
           <div style={{ marginTop: '1rem' }}>
-            <a href='services/pipelines' style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}>
+            <a
+              href='/#pipelines/imputation'
+              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+            >
               About this Service
             </a>
           </div>
