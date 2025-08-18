@@ -459,19 +459,25 @@ const EntitiesContent = ({
   };
 
   const renderIconButton = (logo, tooltip, onClick, disabled = false, style = { button: {}, image: {} }) => {
-    const defaultButtonStyle = {
+    const buttonStyle = {
       width: '3rem',
       height: '2rem',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: '1rem',
+      marginRight: '0.5rem',
+      borderRadius: '0.375rem',
+      ...style.button,
     };
 
-    const defaultImageStyle = {
+    const imageStyle = {
       opacity: disabled ? 0.5 : undefined,
+      width: 30,
       maxWidth: 60,
+      height: 30,
       maxHeight: 60,
+      borderRadius: '0.375rem',
+      ...style.image,
     };
 
     // Extract filename without extension [/images/igv-logo.png] -> [igv-logo]
@@ -497,9 +503,9 @@ const EntitiesContent = ({
           disabled,
           tooltip,
           'data-testid': testId,
-          style: { ...defaultButtonStyle, ...style.button },
+          style: buttonStyle,
         },
-        [img({ src: logo, alt: altText, style: { ...defaultImageStyle, ...style.image } })]
+        [img({ src: logo, alt: altText, style: imageStyle })]
       )
     );
   };
@@ -513,7 +519,9 @@ const EntitiesContent = ({
         setShowToolSelector(true);
       },
       !entitiesSelected,
-      { image: { width: 30, height: 30 } }
+      {
+        image: { width: 25, height: 25 },
+      }
     );
   };
 
@@ -526,7 +534,9 @@ const EntitiesContent = ({
         setShowToolSelector(true);
       },
       !entitiesSelected,
-      { image: { width: 60, height: 35 } }
+      {
+        image: { width: 45, height: 45 },
+      }
     );
   };
 
