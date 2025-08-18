@@ -4,6 +4,13 @@ import { JobHistory } from 'src/pages/scientificServices/pipelines/views/JobHist
 import { RunJob } from 'src/pages/scientificServices/pipelines/views/RunJob';
 
 export const navPaths = [
+  // For now, redirect /pipelines to the Imputation home page
+  {
+    name: 'pipelines-about-all',
+    path: '/pipelines',
+    component: About,
+    title: 'Home',
+  },
   {
     name: 'cli-auth',
     path: '/pipelines/cli-auth',

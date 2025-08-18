@@ -69,7 +69,7 @@ export const ImputationPrivatePreviewGate = ({ children }: FeaturePreviewLanding
         </div>
         <ButtonPrimary
           style={{ marginTop: '1.5rem' }}
-          href='https://allofus-anvil-imputation.terra.bio/'
+          href='https://pypi.org/project/terralab-cli/'
           target='_blank'
           rel='noopener noreferrer'
         >
