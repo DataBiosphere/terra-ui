@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { TopBar } from 'src/components/TopBar';
-import { authStore, SignInStatus } from 'src/libs/state';
+import { authStore, configOverridesStore, SignInStatus } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/auth/auth');
@@ -46,5 +46,21 @@ describe('TopBar', () => {
     } else {
       expect(screen.queryByText('Sign In')).not.toBeInTheDocument();
     }
+  });
+
+  it('renders limited options when compactTopBar brand option is enabled', async () => {
+    // scientificServices is a brand config that has compactTopBar enabled
+    configOverridesStore.set({ brand: 'scientificServices' });
+
+    authStore.update((authState) => ({ ...authState, signInStatus: 'uninitialized' as SignInStatus }));
+
+    // Act
+    render(h(TopBar));
+    fireEvent.click(screen.getByLabelText('Toggle main menu'));
+
+    // Assert
+    expect(screen.queryByText('Sign In')).toBeInTheDocument();
+    expect(screen.queryByText('Workspaces')).not.toBeInTheDocument();
+    expect(screen.queryByText('Support')).not.toBeInTheDocument();
   });
 });
