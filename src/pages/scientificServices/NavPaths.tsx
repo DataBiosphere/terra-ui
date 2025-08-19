@@ -12,13 +12,6 @@ export const navPaths = [
     title: 'Home',
   },
   {
-    name: 'cli-auth',
-    path: '/pipelines/cli-auth',
-    component: CliAuth,
-    title: 'Sign in to the terralab CLI',
-    public: true,
-  },
-  {
     name: 'pipelines-about',
     path: '/pipelines/imputation',
     component: About,
@@ -35,5 +28,12 @@ export const navPaths = [
     path: '/pipelines/imputation/history',
     component: JobHistory,
     title: 'Job History',
+  },
+  {
+    name: 'cli-auth',
+    path: '/pipelines/cli-auth',
+    component: CliAuth,
+    title: 'Sign in to the terralab CLI',
+    public: true,
   },
 ];
