@@ -56,7 +56,7 @@ export async function prepareUploadStartPipelineRun(
   selectedUserInputs: Record<string, any>,
   description: string,
   pipelineInputs: PipelineInput[],
-  setUploadProgress: (percentage: Record<string, any>) => void = () => {}
+  setUploadProgress: (uploadProgress: Record<string, any>) => void = () => {}
 ): Promise<string> {
   const jobId = crypto.randomUUID();
 

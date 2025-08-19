@@ -10,7 +10,7 @@ interface PipelineStringInputProps {
 }
 
 export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({ input, value, onChange }) => {
-  const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name];
+  const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name] || {};
 
   return (
     <>
