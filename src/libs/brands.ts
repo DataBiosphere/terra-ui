@@ -9,8 +9,6 @@ import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg';
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg';
 import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg';
 import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg';
-import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg';
-import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg';
 import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg';
 import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg';
 import publicHealthBackground from 'src/images/brands/publicHealth/Terra-PHG-background.png';
@@ -268,35 +266,6 @@ export const brands: Record<string, BrandConfiguration> = {
         accent: '#6e3d3b',
         success: '#9eb642',
       },
-    },
-  },
-  firecloud: {
-    name: 'FireCloud',
-    queryName: 'firecloud',
-    welcomeHeader: 'Welcome to FireCloud',
-    description:
-      'FireCloud is a NCI Cloud Resource project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
-    hostName: 'firecloud.terra.bio',
-    docLinks: [
-      {
-        link: 'https://support.terra.bio/hc/en-us',
-        text: "Find how-to's, documentation, video tutorials, and discussion forums",
-      },
-      {
-        link: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-        text: "Already a FireCloud user? Learn what's new.",
-      },
-      {
-        link: 'https://support.terra.bio/hc/en-us/articles/360033416912',
-        text: 'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources',
-      },
-    ],
-    logos: {
-      color: fcLogo,
-      white: fcLogoWhite,
-    },
-    theme: {
-      colorPalette: { ...baseColors, primary: '#4d72aa' },
     },
   },
   projectSingular: {
