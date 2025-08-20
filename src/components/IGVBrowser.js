@@ -167,9 +167,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         if (initialSession) {
           await igvBrowser.current.loadSession(initialSession);
         }
-
-        // TODO do i need this
-        // setSavedSessions(getSavedSessions());
       } catch (e) {
         reportError('Error loading IGV.js', e);
       } finally {

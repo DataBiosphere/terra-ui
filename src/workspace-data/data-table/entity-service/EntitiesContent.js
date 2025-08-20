@@ -823,7 +823,7 @@ const EntitiesContent = ({
               return success;
             },
             onDelete: async (name) => {
-              return await deleteSession(name);
+              deleteSession(name);
             },
           }),
         h(ToolDrawer, {

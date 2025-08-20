@@ -32,7 +32,6 @@ export const useIGVSessions = (workspaceId) => {
     }
   });
 
-  // TODO check this
   const saveSession = withErrorReporting('Unable to save session')(async (sessionName, sessionData, genome) => {
     try {
       const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
@@ -72,7 +71,6 @@ export const useIGVSessions = (workspaceId) => {
     }
   });
 
-  // TODO check this
   const deleteSession = (sessionName) => {
     try {
       const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
