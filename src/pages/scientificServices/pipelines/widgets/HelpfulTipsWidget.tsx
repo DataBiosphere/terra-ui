@@ -14,7 +14,7 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
         <>
           View{' '}
           <a
-            href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859-Input-VCF-requirements'
+            href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
             target='_blank'
             style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
             rel='noreferrer'
