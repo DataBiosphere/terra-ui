@@ -12,11 +12,13 @@ import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import IGVBrowser from 'src/components/IGVBrowser';
 import IGVFileSelector, { getIgvMetricDetails } from 'src/components/IGVFileSelector';
+import IGVSessionModal from 'src/components/IGVSessionModal';
 import { MenuButton } from 'src/components/MenuButton';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import { ModalToolButton } from 'src/components/ModalToolButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
+import { useIGVSessions } from 'src/components/useIGVSessions';
 import WorkflowSelector from 'src/components/WorkflowSelector';
 import datasets from 'src/constants/datasets';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
@@ -273,6 +275,7 @@ const EntitiesContent = ({
   const [showToolSelector, setShowToolSelector] = useState(false);
   const [igvFiles, setIgvFiles] = useState(undefined);
   const [igvRefGenome, setIgvRefGenome] = useState('');
+  const [igvInitialSession, setIgvInitialSession] = useState(null);
   const [selectedViewer, setSelectedViewer] = useState('');
   const {
     columnProvenance,
@@ -281,6 +284,31 @@ const EntitiesContent = ({
     loadColumnProvenance,
   } = useColumnProvenance(workspace, entityKey);
   const [showColumnProvenance, setShowColumnProvenance] = useState(undefined);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionAction, setSessionAction] = useState(null);
+
+  // Use the custom hook
+  const { savedSessions, loadSession: loadSessionData, deleteSession } = useIGVSessions(workspace?.workspace?.workspaceId);
+
+  const loadSession = async (sessionName) => {
+    try {
+      const sessionData = await loadSessionData(sessionName);
+      if (sessionData) {
+        // Load IGV with the session data
+        setIgvFiles([]); // or appropriate files from session if you store them
+        setIgvRefGenome(sessionData.genome || 'hg38');
+
+        // You could also store the session data to pass to IGVBrowser
+        setIgvInitialSession(sessionData.data);
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to load session:', error);
+      return false;
+    }
+  };
 
   const buildTSV = (columnSettings, entities, forDownload) => {
     const sortedEntities = _.sortBy('name', entities);
@@ -506,18 +534,84 @@ const EntitiesContent = ({
     );
   };
 
+  // const renderIGVMenu = () => {
+  //   return renderIconButton(
+  //     igvLogo,
+  //     !entitiesSelected ? 'Select rows to open in IGV' : 'Open with Integrative Genomics Viewer',
+  //     () => {
+  //       setSelectedViewer('IGV');
+  //       setShowToolSelector(true);
+  //     },
+  //     !entitiesSelected,
+  //     {
+  //       image: { width: 25, height: 25 },
+  //     }
+  //   );
+  // };
+
   const renderIGVMenu = () => {
-    return renderIconButton(
-      igvLogo,
-      !entitiesSelected ? 'Select rows to open in IGV' : 'Open with Integrative Genomics Viewer',
-      () => {
-        setSelectedViewer('IGV');
-        setShowToolSelector(true);
-      },
-      !entitiesSelected,
+    return h(
+      MenuTrigger,
       {
-        image: { width: 25, height: 25 },
-      }
+        side: 'bottom',
+        closeOnClick: true,
+        content: h(Fragment, [
+          h(
+            MenuButton,
+            {
+              onClick: () => {
+                setSelectedViewer('IGV');
+                setShowToolSelector(true);
+              },
+              disabled: !entitiesSelected,
+              tooltip: !entitiesSelected && 'Select rows to open in IGV',
+            },
+            'Open with IGV'
+          ),
+          h(MenuDivider),
+          h(
+            MenuButton,
+            {
+              onClick: () => {
+                setSessionAction('load');
+                setShowSessionModal(true);
+              },
+            },
+            'Load IGV Session'
+          ),
+        ]),
+      },
+      [
+        h(
+          ButtonSecondary,
+          {
+            tooltip: !entitiesSelected
+              ? 'Select rows to open in IGV or load a saved session'
+              : 'Open with Integrative Genomics Viewer or load session',
+            'data-testid': 'igv-button',
+            style: {
+              width: '3rem',
+              height: '2rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '0.5rem',
+              borderRadius: '0.375rem',
+            },
+          },
+          [
+            img({
+              src: igvLogo,
+              alt: 'igv-logo',
+              style: {
+                width: 25,
+                height: 25,
+                borderRadius: '0.375rem',
+              },
+            }),
+          ]
+        ),
+      ]
     );
   };
 
@@ -542,8 +636,17 @@ const EntitiesContent = ({
 
   const dataProvider = new EntityServiceDataTableProvider(namespace, name);
 
-  return igvFiles
-    ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) })
+  return igvFiles !== undefined
+    ? h(IGVBrowser, {
+        selectedFiles: igvFiles,
+        refGenome: igvRefGenome,
+        workspace,
+        onDismiss: () => {
+          setIgvFiles(undefined);
+          setIgvInitialSession(null);
+        },
+        initialSession: igvInitialSession,
+      })
     : h(Fragment, [
         h(DataTable, {
           dataProvider,
@@ -721,6 +824,23 @@ const EntitiesContent = ({
               ),
             ]
           ),
+        showSessionModal &&
+          h(IGVSessionModal, {
+            action: sessionAction,
+            savedSessions,
+            onDismiss: () => setShowSessionModal(false),
+            onSave: () => false, // Not applicable from data table
+            onLoad: async (name) => {
+              const success = await loadSession(name);
+              if (success) {
+                setShowSessionModal(false);
+              }
+              return success;
+            },
+            onDelete: async (name) => {
+              return await deleteSession(name);
+            },
+          }),
         h(ToolDrawer, {
           workspace,
           isOpen: showToolSelector,
