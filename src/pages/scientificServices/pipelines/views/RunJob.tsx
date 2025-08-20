@@ -99,7 +99,8 @@ export async function prepareUploadStartPipelineRun(
             }));
           });
 
-          // Capture the file upload metrics, but don't wait for the request to complete
+          // Capture the file upload metrics. We don't await the Mixpanel metrics capture
+          // because we don't want to block the user from proceeding, so this is a fire-and-forget.
           Metrics().captureEvent(Events.teaspoons.fileUpload, {
             pipelineName,
             pipelineVersion,
