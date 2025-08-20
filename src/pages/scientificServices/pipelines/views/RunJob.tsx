@@ -4,8 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
@@ -85,18 +87,29 @@ export async function prepareUploadStartPipelineRun(
         const file = selectedUserInputs[input.name];
         const signedUrl = fileInputUploadUrls[input.name].signedUrl;
         if (file instanceof File) {
-          return await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
+          await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
             setUploadProgress((prev) => ({
               ...prev,
               [input.name]: percent,
             }));
           });
+
+          // Capture the file upload metrics, but don't wait for the request to complete
+          Metrics().captureEvent(Events.teaspoons.fileUpload, {
+            pipelineName,
+            pipelineVersion,
+            fileSize: file.size,
+            fileType: file.type,
+            fileUploadDuration: 1234, // Placeholder, actual duration can be calculated if needed
+          });
+
+          return;
         }
         throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
       })
   );
 
-  await Teaspoons().startPipelineRun(jobId);
+  // await Teaspoons().startPipelineRun(jobId);
   return jobId;
 }
 

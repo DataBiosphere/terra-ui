@@ -87,6 +87,9 @@ const eventsList = {
   provenanceColumn: 'provenance:column',
   provenanceFile: 'provenance:file',
   resourceLeave: 'resource:leave',
+  teaspoons: {
+    fileUpload: 'teaspoons:fileUpload',
+  },
   uploaderCreateCollection: 'uploader:collection:create',
   uploaderUploadMetadata: 'uploader:metadata:upload',
   uploaderCreateTable: 'uploader:table:create',
