@@ -1,4 +1,6 @@
 import { Theme } from '@terra-ui-packages/components';
+import { ReactNode } from 'react';
+import React from 'react';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
@@ -9,8 +11,6 @@ import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg';
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg';
 import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg';
 import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg';
-import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg';
-import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg';
 import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg';
 import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg';
 import publicHealthBackground from 'src/images/brands/publicHealth/Terra-PHG-background.png';
@@ -18,9 +18,15 @@ import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg
 import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
+import dspLogo from 'src/images/brands/scientificServices/dspLogo.svg';
+import dspLogoLight from 'src/images/brands/scientificServices/dspLogoLight.svg';
+import scientificServicesBackground from 'src/images/brands/scientificServices/scientificServicesBackground.jpg';
+import scientificServicesHeaderLogo from 'src/images/brands/scientificServices/scientificServicesLogo.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg';
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg';
+import { ScientificServicesDescription } from 'src/pages/scientificServices/landingPage/ScientificServicesDescription';
+import { ScientificServicesWelcomeHeader } from 'src/pages/scientificServices/landingPage/ScientificServicesWelcomeHeader';
 
 const nonBreakingHyphen = '\u2011';
 
@@ -32,10 +38,10 @@ export interface BrandConfiguration {
   queryName: string;
 
   /** Landing page header text */
-  welcomeHeader: string;
+  welcomeHeader: string | ReactNode;
 
   /** Landing page text */
-  description: string;
+  description: string | ReactNode;
 
   /** Host name for branded site */
   hostName: string;
@@ -61,6 +67,9 @@ export interface BrandConfiguration {
 
   /** Optional URL for landing page background image */
   landingPageBackground?: string;
+
+  /** Optional size for the landing page background image. Can be 'cover', px, %, etc */
+  landingPageBackgroundSize?: string;
 
   landingPageCards?: {
     /** Card link */
@@ -99,6 +108,9 @@ export interface BrandConfiguration {
     /** Card body */
     body: string;
   };
+
+  /** Optional flag to use the compact TopBar with login/logout only */
+  compactTopBar?: boolean;
 }
 
 export const landingPageCardsDefault = [
@@ -270,35 +282,6 @@ export const brands: Record<string, BrandConfiguration> = {
       },
     },
   },
-  firecloud: {
-    name: 'FireCloud',
-    queryName: 'firecloud',
-    welcomeHeader: 'Welcome to FireCloud',
-    description:
-      'FireCloud is a NCI Cloud Resource project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
-    hostName: 'firecloud.terra.bio',
-    docLinks: [
-      {
-        link: 'https://support.terra.bio/hc/en-us',
-        text: "Find how-to's, documentation, video tutorials, and discussion forums",
-      },
-      {
-        link: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-        text: "Already a FireCloud user? Learn what's new.",
-      },
-      {
-        link: 'https://support.terra.bio/hc/en-us/articles/360033416912',
-        text: 'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources',
-      },
-    ],
-    logos: {
-      color: fcLogo,
-      white: fcLogoWhite,
-    },
-    theme: {
-      colorPalette: { ...baseColors, primary: '#4d72aa' },
-    },
-  },
   projectSingular: {
     name: 'Project Singular',
     queryName: 'project singular',
@@ -414,6 +397,34 @@ export const brands: Record<string, BrandConfiguration> = {
         light: '#f4efea',
       },
     },
+  },
+  scientificServices: {
+    name: 'Scientific Services',
+    queryName: 'scientificServices',
+    landingPageBackground: scientificServicesBackground,
+    landingPageBackgroundSize: 'cover',
+    welcomeHeader: <ScientificServicesWelcomeHeader />,
+    description: <ScientificServicesDescription />,
+    hostName: 'services.terra.bio',
+    compactTopBar: true,
+    docLinks: [],
+    landingPageCards: [],
+    logos: {
+      color: scientificServicesHeaderLogo,
+      white: dspLogoLight,
+      dspLogo,
+    },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#074770',
+        secondary: '#074770',
+        dark: '#333F52',
+        accent: '#4e6888',
+        light: '#074770',
+      },
+    },
+    showRoadmap: false,
   },
   terra: {
     name: 'Terra',
