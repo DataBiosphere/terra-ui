@@ -550,68 +550,71 @@ const EntitiesContent = ({
   // };
 
   const renderIGVMenu = () => {
-    return h(
-      MenuTrigger,
-      {
-        side: 'bottom',
-        closeOnClick: true,
-        content: h(Fragment, [
-          h(
-            MenuButton,
-            {
-              onClick: () => {
-                setSelectedViewer('IGV');
-                setShowToolSelector(true);
+    return (
+      !snapshotName &&
+      h(
+        MenuTrigger,
+        {
+          side: 'bottom',
+          closeOnClick: true,
+          content: h(Fragment, [
+            h(
+              MenuButton,
+              {
+                onClick: () => {
+                  setSelectedViewer('IGV');
+                  setShowToolSelector(true);
+                },
+                disabled: !entitiesSelected,
+                tooltip: !entitiesSelected && 'Select rows to open in IGV',
               },
-              disabled: !entitiesSelected,
-              tooltip: !entitiesSelected && 'Select rows to open in IGV',
-            },
-            'Open with IGV'
-          ),
-          h(MenuDivider),
-          h(
-            MenuButton,
-            {
-              onClick: () => {
-                setSessionAction('load');
-                setShowSessionModal(true);
+              'Open with IGV'
+            ),
+            h(MenuDivider),
+            h(
+              MenuButton,
+              {
+                onClick: () => {
+                  setSessionAction('load');
+                  setShowSessionModal(true);
+                },
               },
-            },
-            'Load IGV Session'
-          ),
-        ]),
-      },
-      [
-        h(
-          ButtonSecondary,
-          {
-            tooltip: !entitiesSelected
-              ? 'Select rows to open in IGV or load a saved session'
-              : 'Open with Integrative Genomics Viewer or load session',
-            'data-testid': 'igv-button',
-            style: {
-              width: '3rem',
-              height: '2rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: '0.5rem',
-              borderRadius: '0.375rem',
-            },
-          },
-          [
-            img({
-              src: igvLogo,
-              alt: 'igv-logo',
+              'Load IGV Session'
+            ),
+          ]),
+        },
+        [
+          h(
+            ButtonSecondary,
+            {
+              tooltip: !entitiesSelected
+                ? 'Select rows to open in IGV or load a saved session'
+                : 'Open with Integrative Genomics Viewer or load session',
+              'data-testid': 'igv-button',
               style: {
-                width: 25,
-                height: 25,
+                width: '3rem',
+                height: '2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '0.5rem',
                 borderRadius: '0.375rem',
               },
-            }),
-          ]
-        ),
-      ]
+            },
+            [
+              img({
+                src: igvLogo,
+                alt: 'igv-logo',
+                style: {
+                  width: 25,
+                  height: 25,
+                  borderRadius: '0.375rem',
+                },
+              }),
+            ]
+          ),
+        ]
+      )
     );
   };
 

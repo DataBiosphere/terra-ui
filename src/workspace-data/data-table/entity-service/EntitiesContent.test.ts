@@ -575,18 +575,36 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
     );
   });
 
-  it('renders disabled IGV and workflow buttons when no entities selected', async () => {
+  it('renders disabled workflow buttons when no entities selected', async () => {
     // Arrange & Act
     await act(async () => {
       renderComponent();
     });
 
     // Assert
-    const igvButton = screen.getByTestId('igv-button');
     const workflowButton = screen.getByTestId('workflow-button');
-
-    expect(igvButton).toHaveAttribute('aria-disabled', 'true');
     expect(workflowButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('renders enabled IGV button even when no entities selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    await act(async () => {
+      renderComponent();
+    });
+
+    // Assert
+    const igvButton = screen.getByTestId('igv-button');
+    expect(igvButton).toHaveAttribute('aria-disabled', 'false');
+
+    // Act
+    await user.click(igvButton);
+
+    // Assert
+    const loadIGV = screen.getByText('Load IGV Session');
+    expect(loadIGV).toHaveAttribute('aria-disabled', 'false');
+    const openWithIGV = screen.getByText('Open with IGV');
+    expect(openWithIGV).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('hides icon buttons in snapshot mode', async () => {
@@ -600,7 +618,7 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
     expect(screen.queryByRole('img', { name: /wdl-logo/i })).not.toBeInTheDocument();
   });
 
-  it('enables buttons when entities are selected', async () => {
+  it('enables buttons/menu when entities are selected', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -616,11 +634,14 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
     const igvButton = screen.getByTestId('igv-button');
     const workflowButton = screen.getByTestId('workflow-button');
 
-    expect(igvButton).not.toBeDisabled();
     expect(workflowButton).not.toBeDisabled();
+    await user.click(igvButton);
+
+    const openWithIGV = screen.getByText('Open with IGV');
+    expect(openWithIGV).not.toBeDisabled();
   });
 
-  it('opens tool drawer with IGV mode when IGV button clicked', async () => {
+  it('opens tool drawer with IGV mode when open with IGV selected', async () => {
     // Arrange
     const user = userEvent.setup();
 
@@ -634,9 +655,32 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
     // Act
     const igvButton = screen.getByTestId('igv-button');
     await user.click(igvButton);
+    const openWithIGV = screen.getByText('Open with IGV');
+    await user.click(openWithIGV);
 
     // Assert
     expect(screen.getByText('IGV')).toBeInTheDocument();
+  });
+
+  it('opens IGV load session when selected', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    await act(async () => {
+      renderComponent();
+    });
+
+    const checkbox = screen.getByRole('checkbox', { name: 'sample_1' });
+    await user.click(checkbox);
+
+    // Act
+    const igvButton = screen.getByTestId('igv-button');
+    await user.click(igvButton);
+    const loadIGV = screen.getByText('Load IGV Session');
+    await user.click(loadIGV);
+
+    // Assert
+    expect(screen.getByText('Select a session to load:')).toBeInTheDocument();
   });
 
   it('opens tool drawer with workflow mode when workflow button clicked', async () => {
