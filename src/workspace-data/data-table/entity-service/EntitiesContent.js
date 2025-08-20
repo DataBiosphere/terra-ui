@@ -287,7 +287,6 @@ const EntitiesContent = ({
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null);
 
-  // Use the custom hook
   const { savedSessions, loadSession: loadSessionData, deleteSession } = useIGVSessions(workspace?.workspace?.workspaceId);
 
   const loadSession = async (sessionName) => {
@@ -295,10 +294,8 @@ const EntitiesContent = ({
       const sessionData = await loadSessionData(sessionName);
       if (sessionData) {
         // Load IGV with the session data
-        setIgvFiles([]); // or appropriate files from session if you store them
+        setIgvFiles([]);
         setIgvRefGenome(sessionData.genome || 'hg38');
-
-        // You could also store the session data to pass to IGVBrowser
         setIgvInitialSession(sessionData.data);
 
         return true;
@@ -533,21 +530,6 @@ const EntitiesContent = ({
       )
     );
   };
-
-  // const renderIGVMenu = () => {
-  //   return renderIconButton(
-  //     igvLogo,
-  //     !entitiesSelected ? 'Select rows to open in IGV' : 'Open with Integrative Genomics Viewer',
-  //     () => {
-  //       setSelectedViewer('IGV');
-  //       setShowToolSelector(true);
-  //     },
-  //     !entitiesSelected,
-  //     {
-  //       image: { width: 25, height: 25 },
-  //     }
-  //   );
-  // };
 
   const renderIGVMenu = () => {
     return (
