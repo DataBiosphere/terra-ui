@@ -224,6 +224,10 @@ export const RunJob = () => {
       notify('error', `Pipeline failed to submit. ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
+      Metrics().captureEvent(Events.teaspoons.submitJob, {
+        pipelineName,
+        pipelineVersion: selectedPipeline.pipelineVersion,
+      });
     }
   };
 

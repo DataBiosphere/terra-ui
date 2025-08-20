@@ -88,7 +88,12 @@ const eventsList = {
   provenanceFile: 'provenance:file',
   resourceLeave: 'resource:leave',
   teaspoons: {
-    fileUpload: 'teaspoons:fileUpload',
+    // teaspoons:{pageName}:{actionName}
+    fileUpload: 'teaspoons:runJob:fileUpload',
+    submitJob: 'teaspoons:runJob:submitJob',
+    viewJobOutputs: 'teaspoons:jobHistory:viewJobOutputs',
+    downloadJobOutputFile: 'teaspoons:jobHistory:downloadJobOutputFile',
+    viewJobErrors: 'teaspoons:jobHistory:viewJobErrors',
   },
   uploaderCreateCollection: 'uploader:collection:create',
   uploaderUploadMetadata: 'uploader:metadata:upload',
