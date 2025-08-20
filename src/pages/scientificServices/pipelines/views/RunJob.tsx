@@ -19,11 +19,14 @@ import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/comp
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
+// Returns the time taken to upload the file (for Mixpanel)
 async function uploadFileWithSignedUrl(
   inputFile: File,
   signedUrl: string,
   onProgress?: (percent: number) => void
-): Promise<void> {
+): Promise<number> {
+  const startTime = Date.now();
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
@@ -36,7 +39,9 @@ async function uploadFileWithSignedUrl(
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve();
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        resolve(duration);
       } else {
         reject(new Error(`Upload failed with status ${xhr.status}`));
       }
@@ -87,7 +92,7 @@ export async function prepareUploadStartPipelineRun(
         const file = selectedUserInputs[input.name];
         const signedUrl = fileInputUploadUrls[input.name].signedUrl;
         if (file instanceof File) {
-          await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
+          const fileUploadDurationMillis = await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
             setUploadProgress((prev) => ({
               ...prev,
               [input.name]: percent,
@@ -100,7 +105,7 @@ export async function prepareUploadStartPipelineRun(
             pipelineVersion,
             fileSize: file.size,
             fileType: file.type,
-            fileUploadDuration: 1234, // Placeholder, actual duration can be calculated if needed
+            fileUploadDurationMillis,
           });
 
           return;
@@ -109,7 +114,7 @@ export async function prepareUploadStartPipelineRun(
       })
   );
 
-  // await Teaspoons().startPipelineRun(jobId);
+  await Teaspoons().startPipelineRun(jobId);
   return jobId;
 }
 
