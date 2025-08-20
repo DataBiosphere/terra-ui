@@ -23,6 +23,22 @@ export const pipelinesTopBar = (activeTab: string) => {
       {isFeatureEnabled && (
         <TabBar
           aria-label='pipelines menu'
+          styleOverrides={{
+            tab: {
+              backgroundColor: '#ffffff',
+            },
+            active: {
+              backgroundColor: '#e3f1fc',
+              borderBottom: '4px solid #46A3E9',
+            },
+            hover: {
+              backgroundColor: '#f5f5f5',
+            },
+            container: {
+              backgroundColor: '#ffffff',
+              borderBottom: '1px solid #46A3E9',
+            },
+          }}
           activeTab={activeTab}
           tabNames={_.keys(TAB_LINKS)}
           getHref={(currentTab) => {

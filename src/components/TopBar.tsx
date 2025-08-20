@@ -17,6 +17,7 @@ import {
   isBioDataCatalyst,
   isDatastage,
   isFirecloud,
+  isScientificServices,
   isTerra,
 } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
@@ -450,7 +451,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   icon='bars'
                   size={36}
                   style={{
-                    color: isTerra() ? 'white' : colors.accent(),
+                    color: isTerra() || isScientificServices() ? 'white' : colors.accent(),
                     flex: 'none',
                     transform: navShown ? 'rotate(90deg)' : undefined,
                     transition: 'transform 0.1s ease-out',

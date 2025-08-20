@@ -2,6 +2,7 @@ import { Icon, IconId, PopupTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { CSSProperties, ReactNode, useEffect, useState } from 'react';
 import { Clickable, Link } from 'src/components/common';
+import { isScientificServices } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import { useLinkExpirationAlerts } from 'src/libs/link-expiration-alerts';
 import { usePrevious } from 'src/libs/react-utils';
@@ -158,6 +159,7 @@ export const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
           <Icon
             icon='bell'
             size={24}
+            color={isScientificServices() ? 'white' : ''}
             className={animating ? 'alert-indicator-ringing' : undefined}
             style={{ cursor: 'pointer' }}
             onAnimationEnd={() => setAnimating(false)}

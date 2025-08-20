@@ -1,5 +1,5 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
-import { formatDate } from '@terra-ui-packages/core-utils';
+import { formatBytes, formatDate } from '@terra-ui-packages/core-utils';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -14,6 +14,16 @@ interface OutputsModalProps {
   jobId: string;
   onDismiss: () => void;
 }
+
+const getFileSize = async (url: string): Promise<string> => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const size = response.headers.get('content-length');
+    return size ? formatBytes(parseInt(size)) : 'Unknown size';
+  } catch {
+    return 'Unknown size';
+  }
+};
 
 export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
