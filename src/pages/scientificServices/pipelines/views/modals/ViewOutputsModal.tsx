@@ -15,9 +15,34 @@ interface OutputsModalProps {
   onDismiss: () => void;
 }
 
+// const getFileSize = async (url: string): Promise<string> => {
+//   try {
+//     const response = await fetch(url, { method: 'HEAD' });
+//     const size = response.headers.get('content-length');
+//     return size ? formatBytes(parseInt(size)) : 'Unknown size';
+//   } catch {
+//     return 'Unknown size';
+//   }
+// };
+
+// workaround until HEAD requests are allowed by the CORS configuration
 const getFileSize = async (url: string): Promise<string> => {
   try {
-    const response = await fetch(url, { method: 'HEAD' });
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Range: 'bytes=0-0',
+      },
+    });
+
+    const contentRange = response.headers.get('content-range');
+    if (contentRange) {
+      const match = contentRange.match(/\/(\d+)$/);
+      if (match) {
+        return formatBytes(parseInt(match[1]));
+      }
+    }
+
     const size = response.headers.get('content-length');
     return size ? formatBytes(parseInt(size)) : 'Unknown size';
   } catch {
@@ -28,6 +53,8 @@ const getFileSize = async (url: string): Promise<string> => {
 export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
+  const [fileSizes, setFileSizes] = useState<Record<string, string>>({});
+  const [loadingFileSizes, setLoadingFileSizes] = useState<Record<string, boolean>>({});
   const signal = useCancellation();
 
   useEffect(() => {
@@ -36,6 +63,25 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
         setLoading(true);
         const results = await Teaspoons(signal).getPipelineRunResult(jobId);
         setResult(results);
+
+        // Fetch file sizes for each output
+        if (results?.pipelineRunReport.outputs) {
+          const outputs = Object.entries(results.pipelineRunReport.outputs);
+          const initialLoadingState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: true }), {});
+          setLoadingFileSizes(initialLoadingState);
+
+          // Fetch file sizes in parallel
+          outputs.forEach(async ([key, url]) => {
+            try {
+              const size = await getFileSize(url);
+              setFileSizes((prev) => ({ ...prev, [key]: size }));
+            } catch {
+              setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
+            } finally {
+              setLoadingFileSizes((prev) => ({ ...prev, [key]: false }));
+            }
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -77,7 +123,21 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                       backgroundColor: '#f5f5f5',
                     }}
                   >
-                    <div style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{key}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'monospace', wordBreak: 'break-all', marginBottom: '0.25rem' }}>
+                        {key}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                        {loadingFileSizes[key] ? (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Spinner size={12} />
+                            Loading size...
+                          </span>
+                        ) : (
+                          fileSizes[key] || 'Unknown size'
+                        )}
+                      </div>
+                    </div>
                     <ButtonPrimary
                       onClick={() => {
                         window.open(url, '_blank');
