@@ -159,7 +159,7 @@ export const AlertsIndicator = (props: AlertsIndicatorProps): ReactNode => {
           <Icon
             icon='bell'
             size={24}
-            color={isScientificServices() ? 'white' : ''}
+            {...(isScientificServices() && { color: 'white' })}
             className={animating ? 'alert-indicator-ringing' : undefined}
             style={{ cursor: 'pointer' }}
             onAnimationEnd={() => setAnimating(false)}
