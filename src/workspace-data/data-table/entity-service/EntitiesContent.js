@@ -4,7 +4,7 @@ import FileSaver from 'file-saver';
 import JSZip from 'jszip';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { div, h, img, p } from 'react-hyperscript-helpers';
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/utils/notebook-utils';
 import { tools } from 'src/analysis/utils/tool-utils';
@@ -18,7 +18,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer';
 import { ModalToolButton } from 'src/components/ModalToolButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
-import { useIGVSessions } from 'src/components/useIGVSessions';
+import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams, useIGVSessions } from 'src/components/useIGVSessions';
 import WorkflowSelector from 'src/components/WorkflowSelector';
 import datasets from 'src/constants/datasets';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
@@ -621,6 +621,19 @@ const EntitiesContent = ({
 
   const dataProvider = new EntityServiceDataTableProvider(namespace, name);
 
+  useEffect(() => {
+    const { igvSession, igvGenome } = getIgvUrlParams();
+
+    if (igvSession && igvGenome && igvFiles === undefined) {
+      const sessionData = decodeSessionFromUrl(igvSession);
+      if (sessionData) {
+        setIgvFiles([]);
+        setIgvRefGenome(igvGenome);
+        setIgvInitialSession(sessionData);
+      }
+    }
+  }, [igvFiles]);
+
   return igvFiles !== undefined
     ? h(IGVBrowser, {
         selectedFiles: igvFiles,
@@ -629,6 +642,7 @@ const EntitiesContent = ({
         onDismiss: () => {
           setIgvFiles(undefined);
           setIgvInitialSession(null);
+          clearIgvUrlParams();
         },
         initialSession: igvInitialSession,
       })

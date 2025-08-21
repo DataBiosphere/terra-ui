@@ -11,9 +11,11 @@ import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import FileBrowser from 'src/components/data/FileBrowser';
 import { icon } from 'src/components/icons';
+import IGVBrowser from 'src/components/IGVBrowser';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
+import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams } from 'src/components/useIGVSessions';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
@@ -541,6 +543,9 @@ export const WorkspaceData = _.flow(
     const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false);
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
     const pollWdsInterval = useRef();
+    /* eslint-disable  @typescript-eslint/no-unused-vars */
+    const [urlIgvSession, setUrlIgvSession] = useState(null);
+    const [urlIgvGenome, setUrlIgvGenome] = useState(null);
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -606,6 +611,25 @@ export const WorkspaceData = _.flow(
     useOnMount(() => {
       loadMetadata();
     });
+
+    useEffect(() => {
+      const { igvSession, igvGenome } = getIgvUrlParams();
+
+      if (igvSession && igvGenome) {
+        const sessionData = decodeSessionFromUrl(igvSession);
+        if (sessionData) {
+          setUrlIgvSession(sessionData);
+          setUrlIgvGenome(igvGenome);
+
+          // Set selectedData to trigger IGV opening
+          setSelectedData({
+            type: 'urlIgv',
+            sessionData,
+            genome: igvGenome,
+          });
+        }
+      }
+    }, []);
 
     useEffect(() => {
       StateHistory.update({ entityMetadata, selectedData });
@@ -1141,6 +1165,22 @@ export const WorkspaceData = _.flow(
                       wdsSchema: wdsTypes.state,
                       editable: canEditWorkspace,
                       loadMetadata,
+                    }),
+                ],
+                [
+                  'urlIgv',
+                  () =>
+                    h(IGVBrowser, {
+                      selectedFiles: [], // Empty since session will load its own tracks
+                      refGenome: { genome: selectedData.genome, reference: null },
+                      workspace,
+                      onDismiss: () => {
+                        setSelectedData(undefined);
+                        setUrlIgvSession(null);
+                        setUrlIgvGenome(null);
+                        clearIgvUrlParams(); // Clear URL parameters when dismissing
+                      },
+                      initialSession: selectedData.sessionData,
                     }),
                 ]
               ),

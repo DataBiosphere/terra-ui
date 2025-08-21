@@ -1,3 +1,4 @@
+import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -8,13 +9,14 @@ import IGVAddTrackModal from 'src/components/IGVAddTrackModal';
 import { GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
+import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
 import IGVSessionModal from './IGVSessionModal';
-import { useIGVSessions } from './useIGVSessions';
+import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
 
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, initialSession }) => {
@@ -23,6 +25,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [showAddTrackModal, setShowAddTrackModal] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null); // 'save' or 'load'
+  const [sharingSession, setSharingSession] = useState(false);
 
   const containerRef = useRef();
   const igvLibrary = useRef();
@@ -143,6 +146,28 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     }
   };
 
+  const shareSession = async () => {
+    if (!igvBrowser.current) return;
+
+    setSharingSession(true);
+    try {
+      const session = igvBrowser.current.toJSON();
+      const shareUrl = updateUrlWithSession(session, genome);
+
+      if (shareUrl) {
+        await clipboard.writeText(shareUrl);
+        notify('success', 'Session URL copied to clipboard', { timeout: 3000 });
+      } else {
+        notify('error', 'Failed to create shareable URL', { timeout: 3000 });
+      }
+    } catch (error) {
+      console.error('Failed to share session:', error);
+      notify('error', 'Failed to share session', { timeout: 3000 });
+    } finally {
+      setSharingSession(false);
+    }
+  };
+
   useOnMount(() => {
     const igvSetup = async () => {
       try {
@@ -204,6 +229,14 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
             },
           },
           ['Load Session']
+        ),
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv || sharingSession,
+            onClick: shareSession,
+          },
+          [sharingSession ? 'Sharing...' : 'Share Session']
         ),
         h(
           ButtonOutline,
