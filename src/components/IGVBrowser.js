@@ -21,6 +21,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [loadingIgv, setLoadingIgv] = useState(true);
   const [requesterPaysModal, setRequesterPaysModal] = useState(null);
   const [showAddTrackModal, setShowAddTrackModal] = useState(false);
+  const [savedSessions, setSavedSessions] = useState([]);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null); // 'save' or 'load'
 
