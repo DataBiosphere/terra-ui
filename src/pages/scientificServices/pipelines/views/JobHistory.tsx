@@ -62,7 +62,7 @@ export const JobHistory = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <h3>Job History</h3>
             <div style={{ marginBottom: '0.25rem' }}>
-              All files associated with jobs will be automatically deleted after 2 weeks from completion.
+              All files and errors associated with jobs will be automatically deleted after 2 weeks from completion.
             </div>
             <div>
               For support, email{' '}

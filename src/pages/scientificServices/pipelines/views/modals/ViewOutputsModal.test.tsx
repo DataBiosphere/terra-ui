@@ -105,7 +105,7 @@ describe('ViewOutputsModal', () => {
     });
 
     // Verify "no outputs" message is displayed
-    expect(screen.getByText('No output files found for this job.')).toBeInTheDocument();
+    expect(screen.queryByText('No output information found for this job.', { exact: false })).toBeInTheDocument();
   });
 
   it('calls onDismiss when Close button is clicked', async () => {

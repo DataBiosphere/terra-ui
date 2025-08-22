@@ -168,7 +168,10 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                 )}
               </div>
             ) : (
-              <div style={{ padding: '1rem', textAlign: 'center' }}>No output files found for this job.</div>
+              <div style={{ padding: '1rem', textAlign: 'center' }}>
+                No output information found for this job. If this job completed more than 14 days ago, the outputs have
+                been deleted.
+              </div>
             )}
           </div>
         )}
