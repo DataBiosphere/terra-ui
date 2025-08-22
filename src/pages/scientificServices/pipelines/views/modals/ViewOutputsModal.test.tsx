@@ -1,3 +1,4 @@
+import { expect } from '@storybook/test';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -68,6 +69,7 @@ describe('ViewOutputsModal', () => {
     // Verify outputs are displayed
     expect(screen.getByText('output1')).toBeInTheDocument();
     expect(screen.getByText('output2')).toBeInTheDocument();
+    expect(screen.getAllByText('1.21 KiB')).toHaveLength(2);
 
     // Verify download buttons are present
     const downloadButtons = screen.getAllByText('Download');

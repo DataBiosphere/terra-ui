@@ -15,17 +15,8 @@ interface OutputsModalProps {
   onDismiss: () => void;
 }
 
-// const getFileSize = async (url: string): Promise<string> => {
-//   try {
-//     const response = await fetch(url, { method: 'HEAD' });
-//     const size = response.headers.get('content-length');
-//     return size ? formatBytes(parseInt(size)) : 'Unknown size';
-//   } catch {
-//     return 'Unknown size';
-//   }
-// };
-
-// workaround until HEAD requests are allowed by the CORS configuration
+// Using a GET request here to fetch the file size of the output files as a temporary
+// workaround until HEAD requests are allowed by the bucket CORS configuration
 const getFileSize = async (url: string): Promise<string> => {
   try {
     const response = await fetch(url, {
@@ -72,7 +63,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
           setLoadingFileSizes(initialLoadingState);
 
           // Fetch file sizes in parallel
-          outputs.forEach(async ([key, url]) => {
+          for (const [key, url] of outputs) {
             try {
               const size = await getFileSize(url);
               setFileSizes((prev) => ({ ...prev, [key]: size }));
@@ -81,7 +72,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
             } finally {
               setLoadingFileSizes((prev) => ({ ...prev, [key]: false }));
             }
-          });
+          }
         }
       } finally {
         setLoading(false);
