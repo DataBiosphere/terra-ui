@@ -14,13 +14,13 @@ import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
 import IGVSessionModal from './IGVSessionModal';
+import { useIGVSessions } from './useIGVSessions';
 
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
-const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {
+const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, initialSession }) => {
   const [loadingIgv, setLoadingIgv] = useState(true);
   const [requesterPaysModal, setRequesterPaysModal] = useState(null);
   const [showAddTrackModal, setShowAddTrackModal] = useState(false);
-  const [savedSessions, setSavedSessions] = useState([]);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null); // 'save' or 'load'
 
@@ -28,6 +28,13 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const igvLibrary = useRef();
   const igvBrowser = useRef();
   const signal = useCancellation();
+
+  const {
+    savedSessions,
+    loadSession: loadSessionData,
+    saveSession: saveSessionData,
+    deleteSession,
+  } = useIGVSessions(workspace?.workspace?.workspaceId);
 
   const addTracks = withErrorReporting('Unable to add tracks')(async (tracks) => {
     const gsTracks = tracks.filter((track) => track.isSignedUrl === false);
@@ -108,100 +115,30 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     }, tracks);
   });
 
-  const saveSession = withErrorReporting('Unable to save session')(async (sessionName) => {
-    if (!igvBrowser.current) return;
+  const saveSession = async (sessionName) => {
+    if (!igvBrowser.current) return false;
 
     try {
-      const workspaceId = workspace.workspace.workspaceId;
       const session = igvBrowser.current.toJSON();
-      const sessionData = {
-        name: sessionName,
-        timestamp: new Date().toISOString(),
-        data: session,
-        workspace: workspaceId,
-        genome,
-      };
-
-      // Save to localStorage
-      const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
-
-      localStorage.setItem(sessionKey, JSON.stringify(sessionData));
-
-      // Update session list
-      const sessionList = getSavedSessions();
-      const existingIndex = sessionList.findIndex((s) => s.name === sessionName);
-
-      let updatedList;
-      if (existingIndex >= 0) {
-        // Update existing session timestamp
-        updatedList = [...sessionList];
-        updatedList[existingIndex] = { name: sessionName, timestamp: sessionData.timestamp };
-      } else {
-        // Add new session
-        updatedList = [...sessionList, { name: sessionName, timestamp: sessionData.timestamp }];
-      }
-
-      const sessionListKey = `igv-session-list-${workspaceId}`;
-
-      localStorage.setItem(sessionListKey, JSON.stringify(updatedList));
-      setSavedSessions(updatedList);
-
-      return true;
+      return await saveSessionData(sessionName, session, genome);
     } catch (error) {
       console.error('Failed to save session:', error);
       return false;
     }
-  });
-
-  const loadSession = withErrorReporting('Unable to load session')(async (sessionName) => {
-    if (!igvBrowser.current) return;
-
-    try {
-      const workspaceId = workspace.workspace.workspaceId;
-      const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
-      const sessionData = localStorage.getItem(sessionKey);
-      if (!sessionData) {
-        throw new Error(`Session '${sessionName}' not found`);
-      }
-
-      const parsed = JSON.parse(sessionData);
-      await igvBrowser.current.loadSession(parsed.data);
-
-      return true;
-    } catch (error) {
-      console.error('Failed to load session:', error);
-      return false;
-    }
-  });
-
-  const getSavedSessions = () => {
-    try {
-      const workspaceId = workspace.workspace.workspaceId;
-      const sessionListKey = `igv-session-list-${workspaceId}`;
-      const list = localStorage.getItem(sessionListKey);
-      return list ? JSON.parse(list) : [];
-    } catch {
-      return [];
-    }
   };
 
-  const deleteSession = (sessionName) => {
+  const loadSession = async (sessionName) => {
+    if (!igvBrowser.current) return false;
+
     try {
-      const workspaceId = workspace.workspace.workspaceId;
-      const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
-
-      // Remove the session data
-      localStorage.removeItem(sessionKey);
-
-      // Update the session list
-      const sessionList = getSavedSessions().filter((session) => session.name !== sessionName);
-      const sessionListKey = `igv-session-list-${workspaceId}`;
-      localStorage.setItem(sessionListKey, JSON.stringify(sessionList));
-      setSavedSessions(sessionList);
-
-      return true;
+      const sessionData = await loadSessionData(sessionName);
+      if (sessionData) {
+        await igvBrowser.current.loadSession(sessionData.data);
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error('Failed to delete session:', error);
+      console.error('Failed to load session:', error);
       return false;
     }
   };
@@ -226,7 +163,10 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         }, selectedFiles);
         addTracks(initialTracks);
 
-        setSavedSessions(getSavedSessions());
+        // Load initial session if provided
+        if (initialSession) {
+          await igvBrowser.current.loadSession(initialSession);
+        }
       } catch (e) {
         reportError('Error loading IGV.js', e);
       } finally {
