@@ -154,6 +154,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         await igvBrowser.current.loadSession(sessionData.data);
         return true;
       }
+
       return false;
     } catch (error) {
       console.error('Failed to load session:', error);

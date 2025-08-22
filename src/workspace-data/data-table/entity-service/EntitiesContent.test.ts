@@ -70,6 +70,26 @@ jest.mock('src/libs/ajax/GoogleStorage', () => ({
   })),
 }));
 
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn((key) => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+});
+
 describe('EntitiesContent', () => {
   it('copies to clipboard', async () => {
     // Arrange
@@ -575,6 +595,10 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
     );
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders disabled workflow buttons when no entities selected', async () => {
     // Arrange & Act
     await act(async () => {
@@ -584,6 +608,17 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
     // Assert
     const workflowButton = screen.getByTestId('workflow-button');
     expect(workflowButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('renders disabled IGV button when no entities selected and no sessions saved', async () => {
+    // Arrange
+    await act(async () => {
+      renderComponent();
+    });
+
+    // Assert
+    const igvButton = screen.getByTestId('igv-button');
+    expect(igvButton).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('renders enabled IGV button even when no entities selected', async () => {
@@ -664,17 +699,27 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
 
   it('opens IGV load session when selected', async () => {
     // Arrange
+    const workspaceId = defaultGoogleWorkspace.workspace.workspaceId;
+    const existingSession = {
+      name: 'Existing Session',
+      timestamp: '2023-01-01T00:00:00.000Z',
+      data: { genome: 'hg38' },
+      workspace: workspaceId,
+    };
+    localStorageMock.setItem(`igvSession-${workspaceId}-Existing Session`, JSON.stringify(existingSession));
+    localStorageMock.setItem(
+      `igv-session-list-${workspaceId}`,
+      JSON.stringify([{ name: 'Existing Session', timestamp: '2023-01-01T00:00:00.000Z' }])
+    );
     const user = userEvent.setup();
 
     await act(async () => {
       renderComponent();
     });
 
-    const checkbox = screen.getByRole('checkbox', { name: 'sample_1' });
-    await user.click(checkbox);
-
     // Act
     const igvButton = screen.getByTestId('igv-button');
+    expect(igvButton).toHaveAttribute('aria-disabled', 'false');
     await user.click(igvButton);
     const loadIGV = screen.getByText('Load IGV Session');
     await user.click(loadIGV);

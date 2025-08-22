@@ -532,6 +532,10 @@ const EntitiesContent = ({
   };
 
   const renderIGVMenu = () => {
+    const openIgvDisabled = !entitiesSelected;
+    const loadSessionDisabled = savedSessions.length === 0;
+    const allMenuItemsDisabled = openIgvDisabled && loadSessionDisabled;
+
     return (
       !snapshotName &&
       h(
@@ -547,8 +551,8 @@ const EntitiesContent = ({
                   setSelectedViewer('IGV');
                   setShowToolSelector(true);
                 },
-                disabled: !entitiesSelected,
-                tooltip: !entitiesSelected && 'Select rows to open in IGV',
+                disabled: openIgvDisabled,
+                tooltip: openIgvDisabled && 'Select rows to open in IGV',
               },
               'Open with IGV'
             ),
@@ -560,6 +564,8 @@ const EntitiesContent = ({
                   setSessionAction('load');
                   setShowSessionModal(true);
                 },
+                disabled: loadSessionDisabled,
+                tooltip: loadSessionDisabled ? 'No saved sessions available' : 'Load a saved IGV session',
               },
               'Load IGV Session'
             ),
@@ -573,6 +579,7 @@ const EntitiesContent = ({
                 ? 'Select rows to open in IGV or load a saved session'
                 : 'Open with Integrative Genomics Viewer or load session',
               'data-testid': 'igv-button',
+              disabled: allMenuItemsDisabled,
               style: {
                 width: '3rem',
                 height: '2rem',
@@ -591,6 +598,7 @@ const EntitiesContent = ({
                   width: 25,
                   height: 25,
                   borderRadius: '0.375rem',
+                  opacity: allMenuItemsDisabled ? 0.5 : undefined,
                 },
               }),
             ]
@@ -641,7 +649,7 @@ const EntitiesContent = ({
         workspace,
         onDismiss: () => {
           setIgvFiles(undefined);
-          setIgvInitialSession(null);
+          setIgvInitialSession(undefined);
           clearIgvUrlParams();
         },
         initialSession: igvInitialSession,

@@ -1024,7 +1024,7 @@ export const WorkflowView = _.flow(
                       h('br'),
                       '1. Costs are in USD.',
                       h('br'),
-                      '2. Costs are VM and disk costs only. Bucket storage and egress costs are not included.',
+                      '2. Costs are VM CPU and RAM costs only. Disk, bucket storage and egress costs are not included.',
                       h('br'),
                       '3. Based on GCP list prices. Discounts are not included.',
                       h('br'),
