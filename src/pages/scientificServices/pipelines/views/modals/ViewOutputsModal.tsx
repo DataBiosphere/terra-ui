@@ -45,8 +45,7 @@ const getFileSize = async (url: string): Promise<string> => {
 export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
-  const [fileSizes, setFileSizes] = useState<Record<string, string>>({});
-  const [loadingFileSizes, setLoadingFileSizes] = useState<Record<string, boolean>>({});
+  const [fileSizes, setFileSizes] = useState<Record<string, string | null>>({});
   const signal = useCancellation();
 
   useEffect(() => {
@@ -56,21 +55,17 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
         const results = await Teaspoons(signal).getPipelineRunResult(jobId);
         setResult(results);
 
-        // Fetch file sizes for each output
         if (results?.pipelineRunReport.outputs) {
           const outputs = Object.entries(results.pipelineRunReport.outputs);
-          const initialLoadingState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: true }), {});
-          setLoadingFileSizes(initialLoadingState);
+          const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
+          setFileSizes(initialState);
 
-          // Fetch file sizes in parallel
           for (const [key, url] of outputs) {
             try {
               const size = await getFileSize(url);
               setFileSizes((prev) => ({ ...prev, [key]: size }));
             } catch {
               setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
-            } finally {
-              setLoadingFileSizes((prev) => ({ ...prev, [key]: false }));
             }
           }
         }
@@ -120,7 +115,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                         {key}
                       </div>
                       <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                        {loadingFileSizes[key] ? (
+                        {fileSizes[key] === null ? (
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                             <Spinner size={12} />
                             Loading size...
