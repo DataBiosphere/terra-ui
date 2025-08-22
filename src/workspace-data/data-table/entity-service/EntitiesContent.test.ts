@@ -623,6 +623,18 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
 
   it('renders enabled IGV button even when no entities selected', async () => {
     // Arrange
+    const workspaceId = defaultGoogleWorkspace.workspace.workspaceId;
+    const existingSession = {
+      name: 'Existing Session',
+      timestamp: '2023-01-01T00:00:00.000Z',
+      data: { genome: 'hg38' },
+      workspace: workspaceId,
+    };
+    localStorageMock.setItem(`igvSession-${workspaceId}-Existing Session`, JSON.stringify(existingSession));
+    localStorageMock.setItem(
+      `igv-session-list-${workspaceId}`,
+      JSON.stringify([{ name: 'Existing Session', timestamp: '2023-01-01T00:00:00.000Z' }])
+    );
     const user = userEvent.setup();
     await act(async () => {
       renderComponent();
