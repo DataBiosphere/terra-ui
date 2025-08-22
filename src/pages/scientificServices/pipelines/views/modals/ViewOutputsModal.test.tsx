@@ -15,6 +15,11 @@ describe('ViewOutputsModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      headers: {
+        get: jest.fn().mockReturnValue('1234'),
+      },
+    } as any);
   });
 
   it('displays loading state initially', () => {

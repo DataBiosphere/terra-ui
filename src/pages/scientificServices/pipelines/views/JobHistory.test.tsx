@@ -387,4 +387,31 @@ describe('job history table', () => {
       ).toBeInTheDocument();
     });
   });
+
+  describe('Deletion Date column', () => {
+    it('displays the deletion date for SUCCEEDED jobs', async () => {
+      const pipelineRun = mockPipelineRun('SUCCEEDED');
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('Oct 15, 2023')).toBeInTheDocument();
+    });
+  });
 });

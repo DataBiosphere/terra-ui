@@ -37,7 +37,8 @@ const getFileSize = async (url: string): Promise<string> => {
 
     const contentRange = response.headers.get('content-range');
     if (contentRange) {
-      const match = contentRange.match(/\/(\d+)$/);
+      const regex = /\/(\d+)$/;
+      const match = regex.exec(contentRange);
       if (match) {
         return formatBytes(parseInt(match[1]));
       }
