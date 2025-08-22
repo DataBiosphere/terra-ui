@@ -40,8 +40,10 @@ export const updateUrlWithSession = (sessionData, genome) => {
     igvGenome: genome,
   };
 
-  const newUrl = `${window.location.pathname}?${qs.stringify(newParams)}`;
-  window.history.replaceState({}, '', newUrl);
+  const basePath = window.location.pathname;
+  const hashFragment = window.location.hash;
+
+  const newUrl = `${basePath}?${qs.stringify(newParams)}${hashFragment}`;
 
   return `${window.location.origin}${newUrl}`;
 };

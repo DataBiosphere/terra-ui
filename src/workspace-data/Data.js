@@ -615,7 +615,7 @@ export const WorkspaceData = _.flow(
     useEffect(() => {
       const { igvSession, igvGenome } = getIgvUrlParams();
 
-      if (igvSession && igvGenome) {
+      if (igvSession) {
         const sessionData = decodeSessionFromUrl(igvSession);
         if (sessionData) {
           setUrlIgvSession(sessionData);
@@ -1176,8 +1176,8 @@ export const WorkspaceData = _.flow(
                       workspace,
                       onDismiss: () => {
                         setSelectedData(undefined);
-                        setUrlIgvSession(null);
-                        setUrlIgvGenome(null);
+                        setUrlIgvSession(undefined);
+                        setUrlIgvGenome(undefined);
                         clearIgvUrlParams(); // Clear URL parameters when dismissing
                       },
                       initialSession: selectedData.sessionData,
