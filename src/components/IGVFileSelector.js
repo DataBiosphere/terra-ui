@@ -6,6 +6,7 @@ import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -25,8 +26,8 @@ const splitExtension = (fileUrl) => {
 const getCompoundExtension = (fileUrl) => {
   const splitPath = fileUrl.split('?')[0].split('.');
   const numExtensions = splitPath.length > 2 ? 2 : 1;
-  const compoundExtension = splitPath.slice(-1 * numExtensions).join('.');
-  return compoundExtension;
+
+  return splitPath.slice(-1 * numExtensions).join('.');
 };
 
 export const getIgvMetricDetails = (selectedFiles, refGenome) => {
@@ -71,7 +72,22 @@ function indexMap(base) {
   };
 }
 
-const findIndexForFile = (fileUrl, fileUrls) => {
+const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, signal) => {
+  const { namespace, name } = workspace.workspace;
+  const filterCandidates = indexCandidates.map((candidate) => candidate.split('/').pop()).join(' ');
+  const searchResponse = await Workspaces(signal).workspace(namespace, name).paginatedEntitiesOfType(entityType, {
+    filterOperator: 'or',
+    filterTerms: filterCandidates,
+  });
+
+  // Look for any attribute value that matches one of the index candidates
+  return searchResponse.results.filter((result) => {
+    const fileName = result.attributes.file_name;
+    return filterCandidates.includes(fileName);
+  });
+};
+
+const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal) => {
   if (!genomicFiles.some((extension) => fileUrl.pathname.endsWith(extension))) {
     return undefined;
   }
@@ -92,8 +108,11 @@ const findIndexForFile = (fileUrl, fileUrls) => {
 
   const [base, extension] = splitExtension(fileUrl.pathname);
   const indexCandidates = indexMap(base)[extension];
-
-  return fileUrls.find((url) => indexCandidates.includes(url.pathname));
+  const foundIndex = fileUrls.find((url) => indexCandidates.includes(url.pathname));
+  if (foundIndex) {
+    return foundIndex;
+  }
+  return await searchDBForIndexFiles(workspace, entityType, indexCandidates, signal);
 };
 
 // Determine whether filename has an IGV-eligible extension
@@ -129,7 +148,7 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   return igvAccessUrls;
 };
 
-export const getValidIgvFiles = async (values, signal) => {
+export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
   const basicFileUrls = values.filter((value) => {
     let url;
     try {
@@ -167,62 +186,59 @@ export const getValidIgvFiles = async (values, signal) => {
     fileUrls.push(url);
   });
 
-  return fileUrls.flatMap((fileUrl) => {
-    const filePath = fileUrl.href;
-    const isSignedUrl = fileUrl.isSignedUrl;
-    if (fileUrl.pathname.endsWith('.bed')) {
-      return [{ filePath, indexFilePath: false, isSignedUrl }];
-    }
-    const indexFileUrl = findIndexForFile(fileUrl, fileUrls);
-    if (indexFileUrl !== undefined) {
-      return [{ filePath, indexFilePath: indexFileUrl.href, isSignedUrl }];
-    }
-    return [];
-  });
+  const results = await Promise.all(
+    fileUrls.map(async (fileUrl) => {
+      const filePath = fileUrl.href;
+      const isSignedUrl = fileUrl.isSignedUrl;
+      if (fileUrl.pathname.endsWith('.bed')) {
+        return [{ filePath, indexFilePath: false, isSignedUrl }];
+      }
+      const indexFileUrl = await findIndexForFile(workspace, entityType, fileUrl, fileUrls, signal);
+      if (indexFileUrl !== undefined) {
+        return [{ filePath, indexFilePath: indexFileUrl.href, isSignedUrl }];
+      }
+      return [];
+    })
+  );
+
+  return results.flat();
 };
 
-export const getValidIgvFilesFromAttributeValues = async (attributeValues, signal) => {
+export const getValidIgvFilesFromAttributeValues = async (workspace, entityType, attributeValues, signal) => {
   const allAttributeStrings = _.flatMap(getStrings, attributeValues);
 
-  const validIgvFiles = await getValidIgvFiles(allAttributeStrings, signal);
-  return validIgvFiles;
+  return await getValidIgvFiles(workspace, entityType, allAttributeStrings, signal);
 };
 
 export const isDrsUri = (value) => {
   return !!value?.toString().startsWith('drs://');
 };
 
-const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
+const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess }) => {
   const [refGenome, setRefGenome] = useState(defaultIgvReference);
   const isRefGenomeValid = Boolean(_.get('genome', refGenome) || _.get('reference.fastaURL', refGenome));
 
   const [selections, setSelections] = useState([]);
-  const [hasDrsCandidateFiles, setHasDrsCandidateFiles] = useState(false);
+  const [isSearchingFiles, setIsSearchingFiles] = useState(true);
 
   const signal = useCancellation();
 
   useEffect(() => {
     async function fetchData() {
       const allAttributeValues = _.flatMap(_.flow(_.get('attributes'), _.values), selectedEntities);
+      const selections = await getValidIgvFilesFromAttributeValues(workspace, entityType, allAttributeValues, signal);
 
-      // If there are 2 or more DRS URIs in this row, then IGV might be openable.
-      // This lets us know we need to show a loading message while awaiting DRS URI
-      // resolution to confirm if IGV is indeed openable for the selections.
-      const drsCandidateFiles = allAttributeValues.filter((value) => isDrsUri(value));
-      setHasDrsCandidateFiles(drsCandidateFiles.length >= 2);
-
-      const selections = await getValidIgvFilesFromAttributeValues(allAttributeValues, signal);
-      setHasDrsCandidateFiles(selections.length >= 1);
       setSelections(selections);
+      setIsSearchingFiles(false);
     }
     fetchData();
-  }, [selectedEntities, setSelections, signal]);
+  }, [workspace, entityType, selectedEntities, setSelections, signal]);
 
   const toggleSelected = (index) => setSelections(_.update([index, 'isSelected'], (v) => !v));
   const numSelected = _.countBy('isSelected', selections).true;
   const isSelectionValid = !!numSelected;
 
-  const noRowsMessage = hasDrsCandidateFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
+  const noRowsMessage = isSearchingFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
 
   return div({ style: Style.modalDrawer.content }, [
     h(IGVReferenceSelector, {
