@@ -74,19 +74,17 @@ function indexMap(base) {
 
 const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, signal) => {
   const { namespace, name } = workspace.workspace;
-
-  const searchResponse = await Workspaces(signal)
-    .workspace(namespace, name)
-    .paginatedEntitiesOfType(entityType, {
-      filterOperator: 'or',
-      filterTerms: indexCandidates.join(' '),
-    });
+  const filterCandidates = indexCandidates.map((candidate) => candidate.split('/').pop()).join(' ');
+  const searchResponse = await Workspaces(signal).workspace(namespace, name).paginatedEntitiesOfType(entityType, {
+    filterOperator: 'or',
+    filterTerms: filterCandidates,
+  });
 
   // Look for any attribute value that matches one of the index candidates
-  return _.find(
-    (attr) => _.some((candidate) => attr?.includes(candidate), indexCandidates),
-    _.flatMap((result) => _.values(result.attributes), searchResponse.results)
-  );
+  return searchResponse.results.filter((result) => {
+    const fileName = result.attributes.file_name;
+    return filterCandidates.includes(fileName);
+  });
 };
 
 const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal) => {
@@ -221,23 +219,17 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   const isRefGenomeValid = Boolean(_.get('genome', refGenome) || _.get('reference.fastaURL', refGenome));
 
   const [selections, setSelections] = useState([]);
-  const [hasDrsCandidateFiles, setHasDrsCandidateFiles] = useState(false);
+  const [isSearchingFiles, setIsSearchingFiles] = useState(true);
 
   const signal = useCancellation();
 
   useEffect(() => {
     async function fetchData() {
       const allAttributeValues = _.flatMap(_.flow(_.get('attributes'), _.values), selectedEntities);
-
-      // If there are 2 or more DRS URIs in this row, then IGV might be openable.
-      // This lets us know we need to show a loading message while awaiting DRS URI
-      // resolution to confirm if IGV is indeed openable for the selections.
-      const drsCandidateFiles = allAttributeValues.filter((value) => isDrsUri(value));
-      setHasDrsCandidateFiles(drsCandidateFiles.length >= 2);
-
       const selections = await getValidIgvFilesFromAttributeValues(workspace, entityType, allAttributeValues, signal);
-      setHasDrsCandidateFiles(selections.length >= 1);
+
       setSelections(selections);
+      setIsSearchingFiles(false);
     }
     fetchData();
   }, [workspace, entityType, selectedEntities, setSelections, signal]);
@@ -246,7 +238,7 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   const numSelected = _.countBy('isSelected', selections).true;
   const isSelectionValid = !!numSelected;
 
-  const noRowsMessage = hasDrsCandidateFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
+  const noRowsMessage = isSearchingFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
 
   return div({ style: Style.modalDrawer.content }, [
     h(IGVReferenceSelector, {

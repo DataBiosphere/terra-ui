@@ -45,6 +45,11 @@ describe('getValidIgvFiles', () => {
       )
     ).toEqual([
       {
+        filePath: 'gs://bucket/test1.bam',
+        indexFilePath: undefined,
+        isSignedUrl: false,
+      },
+      {
         filePath: 'gs://bucket/test2.bam',
         indexFilePath: 'gs://bucket/test2.bai',
         isSignedUrl: false,
@@ -71,6 +76,11 @@ describe('getValidIgvFiles', () => {
         mockSignal
       )
     ).toEqual([
+      {
+        filePath: 'gs://bucket/test1.cram',
+        indexFilePath: undefined,
+        isSignedUrl: false,
+      },
       {
         filePath: 'gs://bucket/test2.cram',
         indexFilePath: 'gs://bucket/test2.crai',
@@ -105,6 +115,11 @@ describe('getValidIgvFiles', () => {
         mockSignal
       )
     ).toEqual([
+      {
+        filePath: 'gs://bucket/test1.vcf',
+        indexFilePath: undefined,
+        isSignedUrl: false,
+      },
       {
         filePath: 'gs://bucket/test2.vcf',
         indexFilePath: 'gs://bucket/test2.idx',
@@ -289,7 +304,13 @@ describe('getValidIgvFilesFromAttributeValues', () => {
         ],
         mockSignal
       )
-    ).toEqual([]);
+    ).toEqual([
+      {
+        filePath: 'https://bucket/foo.vcf.gz?requestedBy=user@domain.tls&userProject=my-billing-project&signature=secret',
+        indexFilePath: undefined,
+        isSignedUrl: true,
+      },
+    ]);
   });
 
   it('robustly detects data table values that are DRS URIs', () => {
