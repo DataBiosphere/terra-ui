@@ -115,6 +115,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                           pipelineName: result.pipelineRunReport.pipelineName,
                           pipelineVersion: result.pipelineRunReport.pipelineVersion,
                           outputName: key,
+                          fileSize: fileSizes[key],
                         });
                       }}
                       style={{ marginLeft: '1rem' }}
