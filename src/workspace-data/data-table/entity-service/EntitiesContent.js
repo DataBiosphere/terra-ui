@@ -287,7 +287,7 @@ const EntitiesContent = ({
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null);
 
-  const { savedSessions, loadSession: loadSessionData, deleteSession } = useIGVSessions(workspace?.workspace?.workspaceId);
+  const { savedSessions, getSavedSessions, loadSession: loadSessionData, deleteSession } = useIGVSessions(workspace?.workspace?.workspaceId);
 
   const loadSession = async (sessionName) => {
     try {
@@ -641,6 +641,11 @@ const EntitiesContent = ({
       }
     }
   }, [igvFiles]);
+
+  useEffect(() => {
+    // Refresh savedSessions when the component mounts
+    getSavedSessions();
+  }, [getSavedSessions]);
 
   return igvFiles !== undefined
     ? h(IGVBrowser, {

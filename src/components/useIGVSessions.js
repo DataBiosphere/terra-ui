@@ -52,10 +52,12 @@ export const clearIgvUrlParams = () => {
   const currentParams = qs.parse(window.location.search, { ignoreQueryPrefix: true });
   delete currentParams.igvSession;
   delete currentParams.igvGenome;
+  const hashFragment = window.location.hash;
 
   const newUrl =
-    currentParams && Object.keys(currentParams).length > 0 ? `${window.location.pathname}?${qs.stringify(currentParams)}` : window.location.pathname;
-
+    currentParams && Object.keys(currentParams).length > 0
+      ? `${window.location.pathname}?${qs.stringify(currentParams)}${hashFragment}`
+      : `${window.location.pathname}${hashFragment}`;
   window.history.replaceState({}, '', newUrl);
 };
 
