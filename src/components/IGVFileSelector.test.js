@@ -2,53 +2,20 @@ import { getIgvMetricDetails, getValidIgvFiles, getValidIgvFilesFromAttributeVal
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
 
 jest.mock('src/libs/ajax/drs/DrsUriResolver');
-jest.mock('src/libs/ajax/workspaces/Workspaces');
-
-jest.mock('src/libs/ajax/workspaces/Workspaces', () => ({
-  Workspaces: jest.fn(() => ({
-    workspace: jest.fn(() => ({
-      paginatedEntitiesOfType: jest.fn(() =>
-        Promise.resolve({
-          results: [
-            {
-              attributes: {
-                someAttribute: ['mockedIndexFile1', 'mockedIndexFile2'],
-              },
-            },
-          ],
-        })
-      ),
-    })),
-  })),
-}));
-
-const mockWorkspace = { workspace: { namespace: 'ns', name: 'ws' } };
-const mockEntityType = 'entityType';
-const mockSignal = undefined;
 
 describe('getValidIgvFiles', () => {
   it('allows BAM files with indices', async () => {
     expect(
-      await getValidIgvFiles(
-        mockWorkspace,
-        mockEntityType,
-        [
-          'gs://bucket/test1.bam',
-          'gs://bucket/test2.bam',
-          'gs://bucket/test2.bai',
-          'gs://bucket/test3.bam',
-          'gs://bucket/test3.bam.bai',
-          'gs://bucket/test4.sorted.bam',
-          'gs://bucket/test4.sorted.bam.bai',
-        ],
-        mockSignal
-      )
+      await getValidIgvFiles([
+        'gs://bucket/test1.bam',
+        'gs://bucket/test2.bam',
+        'gs://bucket/test2.bai',
+        'gs://bucket/test3.bam',
+        'gs://bucket/test3.bam.bai',
+        'gs://bucket/test4.sorted.bam',
+        'gs://bucket/test4.sorted.bam.bai',
+      ])
     ).toEqual([
-      {
-        filePath: 'gs://bucket/test1.bam',
-        indexFilePath: undefined,
-        isSignedUrl: false,
-      },
       {
         filePath: 'gs://bucket/test2.bam',
         indexFilePath: 'gs://bucket/test2.bai',
@@ -69,18 +36,14 @@ describe('getValidIgvFiles', () => {
 
   it('allows CRAM files with indices', async () => {
     expect(
-      await getValidIgvFiles(
-        mockWorkspace,
-        mockEntityType,
-        ['gs://bucket/test1.cram', 'gs://bucket/test2.cram', 'gs://bucket/test2.crai', 'gs://bucket/test3.cram', 'gs://bucket/test3.cram.crai'],
-        mockSignal
-      )
+      await getValidIgvFiles([
+        'gs://bucket/test1.cram',
+        'gs://bucket/test2.cram',
+        'gs://bucket/test2.crai',
+        'gs://bucket/test3.cram',
+        'gs://bucket/test3.cram.crai',
+      ])
     ).toEqual([
-      {
-        filePath: 'gs://bucket/test1.cram',
-        indexFilePath: undefined,
-        isSignedUrl: false,
-      },
       {
         filePath: 'gs://bucket/test2.cram',
         indexFilePath: 'gs://bucket/test2.crai',
@@ -96,30 +59,20 @@ describe('getValidIgvFiles', () => {
 
   it('allows VCF files with indices', async () => {
     expect(
-      await getValidIgvFiles(
-        mockWorkspace,
-        mockEntityType,
-        [
-          'gs://bucket/test1.vcf',
-          'gs://bucket/test2.vcf',
-          'gs://bucket/test2.idx',
-          'gs://bucket/test3.vcf',
-          'gs://bucket/test3.vcf.idx',
-          'gs://bucket/test4.vcf',
-          'gs://bucket/test4.tbi',
-          'gs://bucket/test5.vcf',
-          'gs://bucket/test5.vcf.tbi',
-          'gs://bucket/test6.vcf.gz',
-          'gs://bucket/test6.vcf.gz.tbi',
-        ],
-        mockSignal
-      )
+      await getValidIgvFiles([
+        'gs://bucket/test1.vcf',
+        'gs://bucket/test2.vcf',
+        'gs://bucket/test2.idx',
+        'gs://bucket/test3.vcf',
+        'gs://bucket/test3.vcf.idx',
+        'gs://bucket/test4.vcf',
+        'gs://bucket/test4.tbi',
+        'gs://bucket/test5.vcf',
+        'gs://bucket/test5.vcf.tbi',
+        'gs://bucket/test6.vcf.gz',
+        'gs://bucket/test6.vcf.gz.tbi',
+      ])
     ).toEqual([
-      {
-        filePath: 'gs://bucket/test1.vcf',
-        indexFilePath: undefined,
-        isSignedUrl: false,
-      },
       {
         filePath: 'gs://bucket/test2.vcf',
         indexFilePath: 'gs://bucket/test2.idx',
@@ -149,7 +102,7 @@ describe('getValidIgvFiles', () => {
   });
 
   it('allows BED files', async () => {
-    expect(await getValidIgvFiles(mockWorkspace, mockEntityType, ['gs://bucket/test.bed'], mockSignal)).toEqual([
+    expect(await getValidIgvFiles(['gs://bucket/test.bed'])).toEqual([
       {
         filePath: 'gs://bucket/test.bed',
         indexFilePath: false,
@@ -159,9 +112,7 @@ describe('getValidIgvFiles', () => {
   });
 
   it('requires GCS URLs', async () => {
-    expect(
-      await getValidIgvFiles(mockWorkspace, mockEntityType, ['gs://bucket/test.bed', 'https://example.com/test.bed', 'test.bed'], mockSignal)
-    ).toEqual([
+    expect(await getValidIgvFiles(['gs://bucket/test.bed', 'https://example.com/test.bed', 'test.bed'])).toEqual([
       {
         filePath: 'gs://bucket/test.bed',
         indexFilePath: false,
@@ -173,15 +124,10 @@ describe('getValidIgvFiles', () => {
   describe('TDR URLs', () => {
     it('allows TDR URLs', async () => {
       expect(
-        await getValidIgvFiles(
-          mockWorkspace,
-          mockEntityType,
-          [
-            'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
-            'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/test.bam.bai',
-          ],
-          mockSignal
-        )
+        await getValidIgvFiles([
+          'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
+          'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/test.bam.bai',
+        ])
       ).toEqual([
         {
           filePath: 'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
@@ -193,15 +139,10 @@ describe('getValidIgvFiles', () => {
 
     it('allows TDR URLs with additional path segments', async () => {
       expect(
-        await getValidIgvFiles(
-          mockWorkspace,
-          mockEntityType,
-          [
-            'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/path/to/test.bam',
-            'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/path/to/test.bam.bai',
-          ],
-          mockSignal
-        )
+        await getValidIgvFiles([
+          'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/path/to/test.bam',
+          'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/path/to/test.bam.bai',
+        ])
       ).toEqual([
         {
           filePath: 'gs://datarepo-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/path/to/test.bam',
@@ -214,15 +155,10 @@ describe('getValidIgvFiles', () => {
 
     it('allows TDR URLs from non-production environments', async () => {
       expect(
-        await getValidIgvFiles(
-          mockWorkspace,
-          mockEntityType,
-          [
-            'gs://datarepo-dev-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
-            'gs://datarepo-dev-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/test.bam.bai',
-          ],
-          mockSignal
-        )
+        await getValidIgvFiles([
+          'gs://datarepo-dev-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
+          'gs://datarepo-dev-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/2eeff61f-ae9e-41ae-bb40-909ff6bdfba8/test.bam.bai',
+        ])
       ).toEqual([
         {
           filePath: 'gs://datarepo-dev-ab123456-bucket/cae37a2a-657f-4b04-9fef-59c215020078/5f5f634d-70f3-4914-9c71-9d14c7f98e60/test.bam',
@@ -237,17 +173,12 @@ describe('getValidIgvFiles', () => {
 describe('getValidIgvFilesFromAttributeValues', () => {
   it('gets all valid files from lists', async () => {
     expect(
-      await getValidIgvFilesFromAttributeValues(
-        mockWorkspace,
-        mockEntityType,
-        [
-          {
-            itemsType: 'AttributeValue',
-            items: ['gs://bucket/test1.bed', 'gs://bucket/test2.bed', 'gs://bucket/test3.bed'],
-          },
-        ],
-        mockSignal
-      )
+      await getValidIgvFilesFromAttributeValues([
+        {
+          itemsType: 'AttributeValue',
+          items: ['gs://bucket/test1.bed', 'gs://bucket/test2.bed', 'gs://bucket/test3.bed'],
+        },
+      ])
     ).toEqual([
       {
         filePath: 'gs://bucket/test1.bed',
@@ -283,34 +214,25 @@ describe('getValidIgvFilesFromAttributeValues', () => {
     DrsUriResolver.mockImplementation(() => ({
       getDataObjectMetadata: jest.fn((_, fields) => {
         if (fields.includes('fileName')) {
-          return Promise.resolve(fileNameJson);
+          const mockJson = fileNameJson;
+          return Promise.resolve(mockJson);
         }
         if (fields.includes('accessUrl')) {
-          const mockAccessUrlJson = { accessUrl: { url: fileAccessUrl } };
+          const mockAccessUrl = fileAccessUrl;
+          const mockAccessUrlJson = { accessUrl: { url: mockAccessUrl } };
           return Promise.resolve(mockAccessUrlJson);
         }
       }),
     }));
 
     expect(
-      await getValidIgvFilesFromAttributeValues(
-        mockWorkspace,
-        mockEntityType,
-        [
-          {
-            itemsType: 'AttributeValue',
-            items: ['testString', fileDrsUri, 'testString2'],
-          },
-        ],
-        mockSignal
-      )
-    ).toEqual([
-      {
-        filePath: 'https://bucket/foo.vcf.gz?requestedBy=user@domain.tls&userProject=my-billing-project&signature=secret',
-        indexFilePath: undefined,
-        isSignedUrl: true,
-      },
-    ]);
+      await getValidIgvFilesFromAttributeValues([
+        {
+          itemsType: 'AttributeValue',
+          items: ['testString', fileDrsUri, 'testString2'],
+        },
+      ])
+    ).toEqual([]);
   });
 
   it('robustly detects data table values that are DRS URIs', () => {
@@ -368,17 +290,12 @@ describe('getValidIgvFilesFromAttributeValues', () => {
     }));
 
     expect(
-      await getValidIgvFilesFromAttributeValues(
-        mockWorkspace,
-        mockEntityType,
-        [
-          {
-            itemsType: 'AttributeValue',
-            items: ['testString', fileDrsUri, indexFileDrsUri],
-          },
-        ],
-        mockSignal
-      )
+      await getValidIgvFilesFromAttributeValues([
+        {
+          itemsType: 'AttributeValue',
+          items: ['testString', fileDrsUri, indexFileDrsUri],
+        },
+      ])
     ).toEqual([
       {
         filePath: 'https://bucket/foo.vcf.gz?requestedBy=user@domain.tls&userProject=my-billing-project&signature=secret',

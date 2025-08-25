@@ -128,8 +128,6 @@ const ToolDrawer = _.flow(
           title: 'IGV',
           drawerContent: h(IGVFileSelector, {
             onSuccess: onIgvSuccess,
-            workspace,
-            entityType: entityKey,
             selectedEntities,
           }),
         }),
