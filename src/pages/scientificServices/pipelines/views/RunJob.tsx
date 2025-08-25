@@ -4,8 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
@@ -17,11 +19,14 @@ import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/comp
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
+// Returns the time taken to upload the file (for Mixpanel)
 async function uploadFileWithSignedUrl(
   inputFile: File,
   signedUrl: string,
   onProgress?: (percent: number) => void
-): Promise<void> {
+): Promise<number> {
+  const startTime = Date.now();
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
@@ -34,7 +39,9 @@ async function uploadFileWithSignedUrl(
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve();
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        resolve(duration);
       } else {
         reject(new Error(`Upload failed with status ${xhr.status}`));
       }
@@ -85,12 +92,24 @@ export async function prepareUploadStartPipelineRun(
         const file = selectedUserInputs[input.name];
         const signedUrl = fileInputUploadUrls[input.name].signedUrl;
         if (file instanceof File) {
-          return await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
+          const fileUploadDurationMillis = await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
             setUploadProgress((prev) => ({
               ...prev,
               [input.name]: percent,
             }));
           });
+
+          // Capture the file upload metrics. We don't await the Mixpanel metrics capture
+          // because we don't want to block the user from proceeding, so this is a fire-and-forget.
+          Metrics().captureEvent(Events.teaspoons.fileUpload, {
+            pipelineName,
+            pipelineVersion,
+            fileSize: file.size,
+            fileType: file.type,
+            fileUploadDurationMillis,
+          });
+
+          return;
         }
         throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
       })
@@ -206,6 +225,10 @@ export const RunJob = () => {
       notify('error', `Pipeline failed to submit. ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
+      Metrics().captureEvent(Events.teaspoons.submitJob, {
+        pipelineName,
+        pipelineVersion: selectedPipeline.pipelineVersion,
+      });
     }
   };
 

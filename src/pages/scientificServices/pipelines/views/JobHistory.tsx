@@ -6,9 +6,11 @@ import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
@@ -304,7 +306,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => outputsModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              outputsModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobOutputs, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Outputs
           </button>
@@ -325,7 +333,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              errorModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobErrors, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Error
           </button>
@@ -346,7 +360,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              errorModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobErrors, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Error
           </button>

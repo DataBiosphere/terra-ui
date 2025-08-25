@@ -1,8 +1,10 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
 import { formatDate } from '@terra-ui-packages/core-utils';
 import React, { ReactNode, useEffect, useState } from 'react';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 
 /**
@@ -69,6 +71,11 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     <ButtonPrimary
                       onClick={() => {
                         window.open(url, '_blank');
+                        Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
+                          pipelineName: result.pipelineRunReport.pipelineName,
+                          pipelineVersion: result.pipelineRunReport.pipelineVersion,
+                          outputName: key,
+                        });
                       }}
                       style={{ marginLeft: '1rem' }}
                     >
