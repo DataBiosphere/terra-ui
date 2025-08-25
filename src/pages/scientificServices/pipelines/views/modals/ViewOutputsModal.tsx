@@ -1,5 +1,5 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
-import { formatDate } from '@terra-ui-packages/core-utils';
+import { formatBytes, formatDate } from '@terra-ui-packages/core-utils';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -15,9 +15,20 @@ interface OutputsModalProps {
   onDismiss: () => void;
 }
 
+const getFileSize = async (url: string): Promise<string> => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const size = response.headers.get('content-length');
+    return size ? formatBytes(parseInt(size)) : 'Unknown size';
+  } catch {
+    return 'Unknown size';
+  }
+};
+
 export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
+  const [fileSizes, setFileSizes] = useState<Record<string, string | null>>({});
   const signal = useCancellation();
 
   useEffect(() => {
@@ -26,6 +37,21 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
         setLoading(true);
         const results = await Teaspoons(signal).getPipelineRunResult(jobId);
         setResult(results);
+
+        if (results?.pipelineRunReport.outputs) {
+          const outputs = Object.entries(results.pipelineRunReport.outputs);
+          const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
+          setFileSizes(initialState);
+
+          for (const [key, url] of outputs) {
+            try {
+              const size = await getFileSize(url);
+              setFileSizes((prev) => ({ ...prev, [key]: size }));
+            } catch {
+              setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
+            }
+          }
+        }
       } finally {
         setLoading(false);
       }
@@ -67,7 +93,21 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                       backgroundColor: '#f5f5f5',
                     }}
                   >
-                    <div style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>{key}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'monospace', wordBreak: 'break-all', marginBottom: '0.25rem' }}>
+                        {key}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                        {fileSizes[key] === null ? (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Spinner size={12} />
+                            Loading size...
+                          </span>
+                        ) : (
+                          fileSizes[key] || 'Unknown size'
+                        )}
+                      </div>
+                    </div>
                     <ButtonPrimary
                       onClick={() => {
                         window.open(url, '_blank');
@@ -75,6 +115,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                           pipelineName: result.pipelineRunReport.pipelineName,
                           pipelineVersion: result.pipelineRunReport.pipelineVersion,
                           outputName: key,
+                          fileSize: fileSizes[key],
                         });
                       }}
                       style={{ marginLeft: '1rem' }}
@@ -106,7 +147,10 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                 )}
               </div>
             ) : (
-              <div style={{ padding: '1rem', textAlign: 'center' }}>No output files found for this job.</div>
+              <div style={{ padding: '1rem', textAlign: 'center' }}>
+                No output information found for this job. If this job completed more than 14 days ago, the outputs have
+                been deleted.
+              </div>
             )}
           </div>
         )}

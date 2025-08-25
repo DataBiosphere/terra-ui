@@ -1,3 +1,4 @@
+import { expect } from '@storybook/test';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -15,6 +16,11 @@ describe('ViewOutputsModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      headers: {
+        get: jest.fn().mockReturnValue('1234'),
+      },
+    } as any);
   });
 
   it('displays loading state initially', () => {
@@ -63,6 +69,7 @@ describe('ViewOutputsModal', () => {
     // Verify outputs are displayed
     expect(screen.getByText('output1')).toBeInTheDocument();
     expect(screen.getByText('output2')).toBeInTheDocument();
+    expect(screen.getAllByText('1.21 KiB')).toHaveLength(2);
 
     // Verify download buttons are present
     const downloadButtons = screen.getAllByText('Download');
@@ -98,7 +105,7 @@ describe('ViewOutputsModal', () => {
     });
 
     // Verify "no outputs" message is displayed
-    expect(screen.getByText('No output files found for this job.')).toBeInTheDocument();
+    expect(screen.queryByText('No output information found for this job.', { exact: false })).toBeInTheDocument();
   });
 
   it('calls onDismiss when Close button is clicked', async () => {

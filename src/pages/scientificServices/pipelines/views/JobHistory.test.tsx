@@ -46,6 +46,14 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn(() => '/'),
 }));
 
+beforeEach(() => {
+  global.fetch = jest.fn().mockResolvedValue({
+    headers: {
+      get: jest.fn().mockReturnValue('1234'),
+    },
+  } as any);
+});
+
 describe('job history table', () => {
   it('renders the job history table', async () => {
     const pipelineRun = mockPipelineRun('RUNNING');
@@ -219,6 +227,8 @@ describe('job history table', () => {
     await user.click(screen.getByText('View Outputs'));
 
     expect(await screen.findByText('Pipeline Outputs', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('output1.txt')).toBeInTheDocument();
+    expect(await screen.findByText('1.21 KiB', { exact: false })).toBeInTheDocument();
   });
 
   it('opens the error modal when View Error button is clicked', async () => {
@@ -375,6 +385,33 @@ describe('job history table', () => {
           'This job is still in progress. The amount of quota consumed may change as the job progresses. If the job fails, no quota will be consumed.'
         )
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('Deletion Date column', () => {
+    it('displays the deletion date for SUCCEEDED jobs', async () => {
+      const pipelineRun = mockPipelineRun('SUCCEEDED');
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('Oct 15, 2023')).toBeInTheDocument();
     });
   });
 });
