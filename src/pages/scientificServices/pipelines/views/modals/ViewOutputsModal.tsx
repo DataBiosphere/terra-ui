@@ -15,26 +15,9 @@ interface OutputsModalProps {
   onDismiss: () => void;
 }
 
-// Using a GET request here to fetch the file size of the output files as a temporary
-// workaround until HEAD requests are allowed by the bucket CORS configuration
 const getFileSize = async (url: string): Promise<string> => {
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Range: 'bytes=0-0',
-      },
-    });
-
-    const contentRange = response.headers.get('content-range');
-    if (contentRange) {
-      const regex = /\/(\d+)$/;
-      const match = regex.exec(contentRange);
-      if (match) {
-        return formatBytes(parseInt(match[1]));
-      }
-    }
-
+    const response = await fetch(url, { method: 'HEAD' });
     const size = response.headers.get('content-length');
     return size ? formatBytes(parseInt(size)) : 'Unknown size';
   } catch {
