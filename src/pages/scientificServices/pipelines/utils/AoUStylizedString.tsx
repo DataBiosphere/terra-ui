@@ -8,7 +8,7 @@ interface StylizedStringProps {
 // but we want to stylize occurrences of "All of Us" in italics.
 
 // This component takes a string and returns a React fragment with the appropriate styling.
-export const StylizedString: React.FC<StylizedStringProps> = ({ text }) => {
+export const AoUStylizedString: React.FC<StylizedStringProps> = ({ text }) => {
   if (text === undefined) {
     return null;
   }
