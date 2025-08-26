@@ -16,6 +16,7 @@ import { ImputationPrivatePreviewGate } from 'src/pages/scientificServices/pipel
 import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
+import { StylizedString } from 'src/pages/scientificServices/pipelines/utils/StylizedString';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
@@ -263,10 +264,12 @@ export const RunJob = () => {
               </div>
               {selectedPipeline && (
                 <div style={{ width: '400px', marginTop: '0.5rem' }}>
-                  {
-                    pipelinesList.find((pipeline) => pipeline.pipelineVersion === selectedPipeline.pipelineVersion)
-                      ?.description
-                  }
+                  <StylizedString
+                    text={
+                      pipelinesList.find((pipeline) => pipeline.pipelineVersion === selectedPipeline.pipelineVersion)
+                        ?.description
+                    }
+                  />
                 </div>
               )}
             </div>
