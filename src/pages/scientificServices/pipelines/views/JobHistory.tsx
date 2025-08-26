@@ -6,9 +6,11 @@ import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
@@ -60,7 +62,7 @@ export const JobHistory = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <h3>Job History</h3>
             <div style={{ marginBottom: '0.25rem' }}>
-              All files associated with jobs will be automatically deleted after 2 weeks from completion.
+              All files and errors associated with jobs will be automatically deleted after 2 weeks from completion.
             </div>
             <div>
               For support, email{' '}
@@ -138,7 +140,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 140 },
+      size: { basis: 150 },
     },
     {
       field: 'status',
@@ -146,7 +148,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 50 },
+      size: { basis: 40 },
     },
     {
       field: 'submitted',
@@ -178,7 +180,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <QuotaUsedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 30 },
+      size: { basis: 40 },
     },
     {
       field: 'resultURL',
@@ -186,7 +188,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <ActionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 100 },
+      size: { basis: 40 },
     },
   ];
 };
@@ -260,7 +262,26 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
   const deletionDate = new Date(completionDate);
   deletionDate.setDate(deletionDate.getDate() + 14);
 
-  return <MediumDateWithTooltip date={deletionDate} />;
+  const today = new Date();
+  const threeDaysFromNow = new Date();
+  threeDaysFromNow.setDate(today.getDate() + 3);
+  // Check if the deletion date is within the next 3 days
+  const isDeletionSoon = deletionDate >= today && deletionDate <= threeDaysFromNow;
+
+  return (
+    <div
+      style={
+        isDeletionSoon
+          ? {
+              color: '#DB3214',
+              fontWeight: 600,
+            }
+          : {}
+      }
+    >
+      <MediumDateWithTooltip date={deletionDate} />
+    </div>
+  );
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
@@ -304,7 +325,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => outputsModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              outputsModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobOutputs, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Outputs
           </button>
@@ -325,7 +352,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              errorModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobErrors, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Error
           </button>
@@ -346,7 +379,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              errorModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobErrors, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Error
           </button>

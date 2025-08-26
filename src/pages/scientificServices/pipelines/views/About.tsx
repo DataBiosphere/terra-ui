@@ -51,16 +51,20 @@ export const About = () => {
           <h2 style={{ marginTop: '2rem' }}>User Documentation</h2>
           <div style={{ marginTop: '1rem' }}>
             <a
-              href='/#pipelines/imputation'
+              href='https://broadscientificservices.zendesk.com/hc/en-us/sections/39901025462171'
+              target='_blank'
               style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+              rel='noreferrer'
             >
               Get Started
             </a>
           </div>
           <div style={{ marginTop: '1rem' }}>
             <a
-              href='/#pipelines/imputation'
+              target='_blank'
+              href='https://broadscientificservices.zendesk.com/hc/en-us/articles/39901941351323'
               style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+              rel='noreferrer'
             >
               About this Service
             </a>

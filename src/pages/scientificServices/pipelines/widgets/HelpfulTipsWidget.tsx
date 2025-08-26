@@ -7,10 +7,24 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
   // If a pipeline doesn't have any tips, this widget won't be rendered at all.
   // This supports ReactNodes in case you want to include links or other non-string elements in the tips.
   array_imputation: [
-    { id: 'vcf-valid', content: 'Ensure that your file is a valid vcf file' },
-    { id: 'grch38', content: 'VCFs must be generated from GRCh38/hg38' },
-    { id: 'quota-check', content: 'Ensure your multi-sample file contains no more than your remaining quota.' },
-    { id: 'format-guidelines', content: 'More guidelines for data formatting' },
+    { id: 'quota-check', content: 'Ensure your multi-sample file contains no more samples than your remaining quota' },
+    {
+      id: 'format-guidelines',
+      content: (
+        <>
+          View{' '}
+          <a
+            href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
+            target='_blank'
+            style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+            rel='noreferrer'
+          >
+            formatting guidelines
+          </a>{' '}
+          for input VCF files
+        </>
+      ),
+    },
   ],
 };
 
