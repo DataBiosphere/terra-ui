@@ -16,6 +16,21 @@ export const useIGVSessions = (workspaceId) => {
     }
   };
 
+  const refreshSessions = () => {
+    if (!workspaceId) {
+      setSavedSessions([]);
+      return;
+    }
+
+    try {
+      const sessionListKey = `igv-session-list-${workspaceId}`;
+      const list = localStorage.getItem(sessionListKey);
+      setSavedSessions(list ? JSON.parse(list) : []);
+    } catch {
+      setSavedSessions([]);
+    }
+  };
+
   const loadSession = withErrorReporting('Unable to load session')(async (sessionName) => {
     try {
       const sessionKey = `igvSession-${workspaceId}-${sessionName}`;
@@ -112,5 +127,6 @@ export const useIGVSessions = (workspaceId) => {
     loadSession,
     saveSession,
     deleteSession,
+    refreshSessions,
   };
 };
