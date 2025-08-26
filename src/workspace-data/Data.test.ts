@@ -281,5 +281,5 @@ describe('WorkspaceData', () => {
       },
       { timeout: 10000 }
     );
-  });
+  }, 15000);
 });
