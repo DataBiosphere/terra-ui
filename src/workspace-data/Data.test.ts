@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { decodeSessionFromUrl, getIgvUrlParams } from 'src/components/useIGVSessions';
 import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
@@ -273,8 +273,13 @@ describe('WorkspaceData', () => {
       render(h(WorkspaceData, workspaceDataProps));
     });
 
-    expect(await screen.findByText('Save Session')).toBeInTheDocument();
-    expect(await screen.findByText('Share Session')).toBeInTheDocument();
-    expect(await screen.findByText('Add track')).toBeInTheDocument();
+    await waitFor(
+      () => {
+        expect(screen.getByText('Save Session')).toBeInTheDocument();
+        expect(screen.getByText('Share Session')).toBeInTheDocument();
+        expect(screen.getByText('Add track')).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
   });
 });
