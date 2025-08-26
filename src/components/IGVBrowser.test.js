@@ -1,9 +1,11 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
 import * as DataUtils from 'src/components/data/data-utils';
 import IGVBrowser from 'src/components/IGVBrowser';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import * as Notifications from 'src/libs/notifications';
 import * as state from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -66,6 +68,10 @@ jest.mock('igv', () => {
   };
   return { __esModule: true, default: igv, ...igv };
 });
+
+jest.mock('clipboard-polyfill/text', () => ({
+  writeText: jest.fn(),
+}));
 
 // Mock data-utils but keep real parseGsUri
 jest.mock('src/components/data/data-utils', () => {
@@ -586,6 +592,42 @@ describe('IGVBrowser Session Management', () => {
       const session1 = screen.getByText('Session 1');
       fireEvent.click(session1);
       expect(modalLoadButton).not.toHaveAttribute('disabled');
+    });
+  });
+
+  it('shares a session successfully', async () => {
+    // Arrange
+    const mockNotify = Notifications.notify;
+
+    // Mock the IGV browser's toJSON method
+    mockToJSON.mockReturnValue({
+      genome: 'hg38',
+      locus: 'chr1:1000-2000',
+      tracks: [],
+    });
+
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFiles,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    // Act
+    const shareButton = screen.getByText('Share Session');
+    fireEvent.click(shareButton);
+
+    // Assert
+    await waitFor(() => {
+      // Verify clipboard write
+      expect(clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('igvSession='));
+
+      // Verify success notification
+      expect(mockNotify).toHaveBeenCalledWith('success', 'Session URL copied to clipboard', { timeout: 3000 });
     });
   });
 });

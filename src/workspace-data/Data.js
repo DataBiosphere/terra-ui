@@ -543,9 +543,6 @@ export const WorkspaceData = _.flow(
     const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false);
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
     const pollWdsInterval = useRef();
-    /* eslint-disable  @typescript-eslint/no-unused-vars */
-    const [urlIgvSession, setUrlIgvSession] = useState(null);
-    const [urlIgvGenome, setUrlIgvGenome] = useState(null);
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -618,9 +615,6 @@ export const WorkspaceData = _.flow(
       if (igvSession) {
         const sessionData = decodeSessionFromUrl(igvSession);
         if (sessionData) {
-          setUrlIgvSession(sessionData);
-          setUrlIgvGenome(igvGenome);
-
           // Set selectedData to trigger IGV opening
           setSelectedData({
             type: 'urlIgv',
@@ -1176,8 +1170,6 @@ export const WorkspaceData = _.flow(
                       workspace,
                       onDismiss: () => {
                         setSelectedData(undefined);
-                        setUrlIgvSession(undefined);
-                        setUrlIgvGenome(undefined);
                         clearIgvUrlParams(); // Clear URL parameters when dismissing
                       },
                       initialSession: selectedData.sessionData,
