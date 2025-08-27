@@ -16,7 +16,6 @@ import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
-import { appStatuses } from 'src/libs/ajax/leonardo/models/app-models';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
@@ -43,13 +42,11 @@ import { dataTableVersionsPathRoot, useDataTableVersions } from './data-table/ve
 import { DataTableSaveVersionModal } from './data-table/versioning/DataTableSaveVersionModal';
 import { DataTableVersion } from './data-table/versioning/DataTableVersion';
 import { DataTableVersions } from './data-table/versioning/DataTableVersions';
-import WDSContent from './data-table/wds/WDSContent';
 import { useImportJobs } from './import-jobs';
 import { getReferenceData, getReferenceLabel } from './reference-data/reference-data-utils';
 import { ReferenceDataContent } from './reference-data/ReferenceDataContent';
 import { ReferenceDataDeleter } from './reference-data/ReferenceDataDeleter';
 import { ReferenceDataImporter } from './reference-data/ReferenceDataImporter';
-import { useDataTableProvider } from './useDataTableProvider';
 import { WorkspaceAttributes } from './WorkspaceAttributes';
 
 const styles = {
@@ -533,14 +530,12 @@ export const WorkspaceData = _.flow(
     const [importingReference, setImportingReference] = useState(false);
     const [deletingReference, setDeletingReference] = useState(undefined);
     const [uploadingFile, setUploadingFile] = useState(false);
-    const [uploadingWDSFile, setUploadingWDSFile] = useState(false);
     const [entityMetadataError, setEntityMetadataError] = useState();
     const [sidebarWidth, setSidebarWidth] = useState(280);
     const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('');
     const [crossTableResultCounts, setCrossTableResultCounts] = useState({});
     const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false);
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
-    const pollWdsInterval = useRef();
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -553,7 +548,6 @@ export const WorkspaceData = _.flow(
 
     const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name);
     const region = isAzureWorkspace ? storageDetails.azureContainerRegion : storageDetails.googleBucketLocation;
-    const [wdsDataTableProvider, wdsApp, wdsTypes, setWdsTypes, loadWdsData] = useDataTableProvider(workspaceId);
 
     const loadEntityMetadata = async () => {
       try {
@@ -573,8 +567,7 @@ export const WorkspaceData = _.flow(
       }
     };
 
-    const loadMetadata = () =>
-      isAzureWorkspace ? Promise.all([refreshRunningImportJobs(), loadWdsData()]) : Promise.all([loadEntityMetadata(), refreshRunningImportJobs()]);
+    const loadMetadata = () => Promise.all([loadEntityMetadata(), refreshRunningImportJobs()]);
 
     const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first));
 
@@ -624,32 +617,8 @@ export const WorkspaceData = _.flow(
 
     const { value: canEditWorkspace, message: editWorkspaceErrorMessage } = WorkspaceUtils.canEditWorkspace(workspace);
 
-    // convenience vars for WDS
-    const wdsReady = wdsApp.status === 'Ready' && wdsTypes.status === 'Ready';
-    const wdsError = wdsApp.status === 'Error' || wdsTypes.status === 'Error';
-    const wdsAppState = wdsApp.state?.status;
-    const wdsLoading = !wdsReady && !wdsError && (wdsApp.status === 'Loading' || wdsTypes.status === 'Loading');
-
-    useEffect(() => {
-      if (isAzureWorkspace) {
-        // These aren't needed for Azure workspaces; just set them to empty objects
-        setEntityMetadata({});
-
-        if (!wdsReady && !wdsError && !pollWdsInterval.current) {
-          // Start polling if we're missing WDS Types, and stop polling when we have them.
-          pollWdsInterval.current = setInterval(loadWdsData, 30 * 1000);
-        } else if (wdsReady && pollWdsInterval.current) {
-          clearInterval(pollWdsInterval.current);
-          pollWdsInterval.current = undefined;
-        }
-        return () => {
-          clearInterval(pollWdsInterval.current);
-          pollWdsInterval.current = undefined;
-        };
-      }
-    }, [loadWdsData, workspaceId, wdsApp, wdsTypes, isAzureWorkspace, signal, wdsError, wdsReady]);
-
-    const canUploadTsv = isGoogleWorkspace || (isAzureWorkspace && wdsReady);
+    // TODO CORE-622 canUploadTsv is pointless
+    const canUploadTsv = isGoogleWorkspace;
     return div({ style: styles.tableContainer }, [
       !entityMetadata
         ? spinnerOverlay
@@ -678,7 +647,7 @@ export const WorkspaceData = _.flow(
                             MenuButton,
                             {
                               'aria-haspopup': 'dialog',
-                              onClick: () => (isGoogleWorkspace ? setUploadingFile(true) : setUploadingWDSFile(true)),
+                              onClick: () => setUploadingFile(true),
                             },
                             'Upload TSV'
                           ),
@@ -710,10 +679,8 @@ export const WorkspaceData = _.flow(
                         h(
                           ButtonOutline,
                           {
-                            disabled: !canEditWorkspace || uploadingWDSFile,
-                            tooltip: Utils.cond([uploadingWDSFile, () => 'Upload in progress'], () =>
-                              canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage
-                            ),
+                            disabled: !canEditWorkspace,
+                            tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
                             style: { flex: 1 },
                           },
                           [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])]
@@ -822,60 +789,6 @@ export const WorkspaceData = _.flow(
                         }, sortedEntityPairs),
                       ]
                     ),
-                  isAzureWorkspace && (uploadingWDSFile || runningImportJobs.length > 0) && h(DataImportPlaceholder),
-                  isAzureWorkspace &&
-                    h(
-                      DataTypeSection,
-                      {
-                        title: 'Tables',
-                      },
-                      [
-                        (wdsLoading || wdsError) &&
-                          h(NoDataPlaceholder, {
-                            message: wdsLoading ? icon('loadingSpinner') : 'Data tables are unavailable',
-                          }),
-                        wdsReady &&
-                          _.isEmpty(wdsTypes.state) &&
-                          h(NoDataPlaceholder, {
-                            message: 'No tables have been uploaded.',
-                          }),
-                        wdsReady &&
-                          !_.isEmpty(wdsTypes.state) &&
-                          _.map((typeDef) => {
-                            return div({ key: typeDef.name, role: 'listitem' }, [
-                              h(DataTypeButton, {
-                                key: typeDef.name,
-                                selected: selectedData?.type === workspaceDataTypes.wds && selectedData.entityType === typeDef.name,
-                                entityName: typeDef.name,
-                                entityCount: typeDef.count,
-                                filteredCount: typeDef.count,
-                                activeCrossTableTextFilter: false,
-                                crossTableSearchInProgress: false,
-                                onClick: () => {
-                                  setSelectedData({ type: workspaceDataTypes.wds, entityType: typeDef.name });
-                                  forceRefresh();
-                                },
-                                after: h(DataTableActions, {
-                                  dataProvider: wdsDataTableProvider,
-                                  tableName: typeDef.name,
-                                  rowCount: typeDef.count,
-                                  entityMetadata,
-                                  workspace,
-                                  onRenameTable: undefined,
-                                  onDeleteTable: (tableName) => {
-                                    setSelectedData(undefined);
-                                    setWdsTypes({ status: 'Ready', state: _.remove((typeDef) => typeDef.name === tableName, wdsTypes.state) });
-                                    forceRefresh();
-                                  },
-                                  isShowingVersionHistory: false,
-                                  onSaveVersion: undefined,
-                                  onToggleVersionHistory: undefined,
-                                }),
-                              }),
-                            ]);
-                          }, wdsTypes.state),
-                      ]
-                    ),
                   isGoogleWorkspace &&
                     h(
                       DataTypeSection,
@@ -968,25 +881,6 @@ export const WorkspaceData = _.flow(
                       isGoogleWorkspace,
                       region,
                     }),
-                  uploadingWDSFile &&
-                    h(EntityUploader, {
-                      onDismiss: () => setUploadingWDSFile(false),
-                      onSuccess: (recordType) => {
-                        setUploadingWDSFile(false);
-                        forceRefresh();
-                        loadMetadata();
-                        notify('success', `Data imported successfully to table ${recordType}.`, {
-                          id: `${recordType}_success`,
-                        });
-                      },
-                      namespace,
-                      name,
-                      workspaceId,
-                      entityTypes: wdsTypes.state.map((item) => item.name),
-                      dataProvider: wdsDataTableProvider,
-                      isGoogleWorkspace,
-                      region,
-                    }),
                   isGoogleWorkspace &&
                     h(
                       DataTypeSection,
@@ -1015,45 +909,7 @@ export const WorkspaceData = _.flow(
             div({ style: styles.tableViewPanel }, [
               Utils.switchCase(
                 selectedData?.type,
-                [
-                  undefined,
-                  () =>
-                    Utils.cond(
-                      [
-                        isAzureWorkspace && wdsError,
-                        () =>
-                          div(
-                            {
-                              style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
-                            },
-                            [
-                              'An error occurred while preparing your data tables.',
-                              div([
-                                'Please contact ',
-                                h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']),
-                                ' to troubleshoot the problem.',
-                              ]),
-                            ]
-                          ),
-                      ],
-                      [
-                        isAzureWorkspace && wdsLoading,
-                        () =>
-                          div(
-                            {
-                              style: { textAlign: 'center', lineHeight: '1.4rem', marginTop: '1rem', marginLeft: '5rem', marginRight: '5rem' },
-                            },
-                            [
-                              icon('loadingSpinner'),
-                              ` ${
-                                wdsAppState === appStatuses.updating.status ? 'Updating' : 'Preparing'
-                              } your data tables, this may take a few minutes. `,
-                            ]
-                          ),
-                      ],
-                      () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])
-                    ),
-                ],
+                [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])],
                 [
                   workspaceDataTypes.localVariables,
                   () =>
@@ -1124,23 +980,6 @@ export const WorkspaceData = _.flow(
                         await loadMetadata();
                         setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName });
                       }),
-                    }),
-                ],
-                [
-                  workspaceDataTypes.wds,
-                  () =>
-                    wdsDataTableProvider &&
-                    wdsReady &&
-                    !_.isEmpty(wdsTypes.state) &&
-                    h(WDSContent, {
-                      key: refreshKey,
-                      workspaceUUID: workspaceId,
-                      workspace,
-                      dataProvider: wdsDataTableProvider,
-                      recordType: selectedData.entityType,
-                      wdsSchema: wdsTypes.state,
-                      editable: canEditWorkspace,
-                      loadMetadata,
                     }),
                 ]
               ),
