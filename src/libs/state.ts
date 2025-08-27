@@ -295,9 +295,7 @@ export type GCPAsyncImportJob = {
   };
 };
 
-export type AsyncImportJob = GCPAsyncImportJob;
-
-export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
+export const asyncImportJobStore = atom<GCPAsyncImportJob[]>([]);
 
 export const snapshotsListStore = atom<Snapshot[] | undefined>(undefined);
 

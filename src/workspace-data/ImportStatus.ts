@@ -6,7 +6,7 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { withErrorReporting } from 'src/libs/error';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, usePollingEffect, useStore } from 'src/libs/react-utils';
-import { AsyncImportJob, asyncImportJobStore } from 'src/libs/state';
+import { asyncImportJobStore, GCPAsyncImportJob } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 const ImportStatus = () => {
@@ -28,7 +28,7 @@ const ImportStatus = () => {
 };
 
 interface ImportStatusItemProps {
-  job: AsyncImportJob;
+  job: GCPAsyncImportJob;
   onDone: () => void;
 }
 

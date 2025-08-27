@@ -615,78 +615,75 @@ export const WorkspaceData = _.flow(
 
     const { value: canEditWorkspace, message: editWorkspaceErrorMessage } = WorkspaceUtils.canEditWorkspace(workspace);
 
-    // TODO CORE-622 canUploadTsv is pointless
-    const canUploadTsv = isGoogleWorkspace;
     return div({ style: styles.tableContainer }, [
       !entityMetadata
         ? spinnerOverlay
         : h(Fragment, [
             div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-              canUploadTsv &&
-                div(
-                  {
-                    style: {
-                      display: 'flex',
-                      padding: '1rem 1.5rem',
-                      backgroundColor: colors.light(),
-                      borderBottom: `1px solid ${colors.grey(0.4)}`,
-                    },
+              div(
+                {
+                  style: {
+                    display: 'flex',
+                    padding: '1rem 1.5rem',
+                    backgroundColor: colors.light(),
+                    borderBottom: `1px solid ${colors.grey(0.4)}`,
                   },
-                  [
-                    h(
-                      MenuTrigger,
-                      {
-                        side: 'bottom',
-                        closeOnClick: true,
-                        // Make the width of the dropdown menu match the width of the button.
-                        popupProps: { style: { width: `calc(${sidebarWidth}px - 3rem` } },
-                        content: h(Fragment, [
+                },
+                [
+                  h(
+                    MenuTrigger,
+                    {
+                      side: 'bottom',
+                      closeOnClick: true,
+                      // Make the width of the dropdown menu match the width of the button.
+                      popupProps: { style: { width: `calc(${sidebarWidth}px - 3rem` } },
+                      content: h(Fragment, [
+                        h(
+                          MenuButton,
+                          {
+                            'aria-haspopup': 'dialog',
+                            onClick: () => setUploadingFile(true),
+                          },
+                          'Upload TSV'
+                        ),
+                        isGoogleWorkspace &&
+                          h(
+                            MenuButton,
+                            {
+                              href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`,
+                              onClick: () =>
+                                void Metrics().captureEvent(Events.dataTableOpenUploader, {
+                                  workspaceNamespace: namespace,
+                                  workspaceName: name,
+                                }),
+                            },
+                            ['Open data uploader']
+                          ),
+                        isGoogleWorkspace &&
                           h(
                             MenuButton,
                             {
                               'aria-haspopup': 'dialog',
-                              onClick: () => setUploadingFile(true),
+                              onClick: () => setImportingReference(true),
                             },
-                            'Upload TSV'
+                            'Add reference data'
                           ),
-                          isGoogleWorkspace &&
-                            h(
-                              MenuButton,
-                              {
-                                href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`,
-                                onClick: () =>
-                                  void Metrics().captureEvent(Events.dataTableOpenUploader, {
-                                    workspaceNamespace: namespace,
-                                    workspaceName: name,
-                                  }),
-                              },
-                              ['Open data uploader']
-                            ),
-                          isGoogleWorkspace &&
-                            h(
-                              MenuButton,
-                              {
-                                'aria-haspopup': 'dialog',
-                                onClick: () => setImportingReference(true),
-                              },
-                              'Add reference data'
-                            ),
-                        ]),
-                      },
-                      [
-                        h(
-                          ButtonOutline,
-                          {
-                            disabled: !canEditWorkspace,
-                            tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
-                            style: { flex: 1 },
-                          },
-                          [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])]
-                        ),
-                      ]
-                    ),
-                  ]
-                ),
+                      ]),
+                    },
+                    [
+                      h(
+                        ButtonOutline,
+                        {
+                          disabled: !canEditWorkspace,
+                          tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
+                          style: { flex: 1 },
+                        },
+                        [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])]
+                      ),
+                    ]
+                  ),
+                ]
+              ),
               div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
                 div({ role: 'list' }, [
                   isGoogleWorkspace &&
