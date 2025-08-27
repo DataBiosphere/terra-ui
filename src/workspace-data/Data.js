@@ -15,7 +15,6 @@ import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
-import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
@@ -359,7 +358,7 @@ const DataTableActions = ({
                   void Metrics().captureEvent(Events.workspaceDataDownload, {
                     ...extractWorkspaceDetails(workspace.workspace),
                     providerName: dataProvider.providerName,
-                    cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
+                    cloudPlatform: cloudProviders.gcp.label,
                     downloadFrom: 'all rows',
                     fileType: '.tsv',
                   });
@@ -480,7 +479,7 @@ const DataTableActions = ({
             void Metrics().captureEvent(Events.workspaceDataDeleteTable, {
               ...extractWorkspaceDetails(workspace.workspace),
               providerName: dataProvider.providerName,
-              cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
+              cloudPlatform: cloudProviders.gcp.label,
             });
             setDeleting(false);
             onDeleteTable(tableName);
