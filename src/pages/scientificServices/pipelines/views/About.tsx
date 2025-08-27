@@ -5,6 +5,7 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineList } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { ImputationPrivatePreviewGate } from 'src/pages/scientificServices/pipelines/components/ImputationPrivatePreviewGate';
+import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 
 export const About = () => {
   const [pipelines, setPipelines] = useState<PipelineList | null>(null);
@@ -41,9 +42,15 @@ export const About = () => {
           {pipelines &&
             pipelines.results.map((pipeline) => (
               <div key={pipeline.pipelineName}>
-                <h3>{pipeline.displayName}</h3>
+                <h3>
+                  <AoUStylizedString text={pipeline.displayName} />
+                </h3>
                 <div style={{ width: '50%' }}>
-                  {pipeline.description ? pipeline.description : <em>No description available</em>}
+                  {pipeline.description ? (
+                    <AoUStylizedString text={pipeline.description} />
+                  ) : (
+                    <em>No description available</em>
+                  )}
                 </div>
               </div>
             ))}
