@@ -31,7 +31,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
-// TODO: Shared components should not depend on EntityService/WDS specific components.
+// TODO: Shared components should not depend on EntityService specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
 import { entityAttributeText } from '../entity-service/entityAttributeText';
 import { EntityRenamer } from '../entity-service/EntityRenamer';

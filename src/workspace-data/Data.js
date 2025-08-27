@@ -350,7 +350,6 @@ const DataTableActions = ({
                   if (dataProvider.features.supportsTsvDownload) {
                     downloadForm.current.submit();
                   } else if (dataProvider.features.supportsTsvAjaxDownload) {
-                    // TODO: this overrides the filename specified by the WDS API. Is that ok?
                     Utils.withBusyState(setLoading, dataProvider.downloadTsv)(signal, tableName).then((blob) =>
                       FileSaver.saveAs(blob, `${tableName}.tsv`)
                     );
@@ -498,7 +497,7 @@ const DataTableActions = ({
   ]);
 };
 
-const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'referenceData', 'localVariables', 'bucketObjects', 'wds']);
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'referenceData', 'localVariables', 'bucketObjects']);
 
 export const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),

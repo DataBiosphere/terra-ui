@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils';
 import { CloudProvider, cloudProviderTypes } from 'src/workspaces/utils';
 
 export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab';
-export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'WDS' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
+export type AppToolLabel = 'GALAXY' | 'CROMWELL' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
 export type CromwellAppToolLabel = 'CROMWELL' | 'WORKFLOWS_APP' | 'CROMWELL_RUNNER_APP';
 export type AppAccessScope = 'USER_PRIVATE' | 'WORKSPACE_SHARED';
 export type LaunchableToolLabel = 'spark' | 'terminal' | 'RStudio' | 'JupyterLab';
@@ -35,7 +35,6 @@ export const toolLabelDisplays: Record<ToolLabel, string> = {
   CROMWELL: 'Cromwell',
   WORKFLOWS_APP: 'Workflows',
   CROMWELL_RUNNER_APP: 'Cromwell runner',
-  WDS: 'Workspace Data Service',
 };
 
 export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
@@ -43,7 +42,6 @@ export const appToolLabels: Record<AppToolLabel, AppToolLabel> = {
   CROMWELL: 'CROMWELL',
   WORKFLOWS_APP: 'WORKFLOWS_APP',
   CROMWELL_RUNNER_APP: 'CROMWELL_RUNNER_APP',
-  WDS: 'WDS',
 };
 
 export const cromwellAppToolLabels: Record<CromwellAppToolLabel, CromwellAppToolLabel> = {
@@ -133,14 +131,11 @@ const Workflows = { label: 'WORKFLOWS_APP', isPauseUnsupported: true } as const 
 
 const CromwellRunner = { label: 'CROMWELL_RUNNER_APP', isPauseUnsupported: true } as const satisfies AppTool;
 
-const Wds = { label: 'WDS', isPauseUnsupported: true } as const satisfies AppTool;
-
 export const appTools: Record<AppToolLabel, AppTool> = {
   GALAXY: Galaxy,
   CROMWELL: Cromwell,
   WORKFLOWS_APP: Workflows,
   CROMWELL_RUNNER_APP: CromwellRunner,
-  WDS: Wds,
 };
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {

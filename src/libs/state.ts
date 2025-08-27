@@ -295,16 +295,7 @@ export type GCPAsyncImportJob = {
   };
 };
 
-export type AzureAsyncImportJob = {
-  jobId: string;
-  targetWorkspace: {
-    namespace: string;
-    name: string;
-  };
-  wdsProxyUrl: string;
-};
-
-export type AsyncImportJob = AzureAsyncImportJob | GCPAsyncImportJob;
+export type AsyncImportJob = GCPAsyncImportJob;
 
 export const asyncImportJobStore = atom<AsyncImportJob[]>([]);
 

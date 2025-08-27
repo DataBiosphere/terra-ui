@@ -3,17 +3,6 @@ import _ from 'lodash/fp';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchWDS } from 'src/libs/ajax/ajax-common';
 
-export interface WDSJob {
-  created: string;
-  errorMessage: string | null;
-  input: null;
-  jobId: string;
-  jobType: 'DATA_IMPORT' | 'UNKNOWN';
-  result: null;
-  status: 'CREATED' | 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'ERROR' | 'CANCELLED' | 'UNKNOWN';
-  updated: string;
-}
-
 export const WorkspaceData = (signal?: AbortSignal) => ({
   // used by workflows-app
   queryRecords: async (root: string, instanceId: string, wdsType: string, searchLimit: number): Promise<any> => {

@@ -119,14 +119,6 @@ describe('deletableEnvironments', () => {
       resource: {
         appName: 'terra-app-3f07f6aa-6531-4151-824d-0ab8d0f19cd1',
         status: 'RUNNING',
-        appType: 'WDS',
-      },
-      canDeleteApp: true,
-    },
-    {
-      resource: {
-        appName: 'terra-app-3f07f6aa-6531-4151-824d-0ab8d0f19cd1',
-        status: 'RUNNING',
         appType: 'HAIL_BATCH',
       },
       canDeleteApp: true,
@@ -205,26 +197,6 @@ describe('deletableEnvironments', () => {
         appName: 'terra-app-3f07f6aa-6531-4151-824d-0ab8d0f19cd1',
         status: 'RUNNING',
         appType: 'CROMWELL_RUNNER_APP',
-      },
-      canDeleteResource: true,
-    },
-    {
-      resource: {
-        appName: 'terra-app-3f07f6aa-6531-4151-824d-0ab8d0f19cd1',
-        status: 'RUNNING',
-        appType: 'WDS',
-        workspaceId: null,
-        cloudContext: { cloudProvider: 'AZURE', cloudResource: 'string' },
-        kubernetesRuntimeConfig: { numNodes: 1, machineType: 'string', autoscalingEnabled: false },
-        errors: [],
-        accessScope: null,
-        region: 'abc123',
-        proxyUrls: {
-          cbas: 'foo.bar',
-        },
-        diskName: null,
-        auditInfo: { creator: 'foo', createdDate: 'bar', destroyedDate: null, dateAccessed: 'accessed' },
-        labels: {},
       },
       canDeleteResource: true,
     },
