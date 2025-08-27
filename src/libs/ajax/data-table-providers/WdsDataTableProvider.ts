@@ -130,15 +130,6 @@ export const resolveWdsApp = (apps: ListAppItem[]): ListAppItem | undefined => {
   return prioritizedApps[0];
 };
 
-// Extract wds URL from Leo response. exported for testing
-export const resolveWdsUrl = (apps) => {
-  const foundApp = resolveWdsApp(apps);
-  if (foundApp?.status === 'RUNNING') {
-    return foundApp.proxyUrls.wds;
-  }
-  return '';
-};
-
 export const wdsProviderName = 'WDS';
 
 export class WdsDataTableProvider implements DataTableProvider {
