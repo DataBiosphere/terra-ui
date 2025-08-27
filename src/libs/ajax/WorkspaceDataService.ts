@@ -15,31 +15,6 @@ export interface WDSJob {
 }
 
 export const WorkspaceData = (signal?: AbortSignal) => ({
-  listCollections: async (root: string, workspaceId: string): Promise<any> => {
-    try {
-      const response = await fetchWDS(root)(`collections/v1/${workspaceId}`, _.merge(authOpts(), { signal }));
-      const data = await response.json();
-      return data.map((collection) => collection.id);
-    } catch (error) {
-      if (error instanceof Response && error.status === 404) {
-        return await fetchWDS(root)('instances/v0.2', _.merge(authOpts(), { signal })).then((response) =>
-          response.json()
-        );
-      }
-      throw error;
-    }
-  },
-  startImportJob: async (
-    root: string,
-    instanceId: string,
-    file: { url: string; type: 'PFB' | 'TDRMANIFEST' }
-  ): Promise<WDSJob> => {
-    const res = await fetchWDS(root)(
-      `${instanceId}/import/v1`,
-      _.mergeAll([authOpts(), { method: 'POST' }, jsonBody(file)])
-    );
-    return await res.json();
-  },
   // used by workflows-app
   queryRecords: async (root: string, instanceId: string, wdsType: string, searchLimit: number): Promise<any> => {
     const searchPayload = { limit: searchLimit };
@@ -63,11 +38,6 @@ export const WorkspaceData = (signal?: AbortSignal) => ({
         ),
       await res.json()
     );
-  },
-  // used by ImportStatus
-  getJobStatus: async (root: string, jobId: string): Promise<WDSJob> => {
-    const res = await fetchWDS(root)(`job/v1/${jobId}`, _.merge(authOpts(), { signal }));
-    return res.json();
   },
 });
 

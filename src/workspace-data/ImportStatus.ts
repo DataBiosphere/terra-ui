@@ -2,7 +2,6 @@ import _ from 'lodash/fp';
 import { Fragment, ReactNode } from 'react';
 import { h, p } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
-import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { withErrorReporting } from 'src/libs/error';
 import { clearNotification, notify } from 'src/libs/notifications';
@@ -39,26 +38,17 @@ const ImportStatusItem = (props: ImportStatusItemProps): ReactNode => {
     job: { targetWorkspace, jobId },
     onDone,
   } = props;
-  let wdsProxyUrl: string | undefined;
-
-  // Only have wdsProxyUrl if job is an instance of AzureAsyncImportJob
-  if ('wdsProxyUrl' in props.job) {
-    wdsProxyUrl = props.job.wdsProxyUrl;
-  }
 
   usePollingEffect(
     withErrorReporting('Problem checking status of data import')(async () => {
-      await checkForCompletion(targetWorkspace, jobId, wdsProxyUrl);
+      await checkForCompletion(targetWorkspace, jobId);
     }),
     { ms: 5000, leading: false }
   );
 
-  const checkForCompletion = async ({ namespace, name }, jobId: string, wdsProxyUrl?: string | undefined) => {
+  const checkForCompletion = async ({ namespace, name }, jobId: string) => {
     const fetchImportStatus = async () => {
       try {
-        if (wdsProxyUrl) {
-          return await WorkspaceData(signal).getJobStatus(wdsProxyUrl, jobId);
-        }
         return await Workspaces(signal).workspace(namespace, name).getImportJobStatus(jobId);
       } catch (error: unknown) {
         // Ignore 404; We're probably asking for status before the status endpoint knows about the job
