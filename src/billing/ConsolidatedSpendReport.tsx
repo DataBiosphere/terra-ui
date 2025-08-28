@@ -5,6 +5,7 @@ import qs from 'qs';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { SearchFilter } from 'src/billing/Filter/SearchFilter';
+import { SpendReportDownloader } from 'src/billing/SpendReport/SpendReportDownloader';
 import { parseCurrencyIfNeeded } from 'src/billing/utils';
 import { BillingProject } from 'src/billing-core/models';
 import { ButtonOutline, Checkbox, fixedSpinnerOverlay } from 'src/components/common';
@@ -165,7 +166,6 @@ const ConsolidatedSpendWorkspaceCard: React.FC<ConsolidatedSpendWorkspaceCardPro
     );
   }
 );
-/// ///
 
 interface ConsolidatedSpendReportProps {
   workspaces: WorkspaceWrapper[];
@@ -206,7 +206,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
     const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10);
 
     const fetchWorkspaces = async (signal: AbortSignal): Promise<WorkspaceWrapper[]> => {
-      const fetchedWorkspaces = await Workspaces(signal).list(
+      return await Workspaces(signal).list(
         [
           'workspace.billingAccount',
           'workspace.bucketName',
@@ -220,7 +220,6 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
         ],
         itemsPerPage
       );
-      return fetchedWorkspaces;
     };
 
     const getWorkspaceSpendData = async (signal: AbortSignal): Promise<GoogleWorkspaceInfo[]> => {
@@ -235,6 +234,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
             totalSpend: 'N/A',
             totalCompute: 'N/A',
             totalStorage: 'N/A',
+            otherSpend: 'N/A',
           } as GoogleWorkspaceInfo);
 
         try {
@@ -290,9 +290,9 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                   totalStorage: costFormatter.format(
                     parseFloat(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
                   ),
-                  // otherSpend: costFormatter.format(
-                  //   parseFloat(_.find({ category: 'Other' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
-                  // ),
+                  otherSpend: costFormatter.format(
+                    parseFloat(_.find({ category: 'Other' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+                  ),
                 } as GoogleWorkspaceInfo;
               }
               return undefined;
@@ -419,6 +419,11 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
               <span>Show all workspaces</span>
             </ButtonOutline>
           )}
+          <SpendReportDownloader
+            title={`Consolidated Spend Report (${spendReportLengthInDays} days)`}
+            filteredOwnedWorkspaces={filteredOwnedWorkspaces}
+            style={{ gridRowStart: 1, gridColumnStart: 3, margin: '2.3rem' }}
+          />
         </div>
         <div aria-live='polite' aria-atomic>
           <span aria-hidden>*</span>
@@ -458,7 +463,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                         roles: ['Owner'],
                         status: 'Ready',
                       }}
-                      key={workspace.workspaceId}
+                      key={workspace.workspaceId ?? `${workspace.namespace}-${workspace.name}`}
                     />
                   );
                 })

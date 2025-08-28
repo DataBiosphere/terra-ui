@@ -4,6 +4,7 @@ import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { SearchFilter } from 'src/billing/Filter/SearchFilter';
+import { SpendReportDownloader } from 'src/billing/SpendReport/SpendReportDownloader';
 import {
   billingAccountIconSize,
   BillingAccountStatus,
@@ -206,6 +207,7 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
         totalSpend: 'N/A',
         totalCompute: 'N/A',
         totalStorage: 'N/A',
+        otherSpend: 'N/A',
       });
 
       setUpdating(true);
@@ -247,6 +249,9 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
             ),
             totalStorage: costFormatter.format(
               parseFloat(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+            ),
+            otherSpend: costFormatter.format(
+              parseFloat(_.find({ category: 'Other' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
             ),
           };
         });
@@ -299,6 +304,11 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
           placeholder='Search by name, project or bucket'
           style={{ gridRowStart: 1, gridColumnStart: 2, margin: '1.35rem' }}
           onChange={setSearchValue}
+        />
+        <SpendReportDownloader
+          title={`${billingProject.projectName} Spend Report (${selectedDays} days)`}
+          filteredOwnedWorkspaces={allWorkspacesInProject}
+          style={{ gridRowStart: 1, gridColumnStart: 3, margin: '2.3rem' }}
         />
       </div>
       <div aria-live='polite' aria-atomic>
