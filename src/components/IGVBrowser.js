@@ -32,6 +32,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const igvBrowser = useRef();
   const signal = useCancellation();
 
+  const hasSignedUrl = selectedFiles.some((file) => file.isSignedUrl);
+
   const {
     savedSessions,
     loadSession: loadSessionData,
@@ -211,7 +213,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         h(
           ButtonOutline,
           {
-            disabled: loadingIgv,
+            disabled: loadingIgv || hasSignedUrl,
+            tooltip: hasSignedUrl ? 'Cannot save session with signed URLs' : undefined,
             onClick: () => {
               setSessionAction('save');
               setShowSessionModal(true);
@@ -233,7 +236,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         h(
           ButtonOutline,
           {
-            disabled: loadingIgv || sharingSession,
+            disabled: loadingIgv || sharingSession || hasSignedUrl,
+            tooltip: hasSignedUrl ? 'Cannot share session with signed URLs' : undefined,
             onClick: shareSession,
           },
           [sharingSession ? 'Sharing...' : 'Share Session']
