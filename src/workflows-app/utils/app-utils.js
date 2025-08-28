@@ -1,7 +1,6 @@
 import { icon } from '@terra-ui-packages/components';
 import { div } from 'react-hyperscript-helpers';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
-import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { getConfig } from 'src/libs/config';
 import * as Nav from 'src/libs/nav';
@@ -74,14 +73,14 @@ const setAllAppUrlsFromConfig = (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwellU
   };
 };
 
-const fetchAppUrlsFromLeo = async (workspaceId, wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot) => {
+const fetchAppUrlsFromLeo = async (workspaceId, _wdsUrlRoot, cbasUrlRoot, cromwellUrlRoot) => {
   let wdsProxyUrlState;
   let cbasProxyUrlState;
   let cromwellProxyUrlState;
 
   try {
     const appsList = await Apps().listAppsV2(workspaceId);
-    wdsProxyUrlState = resolveProxyUrl(wdsUrlRoot, appsList, (appsList) => resolveWdsUrl(appsList));
+    wdsProxyUrlState = undefined;
     cbasProxyUrlState = resolveProxyUrl(cbasUrlRoot, appsList, (appsList) => resolveRunningCromwellAppUrl(appsList, getTerraUser()?.email).cbasUrl);
     cromwellProxyUrlState = resolveProxyUrl(
       cromwellUrlRoot,
