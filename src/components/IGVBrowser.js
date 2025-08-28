@@ -107,9 +107,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       // Enable viewing features upon searching most genes, without needing to zoom several times
       const visibilityWindow = 75_000;
 
-      const igvProcessedFullUrl = isGoogleURL(fullUrl) && isGoogleStorageURL(fullUrl) ? translateGoogleCloudURL(fullUrl) : fullUrl;
+      const igvProcessedFullUrl = fullUrl && isGoogleURL(fullUrl) && isGoogleStorageURL(fullUrl) ? translateGoogleCloudURL(fullUrl) : fullUrl;
       const igvProcessedFullIndexUrl =
-        isGoogleURL(fullIndexUrl) && isGoogleStorageURL(fullIndexUrl) ? translateGoogleCloudURL(fullIndexUrl) : fullIndexUrl;
+        fullIndexUrl && isGoogleURL(fullIndexUrl) && isGoogleStorageURL(fullIndexUrl) ? translateGoogleCloudURL(fullIndexUrl) : fullIndexUrl;
 
       igvBrowser.current.loadTrack({
         name: name || `${simpleUrl} (${url})`,
