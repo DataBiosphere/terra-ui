@@ -1,9 +1,6 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { decodeSessionFromUrl, getIgvUrlParams } from 'src/components/useIGVSessions';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
-import { Metrics } from 'src/libs/ajax/Metrics';
-import { WorkspaceData as WorkspaceDataAjax } from 'src/libs/ajax/WorkspaceDataService';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleBucketOptions, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
@@ -26,35 +23,12 @@ const entityMetadata = {
   },
 };
 
-jest.mock('src/libs/ajax/leonardo/Apps');
-jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
-jest.mock('src/libs/ajax/WorkspaceDataService');
 
 jest.mock('src/libs/error', () => ({
   ...jest.requireActual('src/libs/error'),
   reportError: jest.fn(),
 }));
-
-const cwdsUrlRoot = 'https://cwds.test.url';
-
-jest.mock('src/libs/config', () => ({
-  ...jest.requireActual('src/libs/config'),
-  getConfig: jest.fn().mockReturnValue({ cwdsUrlRoot }),
-}));
-
-type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
-
-jest.mock('src/libs/ajax/ajax-common', (): AjaxCommonExports => {
-  return {
-    ...jest.requireActual<AjaxCommonExports>('src/libs/ajax/ajax-common'),
-    fetchWDS: jest.fn().mockImplementation(() => {
-      return jest.fn().mockResolvedValue({
-        json: jest.fn().mockResolvedValue({}),
-      });
-    }),
-  };
-});
 
 jest.mock('src/components/useIGVSessions', () => ({
   getIgvUrlParams: jest.fn().mockReturnValue({
@@ -94,9 +68,6 @@ jest.mock('src/libs/nav', () => {
   };
 });
 
-// When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
-// this type belongs there.
-
 beforeAll(() => {
   jest.useFakeTimers();
 });
@@ -108,41 +79,13 @@ afterAll(() => {
 describe('WorkspaceData', () => {
   it('opens IGV browser when session is present in URL', async () => {
     // Setup mocks for the test
-    const mockDetails = jest.fn();
     const mockEntityMetadata = jest.fn();
-    const mockGetCapabilities = jest.fn();
-    const mockListAppsV2 = jest.fn();
-
-    const listAppResponse = {
-      proxyUrls: {
-        wds: 'http://fake.wds.url',
-      },
-      appType: 'WDS' as const,
-      status: 'RUNNING' as const,
-    };
-
     mockEntityMetadata.mockResolvedValue(entityMetadata);
-    mockDetails.mockResolvedValue(defaultGoogleWorkspace);
-    mockGetCapabilities.mockResolvedValue({});
-    mockListAppsV2.mockResolvedValue([listAppResponse]);
 
     asMockedFn(Workspaces).mockReturnValue({
       workspace: (_namespace: string, _name: string) => ({
-        details: mockDetails,
         entityMetadata: mockEntityMetadata,
       }),
-    } as any);
-
-    asMockedFn(WorkspaceDataAjax).mockReturnValue({
-      getCapabilities: mockGetCapabilities,
-    } as any);
-
-    asMockedFn(Apps).mockReturnValue({
-      listAppsV2: mockListAppsV2,
-    } as any);
-
-    asMockedFn(Metrics).mockReturnValue({
-      captureEvent: jest.fn(),
     } as any);
 
     // Mock URL parameters to include igvSession
