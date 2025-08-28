@@ -49,9 +49,6 @@ export interface NewWorkspaceWizardProps {
   requiredAuthDomain?: string;
   requireEnhancedBucketLogging?: boolean;
   title?: string;
-  waitForServices?: {
-    wds?: boolean;
-  };
   workflowImport?: boolean;
   onDismiss: () => void;
   onSuccess: (newWorkspace: WorkspaceInfo) => void;

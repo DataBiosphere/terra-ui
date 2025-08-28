@@ -214,7 +214,6 @@ const cromwellOnAzureRunning: ListAppItem = {
     cbas: 'https://lz123.servicebus.windows.net/test-cromwell-app/cbas',
     'cbas-ui': 'https://lz123.servicebus.windows.net/test-cromwell-app/',
     cromwell: 'https://lz123.servicebus.windows.net/test-cromwell-app/cromwell',
-    wds: 'https://lz123.servicebus.windows.net/test-cromwell-app/wds',
   },
   auditInfo: {
     creator: 'abc.testerson@gmail.com',

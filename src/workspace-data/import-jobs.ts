@@ -3,7 +3,7 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { reportError } from 'src/libs/error';
 import { clearNotification, notify } from 'src/libs/notifications';
 import { useCancellation, useStore } from 'src/libs/react-utils';
-import { AsyncImportJob, asyncImportJobStore } from 'src/libs/state';
+import { asyncImportJobStore, GCPAsyncImportJob } from 'src/libs/state';
 import { isAzureWorkspace, WorkspaceWrapper } from 'src/workspaces/utils';
 
 export type UseImportJobsResult = {
@@ -11,7 +11,7 @@ export type UseImportJobsResult = {
   refresh: () => Promise<void>;
 };
 
-const isJobInWorkspace = (job: AsyncImportJob, workspace: WorkspaceWrapper): boolean => {
+const isJobInWorkspace = (job: GCPAsyncImportJob, workspace: WorkspaceWrapper): boolean => {
   return (
     job.targetWorkspace.namespace === workspace.workspace.namespace &&
     job.targetWorkspace.name === workspace.workspace.name
