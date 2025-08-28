@@ -1,19 +1,12 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
 import { decodeSessionFromUrl, getIgvUrlParams } from 'src/components/useIGVSessions';
-import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
-import { LeoAppStatus, ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
-import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
-import { WorkspaceData as WorkspaceDataAjax, WorkspaceDataAjaxContract } from 'src/libs/ajax/WorkspaceDataService';
-import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
-import { asMockedFn, MockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
-import {
-  defaultAzureWorkspace,
-  defaultGoogleBucketOptions,
-  defaultGoogleWorkspace,
-} from 'src/testing/workspace-fixtures';
-import { StorageDetails } from 'src/workspaces/common/state/useWorkspace';
-import { WorkspaceWrapper } from 'src/workspaces/utils';
+import { Apps } from 'src/libs/ajax/leonardo/Apps';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { WorkspaceData as WorkspaceDataAjax } from 'src/libs/ajax/WorkspaceDataService';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
+import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { defaultGoogleBucketOptions, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 
 import { WorkspaceData } from './Data';
 
@@ -103,13 +96,6 @@ jest.mock('src/libs/nav', () => {
 
 // When Data.js is broken apart and the WorkspaceData component is converted to TypeScript,
 // this type belongs there.
-interface WorkspaceDataProps {
-  namespace: string;
-  name: string;
-  workspace: WorkspaceWrapper;
-  refreshWorkspace: () => void;
-  storageDetails: StorageDetails;
-}
 
 beforeAll(() => {
   jest.useFakeTimers();
@@ -120,127 +106,45 @@ afterAll(() => {
 });
 
 describe('WorkspaceData', () => {
-  type SetupOptions = {
-    namespace?: string;
-    name?: string;
-    workspace: WorkspaceWrapper;
-    refreshWorkspace?: () => void;
-    storageDetails?: StorageDetails;
-    status: LeoAppStatus;
-    wdsUrl?: string | undefined;
-    entityMetadataResult?: 'success' | 'error' | 'empty' | any;
-  };
-  type SetupResult = {
-    workspaceDataProps: WorkspaceDataProps;
-    listAppResponse: Partial<ListAppItem>;
-    mockGetSchema: MockedFn<WorkspaceDataAjaxContract['getSchema']>;
-    mockListAppsV2: MockedFn<AppsAjaxContract['listAppsV2']>;
-    mockEntityMetadata: MockedFn<WorkspaceContract['entityMetadata']>;
-  };
-
-  const populatedAzureStorageOptions = {
-    azureContainerRegion: 'eastus',
-    azureContainerUrl: 'container-url',
-    azureContainerSasUrl: 'container-url?sas',
-  };
-
-  // SIFERS setup, see: https://medium.com/@kolodny/testing-with-sifers-c9d6bb5b362
-  function setup({
-    namespace = 'test-namespace',
-    name = 'test-name',
-    workspace,
-    refreshWorkspace = () => {},
-    storageDetails = { ...defaultGoogleBucketOptions, ...populatedAzureStorageOptions },
-    status = 'RUNNING',
-    wdsUrl = 'http://fake.wds.url',
-    entityMetadataResult = 'success',
-  }: SetupOptions): SetupResult {
-    const listAppResponse = partial<ListAppItem>({
-      proxyUrls: {
-        wds: wdsUrl,
-      },
-      appType: 'WDS',
-      status,
-    });
-
-    const mockGetCapabilities: MockedFn<WorkspaceDataAjaxContract['getCapabilities']> = jest.fn();
-    const mockGetSchema: MockedFn<WorkspaceDataAjaxContract['getSchema']> = jest.fn();
-    const mockListAppsV2: MockedFn<AppsAjaxContract['listAppsV2']> = jest.fn();
-    const mockDetails: MockedFn<WorkspaceContract['details']> = jest.fn();
-    const mockEntityMetadata: MockedFn<WorkspaceContract['entityMetadata']> = jest.fn();
-
-    let entityMetadataMock;
-    switch (entityMetadataResult) {
-      case 'success':
-        entityMetadataMock = mockEntityMetadata.mockResolvedValue(entityMetadata);
-        break;
-      case 'error':
-        entityMetadataMock = mockEntityMetadata.mockRejectedValue(new Error('Entity metadata error'));
-        break;
-      case 'empty':
-        entityMetadataMock = mockEntityMetadata.mockResolvedValue({});
-        break;
-      default:
-        entityMetadataMock = mockEntityMetadata.mockResolvedValue(entityMetadataResult);
-    }
-
-    asMockedFn(Workspaces).mockReturnValue(
-      partial<WorkspacesAjaxContract>({
-        workspace: (_namespace, _name) =>
-          partial<WorkspaceContract>({
-            details: mockDetails.mockResolvedValue(workspace),
-            entityMetadata: entityMetadataMock,
-          }),
-      })
-    );
-    asMockedFn(WorkspaceDataAjax).mockReturnValue(
-      partial<WorkspaceDataAjaxContract>({
-        getCapabilities: mockGetCapabilities.mockResolvedValue({}),
-        getSchema: mockGetSchema.mockResolvedValue([]),
-      })
-    );
-    asMockedFn(Apps).mockReturnValue(
-      partial<AppsAjaxContract>({
-        listAppsV2: mockListAppsV2.mockResolvedValue([listAppResponse]),
-      })
-    );
-    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
-
-    const workspaceDataProps: WorkspaceDataProps = {
-      namespace,
-      name,
-      workspace,
-      refreshWorkspace,
-      storageDetails,
-    };
-
-    return {
-      workspaceDataProps,
-      listAppResponse,
-      mockGetSchema,
-      mockListAppsV2,
-      mockEntityMetadata,
-    };
-  }
-
-  it('does not call Rawls for metadata on loading an azure workspace', async () => {
-    // Arrange
-    const { workspaceDataProps, mockEntityMetadata } = setup({
-      workspace: defaultAzureWorkspace,
-      status: 'RUNNING',
-      entityMetadataResult: 'error',
-    });
-
-    // Act
-    await act(async () => {
-      render(h(WorkspaceData, workspaceDataProps));
-    });
-
-    // Assert
-    expect(mockEntityMetadata).not.toHaveBeenCalled();
-  });
-
   it('opens IGV browser when session is present in URL', async () => {
+    // Setup mocks for the test
+    const mockDetails = jest.fn();
+    const mockEntityMetadata = jest.fn();
+    const mockGetCapabilities = jest.fn();
+    const mockListAppsV2 = jest.fn();
+
+    const listAppResponse = {
+      proxyUrls: {
+        wds: 'http://fake.wds.url',
+      },
+      appType: 'WDS' as const,
+      status: 'RUNNING' as const,
+    };
+
+    mockEntityMetadata.mockResolvedValue(entityMetadata);
+    mockDetails.mockResolvedValue(defaultGoogleWorkspace);
+    mockGetCapabilities.mockResolvedValue({});
+    mockListAppsV2.mockResolvedValue([listAppResponse]);
+
+    asMockedFn(Workspaces).mockReturnValue({
+      workspace: (_namespace: string, _name: string) => ({
+        details: mockDetails,
+        entityMetadata: mockEntityMetadata,
+      }),
+    } as any);
+
+    asMockedFn(WorkspaceDataAjax).mockReturnValue({
+      getCapabilities: mockGetCapabilities,
+    } as any);
+
+    asMockedFn(Apps).mockReturnValue({
+      listAppsV2: mockListAppsV2,
+    } as any);
+
+    asMockedFn(Metrics).mockReturnValue({
+      captureEvent: jest.fn(),
+    } as any);
+
     // Mock URL parameters to include igvSession
     const mockUrlParams = new URLSearchParams();
     mockUrlParams.set('igvSession', 'test-session');
@@ -265,10 +169,14 @@ describe('WorkspaceData', () => {
       igvGenome: 'hg38',
     });
 
-    const { workspaceDataProps } = setup({
+    const workspaceDataProps = {
+      namespace: 'test-namespace',
+      name: 'test-name',
       workspace: defaultGoogleWorkspace,
-      status: 'RUNNING',
-    });
+      refreshWorkspace: () => {},
+      storageDetails: { ...defaultGoogleBucketOptions },
+    };
+
     await act(async () => {
       render(h(WorkspaceData, workspaceDataProps));
     });

@@ -5,11 +5,8 @@ import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { BillingProject } from 'src/libs/ajax/billing/billing-models';
 import { DataRepo, DataRepoContract, DataRepoSnapshotContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { FirecloudBucket, FirecloudBucketAjaxContract } from 'src/libs/ajax/firecloud/FirecloudBucket';
-import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
-import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
-import { WDSJob, WorkspaceData, WorkspaceDataAjaxContract } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -136,25 +133,6 @@ const setup = async (opts: SetupOptions) => {
     })
   );
 
-  const startImportJob: MockedFn<WorkspaceDataAjaxContract['startImportJob']> = jest.fn(async (_root, _id, _file) =>
-    partial<WDSJob>({ jobId: 'new-job' })
-  );
-
-  const wdsProxyUrl = 'https://proxyurl';
-
-  asMockedFn(Apps).mockReturnValue(
-    partial<AppsAjaxContract>({
-      listAppsV2: jest.fn(async (_id) => [
-        partial<ListAppItem>({
-          appType: 'WDS',
-          appName: `wds-${defaultAzureWorkspace.workspace.workspaceId}`,
-          status: 'RUNNING',
-          proxyUrls: { wds: wdsProxyUrl },
-          workspaceId: defaultAzureWorkspace.workspace.workspaceId,
-        }),
-      ]),
-    })
-  );
   asMockedFn(Billing).mockReturnValue(
     partial<BillingContract>({
       listProjects: jest.fn(async () => [partial<BillingProject>({})]),
@@ -166,11 +144,6 @@ const setup = async (opts: SetupOptions) => {
     })
   );
   asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
-  asMockedFn(WorkspaceData).mockReturnValue(
-    partial<WorkspaceDataAjaxContract>({
-      startImportJob,
-    })
-  );
   asMockedFn(Workspaces).mockReturnValue(
     partial<WorkspacesAjaxContract>({
       workspace: getWorkspaceApi,
@@ -193,8 +166,6 @@ const setup = async (opts: SetupOptions) => {
     importBagit,
     importJob,
     importJSON,
-    startImportJob,
-    wdsProxyUrl,
   };
 };
 
@@ -226,7 +197,7 @@ describe('ImportData', () => {
         const user = userEvent.setup();
 
         const importUrl = 'https://example.com/path/to/file.pfb';
-        const { getWorkspaceApi, importJob, startImportJob } = await setup({
+        const { getWorkspaceApi, importJob } = await setup({
           queryParams: {
             format: 'PFB',
             url: importUrl,
@@ -243,7 +214,6 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
-        expect(startImportJob).not.toHaveBeenCalled();
       });
     });
 
