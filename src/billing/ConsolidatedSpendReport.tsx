@@ -463,7 +463,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                         roles: ['Owner'],
                         status: 'Ready',
                       }}
-                      key={workspace.workspaceId ?? `${workspace.namespace}-${workspace.name}`}
+                      key={workspace.workspaceId ?? `${workspace.namespace}/${workspace.name}`}
                     />
                   );
                 })
