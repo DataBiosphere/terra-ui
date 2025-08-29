@@ -50,15 +50,23 @@ jest.mock('src/components/IGVAddTrackModal', () => ({
   },
 }));
 
-const mockToJSON = jest.fn();
-const mockLoadSession = jest.fn();
+// Create shared mock functions that can be accessed throughout tests
+const mockLoadTrack = jest.fn();
+const mockToJSON = jest.fn(() =>
+  Promise.resolve({
+    genome: 'hg38',
+    locus: 'chr1:1-1000',
+    tracks: [],
+  })
+);
+const mockLoadSession = jest.fn(() => Promise.resolve());
 
 // Mock IGV library
 jest.mock('igv', () => {
   const igv = {
     setGoogleOauthToken: jest.fn(),
     createBrowser: jest.fn(async () => ({
-      loadTrack: jest.fn(),
+      loadTrack: mockLoadTrack,
       toJSON: mockToJSON,
       loadSession: mockLoadSession,
     })),
@@ -247,20 +255,7 @@ describe('IGVBrowser', () => {
   });
 
   it('transforms Google Storage URLs to Google Media API URLs', async () => {
-    // Arrange - Use the existing igv mock but capture the loadTrack calls
-    const mockLoadTrack = jest.fn();
-
-    // Need to import igv to access the mock
-    const igv = jest.requireMock('igv');
-    const originalCreateBrowser = igv.createBrowser;
-
-    // Override createBrowser to return a browser with our tracked loadTrack
-    igv.createBrowser.mockImplementation(async () => ({
-      loadTrack: mockLoadTrack,
-      toJSON: mockToJSON,
-      loadSession: mockLoadSession,
-    }));
-
+    // Arrange
     const fakeBucketName = 'fc-2c0d2442-2a5a-1190-ae31-3575a55df9b4';
     const fakeSignedParams =
       'X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=placeholder-value&X-Goog-Date=20250829T141753Z&X-Goog-Expires=1234&X-Goog-SignedHeaders=host&requestedBy=me@example.com&userProject=gcp-project-name-1234&X-Goog-Signature=1234567890987654321';
@@ -298,9 +293,6 @@ describe('IGVBrowser', () => {
         visibilityWindow: 75000,
       });
     });
-
-    // Restore original mock
-    igv.createBrowser.mockImplementation(originalCreateBrowser);
   });
 });
 
