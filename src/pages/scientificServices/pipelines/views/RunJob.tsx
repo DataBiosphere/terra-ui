@@ -78,7 +78,6 @@ export async function prepareUploadStartPipelineRun(
               },
             }));
 
-            // Re-throw the error to maintain the existing Promise.all behavior
             throw error;
           }
 

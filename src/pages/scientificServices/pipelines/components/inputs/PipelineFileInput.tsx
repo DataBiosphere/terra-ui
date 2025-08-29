@@ -198,10 +198,17 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Upload status</div>
             {uploadState.progress < 100 ? (
               <>
-                <div>
-                  <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on your
-                  input file size. <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
-                </div>
+                {!uploadState.errorMessage ? (
+                  <div>
+                    <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on
+                    your input file size.{' '}
+                    <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
+                  </div>
+                ) : (
+                  <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
+                    There was an error uploading the file. {uploadState.errorMessage}. Please try again.
+                  </div>
+                )}
                 <div key={input.name} style={{ marginTop: '1rem' }}>
                   <div
                     style={{
@@ -214,7 +221,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                       style={{
                         width: `${uploadState.progress}%`,
                         height: '21px',
-                        backgroundColor: '#5CC88D',
+                        backgroundColor: uploadState.errorMessage ? colors.danger() : '#5CC88D',
                         transition: 'width 0.3s ease-in-out',
                       }}
                     />
