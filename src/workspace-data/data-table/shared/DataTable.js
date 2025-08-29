@@ -19,7 +19,6 @@ import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuTrigger } from 'src/components/PopupTrigger';
 import { GridTable, HeaderCell, Paginator, Resizable, TooltipCell } from 'src/components/table';
-import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
@@ -32,7 +31,7 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import * as WorkspaceUtils from 'src/workspaces/utils';
 
-// TODO: Shared components should not depend on EntityService/WDS specific components.
+// TODO: Shared components should not depend on EntityService specific components.
 import { concatenateAttributeNames } from '../entity-service/attribute-utils';
 import { entityAttributeText } from '../entity-service/entityAttributeText';
 import { EntityRenamer } from '../entity-service/EntityRenamer';
@@ -45,8 +44,6 @@ import {
   decodeColumnSettings,
 } from '../entity-service/SavedColumnSettings';
 import { SingleEntityEditor } from '../entity-service/SingleEntityEditor';
-import { getAttributeType } from '../wds/attribute-utils';
-import { SingleEntityEditorWds } from '../wds/SingleEntityEditorWds';
 import { EditDataLink } from './EditDataLink';
 import { HeaderOptions } from './HeaderOptions';
 import { RenameColumnModal } from './RenameColumnModal';
@@ -634,34 +631,15 @@ const DataTable = (props) => {
                         text: entityAttributeText(dataInfo),
                       });
 
-                      let extraEditableCondition = false;
-                      if (dataProvider.providerName === wdsProviderName) {
-                        const attributes = entityMetadata[entityType].attributes;
-                        const attributeType = getAttributeType(attributeName, attributes, dataProvider);
-                        // this will make fields that are not supported to have the edit icon be disabled
-                        if (attributeType.type === undefined) {
-                          extraEditableCondition = true;
-                        }
-                      }
-                      const editLink = !extraEditableCondition
-                        ? editable &&
-                          dataProvider.features.supportsEntityUpdating &&
-                          h(EditDataLink, {
-                            'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                            'aria-haspopup': 'dialog',
-                            'aria-expanded': !!updatingEntity,
-                            onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
-                          })
-                        : editable &&
-                          dataProvider.features.supportsEntityUpdating &&
-                          h(EditDataLink, {
-                            'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                            'aria-haspopup': 'dialog',
-                            'aria-expanded': !!updatingEntity,
-                            disabled: true,
-                            tooltip: 'Editing this data type is not currently supported',
-                            onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
-                          });
+                      const editLink =
+                        editable &&
+                        dataProvider.features.supportsEntityUpdating &&
+                        h(EditDataLink, {
+                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                          'aria-haspopup': 'dialog',
+                          'aria-expanded': !!updatingEntity,
+                          onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo }),
+                        });
                       if (!!dataInfo && _.isArray(dataInfo.items)) {
                         const isPlural = dataInfo.items.length !== 1;
                         // eslint-disable-next-line no-nested-ternary
@@ -776,28 +754,11 @@ const DataTable = (props) => {
         onDismiss: () => setRenamingEntity(undefined),
       }),
     !!updatingEntity &&
-      dataProvider.providerName !== wdsProviderName &&
       h(SingleEntityEditor, {
         entityType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
         ...updatingEntity,
         entityTypes: _.keys(entityMetadata),
         workspaceId,
-        onSuccess: () => {
-          setUpdatingEntity(undefined);
-          void Metrics().captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));
-          loadData();
-        },
-        onDismiss: () => setUpdatingEntity(undefined),
-      }),
-    !!updatingEntity &&
-      dataProvider.providerName === wdsProviderName &&
-      h(SingleEntityEditorWds, {
-        recordType: _.find((entity) => entity.name === updatingEntity.entityName, entities).entityType,
-        recordName: updatingEntity.entityName,
-        ...updatingEntity,
-        workspaceId: workspace.workspace.workspaceId,
-        dataProvider,
-        recordTypeAttributes: entityMetadata[entityType].attributes,
         onSuccess: () => {
           setUpdatingEntity(undefined);
           void Metrics().captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace));

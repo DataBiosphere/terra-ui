@@ -289,7 +289,7 @@ const EntitiesContent = ({
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null);
 
-  const { savedSessions, loadSession: loadSessionData, deleteSession } = useIGVSessions(workspace?.workspace?.workspaceId);
+  const { savedSessions, loadSession: loadSessionData, deleteSession, refreshSessions } = useIGVSessions(workspace?.workspace?.workspaceId);
 
   const loadSession = async (sessionName) => {
     try {
@@ -639,6 +639,7 @@ const EntitiesContent = ({
         onDismiss: () => {
           setIgvFiles(undefined);
           setIgvInitialSession(undefined);
+          refreshSessions();
         },
         initialSession: igvInitialSession,
       })

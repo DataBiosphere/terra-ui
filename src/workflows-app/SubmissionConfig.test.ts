@@ -119,7 +119,8 @@ const mockCbasWith = (results: MockCbasWithArgs): Required<MockCbasArgs> => {
   return args;
 };
 
-describe('BaseSubmissionConfig', () => {
+// TODO CORE-622: delete entirely instead of skipping?
+describe.skip('BaseSubmissionConfig', () => {
   // TODO: fix mockAzureApps to match expected listAppV2 return type
   const mockLeoResponse: MockedFn<AppsAjaxContract['listAppsV2']> = jest.fn(async (_id) => mockAzureApps as any);
   const mockSearchResponse: MockedFn<WorkspaceDataAjaxContract['queryRecords']> = jest.fn(

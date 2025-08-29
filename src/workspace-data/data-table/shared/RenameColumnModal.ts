@@ -59,26 +59,7 @@ export const RenameColumnModal = (props: RenameColumnModalProps): ReactNode => {
         })
       : [];
 
-  // On Azure only, cannot begin with “sys_”
-  // Must contain only alphanumeric characters, underscores, and dashes
-  const azureColumnNameErrors =
-    dataProvider.providerName === 'WDS'
-      ? validate.single(newAttributeName, {
-          format: {
-            pattern: '^(?!sys_)[A-Za-z0-9_-]+$',
-            message: Utils.cond(
-              [newAttributeName.startsWith('sys_'), () => 'Column name cannot start with "sys_"'],
-              () => 'Column name may only contain alphanumeric characters, underscores, and dashes.'
-            ),
-          },
-        })
-      : [];
-
-  const columnNameErrors = [
-    ...(mutualColumnNameErrors || []),
-    ...(gcpColumnNameErrors || []),
-    ...(azureColumnNameErrors || []),
-  ];
+  const columnNameErrors = [...(mutualColumnNameErrors || []), ...(gcpColumnNameErrors || [])];
 
   const renameColumn = async () => {
     try {
