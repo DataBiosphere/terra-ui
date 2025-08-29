@@ -17,46 +17,12 @@ import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/compon
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
+import {
+  initiateResumableUpload,
+  uploadFileWithSignedUrl,
+} from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
-
-// Returns the time taken to upload the file (for Mixpanel)
-async function uploadFileWithSignedUrl(
-  inputFile: File,
-  signedUrl: string,
-  onProgress?: (percent: number) => void
-): Promise<number> {
-  const startTime = Date.now();
-
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable && onProgress) {
-        const percent = Math.round((event.loaded / event.total) * 100);
-        onProgress(percent);
-      }
-    });
-
-    xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        const endTime = Date.now();
-        const duration = endTime - startTime;
-        resolve(duration);
-      } else {
-        reject(new Error(`Upload failed with status ${xhr.status}`));
-      }
-    });
-
-    xhr.addEventListener('error', () => {
-      reject(new Error('Upload failed'));
-    });
-
-    xhr.open('PUT', signedUrl);
-    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-    xhr.send(inputFile);
-  });
-}
 
 export async function prepareUploadStartPipelineRun(
   pipelineName: string,
@@ -93,7 +59,7 @@ export async function prepareUploadStartPipelineRun(
         const file = selectedUserInputs[input.name];
         const signedUrl = fileInputUploadUrls[input.name].signedUrl;
         if (file instanceof File) {
-          const fileUploadDurationMillis = await uploadFileWithSignedUrl(file, signedUrl, (percent) => {
+          const fileUploadDurationMillis = await initiateResumableUpload(file, signedUrl, (percent) => {
             setUploadProgress((prev) => ({
               ...prev,
               [input.name]: percent,
@@ -116,7 +82,7 @@ export async function prepareUploadStartPipelineRun(
       })
   );
 
-  await Teaspoons().startPipelineRun(jobId);
+  // await Teaspoons().startPipelineRun(jobId);
   return jobId;
 }
 
