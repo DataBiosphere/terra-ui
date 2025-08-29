@@ -5,18 +5,19 @@ import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { formatBytes } from 'src/libs/utils';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
+import { InputUploadState } from 'src/pages/scientificServices/pipelines/views/RunJob';
 
 interface PipelineInputSelectorProps {
   input: PipelineInput;
   selectedFile: File | null;
-  uploadProgress?: number;
+  uploadState?: InputUploadState;
   onFileSelect: (file: File | null) => void;
 }
 
 export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   input,
   selectedFile,
-  uploadProgress,
+  uploadState,
   onFileSelect,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,7 +74,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           flexDirection: 'column',
         }}
       >
-        {!uploadProgress ? (
+        {!uploadState ? (
           <Dropzone
             onDrop={handleDrop}
             disabled={!!selectedFile}
@@ -148,11 +149,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                       <button
                         type='button'
                         onClick={handleClearFile}
-                        disabled={uploadProgress === 100}
+                        // disabled={uploadProgress === 100}
                         style={{
                           background: 'none',
                           border: 'none',
-                          cursor: uploadProgress === 100 ? 'not-allowed' : 'pointer',
+                          // cursor: uploadProgress === 100 ? 'not-allowed' : 'pointer',
                           color: '#666',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -161,7 +162,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                         }}
                         aria-label='Remove selected file'
                       >
-                        <Icon icon='times' size={24} color={uploadProgress === 100 ? colors.disabled() : '#4D72AA'} />
+                        {/* <Icon icon='times' size={24} color={uploadProgress === 100 ? colors.disabled() : '#4D72AA'} /> */}
                       </button>
                     </div>
                   ) : (
@@ -195,7 +196,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         ) : (
           <>
             <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Upload status</div>
-            {uploadProgress < 100 ? (
+            {uploadState.progress < 100 ? (
               <>
                 <div>
                   <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on your
@@ -211,7 +212,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   >
                     <div
                       style={{
-                        width: `${uploadProgress}%`,
+                        width: `${uploadState.progress}%`,
                         height: '21px',
                         backgroundColor: '#5CC88D',
                         transition: 'width 0.3s ease-in-out',

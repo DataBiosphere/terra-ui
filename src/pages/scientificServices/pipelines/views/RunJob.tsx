@@ -1,6 +1,6 @@
 import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -17,10 +17,7 @@ import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/compon
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
-import {
-  initiateResumableUpload,
-  uploadFileWithSignedUrl,
-} from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import { initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
@@ -30,7 +27,7 @@ export async function prepareUploadStartPipelineRun(
   selectedUserInputs: Record<string, any>,
   description: string,
   pipelineInputs: PipelineInput[],
-  setUploadProgress: (uploadProgress: Record<string, any>) => void = () => {}
+  setUploadState: Dispatch<SetStateAction<Record<string, InputUploadState>>> = () => {}
 ): Promise<string> {
   const jobId = crypto.randomUUID();
 
@@ -59,22 +56,31 @@ export async function prepareUploadStartPipelineRun(
         const file = selectedUserInputs[input.name];
         const signedUrl = fileInputUploadUrls[input.name].signedUrl;
         if (file instanceof File) {
-          const fileUploadDurationMillis = await initiateResumableUpload(file, signedUrl, (percent) => {
-            setUploadProgress((prev) => ({
-              ...prev,
-              [input.name]: percent,
-            }));
-          });
+          try {
+            const fileUploadDurationMillis = await initiateResumableUpload(input.name, file, signedUrl, setUploadState);
 
-          // Capture the file upload metrics. We don't await the Mixpanel metrics capture
-          // because we don't want to block the user from proceeding, so this is a fire-and-forget.
-          Metrics().captureEvent(Events.teaspoons.fileUpload, {
-            pipelineName,
-            pipelineVersion,
-            fileSize: file.size,
-            fileType: file.type,
-            fileUploadDurationMillis,
-          });
+            // Capture the file upload metrics. We don't await the Mixpanel metrics capture
+            // because we don't want to block the user from proceeding, so this is a fire-and-forget.
+            Metrics().captureEvent(Events.teaspoons.fileUpload, {
+              pipelineName,
+              pipelineVersion,
+              fileSize: file.size,
+              fileType: file.type,
+              fileUploadDurationMillis,
+            });
+          } catch (error) {
+            // Update upload state with error for this specific input
+            setUploadState((prev) => ({
+              ...prev,
+              [input.name]: {
+                ...prev[input.name],
+                errorMessage: error instanceof Error ? error.message : 'Upload failed',
+              },
+            }));
+
+            // Re-throw the error to maintain the existing Promise.all behavior
+            throw error;
+          }
 
           return;
         }
@@ -86,13 +92,19 @@ export async function prepareUploadStartPipelineRun(
   return jobId;
 }
 
+export interface InputUploadState {
+  signedUrl: string;
+  progress: number; // Progress percentage (0-100)
+  errorMessage?: string; // Optional error message
+}
+
 export const RunJob = () => {
   const signal = useCancellation();
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [uploadState, setUploadState] = useState<Record<string, InputUploadState>>({});
 
   // Input parameter names for the selected pipeline
   const [pipelineInputs, setPipelineInputs] = useState<PipelineInput[]>([]);
@@ -101,6 +113,8 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runDescription, setRunDescription] = useState<string>('');
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
+
+  console.log(uploadState);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -184,7 +198,7 @@ export const RunJob = () => {
         selectedUserInputs,
         runDescription,
         pipelineInputs,
-        setUploadProgress
+        setUploadState
       );
       setSubmittedJobId(jobId);
     } catch (error) {
@@ -272,7 +286,7 @@ export const RunJob = () => {
                       <PipelineFileInput
                         key={`${input.name}`}
                         input={input}
-                        uploadProgress={uploadProgress[input.name]}
+                        uploadState={uploadState[input.name]}
                         selectedFile={selectedUserInputs[input.name] || null}
                         onFileSelect={(file) => {
                           setSelectedUserInputs((prev) => ({
@@ -329,7 +343,7 @@ export const RunJob = () => {
                         resetSelectedUserInputs();
                         setRunDescription('');
                         setSubmittedJobId(undefined);
-                        setUploadProgress({});
+                        setUploadState({});
                       }}
                     >
                       Run another job
