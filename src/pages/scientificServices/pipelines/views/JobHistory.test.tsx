@@ -75,7 +75,7 @@ describe('job history table', () => {
 
     expect(await screen.findByText('Job History')).toBeInTheDocument();
     expect(screen.queryAllByText(pipelineRun.description!)).toHaveLength(2);
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.queryByText('In Progress', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('array_imputation v1')).toBeInTheDocument();
   });
 
@@ -189,7 +189,7 @@ describe('job history table', () => {
 
     expect(screen.queryByText('View Outputs')).not.toBeInTheDocument();
     expect(screen.queryByText('View Error')).not.toBeInTheDocument();
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.queryByText('In Progress', { exact: false })).toBeInTheDocument();
   });
 
   it('opens the outputs modal when View Outputs button is clicked', async () => {
