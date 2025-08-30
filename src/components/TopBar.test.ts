@@ -48,8 +48,7 @@ describe('TopBar', () => {
     }
   });
 
-  it('renders limited options when compactTopBar brand option is enabled', async () => {
-    // scientificServices is a brand config that has compactTopBar enabled
+  it('renders limited options when for scientificServices brand option is enabled', async () => {
     configOverridesStore.set({ brand: 'scientificServices' });
 
     authStore.update((authState) => ({ ...authState, signInStatus: 'uninitialized' as SignInStatus }));
