@@ -6,9 +6,9 @@ import { useCancellation } from 'src/libs/react-utils';
 export interface UseUserQuotaResult {
   quota: UserPipelineQuotaDetails | undefined;
   pipelineDetails: PipelineWithDetails | undefined;
+  meetsMinimumQuota: boolean | undefined;
   isLoading: boolean;
   error: string | null;
-  refetch: () => void;
 }
 
 export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult => {
@@ -52,11 +52,16 @@ export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult =>
     fetchUserQuota();
   }, [selectedPipeline, signal]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const meetsMinimumQuota =
+    quota &&
+    selectedPipeline &&
+    quota.quotaLimit - quota.quotaConsumed > (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0);
+
   return {
     quota,
     pipelineDetails,
     isLoading,
+    meetsMinimumQuota,
     error,
-    refetch: fetchUserQuota,
   };
 };

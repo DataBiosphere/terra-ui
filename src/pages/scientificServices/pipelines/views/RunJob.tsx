@@ -144,7 +144,7 @@ export const RunJob = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
 
-  const { quota, pipelineDetails } = useUserQuota(selectedPipeline);
+  const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   const resetSelectedUserInputs = () => {
     const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
@@ -166,11 +166,6 @@ export const RunJob = () => {
       return true;
     });
   };
-
-  const meetsMinimumQuota =
-    quota &&
-    selectedPipeline &&
-    quota.quotaLimit - quota.quotaConsumed > (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0);
 
   useEffect(() => {
     // Update selected user inputs when pipeline inputs change

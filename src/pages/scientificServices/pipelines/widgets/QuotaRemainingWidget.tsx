@@ -7,7 +7,7 @@ import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 
 export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
-  const { quota, pipelineDetails } = useUserQuota(selectedPipeline);
+  const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   return (
     <div
@@ -47,21 +47,17 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                       style={{
                         width: `${((quota.quotaLimit - quota.quotaConsumed) / quota.quotaLimit) * 100}%`,
                         height: '6px',
-                        backgroundColor:
-                          quota.quotaLimit - quota.quotaConsumed <
-                          (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0)
-                            ? colors.warning(0.6)
-                            : '#5CC88D',
+                        backgroundColor: meetsMinimumQuota ? '#5CC88D' : colors.warning(0.6),
                       }}
                     />
                   </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem', gap: '5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', gap: '5rem' }}>
                   <div
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      alignItems: 'center',
+                      alignItems: 'flex-start',
                     }}
                   >
                     <div style={{ fontWeight: 'bold' }}>{quota.quotaLimit - quota.quotaConsumed}</div>
@@ -69,10 +65,9 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                   </div>
                   <div
                     style={{
-                      fontSize: '0.875rem',
                       display: 'flex',
                       flexDirection: 'column',
-                      alignItems: 'center',
+                      alignItems: 'flex-end',
                     }}
                   >
                     <div style={{ fontWeight: 'bold' }}>{quota.quotaConsumed}</div>
