@@ -44,6 +44,10 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                     }}
                   >
                     <div
+                      aria-label={`quota: ${quota.quotaLimit - quota.quotaConsumed} remaining, ${
+                        quota.quotaConsumed
+                      } used`}
+                      role='progressbar'
                       style={{
                         width: `${((quota.quotaLimit - quota.quotaConsumed) / quota.quotaLimit) * 100}%`,
                         height: '6px',
