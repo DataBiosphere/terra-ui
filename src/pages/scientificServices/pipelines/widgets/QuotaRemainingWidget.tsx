@@ -68,7 +68,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                     <div
                       style={{
                         width: `${((quota.quotaLimit - quota.quotaConsumed) / quota.quotaLimit) * 100}%`,
-                        height: '4px',
+                        height: '6px',
                         backgroundColor:
                           quota.quotaLimit - quota.quotaConsumed <
                           (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0)
@@ -90,7 +90,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                     <div style={{ fontWeight: 'bold' }}>
                       {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
                     </div>
-                    <div style={{ color: '#6B6C6E' }}>Remaining</div>
+                    <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Remaining</div>
                   </div>
                   <div
                     style={{
@@ -103,7 +103,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                     <div style={{ fontWeight: 'bold' }}>
                       {quota.quotaConsumed} {quota.quotaUnits}
                     </div>
-                    <div style={{ color: '#6B6C6E' }}>Used</div>
+                    <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Used</div>
                   </div>
                 </div>
                 {pipelineDetails && (
