@@ -30,6 +30,80 @@ async function checkUploadStatus(sessionUrl: string): Promise<number> {
   throw new Error('Failed to check upload status');
 }
 
+/* Resume an existing resumable upload session */
+export async function resumeUpload(
+  inputName: string,
+  inputFile: File,
+  sessionUrl: string,
+  setUploadState: Dispatch<SetStateAction<Record<string, InputUploadState>>>
+): Promise<number> {
+  const startTime = Date.now();
+
+  // Check current upload status
+  const uploadedBytes = await checkUploadStatus(sessionUrl);
+
+  if (uploadedBytes === -1) {
+    // Upload already complete
+    setUploadState((prev) => ({
+      ...prev,
+      [inputName]: { ...prev[inputName], progress: 100, errorMessage: undefined },
+    }));
+    return 0;
+  }
+
+  // Resume upload from where it left off
+  const remainingBytes = inputFile.size - uploadedBytes;
+  const fileSlice = inputFile.slice(uploadedBytes);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) {
+        const totalProgress = ((uploadedBytes + event.loaded) / inputFile.size) * 100;
+        const percent = Math.round(totalProgress);
+        setUploadState((prev) => ({
+          ...prev,
+          [inputName]: { ...prev[inputName], progress: percent, errorMessage: undefined },
+        }));
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        setUploadState((prev) => ({
+          ...prev,
+          [inputName]: { ...prev[inputName], progress: 100, errorMessage: undefined },
+        }));
+        resolve(duration);
+      } else {
+        const errorMessage = `Upload failed with status ${xhr.status}`;
+        setUploadState((prev) => ({
+          ...prev,
+          [inputName]: { ...prev[inputName], errorMessage },
+        }));
+        reject(new Error(errorMessage));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      const errorMessage = 'Upload failed due to network error';
+      setUploadState((prev) => ({
+        ...prev,
+        [inputName]: { ...prev[inputName], errorMessage },
+      }));
+      reject(new Error(errorMessage));
+    });
+
+    xhr.open('PUT', sessionUrl);
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    xhr.setRequestHeader('Content-Range', `bytes ${uploadedBytes}-${inputFile.size - 1}/${inputFile.size}`);
+    xhr.send(fileSlice);
+  });
+}
+
 /* Takes the initial POST signedUrl provided by the Teaspoons backend, and
    exchanges it for a resumable upload session URL.
  */
@@ -79,20 +153,39 @@ export async function initiateResumableUpload(
       if (xhr.status >= 200 && xhr.status < 300) {
         const endTime = Date.now();
         const duration = endTime - startTime;
+        setUploadState((prev) => ({
+          ...prev,
+          [inputName]: { ...prev[inputName], progress: 100, errorMessage: undefined },
+        }));
         resolve(duration);
       } else {
-        reject(new Error(`Upload failed with status ${xhr.status}`));
+        const errorMessage = `Upload failed with status ${xhr.status}`;
+        setUploadState((prev) => ({
+          ...prev,
+          [inputName]: { ...prev[inputName], errorMessage },
+        }));
+        reject(new Error(errorMessage));
       }
     });
 
     xhr.addEventListener('error', () => {
       clearTimeout(timeoutId);
-      reject(new Error('Upload failed'));
+      const errorMessage = 'Upload failed';
+      setUploadState((prev) => ({
+        ...prev,
+        [inputName]: { ...prev[inputName], errorMessage },
+      }));
+      reject(new Error(errorMessage));
     });
 
     xhr.addEventListener('abort', () => {
       clearTimeout(timeoutId);
-      reject(new Error('Upload aborted after 1 second'));
+      const errorMessage = 'Upload aborted after 5 seconds';
+      setUploadState((prev) => ({
+        ...prev,
+        [inputName]: { ...prev[inputName], errorMessage },
+      }));
+      reject(new Error(errorMessage));
     });
 
     xhr.open('PUT', sessionUrl);

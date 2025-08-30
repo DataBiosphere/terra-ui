@@ -92,7 +92,7 @@ export async function prepareUploadStartPipelineRun(
 }
 
 export interface InputUploadState {
-  signedUrl: string;
+  signedUrl?: string; // The resumable upload session URL
   progress: number; // Progress percentage (0-100)
   errorMessage?: string; // Optional error message
 }
@@ -287,6 +287,7 @@ export const RunJob = () => {
                         input={input}
                         uploadState={uploadState[input.name]}
                         selectedFile={selectedUserInputs[input.name] || null}
+                        setUploadState={setUploadState}
                         onFileSelect={(file) => {
                           setSelectedUserInputs((prev) => ({
                             ...prev,
