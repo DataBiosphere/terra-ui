@@ -57,6 +57,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
             }
             return (
               <div style={{ marginTop: '1rem' }}>
+                <div style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{quota.quotaUnits}</div>
                 <div style={{ marginTop: '1rem' }}>
                   <div
                     style={{
@@ -81,15 +82,12 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem', gap: '5rem' }}>
                   <div
                     style={{
-                      fontSize: '0.875rem',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold' }}>
-                      {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
-                    </div>
+                    <div style={{ fontWeight: 'bold' }}>{quota.quotaLimit - quota.quotaConsumed}</div>
                     <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Remaining</div>
                   </div>
                   <div
@@ -100,9 +98,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
                       alignItems: 'center',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold' }}>
-                      {quota.quotaConsumed} {quota.quotaUnits}
-                    </div>
+                    <div style={{ fontWeight: 'bold' }}>{quota.quotaConsumed}</div>
                     <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Used</div>
                   </div>
                 </div>
