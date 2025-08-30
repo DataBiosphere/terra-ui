@@ -11,11 +11,15 @@ import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
-import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import {
+  pipelinesTopBar,
+  SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
+} from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { ImputationPrivatePreviewGate } from 'src/pages/scientificServices/pipelines/components/ImputationPrivatePreviewGate';
 import { PipelineFileInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
+import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
@@ -140,6 +144,8 @@ export const RunJob = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
 
+  const { quota, pipelineDetails } = useUserQuota(selectedPipeline);
+
   const resetSelectedUserInputs = () => {
     const newSelectedUserInputs = pipelineInputs.reduce((acc, input) => {
       acc[input.name] = '';
@@ -161,10 +167,22 @@ export const RunJob = () => {
     });
   };
 
+  const meetsMinimumQuota =
+    quota &&
+    selectedPipeline &&
+    quota.quotaLimit - quota.quotaConsumed > (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0);
+
   useEffect(() => {
     // Update selected user inputs when pipeline inputs change
     resetSelectedUserInputs();
   }, [pipelineInputs]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    // Update pipeline inputs when pipeline details change
+    if (pipelineDetails?.inputs) {
+      setPipelineInputs(pipelineDetails.inputs);
+    }
+  }, [pipelineDetails]);
 
   useEffect(() => {
     async function fetchData() {
@@ -184,13 +202,7 @@ export const RunJob = () => {
         setSelectedPipeline(response.results[0]);
       }
 
-      response.results.map(async (pipeline) => {
-        const pipelineName = pipeline.pipelineName;
-        const pipelineVersion = pipeline.pipelineVersion;
-        const { inputs } = await Teaspoons(signal).getPipelineDetails(pipelineName, pipelineVersion);
-        setPipelineInputs(inputs);
-        setIsLoading(false);
-      });
+      setIsLoading(false);
     }
     fetchData();
   }, [signal]);
@@ -317,14 +329,49 @@ export const RunJob = () => {
                       />
                     );
                   })}
-                {!submittedJobId && (
-                  <ButtonPrimary
-                    disabled={!selectedPipeline || isSubmitting || !areAllRequiredInputsFilled()}
-                    style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
-                    onClick={handleSubmit}
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
-                  </ButtonPrimary>
+                {/* Submit button */}
+                {!submittedJobId && quota && (
+                  <>
+                    {!meetsMinimumQuota && (
+                      <div
+                        style={{
+                          marginTop: '1rem',
+                          width: '500px',
+                          border: '1px solid #8f95a0',
+                          borderRadius: '4px',
+                          padding: '1rem',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginRight: '1rem' }} />
+                          <div>
+                            You do not have enough quota remaining to run this pipeline. Please{' '}
+                            <Link
+                              href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20Quota%20Increase%20Request`}
+                              style={{ color: '#46A3E9', fontWeight: 'bold' }}
+                            >
+                              apply for a quota increase
+                            </Link>
+                            .
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <ButtonPrimary
+                      disabled={
+                        !selectedPipeline || isSubmitting || !areAllRequiredInputsFilled() || !meetsMinimumQuota
+                      }
+                      style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
+                      onClick={handleSubmit}
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Submit'}
+                    </ButtonPrimary>
+                  </>
                 )}
                 {submittedJobId && (
                   <>

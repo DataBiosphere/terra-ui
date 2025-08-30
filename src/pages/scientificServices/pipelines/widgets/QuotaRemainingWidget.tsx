@@ -1,36 +1,13 @@
 import { Icon } from '@terra-ui-packages/components';
-import React, { useEffect, useState } from 'react';
-import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import React from 'react';
+import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { useCancellation } from 'src/libs/react-utils';
 import { cond, DEFAULT } from 'src/libs/utils';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 
 export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
-  const signal = useCancellation();
-  const [quota, setQuota] = useState<UserPipelineQuotaDetails>();
-  const [pipelineDetails, setPipelineDetails] = useState<PipelineWithDetails>();
-
-  useEffect(() => {
-    async function fetchUserQuota() {
-      if (!selectedPipeline) return;
-      const response = await Teaspoons(signal).getQuotaForPipeline(selectedPipeline.pipelineName);
-      setQuota(response);
-    }
-
-    async function fetchPipelineDetails() {
-      if (!selectedPipeline) return;
-      const response = await Teaspoons(signal).getPipelineDetails(
-        selectedPipeline.pipelineName,
-        selectedPipeline.pipelineVersion
-      );
-      setPipelineDetails(response);
-    }
-
-    fetchPipelineDetails();
-    fetchUserQuota();
-  }, [selectedPipeline, signal]);
+  const { quota, pipelineDetails } = useUserQuota(selectedPipeline);
 
   return (
     <div
@@ -58,7 +35,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
             return (
               <div style={{ marginTop: '1rem' }}>
                 <div style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{quota.quotaUnits}</div>
-                <div style={{ marginTop: '1rem' }}>
+                <div style={{ marginTop: '0.5rem' }}>
                   <div
                     style={{
                       backgroundColor: '#e4e5e6',
