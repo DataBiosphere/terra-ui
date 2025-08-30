@@ -2,6 +2,7 @@ import { Icon } from '@terra-ui-packages/components';
 import React, { useEffect, useState } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 import { useCancellation } from 'src/libs/react-utils';
 import { cond, DEFAULT } from 'src/libs/utils';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
@@ -56,12 +57,58 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
             }
             return (
               <div style={{ marginTop: '1rem' }}>
-                <span style={{ fontWeight: 'bold' }}>
-                  {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
-                </span>
+                <div style={{ marginTop: '1rem' }}>
+                  <div
+                    style={{
+                      backgroundColor: '#e4e5e6',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${((quota.quotaLimit - quota.quotaConsumed) / quota.quotaLimit) * 100}%`,
+                        height: '4px',
+                        backgroundColor:
+                          quota.quotaLimit - quota.quotaConsumed <
+                          (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0)
+                            ? colors.warning(0.6)
+                            : '#5CC88D',
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem', gap: '5rem' }}>
+                  <div
+                    style={{
+                      fontSize: '0.875rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold' }}>
+                      {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
+                    </div>
+                    <div style={{ color: '#6B6C6E' }}>Remaining</div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.875rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold' }}>
+                      {quota.quotaConsumed} {quota.quotaUnits}
+                    </div>
+                    <div style={{ color: '#6B6C6E' }}>Used</div>
+                  </div>
+                </div>
                 {pipelineDetails && (
                   <div style={{ marginTop: '1rem' }}>
-                    <span style={{ fontWeight: 'bold' }}>
+                    <span style={{ fontWeight: 600 }}>
                       {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota?.minQuotaConsumed} ${quota.quotaUnits} from your quota.`}
                     </span>
                   </div>
