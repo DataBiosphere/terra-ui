@@ -398,13 +398,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
 
 const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
   switch (pipelineRun.status) {
-    case 'RUNNING':
+    case 'SUCCEEDED':
       return (
         <div style={{ display: 'flex', alignItems: 'center', color: '#74AE43', gap: '0.5rem' }}>
           <Icon icon='success-standard' /> Done
         </div>
       );
-    case 'SUCCEEDED':
+    case 'RUNNING':
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Icon icon='sync' /> In Progress
