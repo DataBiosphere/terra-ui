@@ -424,7 +424,15 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
         );
       }
 
-      return <div style={{ display: 'flex', alignItems: 'center' }}>Preparing</div>;
+      return (
+        <TooltipCell
+          tooltip={`This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than ${PREPARING_JOB_CUTOFF_HOURS} hours will be marked as failed.`}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Icon icon='sync' /> Preparing
+          </div>
+        </TooltipCell>
+      );
     }
     case 'FAILED':
       return (
