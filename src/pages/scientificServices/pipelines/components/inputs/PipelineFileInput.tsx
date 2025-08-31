@@ -229,7 +229,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                       justifyContent: 'space-between',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#DB3214' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', verticalAlign: 'middle' }} />{' '}
                       <div>There was an error uploading the file.</div>
                     </div>
