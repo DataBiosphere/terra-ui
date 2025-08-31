@@ -222,8 +222,29 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                     <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
                   </div>
                 ) : (
-                  <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
-                    There was an error uploading the file. You can try to{' '}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#DB3214' }}>
+                      <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', verticalAlign: 'middle' }} />{' '}
+                      <div>There was an error uploading the file.</div>
+                    </div>
+                    <ButtonPrimary type='button' onClick={handleResumeUpload}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <Icon icon='sync' />
+                        Retry
+                      </div>
+                    </ButtonPrimary>
                   </div>
                 )}
                 <div key={input.name} style={{ marginTop: '1rem' }}>
@@ -258,18 +279,26 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             Invalid file type. Please upload a <strong>{input.fileSuffix}</strong> file.
           </div>
         )}
-        {uploadState?.errorMessage && (
-          <ButtonPrimary
-            type='button'
-            onClick={handleResumeUpload}
-            style={{
-              marginTop: '1rem',
-            }}
-          >
-            <Icon icon='play' />
-            Resume Upload
-          </ButtonPrimary>
-        )}
+        {/* {uploadState?.errorMessage && ( */}
+        {/*   <ButtonPrimary */}
+        {/*     type='button' */}
+        {/*     onClick={handleResumeUpload} */}
+        {/*     style={{ */}
+        {/*       marginTop: '1rem', */}
+        {/*     }} */}
+        {/*   > */}
+        {/*     <div */}
+        {/*       style={{ */}
+        {/*         display: 'flex', */}
+        {/*         alignItems: 'center', */}
+        {/*         gap: '0.5rem', */}
+        {/*       }} */}
+        {/*     > */}
+        {/*       <Icon icon='sync' /> */}
+        {/*       Retry Upload */}
+        {/*     </div> */}
+        {/*   </ButtonPrimary> */}
+        {/* )} */}
       </div>
     </div>
   );
