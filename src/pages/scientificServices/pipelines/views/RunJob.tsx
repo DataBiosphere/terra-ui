@@ -87,7 +87,7 @@ export async function prepareUploadStartPipelineRun(
       })
   );
 
-  // await Teaspoons().startPipelineRun(jobId);
+  await Teaspoons().startPipelineRun(jobId);
   return jobId;
 }
 
@@ -112,8 +112,6 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runDescription, setRunDescription] = useState<string>('');
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
-
-  console.log(uploadState);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -200,11 +198,11 @@ export const RunJob = () => {
         setUploadState
       );
       setSubmittedJobId(jobId);
+      setIsSubmitting(false);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '';
       notify('error', `Pipeline failed to submit. ${errorMessage}`);
     } finally {
-      setIsSubmitting(false);
       Metrics().captureEvent(Events.teaspoons.submitJob, {
         pipelineName,
         pipelineVersion: selectedPipeline.pipelineVersion,
