@@ -17,10 +17,14 @@ jest.mock('src/libs/ajax/teaspoons/Teaspoons', () => ({
 }));
 
 describe('QuotaRemainingWidget', () => {
-  it('displays the correct remaining quota', async () => {
+  it('displays the correct remaining and used quota', async () => {
     render(<QuotaRemainingWidget selectedPipeline={mockPipeline('test_pipeline')} />);
 
-    await waitFor(() => expect(screen.getByText('1250 things', { exact: false })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('1250', { exact: false })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('750', { exact: false })).toBeInTheDocument());
+
+    const progressBar = screen.getByRole('progressbar');
+    await expect(progressBar).toHaveStyle('background-color: #5CC88D; width: 62.5%');
   });
 
   it('displays the minimum quota consumed for the pipeline', async () => {
