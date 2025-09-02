@@ -50,15 +50,23 @@ jest.mock('src/components/IGVAddTrackModal', () => ({
   },
 }));
 
-const mockToJSON = jest.fn();
-const mockLoadSession = jest.fn();
+// Create shared mock functions that can be accessed throughout tests
+const mockLoadTrack = jest.fn();
+const mockToJSON = jest.fn(() =>
+  Promise.resolve({
+    genome: 'hg38',
+    locus: 'chr1:1-1000',
+    tracks: [],
+  })
+);
+const mockLoadSession = jest.fn(() => Promise.resolve());
 
 // Mock IGV library
 jest.mock('igv', () => {
   const igv = {
     setGoogleOauthToken: jest.fn(),
     createBrowser: jest.fn(async () => ({
-      loadTrack: jest.fn(),
+      loadTrack: mockLoadTrack,
       toJSON: mockToJSON,
       loadSession: mockLoadSession,
     })),
@@ -244,6 +252,47 @@ describe('IGVBrowser', () => {
 
     // Assert
     expect(mockOnDismiss).toHaveBeenCalled();
+  });
+
+  it('transforms Google Storage URLs to Google Media API URLs', async () => {
+    // Arrange
+    const fakeBucketName = 'fc-2c0d2442-2a5a-1190-ae31-3575a55df9b4';
+    const fakeSignedParams =
+      'X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=placeholder-value&X-Goog-Date=20250829T141753Z&X-Goog-Expires=1234&X-Goog-SignedHeaders=host&requestedBy=me@example.com&userProject=gcp-project-name-1234&X-Goog-Signature=1234567890987654321';
+
+    // Test files with Google Storage URLs
+    const googleStorageFiles = [
+      {
+        filePath: `https://storage.googleapis.com/${fakeBucketName}/a_sub_dir/big/multipart/path/foobar.bazmoo.er.raw.g.vcf.gz?${fakeSignedParams}`,
+        indexFilePath: `https://storage.googleapis.com/${fakeBucketName}/a_sub_dir/big/multipart/path/foobar.bazmoo.er.raw.g.vcf.gz.tbi?${fakeSignedParams}`,
+        isSignedUrl: true,
+      },
+    ];
+
+    state.knownBucketRequesterPaysStatuses.get.mockReturnValue({ [fakeBucketName]: false });
+    Utils.mergeQueryParams.mockImplementation((_params, url) => url);
+
+    // Act
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: googleStorageFiles,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    // Assert - Verify that Google Storage URLs were transformed to Media API URLs
+    await waitFor(() => {
+      expect(mockLoadTrack).toHaveBeenCalledWith({
+        name: expect.stringContaining('foobar.bazmoo.er.raw.g.vcf.gz'),
+        url: `https://storage.googleapis.com/storage/v1/b/${fakeBucketName}/o/a_sub_dir%2Fbig%2Fmultipart%2Fpath%2Ffoobar.bazmoo.er.raw.g.vcf.gz?${fakeSignedParams}&alt=media`,
+        indexURL: `https://storage.googleapis.com/storage/v1/b/${fakeBucketName}/o/a_sub_dir%2Fbig%2Fmultipart%2Fpath%2Ffoobar.bazmoo.er.raw.g.vcf.gz.tbi?${fakeSignedParams}&alt=media`,
+        visibilityWindow: 75000,
+      });
+    });
   });
 });
 
