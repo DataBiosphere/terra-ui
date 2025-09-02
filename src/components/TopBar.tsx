@@ -257,7 +257,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   {...Utils.newTabLinkProps}
                 >
                   <Icon icon='newspaper' size={24} style={navIconStyles} />
-                  Release Notes
+                  Service News
                 </NavSection>
                 <NavSection
                   href='https://broadscientificservices.zendesk.com/hc/en-us'

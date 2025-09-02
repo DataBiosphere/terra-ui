@@ -61,7 +61,7 @@ describe('TopBar', () => {
     expect(screen.queryByText('Sign In')).toBeInTheDocument();
     expect(screen.queryByText('Workspaces')).not.toBeInTheDocument();
     expect(screen.queryByText('Support')).not.toBeInTheDocument();
-    expect(screen.queryByText('Release Notes')).toBeInTheDocument();
+    expect(screen.queryByText('Service News')).toBeInTheDocument();
     expect(screen.queryByText('Documentation')).toBeInTheDocument();
   });
 
