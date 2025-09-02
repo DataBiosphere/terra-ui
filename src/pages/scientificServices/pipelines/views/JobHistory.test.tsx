@@ -75,7 +75,7 @@ describe('job history table', () => {
 
     expect(await screen.findByText('Job History')).toBeInTheDocument();
     expect(screen.queryAllByText(pipelineRun.description!)).toHaveLength(2);
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.queryAllByText('In Progress', { exact: false })).toHaveLength(2);
     expect(screen.getByText('array_imputation v1')).toBeInTheDocument();
   });
 
@@ -189,7 +189,7 @@ describe('job history table', () => {
 
     expect(screen.queryByText('View Outputs')).not.toBeInTheDocument();
     expect(screen.queryByText('View Error')).not.toBeInTheDocument();
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.queryAllByText('In Progress', { exact: false })).toHaveLength(2);
   });
 
   it('opens the outputs modal when View Outputs button is clicked', async () => {
@@ -296,6 +296,12 @@ describe('job history table', () => {
 
       expect(screen.getByText('Preparing')).toBeInTheDocument();
       expect(screen.queryByText('View Error')).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByText(
+          'This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than 12 hours will be marked as failed.'
+        )
+      ).toBeInTheDocument();
     });
 
     it(`displays FAILED if the job was submitted more than ${PREPARING_JOB_CUTOFF_HOURS} hours ago and is in PREPARING status`, async () => {
