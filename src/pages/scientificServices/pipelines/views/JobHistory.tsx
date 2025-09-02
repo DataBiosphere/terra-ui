@@ -62,7 +62,7 @@ export const JobHistory = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <h3>Job History</h3>
             <div style={{ marginBottom: '0.25rem' }}>
-              All files and errors associated with jobs will be automatically deleted after 2 weeks from completion.
+              All files associated with jobs will be automatically deleted after 2 weeks from completion.
             </div>
             <div>
               For support, email{' '}
@@ -405,7 +405,11 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
         </div>
       );
     case 'RUNNING':
-      return <div style={{ display: 'flex', alignItems: 'center' }}>In Progress</div>;
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon icon='sync' /> In Progress
+        </div>
+      );
     case 'PREPARING': {
       // In most cases, jobs stuck in Preparing can be considered failures.
       // However, we have a window where we still show "Preparing" in case the user happens
@@ -420,7 +424,15 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
         );
       }
 
-      return <div style={{ display: 'flex', alignItems: 'center' }}>Preparing</div>;
+      return (
+        <TooltipCell
+          tooltip={`This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than ${PREPARING_JOB_CUTOFF_HOURS} hours will be marked as failed.`}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Icon icon='sync' /> Preparing
+          </div>
+        </TooltipCell>
+      );
     }
     case 'FAILED':
       return (
