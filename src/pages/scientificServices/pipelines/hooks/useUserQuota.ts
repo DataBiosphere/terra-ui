@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 
 export interface UseUserQuotaResult {
@@ -8,7 +9,6 @@ export interface UseUserQuotaResult {
   pipelineDetails: PipelineWithDetails | undefined;
   meetsMinimumQuota: boolean | undefined;
   isLoading: boolean;
-  error: string | null;
 }
 
 export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult => {
@@ -16,19 +16,16 @@ export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult =>
   const [quota, setQuota] = useState<UserPipelineQuotaDetails>();
   const [pipelineDetails, setPipelineDetails] = useState<PipelineWithDetails>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchUserQuota = async () => {
     if (!selectedPipeline) {
       setQuota(undefined);
       setPipelineDetails(undefined);
       setIsLoading(false);
-      setError(null);
       return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     try {
       const [quotaResponse, pipelineDetailsResponse] = await Promise.all([
@@ -40,7 +37,7 @@ export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult =>
       setPipelineDetails(pipelineDetailsResponse);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quota and pipeline details';
-      setError(errorMessage);
+      notify('error', errorMessage);
       setQuota(undefined);
       setPipelineDetails(undefined);
     } finally {
@@ -62,6 +59,5 @@ export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult =>
     pipelineDetails,
     isLoading,
     meetsMinimumQuota,
-    error,
   };
 };
