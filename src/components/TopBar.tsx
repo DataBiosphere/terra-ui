@@ -252,7 +252,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
             {isScientificServices() && (
               <>
                 <NavSection
-                  href='https://broadscientificservices.zendesk.com/hc/en-us'
+                  href='https://broadscientificservices.zendesk.com/hc/en-us/categories/39899029682331'
                   onClick={hideNav}
                   {...Utils.newTabLinkProps}
                 >
