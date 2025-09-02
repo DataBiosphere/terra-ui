@@ -8,6 +8,7 @@ import IGVAddTrackModal from 'src/components/IGVAddTrackModal';
 import { GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
+import { isGoogleStorageURL, isGoogleURL, translateGoogleCloudURL } from 'src/libs/igv-google-utils';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -106,10 +107,14 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       // Enable viewing features upon searching most genes, without needing to zoom several times
       const visibilityWindow = 75_000;
 
+      const igvProcessedFullUrl = fullUrl && isGoogleURL(fullUrl) && isGoogleStorageURL(fullUrl) ? translateGoogleCloudURL(fullUrl) : fullUrl;
+      const igvProcessedFullIndexUrl =
+        fullIndexUrl && isGoogleURL(fullIndexUrl) && isGoogleStorageURL(fullIndexUrl) ? translateGoogleCloudURL(fullIndexUrl) : fullIndexUrl;
+
       igvBrowser.current.loadTrack({
         name: name || `${simpleUrl} (${url})`,
-        url: fullUrl,
-        indexURL: indexURL ? fullIndexUrl : undefined,
+        url: igvProcessedFullUrl,
+        indexURL: indexURL ? igvProcessedFullIndexUrl : undefined,
         visibilityWindow,
       });
     }, tracks);
