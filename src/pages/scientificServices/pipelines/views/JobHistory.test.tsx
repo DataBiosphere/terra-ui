@@ -296,6 +296,12 @@ describe('job history table', () => {
 
       expect(screen.getByText('Preparing')).toBeInTheDocument();
       expect(screen.queryByText('View Error')).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByText(
+          'This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than 12 hours will be marked as failed.'
+        )
+      ).toBeInTheDocument();
     });
 
     it(`displays FAILED if the job was submitted more than ${PREPARING_JOB_CUTOFF_HOURS} hours ago and is in PREPARING status`, async () => {
