@@ -48,8 +48,7 @@ describe('TopBar', () => {
     }
   });
 
-  it('renders limited options when compactTopBar brand option is enabled', async () => {
-    // scientificServices is a brand config that has compactTopBar enabled
+  it('renders limited options when scientificServices brand option is enabled', async () => {
     configOverridesStore.set({ brand: 'scientificServices' });
 
     authStore.update((authState) => ({ ...authState, signInStatus: 'uninitialized' as SignInStatus }));
@@ -62,5 +61,22 @@ describe('TopBar', () => {
     expect(screen.queryByText('Sign In')).toBeInTheDocument();
     expect(screen.queryByText('Workspaces')).not.toBeInTheDocument();
     expect(screen.queryByText('Support')).not.toBeInTheDocument();
+    expect(screen.queryByText('Service News')).toBeInTheDocument();
+    expect(screen.queryByText('Documentation')).toBeInTheDocument();
+  });
+
+  it('renders full options when scientificServices brand option is disabled', async () => {
+    configOverridesStore.set({ brand: undefined });
+
+    authStore.update((authState) => ({ ...authState, signInStatus: 'uninitialized' as SignInStatus }));
+
+    // Act
+    render(h(TopBar));
+    fireEvent.click(screen.getByLabelText('Toggle main menu'));
+
+    // Assert
+    expect(screen.queryByText('Sign In')).toBeInTheDocument();
+    expect(screen.queryByText('Workspaces')).toBeInTheDocument();
+    expect(screen.queryByText('Support')).toBeInTheDocument();
   });
 });
