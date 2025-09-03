@@ -1,5 +1,65 @@
+import * as qs from 'qs';
 import { useEffect, useState } from 'react';
 import { withErrorReporting } from 'src/libs/error';
+
+export const encodeSessionToUrl = (sessionData) => {
+  try {
+    // Base64 encode the session data
+    return btoa(JSON.stringify(sessionData));
+  } catch (error) {
+    console.error('Failed to encode session to URL:', error);
+    return null;
+  }
+};
+
+export const decodeSessionFromUrl = (encodedSession) => {
+  try {
+    return JSON.parse(atob(encodedSession));
+  } catch (error) {
+    console.error('Failed to decode session from URL:', error);
+    return null;
+  }
+};
+
+export const getIgvUrlParams = () => {
+  const params = qs.parse(window.location.search, { ignoreQueryPrefix: true });
+  return {
+    igvSession: params.igvSession || null,
+    igvGenome: params.igvGenome || null,
+  };
+};
+
+export const updateUrlWithSession = (sessionData, genome) => {
+  const encodedSession = encodeSessionToUrl(sessionData);
+  if (!encodedSession) return null;
+
+  const currentParams = qs.parse(window.location.search, { ignoreQueryPrefix: true });
+  const newParams = {
+    ...currentParams,
+    igvSession: encodedSession,
+    igvGenome: genome,
+  };
+
+  const basePath = window.location.pathname;
+  const hashFragment = window.location.hash;
+
+  const newUrl = `${basePath}?${qs.stringify(newParams)}${hashFragment}`;
+
+  return `${window.location.origin}${newUrl}`;
+};
+
+export const clearIgvUrlParams = () => {
+  const currentParams = qs.parse(window.location.search, { ignoreQueryPrefix: true });
+  delete currentParams.igvSession;
+  delete currentParams.igvGenome;
+  const hashFragment = window.location.hash;
+
+  const newUrl =
+    currentParams && Object.keys(currentParams).length > 0
+      ? `${window.location.pathname}?${qs.stringify(currentParams)}${hashFragment}`
+      : `${window.location.pathname}${hashFragment}`;
+  window.history.replaceState({}, '', newUrl);
+};
 
 export const useIGVSessions = (workspaceId) => {
   const [savedSessions, setSavedSessions] = useState([]);

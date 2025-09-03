@@ -1,9 +1,11 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
 import * as DataUtils from 'src/components/data/data-utils';
 import IGVBrowser from 'src/components/IGVBrowser';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import * as Notifications from 'src/libs/notifications';
 import * as state from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -74,6 +76,10 @@ jest.mock('igv', () => {
   };
   return { __esModule: true, default: igv, ...igv };
 });
+
+jest.mock('clipboard-polyfill/text', () => ({
+  writeText: jest.fn(),
+}));
 
 // Mock data-utils but keep real parseGsUri
 jest.mock('src/components/data/data-utils', () => {
@@ -301,6 +307,19 @@ describe('IGVBrowser Session Management', () => {
     jest.clearAllMocks();
     localStorageMock.clear();
   });
+
+  const mockSelectedFilesWithSignedUrl = [
+    {
+      filePath: 'gs://bucket/test.bam',
+      indexFilePath: 'gs://bucket/test.bai',
+      isSignedUrl: false,
+    },
+    {
+      filePath: 'https://signed-url.com/file.vcf?signature=abc123',
+      indexFilePath: 'https://signed-url.com/file.vcf.tbi?signature=abc123',
+      isSignedUrl: true,
+    },
+  ];
 
   describe('Session Saving', () => {
     it('saves a session successfully', async () => {
@@ -636,5 +655,152 @@ describe('IGVBrowser Session Management', () => {
       fireEvent.click(session1);
       expect(modalLoadButton).not.toHaveAttribute('disabled');
     });
+  });
+
+  it('shares a session successfully', async () => {
+    // Arrange
+    const mockNotify = Notifications.notify;
+
+    // Mock the IGV browser's toJSON method
+    mockToJSON.mockReturnValue({
+      genome: 'hg38',
+      locus: 'chr1:1000-2000',
+      tracks: [],
+    });
+
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFiles,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    // Act
+    const shareButton = screen.getByText('Share Session');
+    fireEvent.click(shareButton);
+
+    // Assert
+    await waitFor(() => {
+      // Verify clipboard write
+      expect(clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('igvSession='));
+
+      // Verify success notification
+      expect(mockNotify).toHaveBeenCalledWith('success', 'Session URL copied to clipboard', { timeout: 3000 });
+    });
+  });
+
+  it('disables save session button when signed URLs are present', async () => {
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithSignedUrl,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    const saveButton = screen.getByText('Save Session');
+    expect(saveButton).toHaveAttribute('disabled');
+    // Hover over the button
+    fireEvent.mouseEnter(saveButton);
+
+    // Look for tooltip text in the document
+    await waitFor(() => {
+      const tooltipElements = screen.getAllByText('Cannot save session with signed URLs');
+      expect(tooltipElements.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('disables share session button when signed URLs are present', async () => {
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithSignedUrl,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    const shareButton = screen.getByText('Share Session');
+    expect(shareButton).toHaveAttribute('disabled');
+    // Hover over the button
+    fireEvent.mouseEnter(shareButton);
+
+    // Look for tooltip text in the document
+    await waitFor(() => {
+      const tooltipElements = screen.getAllByText('Cannot share session with signed URLs');
+      expect(tooltipElements.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('still allows loading sessions when signed URLs are present', async () => {
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithSignedUrl,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    const loadButton = screen.getByText('Load Session');
+    expect(loadButton).not.toHaveAttribute('disabled');
+  });
+
+  it('prevents saving even when user tries to open modal with signed URLs', async () => {
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithSignedUrl,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    const saveButton = screen.getByText('Save Session');
+
+    // Button should be disabled, so clicking shouldn't open modal
+    fireEvent.click(saveButton);
+
+    // Modal should not appear
+    expect(screen.queryByText('Save IGV Session')).not.toBeInTheDocument();
+  });
+
+  it('prevents sharing even when user tries to click disabled button', async () => {
+    const mockNotify = Notifications.notify;
+
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithSignedUrl,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    const shareButton = screen.getByText('Share Session');
+
+    // Button should be disabled, so clicking shouldn't trigger sharing
+    fireEvent.click(shareButton);
+
+    // No clipboard write should occur
+    expect(clipboard.writeText).not.toHaveBeenCalled();
+
+    // No success notification should be shown
+    expect(mockNotify).not.toHaveBeenCalledWith('success', 'Session URL copied to clipboard', expect.any(Object));
   });
 });

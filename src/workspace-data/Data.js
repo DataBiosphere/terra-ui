@@ -11,9 +11,11 @@ import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import FileBrowser from 'src/components/data/FileBrowser';
 import { icon } from 'src/components/icons';
+import IGVBrowser from 'src/components/IGVBrowser';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
+import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams } from 'src/components/useIGVSessions';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
@@ -599,6 +601,22 @@ export const WorkspaceData = _.flow(
     });
 
     useEffect(() => {
+      const { igvSession, igvGenome } = getIgvUrlParams();
+
+      if (igvSession) {
+        const sessionData = decodeSessionFromUrl(igvSession);
+        if (sessionData) {
+          // Set selectedData to trigger IGV opening
+          setSelectedData({
+            type: 'urlIgv',
+            sessionData,
+            genome: igvGenome,
+          });
+        }
+      }
+    }, []);
+
+    useEffect(() => {
       StateHistory.update({ entityMetadata, selectedData });
     }, [entityMetadata, selectedData]);
 
@@ -976,9 +994,22 @@ export const WorkspaceData = _.flow(
                         setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName });
                       }),
                     }),
+                ],
+                [
+                  'urlIgv',
+                  () =>
+                    h(IGVBrowser, {
+                      selectedFiles: [], // Empty since session will load its own tracks
+                      refGenome: { genome: selectedData.genome, reference: null },
+                      workspace,
+                      onDismiss: () => {
+                        setSelectedData(undefined);
+                        clearIgvUrlParams(); // Clear URL parameters when dismissing
+                      },
+                      initialSession: selectedData.sessionData,
+                    }),
                 ]
               ),
-              // ]
             ]),
           ]),
     ]);
