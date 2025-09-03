@@ -1,35 +1,13 @@
 import { Icon } from '@terra-ui-packages/components';
-import React, { useEffect, useState } from 'react';
-import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { useCancellation } from 'src/libs/react-utils';
+import React from 'react';
+import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 import { cond, DEFAULT } from 'src/libs/utils';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 
 export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
-  const signal = useCancellation();
-  const [quota, setQuota] = useState<UserPipelineQuotaDetails>();
-  const [pipelineDetails, setPipelineDetails] = useState<PipelineWithDetails>();
-
-  useEffect(() => {
-    async function fetchUserQuota() {
-      if (!selectedPipeline) return;
-      const response = await Teaspoons(signal).getQuotaForPipeline(selectedPipeline.pipelineName);
-      setQuota(response);
-    }
-
-    async function fetchPipelineDetails() {
-      if (!selectedPipeline) return;
-      const response = await Teaspoons(signal).getPipelineDetails(
-        selectedPipeline.pipelineName,
-        selectedPipeline.pipelineVersion
-      );
-      setPipelineDetails(response);
-    }
-
-    fetchPipelineDetails();
-    fetchUserQuota();
-  }, [selectedPipeline, signal]);
+  const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   return (
     <div
@@ -56,12 +34,53 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
             }
             return (
               <div style={{ marginTop: '1rem' }}>
-                <span style={{ fontWeight: 'bold' }}>
-                  {quota.quotaLimit - quota.quotaConsumed} {quota.quotaUnits}
-                </span>
+                <div style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{quota.quotaUnits}</div>
+                <div style={{ marginTop: '0.5rem' }}>
+                  <div
+                    style={{
+                      backgroundColor: '#e4e5e6',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      aria-label={`quota: ${quota.quotaLimit - quota.quotaConsumed} remaining, ${
+                        quota.quotaConsumed
+                      } used`}
+                      role='progressbar'
+                      style={{
+                        width: `${((quota.quotaLimit - quota.quotaConsumed) / quota.quotaLimit) * 100}%`,
+                        height: '6px',
+                        backgroundColor: meetsMinimumQuota ? '#5CC88D' : colors.warning(0.6),
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', gap: '5rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold' }}>{quota.quotaLimit - quota.quotaConsumed}</div>
+                    <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Remaining</div>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-end',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold' }}>{quota.quotaConsumed}</div>
+                    <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Used</div>
+                  </div>
+                </div>
                 {pipelineDetails && (
                   <div style={{ marginTop: '1rem' }}>
-                    <span style={{ fontWeight: 'bold' }}>
+                    <span style={{ fontWeight: 600 }}>
                       {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota?.minQuotaConsumed} ${quota.quotaUnits} from your quota.`}
                     </span>
                   </div>

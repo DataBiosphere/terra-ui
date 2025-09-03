@@ -130,6 +130,7 @@ export interface BaseWorkspaceInfo {
   totalSpend?: string;
   totalCompute?: string;
   totalStorage?: string;
+  otherSpend?: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
