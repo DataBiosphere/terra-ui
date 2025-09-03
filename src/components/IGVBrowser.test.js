@@ -302,6 +302,8 @@ describe('IGVBrowser', () => {
   });
 
   it('does not transform Google URLs that are not signed URLs', async () => {
+    // This helps confirm that IGV works for non-DRS URIs
+
     // Arrange
     const fakeBucketName = 'test-bucket';
 
