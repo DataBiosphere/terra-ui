@@ -285,26 +285,6 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             Invalid file type. Please upload a <strong>{input.fileSuffix}</strong> file.
           </div>
         )}
-        {/* {uploadState?.errorMessage && ( */}
-        {/*   <ButtonPrimary */}
-        {/*     type='button' */}
-        {/*     onClick={handleResumeUpload} */}
-        {/*     style={{ */}
-        {/*       marginTop: '1rem', */}
-        {/*     }} */}
-        {/*   > */}
-        {/*     <div */}
-        {/*       style={{ */}
-        {/*         display: 'flex', */}
-        {/*         alignItems: 'center', */}
-        {/*         gap: '0.5rem', */}
-        {/*       }} */}
-        {/*     > */}
-        {/*       <Icon icon='sync' /> */}
-        {/*       Retry Upload */}
-        {/*     </div> */}
-        {/*   </ButtonPrimary> */}
-        {/* )} */}
       </div>
     </div>
   );
