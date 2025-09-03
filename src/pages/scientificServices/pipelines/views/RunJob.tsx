@@ -21,7 +21,10 @@ import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/c
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
-import { prepareUploadStartPipelineRun } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
+import {
+  preparePipelineRun,
+  prepareUploadStartPipelineRun,
+} from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
@@ -51,6 +54,7 @@ export const RunJob = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
 
+  // User quota for the selected pipeline
   const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   const resetSelectedUserInputs = () => {
@@ -124,13 +128,22 @@ export const RunJob = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
+    const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
+      pipelineName,
+      selectedPipeline.pipelineVersion,
+      selectedUserInputs,
+      runDescription
+    );
+
     try {
-      setIsSubmitting(true);
       const jobId = await prepareUploadStartPipelineRun(
+        preparedJobId,
         pipelineName,
         selectedPipeline.pipelineVersion,
         selectedUserInputs,
-        runDescription,
+        fileInputUploadUrls,
         pipelineInputs,
         setUploadState
       );

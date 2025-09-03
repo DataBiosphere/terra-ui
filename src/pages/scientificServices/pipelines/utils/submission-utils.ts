@@ -8,7 +8,7 @@ import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipel
 
 // Helper functions for orchestrating the pipeline run submission process
 
-async function preparePipelineRun(
+export async function preparePipelineRun(
   pipelineName: string,
   pipelineVersion: number,
   selectedUserInputs: Record<string, any>,
@@ -80,19 +80,20 @@ async function startPipelineRun(jobId: string): Promise<void> {
 }
 
 export async function prepareUploadStartPipelineRun(
+  jobId: string,
   pipelineName: string,
   pipelineVersion: number,
   selectedUserInputs: Record<string, any>,
-  description: string,
+  fileInputUploadUrls: Record<string, { signedUrl: string }>,
   pipelineInputs: PipelineInput[],
   setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>> = () => {}
 ): Promise<string> {
-  const { jobId, fileInputUploadUrls } = await preparePipelineRun(
-    pipelineName,
-    pipelineVersion,
-    selectedUserInputs,
-    description
-  );
+  // const { jobId, fileInputUploadUrls } = await preparePipelineRun(
+  //   pipelineName,
+  //   pipelineVersion,
+  //   selectedUserInputs,
+  //   description
+  // );
 
   await uploadPipelineFiles(
     pipelineName,
