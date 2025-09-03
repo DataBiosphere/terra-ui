@@ -1,6 +1,6 @@
 import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -21,79 +21,9 @@ import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/c
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
-import { initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import { prepareUploadStartPipelineRun } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
-
-export async function prepareUploadStartPipelineRun(
-  pipelineName: string,
-  pipelineVersion: number,
-  selectedUserInputs: Record<string, any>,
-  description: string,
-  pipelineInputs: PipelineInput[],
-  setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>> = () => {}
-): Promise<string> {
-  const jobId = crypto.randomUUID();
-
-  const finalUserInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
-    if (value instanceof File) {
-      acc[key] = value.name; // Use the file name for File inputs
-    } else {
-      acc[key] = value; // All other inputs can be used as-is
-    }
-    return acc;
-  }, {});
-
-  const { fileInputUploadUrls } = await Teaspoons().preparePipelineRun(
-    jobId,
-    pipelineName,
-    pipelineVersion,
-    finalUserInputs,
-    description
-  );
-
-  // Gather all FILE inputs and wait for their uploads to complete
-  await Promise.all(
-    pipelineInputs
-      .filter((input) => input.type === 'FILE')
-      .map(async (input) => {
-        const file = selectedUserInputs[input.name];
-        const signedUrl = fileInputUploadUrls[input.name].signedUrl;
-        if (file instanceof File) {
-          try {
-            const fileUploadDurationMillis = await initiateResumableUpload(input.name, file, signedUrl, setUploadState);
-
-            // Capture the file upload metrics. We don't await the Mixpanel metrics capture
-            // because we don't want to block the user from proceeding, so this is a fire-and-forget.
-            Metrics().captureEvent(Events.teaspoons.fileUpload, {
-              pipelineName,
-              pipelineVersion,
-              fileSize: file.size,
-              fileType: file.type,
-              fileUploadDurationMillis,
-            });
-          } catch (error) {
-            // Update upload state with error for this specific input
-            setUploadState((prev) => ({
-              ...prev,
-              [input.name]: {
-                ...prev[input.name],
-                errorMessage: error instanceof Error ? error.message : 'Upload failed',
-              },
-            }));
-
-            throw error;
-          }
-
-          return;
-        }
-        throw new Error(`Expected a File for input ${input.name}, but got ${typeof file}`);
-      })
-  );
-
-  await Teaspoons().startPipelineRun(jobId);
-  return jobId;
-}
 
 export interface PipelineInputFileUploadState {
   signedUrl?: string; // The resumable upload session URL
