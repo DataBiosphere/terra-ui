@@ -14,6 +14,7 @@ interface PipelineInputSelectorProps {
   selectedFile: File | null;
   uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
+  onUploadComplete?: () => void;
   setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
 
@@ -22,6 +23,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   selectedFile,
   uploadState,
   onFileSelect,
+  onUploadComplete,
   setUploadState,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +67,9 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     if (selectedFile && uploadState?.signedUrl && setUploadState) {
       try {
         await resumeUpload(input.name, selectedFile, uploadState.signedUrl, setUploadState);
+        if (onUploadComplete) {
+          onUploadComplete();
+        }
       } catch (error) {
         notify('error', `Failed to resume upload for ${input.name}: ${error}`);
       }

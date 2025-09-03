@@ -32,7 +32,7 @@ export async function preparePipelineRun(
   return { jobId, fileInputUploadUrls };
 }
 
-async function uploadPipelineFiles(
+export async function uploadPipelineFiles(
   pipelineName: string,
   pipelineVersion: number,
   pipelineInputs: PipelineInput[],
@@ -75,36 +75,7 @@ async function uploadPipelineFiles(
   );
 }
 
-async function startPipelineRun(jobId: string): Promise<void> {
+export async function startPipelineRun(jobId: string): Promise<string> {
   await Teaspoons().startPipelineRun(jobId);
-}
-
-export async function prepareUploadStartPipelineRun(
-  jobId: string,
-  pipelineName: string,
-  pipelineVersion: number,
-  selectedUserInputs: Record<string, any>,
-  fileInputUploadUrls: Record<string, { signedUrl: string }>,
-  pipelineInputs: PipelineInput[],
-  setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>> = () => {}
-): Promise<string> {
-  // const { jobId, fileInputUploadUrls } = await preparePipelineRun(
-  //   pipelineName,
-  //   pipelineVersion,
-  //   selectedUserInputs,
-  //   description
-  // );
-
-  await uploadPipelineFiles(
-    pipelineName,
-    pipelineVersion,
-    pipelineInputs,
-    selectedUserInputs,
-    fileInputUploadUrls,
-    setUploadState
-  );
-
-  await startPipelineRun(jobId);
-
   return jobId;
 }

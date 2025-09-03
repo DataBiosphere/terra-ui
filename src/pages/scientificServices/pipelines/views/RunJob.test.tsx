@@ -6,7 +6,7 @@ import { Pipeline, PipelineInput, PipelineList, PipelineWithDetails } from 'src/
 import { mockUserPipelineQuotaDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { prepareUploadStartPipelineRun, RunJob } from './RunJob';
+import { RunJob } from './RunJob';
 
 // Mock dependencies
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');

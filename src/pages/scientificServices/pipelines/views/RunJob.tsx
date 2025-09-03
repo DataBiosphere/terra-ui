@@ -23,7 +23,8 @@ import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUs
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 import {
   preparePipelineRun,
-  prepareUploadStartPipelineRun,
+  startPipelineRun,
+  uploadPipelineFiles,
 } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
@@ -41,6 +42,7 @@ export const RunJob = () => {
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
   const [uploadState, setUploadState] = useState<Record<string, PipelineInputFileUploadState>>({});
+  const [preparedJobId, setPreparedJobId] = useState<string>();
 
   // Input parameter names for the selected pipeline
   const [pipelineInputs, setPipelineInputs] = useState<PipelineInput[]>([]);
@@ -77,6 +79,12 @@ export const RunJob = () => {
       return true;
     });
   };
+
+  async function onUploadComplete(jobId: string) {
+    const submittedJobId = await startPipelineRun(jobId);
+    setSubmittedJobId(submittedJobId);
+    setIsSubmitting(false);
+  }
 
   useEffect(() => {
     // Update selected user inputs when pipeline inputs change
@@ -115,7 +123,7 @@ export const RunJob = () => {
 
   const handleSubmit = async () => {
     if (!selectedPipeline) {
-      console.error('Missing required fields');
+      notify('error', 'Missing required fields');
       return;
     }
 
@@ -124,7 +132,7 @@ export const RunJob = () => {
 
     // Only proceed if we have a valid pipeline name
     if (!pipelineName) {
-      console.error('No pipeline selected or pipeline name not found');
+      notify('error', 'No pipeline selected or pipeline name not found');
       return;
     }
 
@@ -137,21 +145,22 @@ export const RunJob = () => {
       runDescription
     );
 
+    setPreparedJobId(preparedJobId);
+
     try {
-      const jobId = await prepareUploadStartPipelineRun(
-        preparedJobId,
+      await uploadPipelineFiles(
         pipelineName,
         selectedPipeline.pipelineVersion,
+        pipelineInputs,
         selectedUserInputs,
         fileInputUploadUrls,
-        pipelineInputs,
         setUploadState
       );
-      setSubmittedJobId(jobId);
-      setIsSubmitting(false);
+
+      await onUploadComplete(preparedJobId);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '';
-      notify('error', `Pipeline failed to submit. ${errorMessage}`);
+      console.error(errorMessage);
     } finally {
       Metrics().captureEvent(Events.teaspoons.submitJob, {
         pipelineName,
@@ -236,6 +245,7 @@ export const RunJob = () => {
                         uploadState={uploadState[input.name]}
                         selectedFile={selectedUserInputs[input.name] || null}
                         setUploadState={setUploadState}
+                        onUploadComplete={preparedJobId ? () => onUploadComplete(preparedJobId) : undefined}
                         onFileSelect={(file) => {
                           setSelectedUserInputs((prev) => ({
                             ...prev,
