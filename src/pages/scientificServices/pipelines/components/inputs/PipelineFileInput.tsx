@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
 import { resumeUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
@@ -65,7 +66,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
       try {
         await resumeUpload(input.name, selectedFile, uploadState.signedUrl, setUploadState);
       } catch (error) {
-        console.error('Failed to resume upload:', error);
+        notify('error', `Failed to resume upload for ${input.name}: ${error}`);
       }
     }
   };
