@@ -6,14 +6,14 @@ import colors from 'src/libs/colors';
 import { formatBytes } from 'src/libs/utils';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
 import { resumeUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
-import { InputUploadState } from 'src/pages/scientificServices/pipelines/views/RunJob';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/views/RunJob';
 
 interface PipelineInputSelectorProps {
   input: PipelineInput;
   selectedFile: File | null;
-  uploadState?: InputUploadState;
+  uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
-  setUploadState?: React.Dispatch<React.SetStateAction<Record<string, InputUploadState>>>;
+  setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
 
 export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({

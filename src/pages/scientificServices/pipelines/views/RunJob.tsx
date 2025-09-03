@@ -31,7 +31,7 @@ export async function prepareUploadStartPipelineRun(
   selectedUserInputs: Record<string, any>,
   description: string,
   pipelineInputs: PipelineInput[],
-  setUploadState: Dispatch<SetStateAction<Record<string, InputUploadState>>> = () => {}
+  setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>> = () => {}
 ): Promise<string> {
   const jobId = crypto.randomUUID();
 
@@ -95,7 +95,7 @@ export async function prepareUploadStartPipelineRun(
   return jobId;
 }
 
-export interface InputUploadState {
+export interface PipelineInputFileUploadState {
   signedUrl?: string; // The resumable upload session URL
   progress: number; // Progress percentage (0-100)
   errorMessage?: string; // Optional error message
@@ -107,7 +107,7 @@ export const RunJob = () => {
 
   const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
-  const [uploadState, setUploadState] = useState<Record<string, InputUploadState>>({});
+  const [uploadState, setUploadState] = useState<Record<string, PipelineInputFileUploadState>>({});
 
   // Input parameter names for the selected pipeline
   const [pipelineInputs, setPipelineInputs] = useState<PipelineInput[]>([]);

@@ -1,6 +1,6 @@
 /* Check the status of a resumable upload session. */
 import { Dispatch, SetStateAction } from 'react';
-import { InputUploadState } from 'src/pages/scientificServices/pipelines/views/RunJob';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/views/RunJob';
 
 async function checkUploadStatus(sessionUrl: string): Promise<number> {
   const res = await fetch(sessionUrl, {
@@ -35,7 +35,7 @@ export async function resumeUpload(
   inputName: string,
   inputFile: File,
   sessionUrl: string,
-  setUploadState: Dispatch<SetStateAction<Record<string, InputUploadState>>>
+  setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>
 ): Promise<number> {
   const startTime = Date.now();
 
@@ -52,7 +52,6 @@ export async function resumeUpload(
   }
 
   // Resume upload from where it left off
-  const remainingBytes = inputFile.size - uploadedBytes;
   const fileSlice = inputFile.slice(uploadedBytes);
 
   return new Promise((resolve, reject) => {
@@ -111,7 +110,7 @@ export async function initiateResumableUpload(
   inputName: string,
   inputFile: File,
   signedUrl: string,
-  setUploadState: Dispatch<SetStateAction<Record<string, InputUploadState>>>
+  setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>
 ): Promise<number> {
   // Step 1: Initiate the resumable upload session.
   // Google will return a session URL in the Location header,
