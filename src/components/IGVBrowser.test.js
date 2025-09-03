@@ -300,6 +300,47 @@ describe('IGVBrowser', () => {
       });
     });
   });
+
+  it('does not transform Google URLs that are not signed URLs', async () => {
+    // This helps confirm that IGV works for non-DRS URIs
+
+    // Arrange
+    const fakeBucketName = 'test-bucket';
+
+    // Test files with regular Google Storage URLs (not signed URLs)
+    const googleStorageFiles = [
+      {
+        filePath: `gs://${fakeBucketName}/regular-file.bam`,
+        indexFilePath: `gs://${fakeBucketName}/regular-file.bai`,
+        isSignedUrl: false,
+      },
+    ];
+
+    state.knownBucketRequesterPaysStatuses.get.mockReturnValue({ [fakeBucketName]: false });
+    Utils.mergeQueryParams.mockImplementation((_params, url) => url);
+
+    // Act
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: googleStorageFiles,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    // Assert - Verify that regular Google Storage URLs were NOT transformed to Media API URLs
+    await waitFor(() => {
+      expect(mockLoadTrack).toHaveBeenCalledWith({
+        name: expect.stringContaining('regular-file.bam'),
+        url: `gs://${fakeBucketName}/regular-file.bam`,
+        indexURL: `gs://${fakeBucketName}/regular-file.bai`,
+        visibilityWindow: 75000,
+      });
+    });
+  });
 });
 
 describe('IGVBrowser Session Management', () => {

@@ -19,6 +19,13 @@ import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/Request
 import IGVSessionModal from './IGVSessionModal';
 import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
 
+function processUrl(url, isSignedUrl) {
+  if (url && isGoogleURL(url) && isGoogleStorageURL(url) && isSignedUrl) {
+    return translateGoogleCloudURL(url);
+  }
+  return url;
+}
+
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, initialSession }) => {
   const [loadingIgv, setLoadingIgv] = useState(true);
@@ -112,9 +119,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       // Enable viewing features upon searching most genes, without needing to zoom several times
       const visibilityWindow = 75_000;
 
-      const igvProcessedFullUrl = fullUrl && isGoogleURL(fullUrl) && isGoogleStorageURL(fullUrl) ? translateGoogleCloudURL(fullUrl) : fullUrl;
-      const igvProcessedFullIndexUrl =
-        fullIndexUrl && isGoogleURL(fullIndexUrl) && isGoogleStorageURL(fullIndexUrl) ? translateGoogleCloudURL(fullIndexUrl) : fullIndexUrl;
+      const igvProcessedFullUrl = processUrl(fullUrl, isSignedUrl);
+      const igvProcessedFullIndexUrl = processUrl(fullIndexUrl, isSignedUrl);
 
       igvBrowser.current.loadTrack({
         name: name || `${simpleUrl} (${url})`,
