@@ -7,7 +7,12 @@ import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
 import { resumeUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/views/RunJob';
+
+export interface PipelineInputFileUploadState {
+  signedUrl?: string; // The resumable upload session URL
+  progress: number; // Progress percentage (0-100)
+  errorMessage?: string; // Optional error message
+}
 
 interface PipelineInputSelectorProps {
   input: PipelineInput;

@@ -14,7 +14,8 @@ async function checkUploadStatus(sessionUrl: string): Promise<number> {
   if (res.status === 308) {
     const range = res.headers.get('Range');
     if (range) {
-      const match = range.match(/bytes=0-(\d+)/);
+      const regex = /bytes=0-(\d+)/;
+      const match = regex.exec(range);
       if (match && match[1]) {
         return parseInt(match[1], 10) + 1; // +1 because range is inclusive
       }
