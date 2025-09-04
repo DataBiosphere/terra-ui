@@ -4,6 +4,7 @@ import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { mockUserPipelineQuotaDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
+import { uploadPipelineFiles } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { RunJob } from './RunJob';
@@ -29,6 +30,21 @@ jest.mock('src/libs/nav', () => ({
 
 // Mock global fetch for file upload testing
 global.fetch = jest.fn();
+
+// Mock XMLHttpRequest for file upload testing
+class MockXMLHttpRequest {
+  upload = {
+    addEventListener: jest.fn(),
+  };
+
+  addEventListener = jest.fn();
+
+  open = jest.fn();
+
+  setRequestHeader = jest.fn();
+
+  send = jest.fn();
+}
 
 // Mock crypto.randomUUID, so we can control the job ID generation in tests
 Object.defineProperty(global, 'crypto', {
@@ -198,5 +214,115 @@ describe('RunJob Component', () => {
     await waitFor(() => {
       expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
     });
+  });
+});
+
+describe('uploadPipelineFiles function', () => {
+  const mockFile = new File(['test content'], 'test.vcf', { type: 'text/plain' });
+  const mockPipelineInputs: PipelineInput[] = [
+    {
+      name: 'multiSampleVcf',
+      type: 'FILE',
+      isRequired: true,
+      fileSuffix: '.vcf.gz',
+    },
+    {
+      name: 'outputBasename',
+      type: 'STRING',
+      isRequired: true,
+    },
+  ];
+  const mockUserPipelineInputs = { multiSampleVcf: mockFile, outputBasename: 'test_output' };
+
+  const mockTeaspoonsContract = partial<TeaspoonsContract>({
+    preparePipelineRun: jest.fn().mockResolvedValue({
+      fileInputUploadUrls: {
+        multiSampleVcf: {
+          signedUrl: 'https://mock-signed-url.com/upload',
+        },
+      },
+      jobId: 'mock-job-id',
+    }),
+    startPipelineRun: jest.fn().mockResolvedValue({ success: true }),
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    asMockedFn(Teaspoons).mockReturnValue(mockTeaspoonsContract);
+    const mockLocationUrl = 'https://mock-session-url.com/upload';
+    (global.fetch as jest.Mock).mockResolvedValue({
+      headers: {
+        get: (header: string) => (header === 'Location' ? mockLocationUrl : null),
+      },
+      ok: true,
+      status: 200,
+    } as Response);
+    // Reset the crypto mock
+    (global.crypto.randomUUID as jest.Mock).mockReturnValue('mock-uuid-1234');
+  });
+
+  it('successfully initiates a resumable upload session for file inputs', async () => {
+    const mockXHR = new MockXMLHttpRequest();
+
+    // Simulate successful upload
+    mockXHR.addEventListener = jest.fn((event, callback) => {
+      if (event === 'load') {
+        setTimeout(() => callback({ status: 200 }), 0);
+      }
+    });
+
+    Object.defineProperty(mockXHR, 'status', {
+      value: 200,
+      writable: true,
+    });
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    await uploadPipelineFiles(
+      'array_imputation',
+      1,
+      mockPipelineInputs,
+      mockUserPipelineInputs,
+      {
+        multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+      jest.fn()
+    );
+
+    // Verify that the file upload was initiated
+    expect(global.fetch).toHaveBeenCalledWith('https://mock-signed-url.com/upload', {
+      method: 'POST',
+      headers: { 'x-goog-resumable': 'start' },
+    });
+
+    // Verify that XMLHttpRequest was used for file upload
+    expect(global.XMLHttpRequest).toHaveBeenCalled();
+    expect(mockXHR.open).toHaveBeenCalledWith('PUT', 'https://mock-session-url.com/upload');
+    expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(mockXHR.send).toHaveBeenCalledWith(mockFile);
+  });
+
+  it('handles errors during file upload', async () => {
+    const mockSend = jest.fn(() => {
+      throw new Error('Network error');
+    });
+
+    const mockXHR = new MockXMLHttpRequest();
+    mockXHR.send = mockSend;
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    await expect(
+      uploadPipelineFiles(
+        'array_imputation',
+        1,
+        mockPipelineInputs,
+        mockUserPipelineInputs,
+        {
+          multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+        },
+        jest.fn()
+      )
+    ).rejects.toThrow('Network error');
   });
 });
