@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/views/RunJob';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 
 /* Check the status of a resumable upload session. Returns the last byte that GCS received */
 async function checkUploadStatus(sessionUrl: string): Promise<number> {
