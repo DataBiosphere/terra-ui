@@ -162,6 +162,10 @@ describe('RunJob Component', () => {
       expect(mockTeaspoonsContract.getQuotaForPipeline).toHaveBeenCalled();
     });
 
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
     // Enter output file prefix
     const outputPrefixInput = screen.getByLabelText('outputBasename text input');
     await user.type(outputPrefixInput, 'test_output');
@@ -177,6 +181,10 @@ describe('RunJob Component', () => {
 
   it('handles file selection and triggers upload process', async () => {
     render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
 
     // Wait for pipelines to load
     await waitFor(() => {
