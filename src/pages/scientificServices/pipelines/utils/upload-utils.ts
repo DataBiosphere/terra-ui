@@ -37,9 +37,7 @@ export async function resumeUpload(
   inputFile: File,
   sessionUrl: string,
   setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>
-): Promise<number> {
-  const startTime = Date.now();
-
+): Promise<void> {
   // Check current upload status
   const uploadedBytes = await checkUploadStatus(sessionUrl);
 
@@ -49,11 +47,11 @@ export async function resumeUpload(
       ...prev,
       [inputName]: { ...prev[inputName], progress: 100, errorMessage: undefined },
     }));
-    return 0;
+    return;
   }
 
   // Resume upload from where it left off
-  const fileSlice = inputFile.slice(uploadedBytes);
+  const remainingBytes = inputFile.slice(uploadedBytes);
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -71,13 +69,11 @@ export async function resumeUpload(
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        const endTime = Date.now();
-        const duration = endTime - startTime;
         setUploadState((prev) => ({
           ...prev,
           [inputName]: { ...prev[inputName], progress: 100, errorMessage: undefined },
         }));
-        resolve(duration);
+        resolve();
       } else {
         const errorMessage = `Upload failed with status ${xhr.status}`;
         setUploadState((prev) => ({
@@ -100,7 +96,7 @@ export async function resumeUpload(
     xhr.open('PUT', sessionUrl);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     xhr.setRequestHeader('Content-Range', `bytes ${uploadedBytes}-${inputFile.size - 1}/${inputFile.size}`);
-    xhr.send(fileSlice);
+    xhr.send(remainingBytes);
   });
 }
 
@@ -164,15 +160,6 @@ export async function initiateResumableUpload(
 
     xhr.addEventListener('error', () => {
       const errorMessage = 'Upload failed';
-      setUploadState((prev) => ({
-        ...prev,
-        [inputName]: { ...prev[inputName], errorMessage },
-      }));
-      reject(new Error(errorMessage));
-    });
-
-    xhr.addEventListener('abort', () => {
-      const errorMessage = 'Upload aborted after 5 seconds';
       setUploadState((prev) => ({
         ...prev,
         [inputName]: { ...prev[inputName], errorMessage },
