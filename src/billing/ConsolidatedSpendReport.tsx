@@ -6,7 +6,7 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { SearchFilter } from 'src/billing/Filter/SearchFilter';
 import { SpendReportDownloader } from 'src/billing/SpendReport/SpendReportDownloader';
-import { parseCurrencyIfNeeded } from 'src/billing/utils';
+import { creditedCost, parseCurrencyIfNeeded } from 'src/billing/utils';
 import { BillingProject } from 'src/billing-core/models';
 import { ButtonOutline, Checkbox, fixedSpinnerOverlay } from 'src/components/common';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
@@ -264,13 +264,6 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                   ws.workspace.name === spendItem.workspace.name &&
                   ws.workspace.namespace === spendItem.workspace.namespace
               );
-
-              // helper to extract cost-minus-credits out of any object with those fields
-              const creditedCost: (obj: any) => number = (obj) => {
-                const cost = parseFloat(obj?.cost ?? '0.00');
-                const credits = parseFloat(obj?.credits ?? '0.00');
-                return cost + credits; // add, since credits are negative values
-              };
 
               if (workspaceDetails) {
                 matchedWorkspaces.add(`${workspaceDetails.workspace.namespace}/${workspaceDetails.workspace.name}`);
