@@ -265,6 +265,13 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                   ws.workspace.namespace === spendItem.workspace.namespace
               );
 
+              // helper to extract cost-minus-credits out of any object with those fields
+              const creditedCost: (obj: any) => number = (obj) => {
+                const cost = parseFloat(obj?.cost ?? '0.00');
+                const credits = parseFloat(obj?.credits ?? '0.00');
+                return cost + credits; // add, since credits are negative values
+              };
+
               if (workspaceDetails) {
                 matchedWorkspaces.add(`${workspaceDetails.workspace.namespace}/${workspaceDetails.workspace.name}`);
 
@@ -283,15 +290,15 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                   cloudPlatform: 'Gcp',
                   bucketName: workspaceDetails?.workspace.bucketName,
 
-                  totalSpend: costFormatter.format(parseFloat(spendItem.cost ?? '0.00')),
+                  totalSpend: costFormatter.format(creditedCost(spendItem)),
                   totalCompute: costFormatter.format(
-                    parseFloat(_.find({ category: 'Compute' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+                    creditedCost(_.find({ category: 'Compute' }, spendItem.subAggregation.spendData))
                   ),
                   totalStorage: costFormatter.format(
-                    parseFloat(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+                    creditedCost(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData))
                   ),
                   otherSpend: costFormatter.format(
-                    parseFloat(_.find({ category: 'Other' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+                    creditedCost(_.find({ category: 'Other' }, spendItem.subAggregation.spendData))
                   ),
                 } as GoogleWorkspaceInfo;
               }
