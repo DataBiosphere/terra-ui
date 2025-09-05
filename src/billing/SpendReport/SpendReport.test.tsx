@@ -174,7 +174,7 @@ describe('SpendReport', () => {
     const mockServerResponse: SpendReportServerResponse = {
       spendSummary: {
         cost: totalCost,
-        credits: '2.50',
+        credits: '-2.50',
         currency: 'USD',
         endTime: 'dummyTime',
         startTime: 'dummyTime',
@@ -217,7 +217,7 @@ describe('SpendReport', () => {
       expect(screen.getByText(/\$89.00 in other infrastructure/i)).toBeInTheDocument();
     });
     expect(getSpendReport).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.00*');
+    expect(screen.getByTestId('spend')).toHaveTextContent('$1,107.50*');
     expect(screen.getByTestId('compute')).toHaveTextContent('$999.00');
     expect(screen.getByTestId('storage')).toHaveTextContent('$22.00');
     // validate that 'workspaceInfrastructure' card is not shown for GCP report
@@ -248,7 +248,7 @@ describe('SpendReport', () => {
       startDate: '2022-03-02',
       aggregationKeys: ['Category'],
     });
-    expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.00*');
+    expect(screen.getByTestId('spend')).toHaveTextContent('$1,107.50*');
     expect(screen.getByTestId('compute')).toHaveTextContent('$999.00');
     expect(screen.getByTestId('storage')).toHaveTextContent('$22.00');
     expect(screen.getByTestId('workspaceInfrastructure')).toHaveTextContent('$55.00');
@@ -272,7 +272,7 @@ describe('SpendReport', () => {
     await waitFor(() => {
       expect(screen.getByText(otherCostMessaging)).toBeInTheDocument();
     });
-    expect(screen.getByTestId('spend')).toHaveTextContent('$1,110.17*');
+    expect(screen.getByTestId('spend')).toHaveTextContent('$1,107.67*');
     expect(getSpendReport).toHaveBeenCalledTimes(2);
     expect(getSpendReport).toHaveBeenNthCalledWith(1, {
       billingProjectName: 'thrifty',
