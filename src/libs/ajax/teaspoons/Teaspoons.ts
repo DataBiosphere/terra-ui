@@ -35,9 +35,9 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   },
 
   /* Returns a list of pipeline runs for the user */
-  getAllPipelineRuns: async (pageSize: number, pageToken?: string): Promise<GetPipelineRunsResponse> => {
-    const queryString = `?limit=${pageSize}${pageToken ? `&pageToken=${pageToken}` : ''}`;
-    const res = await fetchTeaspoons(`pipelineruns/v1/pipelineruns${queryString}`, _.merge(authOpts(), { signal }));
+  getAllPipelineRuns: async (pageSize: number, pageNumber: number): Promise<GetPipelineRunsResponse> => {
+    const queryString = `?limit=${pageSize}&pageNumber=${pageNumber}`;
+    const res = await fetchTeaspoons(`pipelineruns/v2/pipelineruns${queryString}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 

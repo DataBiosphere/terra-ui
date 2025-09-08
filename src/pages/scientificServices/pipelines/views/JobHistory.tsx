@@ -2,7 +2,7 @@ import { Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packag
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
@@ -33,13 +33,17 @@ export const JobHistory = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
-  const nextPageToken = useRef<string>();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchPipelineRuns() {
-      const response = await Teaspoons(signal).getAllPipelineRuns(itemsPerPage, nextPageToken.current);
-      setPipelineRunsResponse(response);
-      nextPageToken.current = response.pageToken;
+      setIsLoading(true);
+      try {
+        const response = await Teaspoons(signal).getAllPipelineRuns(itemsPerPage, pageNumber);
+        setPipelineRunsResponse(response);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchPipelineRuns();
   }, [pageNumber, signal]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -75,7 +79,7 @@ export const JobHistory = () => {
             </div>
           </div>
           <div style={{ flex: 1, marginTop: '1rem' }}>
-            {pipelineRunsResponse ? (
+            {pipelineRunsResponse && !isLoading ? (
               <AutoSizer>
                 {({ width, height }) => (
                   // Sorting is unsupported on this table for now. Eventually
