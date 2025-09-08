@@ -410,7 +410,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
           {ownedWorkspaces.length >= itemsPerPage && (
             <ButtonOutline
               aria-label='Show all workspaces'
-              style={{ gridRowStart: 1, gridColumnStart: 3, marginLeft: '2rem', marginTop: '2.5rem', width: '50%' }}
+              style={{ gridRowStart: 1, gridColumnStart: 3, marginLeft: '2rem', marginTop: '2.5rem' }}
               tooltip='Spend report defaults to 250 workspaces, click to load remaining'
               onClick={() => {
                 setItemsPerPage(2500000);
@@ -422,7 +422,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
           <SpendReportDownloader
             title={`Consolidated Spend Report (${spendReportLengthInDays} days)`}
             filteredOwnedWorkspaces={filteredOwnedWorkspaces}
-            style={{ gridRowStart: 1, gridColumnStart: 3, margin: '2.3rem' }}
+            style={{ gridRowStart: 1, gridColumnStart: 4, margin: '2.3rem' }}
           />
         </div>
         <div aria-live='polite' aria-atomic>
