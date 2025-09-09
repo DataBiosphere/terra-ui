@@ -39,7 +39,7 @@ export const JobHistory = () => {
     direction: 'desc',
   });
 
-  // Fetch pipeline runs when the component mounts or when pageNumber/itemsPerPage changes
+  // Fetch pipeline runs when the component mounts or when pagination/sorting controls change
   useEffect(() => {
     async function fetchPipelineRuns() {
       setIsLoading(true);
@@ -102,8 +102,6 @@ export const JobHistory = () => {
                       setSort(sort);
                       setPageNumber(1);
                     })}
-                    overscanRowCount={10}
-                    noContentRenderer={() => null}
                     noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
                     tabIndex={-1}
                     variant={undefined}
