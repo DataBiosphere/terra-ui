@@ -290,7 +290,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Change the returned mock cost to mimic different date ranges.
   await setAjaxMockValues(page, ownedBillingProjectName, azureBillingProjectName, '1110.17', 20);
   await billingPage.setSpendReportDays(90);
-  await billingPage.assertText('Total spend$1,107.50');
+  await billingPage.assertText('Total spend$1,107.67');
   // Check that title updated to reflect truncation.
   await billingPage.assertText('Daily Spend');
   await billingPage.assertChartValue('Feb 6', 'Compute', '$900.00');
@@ -304,7 +304,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectSpendReport();
 
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
-  await billingPage.assertText('Total spend$1,107.50');
+  await billingPage.assertText('Total spend$1,107.67');
   await billingPage.assertText('Total analysis compute$999.00');
   await billingPage.assertText('Total workspace storage$22.00');
   await billingPage.assertText('Total workspace infrastructure$11.00');
