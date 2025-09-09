@@ -49,7 +49,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, azureBilling
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost,
-      credits: '2.50',
+      credits: '-2.50',
       currency: 'USD',
       endTime: '2022-03-04T00:00:00.000Z',
       startTime: '2022-02-02T00:00:00.000Z',
@@ -271,7 +271,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectProject(ownedBillingProjectName);
   await billingPage.selectSpendReport();
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
-  await billingPage.assertText('Total spend$1,110.00');
+  await billingPage.assertText('Total spend$1,107.67');
   await billingPage.assertText('Total compute$999.00');
   await billingPage.assertText('Total storage$22.00');
   await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra.');
@@ -290,7 +290,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Change the returned mock cost to mimic different date ranges.
   await setAjaxMockValues(page, ownedBillingProjectName, azureBillingProjectName, '1110.17', 20);
   await billingPage.setSpendReportDays(90);
-  await billingPage.assertText('Total spend$1,110.17');
+  await billingPage.assertText('Total spend$1,107.67');
   // Check that title updated to reflect truncation.
   await billingPage.assertText('Daily Spend');
   await billingPage.assertChartValue('Feb 6', 'Compute', '$900.00');
@@ -304,7 +304,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectSpendReport();
 
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
-  await billingPage.assertText('Total spend$1,110.17');
+  await billingPage.assertText('Total spend$1,107.67');
   await billingPage.assertText('Total analysis compute$999.00');
   await billingPage.assertText('Total workspace storage$22.00');
   await billingPage.assertText('Total workspace infrastructure$11.00');
