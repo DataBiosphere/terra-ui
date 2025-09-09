@@ -5,7 +5,7 @@ import pluralize from 'pluralize';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
+import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -34,19 +34,30 @@ export const JobHistory = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
+  const [sortField, setSortField] = useState<{ field: string; direction: 'asc' | 'desc' }>({
+    field: 'created',
+    direction: 'desc',
+  });
+
+  // Fetch pipeline runs when the component mounts or when pageNumber/itemsPerPage changes
 
   useEffect(() => {
     async function fetchPipelineRuns() {
       setIsLoading(true);
       try {
-        const response = await Teaspoons(signal).getAllPipelineRuns(itemsPerPage, pageNumber);
+        const response = await Teaspoons(signal).getAllPipelineRuns(
+          itemsPerPage,
+          pageNumber,
+          sortField?.field,
+          sortField?.direction
+        );
         setPipelineRunsResponse(response);
       } finally {
         setIsLoading(false);
       }
     }
     fetchPipelineRuns();
-  }, [pageNumber, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pageNumber, signal, sortField]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <FooterWrapper alwaysShow>
@@ -82,17 +93,18 @@ export const JobHistory = () => {
             {pipelineRunsResponse && !isLoading ? (
               <AutoSizer>
                 {({ width, height }) => (
-                  // Sorting is unsupported on this table for now. Eventually
-                  // we may update the paginated Teaspoons getAllPipelineRuns endpoint
-                  // to support filters and sorting. Until then, the results will be
-                  // sorted by creation date, with the most recent displayed first.
                   <FlexTable
                     aria-label='job history table'
                     width={width}
                     height={height}
                     rowHeight={55}
                     rowCount={pipelineRunsResponse.results.length}
-                    columns={getColumns(pipelineRunsResponse.results)}
+                    columns={getColumns(pipelineRunsResponse.results, sortField, (sort) => {
+                      setSortField(sort);
+                      setPageNumber(1);
+                    })}
+                    overscanRowCount={10}
+                    noContentRenderer={() => null}
                     noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
                     tabIndex={-1}
                     variant={undefined}
@@ -128,11 +140,19 @@ export const JobHistory = () => {
   );
 };
 
-const getColumns = (paginatedRuns: PipelineRun[]) => {
+const getColumns = (
+  paginatedRuns: PipelineRun[],
+  sort: { field: string; direction: 'asc' | 'desc' },
+  onSort: (sort: { field: string; direction: 'asc' | 'desc' }) => void
+) => {
   return [
     {
       field: 'id',
-      headerRenderer: () => <HeaderCell>Job ID</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='id' onSort={onSort}>
+          <HeaderCell>Job ID</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <JobIdCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -140,7 +160,11 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'description',
-      headerRenderer: () => <HeaderCell>Description</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='description' onSort={onSort}>
+          <HeaderCell>Description</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -148,7 +172,11 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'status',
-      headerRenderer: () => <HeaderCell>Status</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='status' onSort={onSort}>
+          <HeaderCell>Status</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -156,7 +184,11 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'submitted',
-      headerRenderer: () => <HeaderCell>Submitted</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='created' onSort={onSort}>
+          <HeaderCell>Submitted</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -164,7 +196,11 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'completed',
-      headerRenderer: () => <HeaderCell>Completed</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='updated' onSort={onSort}>
+          <HeaderCell>Completed</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -172,7 +208,13 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'dataDeletionDate',
-      headerRenderer: () => <HeaderCell>Deletion Date</HeaderCell>,
+      headerRenderer: () => (
+        // note that currently we don't have a data deletion date field in the backend, so we sort by creation date as a proxy
+        // since data is deleted 2 weeks after job completion. it may be better to just not allow sorting on this column
+        <Sortable sort={sort} field='created' onSort={onSort}>
+          <HeaderCell>Deletion Date</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <DataDeletionDateCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -180,7 +222,11 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'quotaUsed',
-      headerRenderer: () => <HeaderCell>Quota Used</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='quotaConsumed' onSort={onSort}>
+          <HeaderCell>Quota Used</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <QuotaUsedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
