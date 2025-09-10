@@ -79,6 +79,45 @@ describe('job history table', () => {
     expect(screen.getByText('array_imputation v1')).toBeInTheDocument();
   });
 
+  it('allows sorting by columns', async () => {
+    const pipelineRun1 = mockPipelineRun('RUNNING');
+    const pipelineRun2 = {
+      ...mockPipelineRun('SUCCEEDED'),
+      jobId: 'run-id-124',
+      timeSubmitted: '2024-10-01T00:00:00Z',
+      description: 'Another Test Job',
+    };
+    const pipelineRuns = [pipelineRun1, pipelineRun2];
+
+    const mockPipelineRunResponse = {
+      pageToken: 'nextPageToken',
+      results: pipelineRuns,
+      totalResults: 2,
+    };
+
+    asMockedFn(Teaspoons).mockReturnValue(
+      partial<TeaspoonsContract>({
+        getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+      })
+    );
+
+    render(<JobHistory />);
+
+    expect(await screen.findByText('Job History')).toBeInTheDocument();
+    expect(screen.queryAllByText(/Test Job/)).toHaveLength(2);
+
+    // Verify initial call to API without sort parameters defaults to (created, desc)
+    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(1, 10, 1, 'created', 'desc');
+
+    // Click Job ID header to sort ascending
+    const jobIdHeader = screen.getByText('Job ID');
+    expect(jobIdHeader).toBeInTheDocument();
+    await userEvent.click(jobIdHeader);
+
+    // Verify that API was called with correct sort parameters (jobId, asc)
+    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(2, 10, 1, 'jobId', 'asc');
+  });
+
   it('displays pipeline name without version when version is not available', async () => {
     const pipelineRuns: PipelineRun[] = [
       {
