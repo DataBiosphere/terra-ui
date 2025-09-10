@@ -145,11 +145,7 @@ const getColumns = (
   return [
     {
       field: 'id',
-      headerRenderer: () => (
-        <Sortable sort={sort} field='jobId' onSort={onSort}>
-          <HeaderCell>Job ID</HeaderCell>
-        </Sortable>
-      ),
+      headerRenderer: () => <HeaderCell>Job ID</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
         return <JobIdCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -157,11 +153,7 @@ const getColumns = (
     },
     {
       field: 'description',
-      headerRenderer: () => (
-        <Sortable sort={sort} field='description' onSort={onSort}>
-          <HeaderCell>Description</HeaderCell>
-        </Sortable>
-      ),
+      headerRenderer: () => <HeaderCell>Description</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -169,11 +161,7 @@ const getColumns = (
     },
     {
       field: 'status',
-      headerRenderer: () => (
-        <Sortable sort={sort} field='status' onSort={onSort}>
-          <HeaderCell>Status</HeaderCell>
-        </Sortable>
-      ),
+      headerRenderer: () => <HeaderCell>Status</HeaderCell>,
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },

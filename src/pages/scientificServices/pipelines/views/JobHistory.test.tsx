@@ -109,13 +109,13 @@ describe('job history table', () => {
     // Verify initial call to API without sort parameters defaults to (created, desc)
     expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(1, 10, 1, 'created', 'desc');
 
-    // Click Job ID header to sort ascending
-    const jobIdHeader = screen.getByText('Job ID');
+    // Click Quota Used header to sort ascending
+    const jobIdHeader = screen.getByText('Quota Used');
     expect(jobIdHeader).toBeInTheDocument();
     await userEvent.click(jobIdHeader);
 
-    // Verify that API was called with correct sort parameters (jobId, asc)
-    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(2, 10, 1, 'jobId', 'asc');
+    // Verify that API was called with correct sort parameters (quotaConsumed, asc)
+    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(2, 10, 1, 'quotaConsumed', 'asc');
   });
 
   it('displays pipeline name without version when version is not available', async () => {
