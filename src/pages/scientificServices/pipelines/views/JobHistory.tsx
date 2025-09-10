@@ -23,6 +23,11 @@ import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/m
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
 
+interface SortProperties {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
    we'll need to add a filter for the pipeline name.
@@ -34,7 +39,7 @@ export const JobHistory = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
-  const [sort, setSort] = useState<{ field: string; direction: 'asc' | 'desc' }>({
+  const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
   });
@@ -137,11 +142,7 @@ export const JobHistory = () => {
   );
 };
 
-const getColumns = (
-  paginatedRuns: PipelineRun[],
-  sort: { field: string; direction: 'asc' | 'desc' },
-  onSort: (sort: { field: string; direction: 'asc' | 'desc' }) => void
-) => {
+const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: (sort: SortProperties) => void) => {
   return [
     {
       field: 'id',
