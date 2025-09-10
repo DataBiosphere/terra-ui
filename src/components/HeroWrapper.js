@@ -4,7 +4,7 @@ import { Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { TopBar } from 'src/components/TopBar';
 import landingPageHero from 'src/images/landing-page-hero.jpg';
-import { getEnabledBrand } from 'src/libs/brand-utils';
+import { getEnabledBrand, isScientificServices } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
@@ -41,7 +41,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
           },
           [
             brand.description,
-            showDocLink
+            showDocLink && !isScientificServices()
               ? h(Fragment, [
                   ' ',
                   h(
