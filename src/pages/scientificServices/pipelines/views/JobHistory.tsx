@@ -181,7 +181,12 @@ const getColumns = (
     },
     {
       field: 'completed',
-      headerRenderer: () => <HeaderCell>Completed</HeaderCell>,
+      headerRenderer: () => (
+        // updated is a proxy for timeCompleted, since timeCompleted is not a value in the TSPS PipelineRuns database table
+        <Sortable sort={sort} field='updated' onSort={onSort}>
+          <HeaderCell>Completed</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
