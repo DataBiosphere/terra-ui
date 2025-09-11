@@ -1,23 +1,15 @@
-import { ButtonPrimary, Icon, useStore } from '@terra-ui-packages/components';
-import React, { useState } from 'react';
+import { Icon } from '@terra-ui-packages/components';
+import React from 'react';
 import * as Nav from 'src/libs/nav';
-import { getCurrentLocation } from 'src/libs/nav/location-utils';
-import { authStore } from 'src/libs/state';
 
 export const ScientificServicesDescription = () => {
-  const { signInStatus } = useStore(authStore);
-
-  const [buttonVisible, setButtonVisible] = useState(() => {
-    return !getCurrentLocation().hash.includes('pipelines/imputation');
+  // We do this redirect for two reasons:
+  // 1. To ensure that logged in users never see the landing page
+  // 2. To bypass Terra UI's default behavior of showing the landing page without a Sign In button, requiring
+  //    users to click through to an authed paged (pipelines-run in our case) before seeing the Sign In button
+  Nav.history.push({
+    pathname: Nav.getPath('pipelines-run'),
   });
-
-  // If the user is already signed in, redirect to the pipelines run page so they don't
-  // have to click "Get started"
-  if (signInStatus === 'userLoaded') {
-    Nav.history.push({
-      pathname: Nav.getPath('pipelines-run'),
-    });
-  }
 
   return (
     <>
@@ -26,16 +18,6 @@ export const ScientificServicesDescription = () => {
         leverage valuable data resources.
       </div>
       <div style={{ fontWeight: 'bold', marginTop: '2rem', marginBottom: '1rem' }} />
-      {buttonVisible && (
-        <ButtonPrimary
-          height={100}
-          style={{ marginTop: '0.25rem', marginBottom: '0.5rem', width: '9.4rem', height: '3.2rem', fontSize: '1rem' }}
-          href='#pipelines/imputation/run'
-          onClick={() => setButtonVisible(false)}
-        >
-          Get started
-        </ButtonPrimary>
-      )}
       <div style={{ fontWeight: 'bold', marginTop: '2rem' }}>Learn more about our current offerings:</div>
       <div
         style={{
