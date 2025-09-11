@@ -122,6 +122,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const igvProcessedFullUrl = processUrl(fullUrl, isSignedUrl);
       const igvProcessedFullIndexUrl = processUrl(fullIndexUrl, isSignedUrl);
 
+      // console.log('igvProcessedFullUrl:', igvProcessedFullUrl);
+      // console.log('igvProcessedFullIndexUrl:', igvProcessedFullIndexUrl);
+
       igvBrowser.current.loadTrack({
         name: name || `${simpleUrl} (${url})`,
         url: igvProcessedFullUrl,

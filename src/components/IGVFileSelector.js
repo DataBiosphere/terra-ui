@@ -80,15 +80,36 @@ const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, sig
     filterTerms: filterCandidates,
   });
 
+  // console.log('searchResponse', searchResponse);
+
   // Look for any attribute value that matches one of the index candidates
-  return searchResponse.results.filter((result) => {
-    const fileName = result.attributes.file_name;
-    return filterCandidates.includes(fileName);
+  const indexFile = searchResponse.results.find((result) => {
+    // const fileName = result.attributes.file_path.split('/').at(-1);
+    // console.log('result', result);
+    const allAttributeValues = Object.values(result.attributes);
+    // console.log('allAttributeValues', allAttributeValues);
+    const allAttributeStrings = _.flatMap(getStrings, allAttributeValues);
+    // console.log('allAttributeStrings', allAttributeStrings);
+    const stringsWithIgvExtension = allAttributeStrings.filter((s) => {
+      return hasValidIgvExtension(s);
+    });
+
+    const hasMatch = stringsWithIgvExtension.find((s) => {
+      const fileName = s.split('/').at(-1);
+      return filterCandidates.includes(fileName);
+    });
+
+    return hasMatch;
   });
+
+  // console.log('searchDBForIndexFiles indexFile:', indexFile);
+  return indexFile;
 };
 
 const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal) => {
+  // console.log('fileUrl.pathname', fileUrl.pathname);
   if (!genomicFiles.some((extension) => fileUrl.pathname.endsWith(extension))) {
+    // console.log('File is not a genomic file:', fileUrl);
     return undefined;
   }
 
@@ -103,7 +124,8 @@ const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal
     const indexCandidates = indexMap(base)[extension].map(
       (candidate) => new RegExp([`gs://${bucket}`, datasetId, UUID_PATTERN, ...otherPathSegments, candidate].join('/'))
     );
-    return fileUrls.find((url) => indexCandidates.some((candidate) => candidate.test(url.href)));
+    const indexForFile = fileUrls.find((url) => indexCandidates.some((candidate) => candidate.test(url.href)));
+    return indexForFile;
   }
 
   const [base, extension] = splitExtension(fileUrl.pathname);
@@ -148,7 +170,8 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   return igvAccessUrls;
 };
 
-export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
+/** Get URL objects for any URL-able data table attribute values */
+const getBasicFileUrlsFromAttributeValues = (values) => {
   const basicFileUrls = values.filter((value) => {
     let url;
     try {
@@ -167,6 +190,11 @@ export const getValidIgvFiles = async (workspace, entityType, values, signal) =>
       return false;
     }
   });
+  return basicFileUrls;
+};
+
+export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
+  const basicFileUrls = getBasicFileUrlsFromAttributeValues(values);
 
   const fileUrls = basicFileUrls.map((fus) => {
     const url = new URL(fus);
@@ -185,6 +213,8 @@ export const getValidIgvFiles = async (workspace, entityType, values, signal) =>
 
     fileUrls.push(url);
   });
+
+  // console.log('accessUrls:', accessUrls);
 
   const results = await Promise.all(
     fileUrls.map(async (fileUrl) => {
@@ -228,6 +258,7 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
       const allAttributeValues = _.flatMap(_.flow(_.get('attributes'), _.values), selectedEntities);
       const selections = await getValidIgvFilesFromAttributeValues(workspace, entityType, allAttributeValues, signal);
 
+      // console.log('IGVFileSelector selections:', selections);
       setSelections(selections);
       setIsSearchingFiles(false);
     }
