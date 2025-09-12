@@ -11,6 +11,7 @@ import { resumeUpload } from 'src/pages/scientificServices/pipelines/utils/uploa
 export interface PipelineInputFileUploadState {
   signedUrl?: string; // The resumable upload session URL
   progress: number; // Progress percentage (0-100)
+  etaSeconds?: number; // Optional estimated time remaining in seconds
   errorMessage?: string; // Optional error message
 }
 
@@ -34,6 +35,9 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isFileValid = selectedFile && selectedFile.name.endsWith(input.fileSuffix || '');
   const { label } = INPUT_DESCRIPTIONS[input.name];
+
+  console.log(uploadState?.progress, 'progress');
+  console.log(uploadState?.etaSeconds, 'etaSeconds');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

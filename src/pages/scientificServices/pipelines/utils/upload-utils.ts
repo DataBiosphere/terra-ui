@@ -134,7 +134,13 @@ export async function initiateResumableUpload(
         const percent = Math.round((event.loaded / event.total) * 100);
         setUploadState((prev) => ({
           ...prev,
-          [inputName]: { progress: percent, signedUrl: sessionUrl },
+          [inputName]: {
+            progress: percent,
+            signedUrl: sessionUrl,
+            etaSeconds: Math.round(
+              event.loaded / (event.loaded / ((Date.now() - startTime) / 1000)) - (Date.now() - startTime) / 1000
+            ),
+          },
         }));
       }
     });
