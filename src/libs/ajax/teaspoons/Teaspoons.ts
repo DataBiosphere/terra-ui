@@ -72,6 +72,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
           pipelineVersion,
           pipelineInputs,
           description,
+          useResumableUploads: true,
         }),
         { signal, method: 'POST' },
       ])
