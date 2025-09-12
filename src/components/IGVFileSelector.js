@@ -83,27 +83,57 @@ const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, sig
   // console.log('searchResponse', searchResponse);
 
   // Look for any attribute value that matches one of the index candidates
-  const indexFile = searchResponse.results.find((result) => {
-    // const fileName = result.attributes.file_path.split('/').at(-1);
+  let indexFileUrlObj;
+
+  for (const result of searchResponse.results) {
     // console.log('result', result);
     const allAttributeValues = Object.values(result.attributes);
     // console.log('allAttributeValues', allAttributeValues);
     const allAttributeStrings = _.flatMap(getStrings, allAttributeValues);
+
+    const basicFileUrls = getBasicFileUrlsFromAttributeValues(allAttributeStrings);
+    // console.log('basicFileUrls', basicFileUrls);
+    if (basicFileUrls?.[0]?.pathname) {
+      const fileName = basicFileUrls[0].pathname.split('/').at(-1);
+      // console.log('filterCandidates', filterCandidates);
+      const found = filterCandidates.find((candidate) => candidate.includes(fileName));
+      // console.log('found', found);
+      if (found) {
+        indexFileUrlObj = basicFileUrls[0];
+        break;
+      }
+    }
+
     // console.log('allAttributeStrings', allAttributeStrings);
     const stringsWithIgvExtension = allAttributeStrings.filter((s) => {
       return hasValidIgvExtension(s);
     });
 
-    const hasMatch = stringsWithIgvExtension.find((s) => {
+    // console.log('stringsWithIgvExtension', stringsWithIgvExtension);
+    const matchedFile = stringsWithIgvExtension.find((s) => {
       const fileName = s.split('/').at(-1);
       return filterCandidates.includes(fileName);
     });
 
-    return hasMatch;
-  });
+    if (matchedFile) {
+      let matchedUrl = matchedFile;
+      if (!matchedFile.startsWith('gs://')) {
+        const drsUrl = allAttributeStrings.find((s) => s.startsWith('drs://'));
+        // console.log('drsUrl', drsUrl);
+        const accessUrls = await resolveValidIgvDrsUris([drsUrl], signal);
+        const accessUrl = accessUrls[0];
+        // console.log('accessUrl', accessUrl);
+        matchedUrl = accessUrl;
+      }
+      // console.log('matchedFile', matchedFile);
+      // console.log('matchedUrl', matchedUrl);
+      indexFileUrlObj = new URL(matchedUrl);
+      break;
+    }
+  }
 
-  // console.log('searchDBForIndexFiles indexFile:', indexFile);
-  return indexFile;
+  // console.log('indexFileUrlObj', indexFileUrlObj);
+  return indexFileUrlObj;
 };
 
 const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal) => {
@@ -131,6 +161,7 @@ const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal
   const [base, extension] = splitExtension(fileUrl.pathname);
   const indexCandidates = indexMap(base)[extension];
   const foundIndex = fileUrls.find((url) => indexCandidates.includes(url.pathname));
+  // console.log('foundIndex', foundIndex);
   if (foundIndex) {
     return foundIndex;
   }
@@ -150,6 +181,7 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
     values.map(async (value) => {
       if (isDrsUri(value)) {
         const json = await DrsUriResolver(signal).getDataObjectMetadata(value, ['fileName']);
+        // console.log('json', json);
         const filename = json.fileName;
         const isValid = hasValidIgvExtension(filename);
         if (isValid) {
@@ -159,6 +191,7 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
     })
   );
 
+  // console.log('igvDrsUris:', igvDrsUris);
   const igvAccessUrls = [];
   await Promise.all(
     igvDrsUris.map(async (value) => {
@@ -167,6 +200,7 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
     })
   );
 
+  // console.log('igvAccessUrls:', igvAccessUrls);
   return igvAccessUrls;
 };
 
@@ -224,6 +258,7 @@ export const getValidIgvFiles = async (workspace, entityType, values, signal) =>
         return [{ filePath, indexFilePath: false, isSignedUrl }];
       }
       const indexFileUrl = await findIndexForFile(workspace, entityType, fileUrl, fileUrls, signal);
+      // console.log('indexFileUrl', indexFileUrl);
       if (indexFileUrl !== undefined) {
         return [{ filePath, indexFilePath: indexFileUrl.href, isSignedUrl }];
       }
