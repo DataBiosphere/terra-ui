@@ -7,7 +7,7 @@ export const ScientificServicesDescription = () => {
   // 1. To ensure that logged in users never see the landing page
   // 2. To bypass Terra UI's default behavior of showing the landing page without a Sign In button, requiring
   //    users to click through to an authed paged (pipelines-run in our case) before seeing the Sign In button
-  Nav.history.push({
+  Nav.history.replace({
     pathname: Nav.getPath('pipelines-run'),
   });
 
