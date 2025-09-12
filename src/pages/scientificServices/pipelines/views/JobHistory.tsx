@@ -2,10 +2,10 @@ import { Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packag
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
+import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -23,6 +23,11 @@ import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/m
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
 
+interface SortProperties {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
    we'll need to add a filter for the pipeline name.
@@ -33,16 +38,30 @@ export const JobHistory = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
-  const nextPageToken = useRef<string>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [sort, setSort] = useState<SortProperties>({
+    field: 'created',
+    direction: 'desc',
+  });
 
+  // Fetch pipeline runs when the component mounts or when pagination/sorting controls change
   useEffect(() => {
     async function fetchPipelineRuns() {
-      const response = await Teaspoons(signal).getAllPipelineRuns(itemsPerPage, nextPageToken.current);
-      setPipelineRunsResponse(response);
-      nextPageToken.current = response.pageToken;
+      setIsLoading(true);
+      try {
+        const response = await Teaspoons(signal).getAllPipelineRuns(
+          itemsPerPage,
+          pageNumber,
+          sort?.field,
+          sort?.direction
+        );
+        setPipelineRunsResponse(response);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchPipelineRuns();
-  }, [pageNumber, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pageNumber, itemsPerPage, sort, signal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <FooterWrapper alwaysShow>
@@ -75,20 +94,19 @@ export const JobHistory = () => {
             </div>
           </div>
           <div style={{ flex: 1, marginTop: '1rem' }}>
-            {pipelineRunsResponse ? (
+            {pipelineRunsResponse && !isLoading ? (
               <AutoSizer>
                 {({ width, height }) => (
-                  // Sorting is unsupported on this table for now. Eventually
-                  // we may update the paginated Teaspoons getAllPipelineRuns endpoint
-                  // to support filters and sorting. Until then, the results will be
-                  // sorted by creation date, with the most recent displayed first.
                   <FlexTable
                     aria-label='job history table'
                     width={width}
                     height={height}
                     rowHeight={55}
                     rowCount={pipelineRunsResponse.results.length}
-                    columns={getColumns(pipelineRunsResponse.results)}
+                    columns={getColumns(pipelineRunsResponse.results, sort, (sort) => {
+                      setSort(sort);
+                      setPageNumber(1);
+                    })}
                     noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
                     tabIndex={-1}
                     variant={undefined}
@@ -124,7 +142,7 @@ export const JobHistory = () => {
   );
 };
 
-const getColumns = (paginatedRuns: PipelineRun[]) => {
+const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: (sort: SortProperties) => void) => {
   return [
     {
       field: 'id',
@@ -152,7 +170,11 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'submitted',
-      headerRenderer: () => <HeaderCell>Submitted</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='created' onSort={onSort}>
+          <HeaderCell>Submitted</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -160,7 +182,12 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'completed',
-      headerRenderer: () => <HeaderCell>Completed</HeaderCell>,
+      headerRenderer: () => (
+        // updated is a proxy for timeCompleted, since timeCompleted is not a value in the TSPS PipelineRuns database table
+        <Sortable sort={sort} field='updated' onSort={onSort}>
+          <HeaderCell>Completed</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -176,7 +203,11 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'quotaUsed',
-      headerRenderer: () => <HeaderCell>Quota Used</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='quotaConsumed' onSort={onSort}>
+          <HeaderCell>Quota Used</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <QuotaUsedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },

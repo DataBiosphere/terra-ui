@@ -1,5 +1,6 @@
 import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
+import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
 import {
@@ -35,9 +36,22 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   },
 
   /* Returns a list of pipeline runs for the user */
-  getAllPipelineRuns: async (pageSize: number, pageToken?: string): Promise<GetPipelineRunsResponse> => {
-    const queryString = `?limit=${pageSize}${pageToken ? `&pageToken=${pageToken}` : ''}`;
-    const res = await fetchTeaspoons(`pipelineruns/v1/pipelineruns${queryString}`, _.merge(authOpts(), { signal }));
+  getAllPipelineRuns: async (
+    pageSize: number,
+    pageNumber: number,
+    sortProperty?: string,
+    sortDirection?: string
+  ): Promise<GetPipelineRunsResponse> => {
+    const queryString = qs.stringify(
+      {
+        pageSize,
+        pageNumber,
+        ...(sortProperty ? { sortProperty } : {}),
+        ...(sortDirection ? { sortDirection } : {}),
+      },
+      { addQueryPrefix: true }
+    );
+    const res = await fetchTeaspoons(`pipelineruns/v2/pipelineruns${queryString}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 
