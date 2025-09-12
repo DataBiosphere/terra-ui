@@ -1,3 +1,4 @@
+import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -9,13 +10,21 @@ import { GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
 import { isGoogleStorageURL, isGoogleURL, translateGoogleCloudURL } from 'src/libs/igv-google-utils';
+import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
 import IGVSessionModal from './IGVSessionModal';
-import { useIGVSessions } from './useIGVSessions';
+import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
+
+function processUrl(url, isSignedUrl) {
+  if (url && isGoogleURL(url) && isGoogleStorageURL(url) && isSignedUrl) {
+    return translateGoogleCloudURL(url);
+  }
+  return url;
+}
 
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, initialSession }) => {
@@ -24,11 +33,14 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [showAddTrackModal, setShowAddTrackModal] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null); // 'save' or 'load'
+  const [sharingSession, setSharingSession] = useState(false);
 
   const containerRef = useRef();
   const igvLibrary = useRef();
   const igvBrowser = useRef();
   const signal = useCancellation();
+
+  const hasSignedUrl = selectedFiles.some((file) => file.isSignedUrl);
 
   const {
     savedSessions,
@@ -107,9 +119,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       // Enable viewing features upon searching most genes, without needing to zoom several times
       const visibilityWindow = 75_000;
 
-      const igvProcessedFullUrl = fullUrl && isGoogleURL(fullUrl) && isGoogleStorageURL(fullUrl) ? translateGoogleCloudURL(fullUrl) : fullUrl;
-      const igvProcessedFullIndexUrl =
-        fullIndexUrl && isGoogleURL(fullIndexUrl) && isGoogleStorageURL(fullIndexUrl) ? translateGoogleCloudURL(fullIndexUrl) : fullIndexUrl;
+      const igvProcessedFullUrl = processUrl(fullUrl, isSignedUrl);
+      const igvProcessedFullIndexUrl = processUrl(fullIndexUrl, isSignedUrl);
 
       igvBrowser.current.loadTrack({
         name: name || `${simpleUrl} (${url})`,
@@ -145,6 +156,28 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     } catch (error) {
       console.error('Failed to load session:', error);
       return false;
+    }
+  };
+
+  const shareSession = async () => {
+    if (!igvBrowser.current) return;
+
+    setSharingSession(true);
+    try {
+      const session = igvBrowser.current.toJSON();
+      const shareUrl = updateUrlWithSession(session, genome);
+
+      if (shareUrl) {
+        await clipboard.writeText(shareUrl);
+        notify('success', 'Session URL copied to clipboard', { timeout: 3000 });
+      } else {
+        notify('error', 'Failed to create shareable URL', { timeout: 3000 });
+      }
+    } catch (error) {
+      console.error('Failed to share session:', error);
+      notify('error', 'Failed to share session', { timeout: 3000 });
+    } finally {
+      setSharingSession(false);
     }
   };
 
@@ -191,7 +224,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         h(
           ButtonOutline,
           {
-            disabled: loadingIgv,
+            disabled: loadingIgv || hasSignedUrl,
+            tooltip: hasSignedUrl ? 'Cannot save session with signed URLs' : undefined,
             onClick: () => {
               setSessionAction('save');
               setShowSessionModal(true);
@@ -209,6 +243,15 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
             },
           },
           ['Load Session']
+        ),
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv || sharingSession || hasSignedUrl,
+            tooltip: hasSignedUrl ? 'Cannot share session with signed URLs' : undefined,
+            onClick: shareSession,
+          },
+          [sharingSession ? 'Sharing...' : 'Share Session']
         ),
         h(
           ButtonOutline,
