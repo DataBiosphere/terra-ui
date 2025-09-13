@@ -114,7 +114,7 @@ export async function initiateResumableUpload(
   // which we'll use to upload the file.
   const initRes = await fetch(signedUrl, {
     method: 'POST',
-    headers: { 'x-goog-resumable': 'start' },
+    headers: { 'x-goog-resumable': 'start', 'Content-Type': 'application/octet-stream' },
   });
 
   const sessionUrl = initRes.headers.get('Location');
@@ -132,14 +132,18 @@ export async function initiateResumableUpload(
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
         const percent = Math.round((event.loaded / event.total) * 100);
+
+        const elapsedMs = Date.now() - startTime;
+        const bytesPerMs = event.loaded / elapsedMs; // average speed
+        const remainingBytes = event.total - event.loaded;
+        const etaSeconds = bytesPerMs > 0 ? Math.round(remainingBytes / bytesPerMs / 1000) : undefined;
+
         setUploadState((prev) => ({
           ...prev,
           [inputName]: {
             progress: percent,
             signedUrl: sessionUrl,
-            etaSeconds: Math.round(
-              event.loaded / (event.loaded / ((Date.now() - startTime) / 1000)) - (Date.now() - startTime) / 1000
-            ),
+            etaSeconds,
           },
         }));
       }

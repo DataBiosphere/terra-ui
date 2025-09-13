@@ -235,6 +235,9 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                     <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on
                     your input file size.{' '}
                     <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
+                    <div style={{ marginTop: '1rem' }}>
+                      Estimated time remaining: <span style={{ fontWeight: 'bold' }}>{uploadState.etaSeconds}s</span>
+                    </div>
                   </div>
                 ) : (
                   <div
