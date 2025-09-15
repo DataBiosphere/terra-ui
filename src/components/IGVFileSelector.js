@@ -80,11 +80,26 @@ const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, sig
     filterTerms: filterCandidates,
   });
 
-  // Look for any attribute value that matches one of the index candidates
-  return searchResponse.results.filter((result) => {
-    const fileName = result.attributes.file_name;
-    return filterCandidates.includes(fileName);
-  });
+  const URL_REGEX = /^(gs:\/\/|drs:\/\/|https?:\/\/|ftp:\/\/)/;
+
+  for (const result of searchResponse.results) {
+    const attributeValues = Object.values(result.attributes);
+    const match = attributeValues.find((val) => {
+      if (typeof val !== 'string') return false;
+      const fileName = val.split('/').pop();
+      return filterCandidates.includes(fileName);
+    });
+    if (match) {
+      let urlCandidate = match;
+      if (!URL_REGEX.test(match)) {
+        urlCandidate = attributeValues.find((val) => typeof val === 'string' && URL_REGEX.test(val));
+      }
+      if (urlCandidate && URL_REGEX.test(urlCandidate)) {
+        return await validateUrl(urlCandidate);
+      }
+    }
+  }
+  return undefined;
 };
 
 const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal) => {
@@ -148,6 +163,23 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   return igvAccessUrls;
 };
 
+const validateUrl = async (fileRef) => {
+  const isDrs = isDrsUri(fileRef);
+  let accessUrl;
+
+  if (isDrs) {
+    const result = await DrsUriResolver().getDataObjectMetadata(fileRef, ['accessUrl']);
+    accessUrl = result.accessUrl.url;
+  } else {
+    accessUrl = fileRef;
+  }
+
+  const url = new URL(accessUrl);
+  url.isSignedUrl = isDrs;
+
+  return url;
+};
+
 export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
   const basicFileUrls = values.filter((value) => {
     let url;
@@ -163,7 +195,7 @@ export const getValidIgvFiles = async (workspace, entityType, values, signal) =>
       // Filter to URLs that point to a file with one of the relevant extensions.
       const filename = url.pathname.split('/').at(-1);
       return hasValidIgvExtension(filename);
-    } catch (err) {
+    } catch {
       return false;
     }
   });
