@@ -136,15 +136,25 @@ const hasValidIgvExtension = (filename) => {
   return !!base && allFiles.includes(extension);
 };
 
+export const getDrsDataObjectMetadata = async (value, fields, signal = undefined) => {
+  try {
+    return await DrsUriResolver(signal).getDataObjectMetadata(value, fields);
+  } catch {
+    return {
+      fileName: '',
+      accessUrl: { url: '' },
+    };
+  }
+};
+
 export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvDrsUris = [];
 
   await Promise.all(
     values.map(async (value) => {
       if (isDrsUri(value)) {
-        const json = await DrsUriResolver(signal).getDataObjectMetadata(value, ['fileName']);
-        const filename = json.fileName;
-        const isValid = hasValidIgvExtension(filename);
+        const { fileName } = await getDrsDataObjectMetadata(value, ['fileName'], signal);
+        const isValid = hasValidIgvExtension(fileName);
         if (isValid) {
           igvDrsUris.push(value);
         }
@@ -155,7 +165,7 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvAccessUrls = [];
   await Promise.all(
     igvDrsUris.map(async (value) => {
-      const { accessUrl } = await DrsUriResolver(signal).getDataObjectMetadata(value, ['accessUrl']);
+      const { accessUrl } = await getDrsDataObjectMetadata(value, ['accessUrl'], signal);
       igvAccessUrls.push(accessUrl.url);
     })
   );
@@ -168,7 +178,7 @@ const validateUrl = async (fileRef) => {
   let accessUrl;
 
   if (isDrs) {
-    const result = await DrsUriResolver().getDataObjectMetadata(fileRef, ['accessUrl']);
+    const result = await getDrsDataObjectMetadata(fileRef, ['accessUrl']);
     accessUrl = result.accessUrl.url;
   } else {
     accessUrl = fileRef;
