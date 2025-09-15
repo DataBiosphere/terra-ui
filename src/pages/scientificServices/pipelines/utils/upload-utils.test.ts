@@ -1,4 +1,4 @@
-import { checkUploadStatus } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import { checkUploadStatus, initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 import * as uploadUtils from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 global.fetch = jest.fn();
@@ -125,6 +125,53 @@ describe('upload-utils', () => {
       expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
       expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Range', 'bytes 5-9/10');
       expect(mockXHR.send).toHaveBeenCalledWith(inputFile.slice(5));
+    });
+  });
+
+  describe('initiateResumableUpload', () => {
+    it('initiates a resumable upload session', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        status: 200,
+        ok: true,
+        headers: {
+          get: () => 'http://signed.url/session',
+        },
+      });
+
+      const mockSetUploadState = jest.fn();
+      const inputName = 'testInput';
+      const inputFile = new File(['abcdefghij'], 'foo.txt');
+      const signedUrl = 'http://signed.url/upload';
+
+      const mockXHR = new MockXMLHttpRequest();
+      mockXHR.addEventListener = jest.fn((event, callback) => {
+        if (event === 'load') {
+          setTimeout(() => callback({ status: 200 }), 0);
+        }
+      });
+
+      Object.defineProperty(mockXHR, 'status', {
+        value: 200,
+        writable: true,
+      });
+
+      global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+      await initiateResumableUpload(inputName, inputFile, signedUrl, mockSetUploadState);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        signedUrl,
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'x-goog-resumable': 'start', 'Content-Type': 'application/octet-stream' },
+        })
+      );
+
+      expect(global.XMLHttpRequest).toHaveBeenCalled();
+      expect(mockXHR.open).toHaveBeenCalledWith('PUT', 'http://signed.url/session');
+      expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+      expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Range', 'bytes 0-9/10');
+      expect(mockXHR.send).toHaveBeenCalledWith(inputFile);
     });
   });
 });

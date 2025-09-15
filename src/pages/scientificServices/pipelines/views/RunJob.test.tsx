@@ -300,7 +300,7 @@ describe('uploadPipelineFiles function', () => {
     // Verify that the file upload was initiated
     expect(global.fetch).toHaveBeenCalledWith('https://mock-signed-url.com/upload', {
       method: 'POST',
-      headers: { 'x-goog-resumable': 'start' },
+      headers: { 'x-goog-resumable': 'start', 'Content-Type': 'application/octet-stream' },
     });
 
     // Verify that XMLHttpRequest was used for file upload
