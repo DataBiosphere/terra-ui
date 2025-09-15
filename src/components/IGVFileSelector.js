@@ -174,6 +174,12 @@ const hasValidIgvExtension = (filename) => {
   return !!base && allFiles.includes(extension);
 };
 
+// Determine whether filename is a genomic data file (not an index file)
+const isGenomicDataFile = (filename) => {
+  const [base, extension] = splitExtension(filename);
+  return !!base && genomicFiles.includes(extension);
+};
+
 export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvDrsUris = [];
 
@@ -217,9 +223,9 @@ const getBasicFileUrlsFromAttributeValues = (values) => {
         return false;
       }
 
-      // Filter to URLs that point to a file with one of the relevant extensions.
+      // Filter to URLs that point to genomic data files (not index files).
       const filename = url.pathname.split('/').at(-1);
-      return hasValidIgvExtension(filename);
+      return isGenomicDataFile(filename);
     } catch (err) {
       return false;
     }
@@ -228,9 +234,31 @@ const getBasicFileUrlsFromAttributeValues = (values) => {
 };
 
 export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
+  // Get all IGV files (both genomic and index files) for searching
+  const allIgvFiles = values.filter((value) => {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'gs:') {
+        return false;
+      }
+      const filename = url.pathname.split('/').at(-1);
+      return hasValidIgvExtension(filename);
+    } catch (err) {
+      return false;
+    }
+  });
+
+  // Get only genomic data files (not index files) for primary tracks
   const basicFileUrls = getBasicFileUrlsFromAttributeValues(values);
 
   const fileUrls = basicFileUrls.map((fus) => {
+    const url = new URL(fus);
+    url.isSignedUrl = false;
+    return url;
+  });
+
+  // Create URL objects for all IGV files (for index searching)
+  const allIgvFileUrls = allIgvFiles.map((fus) => {
     const url = new URL(fus);
     url.isSignedUrl = false;
     return url;
@@ -245,10 +273,15 @@ export const getValidIgvFiles = async (workspace, entityType, values, signal) =>
     // via DRS Hub.
     url.isSignedUrl = true;
 
-    fileUrls.push(url);
-  });
+    // Add all access URLs to the search list
+    allIgvFileUrls.push(url);
 
-  // console.log('accessUrls:', accessUrls);
+    // Only add genomic data files (not index files) to the primary file list
+    const filename = url.pathname.split('/').at(-1);
+    if (isGenomicDataFile(filename)) {
+      fileUrls.push(url);
+    }
+  });
 
   const results = await Promise.all(
     fileUrls.map(async (fileUrl) => {
@@ -257,12 +290,13 @@ export const getValidIgvFiles = async (workspace, entityType, values, signal) =>
       if (fileUrl.pathname.endsWith('.bed')) {
         return [{ filePath, indexFilePath: false, isSignedUrl }];
       }
-      const indexFileUrl = await findIndexForFile(workspace, entityType, fileUrl, fileUrls, signal);
-      // console.log('indexFileUrl', indexFileUrl);
+      // Use allIgvFileUrls (which includes index files) for index searching
+      const indexFileUrl = await findIndexForFile(workspace, entityType, fileUrl, allIgvFileUrls, signal);
       if (indexFileUrl !== undefined) {
         return [{ filePath, indexFilePath: indexFileUrl.href, isSignedUrl }];
       }
-      return [];
+      // Return files without indices with indexFilePath: undefined
+      return [{ filePath, indexFilePath: undefined, isSignedUrl }];
     })
   );
 

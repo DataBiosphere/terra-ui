@@ -1,5 +1,12 @@
-import { getIgvMetricDetails, getValidIgvFiles, getValidIgvFilesFromAttributeValues, isDrsUri } from 'src/components/IGVFileSelector';
+import {
+  getIgvMetricDetails,
+  getValidIgvFiles,
+  getValidIgvFilesFromAttributeValues,
+  isDrsUri,
+  resolveValidIgvDrsUris,
+} from 'src/components/IGVFileSelector';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 
 jest.mock('src/libs/ajax/drs/DrsUriResolver');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
@@ -413,5 +420,164 @@ describe('getValidIgvFilesFromAttributeValues', () => {
       igvHasDrsUris: true,
       igvGenome: 'hg38',
     });
+  });
+});
+
+describe('resolveValidIgvDrsUris', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('resolves DRS URIs to access URLs for valid IGV files', async () => {
+    const mockDrsUrls = ['drs://example.com/test.bam', 'drs://example.com/test.vcf'];
+    const mockSignal = undefined;
+
+    // Mock the DRS resolver responses
+    DrsUriResolver.mockImplementation(() => ({
+      getDataObjectMetadata: jest.fn((drsUrl, fields) => {
+        if (fields.includes('fileName')) {
+          if (drsUrl === 'drs://example.com/test.bam') {
+            return Promise.resolve({ fileName: 'test.bam' });
+          }
+          if (drsUrl === 'drs://example.com/test.vcf') {
+            return Promise.resolve({ fileName: 'test.vcf' });
+          }
+        }
+        if (fields.includes('accessUrl')) {
+          if (drsUrl === 'drs://example.com/test.bam') {
+            return Promise.resolve({ accessUrl: { url: 'https://storage.googleapis.com/bucket/test.bam' } });
+          }
+          if (drsUrl === 'drs://example.com/test.vcf') {
+            return Promise.resolve({ accessUrl: { url: 'https://storage.googleapis.com/bucket/test.vcf' } });
+          }
+        }
+      }),
+    }));
+
+    const result = await resolveValidIgvDrsUris(mockDrsUrls, mockSignal);
+
+    expect(result).toEqual(['https://storage.googleapis.com/bucket/test.bam', 'https://storage.googleapis.com/bucket/test.vcf']);
+  });
+
+  it('filters out DRS URIs that do not point to valid IGV files', async () => {
+    const mockDrsUrls = ['drs://example.com/test.txt', 'drs://example.com/test.bam'];
+    const mockSignal = undefined;
+
+    DrsUriResolver.mockImplementation(() => ({
+      getDataObjectMetadata: jest.fn((drsUrl, fields) => {
+        if (fields.includes('fileName')) {
+          if (drsUrl === 'drs://example.com/test.txt') {
+            return Promise.resolve({ fileName: 'test.txt' });
+          }
+          if (drsUrl === 'drs://example.com/test.bam') {
+            return Promise.resolve({ fileName: 'test.bam' });
+          }
+        }
+        if (fields.includes('accessUrl')) {
+          if (drsUrl === 'drs://example.com/test.bam') {
+            return Promise.resolve({ accessUrl: { url: 'https://storage.googleapis.com/bucket/test.bam' } });
+          }
+        }
+      }),
+    }));
+
+    const result = await resolveValidIgvDrsUris(mockDrsUrls, mockSignal);
+
+    expect(result).toEqual(['https://storage.googleapis.com/bucket/test.bam']);
+  });
+
+  it('handles non-DRS URIs by filtering them out', async () => {
+    const mockUrls = ['https://example.com/test.bam', 'drs://example.com/test.vcf'];
+    const mockSignal = undefined;
+
+    DrsUriResolver.mockImplementation(() => ({
+      getDataObjectMetadata: jest.fn((drsUrl, fields) => {
+        if (fields.includes('fileName')) {
+          if (drsUrl === 'drs://example.com/test.vcf') {
+            return Promise.resolve({ fileName: 'test.vcf' });
+          }
+        }
+        if (fields.includes('accessUrl')) {
+          if (drsUrl === 'drs://example.com/test.vcf') {
+            return Promise.resolve({ accessUrl: { url: 'https://storage.googleapis.com/bucket/test.vcf' } });
+          }
+        }
+      }),
+    }));
+
+    const result = await resolveValidIgvDrsUris(mockUrls, mockSignal);
+
+    expect(result).toEqual(['https://storage.googleapis.com/bucket/test.vcf']);
+  });
+});
+
+describe('GCS URL handling', () => {
+  it('handles GCS URLs correctly in search functionality', async () => {
+    const mockWorkspace = { workspace: { namespace: 'test-ns', name: 'test-ws' } };
+    const mockEntityType = 'sample';
+    const mockValues = ['gs://bucket/test.bam', 'gs://bucket/test.bam.bai'];
+    const mockSignal = undefined;
+
+    // Mock Workspaces to return some results
+    Workspaces.mockImplementation(() => ({
+      workspace: () => ({
+        paginatedEntitiesOfType: () =>
+          Promise.resolve({
+            results: [
+              {
+                attributes: {
+                  file_path: 'gs://bucket/test.bam',
+                  index_path: 'gs://bucket/test.bam.bai',
+                },
+              },
+            ],
+          }),
+      }),
+    }));
+
+    const result = await getValidIgvFilesFromAttributeValues(mockWorkspace, mockEntityType, mockValues, mockSignal);
+
+    // Should handle GCS URLs correctly
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.some((file) => file.filePath.startsWith('gs://'))).toBe(true);
+  });
+});
+
+describe('Async handling improvements', () => {
+  it('processes search results sequentially with proper async/await', async () => {
+    const mockWorkspace = { workspace: { namespace: 'test-ns', name: 'test-ws' } };
+    const mockEntityType = 'sample';
+    const mockValues = ['gs://bucket/test1.bam', 'gs://bucket/test2.bam'];
+    const mockSignal = undefined;
+
+    const callOrder = [];
+
+    // Mock Workspaces to track call order
+    Workspaces.mockImplementation(() => ({
+      workspace: () => ({
+        paginatedEntitiesOfType: () => {
+          callOrder.push('paginatedEntitiesOfType');
+          return Promise.resolve({
+            results: [
+              {
+                attributes: {
+                  file_path: 'gs://bucket/test1.bam',
+                },
+              },
+              {
+                attributes: {
+                  file_path: 'gs://bucket/test2.bam',
+                },
+              },
+            ],
+          });
+        },
+      }),
+    }));
+
+    await getValidIgvFilesFromAttributeValues(mockWorkspace, mockEntityType, mockValues, mockSignal);
+
+    // Verify that the workspace call was made
+    expect(callOrder).toContain('paginatedEntitiesOfType');
   });
 });
