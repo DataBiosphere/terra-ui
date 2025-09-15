@@ -62,7 +62,7 @@ export interface GetPipelineRunsResponse {
 }
 
 export interface PreparePipelineRunResponse {
-  fileInputUploadUrls: Record<string, Record<string, string>>;
+  fileInputUploadUrls: Record<string, { signedUrl: string }>;
   jobId: string;
 }
 

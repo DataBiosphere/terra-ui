@@ -6,7 +6,7 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { SearchFilter } from 'src/billing/Filter/SearchFilter';
 import { SpendReportDownloader } from 'src/billing/SpendReport/SpendReportDownloader';
-import { parseCurrencyIfNeeded } from 'src/billing/utils';
+import { creditedCost, parseCurrencyIfNeeded } from 'src/billing/utils';
 import { BillingProject } from 'src/billing-core/models';
 import { ButtonOutline, Checkbox, fixedSpinnerOverlay } from 'src/components/common';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
@@ -283,15 +283,15 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                   cloudPlatform: 'Gcp',
                   bucketName: workspaceDetails?.workspace.bucketName,
 
-                  totalSpend: costFormatter.format(parseFloat(spendItem.cost ?? '0.00')),
+                  totalSpend: costFormatter.format(creditedCost(spendItem)),
                   totalCompute: costFormatter.format(
-                    parseFloat(_.find({ category: 'Compute' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+                    creditedCost(_.find({ category: 'Compute' }, spendItem.subAggregation.spendData))
                   ),
                   totalStorage: costFormatter.format(
-                    parseFloat(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+                    creditedCost(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData))
                   ),
                   otherSpend: costFormatter.format(
-                    parseFloat(_.find({ category: 'Other' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+                    creditedCost(_.find({ category: 'Other' }, spendItem.subAggregation.spendData))
                   ),
                 } as GoogleWorkspaceInfo;
               }
