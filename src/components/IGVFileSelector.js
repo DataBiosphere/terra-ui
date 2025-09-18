@@ -314,13 +314,13 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
                   {
                     checked: isSelected,
                     onChange: () => toggleSelected(index),
+                    style: { padding: '0.5rem' },
                   },
                   [
                     h(
                       Link,
                       {
                         style: {
-                          marginLeft: '0.5rem',
                           padding: '0.5rem',
                           minWidth: 0,
                           overflow: 'hidden',
