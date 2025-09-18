@@ -1,5 +1,4 @@
-import { currencyStringToFloat, parseCurrencyIfNeeded } from 'src/billing/utils';
-import { validateUserEmails } from 'src/billing/utils';
+import { creditedCost, currencyStringToFloat, parseCurrencyIfNeeded, validateUserEmails } from 'src/billing/utils';
 import validate from 'validate.js';
 
 describe('currencyStringToFloat', () => {
@@ -155,5 +154,25 @@ describe('validateUserEmails', () => {
 
     // Assert
     expect(result).toBeUndefined();
+  });
+});
+
+describe('creditedCost', () => {
+  const testCases = [
+    { input: {}, expected: 0 },
+    { input: { cost: '1.23', credits: '-0.23' }, expected: 1 },
+    { input: { cost: '4.56' }, expected: 4.56 },
+    { input: { credits: '-7.89' }, expected: -7.89 },
+    { input: { foo: 'bar', baz: 'qux' }, expected: 0 },
+    { input: 'notanobject', expected: 0 },
+    { input: undefined, expected: 0 },
+  ];
+
+  testCases.forEach(({ input, expected }) => {
+    it(`should return ${expected} for input ${JSON.stringify(input)}`, () => {
+      // Act
+      const result = creditedCost(input as any);
+      expect(result).toBe(expected);
+    });
   });
 });

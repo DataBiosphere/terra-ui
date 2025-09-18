@@ -4,13 +4,7 @@ import { DataRepo, Snapshot } from 'src/libs/ajax/DataRepo';
 import { SamResources } from 'src/libs/ajax/SamResources';
 import { useRoute } from 'src/libs/nav';
 
-import {
-  CatalogDatasetImportRequest,
-  FileImportRequest,
-  ImportRequest,
-  TDRSnapshotExportImportRequest,
-  TDRSnapshotReferenceImportRequest,
-} from './import-types';
+import { FileImportRequest, ImportRequest, TDRSnapshotExportImportRequest } from './import-types';
 
 type QueryParams = { [key: string]: unknown };
 
@@ -132,39 +126,6 @@ const getTDRSnapshotExportImportRequest = async (queryParams: QueryParams): Prom
   };
 };
 
-const getTDRSnapshotReferenceImportRequest = async (
-  queryParams: QueryParams
-): Promise<TDRSnapshotReferenceImportRequest> => {
-  const snapshotId = requireString(queryParams.snapshotId, 'snapshot ID');
-
-  let snapshot: Snapshot;
-  let snapshotAccessControls: string[];
-  try {
-    [snapshot, snapshotAccessControls] = await Promise.all([
-      DataRepo().snapshot(snapshotId).details(),
-      SamResources().getAuthDomains({ resourceTypeName: 'datasnapshot', resourceId: snapshotId }),
-    ]);
-  } catch (err: unknown) {
-    throw new Error('Unable to load snapshot.');
-  }
-
-  validateGcpSnapshot(snapshot);
-
-  return {
-    type: 'tdr-snapshot-reference',
-    snapshot,
-    snapshotAccessControls,
-  };
-};
-
-const getCatalogDatasetImportRequest = (queryParams: QueryParams): CatalogDatasetImportRequest => {
-  const datasetId = requireString(queryParams.catalogDatasetId, 'dataset ID');
-  return {
-    type: 'catalog-dataset',
-    datasetId,
-  };
-};
-
 export const getImportRequest = (queryParams: QueryParams): Promise<ImportRequest> => {
   const format = getFormat(queryParams);
 
@@ -177,10 +138,6 @@ export const getImportRequest = (queryParams: QueryParams): Promise<ImportReques
       return Promise.resolve(getFileImportRequest(queryParams, 'entities'));
     case 'tdrexport':
       return getTDRSnapshotExportImportRequest(queryParams);
-    case 'snapshot':
-      return getTDRSnapshotReferenceImportRequest(queryParams);
-    case 'catalog':
-      return Promise.resolve(getCatalogDatasetImportRequest(queryParams));
     default:
       throw new Error(`Invalid format: ${format}`);
   }

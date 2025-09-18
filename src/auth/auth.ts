@@ -257,6 +257,12 @@ export const bucketBrowserUrl = (id) => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getTerraUser().email}`;
 };
 
+export const bucketFileBrowserUrl = (bucketId, fileId) => {
+  return `https://console.cloud.google.com/storage/browser/_details/${bucketId}/${fileId};tab=live_object?authuser=${
+    getTerraUser().email
+  }`;
+};
+
 /*
  * Specifies whether the user has logged in via the Azure identity provider.
  */

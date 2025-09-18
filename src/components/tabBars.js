@@ -1,7 +1,7 @@
 import { useUniqueId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import PropTypes from 'prop-types';
-import { Fragment, useRef } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { div, h, span } from 'react-hyperscript-helpers';
 import { Clickable } from 'src/components/common';
 import { HorizontalNavigation } from 'src/components/keyboard-nav';
@@ -54,13 +54,35 @@ const styles = {
  * @param getOnClick An optional click handler function, given the current tab
  * @param aria-label The ARIA label for the menu, which is required for accessibility
  * @param tabProps Optionally, properties to add to each tab
+ * @param styleOverrides Optionally, an object to override default styles (can override container, tab, active, hover)
  * @param children Children, which will be appended to the end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
-export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children, ...props }) {
+export function TabBar({
+  activeTab,
+  tabNames,
+  displayNames = {},
+  refresh = _.noop,
+  getHref,
+  getOnClick = _.noop,
+  styleOverrides = {},
+  children,
+  ...props
+}) {
+  const [hoveredTab, setHoveredTab] = useState(null);
+
+  // Merge default styles with overrides
+  const mergedStyles = {
+    container: { ...Style.tabBar.container, ...styleOverrides.container },
+    tab: { ...Style.tabBar.tab, ...styleOverrides.tab },
+    active: { ...Style.tabBar.active, ...styleOverrides.active },
+    hover: { ...Style.tabBar.hover, ...styleOverrides.hover },
+  };
+
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab;
     const href = getHref(currentTab);
+    const isHovered = hoveredTab === currentTab;
 
     return span(
       {
@@ -75,15 +97,17 @@ export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noo
         h(
           Clickable,
           {
-            style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
-            hover: selected ? {} : Style.tabBar.hover,
+            style: { ...mergedStyles.tab, ...(selected ? mergedStyles.active : {}) },
+            hover: isHovered ? mergedStyles.hover : {},
             onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
             href,
+            onMouseEnter: () => setHoveredTab(currentTab),
+            onMouseLeave: () => setHoveredTab(null),
           },
           [
             div(
               {
-                style: { flex: '1 1 100%', marginBottom: selected ? -Style.tabBar.active.borderBottomWidth : undefined },
+                style: { flex: '1 1 100%', marginBottom: selected ? -mergedStyles.active.borderBottomWidth : undefined },
               },
               displayNames[currentTab] || currentTab
             ),
@@ -95,7 +119,7 @@ export function TabBar({ activeTab, tabNames, displayNames = {}, refresh = _.noo
 
   return div(
     {
-      style: Style.tabBar.container,
+      style: mergedStyles.container,
     },
     [
       div(
@@ -129,6 +153,7 @@ TabBar.propTypes = {
   refresh: PropTypes.func,
   getHref: PropTypes.func,
   getOnClick: PropTypes.func,
+  styleOverrides: PropTypes.object,
   tabProps: PropTypes.object,
   id: PropTypes.string,
 };

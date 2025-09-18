@@ -14,14 +14,11 @@ import {
 } from 'src/components/common';
 import jupyterLogo from 'src/images/jupyter-logo.svg';
 import colors from 'src/libs/colors';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { ENHANCED_WORKSPACE_CREATION } from 'src/libs/feature-previews-config';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { WorkspaceSelector } from 'src/workspaces/common/WorkspaceSelector';
-import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
-import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceModal/NewWorkspaceWizard';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import { canWrite, WorkspaceInfo } from 'src/workspaces/utils';
 import { WorkspacePolicies } from 'src/workspaces/WorkspacePolicies/WorkspacePolicies';
 
@@ -121,7 +118,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
 
   // Some import types are finished in a single request.
   // For most though, the import request starts a background task that takes time to complete.
-  const immediateImportTypes: ImportRequest['type'][] = ['tdr-snapshot-reference'];
+  const immediateImportTypes: ImportRequest['type'][] = [];
   const importMayTakeTime = !immediateImportTypes.includes(importRequest.type);
 
   const {
@@ -132,7 +129,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
     [
       // The decision on whether or data can be imported into a workspace is based on the user's level of access
       // to the workspace and the workspace's authorization domain, protected status and cloud platform.
-      // When using a template workspace, the NewWorkspaceModal reads the description attribute
+      // When using a template workspace, the NewWorkspaceWizard reads the description attribute
       // from the template.
 
       // Load the same fields that are loaded by the workspaces list page so that a user can navigate to the
@@ -368,7 +365,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
               disabled: !userHasBillingProjects,
             }),
             isCreateOpen &&
-              h(isFeaturePreviewEnabled(ENHANCED_WORKSPACE_CREATION) ? NewWorkspaceWizard : NewWorkspaceModal, {
+              h(NewWorkspaceWizard, {
                 requiredAuthDomain: requiredAuthorizationDomain,
                 cloudPlatform: requiredCloudPlatform,
                 renderNotice: () => {
@@ -389,9 +386,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   return children.length > 0 ? h(Fragment, children) : undefined;
                 },
                 requireEnhancedBucketLogging: importRequiresSecurityMonitoring,
-                waitForServices: {
-                  wds: true,
-                },
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: (w) => {
                   setMode('existing');
@@ -406,7 +400,7 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
       ]
     ),
     isCloneOpen &&
-      h(NewWorkspaceModal, {
+      h(NewWorkspaceWizard, {
         cloneWorkspace: _.find({ workspace: selectedTemplateWorkspaceKey }, workspaces),
         // This modal can only be opened if selectedTemplateWorkspaceKey is set.
         title: `Clone ${selectedTemplateWorkspaceKey!.name} and Import Data`,

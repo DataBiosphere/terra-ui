@@ -65,7 +65,7 @@ describe('getServiceAlerts', () => {
     ]);
   });
 
-  it('defaults severity to warning', async () => {
+  it('map severity to alerts', async () => {
     // Arrange
     asMockedFn(FirecloudBucket).mockReturnValue(
       partial<FirecloudBucketAjaxContract>({
@@ -73,11 +73,21 @@ describe('getServiceAlerts', () => {
           {
             title: 'The systems are down!',
             message: 'Something is terribly wrong',
+            severity: 'blocker', // This should be mapped to 'error'
+          },
+          {
+            title: 'The systems are down!',
+            message: 'Something is terribly wrong',
+            severity: 'critical', // This should be mapped to 'warn'
+          },
+          {
+            title: 'The systems are down!',
+            message: 'Something is terribly wrong', // This should be mapped to 'warn'
           },
           {
             title: 'Scheduled maintenance',
             message: 'Offline tomorrow',
-            severity: 'info',
+            severity: 'info', // This should be mapped to 'info'
           },
         ],
       })
@@ -87,6 +97,6 @@ describe('getServiceAlerts', () => {
     const serviceAlerts = await getServiceAlerts();
 
     // Assert
-    expect(serviceAlerts.map((alert) => alert.severity)).toEqual(['warn', 'info']);
+    expect(serviceAlerts.map((alert) => alert.severity)).toEqual(['error', 'warn', 'warn', 'info']);
   });
 });

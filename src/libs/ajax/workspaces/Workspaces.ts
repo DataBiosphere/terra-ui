@@ -96,6 +96,16 @@ export const Workspaces = (signal?: AbortSignal) => ({
     return res.json();
   },
 
+  adminGetByGoogleProjectId: async (googleProjectId: string): Promise<SupportSummary> => {
+    const res = await fetchRawls(`admin/workspaces/googleProject/${googleProjectId}`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+
+  adminGetId: async (namespace: string, name: string): Promise<string> => {
+    const res = await fetchRawls(`admin/workspaces/${namespace}/${name}/id`, _.merge(authOpts(), { signal }));
+    return res.json();
+  },
+
   workspaceV2: (namespace: string, name: string) => {
     const root = `workspaces/v2/${namespace}/${name}`;
 
@@ -269,42 +279,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
       listSubmissions: async () => {
         const res = await fetchRawls(`${root}/submissions`, _.merge(authOpts(), { signal }));
         return res.json();
-      },
-
-      listSnapshots: async (limit: number, offset: number) => {
-        const res = await fetchRawls(
-          `${root}/snapshots/v2?offset=${offset}&limit=${limit}`,
-          _.merge(authOpts(), { signal })
-        );
-        // The list snapshots endpoint returns a "snapshot" field that should really be named "snapshotId". Ideally, this should be fixed in the
-        // backend, but we've sequestered it here for now.
-        return _.update(
-          'gcpDataRepoSnapshots',
-          _.map(_.update('attributes', (a) => ({ ...a, snapshotId: a.snapshot }))),
-          await res.json()
-        );
-      },
-
-      snapshot: (snapshotId: string) => {
-        const snapshotPath = `${root}/snapshots/v2/${snapshotId}`;
-
-        return {
-          details: async () => {
-            const res = await fetchRawls(snapshotPath, _.merge(authOpts(), { signal }));
-            return res.json();
-          },
-
-          update: (updateInfo) => {
-            return fetchRawls(
-              snapshotPath,
-              _.mergeAll([authOpts(), jsonBody(updateInfo), { signal, method: 'PATCH' }])
-            );
-          },
-
-          delete: (): Promise<Response> => {
-            return fetchRawls(snapshotPath, _.merge(authOpts(), { signal, method: 'DELETE' }));
-          },
-        };
       },
 
       submission: (submissionId: string) => {
@@ -574,14 +548,6 @@ export const Workspaces = (signal?: AbortSignal) => ({
         const res = await fetchOrchestration(
           `api/${root}/importJob?running_only=${isRunning}`,
           _.merge(authOpts(), { signal })
-        );
-        return res.json();
-      },
-
-      importSnapshot: async (snapshotId: string, name: string, description?: string) => {
-        const res = await fetchRawls(
-          `${root}/snapshots/v2`,
-          _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: 'POST' }])
         );
         return res.json();
       },

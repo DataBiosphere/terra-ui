@@ -9,6 +9,7 @@ export const isBrand = (brand: BrandConfiguration): boolean => {
 };
 
 export const getEnabledBrand = (): BrandConfiguration => {
+  // You can force this from the browser console by running `configOverridesStore.set({ brand: 'analytixin' })`
   const forcedBrand: string = getConfig().brand;
 
   if (!!forcedBrand && _.has(forcedBrand, brands)) {
@@ -39,4 +40,5 @@ export const isElwazi = () => getEnabledBrand() === brands.elwazi;
 export const isFirecloud = () => getEnabledBrand() === brands.firecloud;
 export const isProjectSingular = () => getEnabledBrand() === brands.projectSingular;
 export const isRareX = () => getEnabledBrand() === brands.rareX;
+export const isScientificServices = () => getEnabledBrand() === brands.scientificServices;
 export const isTerra = () => getEnabledBrand() === brands.terra;

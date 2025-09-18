@@ -1,6 +1,7 @@
 import { Clickable, icon, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React from 'react';
+import { h } from 'react-hyperscript-helpers';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { libraryTopMatter } from 'src/components/library-common';
 import terraLogo from 'src/images/brands/terra/logo.svg';
@@ -241,5 +242,15 @@ export const navPaths = [
     component: WorkflowsLibrary,
     public: false,
     title: 'Workflows',
+  },
+  {
+    name: 'library-methods', // legacy
+    path: '/library/methods',
+    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('library-workflows', props), search: '' }),
+  },
+  {
+    name: 'methods', // legacy (redirected from portal.firecloud.org/methods)
+    path: '/methods',
+    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('library-workflows', props), search: '' }),
   },
 ];

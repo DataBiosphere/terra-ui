@@ -2,8 +2,8 @@ import { ButtonOutline, icon, Modal, Spinner } from '@terra-ui-packages/componen
 import filesize from 'filesize';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
-import { div, h, p, pre, span } from 'react-hyperscript-helpers';
-import { bucketBrowserUrl } from 'src/auth/auth';
+import { br, div, h, p, pre, span } from 'react-hyperscript-helpers';
+import { bucketBrowserUrl, bucketFileBrowserUrl } from 'src/auth/auth';
 import { LabeledRadioButton, LabeledRadioGroup } from 'src/billing/NewBillingProjectWizard/StepWizard/LabeledRadioButton';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import Collapse from 'src/components/Collapse';
@@ -268,9 +268,19 @@ export const UriViewer = _.flow(
                         Link,
                         {
                           ...Utils.newTabLinkProps,
-                          href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1]),
+                          href: bucketFileBrowserUrl(gsUri.match(/gs:\/\/(.+?)\/(.+)/)[1], gsUri.match(/gs:\/\/(.+?)\/(.+)/)[2]),
                         },
                         ['View this file in the Google Cloud Storage Browser']
+                      ),
+                      br(),
+                      br(),
+                      h(
+                        Link,
+                        {
+                          ...Utils.newTabLinkProps,
+                          href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1]),
+                        },
+                        ['View the folder containing this file in Google Cloud Storage Browser']
                       ),
                     ]),
                   h(UriDownloadButton, { uri, metadata, accessUrl, workspace }),

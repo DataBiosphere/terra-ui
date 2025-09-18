@@ -1,9 +1,10 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
+import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { goToPath } from 'src/libs/nav';
 import { workspacesStore, workspaceStore } from 'src/libs/state';
-import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
+import { asMockedFn, MockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { InitializedWorkspaceWrapper } from 'src/workspaces/common/state/useWorkspace';
 import { WORKSPACE_UPDATE_POLLING_INTERVAL } from 'src/workspaces/common/state/useWorkspaceStatePolling';
@@ -46,6 +47,9 @@ jest.mock<StateExports>(
   })
 );
 
+const captureEvent: MockedFn<MetricsContract['captureEvent']> = jest.fn();
+jest.mock('src/libs/ajax/Metrics');
+
 type WorkspaceMenuExports = typeof import('src/workspaces/common/WorkspaceMenu');
 jest.mock<WorkspaceMenuExports>('src/workspaces/common/WorkspaceMenu', () => ({
   ...jest.requireActual('src/workspaces/common/WorkspaceMenu'),
@@ -55,6 +59,7 @@ jest.mock<WorkspaceMenuExports>('src/workspaces/common/WorkspaceMenu', () => ({
 describe('WorkspaceContainer', () => {
   beforeEach(() => {
     jest.spyOn(console, 'assert').mockImplementation(jest.fn());
+    asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
   });
   afterEach(() => {
     jest.useRealTimers();

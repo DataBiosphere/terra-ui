@@ -113,12 +113,34 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     });
 
     const renderActionButton = () => {
-      const deleteButton = h(ButtonOutline, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, [
-        'Delete Environment',
-      ]);
+      const deleteButton = h(
+        ButtonOutline,
+        {
+          disabled: false,
+          style: { marginRight: 'auto' },
+          onClick: () => setViewMode('deleteWarn'),
+        },
+        ['Delete Environment']
+      );
       // TODO: Reenable pause button once https://broadworkbench.atlassian.net/browse/PROD-905 is resolved
-      const pauseButton = h(ButtonSecondary, { disabled: true, style: { marginRight: '1rem' }, onClick: pauseGalaxy }, ['Pause']);
-      const resumeButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume']);
+      const pauseButton = h(
+        ButtonSecondary,
+        {
+          disabled: true,
+          style: { marginRight: '1rem' },
+          onClick: pauseGalaxy,
+        },
+        ['Pause']
+      );
+      const resumeButton = h(
+        ButtonSecondary,
+        {
+          disabled: false,
+          style: { marginRight: '1rem' },
+          onClick: resumeGalaxy,
+        },
+        ['Resume']
+      );
 
       return Utils.switchCase(
         viewMode,
@@ -196,7 +218,12 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
                         ),
                         h(
                           ButtonSecondary,
-                          { disabled: true, style: { marginRight: '1rem' }, tooltip: 'Cloud Compute must be running.', onClick: pauseGalaxy },
+                          {
+                            disabled: true,
+                            style: { marginRight: '1rem' },
+                            tooltip: 'Cloud Compute must be running.',
+                            onClick: pauseGalaxy,
+                          },
                           ['Pause']
                         ),
                       ]);
@@ -228,43 +255,70 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           onPrevious: viewMode ? () => setViewMode(undefined) : undefined,
         }),
         div({ style: { marginBottom: '1rem' } }, ['Cloud environments consist of application configuration, cloud compute and persistent disk(s).']),
-        div({ style: { ...computeStyles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
-          div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-            span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clockSolid', { size: 25, color: colors.accent() })]),
-            div([
-              div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Setup duration']),
-              div({ style: { lineHeight: 1.5 } }, [
-                div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
-                div(["You can navigate away, and we will notify you when it's ready. "]),
+        div(
+          {
+            style: {
+              ...computeStyles.whiteBoxContainer,
+              backgroundColor: colors.accent(0.1),
+              boxShadow: Style.standardShadow,
+            },
+          },
+          [
+            div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+              span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [
+                icon('clockSolid', {
+                  size: 25,
+                  color: colors.accent(),
+                }),
               ]),
-            ]),
-          ]),
-          div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-            span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('money-check-alt', { size: 25, color: colors.accent() })]),
-            div([
-              div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
-              div({ style: { lineHeight: 1.5 } }, [
-                div(['Please pause or delete the cloud environment when finished; it will']),
-                div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running. Please see the subsection']),
-                h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
-                  'Pausing/Resuming a Galaxy instance.',
-                  icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } }),
+              div([
+                div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Setup duration']),
+                div({ style: { lineHeight: 1.5 } }, [
+                  div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
+                  div(["You can navigate away, and we will notify you when it's ready. "]),
                 ]),
               ]),
             ]),
-          ]),
-          div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-            span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('cog', { size: 25, color: colors.accent() })]),
-            div([
-              div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
-              div({ style: { lineHeight: 1.5 } }, [
-                div(['If you would like to update your compute or disk configuration']),
-                div(['after an environment is created, please delete the environment and']),
-                div(['create a new environment with the desired configuration.']),
+            div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+              span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [
+                icon('money-check-alt', {
+                  size: 25,
+                  color: colors.accent(),
+                }),
+              ]),
+              div([
+                div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Ongoing costs']),
+                div({ style: { lineHeight: 1.5 } }, [
+                  div([span({ style: { fontWeight: 600 } }, ['Autopause is not supported.']), ' Delete the app once you have']),
+                  div(['completed your analysis to avoid unnecessary costs. For more ']),
+                  div([
+                    'information, see ',
+                    h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+                      'Galaxy in Terra',
+                      icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } }),
+                    ]),
+                  ]),
+                ]),
               ]),
             ]),
-          ]),
-        ]),
+            div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+              span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [
+                icon('cog', {
+                  size: 25,
+                  color: colors.accent(),
+                }),
+              ]),
+              div([
+                div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
+                div({ style: { lineHeight: 1.5 } }, [
+                  div(['If you would like to update your compute or disk configuration']),
+                  div(['after an environment is created, please delete the environment and']),
+                  div(['create a new environment with the desired configuration.']),
+                ]),
+              ]),
+            ]),
+          ]
+        ),
         div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [renderActionButton()]),
       ]);
     };
@@ -287,7 +341,6 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     // TODO Refactor this and the duplicate in GcpComputeModal.js
     const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDisk) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig });
-      const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig });
       return div(
         {
           style: {
@@ -303,13 +356,25 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
             ({ cost, label, unitLabel }) => {
               return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
                 div({ style: { fontSize: 10 } }, [label]),
-                div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [span({ style: { fontSize: 20 } }, [cost]), span([' ', unitLabel])]),
+                div(
+                  {
+                    style: {
+                      color: colors.accent(),
+                      marginTop: '0.25rem',
+                    },
+                  },
+                  [span({ style: { fontSize: 20 } }, [cost]), span([' ', unitLabel])]
+                ),
               ]);
             },
             [
               { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
-              { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-              { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDisk)), unitLabel: 'per hr' },
+              { label: 'Paused cloud compute cost', cost: 'Not Supported' },
+              {
+                label: 'Persistent disk cost',
+                cost: Utils.formatUSD(getGalaxyDiskCost(dataDisk)),
+                unitLabel: 'per hr',
+              },
             ]
           ),
         ]
@@ -347,21 +412,58 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     };
 
     const renderPersistentDiskConfigSection = () => {
-      const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.75rem', alignItems: 'center' };
+      const gridStyle = {
+        display: 'grid',
+        gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem',
+        gridGap: '0.75rem',
+        alignItems: 'center',
+      };
       return Utils.cond(
         [
           currentDataDisk,
           () => {
-            return div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
-              h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [renderPersistentDiskType(true)]),
-              h(TooltipTrigger, { content: ['Disk size can only be selected at creation time.'], side: 'bottom' }, [renderPersistentDiskSize(true)]),
-            ]);
+            return div(
+              {
+                style: {
+                  ...gridStyle,
+                  gridGap: '1rem',
+                  gridTemplateColumns: '15rem 4.5rem',
+                  marginTop: '0.75rem',
+                },
+              },
+              [
+                h(
+                  TooltipTrigger,
+                  {
+                    content: ['Disk type can only be selected at creation time.'],
+                    side: 'bottom',
+                  },
+                  [renderPersistentDiskType(true)]
+                ),
+                h(
+                  TooltipTrigger,
+                  {
+                    content: ['Disk size can only be selected at creation time.'],
+                    side: 'bottom',
+                  },
+                  [renderPersistentDiskSize(true)]
+                ),
+              ]
+            );
           },
         ],
         () => {
-          return div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
-            h(Fragment, [renderPersistentDiskType(false), renderPersistentDiskSize(false)]),
-          ]);
+          return div(
+            {
+              style: {
+                ...gridStyle,
+                gridGap: '1rem',
+                gridTemplateColumns: '15rem 4.5rem',
+                marginTop: '0.75rem',
+              },
+            },
+            [h(Fragment, [renderPersistentDiskType(false), renderPersistentDiskSize(false)])]
+          );
         }
       );
     };
@@ -552,7 +654,14 @@ const MachineSelector = ({ value, onChange }) => {
               isSearchable: false,
               value: currentMemory,
               onChange: (option) => {
-                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value.machineType;
+                const validMachineType =
+                  _.find(
+                    {
+                      cpu: currentCpu,
+                      memory: option.value,
+                    },
+                    validMachineTypes
+                  )?.name || value.machineType;
                 onChange((prevState) => {
                   return { ...prevState, machineType: validMachineType };
                 });

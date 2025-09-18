@@ -1,12 +1,10 @@
-import { icon, Modal } from '@terra-ui-packages/components';
+import { Modal } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useState } from 'react';
 import { div, h, h3, span } from 'react-hyperscript-helpers';
-import Collapse from 'src/components/Collapse';
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
-import { User } from 'src/libs/ajax/User';
-import { NihDatasetPermission } from 'src/libs/ajax/User';
+import { NihDatasetPermission, User } from 'src/libs/ajax/User';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -14,6 +12,7 @@ import { useOnMount, useStore } from 'src/libs/react-utils';
 import { AuthState, authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { linkStyles as styles } from 'src/profile/external-identities/LinkStyles';
+import { NihResources } from 'src/profile/external-identities/NihResources';
 import { ShibbolethLink } from 'src/profile/external-identities/ShibbolethLink';
 import { SpacedSpinner } from 'src/profile/SpacedSpinner';
 
@@ -39,7 +38,7 @@ export const NihAccount = ({ nihToken }) => {
     });
 
     if (nihToken) {
-      // Clear the query string, but use replace so the back button doesn't take the user back to the token
+      // Clear the query string, but use "replace" so the back button doesn't take the user back to the token
       Nav.history.replace({ search: 'tab=externalIdentities' });
       linkNihAccount();
     }
@@ -59,13 +58,19 @@ export const NihAccount = ({ nihToken }) => {
 
   const isLinked = !!linkedNihUsername && !isLinking;
 
+  const toolTipLinkProps = {
+    style: { textDecoration: 'underline' },
+    target: '_blank',
+  };
+
   return div({ style: styles.idLink.container }, [
     div({ style: styles.idLink.linkContentTop(isLinked) }, [
       div({ style: { ...styles.form.title, marginBottom: 0 } }, [
-        h3({ style: { marginRight: '0.5rem', ...styles.idLink.linkName } }, ['NIH Account']),
+        h3({ style: { marginRight: '0.5rem', ...styles.idLink.linkName } }, ['NHGRI AnVIL (eRA Commons)']),
         h(InfoBox, [
-          'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) ',
-          'based on your valid dbGaP applications.',
+          'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled AnVIL datasets hosted in Terra based on your valid dbGaP applications. Visit ',
+          h(Link, { href: 'https://anvilproject.org/', ...toolTipLinkProps }, ['AnVIL Portal']),
+          ' to see what datasets are available.',
         ]),
       ]),
       Utils.cond(
@@ -94,55 +99,7 @@ export const NihAccount = ({ nihToken }) => {
           ])
       ),
     ]),
-    isLinked &&
-      div({ style: styles.idLink.linkContentBottom }, [
-        h3({ style: { fontWeight: 500, margin: 0 } }, ['Resources']),
-        !_.isEmpty(authorizedDatasets) &&
-          h(
-            Collapse,
-            {
-              style: { marginTop: '1rem' },
-              title: 'Authorized to access',
-              titleFirst: true,
-              initialOpenState: true,
-            },
-            [
-              div({ style: { marginTop: '0.5rem' } }, [
-                _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), authorizedDatasets),
-              ]),
-            ]
-          ),
-        !_.isEmpty(unauthorizedDatasets) &&
-          h(
-            Collapse,
-            {
-              style: { marginTop: '1rem' },
-              title: 'Not authorized',
-              titleFirst: true,
-              afterTitle: h(InfoBox, [
-                'Your account was linked, but you are not authorized to view these controlled datasets. ',
-                'If you think you should have access, please ',
-                h(
-                  Link,
-                  {
-                    href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
-                    ...Utils.newTabLinkProps,
-                  },
-                  [
-                    'verify your credentials here',
-                    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem', verticalAlign: 'baseline' } }),
-                  ]
-                ),
-                '.',
-              ]),
-            },
-            [
-              div({ style: { marginTop: '0.5rem' } }, [
-                _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), unauthorizedDatasets),
-              ]),
-            ]
-          ),
-      ]),
+    isLinked && h(NihResources, { authorizedDatasets, unauthorizedDatasets }),
     isConfirmUnlinkModalOpen &&
       h(
         Modal,

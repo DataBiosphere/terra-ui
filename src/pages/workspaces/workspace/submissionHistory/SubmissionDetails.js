@@ -28,8 +28,6 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
@@ -40,11 +38,10 @@ import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
 const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted'];
 
-// Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
-// 'cromwell.conf.ctmpl' file:
-const deletionDelayYears = 1;
-const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`;
-const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayYears * 365;
+// Note: This 'deletionDelayDays' value should reflect the current `archiveMetadata.deletion.delay` value configured for PROD in
+// the `values/app/cromwell/live.yaml.gotmpl` file of `terra-helmfile`
+const deletionDelayDays = 190;
+const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayDays;
 
 const deletedInfoIcon = ({ name, icon: iconName }) => {
   return h(
@@ -56,7 +53,7 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
     },
     [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
-      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${deletionDelayString} old).`]),
+      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (>${Math.round(deletionDelayDays / 31)} months old).`]),
       div([
         'Please refer to the ',
         h(
@@ -118,11 +115,10 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
         }),
       ]),
       h(Link, { onClick: () => downloadWorkflows(filteredWorkflows, submissionId) }, ['Download TSV']),
-      isFeaturePreviewEnabled(PREVIEW_COST_CAPPING) &&
-        div({ style: { marginLeft: 'auto' } }, [
-          b({}, ['Per Workflow Cost Threshold: ']),
-          perWorkflowCostCap ? Utils.formatUSD(perWorkflowCostCap) : 'N/A',
-        ]),
+      div({ style: { marginLeft: 'auto' } }, [
+        b({}, ['Per Workflow Cost Threshold: ']),
+        perWorkflowCostCap ? Utils.formatUSD(perWorkflowCostCap) : 'N/A',
+      ]),
     ]),
     // 48px is based on the default row height of FlexTable
     div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * tableRowHeight}px` } }, [
@@ -471,6 +467,9 @@ const SubmissionDetails = _.flow(
    */
   const hasWorkflowCostEstimates = _.some((w) => !('costType' in w) || w.costType === 'Estimated', workflows);
 
+  // Style for text wrapping
+  const wrapStyle = { whiteSpace: 'normal', overflowWrap: 'break-word' };
+
   /*
    * Page render
    */
@@ -556,7 +555,7 @@ const SubmissionDetails = _.flow(
               makeSection('Total Run Cost', [
                 typeof cost === 'number' ? `${Utils.formatUSD(cost)} ${hasWorkflowCostEstimates ? 'Estimated' : 'Actual'} cost` : 'N/A',
               ]),
-              makeSection('Data Entity', [div([entityName]), div([entityType])]),
+              makeSection('Data Entity', [div({ style: wrapStyle }, [entityName]), div({ style: wrapStyle }, [entityType])]),
               makeSection('Submission ID', [
                 h(Link, { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps }, submissionId),
                 h(ClipboardButton, {

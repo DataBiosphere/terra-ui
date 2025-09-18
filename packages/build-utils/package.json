@@ -26,10 +26,10 @@
   },
   "devDependencies": {
     "typescript": "~5.1.6",
-    "vite": "^5.2.11"
+    "vite": "^5.4.19"
   },
   "peerDependencies": {
     "typescript": "~5.1.6",
-    "vite": "^5.2.11"
+    "vite": "^5.4.19"
   }
 }

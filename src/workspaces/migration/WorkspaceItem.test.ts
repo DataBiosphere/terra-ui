@@ -46,7 +46,7 @@ describe('WorkspaceItem', () => {
       partial<WorkspacesAjaxContract>({
         workspace: () =>
           partial<WorkspaceContract>({
-            storageCostEstimateV2: async () => ({ estimate: 1.23, usageInBytes: 1234 }),
+            storageCostEstimateV2: async () => ({ estimate: 1.23, usageInBytes: 1234, usage: {} }),
           }),
       })
     );
@@ -72,7 +72,7 @@ describe('WorkspaceItem', () => {
       partial<WorkspacesAjaxContract>({
         workspace: () =>
           partial<WorkspaceContract>({
-            storageCostEstimateV2: async () => ({ estimate: 1.23, usageInBytes: 1234 }),
+            storageCostEstimateV2: async () => ({ estimate: 1.23, usageInBytes: 1234, usage: {} }),
           }),
         workspaceV2: () =>
           partial<WorkspaceV2Contract>({
@@ -112,7 +112,7 @@ describe('WorkspaceItem', () => {
       partial<WorkspacesAjaxContract>({
         workspace: () =>
           partial<WorkspaceContract>({
-            storageCostEstimateV2: async () => ({ estimate: 1.23, usageInBytes: 1234 }),
+            storageCostEstimateV2: async () => ({ estimate: 1.23, usageInBytes: 1234, usage: {} }),
           }),
         workspaceV2: () =>
           partial<WorkspaceV2Contract>({

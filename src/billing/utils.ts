@@ -133,3 +133,10 @@ export const validateUserEmails = (userEmails: string[]) => {
     }
   );
 };
+
+// helper to extract cost-minus-credits out of any object with those fields
+export const creditedCost: (obj: any) => number = (obj) => {
+  const cost = parseFloat(obj?.cost ?? '0.00');
+  const credits = parseFloat(obj?.credits ?? '0.00');
+  return cost + credits; // add, since credits are negative values
+};

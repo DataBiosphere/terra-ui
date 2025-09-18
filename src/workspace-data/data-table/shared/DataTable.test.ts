@@ -62,7 +62,7 @@ jest.mock('react-virtualized', (): ReactVirtualizedExports => {
 const mockDataProvider = new EntityServiceDataTableProvider('test-namespace', 'test-workspace');
 
 /**
- * TestHarness provides some of the same state management that EntitiesContent/WDSContent do in the app.
+ * TestHarness provides some of the same state management that EntitiesContent do in the app.
  */
 const TestHarness = (props) => {
   const [selectedEntities, setSelectedEntities] = useState({});

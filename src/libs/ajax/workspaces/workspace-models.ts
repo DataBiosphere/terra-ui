@@ -36,8 +36,9 @@ export type WorkspaceSetting =
   | BucketLifecycleSetting
   | SoftDeleteSetting
   | RequesterPaysSetting
-  | BatchSetting
-  | SeparateSubmissionFinalOutputsSetting;
+  | SeparateSubmissionFinalOutputsSetting
+  | ImprovedDataTablesSetting
+  | WorkspaceAnalysisLogRetentionSetting;
 
 export interface BucketLifecycleSetting {
   settingType: 'GcpBucketLifecycle';
@@ -54,9 +55,14 @@ export interface RequesterPaysSetting {
   config: { enabled: boolean };
 }
 
-export interface BatchSetting {
-  settingType: 'UseCromwellGcpBatchBackend';
+export interface ImprovedDataTablesSetting {
+  settingType: 'CompactDataTables';
   config: { enabled: boolean };
+}
+
+export interface WorkspaceAnalysisLogRetentionSetting {
+  settingType: 'GcpLogBucketRetention';
+  config: { retentionDurationInDays: number };
 }
 
 export interface SeparateSubmissionFinalOutputsSetting {
@@ -124,6 +130,7 @@ export interface BaseWorkspaceInfo {
   totalSpend?: string;
   totalCompute?: string;
   totalStorage?: string;
+  otherSpend?: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {
@@ -234,6 +241,7 @@ export interface AttributeEntityReference {
 export interface StorageCostEstimate {
   estimate: number;
   usageInBytes: number;
+  usage: { [key: string]: number };
   lastUpdated?: string;
 }
 

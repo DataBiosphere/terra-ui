@@ -1,11 +1,12 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { AutoSizer, List } from 'react-virtualized';
+import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
 import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
+import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -25,15 +26,15 @@ const splitExtension = (fileUrl) => {
 const getCompoundExtension = (fileUrl) => {
   const splitPath = fileUrl.split('?')[0].split('.');
   const numExtensions = splitPath.length > 2 ? 2 : 1;
-  const compoundExtension = splitPath.slice(-1 * numExtensions).join('.');
-  return compoundExtension;
+
+  return splitPath.slice(-1 * numExtensions).join('.');
 };
 
 export const getIgvMetricDetails = (selectedFiles, refGenome) => {
   const igvNumTracks = selectedFiles.length;
   const igvHasDrsUris = selectedFiles.some((f) => f.isSignedUrl);
-  const igvFileExtensions = selectedFiles.map((f) => getCompoundExtension(f.filePath));
-  const igvIndexExtensions = selectedFiles.map((f) => getCompoundExtension(f.indexFilePath));
+  const igvFileExtensions = selectedFiles.map((f) => f.filePath && getCompoundExtension(f.filePath));
+  const igvIndexExtensions = selectedFiles.map((f) => f.indexFilePath && getCompoundExtension(f.indexFilePath));
   const igvGenome = refGenome.genome;
   return {
     igvNumTracks,
@@ -71,7 +72,37 @@ function indexMap(base) {
   };
 }
 
-const findIndexForFile = (fileUrl, fileUrls) => {
+const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, signal) => {
+  const { namespace, name } = workspace.workspace;
+  const filterCandidates = indexCandidates.map((candidate) => candidate.split('/').pop()).join(' ');
+  const searchResponse = await Workspaces(signal).workspace(namespace, name).paginatedEntitiesOfType(entityType, {
+    filterOperator: 'or',
+    filterTerms: filterCandidates,
+  });
+
+  const URL_REGEX = /^(gs:\/\/|drs:\/\/|https?:\/\/|ftp:\/\/)/;
+
+  for (const result of searchResponse.results) {
+    const attributeValues = Object.values(result.attributes);
+    const match = attributeValues.find((val) => {
+      if (typeof val !== 'string') return false;
+      const fileName = val.split('/').pop();
+      return filterCandidates.includes(fileName);
+    });
+    if (match) {
+      let urlCandidate = match;
+      if (!URL_REGEX.test(match)) {
+        urlCandidate = attributeValues.find((val) => typeof val === 'string' && URL_REGEX.test(val));
+      }
+      if (urlCandidate && URL_REGEX.test(urlCandidate)) {
+        return await validateUrl(urlCandidate);
+      }
+    }
+  }
+  return undefined;
+};
+
+const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal) => {
   if (!genomicFiles.some((extension) => fileUrl.pathname.endsWith(extension))) {
     return undefined;
   }
@@ -92,8 +123,11 @@ const findIndexForFile = (fileUrl, fileUrls) => {
 
   const [base, extension] = splitExtension(fileUrl.pathname);
   const indexCandidates = indexMap(base)[extension];
-
-  return fileUrls.find((url) => indexCandidates.includes(url.pathname));
+  const foundIndex = fileUrls.find((url) => indexCandidates.includes(url.pathname));
+  if (foundIndex) {
+    return foundIndex;
+  }
+  return await searchDBForIndexFiles(workspace, entityType, indexCandidates, signal);
 };
 
 // Determine whether filename has an IGV-eligible extension
@@ -102,15 +136,25 @@ const hasValidIgvExtension = (filename) => {
   return !!base && allFiles.includes(extension);
 };
 
+export const getDrsDataObjectMetadata = async (value, fields, signal = undefined) => {
+  try {
+    return await DrsUriResolver(signal).getDataObjectMetadata(value, fields);
+  } catch {
+    return {
+      fileName: '',
+      accessUrl: { url: '' },
+    };
+  }
+};
+
 export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvDrsUris = [];
 
   await Promise.all(
     values.map(async (value) => {
       if (isDrsUri(value)) {
-        const json = await DrsUriResolver(signal).getDataObjectMetadata(value, ['fileName']);
-        const filename = json.fileName;
-        const isValid = hasValidIgvExtension(filename);
+        const { fileName } = await getDrsDataObjectMetadata(value, ['fileName'], signal);
+        const isValid = hasValidIgvExtension(fileName);
         if (isValid) {
           igvDrsUris.push(value);
         }
@@ -121,7 +165,7 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvAccessUrls = [];
   await Promise.all(
     igvDrsUris.map(async (value) => {
-      const { accessUrl } = await DrsUriResolver(signal).getDataObjectMetadata(value, ['accessUrl']);
+      const { accessUrl } = await getDrsDataObjectMetadata(value, ['accessUrl'], signal);
       igvAccessUrls.push(accessUrl.url);
     })
   );
@@ -129,7 +173,24 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   return igvAccessUrls;
 };
 
-export const getValidIgvFiles = async (values, signal) => {
+const validateUrl = async (fileRef) => {
+  const isDrs = isDrsUri(fileRef);
+  let accessUrl;
+
+  if (isDrs) {
+    const result = await getDrsDataObjectMetadata(fileRef, ['accessUrl']);
+    accessUrl = result.accessUrl.url;
+  } else {
+    accessUrl = fileRef;
+  }
+
+  const url = new URL(accessUrl);
+  url.isSignedUrl = isDrs;
+
+  return url;
+};
+
+export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
   const basicFileUrls = values.filter((value) => {
     let url;
     try {
@@ -144,7 +205,7 @@ export const getValidIgvFiles = async (values, signal) => {
       // Filter to URLs that point to a file with one of the relevant extensions.
       const filename = url.pathname.split('/').at(-1);
       return hasValidIgvExtension(filename);
-    } catch (err) {
+    } catch {
       return false;
     }
   });
@@ -167,62 +228,64 @@ export const getValidIgvFiles = async (values, signal) => {
     fileUrls.push(url);
   });
 
-  return fileUrls.flatMap((fileUrl) => {
-    const filePath = fileUrl.href;
-    const isSignedUrl = fileUrl.isSignedUrl;
-    if (fileUrl.pathname.endsWith('.bed')) {
-      return [{ filePath, indexFilePath: false, isSignedUrl }];
-    }
-    const indexFileUrl = findIndexForFile(fileUrl, fileUrls);
-    if (indexFileUrl !== undefined) {
-      return [{ filePath, indexFilePath: indexFileUrl.href, isSignedUrl }];
-    }
-    return [];
-  });
+  const results = await Promise.all(
+    fileUrls.map(async (fileUrl) => {
+      const filePath = fileUrl.href;
+      const isSignedUrl = fileUrl.isSignedUrl;
+      if (fileUrl.pathname.endsWith('.bed')) {
+        return [{ filePath, indexFilePath: false, isSignedUrl }];
+      }
+      const indexFileUrl = await findIndexForFile(workspace, entityType, fileUrl, fileUrls, signal);
+      if (indexFileUrl !== undefined) {
+        return [{ filePath, indexFilePath: indexFileUrl.href, isSignedUrl }];
+      }
+      return [];
+    })
+  );
+
+  return results.flat();
 };
 
-export const getValidIgvFilesFromAttributeValues = async (attributeValues, signal) => {
+export const getValidIgvFilesFromAttributeValues = async (workspace, entityType, attributeValues, signal) => {
   const allAttributeStrings = _.flatMap(getStrings, attributeValues);
 
-  const validIgvFiles = await getValidIgvFiles(allAttributeStrings, signal);
-  return validIgvFiles;
+  return await getValidIgvFiles(workspace, entityType, allAttributeStrings, signal);
 };
 
 export const isDrsUri = (value) => {
   return !!value?.toString().startsWith('drs://');
 };
 
-const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
+const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess }) => {
   const [refGenome, setRefGenome] = useState(defaultIgvReference);
   const isRefGenomeValid = Boolean(_.get('genome', refGenome) || _.get('reference.fastaURL', refGenome));
 
   const [selections, setSelections] = useState([]);
-  const [hasDrsCandidateFiles, setHasDrsCandidateFiles] = useState(false);
+  const [isSearchingFiles, setIsSearchingFiles] = useState(true);
 
   const signal = useCancellation();
 
   useEffect(() => {
     async function fetchData() {
       const allAttributeValues = _.flatMap(_.flow(_.get('attributes'), _.values), selectedEntities);
+      const selections = await getValidIgvFilesFromAttributeValues(workspace, entityType, allAttributeValues, signal);
 
-      // If there are 2 or more DRS URIs in this row, then IGV might be openable.
-      // This lets us know we need to show a loading message while awaiting DRS URI
-      // resolution to confirm if IGV is indeed openable for the selections.
-      const drsCandidateFiles = allAttributeValues.filter((value) => isDrsUri(value));
-      setHasDrsCandidateFiles(drsCandidateFiles.length >= 2);
-
-      const selections = await getValidIgvFilesFromAttributeValues(allAttributeValues, signal);
-      setHasDrsCandidateFiles(selections.length >= 1);
       setSelections(selections);
+      setIsSearchingFiles(false);
     }
     fetchData();
-  }, [selectedEntities, setSelections, signal]);
+  }, [workspace, entityType, selectedEntities, setSelections, signal]);
 
   const toggleSelected = (index) => setSelections(_.update([index, 'isSelected'], (v) => !v));
   const numSelected = _.countBy('isSelected', selections).true;
   const isSelectionValid = !!numSelected;
 
-  const noRowsMessage = hasDrsCandidateFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
+  const noRowsMessage = isSearchingFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
+
+  const cache = new CellMeasurerCache({
+    fixedWidth: true,
+    defaultHeight: 30,
+  });
 
   return div({ style: Style.modalDrawer.content }, [
     h(IGVReferenceSelector, {
@@ -242,24 +305,53 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
             height,
             width,
             rowCount: selections.length,
-            rowHeight: 30,
+            deferredMeasurementCache: cache,
+            rowHeight: cache.rowHeight,
             noRowsRenderer: () => noRowsMessage,
-            rowRenderer: ({ index, style, key }) => {
+            rowRenderer: ({ index, style, key, parent }) => {
               const { filePath, isSelected } = selections[index];
 
               // Show the file name, i.e. the last URL path segment, without URL parameters
               const fileName = _.last(filePath.split('/')).split('?')[0];
 
-              return div({ key, style: { ...style, display: 'flex' } }, [
-                h(
-                  LabeledCheckbox,
-                  {
-                    checked: isSelected,
-                    onChange: () => toggleSelected(index),
-                  },
-                  [div({ style: { paddingLeft: '0.25rem', flex: 1, ...Style.noWrapEllipsis } }, [fileName])]
-                ),
-              ]);
+              return h(
+                CellMeasurer,
+                {
+                  cache,
+                  columnIndex: 0,
+                  key,
+                  parent,
+                  rowIndex: index,
+                },
+                [
+                  div({ key, style: { ...style, display: 'flex' } }, [
+                    h(
+                      LabeledCheckbox,
+                      {
+                        checked: isSelected,
+                        onChange: () => toggleSelected(index),
+                        style: { padding: '0.5rem' },
+                      },
+                      [
+                        h(
+                          Link,
+                          {
+                            style: {
+                              padding: '0.5rem',
+                              minWidth: 0,
+                              overflow: 'hidden',
+                              whiteSpace: 'normal',
+                              wordBreak: 'break-all',
+                            },
+                            tooltip: fileName,
+                          },
+                          [fileName]
+                        ),
+                      ]
+                    ),
+                  ]),
+                ]
+              );
             },
           });
         },

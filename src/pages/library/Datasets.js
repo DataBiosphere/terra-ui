@@ -4,13 +4,13 @@ import { b, div, h, img, p, span } from 'react-hyperscript-helpers';
 import { ButtonPrimary, Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { libraryTopMatter } from 'src/components/library-common';
-import { Browser } from 'src/data-catalog/DataBrowser';
 import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png';
 import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png';
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png';
 import anvilLogo from 'src/images/library/datasets/Anvil-logo.svg';
 import baselineLogo from 'src/images/library/datasets/baseline.jpg';
 import broadLogo from 'src/images/library/datasets/broad_logo.png';
+import duosLogo from 'src/images/library/datasets/duos-logo.svg';
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png';
 import framinghamLogo from 'src/images/library/datasets/framingham.jpg';
 import gp2Logo from 'src/images/library/datasets/GP2_logo.png';
@@ -27,10 +27,8 @@ import Events from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { COHORT_BUILDER_CARD } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
-import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler';
 
 const styles = {
   header: {
@@ -621,39 +619,54 @@ const rareX = () =>
     ]
   );
 
+const duos = () =>
+  h(
+    Participant,
+    {
+      logo: { src: duosLogo, alt: 'DUOS logo' },
+      title: 'Duos Data Catalog',
+      description: h(Fragment, [
+        h(Link, { href: 'https://duos.org/', ...Utils.newTabLinkProps }, 'DUOS'),
+        ' - the Data Use Oversight System - is a platform for managing access to controlled-access datasets. DUOS streamlines the often-tedious data access process by allowing Signing Officials to pre-authorize approved researchers to submit data access requests. It contains data from NHGRI as well as the Human Cell Atlas and data generated from The Broad Institute labs.',
+      ]),
+    },
+    [
+      h(
+        ButtonPrimary,
+        {
+          'aria-label': 'Browse DUOS Datasets',
+          href: 'https://duos.org/',
+          onClick: () => captureBrowseDataEvent('DUOS'),
+          ...Utils.newTabLinkProps,
+        },
+        ['Browse Data']
+      ),
+    ]
+  );
+
 export const Datasets = () => {
-  const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'));
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
-    h(DataBrowserPreviewToggler, {
-      onChange: (value) => {
-        setCatalogShowing(value);
-        void Metrics().captureEvent(Events.catalogToggle, { enabled: value });
-        setLocalPref('catalog-toggle', value);
-      },
-      catalogShowing,
-    }),
-    catalogShowing
-      ? h(Browser)
-      : div({ role: 'main', style: styles.content }, [
-          // Put datasets in alphabetical order
-          thousandGenomesHighCoverage(),
-          thousandGenomesLowCoverage(),
-          amppd(),
-          isFeaturePreviewEnabled(COHORT_BUILDER_CARD) && cohortBuilder(),
-          baseline(),
-          ccdg(),
-          cmg(),
-          encode(),
-          framingham(),
-          gp2(),
-          hca(),
-          nemo(),
-          rareX(),
-          target(),
-          tcga(),
-          topMed(),
-        ]),
+    div({ role: 'main', style: styles.content }, [
+      // Put datasets in alphabetical order
+      thousandGenomesHighCoverage(),
+      thousandGenomesLowCoverage(),
+      amppd(),
+      isFeaturePreviewEnabled(COHORT_BUILDER_CARD) && cohortBuilder(),
+      baseline(),
+      ccdg(),
+      cmg(),
+      encode(),
+      framingham(),
+      gp2(),
+      hca(),
+      nemo(),
+      rareX(),
+      target(),
+      tcga(),
+      topMed(),
+      duos(),
+    ]),
   ]);
 };
 
@@ -664,5 +677,10 @@ export const navPaths = [
     component: Datasets,
     public: false,
     title: 'Data Browser',
+  },
+  {
+    name: 'library', // legacy (redirected from portal.firecloud.org/library)
+    path: '/library',
+    component: (props) => h(Nav.Redirector, { pathname: Nav.getPath('library-datasets', props) }),
   },
 ];

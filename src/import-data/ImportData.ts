@@ -4,12 +4,8 @@ import { div, h, h2 } from 'react-hyperscript-helpers';
 import { TerraLengthyOperationOverlay } from 'src/branding/TerraLengthyOperationOverlay';
 import { spinnerOverlay } from 'src/components/common';
 import { Billing } from 'src/libs/ajax/billing/Billing';
-import { Catalog } from 'src/libs/ajax/Catalog';
-import { resolveWdsUrl } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
-import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
@@ -17,7 +13,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { useOnMount } from 'src/libs/react-utils';
-import { AsyncImportJob, asyncImportJobStore, AzureAsyncImportJob, GCPAsyncImportJob } from 'src/libs/state';
+import { asyncImportJobStore, GCPAsyncImportJob } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { notifyDataImportProgress } from 'src/workspace-data/import-jobs';
 import { WorkspaceInfo } from 'src/workspaces/utils';
@@ -25,12 +21,10 @@ import { WorkspaceInfo } from 'src/workspaces/utils';
 import { getImportSource } from './import-sources';
 import {
   BagItImportRequest,
-  CatalogDatasetImportRequest,
   EntitiesImportRequest,
   ImportRequest,
   PFBImportRequest,
   TDRSnapshotExportImportRequest,
-  TDRSnapshotReferenceImportRequest,
   TemplateWorkspaceInfo,
 } from './import-types';
 import { ImportDataDestination } from './ImportDataDestination';
@@ -50,12 +44,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   const [userHasBillingProjects, setUserHasBillingProjects] = useState(true);
   const [isImporting, setIsImporting] = useState(false);
 
-  // Normalize the snapshot name:
-  // Importing snapshot will throw an "enum" error if the name has any spaces or special characters
-  // Replace all whitespace characters with _
-  // Then replace all non alphanumeric characters with nothing
-  const normalizeSnapshotName = (input) => _.flow(_.replace(/\s/g, '_'), _.replace(/[^A-Za-z0-9-_]/g, ''))(input);
-
   useOnMount(() => {
     const loadTemplateWorkspaces = _.flow(
       Utils.withBusyState(setIsImporting),
@@ -70,32 +58,16 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   });
 
   const importPFB = async (importRequest: PFBImportRequest, workspace: WorkspaceInfo) => {
-    if (workspace.cloudPlatform === 'Azure') {
-      const wdsUrl = await Apps().listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
-      const { namespace, name } = workspace;
-      const { jobId } = await WorkspaceData().startImportJob(wdsUrl, workspace.workspaceId, {
-        url: importRequest.url.toString(),
-        type: 'PFB',
-      });
-      const newJob: AzureAsyncImportJob = {
-        targetWorkspace: { namespace, name },
-        jobId,
-        wdsProxyUrl: wdsUrl,
-      };
-      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
-      notifyDataImportProgress(jobId);
-    } else {
-      const { namespace, name } = workspace;
-      const { jobId } = await Workspaces()
-        .workspace(namespace, name)
-        .importJob(importRequest.url.toString(), 'pfb', null);
-      const newJob: GCPAsyncImportJob = {
-        targetWorkspace: { namespace, name },
-        jobId,
-      };
-      asyncImportJobStore.update(Utils.append(newJob));
-      notifyDataImportProgress(jobId);
-    }
+    const { namespace, name } = workspace;
+    const { jobId } = await Workspaces()
+      .workspace(namespace, name)
+      .importJob(importRequest.url.toString(), 'pfb', null);
+    const newJob: GCPAsyncImportJob = {
+      targetWorkspace: { namespace, name },
+      jobId,
+    };
+    asyncImportJobStore.update(Utils.append(newJob));
+    notifyDataImportProgress(jobId);
   };
 
   const importBagit = async (importRequest: BagItImportRequest, workspace: WorkspaceInfo) => {
@@ -111,47 +83,14 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
   };
 
   const importTdrExport = async (importRequest: TDRSnapshotExportImportRequest, workspace: WorkspaceInfo) => {
-    if (workspace.cloudPlatform === 'Azure') {
-      // find wds for this workspace
-      const wdsUrl = await Apps().listAppsV2(workspace.workspaceId).then(resolveWdsUrl);
-      const { namespace, name } = workspace;
-
-      // call import API
-      const { jobId } = await WorkspaceData().startImportJob(wdsUrl, workspace.workspaceId, {
-        url: importRequest.manifestUrl.toString(),
-        type: 'TDRMANIFEST',
-      });
-      const newJob: AzureAsyncImportJob = {
-        targetWorkspace: { namespace, name },
-        jobId,
-        wdsProxyUrl: wdsUrl,
-      };
-      asyncImportJobStore.update(Utils.append<AsyncImportJob>(newJob));
-      notifyDataImportProgress(jobId);
-    } else {
-      const { namespace, name } = workspace;
-      const { jobId } = await Workspaces()
-        .workspace(namespace, name)
-        .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
-          tdrSyncPermissions: importRequest.syncPermissions,
-        });
-      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
-      notifyDataImportProgress(jobId);
-    }
-  };
-
-  const importSnapshot = async (importRequest: TDRSnapshotReferenceImportRequest, workspace: WorkspaceInfo) => {
     const { namespace, name } = workspace;
-    await Workspaces()
+    const { jobId } = await Workspaces()
       .workspace(namespace, name)
-      .importSnapshot(importRequest.snapshot.id, normalizeSnapshotName(importRequest.snapshot.name));
-    notify('success', 'Snapshot imported successfully.', { timeout: 3000 });
-  };
-
-  const exportCatalog = async (importRequest: CatalogDatasetImportRequest, workspace: WorkspaceInfo) => {
-    const { workspaceId } = workspace;
-    await Catalog().exportDataset({ id: importRequest.datasetId, workspaceId });
-    notify('success', 'Catalog dataset imported successfully.', { timeout: 3000 });
+      .importJob(importRequest.manifestUrl.toString(), 'tdrexport', {
+        tdrSyncPermissions: importRequest.syncPermissions,
+      });
+    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }));
+    notifyDataImportProgress(jobId);
   };
 
   const onImport = _.flow(
@@ -170,12 +109,6 @@ export const ImportData = (props: ImportDataProps): ReactNode => {
         break;
       case 'tdr-snapshot-export':
         await importTdrExport(importRequest, workspace);
-        break;
-      case 'tdr-snapshot-reference':
-        await importSnapshot(importRequest, workspace);
-        break;
-      case 'catalog-dataset':
-        await exportCatalog(importRequest, workspace);
         break;
       default:
         // Use TypeScript to verify that this switch handles all possible values.

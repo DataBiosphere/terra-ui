@@ -163,6 +163,11 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         supportsAccessToken: true,
         supportsIdToken: false,
         isFence: false,
+        toolTip: h(Fragment, [
+          'Linking with the Sage AD Knowledge Portal will allow Terra to automatically determine if you can access datasets hosted by Sage. Visit ',
+          h(Link, { href: 'https://adknowledgeportal.synapse.org/', ...toolTipLinkProps }, ['AD Knowledge Portal']),
+          ' to see what datasets are available.',
+        ]),
       };
     default:
       throw new Error(`Unknown OAuth2 provider key: ${providerKey}`);

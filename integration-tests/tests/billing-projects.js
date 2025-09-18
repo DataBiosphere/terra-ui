@@ -38,9 +38,9 @@ const billingProjectsPage = (testPage, testUrl) => {
 
     assertTextNotFound: async (unexpectedText) => await assertTextNotFound(testPage, unexpectedText),
 
-    assertChartValue: async (number, workspaceName, category, cost) => {
+    assertChartValue: async (label, category, cost) => {
       // This checks the accessible text for chart values.
-      await testPage.waitForSelector(`[role="img"][aria-label*="${number}. Workspace ${workspaceName}, ${category}: ${cost}."]`);
+      await testPage.waitForSelector(`[role="img"][aria-label*="${label}, ${category}: ${cost}."]`);
     },
   };
 };
@@ -49,48 +49,57 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, azureBilling
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost,
-      credits: '2.50',
+      credits: '-2.50',
       currency: 'USD',
       endTime: '2022-03-04T00:00:00.000Z',
       startTime: '2022-02-02T00:00:00.000Z',
     },
     spendDetails: [
       {
-        aggregationKey: 'Workspace',
+        aggregationKey: 'Daily',
         spendData: [
           {
             cost: '100',
-            workspace: { name: 'Second Most Expensive Workspace' },
+            credits: '0.00',
+            currency: 'USD',
+            endTime: '2022-02-02T00:00:00.000Z',
+            startTime: '2022-02-05T16:00:00.000Z',
             subAggregation: {
               aggregationKey: 'Category',
               spendData: [
-                { cost: '90', category: 'Compute' },
-                { cost: '2', category: 'Storage' },
-                { cost: '8', category: 'Other' },
+                { cost: '90', category: 'Compute', credits: '0.00', currency: 'USD' },
+                { cost: '2', category: 'Storage', credits: '0.00', currency: 'USD' },
+                { cost: '8', category: 'Other', credits: '0.00', currency: 'USD' },
               ],
             },
           },
           {
             cost: '1000',
-            workspace: { name: 'Most Expensive Workspace' },
+            credits: '0.00',
+            currency: 'USD',
+            endTime: '2022-02-02T00:00:00.000Z',
+            startTime: '2022-02-06T16:00:00.000Z',
             subAggregation: {
               aggregationKey: 'Category',
               spendData: [
-                { cost: '900', category: 'Compute' },
-                { cost: '20', category: 'Storage' },
-                { cost: '80', category: 'Other' },
+                { cost: '900', category: 'Compute', credits: '0.00', currency: 'USD' },
+                { cost: '20', category: 'Storage', credits: '0.00', currency: 'USD' },
+                { cost: '80', category: 'Other', credits: '0.00', currency: 'USD' },
               ],
             },
           },
           {
             cost: '10',
-            workspace: { name: 'Third Most Expensive Workspace' },
+            credits: '0.00',
+            currency: 'USD',
+            endTime: '2022-02-02T00:00:00.000Z',
+            startTime: '2022-02-07T16:00:00.000Z',
             subAggregation: {
               aggregationKey: 'Category',
               spendData: [
-                { cost: '9', category: 'Compute' },
-                { cost: '0', category: 'Storage' },
-                { cost: '1', category: 'Other' },
+                { cost: '9', category: 'Compute', credits: '0.00', currency: 'USD' },
+                { cost: '0', category: 'Storage', credits: '0.00', currency: 'USD' },
+                { cost: '1', category: 'Other', credits: '0.00', currency: 'USD' },
               ],
             },
           },
@@ -99,10 +108,10 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, azureBilling
       {
         aggregationKey: 'Category',
         spendData: [
-          { cost: '999', category: 'Compute' },
-          { cost: '22', category: 'Storage' },
-          { cost: '11', category: 'WorkspaceInfrastructure' },
-          { cost: '89', category: 'Other' },
+          { cost: '999', category: 'Compute', credits: '0.00', currency: 'USD' },
+          { cost: '22', category: 'Storage', credits: '0.00', currency: 'USD' },
+          { cost: '11', category: 'WorkspaceInfrastructure', credits: '0.00', currency: 'USD' },
+          { cost: '89', category: 'Other', credits: '0.00', currency: 'USD' },
         ],
       },
     ],
@@ -262,18 +271,17 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectProject(ownedBillingProjectName);
   await billingPage.selectSpendReport();
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
-  await billingPage.assertText('Total spend$1,110.00');
+  await billingPage.assertText('Total spend$1,107.50');
   await billingPage.assertText('Total compute$999.00');
   await billingPage.assertText('Total storage$22.00');
   await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra.');
-  // Check that chart loaded, and workspaces are sorted by cost.
-  await billingPage.assertText('Spend By Workspace');
-  // Verify all series values of the most expensive workspace.
-  await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Compute', '$900.00');
-  await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Storage', '$20.00');
-  // Spot-check other 2 workspaces.
-  await billingPage.assertChartValue(2, 'Second Most Expensive Workspace', 'Compute', '$90.00');
-  await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00');
+  // Check that chart loaded, and costs are sorted by date.
+  await billingPage.assertText('Daily Spend');
+  // Verify all series values of all the dates.
+  await billingPage.assertChartValue('Feb 5', 'Compute', '$90.00');
+  await billingPage.assertChartValue('Feb 6', 'Compute', '$900.00');
+  await billingPage.assertChartValue('Feb 6', 'Storage', '$20.00');
+  await billingPage.assertChartValue('Feb 7', 'Storage', '$0.00');
   // Verify the spend report configuration option is present
   await billingPage.assertText('View billing account');
   // Verify link to Azure portal is not present
@@ -282,10 +290,10 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Change the returned mock cost to mimic different date ranges.
   await setAjaxMockValues(page, ownedBillingProjectName, azureBillingProjectName, '1110.17', 20);
   await billingPage.setSpendReportDays(90);
-  await billingPage.assertText('Total spend$1,110.17');
+  await billingPage.assertText('Total spend$1,107.67');
   // Check that title updated to reflect truncation.
-  await billingPage.assertText('Top 10 Spending Workspaces');
-  await billingPage.assertChartValue(10, 'Extra Inexpensive Workspace', 'Compute', '$0.01');
+  await billingPage.assertText('Daily Spend');
+  await billingPage.assertChartValue('Feb 6', 'Compute', '$900.00');
 
   // Check accessibility of spend report page.
   await verifyAccessibility(page);
@@ -296,16 +304,15 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectSpendReport();
 
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
-  await billingPage.assertText('Total spend$1,110.17');
+  await billingPage.assertText('Total spend$1,107.67');
   await billingPage.assertText('Total analysis compute$999.00');
   await billingPage.assertText('Total workspace storage$22.00');
   await billingPage.assertText('Total workspace infrastructure$11.00');
   await billingPage.assertText(
     'Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra. See our documentation to learn more about Azure costs.'
   );
-  // Verify that per-workspace costs are not included
-  await billingPage.assertTextNotFound('Spend By Workspace');
-  await billingPage.assertTextNotFound('Top 10 Spending Workspaces');
+  // Verify that per-day costs are not included
+  await billingPage.assertTextNotFound('Daily Spend');
   // Verify spend report configuration is not visible
   await billingPage.assertTextNotFound('View billing account');
   // Verify link to Azure portal is present

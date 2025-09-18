@@ -1,12 +1,13 @@
 import _ from 'lodash/fp';
 import {
-  BatchSetting,
   BucketLifecycleRule,
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
+  ImprovedDataTablesSetting,
   RequesterPaysSetting,
   SeparateSubmissionFinalOutputsSetting,
   SoftDeleteSetting,
+  WorkspaceAnalysisLogRetentionSetting,
   WorkspaceSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 
@@ -16,7 +17,6 @@ export type {
   RequesterPaysSetting,
   SoftDeleteSetting,
   WorkspaceSetting,
-  BatchSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 
 export const suggestedPrefixes = {
@@ -41,8 +41,11 @@ export const isSoftDeleteSetting = (setting: WorkspaceSetting): setting is SoftD
 export const isRequesterPaysSetting = (setting: WorkspaceSetting): setting is RequesterPaysSetting =>
   setting.settingType === 'GcpBucketRequesterPays';
 
-export const isBatchSetting = (setting: WorkspaceSetting): setting is BatchSetting =>
-  setting.settingType === 'UseCromwellGcpBatchBackend';
+export const isImprovedDataTablesSetting = (setting: WorkspaceSetting): setting is ImprovedDataTablesSetting =>
+  setting.settingType === 'CompactDataTables';
+
+export const isLogRetentionSetting = (setting: WorkspaceSetting): setting is WorkspaceAnalysisLogRetentionSetting =>
+  setting.settingType === 'GcpLogBucketRetention';
 
 const isSeparateSubmissionFinalOutputsSetting = (
   setting: WorkspaceSetting
@@ -217,6 +220,69 @@ export const modifyRequesterPaysSetting = (
 };
 
 /**
+ * Modifies the improved data tables setting in the workspace settings.
+ * If no such setting exists and improved data tables is set to enabled, it will be created.
+ *
+ * Note that any other settings will be preserved but moved to the end of the array.
+ */
+export const modifyImprovedDataTablesSetting = (
+  originalSettings: WorkspaceSetting[],
+  enabled: boolean
+): WorkspaceSetting[] => {
+  // Clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
+
+  const improvedDataTablesSettings: ImprovedDataTablesSetting[] = workspaceSettings.filter(
+    (setting: WorkspaceSetting) => isImprovedDataTablesSetting(setting)
+  ) as ImprovedDataTablesSetting[];
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter(
+    (setting) => !isImprovedDataTablesSetting(setting)
+  );
+
+  // If no ImprovedDataTablesSetting existed and improved data tables is set to disabled, do nothing
+  if (improvedDataTablesSettings.length === 0 && !enabled) {
+    return workspaceSettings;
+  }
+  return _.concat(
+    [
+      {
+        settingType: 'CompactDataTables',
+        config: { enabled },
+      } as ImprovedDataTablesSetting,
+    ],
+    otherSettings
+  );
+};
+
+export const modifyLogRetentionSetting = (
+  originalSettings: WorkspaceSetting[],
+  retentionInDays: number
+): WorkspaceSetting[] => {
+  // clone original for testing purposes and to allow eventing only if there was a change.
+  const workspaceSettings = _.cloneDeep(originalSettings);
+
+  const logRetentionSettings: WorkspaceAnalysisLogRetentionSetting[] = workspaceSettings.filter(
+    (setting: WorkspaceSetting) => isLogRetentionSetting(setting)
+  ) as WorkspaceAnalysisLogRetentionSetting[];
+  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isLogRetentionSetting(setting));
+
+  // if no GcpLogBucketRetention setting exists and retention days is same as default, don't create a new setting
+  if (logRetentionSettings.length === 0 && retentionInDays === 30) {
+    return workspaceSettings;
+  }
+
+  return _.concat(
+    [
+      {
+        settingType: 'GcpLogBucketRetention',
+        config: { retentionDurationInDays: retentionInDays },
+      } as WorkspaceAnalysisLogRetentionSetting,
+    ],
+    otherSettings
+  );
+};
+
+/**
  * Modifies the "separate submission outputs" setting in the workspace settings.
  * If no such setting exists, it will be created.
  *
@@ -239,36 +305,6 @@ const modifySeparateSubmissionOutputsSetting = (
         settingType: 'SeparateSubmissionFinalOutputs',
         config: { enabled },
       } as SeparateSubmissionFinalOutputsSetting,
-    ],
-    otherSettings
-  );
-};
-
-/**
- * Modifies the batch setting in the workspace settings.
- * If no such setting exists and batch is set to enabled, it will be created.
- *
- * Note that any other settings will be preserved but moved to the end of the array.
- */
-export const modifyBatchSetting = (originalSettings: WorkspaceSetting[], enabled: boolean): WorkspaceSetting[] => {
-  // Clone original for testing purposes and to allow eventing only if there was a change.
-  const workspaceSettings = _.cloneDeep(originalSettings);
-
-  const batchSettings: BatchSetting[] = workspaceSettings.filter((setting: WorkspaceSetting) =>
-    isBatchSetting(setting)
-  ) as BatchSetting[];
-  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter((setting) => !isBatchSetting(setting));
-
-  // If no batchSetting existed and batch is set to disabled, do nothing
-  if (batchSettings.length === 0 && !enabled) {
-    return workspaceSettings;
-  }
-  return _.concat(
-    [
-      {
-        settingType: 'UseCromwellGcpBatchBackend',
-        config: { enabled },
-      } as BatchSetting,
     ],
     otherSettings
   );

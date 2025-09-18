@@ -11,23 +11,20 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { launch } from 'src/libs/analysis';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { warningBoxStyle } from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { commentValidation } from 'src/pages/workspaces/workspace/submissionHistory/UpdateUserCommentModal';
-import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
+import { chooseBaseType, chooseRootType, chooseSetType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
 
 const LaunchAnalysisModal = ({
   onDismiss,
-  entityMetadata,
   workspace,
   workspace: {
     workspace: { namespace, name: workspaceName, googleProject },
   },
   processSingle,
-  entitySelectionModel: { type, selectedEntities, newSetName },
+  entitySelectionModel: { type, selectedEntities, newSetName, preserveSet },
   config,
   config: { rootEntityType },
   useCallCache,
@@ -77,11 +74,9 @@ const LaunchAnalysisModal = ({
                 };
           },
         ],
-        [type === chooseBaseType, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })],
-        [type === processSnapshotTable, () => ({ selectedEntityType: rootEntityType })]
+        [type === chooseBaseType, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })]
       );
       const { submissionId } = await launch({
-        isSnapshot: type === processSnapshotTable,
         workspace,
         config,
         selectedEntityType,
@@ -98,6 +93,7 @@ const LaunchAnalysisModal = ({
         monitoringImage: enableResourceMonitoring && monitoringImage ? monitoringImage : undefined,
         monitoringImageScript: enableResourceMonitoring && monitoringImageScript ? monitoringImageScript : undefined,
         perWorkflowCostCap: perWorkflowCostCap || undefined,
+        preserveSet,
         onProgress: (stage) => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage]);
         },
@@ -112,13 +108,12 @@ const LaunchAnalysisModal = ({
   const mergeSets = _.flatMap(`attributes.${rootEntityType}s.items`);
   const entityCount = Utils.cond(
     [processSingle, () => 1],
-    [type === processSnapshotTable, () => entityMetadata[rootEntityType].count],
     [type === chooseRootType, () => _.size(selectedEntities)],
     [type === chooseBaseType, () => 1],
     [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   );
   const { location, locationType } = bucketLocation;
-  // us-central1 is always used for the location of the lifesciences api metadata.
+  // us-central1 is always used for the location of the GCP Batch API metadata.
   // This is separate from the location that the VMs will run in, which is what we're setting here with computeRegion.
   const { flag, regionDescription } = getRegionInfo(location, locationType);
 
@@ -188,16 +183,15 @@ const LaunchAnalysisModal = ({
       div({ style: { marginTop: '0.25rem' } }, [
         ul({ style: { paddingLeft: '1.5rem' } }, [
           li([`You are launching ${entityCount} workflow `, entityCount === 1 ? 'run' : 'runs', ' in this submission.']),
-          isFeaturePreviewEnabled(PREVIEW_COST_CAPPING) &&
-            (perWorkflowCostCap !== ''
-              ? li([
-                  `You set a cost threshold of ${Utils.formatUSD(perWorkflowCostCap)} per workflow run`,
-                  h('br'),
-                  `x ${entityCount} workflow runs = ${Utils.formatUSD(entityCount * perWorkflowCostCap)}`,
-                  b(' approximate maximum'),
-                  ' submission cost.',
-                ])
-              : li(['You did not set a cost threshold.'])),
+          perWorkflowCostCap !== ''
+            ? li([
+                `You set a cost threshold of ${Utils.formatUSD(perWorkflowCostCap)} per workflow run`,
+                h('br'),
+                `x ${entityCount} workflow runs = ${Utils.formatUSD(entityCount * perWorkflowCostCap)}`,
+                b(' approximate maximum'),
+                ' submission cost.',
+              ])
+            : li(['You did not set a cost threshold.']),
         ]),
       ]),
       h(IdContainer, [

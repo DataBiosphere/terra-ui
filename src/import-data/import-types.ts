@@ -25,24 +25,11 @@ export interface TDRSnapshotExportImportRequest {
   syncPermissions: boolean;
 }
 
-export interface TDRSnapshotReferenceImportRequest {
-  type: 'tdr-snapshot-reference';
-  snapshot: Snapshot;
-  snapshotAccessControls: string[];
-}
-
-export interface CatalogDatasetImportRequest {
-  type: 'catalog-dataset';
-  datasetId: string;
-}
-
 export type ImportRequest =
   | PFBImportRequest
   | BagItImportRequest
   | EntitiesImportRequest
-  | TDRSnapshotExportImportRequest
-  | TDRSnapshotReferenceImportRequest
-  | CatalogDatasetImportRequest;
+  | TDRSnapshotExportImportRequest;
 
 export interface TemplateWorkspaceInfo {
   name: string;

@@ -1,32 +1,27 @@
 import { SpinnerOverlay } from '@terra-ui-packages/components';
 import { subDays } from 'date-fns/fp';
 import _ from 'lodash/fp';
-import { Suspense, useEffect, useState } from 'react';
-import React from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import lazy from 'react-lazy-named';
 import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { CostCard } from 'src/billing/SpendReport/CostCard';
+import { creditedCost } from 'src/billing/utils';
 import { CloudPlatform } from 'src/billing-core/models';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import {
   AggregatedCategorySpendData,
   AggregatedDailySpendData,
-  AggregatedWorkspaceSpendData,
   CategorySpendData,
   DailySpendData,
   SpendReport as SpendReportServerResponse,
-  WorkspaceSpendData,
 } from 'src/libs/ajax/billing/billing-models';
 import colors from 'src/libs/colors';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { SPEND_REPORTING } from 'src/libs/feature-previews-config';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 
 const LazyChart = lazy(() => import('src/components/Chart'), 'Chart');
-const maxWorkspacesInChart = 10;
 
 const OtherMessaging = ({ cost, cloudPlatform }) => {
   const msg =
@@ -84,7 +79,7 @@ interface SpendReportProps {
 
 export const SpendReport = (props: SpendReportProps) => {
   const [projectCost, setProjectCost] = useState<ProjectCost | null>(null);
-  const [costPerWorkspace, setCostPerWorkspace] = useState<WorkspaceCosts>({
+  const [costPerWorkspace] = useState<WorkspaceCosts>({
     workspaceNames: [],
     computeCosts: [],
     otherCosts: [],
@@ -119,30 +114,6 @@ export const SpendReport = (props: SpendReportProps) => {
       yAxisLabelsFormatter: (value: number) => number;
     };
   }
-
-  const workspaceSpendChartOptionsParams: SpendChartOptionsParams = {
-    chartType: 'bar',
-    chartTitle:
-      costPerWorkspace.numWorkspaces > maxWorkspacesInChart
-        ? `Top ${maxWorkspacesInChart} Spending Workspaces`
-        : 'Spend By Workspace',
-    chartCategoryUnit: 'Workspace',
-    chartCategories: costPerWorkspace.workspaceNames,
-    chartSeries: [
-      {
-        name: 'Compute',
-        data: costPerWorkspace.computeCosts,
-      },
-      {
-        name: 'Storage',
-        data: costPerWorkspace.storageCosts,
-      },
-    ],
-    chartFormatters: {
-      xAxisLabelsFormatter: (value) => value,
-      yAxisLabelsFormatter: (value) => costPerWorkspace.costFormatter.format(value),
-    },
-  };
 
   const dailySpendChartOptionsParams: SpendChartOptionsParams = {
     chartType: 'column',
@@ -273,9 +244,7 @@ export const SpendReport = (props: SpendReportProps) => {
     };
   };
 
-  const spendChartOptions = spendChartOptionsTemplate(
-    isFeaturePreviewEnabled(SPEND_REPORTING) ? dailySpendChartOptionsParams : workspaceSpendChartOptionsParams
-  );
+  const spendChartOptions = spendChartOptionsTemplate(dailySpendChartOptionsParams);
 
   const isProjectCostReady = projectCost !== null;
 
@@ -307,9 +276,7 @@ export const SpendReport = (props: SpendReportProps) => {
         setUpdatingProjectCost(true);
         const endDate = new Date().toISOString().slice(0, 10);
         const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10);
-        const aggregationKeys = includeAggregateSpendChart
-          ? [isFeaturePreviewEnabled(SPEND_REPORTING) ? 'Daily~Category' : 'Workspace~Category', 'Category']
-          : ['Category'];
+        const aggregationKeys = includeAggregateSpendChart ? ['Daily~Category', 'Category'] : ['Category'];
         const spend: SpendReportServerResponse = await Billing(signal).getSpendReport({
           billingProjectName: props.billingProjectName,
           startDate,
@@ -329,104 +296,58 @@ export const SpendReport = (props: SpendReportProps) => {
           categorySpendData: CategorySpendData[]
         ): { compute: number; storage: number; workspaceInfrastructure: number; other: number } => {
           return {
-            compute: parseFloat(_.find(['category', 'Compute'], categorySpendData)?.cost ?? '0'),
-            storage: parseFloat(_.find(['category', 'Storage'], categorySpendData)?.cost ?? '0'),
-            workspaceInfrastructure: parseFloat(
-              _.find(['category', 'WorkspaceInfrastructure'], categorySpendData)?.cost ?? '0'
-            ),
-            other: parseFloat(_.find(['category', 'Other'], categorySpendData)?.cost ?? '0'),
+            compute: creditedCost(_.find(['category', 'Compute'], categorySpendData)),
+            storage: creditedCost(_.find(['category', 'Storage'], categorySpendData)),
+            workspaceInfrastructure: creditedCost(_.find(['category', 'WorkspaceInfrastructure'], categorySpendData)),
+            other: creditedCost(_.find(['category', 'Other'], categorySpendData)),
           };
         };
         const costDict = getCategoryCosts(categoryDetails.spendData);
 
         setProjectCost({
-          spend: costFormatter.format(parseFloat(spend.spendSummary.cost)),
+          spend: costFormatter.format(creditedCost(spend.spendSummary)),
           compute: costFormatter.format(costDict.compute),
           storage: costFormatter.format(costDict.storage),
           workspaceInfrastructure: costFormatter.format(costDict.workspaceInfrastructure),
           other: costFormatter.format(costDict.other),
         });
 
-        // Only show daily costs if the feature preview is enabled
-        if (includeAggregateSpendChart && isFeaturePreviewEnabled(SPEND_REPORTING)) {
-          const dailyDetails = _.find(
-            (details) => details.aggregationKey === 'Daily',
-            spend.spendDetails
-          ) as AggregatedDailySpendData;
-          console.assert(dailyDetails !== undefined, 'Spend report details do not include aggregation by Day');
-          const dailySpend = _.flow(
-            _.sortBy(({ startTime }) => {
-              return startTime;
-            })
-          )(dailyDetails?.spendData) as DailySpendData[];
-          const formatDate = (dateString: string): string => {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          };
-          const dailyCosts: DailyCosts = {
-            days: [],
-            computeCosts: [],
-            storageCosts: [],
-            otherCosts: [],
-            costFormatter,
-            numDays: dailyDetails?.spendData.length,
-          };
-          _.forEach((dailySpendData) => {
-            dailyCosts.days.push(formatDate(dailySpendData.startTime));
-            const categoryDetails = dailySpendData.subAggregation;
-            console.assert(
-              categoryDetails.aggregationKey === 'Category',
-              'Daily spend report details do not include sub-aggregation by Category'
-            );
-            const costDict = getCategoryCosts(categoryDetails.spendData);
-            dailyCosts.computeCosts.push(costDict.compute);
-            dailyCosts.storageCosts.push(costDict.storage);
-            dailyCosts.otherCosts.push(costDict.other);
-          }, dailySpend);
-          setCostPerDay(dailyCosts);
-        }
-
-        // Only show workspace costs if the feature preview is not enabled
-        if (includeAggregateSpendChart && !isFeaturePreviewEnabled(SPEND_REPORTING)) {
-          const workspaceDetails = _.find(
-            (details) => details.aggregationKey === 'Workspace',
-            spend.spendDetails
-          ) as AggregatedWorkspaceSpendData;
+        // Show daily costs
+        const dailyDetails = _.find(
+          (details) => details.aggregationKey === 'Daily',
+          spend.spendDetails
+        ) as AggregatedDailySpendData;
+        const dailySpend = _.flow(
+          _.sortBy(({ startTime }) => {
+            return startTime;
+          })
+        )(dailyDetails?.spendData) as DailySpendData[];
+        const formatDate = (dateString: string): string => {
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        };
+        const dailyCosts: DailyCosts = {
+          days: [],
+          computeCosts: [],
+          storageCosts: [],
+          otherCosts: [],
+          costFormatter,
+          numDays: dailyDetails?.spendData.length,
+        };
+        _.forEach((dailySpendData) => {
+          dailyCosts.days.push(formatDate(dailySpendData.startTime));
+          const categoryDetails = dailySpendData.subAggregation;
           console.assert(
-            workspaceDetails !== undefined,
-            'Spend report details do not include aggregation by Workspace'
+            categoryDetails.aggregationKey === 'Category',
+            'Daily spend report details do not include sub-aggregation by Category'
           );
-          // Get the most expensive workspaces, sorted from most to least expensive.
-          const mostExpensiveWorkspaces = _.flow(
-            _.sortBy(({ cost }) => {
-              return parseFloat(cost);
-            }),
-            _.reverse,
-            _.slice(0, maxWorkspacesInChart)
-          )(workspaceDetails?.spendData) as WorkspaceSpendData[];
-          // Pull out names and costs.
-          const costPerWorkspace: WorkspaceCosts = {
-            workspaceNames: [],
-            computeCosts: [],
-            storageCosts: [],
-            otherCosts: [],
-            costFormatter,
-            numWorkspaces: workspaceDetails?.spendData.length,
-          };
-          _.forEach((workspaceCostData) => {
-            costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name);
-            const categoryDetails = workspaceCostData.subAggregation;
-            console.assert(
-              categoryDetails.aggregationKey === 'Category',
-              'Workspace spend report details do not include sub-aggregation by Category'
-            );
-            const costDict = getCategoryCosts(categoryDetails.spendData);
-            costPerWorkspace.computeCosts.push(costDict.compute);
-            costPerWorkspace.storageCosts.push(costDict.storage);
-            costPerWorkspace.otherCosts.push(costDict.other);
-          }, mostExpensiveWorkspaces);
-          setCostPerWorkspace(costPerWorkspace);
-        }
+          const costDict = getCategoryCosts(categoryDetails.spendData);
+          dailyCosts.computeCosts.push(costDict.compute);
+          dailyCosts.storageCosts.push(costDict.storage);
+          dailyCosts.otherCosts.push(costDict.other);
+        }, dailySpend);
+        setCostPerDay(dailyCosts);
+
         setUpdatingProjectCost(false);
       }
     };

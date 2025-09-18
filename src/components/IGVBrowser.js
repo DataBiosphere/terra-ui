@@ -1,3 +1,4 @@
+import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
 import { Fragment, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -9,6 +10,8 @@ import initIgvFacets from 'src/components/IGVFilter';
 import { GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
+import { isGoogleStorageURL, isGoogleURL, translateGoogleCloudURL } from 'src/libs/igv-google-utils';
+import { notify } from 'src/libs/notifications';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
@@ -31,17 +34,36 @@ function getHasVariantFiles(files) {
   return files.some((file) => file.filePath.includes('vcf'));
 }
 
+function processUrl(url, isSignedUrl) {
+  if (url && isGoogleURL(url) && isGoogleStorageURL(url) && isSignedUrl) {
+    return translateGoogleCloudURL(url);
+  }
+  return url;
+}
+
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
-const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {
+const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, initialSession }) => {
   const [loadingIgv, setLoadingIgv] = useState(true);
   const [requesterPaysModal, setRequesterPaysModal] = useState(null);
   const [showAddTrackModal, setShowAddTrackModal] = useState(false);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionAction, setSessionAction] = useState(null); // 'save' or 'load'
+  const [sharingSession, setSharingSession] = useState(false);
+
   const containerRef = useRef();
   const igvLibrary = useRef();
   const igvBrowser = useRef();
   const signal = useCancellation();
 
   const hasVariantFiles = getHasVariantFiles(selectedFiles);
+  const hasSignedUrl = selectedFiles.some((file) => file.isSignedUrl);
+
+  const {
+    savedSessions,
+    loadSession: loadSessionData,
+    saveSession: saveSessionData,
+    deleteSession,
+  } = useIGVSessions(workspace?.workspace?.workspaceId);
 
   const addTracks = withErrorReporting('Unable to add tracks')(async (tracks) => {
     const gsTracks = tracks.filter((track) => track.isSignedUrl === false);
@@ -111,21 +133,74 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const altName = `${shortRemoteName} (${shortUrl})`;
 
       const fullUrl = isSignedUrl ? url : Utils.mergeQueryParams(userProjectParam, url);
-      const fullIndexUrl = isSignedUrl ? indexURL : Utils.mergeQueryParams(userProjectParam, indexURL);
+      const fullIndexUrl = isSignedUrl ? indexURL : indexURL && Utils.mergeQueryParams(userProjectParam, indexURL);
 
       // Enable viewing variants for a handful of genes (or a few CNVs), simultaneously;
       // or enable viewing other features (e.g. reads) for almost any gene, without zoom
       const isVcf = getHasVariantFiles([{ filePath: url }]);
       const visibilityWindow = isVcf ? 500_000 : 75_000;
 
+      const igvProcessedFullUrl = processUrl(fullUrl, isSignedUrl);
+      const igvProcessedFullIndexUrl = processUrl(fullIndexUrl, isSignedUrl);
+
       igvBrowser.current.loadTrack({
-        name: name || altName,
-        url: fullUrl,
-        indexURL: indexURL ? fullIndexUrl : undefined,
+        name: name || `${simpleUrl} (${url})`,
+        url: igvProcessedFullUrl,
+        indexURL: indexURL ? igvProcessedFullIndexUrl : undefined,
         visibilityWindow,
       });
     }, tracks);
   });
+
+  const saveSession = async (sessionName) => {
+    if (!igvBrowser.current) return false;
+
+    try {
+      const session = igvBrowser.current.toJSON();
+      return await saveSessionData(sessionName, session, genome);
+    } catch (error) {
+      console.error('Failed to save session:', error);
+      return false;
+    }
+  };
+
+  const loadSession = async (sessionName) => {
+    if (!igvBrowser.current) return false;
+
+    try {
+      const sessionData = await loadSessionData(sessionName);
+      if (sessionData) {
+        await igvBrowser.current.loadSession(sessionData.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to load session:', error);
+      return false;
+    }
+  };
+
+  const shareSession = async () => {
+    if (!igvBrowser.current) return;
+
+    setSharingSession(true);
+    try {
+      const session = igvBrowser.current.toJSON();
+      const shareUrl = updateUrlWithSession(session, genome);
+
+      if (shareUrl) {
+        await clipboard.writeText(shareUrl);
+        notify('success', 'Session URL copied to clipboard', { timeout: 3000 });
+      } else {
+        notify('error', 'Failed to create shareable URL', { timeout: 3000 });
+      }
+    } catch (error) {
+      console.error('Failed to share session:', error);
+      notify('error', 'Failed to share session', { timeout: 3000 });
+    } finally {
+      setSharingSession(false);
+    }
+  };
 
   useOnMount(() => {
     const igvSetup = async () => {
@@ -155,6 +230,11 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };
         }, selectedFiles);
         addTracks(initialTracks);
+
+        // Load initial session if provided
+        if (initialSession) {
+          await igvBrowser.current.loadSession(initialSession);
+        }
       } catch (e) {
         reportError('Error loading IGV.js', e);
       } finally {
@@ -179,7 +259,39 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         },
         [icon('arrowLeft', { style: { marginRight: '1ch' } }), 'Back to data table']
       ),
-      div({}, [
+      div({ style: { display: 'flex', gap: '0.5rem' } }, [
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv || hasSignedUrl,
+            tooltip: hasSignedUrl ? 'Cannot save session with signed URLs' : undefined,
+            onClick: () => {
+              setSessionAction('save');
+              setShowSessionModal(true);
+            },
+          },
+          ['Save Session']
+        ),
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv,
+            onClick: () => {
+              setSessionAction('load');
+              setShowSessionModal(true);
+            },
+          },
+          ['Load Session']
+        ),
+        h(
+          ButtonOutline,
+          {
+            disabled: loadingIgv || sharingSession || hasSignedUrl,
+            tooltip: hasSignedUrl ? 'Cannot share session with signed URLs' : undefined,
+            onClick: shareSession,
+          },
+          [sharingSession ? 'Sharing...' : 'Share Session']
+        ),
         h(
           ButtonOutline,
           {
@@ -225,6 +337,29 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         onSubmitTrack: (track) => {
           setShowAddTrackModal(false);
           addTracks([track]);
+        },
+      }),
+    showSessionModal &&
+      h(IGVSessionModal, {
+        action: sessionAction,
+        savedSessions,
+        onDismiss: () => setShowSessionModal(false),
+        onSave: async (name) => {
+          const success = await saveSession(name);
+          if (success) {
+            setShowSessionModal(false);
+          }
+          return success;
+        },
+        onLoad: async (name) => {
+          const success = await loadSession(name);
+          if (success) {
+            setShowSessionModal(false);
+          }
+          return success;
+        },
+        onDelete: async (name) => {
+          return deleteSession(name); // This will update savedSessions automatically
         },
       }),
   ]);

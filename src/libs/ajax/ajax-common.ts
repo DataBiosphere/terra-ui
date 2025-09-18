@@ -35,8 +35,9 @@ export const fetchWorkspaceManager = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
-export const fetchCatalog = _.flow(
-  withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`),
+export const fetchTeaspoons = _.flow(
+  withUrlPrefix(`${getConfig().teaspoonsUrlRoot}/api/`),
+  withAppIdentifier,
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 

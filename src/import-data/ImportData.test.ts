@@ -3,14 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { h } from 'react-hyperscript-helpers';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
 import { BillingProject } from 'src/libs/ajax/billing/billing-models';
-import { Catalog, CatalogContract } from 'src/libs/ajax/Catalog';
 import { DataRepo, DataRepoContract, DataRepoSnapshotContract, Snapshot } from 'src/libs/ajax/DataRepo';
 import { FirecloudBucket, FirecloudBucketAjaxContract } from 'src/libs/ajax/firecloud/FirecloudBucket';
-import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
-import { ListAppItem } from 'src/libs/ajax/leonardo/models/app-models';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
-import { WDSJob, WorkspaceData, WorkspaceDataAjaxContract } from 'src/libs/ajax/WorkspaceDataService';
 import { WorkspaceContract, Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { useRoute } from 'src/libs/nav';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
@@ -31,7 +27,6 @@ jest.mock('src/workspaces/common/state/useWorkspaces', (): UseWorkspacesExports 
 });
 
 jest.mock('src/libs/ajax/billing/Billing');
-jest.mock('src/libs/ajax/Catalog');
 jest.mock('src/libs/ajax/firecloud/FirecloudBucket');
 jest.mock('src/libs/ajax/leonardo/Apps');
 jest.mock('src/libs/ajax/Metrics');
@@ -82,14 +77,6 @@ jest.mock('src/libs/notifications', (): NotificationsExports => {
   };
 });
 
-type DataBrowserUtilsExports = typeof import('src/data-catalog/data-browser-utils');
-jest.mock('src/data-catalog/data-browser-utils', (): DataBrowserUtilsExports => {
-  return {
-    ...jest.requireActual<DataBrowserUtilsExports>('src/data-catalog/data-browser-utils'),
-    fetchDataCatalog: jest.fn(),
-  };
-});
-
 const googleSnapshotFixture: Snapshot = {
   id: '00001111-2222-3333-aaaa-bbbbccccdddd',
   name: 'test-snapshot',
@@ -132,51 +119,23 @@ const setup = async (opts: SetupOptions) => {
     })
   );
 
-  const exportDataset: MockedFn<CatalogContract['exportDataset']> = jest.fn();
-
   const importBagit: MockedFn<WorkspaceContract['importBagit']> = jest.fn();
   const importJob: MockedFn<WorkspaceContract['importJob']> = jest.fn(async (_url, _type, _options) => ({
     jobId: 'new-job',
   }));
   const importJSON: MockedFn<WorkspaceContract['importJSON']> = jest.fn();
-  const importSnapshot: MockedFn<WorkspaceContract['importSnapshot']> = jest.fn();
 
   const getWorkspaceApi: WorkspacesAjaxContract['workspace'] = jest.fn((_namespace, _name) =>
     partial<WorkspaceContract>({
       importBagit,
       importJob,
       importJSON,
-      importSnapshot,
     })
   );
 
-  const startImportJob: MockedFn<WorkspaceDataAjaxContract['startImportJob']> = jest.fn(async (_root, _id, _file) =>
-    partial<WDSJob>({ jobId: 'new-job' })
-  );
-
-  const wdsProxyUrl = 'https://proxyurl';
-
-  asMockedFn(Apps).mockReturnValue(
-    partial<AppsAjaxContract>({
-      listAppsV2: jest.fn(async (_id) => [
-        partial<ListAppItem>({
-          appType: 'WDS',
-          appName: `wds-${defaultAzureWorkspace.workspace.workspaceId}`,
-          status: 'RUNNING',
-          proxyUrls: { wds: wdsProxyUrl },
-          workspaceId: defaultAzureWorkspace.workspace.workspaceId,
-        }),
-      ]),
-    })
-  );
   asMockedFn(Billing).mockReturnValue(
     partial<BillingContract>({
       listProjects: jest.fn(async () => [partial<BillingProject>({})]),
-    })
-  );
-  asMockedFn(Catalog).mockReturnValue(
-    partial<CatalogContract>({
-      exportDataset,
     })
   );
   asMockedFn(FirecloudBucket).mockReturnValue(
@@ -185,11 +144,6 @@ const setup = async (opts: SetupOptions) => {
     })
   );
   asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
-  asMockedFn(WorkspaceData).mockReturnValue(
-    partial<WorkspaceDataAjaxContract>({
-      startImportJob,
-    })
-  );
   asMockedFn(Workspaces).mockReturnValue(
     partial<WorkspacesAjaxContract>({
       workspace: getWorkspaceApi,
@@ -208,14 +162,10 @@ const setup = async (opts: SetupOptions) => {
   });
 
   return {
-    exportDataset,
     getWorkspaceApi,
     importBagit,
     importJob,
     importJSON,
-    importSnapshot,
-    startImportJob,
-    wdsProxyUrl,
   };
 };
 
@@ -247,7 +197,7 @@ describe('ImportData', () => {
         const user = userEvent.setup();
 
         const importUrl = 'https://example.com/path/to/file.pfb';
-        const { getWorkspaceApi, importJob, startImportJob } = await setup({
+        const { getWorkspaceApi, importJob } = await setup({
           queryParams: {
             format: 'PFB',
             url: importUrl,
@@ -264,7 +214,6 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(importUrl, 'pfb', null);
-        expect(startImportJob).not.toHaveBeenCalled();
       });
     });
 
@@ -345,52 +294,6 @@ describe('ImportData', () => {
         );
 
         expect(importJob).toHaveBeenCalledWith(queryParams.tdrmanifest, 'tdrexport', { tdrSyncPermissions: true });
-      });
-    });
-
-    describe('snapshot references', () => {
-      it('imports a snapshot by reference', async () => {
-        // Arrange
-        const user = userEvent.setup();
-
-        const queryParams = {
-          format: 'snapshot',
-          snapshotId: googleSnapshotFixture.id,
-        };
-        const { getWorkspaceApi, importSnapshot } = await setup({ queryParams });
-
-        // Act
-        await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
-
-        // Assert
-        expect(getWorkspaceApi).toHaveBeenCalledWith(
-          defaultGoogleWorkspace.workspace.namespace,
-          defaultGoogleWorkspace.workspace.name
-        );
-
-        expect(importSnapshot).toHaveBeenCalledWith(queryParams.snapshotId, googleSnapshotFixture.name);
-      });
-    });
-  });
-
-  describe('catalog', () => {
-    it('imports from the data catalog', async () => {
-      // Arrange
-      const user = userEvent.setup();
-
-      const queryParams = {
-        format: 'catalog',
-        catalogDatasetId: '00001111-2222-3333-aaaa-bbbbccccdddd',
-      };
-      const { exportDataset } = await setup({ queryParams });
-
-      // Act
-      await importIntoExistingWorkspace(user, defaultGoogleWorkspace.workspace.name);
-
-      // Assert
-      expect(exportDataset).toHaveBeenCalledWith({
-        id: queryParams.catalogDatasetId,
-        workspaceId: defaultGoogleWorkspace.workspace.workspaceId,
       });
     });
   });

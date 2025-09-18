@@ -8,7 +8,7 @@ export const DrsUriResolver = (signal?: AbortSignal) => ({
   // DRSHub now gets a signed URL instead of Martha
   getSignedUrl: async ({ bucket, object, dataObjectUri, googleProject }) => {
     const res = await fetchDrsHub(
-      '/api/v4/gcs/getSignedUrl',
+      'api/v4/gcs/getSignedUrl',
       _.mergeAll([
         jsonBody({ bucket, object, dataObjectUri, googleProject }),
         authOpts(),
@@ -21,7 +21,7 @@ export const DrsUriResolver = (signal?: AbortSignal) => ({
 
   getDataObjectMetadata: async (url, fields) => {
     const res = await fetchDrsHub(
-      '/api/v4/drs/resolve',
+      'api/v4/drs/resolve',
       _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     );
     return res.json();

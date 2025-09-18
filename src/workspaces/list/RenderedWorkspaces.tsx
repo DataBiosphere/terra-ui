@@ -247,10 +247,6 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
   } = props.workspace;
   const { setUserActions } = useContext(WorkspaceUserActionsContext);
 
-  if (!canRead(accessLevel)) {
-    // No menu shown if user does not have read access.
-    return <div className='sr-only'>You do not have permission to perform actions on this workspace.</div>;
-  }
   if (state === 'Deleted') {
     return null;
   }
@@ -297,7 +293,7 @@ const ActionsCell = (props: ActionsCellProps): ReactNode => {
           iconSize={20}
           popupLocation='left'
           callbacks={{ onClone, onShare, onLock, onDelete, onLeave, onShowSettings }}
-          workspaceInfo={{ namespace, name }}
+          workspaceInfo={{ namespace, name, selectedWorkspace: props.workspace, accessLevel }}
         />
       </div>
     </div>

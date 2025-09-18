@@ -1,7 +1,8 @@
-import { InfoBox } from '@terra-ui-packages/components';
+import { InfoBox, Link } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { ReactNode } from 'react';
 import { dl, h } from 'react-hyperscript-helpers';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { InitializedWorkspaceWrapper as Workspace } from 'src/workspaces/common/state/useWorkspace';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
 import { getPolicyDescriptions } from 'src/workspaces/utils';
@@ -19,6 +20,7 @@ interface WorkspaceInformationProps {
 export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNode => {
   const { workspace } = props;
   const policyDescriptions = getPolicyDescriptions(workspace);
+  const workspaceUrl = `${window.location.origin}/#workspaces/${workspace.workspace.workspaceId}`;
 
   return dl([
     h(InfoRow, { title: 'Last Updated' }, [new Date(workspace.workspace.lastModified).toLocaleDateString()]),
@@ -35,5 +37,8 @@ export const WorkspaceInformation = (props: WorkspaceInformationProps): ReactNod
         ]
       );
     }, policyDescriptions),
+    h(InfoRow, { title: h(Link, { href: workspaceUrl }, ['Permalink to this workspace']) }, [
+      h(ClipboardButton, { 'aria-label': 'Copy Permalink to this workspace to clipboard', text: workspaceUrl }),
+    ]),
   ]);
 };

@@ -28,7 +28,7 @@ const getSubmissionsWithRootEntityType = async (workspace, entityType, { signal 
   const allSubmissions = await Workspaces(signal).workspace(namespace, name).listSubmissions();
   const submissionsMaybeUsingEntityType = _.flow(
     _.filter((submission) => {
-      const submissionEntityType = submission.submissionEntity.entityType;
+      const submissionEntityType = submission.submissionEntity?.entityType;
       return submissionEntityType === entityType || submissionEntityType === `${entityType}_set`;
     }),
     _.slice(0, maxSubmissionsQueriedForProvenance)

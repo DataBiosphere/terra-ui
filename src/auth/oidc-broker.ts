@@ -1,5 +1,6 @@
 import { ExtraSigninRequestArgs, IdTokenClaims, User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { AuthContextProps } from 'react-oidc-context';
+import { getEnabledBrand } from 'src/libs/brand-utils';
 import { getLocalStorage } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
 import { oidcStore } from 'src/libs/state';
@@ -41,7 +42,7 @@ export const getOidcConfig = () => {
     accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
     includeIdTokenInSilentSignout: true,
-    extraQueryParams: { access_type: 'offline' },
+    extraQueryParams: { access_type: 'offline', brand: getEnabledBrand().queryName },
     redirect_uri: '', // this field is not being used currently, but is expected from UserManager
   };
 };

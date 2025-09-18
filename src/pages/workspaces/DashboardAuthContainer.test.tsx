@@ -2,10 +2,13 @@ import { screen } from '@testing-library/react';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { FirecloudBucket, FirecloudBucketAjaxContract } from 'src/libs/ajax/firecloud/FirecloudBucket';
+import { Workspaces, WorkspacesAjaxContract } from 'src/libs/ajax/workspaces/Workspaces';
 import { AuthState, authStore } from 'src/libs/state';
 import { DashboardAuthContainer } from 'src/pages/workspaces/DashboardAuthContainer';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { WorkspaceDashboardPage, WorkspaceDashboardPageProps } from 'src/workspaces/dashboard/WorkspaceDashboardPage';
+
+jest.mock('src/libs/ajax/workspaces/Workspaces');
 
 jest.mock('src/libs/ajax/firecloud/FirecloudBucket');
 
@@ -122,6 +125,40 @@ describe('DashboardAuthContainer', () => {
     });
 
     // Assert
+    expect(mockDashboard).toHaveBeenCalled();
+    expect(screen.getByText('test-namespace test-name')).toBeInTheDocument();
+  });
+
+  it('renders WorkspaceDashboardPage with id parameter when signed in', async () => {
+    // Arrange
+    authStore.update((state: AuthState) => ({ ...state, signInStatus: 'userLoaded' }));
+
+    const mockDashboard = asMockedFn(WorkspaceDashboardPage);
+    mockDashboard.mockImplementation((props: WorkspaceDashboardPageProps) => (
+      <div>{`${props.namespace} ${props.name}`}</div>
+    ));
+
+    const mockGetById = jest.fn().mockResolvedValue({
+      workspace: { namespace: 'test-namespace', name: 'test-name' },
+    });
+
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        getById: mockGetById,
+      })
+    );
+
+    const getFeaturedWorkspaces: MockedFn<FirecloudBucketAjaxContract['getFeaturedWorkspaces']> = jest.fn();
+    getFeaturedWorkspaces.mockResolvedValue([]);
+    asMockedFn(FirecloudBucket).mockReturnValue(partial<FirecloudBucketAjaxContract>({ getFeaturedWorkspaces }));
+
+    // Act
+    await act(async () => {
+      render(<DashboardAuthContainer id='test-id' />);
+    });
+
+    // Assert
+    expect(mockGetById).toHaveBeenCalledWith('test-id', []);
     expect(mockDashboard).toHaveBeenCalled();
     expect(screen.getByText('test-namespace test-name')).toBeInTheDocument();
   });

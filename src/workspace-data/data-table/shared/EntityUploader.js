@@ -10,7 +10,6 @@ import { icon } from 'src/components/icons';
 import { PasteOnlyInput, ValidatedInput } from 'src/components/input';
 import { getRegionInfo, locationTypes } from 'src/components/region-common';
 import { SimpleTabBar } from 'src/components/tabBars';
-import { wdsProviderName } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils';
 import colors from 'src/libs/colors';
@@ -96,7 +95,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         workspaceNamespace: namespace,
         workspaceName: name,
         providerName: dataProvider.providerName,
-        cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
+        cloudPlatform: cloudProviders.gcp.label,
       });
     } catch (error) {
       await reportError('Error uploading entities', error);
@@ -380,7 +379,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
                             workspaceNamespace: namespace,
                             workspaceName: name,
                             providerName: dataProvider.providerName,
-                            cloudPlatform: dataProvider.providerName === wdsProviderName ? cloudProviders.azure.label : cloudProviders.gcp.label,
+                            cloudPlatform: cloudProviders.gcp.label,
                           }),
                       },
                       ['sample_template.tsv ']

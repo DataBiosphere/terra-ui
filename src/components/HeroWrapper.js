@@ -4,7 +4,7 @@ import { Link } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { TopBar } from 'src/components/TopBar';
 import landingPageHero from 'src/images/landing-page-hero.jpg';
-import { getEnabledBrand } from 'src/libs/brand-utils';
+import { getEnabledBrand, isScientificServices } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 
@@ -23,13 +23,13 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
           backgroundColor: '#fafbfd', // This not-quite-white fallback color was extracted from the background image
           backgroundImage: `url(${brand.landingPageBackground || landingPageHero})`,
           backgroundRepeat: 'no-repeat',
-          backgroundSize: '750px',
+          backgroundSize: brand.landingPageBackgroundSize ? brand.landingPageBackgroundSize : '750px',
           backgroundPosition: 'right 0 top 0',
         },
       },
       [
         // width is set to prevent text from overlapping the background image and decreasing legibility
-        h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [brand.welcomeHeader]),
+        brand.welcomeHeader && h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [brand.welcomeHeader]),
         div(
           {
             style: {
@@ -41,7 +41,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
           },
           [
             brand.description,
-            showDocLink
+            showDocLink && !isScientificServices()
               ? h(Fragment, [
                   ' ',
                   h(

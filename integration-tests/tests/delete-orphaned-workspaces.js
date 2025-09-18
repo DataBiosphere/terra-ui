@@ -36,9 +36,12 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
   const oldWorkspaces = await listOrphanWorkspaces(page);
   // List orphans which are already in state DeleteFailed (resistant to automated delete, don't fail on these)
   const oldWorkspaceNamesInDeleteFailed = getDeleteFailedWorkspaceNames(oldWorkspaces);
+  const oldWorkspacesToDelete = oldWorkspaces.filter(
+    ({ workspace: { namespace, name } }) => !oldWorkspaceNamesInDeleteFailed.includes(`${namespace}/${name}`)
+  );
 
   // Delete orphans
-  console.log(`Attempting to delete ${oldWorkspaces.length} test workspaces created more than ${olderThanCount} ${timeUnit} ago.`);
+  console.log(`Attempting to delete ${oldWorkspacesToDelete.length} test workspaces created more than ${olderThanCount} ${timeUnit} ago.`);
   return Promise.all(
     _.map(async ({ workspace: { namespace, name, cloudPlatform } }) => {
       try {
@@ -49,7 +52,7 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
       } catch (e) {
         return { name, cloudPlatform, isDeleted: false };
       }
-    }, oldWorkspaces)
+    }, oldWorkspacesToDelete)
   ).then(async (results) => {
     // Report results
     const deletedNames =
@@ -61,20 +64,20 @@ const deleteOrphanedWorkspaces = withUserToken(async ({ page, testUrl, token }) 
     const failedNames = failedDeletes.map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`).join(', ');
     console.info(`Triggered delete on workspaces: ${deletedNames}`);
     if (failedNames) {
-      console.warn(`Failed to delete workspaces: ${failedNames}`);
+      console.warn(`Failed to delete ${failedDeletes.length} workspaces : ${failedNames}`);
     }
 
     const currentOrphans = await listOrphanWorkspaces(page, { isVerbose: false });
     const persistentOrphans = currentOrphans.filter(({ workspace: { name } }) =>
       oldWorkspaces.some(({ workspace: { name: oldName } }) => oldName === name)
     );
+    console.log(`${persistentOrphans.length} persistent orphans remaining after delete attempt.`);
     const deleteFailedOrphans = getDeleteFailedWorkspaceNames(persistentOrphans);
     const newlyFailedDeletes = deleteFailedOrphans.filter((newName) => !oldWorkspaceNamesInDeleteFailed.includes(newName));
 
     if (newlyFailedDeletes.length) {
-      const newlyFailedNames = newlyFailedDeletes.map(({ name, cloudPlatform }) => `${name} (${cloudPlatform})`).join(', ');
       throw new Error(
-        `${newlyFailedDeletes.length} workspaces entered state DeleteFailed after orphan cleanup. These should be manually deleted: ${newlyFailedNames}`
+        `${newlyFailedDeletes.length} workspaces entered state DeleteFailed after orphan cleanup. These should be manually deleted: ${newlyFailedDeletes}`
       );
     }
   });
@@ -104,7 +107,9 @@ const listOrphanWorkspaces = async (page, { isVerbose = true } = {}) => {
 };
 
 const getDeleteFailedWorkspaceNames = (workspaces) => {
-  return workspaces.filter(({ workspace: { state } }) => state === 'DeleteFailed').map(({ workspace: { name } }) => name);
+  return workspaces
+    .filter(({ workspace: { state } }) => state === 'DeleteFailed')
+    .map(({ workspace: { namespace, name } }) => `${namespace}/${name}`);
 };
 
 registerTest({

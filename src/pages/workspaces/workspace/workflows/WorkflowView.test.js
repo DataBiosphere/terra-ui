@@ -5,9 +5,9 @@ import { Apps } from 'src/libs/ajax/leonardo/Apps';
 import { leoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Methods } from 'src/libs/ajax/methods/Methods';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { PREVIEW_COST_CAPPING } from 'src/libs/feature-previews-config';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent';
 import { chooseRootType } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType';
@@ -288,10 +288,14 @@ describe('Workflow View (GCP)', () => {
           }),
         }),
       }),
+      workspaceV2: (_namespace, _name) => ({
+        getSettings: jest.fn().mockReturnValue([]),
+      }),
     });
     Apps.mockReturnValue({ list: jest.fn().mockReturnValue([]) });
     Runtimes.mockReturnValue({ listV2: jest.fn() });
     asMockedFn(leoDiskProvider.list).mockImplementation(jest.fn());
+    Metrics.mockReturnValue({ captureEvent: jest.fn() });
   };
 
   it('view workflow in workspace from mock import', async () => {
@@ -566,6 +570,187 @@ describe('Workflow View (GCP)', () => {
     expect(setLocalPref).toHaveBeenCalledWith(`${namespace}/${name}/workflow_options`, undefined);
   });
 
+  it('renders the retry with more memory checkbox and factor text box when the feature flag is set', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    getLocalPref.mockReturnValue(undefined);
+
+    mockDefaultAjax();
+
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true); // Mock WORKFLOW_RETRY_WITH_MORE_MEMORY as enabled
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Assert
+    // check that the retry with more memory checkbox is rendered and the factor test box is not
+    const retryWithMoreMemoryCheckbox = screen.getByRole('checkbox', { name: 'Retry with more memory' });
+    expect(retryWithMoreMemoryCheckbox).toBeInTheDocument();
+    const missingRetryMemoryFactorInput = screen.queryByText('Memory factor:');
+    expect(missingRetryMemoryFactorInput).not.toBeInTheDocument();
+
+    // Act
+    // enable the checkbox
+    await user.click(retryWithMoreMemoryCheckbox);
+
+    // Assert
+    // check that the retry memory factor text box is rendered
+    const retryMemoryFactorInput = screen.getByText('Memory factor:');
+    expect(retryMemoryFactorInput).toBeInTheDocument();
+  });
+
+  it('does not render the retry with more memory checkbox when the feature flag is not set', async () => {
+    // Arrange
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    getLocalPref.mockReturnValue(undefined);
+
+    mockDefaultAjax();
+
+    // Mock WORKFLOW_RETRY_WITH_MORE_MEMORY as disabled
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Assert
+    // check that the retry with more memory checkbox is rendered and the factor test box is not
+    const retryWithMoreMemoryCheckbox = screen.queryByRole('checkbox', { name: 'Retry with more memory' });
+    expect(retryWithMoreMemoryCheckbox).not.toBeInTheDocument();
+  });
+
+  it('disables retry with more memory when the feature flag is OFF and the workflow option preference is ON', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    mockDefaultAjax();
+
+    const currentMock = Workspaces.getMockImplementation()();
+    Workspaces.mockReturnValue({
+      ...currentMock,
+      workspace: (ns, nm) => ({
+        ...currentMock.workspace(ns, nm),
+        checkBucketAccess: jest.fn().mockResolvedValue({}),
+        checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
+        createEntity: jest.fn().mockResolvedValue(mockCreateEntity),
+        methodConfig: () => ({
+          ...currentMock.workspace(ns, nm).methodConfig(),
+          launch: jest.fn(mockLaunchResponse),
+        }),
+      }),
+    });
+
+    getLocalPref.mockReturnValue({ retryWithMoreMemory: { enabled: true, factor: 1.1 } });
+
+    // Mock WORKFLOW_RETRY_WITH_MORE_MEMORY as disabled
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Lots of clicking around to launch submission
+    const fileInputsRadioButton = screen.getByRole('radio', { name: 'Run workflow with inputs defined by file paths' });
+    await user.click(fileInputsRadioButton);
+
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    await user.click(saveButton);
+
+    const launchButton = screen.getByRole('button', { name: 'Launch' });
+    await user.click(launchButton);
+
+    const launchModalHeader = screen.getByText('Confirm launch');
+    expect(launchModalHeader).toBeInTheDocument;
+
+    const secondLaunchButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Launch'))[0];
+    await user.click(secondLaunchButton);
+
+    // Assert
+    // Check that submission is launched
+    expect(mockLaunchResponse).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Launching analysis...')).toBeInTheDocument;
+
+    // check that retry factor is undefined
+    expect(mockLaunchResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        memoryRetryMultiplier: undefined,
+      })
+    );
+  });
+
+  it('uses stored preferences for retry with more memory when the feature flag is ON', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const namespace = 'gatk';
+    const name = 'echo_to_file-configured';
+
+    mockDefaultAjax();
+
+    const currentMock = Workspaces.getMockImplementation()();
+    Workspaces.mockReturnValue({
+      ...currentMock,
+      workspace: (ns, nm) => ({
+        ...currentMock.workspace(ns, nm),
+        checkBucketAccess: jest.fn().mockResolvedValue({}),
+        checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
+        createEntity: jest.fn().mockResolvedValue(mockCreateEntity),
+        methodConfig: () => ({
+          ...currentMock.workspace(ns, nm).methodConfig(),
+          launch: jest.fn(mockLaunchResponse),
+        }),
+      }),
+    });
+
+    getLocalPref.mockReturnValue({ retryWithMoreMemory: { enabled: true, factor: 1.1 } });
+
+    // Mock WORKFLOW_RETRY_WITH_MORE_MEMORY as disabled
+    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
+
+    // Act
+    await act(async () => {
+      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
+    });
+
+    // Lots of clicking around to launch submission
+    const fileInputsRadioButton = screen.getByRole('radio', { name: 'Run workflow with inputs defined by file paths' });
+    await user.click(fileInputsRadioButton);
+
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    await user.click(saveButton);
+
+    const launchButton = screen.getByRole('button', { name: 'Launch' });
+    await user.click(launchButton);
+
+    const launchModalHeader = screen.getByText('Confirm launch');
+    expect(launchModalHeader).toBeInTheDocument;
+
+    const secondLaunchButton = screen.getAllByRole('button').filter((button) => button.textContent.includes('Launch'))[0];
+    await user.click(secondLaunchButton);
+
+    // Assert
+    // Check that submission is launched
+    expect(mockLaunchResponse).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Launching analysis...')).toBeInTheDocument;
+
+    // check that retry factor is undefined
+    expect(mockLaunchResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        memoryRetryMultiplier: 1.1,
+      })
+    );
+  });
+
   it('renders run analysis modal and check workflow option expectations', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -594,16 +779,22 @@ describe('Workflow View (GCP)', () => {
       },
     };
 
-    Workspaces.mockImplementation(() => ({
-      workspace: (_namespace, _name) => ({
+    mockDefaultAjax();
+
+    const currentMock = Workspaces.getMockImplementation()();
+    Workspaces.mockReturnValue({
+      ...currentMock,
+      workspace: (ns, nm) => ({
+        ...currentMock.workspace(ns, nm),
         checkBucketAccess: jest.fn().mockResolvedValue({}),
         checkBucketLocation: jest.fn().mockResolvedValue(mockStorageDetails),
         createEntity: jest.fn().mockResolvedValue(mockCreateEntity),
         methodConfig: () => ({
+          ...currentMock.workspace(ns, nm).methodConfig(),
           launch: jest.fn(mockLaunchResponse),
         }),
       }),
-    }));
+    });
 
     // Act
     await act(async () => {
@@ -616,7 +807,7 @@ describe('Workflow View (GCP)', () => {
             workspace: { namespace, name, bucketName, googleProject },
           },
           processSingle: false,
-          entitySelectionModel: { type: chooseRootType, selectedEntities, newSetName: 'newSetName' },
+          entitySelectionModel: { type: chooseRootType, selectedEntities, newSetName: 'newSetName', preserveSet: true },
           mockValidate,
           config: { rootEntityType },
           useCallCache: true,
@@ -655,31 +846,8 @@ describe('Workflow View (GCP)', () => {
     );
   });
 
-  asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => id === PREVIEW_COST_CAPPING);
-
-  it('does not show cost capping input if the feature flag is disabled', async () => {
+  it('does show cost capping input', async () => {
     // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(false);
-
-    const namespace = 'gatk';
-    const name = 'echo_to_file-configured';
-
-    mockDefaultAjax();
-
-    // Act
-    await act(async () => {
-      render(h(WorkflowView, { name, namespace, queryParams: { selectionKey } }));
-    });
-
-    // Assert
-    // check that workflow cost capping is not shown
-    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).toBeNull();
-  });
-
-  it('does show cost capping input if the feature flag is enabled', async () => {
-    // Arrange
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true);
-
     const namespace = 'gatk';
     const name = 'echo_to_file-configured';
 
@@ -692,7 +860,7 @@ describe('Workflow View (GCP)', () => {
 
     // Assert
     // check that workflow cost capping is shown
-    expect(screen.queryByText('Set cost threshold per workflow (BETA)')).not.toBeNull();
+    expect(screen.queryByText('Set cost threshold per workflow')).not.toBeNull();
   });
 
   it('updates perWorkflowCostCap state on input change', async () => {

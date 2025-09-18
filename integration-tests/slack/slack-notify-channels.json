@@ -42,24 +42,6 @@
       "id": "C07T2DLHD24",
       "tests": [
         {
-          "name": "preview-dataset"
-        },
-        {
-          "name": "run-catalog-filter"
-        },
-        {
-          "name": "export-tdr-dataset-to-workspace"
-        },
-        {
-          "name": "export-workspace-dataset-to-workspace"
-        },
-        {
-          "name": "import-cohort-data"
-        },
-        {
-          "name": "request-access"
-        },
-        {
           "name": "preview-drs-uri"
         }
       ]
@@ -68,9 +50,6 @@
       "name": "dsp-core-services-alerts",
       "id": "C07Q8H7F8LV",
       "tests": [
-        {
-          "name": "import-cohort-data"
-        },
         {
           "name": "preview-drs-uri"
         },

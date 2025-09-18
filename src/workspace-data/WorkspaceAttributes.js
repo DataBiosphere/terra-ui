@@ -74,10 +74,22 @@ export const WorkspaceAttributes = ({
 
   const DESCRIPTION_MAX_LENGTH = 200;
   const inputErrors = editIndex !== undefined && [
-    ...(_.map(
-      (innerArray) => _.first(innerArray),
-      attributes.state.filter((_, index) => index !== editIndex)
-    ).includes(editKey)
+    ...((() => {
+      // Get the original key from the filtered attributes at editIndex
+      const editingAttribute = amendedAttributes[editIndex];
+      if (!editingAttribute) return false;
+
+      const originalKey = editingAttribute[0];
+
+      // Find the original index in the full attributes array
+      const originalIndex = attributes.state.findIndex(([key]) => key === originalKey);
+
+      // Check uniqueness against all attributes except the one at the original index
+      return attributes.state
+        .filter((_, index) => index !== originalIndex)
+        .map(([key]) => key)
+        .includes(editKey);
+    })()
       ? ['Key must be unique']
       : []),
     ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),

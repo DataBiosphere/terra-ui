@@ -4,30 +4,26 @@ import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import {
-  azureRuntime,
   dataprocRuntime,
-  generateAzureWorkspace,
   generateGoogleWorkspace,
-  generateTestAppWithAzureWorkspace,
   generateTestAppWithGoogleWorkspace,
-  generateTestDiskWithAzureWorkspace,
   generateTestDiskWithGoogleWorkspace,
   generateTestListGoogleRuntime,
+  listGoogleRuntime,
 } from 'src/analysis/_testData/testData';
 import { appToolLabels } from 'src/analysis/utils/tool-utils';
-import { AzureConfig } from 'src/libs/ajax/leonardo/models/runtime-config-models';
-import { Runtime, runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
+import { runtimeStatuses } from 'src/libs/ajax/leonardo/models/runtime-models';
 import { LeoAppProvider } from 'src/libs/ajax/leonardo/providers/LeoAppProvider';
 import { LeoDiskProvider } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { LeoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeProvider';
-import { leoResourcePermissions } from 'src/pages/EnvironmentsPage/environmentsPermissions';
+import { leoResourceDeletable } from 'src/pages/EnvironmentsPage/deletableEnvironments';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import { UseWorkspacesResult } from 'src/workspaces/common/state/useWorkspaces.models';
 import { WorkspaceWrapper } from 'src/workspaces/utils';
 
 import { DataRefreshInfo, EnvironmentNavActions, Environments, EnvironmentsProps } from './Environments';
-import { LeoResourcePermissionsProvider } from './Environments.models';
+import { LeoResourceDeletableProvider } from './Environments.models';
 
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn(),
@@ -81,14 +77,10 @@ const getMockLeoDiskProvider = (overrides?: Partial<LeoDiskProvider>): LeoDiskPr
 };
 
 const getEnvironmentsProps = (propsOverrides?: Partial<EnvironmentsProps>): EnvironmentsProps => {
-  const mockPermissions: LeoResourcePermissionsProvider = {
-    hasDeleteDiskPermission: jest.fn(),
-    hasPausePermission: jest.fn(),
+  const mockPermissions: LeoResourceDeletableProvider = {
     isAppInDeletableState: jest.fn(),
     isResourceInDeletableState: jest.fn(),
   };
-  asMockedFn(mockPermissions.hasDeleteDiskPermission).mockReturnValue(true);
-  asMockedFn(mockPermissions.hasPausePermission).mockReturnValue(true);
   asMockedFn(mockPermissions.isAppInDeletableState).mockReturnValue(true);
   asMockedFn(mockPermissions.isResourceInDeletableState).mockReturnValue(true);
 
@@ -120,7 +112,6 @@ describe('Environments Component', () => {
         ...defaultUseWorkspacesProps,
         workspaces: [otherGoogleWorkspace],
       });
-
       // Act
       await act(async () => {
         render(h(Environments, props));
@@ -130,16 +121,15 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstRuntimeRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getAllByRole(firstRuntimeRow, 'cell')[1].textContent;
-      expect(workspaceForFirstRuntimeCell).toBe(`${runtime1.labels.saturnWorkspaceName} (unavailable)`);
+      expect(workspaceForFirstRuntimeCell).toBe('undefined (unavailable)');
     });
 
     it('Renders page correctly with a runtime', async () => {
       // Arrange
       const props = getEnvironmentsProps();
-      const runtime1 = generateTestListGoogleRuntime();
+      const runtime1 = listGoogleRuntime();
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
 
-      // Act
       await act(async () => {
         render(h(Environments, props));
       });
@@ -149,8 +139,8 @@ describe('Environments Component', () => {
       const firstRuntimeRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstRuntimeRow, 1);
 
-      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(runtime1.labels.saturnWorkspaceNamespace);
-      expect(workspaceForFirstRuntimeCell).toBe(`${runtime1.labels.saturnWorkspaceName}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(defaultGoogleWorkspace.workspace.namespace);
+      expect(workspaceForFirstRuntimeCell).toBe(`${defaultGoogleWorkspace.workspace.name}`);
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime1.runtimeConfig.cloudService);
       expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(runtime1.labels.tool);
       expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime1.status);
@@ -162,12 +152,11 @@ describe('Environments Component', () => {
     it('Renders page correctly with multiple runtimes and workspaces', async () => {
       // Arrange
       const props = getEnvironmentsProps();
-      const runtime1 = generateTestListGoogleRuntime();
-      const runtime2 = azureRuntime;
-      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1, runtime2]);
+      const runtime1 = listGoogleRuntime();
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
+        workspaces: [defaultGoogleWorkspace],
       });
 
       // Act
@@ -179,23 +168,14 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstRuntimeRow: HTMLElement = tableRows[1];
-      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${runtime2.labels.saturnWorkspaceNamespace}`);
-      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${runtime2.labels.saturnWorkspaceName}`);
-      expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime2.runtimeConfig.cloudService);
-      expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(_.capitalize(runtime2.labels.tool));
-      expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime2.status);
-      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe((runtime2.runtimeConfig as AzureConfig).region);
-      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(formatDatetime(runtime2.auditInfo.createdDate));
-      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(formatDatetime(runtime2.auditInfo.dateAccessed));
-
-      expect(getTextContentForColumn(tableRows[2], 0)).toBe(`${runtime1.labels.saturnWorkspaceNamespace}`);
-      expect(getTextContentForColumn(tableRows[2], 1)).toBe(`${runtime1.labels.saturnWorkspaceName}`);
-      expect(getTextContentForColumn(tableRows[2], 2)).toBe(runtime1.runtimeConfig.cloudService);
-      expect(getTextContentForColumn(tableRows[2], 3)).toBe(runtime1.labels.tool);
-      expect(getTextContentForColumn(tableRows[2], 5)).toBe(runtime1.status);
-      expect(getTextContentForColumn(tableRows[2], 6)).toBe(_.toLower(runtime1.runtimeConfig.normalizedRegion));
-      expect(getTextContentForColumn(tableRows[2], 7)).toBe(formatDatetime(runtime1.auditInfo.createdDate));
-      expect(getTextContentForColumn(tableRows[2], 8)).toBe(formatDatetime(runtime1.auditInfo.dateAccessed));
+      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${defaultGoogleWorkspace.workspace.namespace}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${defaultGoogleWorkspace.workspace.name}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(runtime1.runtimeConfig.cloudService);
+      expect(getTextContentForColumn(firstRuntimeRow, 3)).toBe(runtime1.labels.tool);
+      expect(getTextContentForColumn(firstRuntimeRow, 5)).toBe(runtime1.status);
+      expect(getTextContentForColumn(firstRuntimeRow, 6)).toBe(_.toLower(runtime1.runtimeConfig.normalizedRegion));
+      expect(getTextContentForColumn(firstRuntimeRow, 7)).toBe(formatDatetime(runtime1.auditInfo.createdDate));
+      expect(getTextContentForColumn(firstRuntimeRow, 8)).toBe(formatDatetime(runtime1.auditInfo.dateAccessed));
     });
 
     it('Renders page correctly for a Dataproc Runtime', async () => {
@@ -216,8 +196,8 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstRuntimeRow: HTMLElement = tableRows[1];
-      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${dataprocRuntime.labels.saturnWorkspaceNamespace}`);
-      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${dataprocRuntime.labels.saturnWorkspaceName}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 0)).toBe(`${defaultGoogleWorkspace.workspace.namespace}`);
+      expect(getTextContentForColumn(firstRuntimeRow, 1)).toBe(`${defaultGoogleWorkspace.workspace.name}`);
       expect(getTextContentForColumn(firstRuntimeRow, 2)).toBe(
         _.capitalize(dataprocRuntime.runtimeConfig.cloudService)
       );
@@ -234,15 +214,13 @@ describe('Environments Component', () => {
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
       const runtime2 = generateTestListGoogleRuntime({ status: runtimeStatuses.deleting.leoLabel });
-      const runtime3 = azureRuntime;
-      const runtime4: Runtime = { ...azureRuntime, status: runtimeStatuses.error.leoLabel };
       // the order in the below array is the default sort order of the table
-      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime3, runtime4, runtime1, runtime2]);
+      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1, runtime2]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
+        workspaces: [defaultGoogleWorkspace],
       });
-      props.permissions.isResourceInDeletableState = leoResourcePermissions.isResourceInDeletableState;
+      props.permissions.isResourceInDeletableState = leoResourceDeletable.isResourceInDeletableState;
 
       // Act
       await act(async () => {
@@ -252,28 +230,8 @@ describe('Environments Component', () => {
       // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
-      // this is runtime3 in test data array
-      const runtime1Row: HTMLElement = tableRows[1];
-      const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[10];
-      const buttons1 = getAllByRole(runtime1ButtonsCell, 'button');
-      expect(buttons1.length).toBe(2);
-      expect(buttons1[0].textContent).toBe('Pause');
-      expect(buttons1[0].getAttribute('aria-disabled')).toBe('false');
-      expect(buttons1[1].textContent).toBe('Delete');
-      expect(buttons1[1].getAttribute('aria-disabled')).toBe('false');
-
-      // this is runtime4 in test data array
-      const runtime2Row: HTMLElement = tableRows[2];
-      const runtime2ButtonsCell = getAllByRole(runtime2Row, 'cell')[10];
-      const buttons2 = getAllByRole(runtime2ButtonsCell, 'button');
-      expect(buttons2.length).toBe(2);
-      expect(buttons2[0].textContent).toBe('Pause');
-      expect(buttons2[0].getAttribute('aria-disabled')).toBe('true');
-      expect(buttons2[1].textContent).toBe('Delete');
-      expect(buttons2[1].getAttribute('aria-disabled')).toBe('false');
-
       // this is runtime1 in test data array
-      const runtime3Row: HTMLElement = tableRows[3];
+      const runtime3Row: HTMLElement = tableRows[1];
       const runtime3ButtonsCell = getAllByRole(runtime3Row, 'cell')[10];
       const buttons3 = getAllByRole(runtime3ButtonsCell, 'button');
       expect(buttons3.length).toBe(2);
@@ -283,7 +241,7 @@ describe('Environments Component', () => {
       expect(buttons3[1].getAttribute('aria-disabled')).toBe('false');
 
       // this is runtime2 in test data array
-      const runtime4Row: HTMLElement = tableRows[4];
+      const runtime4Row: HTMLElement = tableRows[2];
       const runtime4ButtonsCell = getAllByRole(runtime4Row, 'cell')[10];
       const buttons4 = getAllByRole(runtime4ButtonsCell, 'button');
       expect(buttons4.length).toBe(2);
@@ -293,17 +251,15 @@ describe('Environments Component', () => {
       expect(buttons4[1].getAttribute('aria-disabled')).toBe('true');
     });
 
-    it('should hide pause button where user is not creator of runtime', async () => {
+    it('should not hide pause button where user is a billing project owner', async () => {
       // Arrange
       const props = getEnvironmentsProps();
       const runtime1 = generateTestListGoogleRuntime();
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime1]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace],
+        workspaces: [defaultGoogleWorkspace],
       });
-
-      asMockedFn(props.permissions.hasPausePermission).mockReturnValue(false);
 
       // Act
       await act(async () => {
@@ -315,20 +271,18 @@ describe('Environments Component', () => {
       const runtime1Row: HTMLElement = tableRows[1];
       const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[10];
       const buttons1 = getAllByRole(runtime1ButtonsCell, 'button');
-      expect(buttons1.length).toBe(1);
-      expect(buttons1[0].textContent).toBe('Delete');
+      expect(buttons1.length).toBe(2);
+      expect(buttons1[0].textContent).toBe('Pause');
       expect(buttons1[0].getAttribute('aria-disabled')).toBe('false');
+      expect(buttons1[1].textContent).toBe('Delete');
+      expect(buttons1[1].getAttribute('aria-disabled')).toBe('false');
     });
 
-    it.each([
-      {
-        runtime: { ...generateTestListGoogleRuntime(), workspaceId: defaultGoogleWorkspace.workspace.workspaceId },
-        workspace: defaultGoogleWorkspace,
-      },
-      { runtime: azureRuntime, workspace: defaultAzureWorkspace },
-    ])('Renders runtime details view correctly', async ({ runtime, workspace }) => {
+    it('Renders runtime details view correctly', async () => {
       // Arrange
       const props = getEnvironmentsProps();
+      const runtime = generateTestListGoogleRuntime({ googleProject: defaultGoogleWorkspace.workspace.googleProject });
+      const workspace = defaultGoogleWorkspace;
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
@@ -357,64 +311,14 @@ describe('Environments Component', () => {
       screen.getByText(runtime.runtimeName);
     });
 
-    it.each([
-      { runtime: azureRuntime, workspace: defaultAzureWorkspace },
-      { runtime: generateTestListGoogleRuntime(), workspace: defaultGoogleWorkspace },
-    ])('Behaves properly when we click pause/delete for azure/gce vm', async ({ runtime, workspace }) => {
+    it('Renders the error message properly for gce vms', async () => {
       // Arrange
-      const user = userEvent.setup();
       const props = getEnvironmentsProps();
+      const runtime = { ...generateTestListGoogleRuntime(), status: runtimeStatuses.error.leoLabel };
       asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [workspace],
-      });
-
-      // Act
-      await act(async () => {
-        render(h(Environments, props));
-      });
-
-      const tableRows: HTMLElement[] = screen.getAllByRole('row');
-      const runtime1Row: HTMLElement = tableRows[1];
-      const runtime1ButtonsCell = getAllByRole(runtime1Row, 'cell')[10];
-      const buttons1 = getAllByRole(runtime1ButtonsCell, 'button');
-
-      // Assert
-      expect(buttons1.length).toBe(2);
-      expect(buttons1[0].textContent).toBe('Pause');
-
-      // Act - Pause button
-      await user.click(buttons1[0]);
-
-      // Assert
-      expect(props.leoRuntimeData.stop).toBeCalledTimes(1);
-      expect(props.leoRuntimeData.stop).toBeCalledWith(
-        expect.objectContaining({
-          runtimeName: runtime.runtimeName,
-        })
-      );
-
-      // Act - Delete Button
-      await user.click(buttons1[1]);
-
-      // Assert
-      screen.getByText('Delete cloud environment?');
-    });
-
-    it.each([
-      {
-        runtime: { ...generateTestListGoogleRuntime(), status: runtimeStatuses.error.leoLabel },
-        workspace: defaultGoogleWorkspace,
-      },
-      { runtime: { ...azureRuntime, status: runtimeStatuses.error.leoLabel }, workspace: defaultAzureWorkspace },
-    ])('Renders the error message properly for azure and gce vms', async ({ runtime, workspace }) => {
-      // Arrange
-      const props = getEnvironmentsProps();
-      asMockedFn(props.leoRuntimeData.list).mockResolvedValue([runtime]);
-      asMockedFn(props.useWorkspaces).mockReturnValue({
-        ...defaultUseWorkspacesProps,
-        workspaces: [workspace],
+        workspaces: [defaultGoogleWorkspace],
       });
 
       // Act
@@ -453,8 +357,8 @@ describe('Environments Component', () => {
       const firstAppRow: HTMLElement = tableRows[0];
       const workspaceForFirstRuntimeCell = getTextContentForColumn(firstAppRow, 1);
 
-      expect(getTextContentForColumn(firstAppRow, 0)).toBe(galaxyApp.labels.saturnWorkspaceNamespace);
-      expect(workspaceForFirstRuntimeCell).toBe(galaxyApp.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstAppRow, 0)).toBe(defaultGoogleWorkspace.workspace.namespace);
+      expect(workspaceForFirstRuntimeCell).toBe(defaultGoogleWorkspace.workspace.name);
       expect(getTextContentForColumn(firstAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(galaxyApp.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(galaxyApp.status));
@@ -471,13 +375,10 @@ describe('Environments Component', () => {
       const googleWorkspace2 = generateGoogleWorkspace();
       const googleApp2 = generateTestAppWithGoogleWorkspace({}, googleWorkspace2);
 
-      const azureApp1 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, defaultAzureWorkspace);
-      const azureWorkspace2 = generateAzureWorkspace();
-      const azureApp2 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, azureWorkspace2);
-      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([googleApp1, googleApp2, azureApp1, azureApp2]);
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([googleApp1, googleApp2]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
+        workspaces: [defaultGoogleWorkspace, googleWorkspace2],
       });
 
       // Act
@@ -488,8 +389,8 @@ describe('Environments Component', () => {
       // Assert
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
-      expect(getTextContentForColumn(firstAppRow, 0)).toBe(googleApp1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(firstAppRow, 1)).toBe(googleApp1.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstAppRow, 0)).toBe(defaultGoogleWorkspace.workspace.namespace);
+      expect(getTextContentForColumn(firstAppRow, 1)).toBe(defaultGoogleWorkspace.workspace.name);
       expect(getTextContentForColumn(firstAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(firstAppRow, 3)).toBe(_.capitalize(googleApp1.appType));
       expect(getTextContentForColumn(firstAppRow, 5)).toBe(_.capitalize(googleApp1.status));
@@ -498,34 +399,14 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(firstAppRow, 8)).toBe(formatDatetime(googleApp1.auditInfo.dateAccessed));
 
       const secondAppRow: HTMLElement = tableRows[1];
-      expect(getTextContentForColumn(secondAppRow, 0)).toBe(googleApp2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(secondAppRow, 1)).toBe(googleApp2.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(secondAppRow, 0)).toBe(googleWorkspace2.workspace.namespace);
+      expect(getTextContentForColumn(secondAppRow, 1)).toBe(googleWorkspace2.workspace.name);
       expect(getTextContentForColumn(secondAppRow, 2)).toBe('Kubernetes');
       expect(getTextContentForColumn(secondAppRow, 3)).toBe(_.capitalize(googleApp2.appType));
       expect(getTextContentForColumn(secondAppRow, 5)).toBe(_.capitalize(googleApp2.status));
       expect(getTextContentForColumn(secondAppRow, 6)).toBe(googleApp2.region);
       expect(getTextContentForColumn(secondAppRow, 7)).toBe(formatDatetime(googleApp2.auditInfo.createdDate));
       expect(getTextContentForColumn(secondAppRow, 8)).toBe(formatDatetime(googleApp1.auditInfo.dateAccessed));
-
-      const thirdAppRow: HTMLElement = tableRows[2];
-      expect(getTextContentForColumn(thirdAppRow, 0)).toBe(azureApp1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(thirdAppRow, 1)).toBe(azureApp1.labels.saturnWorkspaceName);
-      expect(getTextContentForColumn(thirdAppRow, 2)).toBe('Kubernetes');
-      expect(getTextContentForColumn(thirdAppRow, 3)).toBe(_.capitalize(azureApp1.appType));
-      expect(getTextContentForColumn(thirdAppRow, 5)).toBe(_.capitalize(azureApp1.status));
-      expect(getTextContentForColumn(thirdAppRow, 6)).toBe(azureApp1.region);
-      expect(getTextContentForColumn(thirdAppRow, 7)).toBe(formatDatetime(azureApp1.auditInfo.createdDate));
-      expect(getTextContentForColumn(thirdAppRow, 8)).toBe(formatDatetime(azureApp1.auditInfo.dateAccessed));
-
-      const fourthAppRow: HTMLElement = tableRows[3];
-      expect(getTextContentForColumn(fourthAppRow, 0)).toBe(azureApp2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(fourthAppRow, 1)).toBe(azureApp2.labels.saturnWorkspaceName);
-      expect(getTextContentForColumn(fourthAppRow, 2)).toBe('Kubernetes');
-      expect(getTextContentForColumn(fourthAppRow, 3)).toBe(_.capitalize(azureApp2.appType));
-      expect(getTextContentForColumn(fourthAppRow, 5)).toBe(_.capitalize(azureApp2.status));
-      expect(getTextContentForColumn(fourthAppRow, 6)).toBe(azureApp2.region);
-      expect(getTextContentForColumn(fourthAppRow, 7)).toBe(formatDatetime(azureApp2.auditInfo.createdDate));
-      expect(getTextContentForColumn(fourthAppRow, 8)).toBe(formatDatetime(azureApp2.auditInfo.dateAccessed));
     });
 
     it('Renders Cromwell apps with disabled delete', async () => {
@@ -533,15 +414,16 @@ describe('Environments Component', () => {
       const props = getEnvironmentsProps();
 
       const googleApp1 = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
-      const azureApp1 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.CROMWELL }, defaultAzureWorkspace);
-      const azureWorkspace2 = generateAzureWorkspace();
-      const azureApp2 = generateTestAppWithAzureWorkspace({ appType: appToolLabels.WORKFLOWS_APP }, azureWorkspace2);
-      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([googleApp1, azureApp1, azureApp2]);
+      const googleApp2 = generateTestAppWithGoogleWorkspace(
+        { appType: appToolLabels.CROMWELL },
+        defaultGoogleWorkspace
+      );
+      asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([googleApp1, googleApp2]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [defaultGoogleWorkspace, defaultAzureWorkspace, azureWorkspace2],
+        workspaces: [defaultGoogleWorkspace],
       });
-      props.permissions = leoResourcePermissions;
+      props.permissions = leoResourceDeletable;
 
       // Act
       await act(async () => {
@@ -549,7 +431,7 @@ describe('Environments Component', () => {
       });
 
       // Assert
-      expect(screen.getAllByRole('row')).toHaveLength(6);
+      expect(screen.getAllByRole('row')).toHaveLength(5);
 
       const tableRows: HTMLElement[] = screen.getAllByRole('row').slice(1); // skip header row
       const firstAppRow: HTMLElement = tableRows[0];
@@ -560,26 +442,20 @@ describe('Environments Component', () => {
       const actionColumnButton2 = within(secondAppRow).getByRole('button', { name: 'Delete' });
       expect(actionColumnButton2).toHaveAttribute('disabled');
 
-      const thirdAppRow: HTMLElement = tableRows[2];
-      const actionColumnButton3 = within(thirdAppRow).getByRole('button', { name: 'Delete' });
-      expect(actionColumnButton3).toHaveAttribute('disabled');
-
       // Check for tooltip, and that it's only present for azure apps
       const notSupportedTooltip = screen.getAllByText('Deleting not yet supported');
       expect(notSupportedTooltip).toBeInTheDocument;
-      expect(notSupportedTooltip.length).toBe(2);
+      expect(notSupportedTooltip.length).toBe(1);
     });
 
-    it.each([
-      { app: generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
-      { app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
-    ])('Renders app details view correctly', async ({ app, workspace }) => {
+    it('Renders app details view correctly', async () => {
       // Arrange
       const props = getEnvironmentsProps();
+      const app = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
       asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([app]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [workspace],
+        workspaces: [defaultGoogleWorkspace],
       });
 
       await act(async () => {
@@ -599,30 +475,20 @@ describe('Environments Component', () => {
       // Assert
       expect(foundButtonCount).toBe(1);
       expect(foundButtonText).toBe('view');
-      screen.getByText(workspace.workspace.workspaceId);
+      screen.getByText(defaultGoogleWorkspace.workspace.workspaceId);
       screen.getByText(app.appName);
       screen.getByText(app.cloudContext.cloudResource);
     });
 
-    it.each([
-      {
-        app: generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace),
-        workspace: defaultGoogleWorkspace,
-        isAzure: false,
-      },
-      {
-        app: generateTestAppWithAzureWorkspace({}, defaultAzureWorkspace),
-        workspace: defaultAzureWorkspace,
-        isAzure: true,
-      },
-    ])('Behaves properly when we click pause/delete for azure/gce app', async ({ app, workspace }) => {
+    it('Behaves properly when we click pause/delete for gce app', async () => {
       // Arrange
       const user = userEvent.setup();
+      const app = generateTestAppWithGoogleWorkspace({}, defaultGoogleWorkspace);
       const props = getEnvironmentsProps();
       asMockedFn(props.leoAppData.listWithoutProject).mockResolvedValue([app]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [workspace],
+        workspaces: [defaultGoogleWorkspace],
       });
 
       await act(async () => {
@@ -667,8 +533,8 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
       const firstDiskRow: HTMLElement = tableRows[3];
 
-      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(disk.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(disk.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(defaultGoogleWorkspace.workspace.namespace);
+      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(defaultGoogleWorkspace.workspace.name);
       expect(getTextContentForColumn(firstDiskRow, 3)).toBe(`${disk.size}`);
       expect(getTextContentForColumn(firstDiskRow, 4)).toBe(disk.status);
       expect(getTextContentForColumn(firstDiskRow, 5)).toBe(disk.zone);
@@ -685,14 +551,10 @@ describe('Environments Component', () => {
       const googleWorkspace2 = generateGoogleWorkspace();
       const googleDisk2 = generateTestDiskWithGoogleWorkspace({}, googleWorkspace2);
 
-      const azureDisk1 = generateTestDiskWithAzureWorkspace({}, defaultAzureWorkspace);
-      const azureWorkspace2 = generateAzureWorkspace();
-      const azureDisk2 = generateTestDiskWithAzureWorkspace({}, azureWorkspace2);
-
-      asMockedFn(props.leoDiskData.list).mockResolvedValue([googleDisk1, googleDisk2, azureDisk1, azureDisk2]);
+      asMockedFn(props.leoDiskData.list).mockResolvedValue([googleDisk1, googleDisk2]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [defaultGoogleWorkspace, googleWorkspace2, defaultAzureWorkspace, azureWorkspace2],
+        workspaces: [defaultGoogleWorkspace, googleWorkspace2],
       });
 
       // Act
@@ -704,8 +566,8 @@ describe('Environments Component', () => {
       const tableRows: HTMLElement[] = screen.getAllByRole('row');
 
       const firstDiskRow: HTMLElement = tableRows[3];
-      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(googleDisk1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(googleDisk1.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(firstDiskRow, 0)).toBe(defaultGoogleWorkspace.workspace.namespace);
+      expect(getTextContentForColumn(firstDiskRow, 1)).toBe(defaultGoogleWorkspace.workspace.name);
       expect(getTextContentForColumn(firstDiskRow, 3)).toBe(`${googleDisk1.size}`);
       expect(getTextContentForColumn(firstDiskRow, 4)).toBe(googleDisk1.status);
       expect(getTextContentForColumn(firstDiskRow, 5)).toBe(googleDisk1.zone);
@@ -713,43 +575,23 @@ describe('Environments Component', () => {
       expect(getTextContentForColumn(firstDiskRow, 7)).toBe(formatDatetime(googleDisk1.auditInfo.dateAccessed));
 
       const secondDiskRow: HTMLElement = tableRows[4];
-      expect(getTextContentForColumn(secondDiskRow, 0)).toBe(googleDisk2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(secondDiskRow, 1)).toBe(googleDisk2.labels.saturnWorkspaceName);
+      expect(getTextContentForColumn(secondDiskRow, 0)).toBe(googleWorkspace2.workspace.namespace);
+      expect(getTextContentForColumn(secondDiskRow, 1)).toBe(googleWorkspace2.workspace.name);
       expect(getTextContentForColumn(secondDiskRow, 3)).toBe(`${googleDisk2.size}`);
       expect(getTextContentForColumn(secondDiskRow, 4)).toBe(googleDisk2.status);
       expect(getTextContentForColumn(secondDiskRow, 5)).toBe(googleDisk2.zone);
       expect(getTextContentForColumn(secondDiskRow, 6)).toBe(formatDatetime(googleDisk2.auditInfo.createdDate));
       expect(getTextContentForColumn(secondDiskRow, 7)).toBe(formatDatetime(googleDisk2.auditInfo.dateAccessed));
-
-      const thirdDiskRow: HTMLElement = tableRows[5];
-      expect(getTextContentForColumn(thirdDiskRow, 0)).toBe(azureDisk1.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(thirdDiskRow, 1)).toBe(azureDisk1.labels.saturnWorkspaceName);
-      expect(getTextContentForColumn(thirdDiskRow, 3)).toBe(`${azureDisk1.size}`);
-      expect(getTextContentForColumn(thirdDiskRow, 4)).toBe(azureDisk1.status);
-      expect(getTextContentForColumn(thirdDiskRow, 5)).toBe(azureDisk1.zone);
-      expect(getTextContentForColumn(thirdDiskRow, 6)).toBe(formatDatetime(azureDisk1.auditInfo.createdDate));
-      expect(getTextContentForColumn(thirdDiskRow, 7)).toBe(formatDatetime(azureDisk1.auditInfo.dateAccessed));
-
-      const fourthDiskRow: HTMLElement = tableRows[6];
-      expect(getTextContentForColumn(fourthDiskRow, 0)).toBe(azureDisk2.labels.saturnWorkspaceNamespace);
-      expect(getTextContentForColumn(fourthDiskRow, 1)).toBe(azureDisk2.labels.saturnWorkspaceName);
-      expect(getTextContentForColumn(fourthDiskRow, 3)).toBe(`${azureDisk2.size}`);
-      expect(getTextContentForColumn(fourthDiskRow, 4)).toBe(azureDisk2.status);
-      expect(getTextContentForColumn(fourthDiskRow, 5)).toBe(azureDisk2.zone);
-      expect(getTextContentForColumn(fourthDiskRow, 6)).toBe(formatDatetime(azureDisk2.auditInfo.createdDate));
-      expect(getTextContentForColumn(fourthDiskRow, 7)).toBe(formatDatetime(azureDisk2.auditInfo.dateAccessed));
     });
 
-    it.each([
-      { disk: generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
-      { disk: generateTestDiskWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
-    ])('Renders disk details view correctly', async ({ disk, workspace }) => {
+    it('Renders disk details view correctly', async () => {
       // Arrange
       const props = getEnvironmentsProps();
+      const disk = generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace);
       asMockedFn(props.leoDiskData.list).mockResolvedValue([disk]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [workspace],
+        workspaces: [defaultGoogleWorkspace],
       });
 
       await act(async () => {
@@ -768,22 +610,20 @@ describe('Environments Component', () => {
       // Assert
       expect(foundButtonCount).toBe(1);
       expect(foundButtonText).toBe('view');
-      screen.getByText(workspace.workspace.workspaceId);
+      screen.getByText(defaultGoogleWorkspace.workspace.workspaceId);
       screen.getByText(disk.name);
       screen.getByText(disk.cloudContext.cloudResource);
     });
 
-    it.each([
-      { disk: generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace), workspace: defaultGoogleWorkspace },
-      { disk: generateTestDiskWithAzureWorkspace({}, defaultAzureWorkspace), workspace: defaultAzureWorkspace },
-    ])('Behaves properly when we click delete for azure/gce disk', async ({ disk, workspace }) => {
+    it('Behaves properly when we click delete for gce disk', async () => {
       // Arrange
       const user = userEvent.setup();
       const props = getEnvironmentsProps();
+      const disk = generateTestDiskWithGoogleWorkspace({}, defaultGoogleWorkspace);
       asMockedFn(props.leoDiskData.list).mockResolvedValue([disk]);
       asMockedFn(props.useWorkspaces).mockReturnValue({
         ...defaultUseWorkspacesProps,
-        workspaces: [workspace],
+        workspaces: [defaultGoogleWorkspace],
       });
 
       await act(async () => {
@@ -845,15 +685,15 @@ describe('Environments Component', () => {
       // First call should filter by creator, second call should not
       expect(mockListRuntime.mock.calls).toEqual([
         [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
-        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+        [{}, expect.any(Object)],
       ]);
       expect(mockListApp.mock.calls).toEqual([
         [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
-        [{ includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+        [{}, expect.any(Object)],
       ]);
       expect(mockListDisk.mock.calls).toEqual([
         [expect.objectContaining({ role: 'creator' }), expect.any(Object)],
-        [{ includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }, expect.any(Object)],
+        [{ includeLabels: 'saturnApplication' }, expect.any(Object)],
       ]);
     });
   });

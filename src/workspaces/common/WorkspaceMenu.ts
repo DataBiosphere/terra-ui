@@ -14,6 +14,7 @@ import {
   getCloudProviderFromWorkspace,
   isGoogleWorkspace,
   isOwner,
+  WorkspaceAccessLevel,
   WorkspacePolicy,
   WorkspaceState,
   WorkspaceWrapper as Workspace,
@@ -24,7 +25,7 @@ const isNameType = (o: WorkspaceInfo): o is DynamicWorkspaceInfo =>
   typeof o.name === 'string' &&
   'namespace' in o &&
   typeof o.namespace === 'string' &&
-  Object.keys(o).length === 2;
+  Object.keys(o).length === 4;
 
 type LoadedWorkspaceInfo = {
   state?: WorkspaceState;
@@ -35,9 +36,16 @@ type LoadedWorkspaceInfo = {
   cloudProvider?: CloudProvider;
   namespace: string;
   name: string;
+  selectedWorkspace?: Workspace;
+  accessLevel?: WorkspaceAccessLevel;
 };
 
-type DynamicWorkspaceInfo = { name: string; namespace: string };
+type DynamicWorkspaceInfo = {
+  name: string;
+  namespace: string;
+  selectedWorkspace?: Workspace;
+  accessLevel: WorkspaceAccessLevel;
+};
 type WorkspaceInfo = DynamicWorkspaceInfo | LoadedWorkspaceInfo;
 
 interface WorkspaceMenuCallbacks {
@@ -99,24 +107,33 @@ interface DynamicWorkspaceMenuContentProps {
 /**
  * DynamicWorkspaceInfo is invoked when the name/namespace is passed instead of the derived states.
  * This happens from the list component, which also needs the workspace policies and bucketName for
- * sharing and cloning the workspace. This is also leveraged to pass the full decription during cloning as well.
+ * sharing and cloning the workspace. This is also leveraged to pass the full description during cloning as well.
  */
 const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) => {
   const {
-    workspaceInfo: { name, namespace },
+    workspaceInfo: { name, namespace, selectedWorkspace, accessLevel },
     callbacks,
   } = props;
-  const { workspace } = useWorkspaceDetails({ namespace, name }, [
-    'accessLevel',
-    'canShare',
-    'policies',
-    'workspace.bucketName',
-    'workspace.attributes.description',
-    'workspace.cloudPlatform',
-    'workspace.googleProject',
-    'workspace.isLocked',
-    'workspace.state',
-  ]) as { workspace?: Workspace };
+
+  const { workspace } = useWorkspaceDetails(
+    {
+      namespace,
+      name,
+      selectedWorkspace,
+      accessLevel,
+    },
+    [
+      'accessLevel',
+      'canShare',
+      'policies',
+      'workspace.bucketName',
+      'workspace.attributes.description',
+      'workspace.cloudPlatform',
+      'workspace.googleProject',
+      'workspace.isLocked',
+      'workspace.state',
+    ]
+  ) as { workspace?: Workspace };
   const bucketName = !!workspace && isGoogleWorkspace(workspace) ? workspace.workspace.bucketName : undefined;
   const googleProject = !!workspace && isGoogleWorkspace(workspace) ? workspace.workspace.googleProject : undefined;
 
@@ -135,10 +152,11 @@ const DynamicWorkspaceMenuContent = (props: DynamicWorkspaceMenuContentProps) =>
       cloudProvider: !workspace ? undefined : getCloudProviderFromWorkspace(workspace),
       namespace,
       name,
+      accessLevel,
     },
     // The list component doesn't fetch all the workspace details in order to keep the size of returned payload
     // as small as possible, so we need to pass policies and bucketName for use by the ShareWorkspaceModal
-    // and NewWorkspaceModal (cloning, this will include the full description). The dashboard component already has the fields, so it will ignore them.
+    // and NewWorkspaceWizard (cloning, this will include the full description). The dashboard component already has the fields, so it will ignore them.
     callbacks: {
       ...callbacks,
       onShare: () => callbacks.onShare(workspace?.policies, bucketName),
@@ -171,7 +189,7 @@ interface LoadedWorkspaceMenuContentProps {
 }
 const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
   const {
-    workspaceInfo: { state, canShare, isLocked, isOwner, workspaceLoaded, cloudProvider, namespace, name },
+    workspaceInfo: { state, canShare, isLocked, isOwner, workspaceLoaded, cloudProvider, namespace, name, accessLevel },
     callbacks: { onShare, onLock, onLeave, onClone, onDelete, onShowSettings },
     origin,
   } = props;
@@ -193,6 +211,8 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
       }),
     });
   };
+
+  const noAccess = accessLevel === 'NO ACCESS';
 
   return h(Fragment, [
     h(
@@ -219,7 +239,8 @@ const LoadedWorkspaceMenuContent = (props: LoadedWorkspaceMenuContentProps) => {
           !workspaceLoaded ||
           state === 'Deleting' ||
           state === 'DeleteFailed' ||
-          cloudProvider !== cloudProviderTypes.GCP,
+          cloudProvider !== cloudProviderTypes.GCP ||
+          noAccess,
         onClick: () => {
           menuClicked('Clone');
           onClone();

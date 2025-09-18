@@ -1,5 +1,5 @@
 import _ from 'lodash/fp';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clickable } from 'src/components/common';
 import { HorizontalNavigation } from 'src/components/keyboard-nav';
 import { terraSpecial } from 'src/libs/colors';
@@ -49,6 +49,24 @@ export interface Tab {
   displayName: string;
 }
 
+export const calculateProgressBarWidth = (
+  activeTab: string,
+  tabNames: string[],
+  setProgressBarWidth: (width: number) => void
+) => {
+  const tabPosition = tabNames.indexOf(activeTab) + 1;
+  const activeTabElement = document.querySelector(`[aria-posinset="${tabPosition}"][role="menuitem"]`) as HTMLElement;
+  const parentWrapper = document.querySelector('.MainTabWrapper') as HTMLElement;
+  const menuWrapper = document.querySelector('[role="menu"]') as HTMLElement;
+  if (activeTabElement && parentWrapper && menuWrapper) {
+    const cumulativeWidth = Array.from(document.querySelectorAll('[role="menuitem"]'))
+      .slice(0, tabPosition)
+      .reduce((acc, tab) => acc + tab.clientWidth, 0);
+    const padding = menuWrapper.offsetLeft - parentWrapper.offsetLeft;
+    setProgressBarWidth(padding + cumulativeWidth + padding);
+  }
+};
+
 /**
  * Creates the tab bar for workspace creation.
  * Semantically, this is actually a menu of links rather than true tabs.
@@ -60,7 +78,13 @@ export interface Tab {
  * @param props Any additional properties to add to the container menu element
  */
 export function TabWizard({ activeTab, tabs, getOnClick = _.noop, children, ...props }) {
+  const [progressBarWidth, setProgressBarWidth] = useState(0);
   const tabNames = _.map('name', tabs);
+
+  useEffect(() => {
+    calculateProgressBarWidth(activeTab, tabNames, setProgressBarWidth);
+  }, [activeTab, tabNames]);
+
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab;
     const isDisabled = currentTab.disabled(); // Call the lambda function to determine if the tab is disabled
@@ -99,10 +123,11 @@ export function TabWizard({ activeTab, tabs, getOnClick = _.noop, children, ...p
     );
   };
 
-  const progressBarWidth = `${((tabNames.indexOf(activeTab) + 1) / tabs.length) * 100}%`;
-
   return (
-    <div style={{ ...Style.tabBar.container, borderBottom: 'none', flexDirection: 'column', paddingRight: 'none' }}>
+    <div
+      className='MainTabWrapper'
+      style={{ ...Style.tabBar.container, borderBottom: 'none', flexDirection: 'column', paddingRight: 'none' }}
+    >
       <nav
         aria-label={props['aria-label']} // duplicate the menu's label on the navigation element
         aria-labelledby={props['aria-labelledby']}
@@ -118,7 +143,7 @@ export function TabWizard({ activeTab, tabs, getOnClick = _.noop, children, ...p
       </nav>
       <div style={{ display: 'flex', flexGrow: 0, alignItems: 'center' }}>{children}</div>
       <div style={{ width: '100%', backgroundColor: '#e0e0e0', height: '4px', position: 'relative' }}>
-        <div style={{ ...styles.tabWizard.progressBar, width: progressBarWidth }} />
+        <div style={{ ...styles.tabWizard.progressBar, width: `${progressBarWidth}px` }} />
       </div>
     </div>
   );

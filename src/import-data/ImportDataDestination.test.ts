@@ -9,14 +9,13 @@ import {
   protectedDataPolicy,
 } from 'src/testing/workspace-fixtures';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
-import NewWorkspaceModal from 'src/workspaces/NewWorkspaceModal/NewWorkspaceModal';
+import NewWorkspaceWizard from 'src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
 import {
   anvilPfbImportRequests,
   azureTdrSnapshotImportRequest,
   gcpTdrSnapshotImportRequest,
-  gcpTdrSnapshotReferenceImportRequest,
   genericPfbImportRequest,
 } from './__fixtures__/import-request-fixtures';
 import { ImportRequest } from './import-types';
@@ -35,12 +34,12 @@ jest.mock('./import-utils', (): ImportUtilsExports => {
   };
 });
 
-type NewWorkspaceModalExports = typeof import('src/workspaces/NewWorkspaceModal/NewWorkspaceModal') & {
+type NewWorkspaceWizardExports = typeof import('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard') & {
   __esModule: true;
 };
-jest.mock('src/workspaces/NewWorkspaceModal/NewWorkspaceModal', (): NewWorkspaceModalExports => {
+jest.mock('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard', (): NewWorkspaceWizardExports => {
   return {
-    ...jest.requireActual<NewWorkspaceModalExports>('src/workspaces/NewWorkspaceModal/NewWorkspaceModal'),
+    ...jest.requireActual<NewWorkspaceWizardExports>('src/workspaces/NewWorkspaceWizard/NewWorkspaceWizard'),
     default: jest.fn().mockReturnValue(null),
     __esModule: true,
   };
@@ -259,10 +258,6 @@ describe('ImportDataDestination', () => {
       importRequest: gcpTdrSnapshotImportRequest,
       shouldShowNotice: true,
     },
-    {
-      importRequest: gcpTdrSnapshotReferenceImportRequest,
-      shouldShowNotice: false,
-    },
   ] as {
     importRequest: ImportRequest;
     shouldShowNotice: boolean;
@@ -397,7 +392,7 @@ describe('ImportDataDestination', () => {
         importRequest: genericPfbImportRequest,
         requiredAuthorizationDomain: undefined,
       },
-      expectedNewWorkspaceModalProps: {
+      expectedNewWorkspaceWizardProps: {
         cloudPlatform: 'GCP',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
@@ -409,7 +404,7 @@ describe('ImportDataDestination', () => {
         importRequest: anvilPfbImportRequests[0],
         requiredAuthorizationDomain: 'test-auth-domain',
       },
-      expectedNewWorkspaceModalProps: {
+      expectedNewWorkspaceWizardProps: {
         cloudPlatform: 'GCP',
         requiredAuthDomain: 'test-auth-domain',
         requireEnhancedBucketLogging: true,
@@ -421,15 +416,15 @@ describe('ImportDataDestination', () => {
         importRequest: gcpTdrSnapshotImportRequest,
         requiredAuthorizationDomain: undefined,
       },
-      expectedNewWorkspaceModalProps: {
+      expectedNewWorkspaceWizardProps: {
         cloudPlatform: 'GCP',
         requiredAuthDomain: undefined,
         requireEnhancedBucketLogging: false,
       },
     },
-  ] as { props: Partial<ImportDataDestinationProps>; expectedNewWorkspaceModalProps: Record<string, any> }[])(
-    'passes workspaces requirements to NewWorkspaceModal',
-    async ({ props, expectedNewWorkspaceModalProps }) => {
+  ] as { props: Partial<ImportDataDestinationProps>; expectedNewWorkspaceWizardProps: Record<string, any> }[])(
+    'passes workspaces requirements to NewWorkspaceWizard',
+    async ({ props, expectedNewWorkspaceWizardProps }) => {
       // Arrange
       const user = userEvent.setup();
 
@@ -440,8 +435,8 @@ describe('ImportDataDestination', () => {
       await user.click(newWorkspaceButton);
 
       // Assert
-      expect(NewWorkspaceModal).toHaveBeenCalledWith(
-        expect.objectContaining(expectedNewWorkspaceModalProps),
+      expect(NewWorkspaceWizard).toHaveBeenCalledWith(
+        expect.objectContaining(expectedNewWorkspaceWizardProps),
         expect.anything()
       );
     }
@@ -470,7 +465,7 @@ describe('ImportDataDestination', () => {
       const newWorkspaceButton = screen.getByText('Create a new workspace');
       await user.click(newWorkspaceButton);
 
-      const { renderNotice } = asMockedFn(NewWorkspaceModal).mock.lastCall[0];
+      const { renderNotice } = asMockedFn(NewWorkspaceWizard).mock.lastCall[0];
       const { container: noticeContainer } = render(
         renderNotice?.({ selectedBillingProject: undefined }) as JSX.Element
       );

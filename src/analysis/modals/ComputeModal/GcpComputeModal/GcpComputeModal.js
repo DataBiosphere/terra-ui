@@ -149,7 +149,16 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
               menuPlacement: 'auto',
               isSearchable: false,
               value: currentMemory,
-              onChange: (option) => onChange(_.find({ cpu: currentCpu, memory: option.value }, machineTypeOptions)?.name || value),
+              onChange: (option) =>
+                onChange(
+                  _.find(
+                    {
+                      cpu: currentCpu,
+                      memory: option.value,
+                    },
+                    machineTypeOptions
+                  )?.name || value
+                ),
               options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(machineTypeOptions),
             }),
           ]),
@@ -181,7 +190,14 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
   const { label, displayName, synopsis } = sparkInterface;
 
   return div(
-    { style: { ...computeStyles.whiteBoxContainer, marginBottom: '1rem', backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } },
+    {
+      style: {
+        ...computeStyles.whiteBoxContainer,
+        marginBottom: '1rem',
+        backgroundColor: colors.accent(0.1),
+        boxShadow: Style.standardShadow,
+      },
+    },
     [
       div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
         div([
@@ -191,7 +207,12 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
             h(
               ButtonOutline,
               {
-                href: Nav.getLink('workspace-spark-interface-launch', { namespace, name, application: 'spark', sparkInterface: label }),
+                href: Nav.getLink('workspace-spark-interface-launch', {
+                  namespace,
+                  name,
+                  application: 'spark',
+                  sparkInterface: label,
+                }),
                 style: { marginRight: 'auto' },
                 onClick: onDismiss,
                 ...Utils.newTabLinkProps,
@@ -265,7 +286,12 @@ export const GcpComputeModalBase = ({
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes);
   const mainMachineType =
     _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType), tool);
-  const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } };
+  const machineTypeConstraints = {
+    inclusion: {
+      within: _.map('name', validMachineTypes),
+      message: 'is not supported',
+    },
+  };
 
   const isRuntimeRunning = currentRuntimeDetails?.status === 'Running';
   const shouldDisplaySparkConsoleLink = isDataproc(runtimeType) && currentRuntimeDetails?.runtimeConfig?.componentGatewayEnabled;
@@ -282,8 +308,11 @@ export const GcpComputeModalBase = ({
     },
     {
       prettify: (v) =>
-        ({ customImageUrl: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] ||
-        validate.prettify(v)),
+        ({
+          customImageUrl: 'Container image',
+          masterMachineType: 'Main CPU/memory',
+          workerMachineType: 'Worker CPU/memory',
+        }[v] || validate.prettify(v)),
     }
   );
 
@@ -341,7 +370,12 @@ export const GcpComputeModalBase = ({
           ? {
               zone: desiredRuntime.zone.toLowerCase(),
               machineType: desiredRuntime.machineType || getDefaultMachineType(false, desiredRuntime.tool),
-              ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } }),
+              ...(computeConfig.gpuEnabled && {
+                gpuConfig: {
+                  gpuType: computeConfig.gpuType,
+                  numOfGpus: computeConfig.numGpus,
+                },
+              }),
             }
           : {
               region: desiredRuntime.region.toLowerCase(),
@@ -412,7 +446,14 @@ export const GcpComputeModalBase = ({
 
   const getMainMachineTypeByNumCpus = (numCpus) => _.find({ cpu: numCpus }, validMachineTypes)?.name || mainMachineType;
 
-  const getMainMachineTypeByMemory = (numCpus, memory) => _.find({ cpu: numCpus, memory }, validMachineTypes)?.name || mainMachineType;
+  const getMainMachineTypeByMemory = (numCpus, memory) =>
+    _.find(
+      {
+        cpu: numCpus,
+        memory,
+      },
+      validMachineTypes
+    )?.name || mainMachineType;
 
   const getValidCpuGpuConfig = (machineType) => {
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(machineType);
@@ -425,17 +466,25 @@ export const GcpComputeModalBase = ({
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions);
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions);
 
-    return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions };
+    return {
+      currentNumCpus,
+      currentMemory,
+      validGpuName,
+      validGpuNames,
+      validGpuType,
+      validGpuOptions,
+      validNumGpus,
+      validNumGpusOptions,
+    };
   };
 
   /**
    * Whether the selection state entails an update action on the runtime.
-   * Checks the runtime, the autopause threshold (TODO why is this separate from the runtime?),
-   * and the persistent disk for changes which entail an update, but not a delete and recreate.
+   * Checks the runtime, and the persistent disk for changes which entail an update, but not a delete and recreate.
    */
   const canUpdateRuntime = () => {
-    const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig();
-    const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig();
+    const { runtime: existingRuntime } = getExistingEnvironmentConfig();
+    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig();
 
     return !(
       !existingRuntime ||
@@ -445,7 +494,6 @@ export const GcpComputeModalBase = ({
       desiredRuntime.jupyterUserScriptUri !== existingRuntime.jupyterUserScriptUri ||
       (desiredRuntime.cloudService === cloudServices.GCE
         ? desiredRuntime.persistentDiskAttached !== existingRuntime.persistentDiskAttached ||
-          desiredAutopauseThreshold !== existingAutopauseThreshold ||
           (desiredRuntime.persistentDiskAttached ? !canUpdatePersistentDisk() : desiredRuntime.diskSize < existingRuntime.diskSize)
         : desiredRuntime.masterDiskSize < existingRuntime.masterDiskSize ||
           (desiredRuntime.numberOfWorkers > 0 && existingRuntime.numberOfWorkers === 0) ||
@@ -797,7 +845,10 @@ export const GcpComputeModalBase = ({
       [loading, () => ({ disabled: true, tooltip: 'Loading cloud environments' })],
       [
         hasGpu && viewMode !== 'deleteEnvironment',
-        () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' }),
+        () => ({
+          disabled: true,
+          tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.',
+        }),
       ],
       [
         computeConfig.gpuEnabled && _.isEmpty(getValidGpuTypesForZone(computeConfig.computeZone)) && viewMode !== 'deleteEnvironmentOptions',
@@ -807,7 +858,10 @@ export const GcpComputeModalBase = ({
         !!currentPersistentDiskDetails &&
           currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone &&
           viewMode !== 'deleteEnvironment',
-        () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' }),
+        () => ({
+          disabled: true,
+          tooltip: 'Cannot create environment in location differing from existing persistent disk location.',
+        }),
       ],
       [!hasChanges() && viewMode !== 'deleteEnvironment', () => ({ disabled: true })],
       [errors, () => ({ disabled: true, tooltip: Utils.summarizeErrors(errors) })],
@@ -832,7 +886,15 @@ export const GcpComputeModalBase = ({
       ],
       [
         canShowWarning && isDifferentLocation(),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next']),
+        () =>
+          h(
+            ButtonPrimary,
+            {
+              ...commonButtonProps,
+              onClick: () => setViewMode('differentLocationWarning'),
+            },
+            ['Next']
+          ),
       ],
       [
         canShowWarning && !isUSLocation(computeConfig.computeRegion),
@@ -870,20 +932,31 @@ export const GcpComputeModalBase = ({
                 'To avoid an error, you may enter a value between 10 and 30 minutes.',
             ]),
           ]),
-          div({ style: { display: 'grid', alignItems: 'center', gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
-            h(NumberInput, {
-              id,
-              min: 10,
-              max: 30,
-              isClearable: false,
-              onlyInteger: true,
-              value: timeoutInMinutes,
-              placeholder: '10',
-              onChange: (value) => setTimeoutInMinutes(value),
-              'aria-label': 'Minutes of processing before failure',
-            }),
-            span('Minutes'),
-          ]),
+          div(
+            {
+              style: {
+                display: 'grid',
+                alignItems: 'center',
+                gridGap: '0.7rem',
+                gridTemplateColumns: '4.5rem 9.5rem',
+                marginTop: '0.75rem',
+              },
+            },
+            [
+              h(NumberInput, {
+                id,
+                min: 10,
+                max: 30,
+                isClearable: false,
+                onlyInteger: true,
+                value: timeoutInMinutes,
+                placeholder: '10',
+                onChange: (value) => setTimeoutInMinutes(value),
+                'aria-label': 'Minutes of processing before failure',
+              }),
+              span('Minutes'),
+            ]
+          ),
         ]),
     ]);
   };
@@ -915,7 +988,13 @@ export const GcpComputeModalBase = ({
             h(IdContainer, [
               (id) =>
                 h(Fragment, [
-                  label({ htmlFor: id, style: { ...computeStyles.label, display: 'block', margin: '0.5rem 0' } }, ['Container image']),
+                  label(
+                    {
+                      htmlFor: id,
+                      style: { ...computeStyles.label, display: 'block', margin: '0.5rem 0' },
+                    },
+                    ['Container image']
+                  ),
                   div({ style: { height: 52 } }, [
                     h(ValidatedInput, {
                       inputProps: {
@@ -993,62 +1072,75 @@ export const GcpComputeModalBase = ({
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
-        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: 'repeat(6, auto)', justifyContent: 'flex-start' } }, [
-          // CPU & Memory Selection
-          h(IdContainer, [
-            (id) =>
-              h(Fragment, [
-                label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
-                div([
-                  h(Select, {
-                    id,
-                    style: gridItemInputStyle,
-                    isSearchable: false,
-                    value: currentNumCpus,
-                    onChange: ({ value }) => {
-                      const mainMachineType = getMainMachineTypeByNumCpus(value);
-                      const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType);
-                      updateComputeConfig('masterMachineType', mainMachineType);
-                      updateComputeConfig('gpuType', newGpuType);
-                      updateComputeConfig('numGpus', newNumGpus);
-                    },
-                    options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes),
-                  }),
+        div(
+          {
+            style: {
+              ...gridStyle,
+              gridGap: '.75rem',
+              gridTemplateColumns: 'repeat(6, auto)',
+              justifyContent: 'flex-start',
+            },
+          },
+          [
+            // CPU & Memory Selection
+            h(IdContainer, [
+              (id) =>
+                h(Fragment, [
+                  label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
+                  div([
+                    h(Select, {
+                      id,
+                      style: gridItemInputStyle,
+                      isSearchable: false,
+                      value: currentNumCpus,
+                      onChange: ({ value }) => {
+                        const mainMachineType = getMainMachineTypeByNumCpus(value);
+                        const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType);
+                        updateComputeConfig('masterMachineType', mainMachineType);
+                        updateComputeConfig('gpuType', newGpuType);
+                        updateComputeConfig('numGpus', newNumGpus);
+                      },
+                      options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes),
+                    }),
+                  ]),
                 ]),
-              ]),
-          ]),
-          h(IdContainer, [
-            (id) =>
-              h(Fragment, [
-                label({ htmlFor: id, style: computeStyles.label }, ['Memory (GB)']),
-                div([
-                  h(Select, {
-                    id,
-                    style: gridItemInputStyle,
-                    isSearchable: false,
-                    value: currentMemory,
-                    onChange: ({ value }) => {
-                      const mainMachineType = getMainMachineTypeByMemory(currentNumCpus, value);
-                      const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType);
-                      updateComputeConfig('masterMachineType', mainMachineType);
-                      updateComputeConfig('gpuType', newGpuType);
-                      updateComputeConfig('numGpus', newNumGpus);
-                    },
-                    options: _.flow(
-                      _.filter({ cpu: currentNumCpus }),
-                      _.map('memory'),
-                      _.union([currentMemory]),
-                      _.sortBy(_.identity)
-                    )(validMachineTypes),
-                  }),
+            ]),
+            h(IdContainer, [
+              (id) =>
+                h(Fragment, [
+                  label({ htmlFor: id, style: computeStyles.label }, ['Memory (GB)']),
+                  div([
+                    h(Select, {
+                      id,
+                      style: gridItemInputStyle,
+                      isSearchable: false,
+                      value: currentMemory,
+                      onChange: ({ value }) => {
+                        const mainMachineType = getMainMachineTypeByMemory(currentNumCpus, value);
+                        const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType);
+                        updateComputeConfig('masterMachineType', mainMachineType);
+                        updateComputeConfig('gpuType', newGpuType);
+                        updateComputeConfig('numGpus', newNumGpus);
+                      },
+                      options: _.flow(
+                        _.filter({ cpu: currentNumCpus }),
+                        _.map('memory'),
+                        _.union([currentMemory]),
+                        _.sortBy(_.identity)
+                      )(validMachineTypes),
+                    }),
+                  ]),
                 ]),
-              ]),
-          ]),
-          // Disk Selection
-          !isPersistentDisk
-            ? h(DataprocDiskSelector, { value: computeConfig.masterDiskSize, onChange: updateComputeConfig('masterDiskSize') })
-            : div({ style: { gridColumnEnd: 'span 2' } }),
-        ]),
+            ]),
+            // Disk Selection
+            !isPersistentDisk
+              ? h(DataprocDiskSelector, {
+                  value: computeConfig.masterDiskSize,
+                  onChange: updateComputeConfig('masterDiskSize'),
+                })
+              : div({ style: { gridColumnEnd: 'span 2' } }),
+          ]
+        ),
         // GPU Enabling
         isGce(runtimeType) &&
           div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
@@ -1068,7 +1160,13 @@ export const GcpComputeModalBase = ({
                     href: 'https://support.terra.bio/hc/en-us/articles/4403006001947',
                     ...Utils.newTabLinkProps,
                   },
-                  ['Learn more about GPU cost and restrictions.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+                  [
+                    'Learn more about GPU cost and restrictions.',
+                    icon('pop-out', {
+                      size: 12,
+                      style: { marginLeft: '0.25rem' },
+                    }),
+                  ]
                 ),
               ]
             ),
@@ -1103,7 +1201,19 @@ export const GcpComputeModalBase = ({
                         isSearchable: false,
                         value: validNumGpus,
                         onChange: ({ value }) =>
-                          updateComputeConfig('numGpus', _.get('numGpus', _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions))),
+                          updateComputeConfig(
+                            'numGpus',
+                            _.get(
+                              'numGpus',
+                              _.find(
+                                {
+                                  type: computeConfig.gpuType,
+                                  numGpus: value,
+                                },
+                                validGpuOptions
+                              )
+                            )
+                          ),
                         options: validNumGpusOptions,
                       }),
                     ]),
@@ -1167,7 +1277,18 @@ export const GcpComputeModalBase = ({
             disabled: !autoPauseCheckboxEnabled,
             onChange: (v) => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v)),
           },
-          [span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [span(['Enable autopause'])])]
+          [
+            span(
+              {
+                style: {
+                  marginLeft: '0.5rem',
+                  ...computeStyles.label,
+                  verticalAlign: 'top',
+                },
+              },
+              [span(['Enable autopause'])]
+            ),
+          ]
         ),
         h(
           Link,
@@ -1178,66 +1299,89 @@ export const GcpComputeModalBase = ({
           },
           ['Learn more about autopause.', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         ),
-        div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
-          h(NumberInput, {
-            min: 1,
-            max: 999,
-            isClearable: false,
-            onlyInteger: true,
-            value: computeConfig.autopauseThreshold,
-            hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
-            tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
-            onChange: updateComputeConfig('autopauseThreshold'),
-            'aria-label': 'Minutes of inactivity before autopausing',
-          }),
-          span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity']),
-        ]),
+        div(
+          {
+            style: {
+              ...gridStyle,
+              gridGap: '0.7rem',
+              gridTemplateColumns: '4.5rem 9.5rem',
+              marginTop: '0.75rem',
+            },
+          },
+          [
+            h(NumberInput, {
+              min: 1,
+              max: 999,
+              isClearable: false,
+              onlyInteger: true,
+              value: computeConfig.autopauseThreshold,
+              hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
+              tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
+              onChange: updateComputeConfig('autopauseThreshold'),
+              'aria-label': 'Minutes of inactivity before autopausing',
+            }),
+            span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity']),
+          ]
+        ),
       ]),
       isDataprocCluster(runtimeType) &&
         fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...computeStyles.label } }, ['Worker config']),
           // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-          div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem', marginTop: '0.75rem' } }, [
-            h(IdContainer, [
-              (id) =>
-                h(Fragment, [
-                  label({ htmlFor: id, style: computeStyles.label }, ['Workers']),
-                  h(NumberInput, {
-                    id,
-                    min: 2,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: computeConfig.numberOfWorkers,
-                    disabled: !canUpdateNumberOfWorkers,
-                    tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
-                    onChange: updateComputeConfig('numberOfWorkers'),
-                  }),
-                ]),
-            ]),
-            h(IdContainer, [
-              (id) =>
-                h(Fragment, [
-                  label({ htmlFor: id, style: computeStyles.label }, ['Preemptibles']),
-                  h(NumberInput, {
-                    id,
-                    min: 0,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: computeConfig.numberOfPreemptibleWorkers,
-                    disabled: !canUpdateNumberOfWorkers,
-                    tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
-                    onChange: updateComputeConfig('numberOfPreemptibleWorkers'),
-                  }),
-                ]),
-            ]),
-            div({ style: { gridColumnEnd: 'span 2' } }),
-            h(WorkerSelector, {
-              value: computeConfig.workerMachineType,
-              machineTypeOptions: validMachineTypes,
-              onChange: updateComputeConfig('workerMachineType'),
-            }),
-            h(DataprocDiskSelector, { value: computeConfig.workerDiskSize, onChange: updateComputeConfig('workerDiskSize') }),
-          ]),
+          div(
+            {
+              style: {
+                ...gridStyle,
+                gridGap: '.75rem',
+                gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem',
+                marginTop: '0.75rem',
+              },
+            },
+            [
+              h(IdContainer, [
+                (id) =>
+                  h(Fragment, [
+                    label({ htmlFor: id, style: computeStyles.label }, ['Workers']),
+                    h(NumberInput, {
+                      id,
+                      min: 2,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: computeConfig.numberOfWorkers,
+                      disabled: !canUpdateNumberOfWorkers,
+                      tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
+                      onChange: updateComputeConfig('numberOfWorkers'),
+                    }),
+                  ]),
+              ]),
+              h(IdContainer, [
+                (id) =>
+                  h(Fragment, [
+                    label({ htmlFor: id, style: computeStyles.label }, ['Preemptibles']),
+                    h(NumberInput, {
+                      id,
+                      min: 0,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: computeConfig.numberOfPreemptibleWorkers,
+                      disabled: !canUpdateNumberOfWorkers,
+                      tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
+                      onChange: updateComputeConfig('numberOfPreemptibleWorkers'),
+                    }),
+                  ]),
+              ]),
+              div({ style: { gridColumnEnd: 'span 2' } }),
+              h(WorkerSelector, {
+                value: computeConfig.workerMachineType,
+                machineTypeOptions: validMachineTypes,
+                onChange: updateComputeConfig('workerMachineType'),
+              }),
+              h(DataprocDiskSelector, {
+                value: computeConfig.workerDiskSize,
+                onChange: updateComputeConfig('workerDiskSize'),
+              }),
+            ]
+          ),
         ]),
       div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 8.5rem 1fr 5.5rem 1fr 5rem', marginTop: '1.5rem' } }, [
         h(IdContainer, [
@@ -1282,7 +1426,15 @@ export const GcpComputeModalBase = ({
           ({ cost, label, unitLabel }) => {
             return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
               div({ style: { fontSize: 10 } }, [label]),
-              div({ style: { color: colors.dark(), marginTop: '0.25rem' } }, [span({ style: { fontSize: 20 } }, [cost]), span([' ', unitLabel])]),
+              div(
+                {
+                  style: {
+                    color: colors.dark(),
+                    marginTop: '0.25rem',
+                  },
+                },
+                [span({ style: { fontSize: 20 } }, [cost]), span([' ', unitLabel])]
+              ),
             ]);
           },
           [
@@ -1400,15 +1552,40 @@ export const GcpComputeModalBase = ({
     const makeHeader = (text) => div({ style: { fontSize: 20, margin: '0.5rem 0' } }, [text]);
     const makeJSON = (value) => {
       const formattedValue = _.mapValues((v) => v ?? `${v}`, value);
-      return div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(formattedValue, null, 2)]);
+      return div(
+        {
+          style: {
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'Menlo, monospace',
+          },
+        },
+        [JSON.stringify(formattedValue, null, 2)]
+      );
     };
     return showDebugger
       ? div(
-          { style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } },
+          {
+            style: {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: '50vw',
+              backgroundColor: 'white',
+              padding: '1rem',
+              overflowY: 'auto',
+            },
+          },
           [
-            h(Link, { 'aria-label': 'Hide debugger', onClick: () => setShowDebugger(false), style: { position: 'absolute', top: 0, right: 0 } }, [
-              'x',
-            ]),
+            h(
+              Link,
+              {
+                'aria-label': 'Hide debugger',
+                onClick: () => setShowDebugger(false),
+                style: { position: 'absolute', top: 0, right: 0 },
+              },
+              ['x']
+            ),
             makeHeader('Old Environment Config'),
             makeJSON(getExistingEnvironmentConfig()),
             makeHeader('New Environment Config'),
@@ -1467,7 +1644,16 @@ export const GcpComputeModalBase = ({
                   'You have requested to replace your existing application configuration and cloud compute profile to ones that support Spark. ',
                   'This type of cloud compute does not support the persistent disk feature.',
                 ]),
-                div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
+                div(
+                  {
+                    style: {
+                      margin: '1rem 0 0.5rem',
+                      fontSize: 16,
+                      fontWeight: 600,
+                    },
+                  },
+                  ['What would you like to do with your disk?']
+                ),
                 DeleteDiskChoices({
                   persistentDiskCostDisplay: Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)),
                   deleteDiskSelected,
@@ -1561,7 +1747,15 @@ export const GcpComputeModalBase = ({
     };
 
     return h(Fragment, [
-      div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [renderTitleAndTagline(), renderCostBreakdown()]),
+      div(
+        {
+          style: {
+            padding: '1.5rem',
+            borderBottom: `1px solid ${colors.dark(0.4)}`,
+          },
+        },
+        [renderTitleAndTagline(), renderCostBreakdown()]
+      ),
       div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
         renderApplicationConfigurationSection(),
         renderComputeProfileSection(existingRuntime),
@@ -1593,7 +1787,7 @@ export const GcpComputeModalBase = ({
                     Metrics().captureEvent(Events.aboutPersistentDiskView, { cloudPlatform: cloudProviderTypes.GCP });
                   },
                 },
-                ['Learn more about Persistent disks and where your disk is mounted']
+                ['Learn more about the disks mounted to your cloud compute']
               ),
             ]),
             h(
@@ -1665,7 +1859,16 @@ export const GcpComputeModalBase = ({
     Utils.switchCase(
       viewMode,
       ['packages', renderPackages],
-      ['aboutPersistentDisk', () => h(AboutPersistentDiskView, { titleId, tool, onDismiss, onPrevious: () => setViewMode(undefined) })],
+      [
+        'aboutPersistentDisk',
+        () =>
+          h(AboutPersistentDiskView, {
+            titleId,
+            tool,
+            onDismiss,
+            onPrevious: () => setViewMode(undefined),
+          }),
+      ],
       ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
