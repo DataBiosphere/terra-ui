@@ -114,7 +114,7 @@ export async function initiateResumableUpload(
   // which we'll use to upload the file.
   const initRes = await fetch(signedUrl, {
     method: 'POST',
-    headers: { 'x-goog-resumable': 'start' },
+    headers: { 'x-goog-resumable': 'start', 'Content-Type': 'application/octet-stream' },
   });
 
   const sessionUrl = initRes.headers.get('Location');
