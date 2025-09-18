@@ -211,17 +211,66 @@ describe('RunJob Component', () => {
   it('validates required fields before allowing submission', async () => {
     render(<RunJob />);
 
+    // Wait for page setup
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
 
-    const submitButton = screen.getByText('Submit');
-    expect(submitButton).toBeInTheDocument();
-
-    // Wait for async operations to complete to avoid act() warnings
     await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
     });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Submit button should be disabled initially due to missing required fields
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Fill in the output prefix
+    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    await userEvent.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // Still disabled because other required fields are empty
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // select a valid file
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    await waitFor(() => userEvent.upload(fileInput, file));
+    expect(fileInput.files?.[0]).toBe(file);
+
+    // the submit button should be enabled now that all required fields are filled and valid
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the submit button if an invalid file type is selected', async () => {
+    render(<RunJob />);
+
+    // Wait for page setup
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Fill in the output prefix, since it's required
+    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    await userEvent.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // select an invalid text file for vcf input
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const invalidFile = new File(['test'], 'test.txt', { type: 'text/plain' });
+    await waitFor(() => userEvent.upload(fileInput, invalidFile));
+    expect(fileInput.files?.[0]).toBe(invalidFile);
+
+    // The submit button should remain disabled due to invalid file type
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText(/Invalid file type/)).toBeInTheDocument();
   });
 });
 

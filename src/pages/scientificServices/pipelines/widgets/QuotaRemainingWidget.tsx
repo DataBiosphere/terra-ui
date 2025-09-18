@@ -93,16 +93,16 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
       )}
       <div style={{ marginTop: '1rem' }}>
         <a
-          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20Quota%20Increase%20Request`}
+          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Request%20a%20quote%20for%20quota`}
           style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
         >
-          Apply
+          Request a quote
         </a>
-        &nbsp;for more quota.
+        &nbsp;for quota.
       </div>
       <div style={{ marginTop: '1rem' }}>
         <a
-          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20Quota%20Dispute`}
+          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20quota%20help`}
           style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
         >
           Get help
