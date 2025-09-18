@@ -69,7 +69,7 @@ export const RunJob = () => {
       if (input.isRequired) {
         const value = selectedUserInputs[input.name];
         if (input.type === 'FILE') {
-          return value instanceof File && value.name;
+          return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
         }
         return value && value.trim() !== '';
       }
