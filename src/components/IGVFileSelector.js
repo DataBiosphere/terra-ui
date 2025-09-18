@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { AutoSizer, List } from 'react-virtualized';
+import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
 import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector';
@@ -282,6 +282,11 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
 
   const noRowsMessage = isSearchingFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
 
+  const cache = new CellMeasurerCache({
+    fixedWidth: true,
+    defaultHeight: 30,
+  });
+
   return div({ style: Style.modalDrawer.content }, [
     h(IGVReferenceSelector, {
       value: refGenome,
@@ -300,39 +305,53 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
             height,
             width,
             rowCount: selections.length,
-            rowHeight: 30,
+            deferredMeasurementCache: cache,
+            rowHeight: cache.rowHeight,
             noRowsRenderer: () => noRowsMessage,
-            rowRenderer: ({ index, style, key }) => {
+            rowRenderer: ({ index, style, key, parent }) => {
               const { filePath, isSelected } = selections[index];
 
               // Show the file name, i.e. the last URL path segment, without URL parameters
               const fileName = _.last(filePath.split('/')).split('?')[0];
 
-              return div({ key, style: { ...style, display: 'flex' } }, [
-                h(
-                  LabeledCheckbox,
-                  {
-                    checked: isSelected,
-                    onChange: () => toggleSelected(index),
-                    style: { padding: '0.5rem' },
-                  },
-                  [
+              return h(
+                CellMeasurer,
+                {
+                  cache,
+                  columnIndex: 0,
+                  key,
+                  parent,
+                  rowIndex: index,
+                },
+                [
+                  div({ key, style: { ...style, display: 'flex' } }, [
                     h(
-                      Link,
+                      LabeledCheckbox,
                       {
-                        style: {
-                          padding: '0.5rem',
-                          minWidth: 0,
-                          overflow: 'hidden',
-                          ...Style.noWrapEllipsis,
-                        },
-                        tooltip: fileName,
+                        checked: isSelected,
+                        onChange: () => toggleSelected(index),
+                        style: { padding: '0.5rem' },
                       },
-                      [fileName]
+                      [
+                        h(
+                          Link,
+                          {
+                            style: {
+                              padding: '0.5rem',
+                              minWidth: 0,
+                              overflow: 'hidden',
+                              whiteSpace: 'normal',
+                              wordBreak: 'break-all',
+                            },
+                            tooltip: fileName,
+                          },
+                          [fileName]
+                        ),
+                      ]
                     ),
-                  ]
-                ),
-              ]);
+                  ]),
+                ]
+              );
             },
           });
         },
