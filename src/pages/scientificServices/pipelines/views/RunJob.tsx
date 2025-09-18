@@ -292,7 +292,14 @@ export const RunJob = () => {
                       style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                       onClick={handleSubmit}
                     >
-                      {isSubmitting ? 'Submitting...' : 'Submit'}
+                      {isSubmitting ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                          <Spinner />
+                          Submitting...
+                        </div>
+                      ) : (
+                        'Submit'
+                      )}
                     </ButtonPrimary>
                   </>
                 )}
