@@ -273,12 +273,12 @@ export const RunJob = () => {
                         <div>
                           You do not have enough quota remaining to run this pipeline. Please{' '}
                           <Link
-                            href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20Quota%20Increase%20Request`}
+                            href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Request%20a%20quote%20for%20quota`}
                             style={{ color: '#46A3E9', fontWeight: 'bold' }}
                           >
-                            apply for a quota increase
-                          </Link>
-                          .
+                            request a quote
+                          </Link>{' '}
+                          for additional quota.
                         </div>
                       </div>
                     </div>
