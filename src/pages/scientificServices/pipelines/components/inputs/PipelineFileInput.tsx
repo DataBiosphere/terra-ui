@@ -173,11 +173,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                       <button
                         type='button'
                         onClick={handleClearFile}
-                        disabled={uploadState?.progress === 100}
+                        disabled={!!uploadState?.progress}
                         style={{
                           background: 'none',
                           border: 'none',
-                          cursor: uploadState?.progress === 100 ? 'not-allowed' : 'pointer',
+                          cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
                           color: '#666',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -186,11 +186,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                         }}
                         aria-label='Remove selected file'
                       >
-                        <Icon
-                          icon='times'
-                          size={24}
-                          color={uploadState?.progress === 100 ? colors.disabled() : '#4D72AA'}
-                        />
+                        <Icon icon='times' size={24} color={uploadState?.progress ? colors.disabled() : '#4D72AA'} />
                       </button>
                     </div>
                   ) : (
