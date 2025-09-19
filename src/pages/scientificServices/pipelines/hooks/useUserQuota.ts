@@ -52,7 +52,7 @@ export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult =>
   const meetsMinimumQuota =
     quota &&
     selectedPipeline &&
-    quota.quotaLimit - quota.quotaConsumed > (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0);
+    quota.quotaLimit - quota.quotaConsumed >= (pipelineDetails?.pipelineQuota?.minQuotaConsumed || 0);
 
   return {
     quota,

@@ -12,15 +12,6 @@ import { RunJob } from './RunJob';
 // Mock dependencies
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 
-type FeaturePreviewExports = typeof import('src/libs/feature-previews');
-jest.mock(
-  'src/libs/feature-previews',
-  (): FeaturePreviewExports => ({
-    ...jest.requireActual('src/libs/feature-previews'),
-    isFeaturePreviewEnabled: jest.fn().mockReturnValue(true),
-  })
-);
-
 // Mock page navigation functions
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
