@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
-import { AutoSizer, List } from 'react-virtualized';
+import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
 import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector';
@@ -80,11 +80,26 @@ const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, sig
     filterTerms: filterCandidates,
   });
 
-  // Look for any attribute value that matches one of the index candidates
-  return searchResponse.results.filter((result) => {
-    const fileName = result.attributes.file_name;
-    return filterCandidates.includes(fileName);
-  });
+  const URL_REGEX = /^(gs:\/\/|drs:\/\/|https?:\/\/|ftp:\/\/)/;
+
+  for (const result of searchResponse.results) {
+    const attributeValues = Object.values(result.attributes);
+    const match = attributeValues.find((val) => {
+      if (typeof val !== 'string') return false;
+      const fileName = val.split('/').pop();
+      return filterCandidates.includes(fileName);
+    });
+    if (match) {
+      let urlCandidate = match;
+      if (!URL_REGEX.test(match)) {
+        urlCandidate = attributeValues.find((val) => typeof val === 'string' && URL_REGEX.test(val));
+      }
+      if (urlCandidate && URL_REGEX.test(urlCandidate)) {
+        return await validateUrl(urlCandidate);
+      }
+    }
+  }
+  return undefined;
 };
 
 const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal) => {
@@ -121,15 +136,25 @@ const hasValidIgvExtension = (filename) => {
   return !!base && allFiles.includes(extension);
 };
 
+export const getDrsDataObjectMetadata = async (value, fields, signal = undefined) => {
+  try {
+    return await DrsUriResolver(signal).getDataObjectMetadata(value, fields);
+  } catch {
+    return {
+      fileName: '',
+      accessUrl: { url: '' },
+    };
+  }
+};
+
 export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvDrsUris = [];
 
   await Promise.all(
     values.map(async (value) => {
       if (isDrsUri(value)) {
-        const json = await DrsUriResolver(signal).getDataObjectMetadata(value, ['fileName']);
-        const filename = json.fileName;
-        const isValid = hasValidIgvExtension(filename);
+        const { fileName } = await getDrsDataObjectMetadata(value, ['fileName'], signal);
+        const isValid = hasValidIgvExtension(fileName);
         if (isValid) {
           igvDrsUris.push(value);
         }
@@ -140,12 +165,29 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvAccessUrls = [];
   await Promise.all(
     igvDrsUris.map(async (value) => {
-      const { accessUrl } = await DrsUriResolver(signal).getDataObjectMetadata(value, ['accessUrl']);
+      const { accessUrl } = await getDrsDataObjectMetadata(value, ['accessUrl'], signal);
       igvAccessUrls.push(accessUrl.url);
     })
   );
 
   return igvAccessUrls;
+};
+
+const validateUrl = async (fileRef) => {
+  const isDrs = isDrsUri(fileRef);
+  let accessUrl;
+
+  if (isDrs) {
+    const result = await getDrsDataObjectMetadata(fileRef, ['accessUrl']);
+    accessUrl = result.accessUrl.url;
+  } else {
+    accessUrl = fileRef;
+  }
+
+  const url = new URL(accessUrl);
+  url.isSignedUrl = isDrs;
+
+  return url;
 };
 
 export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
@@ -163,7 +205,7 @@ export const getValidIgvFiles = async (workspace, entityType, values, signal) =>
       // Filter to URLs that point to a file with one of the relevant extensions.
       const filename = url.pathname.split('/').at(-1);
       return hasValidIgvExtension(filename);
-    } catch (err) {
+    } catch {
       return false;
     }
   });
@@ -240,6 +282,11 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
 
   const noRowsMessage = isSearchingFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
 
+  const cache = new CellMeasurerCache({
+    fixedWidth: true,
+    defaultHeight: 30,
+  });
+
   return div({ style: Style.modalDrawer.content }, [
     h(IGVReferenceSelector, {
       value: refGenome,
@@ -258,24 +305,53 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
             height,
             width,
             rowCount: selections.length,
-            rowHeight: 30,
+            deferredMeasurementCache: cache,
+            rowHeight: cache.rowHeight,
             noRowsRenderer: () => noRowsMessage,
-            rowRenderer: ({ index, style, key }) => {
+            rowRenderer: ({ index, style, key, parent }) => {
               const { filePath, isSelected } = selections[index];
 
               // Show the file name, i.e. the last URL path segment, without URL parameters
               const fileName = _.last(filePath.split('/')).split('?')[0];
 
-              return div({ key, style: { ...style, display: 'flex' } }, [
-                h(
-                  LabeledCheckbox,
-                  {
-                    checked: isSelected,
-                    onChange: () => toggleSelected(index),
-                  },
-                  [div({ style: { paddingLeft: '0.25rem', flex: 1, ...Style.noWrapEllipsis } }, [fileName])]
-                ),
-              ]);
+              return h(
+                CellMeasurer,
+                {
+                  cache,
+                  columnIndex: 0,
+                  key,
+                  parent,
+                  rowIndex: index,
+                },
+                [
+                  div({ key, style: { ...style, display: 'flex' } }, [
+                    h(
+                      LabeledCheckbox,
+                      {
+                        checked: isSelected,
+                        onChange: () => toggleSelected(index),
+                        style: { padding: '0.5rem' },
+                      },
+                      [
+                        h(
+                          Link,
+                          {
+                            style: {
+                              padding: '0.5rem',
+                              minWidth: 0,
+                              overflow: 'hidden',
+                              whiteSpace: 'normal',
+                              wordBreak: 'break-all',
+                            },
+                            tooltip: fileName,
+                          },
+                          [fileName]
+                        ),
+                      ]
+                    ),
+                  ]),
+                ]
+              );
             },
           });
         },

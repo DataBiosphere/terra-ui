@@ -108,9 +108,6 @@ export interface BrandConfiguration {
     /** Card body */
     body: string;
   };
-
-  /** Optional flag to use the compact TopBar with login/logout only */
-  compactTopBar?: boolean;
 }
 
 export const landingPageCardsDefault = [
@@ -406,7 +403,6 @@ export const brands: Record<string, BrandConfiguration> = {
     welcomeHeader: <ScientificServicesWelcomeHeader />,
     description: <ScientificServicesDescription />,
     hostName: 'services.terra.bio',
-    compactTopBar: true,
     docLinks: [],
     landingPageCards: [],
     logos: {
