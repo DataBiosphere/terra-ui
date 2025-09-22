@@ -19,6 +19,7 @@
     "array-move": "^4.0.0",
     "clipboard-polyfill": "^3.0.3",
     "color": "^4.0.1",
+    "d3": "^7.9.0",
     "date-fns": "^2.24.0",
     "debounce-promise": "^3.1.2",
     "dompurify": "^3.2.4",
