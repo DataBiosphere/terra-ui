@@ -1,4 +1,4 @@
-import { getIgvMetricDetails, getValidIgvFiles, getValidIgvFilesFromAttributeValues, isDrsUri } from 'src/components/IGVFileSelector';
+import { getIgvMetricDetails, getValidIgvFiles, getValidIgvFilesFromAttributeValues, isDrsUri } from 'src/components/igv/IGVFileSelector';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
 
 jest.mock('src/libs/ajax/drs/DrsUriResolver');

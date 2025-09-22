@@ -1047,7 +1047,6 @@ function updateBrushSelection(facet, brushesByNumericFacetName, facetSelections)
  */
 export default function initIgvFacets(trackToFilter, containerSelector) {
   const facets = initFacets(trackToFilter);
-
   const [facetsHtml, brushesByNumericFacetName] = getFacetsHtml(facets);
 
   let filterContainerDom = document.querySelector('.igv-filters-container');
@@ -1061,6 +1060,26 @@ export default function initIgvFacets(trackToFilter, containerSelector) {
 
   filterContainerDom.innerHTML = '';
   filterContainerDom.insertAdjacentHTML('beforeend', facetsHtml);
+
+  // if (!filterContainerDom.innerHTML) {
+  //   filterContainerDom.insertAdjacentHTML('beforeend', facetsHtml);
+  // } else {
+  //   // Update only the necessary parts of the DOM
+  //   facets.forEach((facet) => {
+  //     const facetDom = document.querySelector(`.igv-facet-${facet.name}`);
+  //     if (!facetDom) {
+  //       // Call getCategoricalFacetHtml or getNumericFacetHtml for individual facets
+  //       let facetHtml;
+  //       if (facet.type === 'categorical') {
+  //         facetHtml = getCategoricalFacetHtml(facet);
+  //       } else {
+  //         const [numericFacetHtml] = getNumericFacetHtml(facet);
+  //         facetHtml = numericFacetHtml;
+  //       }
+  //       filterContainerDom.insertAdjacentHTML('beforeend', facetHtml);
+  //     }
+  //   });
+  // }
 
   writeNumericFacetSliderBrushes(facets, brushesByNumericFacetName);
 

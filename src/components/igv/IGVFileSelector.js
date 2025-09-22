@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
 import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
-import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector';
+import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/igv/IGVReferenceSelector';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { useCancellation } from 'src/libs/react-utils';

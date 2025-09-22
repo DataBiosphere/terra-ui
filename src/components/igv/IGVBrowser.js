@@ -5,8 +5,8 @@ import { div, h } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link } from 'src/components/common';
 import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils';
 import { centeredSpinner, icon } from 'src/components/icons';
-import IGVAddTrackModal from 'src/components/IGVAddTrackModal';
-import initIgvFacets from 'src/components/IGVFilter';
+import IGVAddTrackModal from 'src/components/igv/IGVAddTrackModal';
+import initIgvFacets from 'src/components/igv/IGVFilter';
 import { GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -16,6 +16,9 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
+
+import IGVSessionModal from './IGVSessionModal';
+import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
 
 const panelContainerSelector = '[aria-label="data in this workspace"]';
 
@@ -127,10 +130,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined };
 
       // Omit residual URL parameters from access URLs resolved via DRS Hub
-      const remoteName = _.last(url.split('/')).split('?')[0];
-      const shortRemoteName = remoteName.length > 20 ? `${remoteName.slice(0, 20)}...` : remoteName;
-      const shortUrl = url.length > 15 ? `${url.slice(0, 15)}` : url;
-      const altName = `${shortRemoteName} (${shortUrl})`;
+      const simpleUrl = _.last(url.split('/')).split('?')[0];
 
       const fullUrl = isSignedUrl ? url : Utils.mergeQueryParams(userProjectParam, url);
       const fullIndexUrl = isSignedUrl ? indexURL : indexURL && Utils.mergeQueryParams(userProjectParam, indexURL);

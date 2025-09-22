@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
 import * as DataUtils from 'src/components/data/data-utils';
-import IGVBrowser from 'src/components/IGVBrowser';
+import IGVBrowser from 'src/components/igv/IGVBrowser';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import * as Notifications from 'src/libs/notifications';
 import * as state from 'src/libs/state';
@@ -38,7 +38,7 @@ jest.mock('src/libs/error', () => ({
 let submitTrack;
 
 // Mock IGVAddTrackModal
-jest.mock('src/components/IGVAddTrackModal', () => ({
+jest.mock('src/components/igv/IGVAddTrackModal', () => ({
   __esModule: true,
   default: ({ onSubmitTrack }) => {
     submitTrack = () =>

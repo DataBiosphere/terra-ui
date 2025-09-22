@@ -11,5 +11,5 @@
       "src/*": ["./src/*"]
     }
   },
-  "include": ["src", "types/images"]
+  "include": ["src", "types/images", "src/components/igv/IGVBrowser.js"]
 }
