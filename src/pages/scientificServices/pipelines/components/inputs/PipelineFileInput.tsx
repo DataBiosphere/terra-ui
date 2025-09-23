@@ -11,6 +11,7 @@ import { resumeUpload } from 'src/pages/scientificServices/pipelines/utils/uploa
 export interface PipelineInputFileUploadState {
   signedUrl?: string; // The resumable upload session URL
   progress: number; // Progress percentage (0-100)
+  uploadEta?: number; // Estimated time remaining in seconds
   errorMessage?: string; // Optional error message
 }
 
@@ -270,6 +271,10 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                         transition: 'width 0.3s ease-in-out',
                       }}
                     />
+                  </div>
+                  <div style={{ marginTop: '0.5rem', display: 'flex' }}>
+                    <div style={{ fontWeight: 'bold', marginRight: '0.25rem' }}>Estimated time remaining:</div>
+                    {uploadState.uploadEta ? `${Math.round(uploadState.uploadEta)} seconds` : 'Calculating...'}
                   </div>
                 </div>
               </>

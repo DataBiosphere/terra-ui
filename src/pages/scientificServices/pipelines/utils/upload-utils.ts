@@ -109,6 +109,9 @@ export async function initiateResumableUpload(
   signedUrl: string,
   setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>
 ): Promise<number> {
+  // Keeps track of all progress measurements to calculate average upload rate and estimated time remaining
+  const uploadRates: number[] = [];
+
   // Step 1: Initiate the resumable upload session.
   // Google will return a session URL in the Location header,
   // which we'll use to upload the file.
@@ -125,17 +128,50 @@ export async function initiateResumableUpload(
 
   // Step 2: Upload the file using XMLHttpRequest for progress tracking
   const startTime = Date.now();
+  let lastEtaUpdate = 0; // Track when we last updated the ETA
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - startTime;
+        const uploadRate = event.loaded / elapsedTime; // bytes per ms
+
         const percent = Math.round((event.loaded / event.total) * 100);
-        setUploadState((prev) => ({
-          ...prev,
-          [inputName]: { progress: percent, signedUrl: sessionUrl },
-        }));
+
+        // Only update ETA every 2 seconds or on the first update, to avoid choppy ETA updates
+        if (currentTime - lastEtaUpdate >= 2000 || lastEtaUpdate === 0) {
+          uploadRates.push(uploadRate);
+          if (uploadRates.length > 5) {
+            uploadRates.shift(); // Remove the oldest measurement
+          }
+
+          const averageUploadRate = uploadRates.reduce((acc, rate) => acc + rate, 0) / uploadRates.length;
+          const bytesRemaining = inputFile.size - event.loaded;
+          const estimatedTimeRemainingMs = bytesRemaining / averageUploadRate;
+
+          setUploadState((prev) => ({
+            ...prev,
+            [inputName]: {
+              progress: percent,
+              signedUrl: sessionUrl,
+              uploadEta: uploadRates.length < 5 ? undefined : estimatedTimeRemainingMs / 1000,
+            },
+          }));
+
+          lastEtaUpdate = currentTime;
+        } else {
+          // Just update progress without changing ETA to keep it smooth
+          setUploadState((prev) => ({
+            ...prev,
+            [inputName]: {
+              ...prev[inputName],
+              progress: percent,
+            },
+          }));
+        }
       }
     });
 
