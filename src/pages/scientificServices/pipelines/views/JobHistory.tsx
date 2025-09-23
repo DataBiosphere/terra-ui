@@ -337,7 +337,8 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
-  const jobOutputsDeleted = pipelineRun.status === 'SUCCEEDED' && hoursElapsedSinceCompletion(pipelineRun) > 24 * 14; // 24 hours * 14 days
+  const jobOutputsDeleted =
+    pipelineRun.status === 'SUCCEEDED' && (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * 14; // 24 hours * 14 days
 
   return (
     <div>
