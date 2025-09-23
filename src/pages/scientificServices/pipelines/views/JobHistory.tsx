@@ -337,7 +337,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
-  const jobOutputsDeleted = pipelineRun.status === 'SUCCEEDED' && hoursElapsedSinceSubmission(pipelineRun) > 24 * 14; // 24 hours * 14 days
+  const jobOutputsDeleted = pipelineRun.status === 'SUCCEEDED' && hoursElapsedSinceCompletion(pipelineRun) > 24 * 14; // 24 hours * 14 days
 
   return (
     <div>
@@ -500,4 +500,13 @@ const hoursElapsedSinceSubmission = (pipelineRun: PipelineRun): number => {
   const submittedTime = new Date(pipelineRun.timeSubmitted);
   const currentTime = new Date();
   return (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60 * 60);
+};
+
+const hoursElapsedSinceCompletion = (pipelineRun: PipelineRun): number | undefined => {
+  if (!pipelineRun.timeCompleted) {
+    return undefined;
+  }
+  const completedTime = new Date(pipelineRun.timeCompleted);
+  const currentTime = new Date();
+  return (currentTime.getTime() - completedTime.getTime()) / (1000 * 60 * 60);
 };
