@@ -1,4 +1,8 @@
-import { checkUploadStatus, initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import {
+  checkUploadStatus,
+  initiateResumableUpload,
+  uploadTimeRemainingDisplayText,
+} from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 import * as uploadUtils from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 global.fetch = jest.fn();
@@ -172,6 +176,22 @@ describe('upload-utils', () => {
       expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
       expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Range', 'bytes 0-9/10');
       expect(mockXHR.send).toHaveBeenCalledWith(inputFile);
+    });
+  });
+
+  describe('uploadTimeRemainingDisplayText', () => {
+    it('returns "Calculating..." when eta is undefined', () => {
+      expect(uploadTimeRemainingDisplayText(undefined)).toBe('Calculating...');
+    });
+
+    it('returns a mix of minutes and seconds when ETA is greater than 60 seconds', () => {
+      expect(uploadTimeRemainingDisplayText(125)).toBe('2 minutes 5 seconds');
+      expect(uploadTimeRemainingDisplayText(61)).toBe('1 minute 1 second');
+    });
+
+    it('returns only seconds value when ETA is less than 60 seconds', () => {
+      expect(uploadTimeRemainingDisplayText(45)).toBe('45 seconds');
+      expect(uploadTimeRemainingDisplayText(1)).toBe('1 second');
     });
   });
 });

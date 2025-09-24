@@ -1,3 +1,4 @@
+import pluralize from 'pluralize';
 import { Dispatch, SetStateAction } from 'react';
 import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 
@@ -39,7 +40,7 @@ function createProgressEventListener(
           [inputName]: {
             progress: percent,
             signedUrl: sessionUrl,
-            uploadEta: uploadRateSamples.length < 5 ? undefined : estimatedTimeRemainingMs / 1000,
+            uploadEtaSeconds: uploadRateSamples.length < 5 ? undefined : estimatedTimeRemainingMs / 1000,
           },
         }));
 
@@ -244,3 +245,14 @@ export async function initiateResumableUpload(
     xhr.send(inputFile);
   });
 }
+
+export const uploadTimeRemainingDisplayText = (seconds?: number) => {
+  if (!seconds) return 'Calculating...';
+
+  const minsRemaining = Math.floor(seconds / 60);
+  const secsRemaining = Math.floor(seconds % 60);
+
+  const minsDisplayText = minsRemaining > 0 ? `${minsRemaining} ${pluralize('minute', minsRemaining)}` : '';
+  const secsDisplayText = `${secsRemaining} ${pluralize('second', secsRemaining)}`;
+  return `${minsDisplayText}${minsRemaining > 0 ? ' ' : ''}${secsDisplayText}`;
+};
