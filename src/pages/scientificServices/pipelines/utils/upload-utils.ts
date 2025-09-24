@@ -252,6 +252,6 @@ export const uploadTimeRemainingDisplayText = (secondsRemaining?: number) => {
     return `${minsRemainingRounded} ${pluralize('minute', minsRemainingRounded)}`;
   }
 
-  const secsRemainingRounded = Math.round(secondsRemaining % 60);
+  const secsRemainingRounded = Math.round(secondsRemaining);
   return `${secsRemainingRounded} ${pluralize('second', secsRemainingRounded)}`;
 };
