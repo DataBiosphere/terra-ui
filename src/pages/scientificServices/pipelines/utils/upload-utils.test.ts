@@ -184,9 +184,10 @@ describe('upload-utils', () => {
       expect(uploadTimeRemainingDisplayText(undefined)).toBe('Calculating...');
     });
 
-    it('returns a mix of minutes and seconds when ETA is greater than 60 seconds', () => {
-      expect(uploadTimeRemainingDisplayText(125)).toBe('2 minutes 5 seconds');
-      expect(uploadTimeRemainingDisplayText(61)).toBe('1 minute 1 second');
+    it('returns minutes (rounded to the nearest minute) when ETA is greater than 60 seconds', () => {
+      expect(uploadTimeRemainingDisplayText(61)).toBe('1 minute');
+      expect(uploadTimeRemainingDisplayText(125)).toBe('2 minutes');
+      expect(uploadTimeRemainingDisplayText(160)).toBe('3 minutes');
     });
 
     it('returns only seconds value when ETA is less than 60 seconds', () => {

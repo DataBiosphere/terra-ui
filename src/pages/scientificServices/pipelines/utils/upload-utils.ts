@@ -247,10 +247,11 @@ export async function initiateResumableUpload(
 export const uploadTimeRemainingDisplayText = (secondsRemaining?: number) => {
   if (!secondsRemaining) return 'Calculating...';
 
-  const minsRemaining = Math.floor(secondsRemaining / 60);
-  const secsRemaining = Math.floor(secondsRemaining % 60);
+  if (secondsRemaining > 60) {
+    const minsRemainingRounded = Math.round(secondsRemaining / 60);
+    return `${minsRemainingRounded} ${pluralize('minute', minsRemainingRounded)}`;
+  }
 
-  const minsDisplayText = minsRemaining > 0 ? `${minsRemaining} ${pluralize('minute', minsRemaining)}` : '';
-  const secsDisplayText = `${secsRemaining} ${pluralize('second', secsRemaining)}`;
-  return `${minsDisplayText}${minsRemaining > 0 ? ' ' : ''}${secsDisplayText}`;
+  const secsRemainingRounded = Math.round(secondsRemaining % 60);
+  return `${secsRemainingRounded} ${pluralize('second', secsRemainingRounded)}`;
 };

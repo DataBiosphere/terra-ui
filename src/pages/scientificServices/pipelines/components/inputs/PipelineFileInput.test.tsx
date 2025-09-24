@@ -101,7 +101,7 @@ describe('PipelineFileInput', () => {
     );
 
     expect(screen.getByText('Estimated time remaining:')).toBeInTheDocument();
-    expect(screen.getByText('2 minutes 1 second')).toBeInTheDocument();
+    expect(screen.getByText('2 minutes')).toBeInTheDocument();
   });
 
   it('shows upload error and retry button', () => {
