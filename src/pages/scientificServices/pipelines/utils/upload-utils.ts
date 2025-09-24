@@ -2,7 +2,8 @@ import { Dispatch, SetStateAction } from 'react';
 import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 
 // Returns a function that handles progress events for file uploads
-// This function updates the upload state with progress percentage and estimated time remaining
+// This function updates the upload state with progress percentage and
+// estimated time remaining using a moving average of upload rates
 function createProgressEventListener(
   inputName: string,
   inputFile: File,
@@ -10,18 +11,16 @@ function createProgressEventListener(
   setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>,
   startTime: number,
   uploadRateSamples: number[],
-  lastEtaUpdate: number,
-  uploadedBytesOffset: number
+  lastEtaUpdate: number
 ) {
   return (event: ProgressEvent) => {
     if (event.lengthComputable) {
       const currentTime = Date.now();
       const elapsedTime = currentTime - startTime;
 
-      // Calculate total bytes uploaded (for resumed uploads, add the offset)
-      const totalBytesUploaded = uploadedBytesOffset + event.loaded;
+      // Calculate the upload rate of the most recent progress event
+      const totalBytesUploaded = event.loaded;
       const uploadRate = totalBytesUploaded / elapsedTime; // bytes per ms
-
       const percent = Math.round((totalBytesUploaded / inputFile.size) * 100);
 
       // Only update ETA every 2 seconds or on the first update, to avoid choppy ETA updates
@@ -46,7 +45,8 @@ function createProgressEventListener(
 
         lastEtaUpdate = currentTime;
       } else {
-        // Just update progress without changing ETA to keep it smooth
+        // Last progress event was less than 2 seconds ago, so we'll just update percent progress
+        // without changing ETA to keep it smooth
         setUploadState((prev) => ({
           ...prev,
           [inputName]: {
@@ -127,8 +127,7 @@ export async function resumeUpload(
         setUploadState,
         startTime,
         uploadRateSamples,
-        lastEtaUpdate,
-        uploadedBytes // byte offset for resumable upload
+        lastEtaUpdate
       )
     );
 
@@ -207,8 +206,7 @@ export async function initiateResumableUpload(
         setUploadState,
         startTime,
         uploadRateSamples,
-        lastEtaUpdate,
-        0 // no offset for new upload
+        lastEtaUpdate
       )
     );
 
