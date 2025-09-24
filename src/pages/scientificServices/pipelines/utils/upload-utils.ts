@@ -115,8 +115,8 @@ export async function resumeUpload(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
-    const uploadRateSamples: number[] = [];
     const startTime = Date.now();
+    const uploadRateSamples: number[] = [];
     const lastEtaUpdate = 0;
 
     xhr.upload.addEventListener(
@@ -174,9 +174,6 @@ export async function initiateResumableUpload(
   signedUrl: string,
   setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>
 ): Promise<number> {
-  // Keeps track of all progress measurements to calculate average upload rate and estimated time remaining
-  const uploadRateSamples: number[] = [];
-
   // Step 1: Initiate the resumable upload session.
   // Google will return a session URL in the Location header,
   // which we'll use to upload the file.
@@ -193,6 +190,7 @@ export async function initiateResumableUpload(
 
   // Step 2: Upload the file using XMLHttpRequest for progress tracking
   const startTime = Date.now();
+  const uploadRateSamples: number[] = [];
   const lastEtaUpdate = 0;
 
   return new Promise((resolve, reject) => {
@@ -246,11 +244,11 @@ export async function initiateResumableUpload(
   });
 }
 
-export const uploadTimeRemainingDisplayText = (seconds?: number) => {
-  if (!seconds) return 'Calculating...';
+export const uploadTimeRemainingDisplayText = (secondsRemaining?: number) => {
+  if (!secondsRemaining) return 'Calculating...';
 
-  const minsRemaining = Math.floor(seconds / 60);
-  const secsRemaining = Math.floor(seconds % 60);
+  const minsRemaining = Math.floor(secondsRemaining / 60);
+  const secsRemaining = Math.floor(secondsRemaining % 60);
 
   const minsDisplayText = minsRemaining > 0 ? `${minsRemaining} ${pluralize('minute', minsRemaining)}` : '';
   const secsDisplayText = `${secsRemaining} ${pluralize('second', secsRemaining)}`;

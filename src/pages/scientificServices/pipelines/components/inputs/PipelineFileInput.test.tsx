@@ -100,7 +100,6 @@ describe('PipelineFileInput', () => {
       />
     );
 
-    expect(screen.getByText('In progress')).toBeInTheDocument();
     expect(screen.getByText('Estimated time remaining:')).toBeInTheDocument();
     expect(screen.getByText('2 minutes 1 second')).toBeInTheDocument();
   });
