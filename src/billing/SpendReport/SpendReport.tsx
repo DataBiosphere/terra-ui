@@ -7,6 +7,7 @@ import { ErrorAlert } from 'src/alerts/ErrorAlert';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { ExternalLink } from 'src/billing/NewBillingProjectWizard/StepWizard/ExternalLink';
 import { CostCard } from 'src/billing/SpendReport/CostCard';
+import { creditedCost } from 'src/billing/utils';
 import { CloudPlatform } from 'src/billing-core/models';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import {
@@ -295,18 +296,16 @@ export const SpendReport = (props: SpendReportProps) => {
           categorySpendData: CategorySpendData[]
         ): { compute: number; storage: number; workspaceInfrastructure: number; other: number } => {
           return {
-            compute: parseFloat(_.find(['category', 'Compute'], categorySpendData)?.cost ?? '0'),
-            storage: parseFloat(_.find(['category', 'Storage'], categorySpendData)?.cost ?? '0'),
-            workspaceInfrastructure: parseFloat(
-              _.find(['category', 'WorkspaceInfrastructure'], categorySpendData)?.cost ?? '0'
-            ),
-            other: parseFloat(_.find(['category', 'Other'], categorySpendData)?.cost ?? '0'),
+            compute: creditedCost(_.find(['category', 'Compute'], categorySpendData)),
+            storage: creditedCost(_.find(['category', 'Storage'], categorySpendData)),
+            workspaceInfrastructure: creditedCost(_.find(['category', 'WorkspaceInfrastructure'], categorySpendData)),
+            other: creditedCost(_.find(['category', 'Other'], categorySpendData)),
           };
         };
         const costDict = getCategoryCosts(categoryDetails.spendData);
 
         setProjectCost({
-          spend: costFormatter.format(parseFloat(spend.spendSummary.cost)),
+          spend: costFormatter.format(creditedCost(spend.spendSummary)),
           compute: costFormatter.format(costDict.compute),
           storage: costFormatter.format(costDict.storage),
           workspaceInfrastructure: costFormatter.format(costDict.workspaceInfrastructure),

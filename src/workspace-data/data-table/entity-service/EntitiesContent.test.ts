@@ -621,6 +621,39 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
     expect(igvButton).toHaveAttribute('aria-disabled', 'true');
   });
 
+  it('renders enabled IGV button even when no entities selected', async () => {
+    // Arrange
+    const workspaceId = defaultGoogleWorkspace.workspace.workspaceId;
+    const existingSession = {
+      name: 'Existing Session',
+      timestamp: '2023-01-01T00:00:00.000Z',
+      data: { genome: 'hg38' },
+      workspace: workspaceId,
+    };
+    localStorageMock.setItem(`igvSession-${workspaceId}-Existing Session`, JSON.stringify(existingSession));
+    localStorageMock.setItem(
+      `igv-session-list-${workspaceId}`,
+      JSON.stringify([{ name: 'Existing Session', timestamp: '2023-01-01T00:00:00.000Z' }])
+    );
+    const user = userEvent.setup();
+    await act(async () => {
+      renderComponent();
+    });
+
+    // Assert
+    const igvButton = screen.getByTestId('igv-button');
+    expect(igvButton).toHaveAttribute('aria-disabled', 'false');
+
+    // Act
+    await user.click(igvButton);
+
+    // Assert
+    const loadIGV = screen.getByText('Load IGV Session');
+    expect(loadIGV).toHaveAttribute('aria-disabled', 'false');
+    const openWithIGV = screen.getByText('Open with IGV');
+    expect(openWithIGV).toHaveAttribute('aria-disabled', 'true');
+  });
+
   it('hides icon buttons in snapshot mode', async () => {
     // Arrange & Act
     await act(async () => {

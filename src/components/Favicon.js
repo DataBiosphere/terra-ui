@@ -7,7 +7,7 @@ import * as Utils from 'src/libs/utils';
 
 const faviconPath = Utils.cond(
   [isBioDataCatalyst(), () => bioDataCatalystFavicon],
-  [isScientificServices(), () => '/dsp-favicon.png'],
+  [isScientificServices(), () => '/scientificServicesFavicon.svg'],
   [DEFAULT, () => '/favicon.png']
 );
 
