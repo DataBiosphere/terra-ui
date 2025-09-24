@@ -1,6 +1,64 @@
 import { Dispatch, SetStateAction } from 'react';
 import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
 
+// Returns a function that handles progress events for file uploads
+// This function updates the upload state with progress percentage and estimated time remaining
+function createProgressEventListener(
+  inputName: string,
+  inputFile: File,
+  sessionUrl: string,
+  setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>,
+  startTime: number,
+  uploadRateSamples: number[],
+  lastEtaUpdate: number,
+  uploadedBytesOffset: number
+) {
+  return (event: ProgressEvent) => {
+    if (event.lengthComputable) {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - startTime;
+
+      // Calculate total bytes uploaded (for resumed uploads, add the offset)
+      const totalBytesUploaded = uploadedBytesOffset + event.loaded;
+      const uploadRate = totalBytesUploaded / elapsedTime; // bytes per ms
+
+      const percent = Math.round((totalBytesUploaded / inputFile.size) * 100);
+
+      // Only update ETA every 2 seconds or on the first update, to avoid choppy ETA updates
+      if (currentTime - lastEtaUpdate >= 2000 || lastEtaUpdate === 0) {
+        uploadRateSamples.push(uploadRate);
+        if (uploadRateSamples.length > 5) {
+          uploadRateSamples.shift(); // Remove the oldest sample
+        }
+
+        const averageUploadRate = uploadRateSamples.reduce((acc, rate) => acc + rate, 0) / uploadRateSamples.length;
+        const bytesRemaining = inputFile.size - totalBytesUploaded;
+        const estimatedTimeRemainingMs = bytesRemaining / averageUploadRate;
+
+        setUploadState((prev) => ({
+          ...prev,
+          [inputName]: {
+            progress: percent,
+            signedUrl: sessionUrl,
+            uploadEta: uploadRateSamples.length < 5 ? undefined : estimatedTimeRemainingMs / 1000,
+          },
+        }));
+
+        lastEtaUpdate = currentTime;
+      } else {
+        // Just update progress without changing ETA to keep it smooth
+        setUploadState((prev) => ({
+          ...prev,
+          [inputName]: {
+            ...prev[inputName],
+            progress: percent,
+          },
+        }));
+      }
+    }
+  };
+}
+
 /* Check the status of a resumable upload session. Returns the last byte that GCS received */
 export async function checkUploadStatus(sessionUrl: string): Promise<number> {
   const res = await fetch(sessionUrl, {
@@ -56,16 +114,23 @@ export async function resumeUpload(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const totalProgress = ((uploadedBytes + event.loaded) / inputFile.size) * 100;
-        const percent = Math.round(totalProgress);
-        setUploadState((prev) => ({
-          ...prev,
-          [inputName]: { ...prev[inputName], progress: percent, errorMessage: undefined },
-        }));
-      }
-    });
+    const uploadRateSamples: number[] = [];
+    const startTime = Date.now();
+    const lastEtaUpdate = 0;
+
+    xhr.upload.addEventListener(
+      'progress',
+      createProgressEventListener(
+        inputName,
+        inputFile,
+        sessionUrl,
+        setUploadState,
+        startTime,
+        uploadRateSamples,
+        lastEtaUpdate,
+        uploadedBytes // byte offset for resumable upload
+      )
+    );
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
@@ -110,7 +175,7 @@ export async function initiateResumableUpload(
   setUploadState: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>
 ): Promise<number> {
   // Keeps track of all progress measurements to calculate average upload rate and estimated time remaining
-  const uploadRates: number[] = [];
+  const uploadRateSamples: number[] = [];
 
   // Step 1: Initiate the resumable upload session.
   // Google will return a session URL in the Location header,
@@ -128,52 +193,24 @@ export async function initiateResumableUpload(
 
   // Step 2: Upload the file using XMLHttpRequest for progress tracking
   const startTime = Date.now();
-  let lastEtaUpdate = 0; // Track when we last updated the ETA
+  const lastEtaUpdate = 0;
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const currentTime = Date.now();
-        const elapsedTime = currentTime - startTime;
-        const uploadRate = event.loaded / elapsedTime; // bytes per ms
-
-        const percent = Math.round((event.loaded / event.total) * 100);
-
-        // Only update ETA every 2 seconds or on the first update, to avoid choppy ETA updates
-        if (currentTime - lastEtaUpdate >= 2000 || lastEtaUpdate === 0) {
-          uploadRates.push(uploadRate);
-          if (uploadRates.length > 5) {
-            uploadRates.shift(); // Remove the oldest measurement
-          }
-
-          const averageUploadRate = uploadRates.reduce((acc, rate) => acc + rate, 0) / uploadRates.length;
-          const bytesRemaining = inputFile.size - event.loaded;
-          const estimatedTimeRemainingMs = bytesRemaining / averageUploadRate;
-
-          setUploadState((prev) => ({
-            ...prev,
-            [inputName]: {
-              progress: percent,
-              signedUrl: sessionUrl,
-              uploadEta: uploadRates.length < 5 ? undefined : estimatedTimeRemainingMs / 1000,
-            },
-          }));
-
-          lastEtaUpdate = currentTime;
-        } else {
-          // Just update progress without changing ETA to keep it smooth
-          setUploadState((prev) => ({
-            ...prev,
-            [inputName]: {
-              ...prev[inputName],
-              progress: percent,
-            },
-          }));
-        }
-      }
-    });
+    xhr.upload.addEventListener(
+      'progress',
+      createProgressEventListener(
+        inputName,
+        inputFile,
+        sessionUrl,
+        setUploadState,
+        startTime,
+        uploadRateSamples,
+        lastEtaUpdate,
+        0 // no offset for new upload
+      )
+    );
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {

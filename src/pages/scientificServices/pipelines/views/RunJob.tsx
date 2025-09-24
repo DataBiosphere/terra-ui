@@ -77,8 +77,8 @@ export const RunJob = () => {
   };
 
   async function onUploadComplete(jobId: string) {
-    const submittedJobId = await startPipelineRun(jobId);
-    setSubmittedJobId(submittedJobId);
+    // const submittedJobId = await startPipelineRun(jobId);
+    setSubmittedJobId('foooo!');
     setIsSubmitting(false);
   }
 
