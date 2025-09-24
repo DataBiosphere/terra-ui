@@ -102,7 +102,9 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
       </div>
       <div style={{ marginTop: '1rem' }}>
         <a
-          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Imputation%20quota%20help`}
+          href='https://broadscientificservices.zendesk.com/hc/en-us/articles/39903092619035'
+          target='_blank'
+          rel='noreferrer'
           style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
         >
           Get help
