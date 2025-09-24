@@ -52,7 +52,7 @@ describe('WorkspaceSelector', () => {
     const listboxId = selectInput.getAttribute('aria-controls')!;
     const listbox = document.getElementById(listboxId)!;
 
-    const workspaceBOption = getByRole(listbox, 'option', { name: /Namespace B \/Workspace B/ });
+    const workspaceBOption = getByRole(listbox, 'option', { name: /Namespace B \/ Workspace B/ });
     await user.click(workspaceBOption);
 
     // Assert
