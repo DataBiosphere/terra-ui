@@ -18,7 +18,7 @@ export const PipelineOutputsWidget = ({
         marginBottom: '1rem',
         backgroundColor: '#f4f6f9',
         width: 400,
-        padding: '1rem 1rem 1.5rem 1rem',
+        padding: '1rem 1rem 1.5rem',
         borderRadius: '4px',
       }}
     >
@@ -55,7 +55,7 @@ export const PipelineOutputsWidget = ({
 };
 
 const OutputDetails = ({ pipelineName, output }: { pipelineName: string; output: PipelineOutput }) => {
-  const outputDescription = PIPELINE_OUTPUT_DESCRIPTIONS[pipelineName]?.[output.name]?.helpText;
+  const outputDescription = PIPELINE_OUTPUT_DESCRIPTIONS[pipelineName]?.[output.name]?.description;
 
   return (
     <div style={{ marginTop: '1rem', borderLeft: '3px solid #e4e5e6', paddingLeft: '0.5rem' }}>

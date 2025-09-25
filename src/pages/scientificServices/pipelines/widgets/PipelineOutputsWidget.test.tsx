@@ -15,7 +15,7 @@ describe('PipelineOutputsWidget', () => {
     pipelineDetails.outputs?.forEach((output) => {
       expect(screen.getByText(output.name)).toBeInTheDocument();
       expect(
-        screen.getByText(PIPELINE_OUTPUT_DESCRIPTIONS[pipelineDetails.pipelineName][output.name].helpText)
+        screen.getByText(PIPELINE_OUTPUT_DESCRIPTIONS[pipelineDetails.pipelineName][output.name].description)
       ).toBeInTheDocument();
     });
   });
