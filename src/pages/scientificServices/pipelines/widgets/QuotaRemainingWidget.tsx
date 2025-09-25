@@ -1,4 +1,3 @@
-import { Icon } from '@terra-ui-packages/components';
 import React from 'react';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -6,22 +5,13 @@ import { cond, DEFAULT } from 'src/libs/utils';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 
+import { PipelineWidgetContainer } from './PipelineWidgetContainer';
+
 export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
   const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   return (
-    <div
-      style={{
-        marginBottom: '1rem',
-        backgroundColor: '#f4f6f9',
-        width: 400,
-        padding: '1rem 1rem 1.5rem',
-        borderRadius: '4px',
-      }}
-    >
-      <h3 style={{ marginTop: '0.5rem' }}>
-        <Icon icon='info-circle' style={{ color: '#5CC88D' }} /> Quota Remaining
-      </h3>
+    <PipelineWidgetContainer title='Quota Remaining' marginBottom='1rem'>
       {cond(
         [!selectedPipeline, () => <div style={{ marginTop: '1rem' }}>Select a pipeline to see quota</div>],
         [
@@ -109,6 +99,6 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
         </a>
         &nbsp;with quota.
       </div>
-    </div>
+    </PipelineWidgetContainer>
   );
 };

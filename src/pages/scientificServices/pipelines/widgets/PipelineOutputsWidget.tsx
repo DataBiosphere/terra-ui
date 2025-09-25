@@ -1,8 +1,9 @@
-import { Icon } from '@terra-ui-packages/components';
 import React from 'react';
 import { PipelineOutput, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { cond, DEFAULT } from 'src/libs/utils';
 import { PIPELINE_OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/output-utils';
+
+import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
 export const PipelineOutputsWidget = ({
   selectedPipelineDetails,
@@ -12,19 +13,7 @@ export const PipelineOutputsWidget = ({
   const pipelineOutputs = selectedPipelineDetails?.outputs;
 
   return (
-    <div
-      style={{
-        marginTop: '1rem',
-        marginBottom: '1rem',
-        backgroundColor: '#f4f6f9',
-        width: 400,
-        padding: '1rem 1rem 1.5rem',
-        borderRadius: '4px',
-      }}
-    >
-      <h3 style={{ marginTop: '0.5rem' }}>
-        <Icon icon='info-circle' style={{ color: '#5CC88D' }} /> Pipeline Outputs
-      </h3>
+    <PipelineWidgetContainer title='Pipeline Outputs'>
       {cond(
         [!selectedPipelineDetails, () => <div style={{ marginTop: '1rem' }}>Select a pipeline to see outputs</div>],
         [
@@ -50,7 +39,7 @@ export const PipelineOutputsWidget = ({
         ],
         [DEFAULT, () => <div style={{ marginTop: '1rem' }}>Loading pipeline details...</div>]
       )}
-    </div>
+    </PipelineWidgetContainer>
   );
 };
 
