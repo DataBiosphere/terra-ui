@@ -1,8 +1,8 @@
 import { Icon } from '@terra-ui-packages/components';
 import React from 'react';
-import { PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineOutput, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { cond, DEFAULT } from 'src/libs/utils';
-import { OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/output-utils';
+import { PIPELINE_OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/output-utils';
 
 export const PipelineOutputsWidget = ({
   selectedPipelineDetails,
@@ -30,15 +30,19 @@ export const PipelineOutputsWidget = ({
         [
           !!pipelineOutputs,
           () => {
-            if (!pipelineOutputs) {
-              // this should never happen because of the cond predicate above, but typescript
-              // has no idea what cond is doing, so we sadly need the extra type guard
-              return <div style={{ marginTop: '1rem' }}>This pipeline does not have any outputs.</div>;
+            if (!pipelineOutputs || pipelineOutputs.length === 0) {
+              return (
+                <div style={{ marginTop: '1rem', fontStyle: 'italic' }}>This pipeline does not have any outputs</div>
+              );
             }
             return (
               <div style={{ marginTop: '1rem' }}>
                 {pipelineOutputs.map((output) => (
-                  <OutputDetails key={output.name} outputName={output.name} outputType={output.type} />
+                  <OutputDetails
+                    key={output.name}
+                    pipelineName={selectedPipelineDetails.pipelineName}
+                    output={output}
+                  />
                 ))}
               </div>
             );
@@ -50,11 +54,13 @@ export const PipelineOutputsWidget = ({
   );
 };
 
-const OutputDetails = ({ outputName, outputType }: { outputName: string; outputType: 'FILE' | 'STRING' }) => {
+const OutputDetails = ({ pipelineName, output }: { pipelineName: string; output: PipelineOutput }) => {
+  const outputDescription = PIPELINE_OUTPUT_DESCRIPTIONS[pipelineName]?.[output.name]?.helpText;
+
   return (
     <div style={{ marginTop: '1rem', borderLeft: '3px solid #e4e5e6', paddingLeft: '0.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ fontWeight: 500, paddingBottom: '0.5rem' }}>{outputName}</div>
+        <div style={{ fontWeight: 500, paddingBottom: '0.5rem' }}>{output.name}</div>
         <div
           style={{
             backgroundColor: '#e7f3fb',
@@ -72,15 +78,11 @@ const OutputDetails = ({ outputName, outputType }: { outputName: string; outputT
               fontSize: '0.875rem',
             }}
           >
-            {outputType.toLowerCase()}
+            {output.type.toLowerCase()}
           </span>
         </div>
       </div>
-      <div style={{ width: '80%', fontSize: 13 }}>
-        {OUTPUT_DESCRIPTIONS[outputName]
-          ? OUTPUT_DESCRIPTIONS[outputName].helpText
-          : `No description available for this ${outputType.toLowerCase()} output.`}
-      </div>
+      <div style={{ width: '80%', fontSize: 13 }}>{outputDescription || 'No description available'}</div>
     </div>
   );
 };
