@@ -77,7 +77,7 @@ const OutputDetails = ({ outputName, outputType }: { outputName: string; outputT
           </span>
         </div>
       </div>
-      <div style={{ width: '80%' }}>
+      <div style={{ width: '80%', fontSize: 13 }}>
         {OUTPUT_DESCRIPTIONS[outputName]
           ? OUTPUT_DESCRIPTIONS[outputName].helpText
           : `No description available for this ${outputType.toLowerCase()} output.`}
