@@ -9,9 +9,9 @@ import { WorkspaceSelector } from './WorkspaceSelector';
 
 describe('WorkspaceSelector', () => {
   const workspaces: Workspace[] = [
-    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-a', name: 'Workspace A' } }),
-    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-b', name: 'Workspace B' } }),
-    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-c', name: 'Workspace C' } }),
+    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-a', name: 'Workspace A', namespace: 'Namespace A' } }),
+    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-b', name: 'Workspace B', namespace: 'Namespace B' } }),
+    makeGoogleWorkspace({ workspace: { workspaceId: 'workspace-c', name: 'Workspace C', namespace: 'Namespace C' } }),
   ];
 
   it('renders a list of workspaces', async () => {
@@ -32,9 +32,9 @@ describe('WorkspaceSelector', () => {
     const optionLabels = options.map((opt) => opt.textContent!);
 
     expect(optionLabels).toEqual([
-      expect.stringMatching(/Workspace A/),
-      expect.stringMatching(/Workspace B/),
-      expect.stringMatching(/Workspace C/),
+      expect.stringMatching(/Namespace A \/ Workspace A/),
+      expect.stringMatching(/Namespace B \/ Workspace B/),
+      expect.stringMatching(/Namespace C \/ Workspace C/),
     ]);
   });
 
@@ -52,7 +52,7 @@ describe('WorkspaceSelector', () => {
     const listboxId = selectInput.getAttribute('aria-controls')!;
     const listbox = document.getElementById(listboxId)!;
 
-    const workspaceBOption = getByRole(listbox, 'option', { name: /Workspace B/ });
+    const workspaceBOption = getByRole(listbox, 'option', { name: /Namespace B \/ Workspace B/ });
     await user.click(workspaceBOption);
 
     // Assert
