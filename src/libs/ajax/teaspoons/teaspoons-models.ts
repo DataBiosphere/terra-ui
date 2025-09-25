@@ -12,6 +12,11 @@ export interface PipelineInput {
   fileSuffix?: string; // Only present for FILE types
 }
 
+export interface PipelineOutput {
+  name: string;
+  type: 'FILE' | 'STRING';
+}
+
 /* Represents the quota settings for a particular pipeline */
 export interface PipelineQuota {
   pipelineName: string;
@@ -29,6 +34,7 @@ export interface PipelineQuota {
 export interface PipelineWithDetails extends Pipeline {
   type: string; // e.g. "imputation"
   inputs: PipelineInput[];
+  outputs: PipelineOutput[];
   pipelineQuota?: PipelineQuota;
 }
 
