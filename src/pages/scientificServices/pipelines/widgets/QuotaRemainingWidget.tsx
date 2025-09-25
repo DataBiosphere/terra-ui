@@ -15,7 +15,7 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
         marginBottom: '1rem',
         backgroundColor: '#f4f6f9',
         width: 400,
-        padding: '1rem',
+        padding: '1rem 1rem 1.5rem 1rem',
         borderRadius: '4px',
       }}
     >

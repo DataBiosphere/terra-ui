@@ -10,6 +10,6 @@ export const OUTPUT_DESCRIPTIONS: Record<string, PipelineOutputDescription> = {
     helpText: 'Lorem ipsum bla bla bla bla bla bla bla bla bla bla bla bla bla bla ',
   },
   chunksInfo: {
-    helpText: 'bla bla bla bla !',
+    helpText: 'this output is sick !',
   },
 };

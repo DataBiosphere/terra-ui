@@ -15,9 +15,10 @@ export const PipelineOutputsWidget = ({
     <div
       style={{
         marginTop: '1rem',
+        marginBottom: '1rem',
         backgroundColor: '#f4f6f9',
         width: 400,
-        padding: '1rem',
+        padding: '1rem 1rem 1.5rem 1rem',
         borderRadius: '4px',
       }}
     >
@@ -56,20 +57,18 @@ const OutputDetails = ({ outputName, outputType }: { outputName: string; outputT
         <div style={{ fontWeight: 500, paddingBottom: '0.5rem' }}>{outputName}</div>
         <div
           style={{
-            backgroundColor: OUTPUT_TYPE_COLORS[outputType],
+            backgroundColor: '#e7f3fb',
             borderRadius: 8,
+            border: '1px solid #e4e5e6',
             display: 'flex',
             alignItems: 'center',
-            padding: '0.1rem 0.25rem',
+            padding: '0.25rem 0.5rem',
           }}
         >
-          <Icon
-            icon={outputType === 'FILE' ? 'fileAlt' : 'fileAlt'}
-            data-testid={`output-type-${outputType.toLowerCase()}`}
-          />
           <span
             style={{
-              marginLeft: '0.25rem',
+              textTransform: 'capitalize',
+              fontWeight: 500,
               fontSize: '0.875rem',
             }}
           >
@@ -84,9 +83,4 @@ const OutputDetails = ({ outputName, outputType }: { outputName: string; outputT
       </div>
     </div>
   );
-};
-
-const OUTPUT_TYPE_COLORS: Record<'FILE' | 'STRING', string> = {
-  FILE: '#e7f3fb',
-  STRING: '#5cc88d',
 };

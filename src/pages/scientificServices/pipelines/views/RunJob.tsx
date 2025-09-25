@@ -354,8 +354,8 @@ export const RunJob = () => {
         </div>
         <div>
           <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
-          <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
           <PipelineOutputsWidget selectedPipelineDetails={pipelineDetails} />
+          <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
         </div>
       </div>
     </FooterWrapper>
