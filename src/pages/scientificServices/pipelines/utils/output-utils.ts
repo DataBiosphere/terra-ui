@@ -11,7 +11,7 @@ export const PIPELINE_OUTPUT_DESCRIPTIONS: Record<string, Record<string, Pipelin
       description: 'An index file for the imputed multi-sample VCF file',
     },
     chunksInfo: {
-      description: 'A TSV file containing information about the chunks used during imputation',
+      description: 'A TSV file containing QC information about the chunks used during imputation',
     },
   },
 };
