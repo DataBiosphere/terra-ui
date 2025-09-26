@@ -6,11 +6,15 @@ import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
-import { resumeUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import {
+  resumeUpload,
+  uploadTimeRemainingDisplayText,
+} from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 export interface PipelineInputFileUploadState {
   signedUrl?: string; // The resumable upload session URL
   progress: number; // Progress percentage (0-100)
+  uploadEtaSeconds?: number; // Estimated time remaining in seconds
   errorMessage?: string; // Optional error message
 }
 
@@ -270,6 +274,10 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                         transition: 'width 0.3s ease-in-out',
                       }}
                     />
+                  </div>
+                  <div style={{ marginTop: '0.5rem', display: 'flex' }}>
+                    <div style={{ fontWeight: 'bold', marginRight: '0.25rem' }}>Estimated time remaining:</div>
+                    {uploadTimeRemainingDisplayText(uploadState.uploadEtaSeconds)}
                   </div>
                 </div>
               </>
