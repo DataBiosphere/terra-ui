@@ -1,6 +1,7 @@
 import {
   Pipeline,
   PipelineInput,
+  PipelineOutput,
   PipelineRun,
   PipelineRunStatus,
   PipelineWithDetails,
@@ -28,6 +29,20 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
         fileSuffix: '.vcf.gz',
       },
     ] as PipelineInput[],
+    outputs: [
+      {
+        name: 'imputedMultiSampleVcf',
+        type: 'FILE',
+      },
+      {
+        name: 'imputedMultiSampleVcfIndex',
+        type: 'FILE',
+      },
+      {
+        name: 'chunksInfo',
+        type: 'FILE',
+      },
+    ] as PipelineOutput[],
     pipelineQuota: {
       pipelineName: name,
       defaultQuota: 2500,

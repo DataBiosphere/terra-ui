@@ -70,6 +70,7 @@ describe('RunJob Component', () => {
     ...mockPipeline,
     type: 'imputation',
     inputs: mockPipelineInputs,
+    outputs: [],
   };
 
   const mockPipelineList: PipelineList = {

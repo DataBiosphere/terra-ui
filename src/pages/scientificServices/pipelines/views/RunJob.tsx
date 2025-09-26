@@ -29,6 +29,7 @@ import {
   uploadPipelineFiles,
 } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
+import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/widgets/PipelineOutputsWidget';
 import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
 
 export const RunJob = () => {
@@ -227,7 +228,7 @@ export const RunJob = () => {
                 })}
 
               {/* Displays optional run description */}
-              <PipelineRunDescription value={runDescription} onChange={setRunDescription} />
+              {selectedPipeline && <PipelineRunDescription value={runDescription} onChange={setRunDescription} />}
 
               {/* Displays all FILE inputs, one after another */}
               {pipelineInputs
@@ -353,6 +354,7 @@ export const RunJob = () => {
         </div>
         <div>
           <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
+          <PipelineOutputsWidget selectedPipelineDetails={pipelineDetails} />
           <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
         </div>
       </div>
