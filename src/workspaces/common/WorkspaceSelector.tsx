@@ -18,13 +18,18 @@ interface FormatOptionLabelProps {
   workspace: Workspace;
 }
 
+const getWorkspaceDisplayName = (wsName: string, wsNamespace: string): string => {
+  return `${wsNamespace} / ${wsName}`;
+};
+
 export const WorkspaceSelector = (props: WorkspaceSelectorProps) => {
   const { workspaces, value, onChange, id, 'aria-label': ariaLabel, ...otherProps } = props;
+
   const options = _.flow(
-    _.sortBy((ws: Workspace) => ws.workspace.name.toLowerCase()),
-    _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName } }) => ({
+    _.sortBy((ws: Workspace) => getWorkspaceDisplayName(ws.workspace.name, ws.workspace.namespace).toLowerCase()),
+    _.map(({ workspace: { workspaceId, name, cloudPlatform, bucketName, namespace } }) => ({
       value: workspaceId,
-      label: name,
+      label: getWorkspaceDisplayName(name, namespace),
       workspace: { workspace: { cloudPlatform, bucketName } },
     }))
   )(workspaces);

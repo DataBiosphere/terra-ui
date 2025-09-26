@@ -10,8 +10,8 @@ import { editMethodProvider } from 'src/libs/ajax/methods/providers/EditMethodPr
 import { postMethodProvider } from 'src/libs/ajax/methods/providers/PostMethodProvider';
 import * as ExportWorkflowToWorkspaceProvider from 'src/libs/ajax/workspaces/providers/ExportWorkflowToWorkspaceProvider';
 import { errorWatcher } from 'src/libs/error.mock';
-import { goToPath } from 'src/libs/nav';
 import * as Nav from 'src/libs/nav';
+import { goToPath } from 'src/libs/nav';
 import { forwardRefWithName } from 'src/libs/react-utils';
 import { snapshotsListStore, snapshotStore, TerraUser, TerraUserState, userStore } from 'src/libs/state';
 import { WorkflowsContainer, wrapWorkflows } from 'src/pages/workflows/workflow-details/WorkflowWrapper';
@@ -1154,7 +1154,7 @@ describe('workflows container', () => {
     await user.click(screen.getByRole('button', { name: 'Export to Workspace' }));
 
     const workspaceSelector = new SelectHelper(screen.getByRole('combobox', { name: 'Select a workspace' }), user);
-    await workspaceSelector.selectOption('cloud_google_icon.svg name1');
+    await workspaceSelector.selectOption('cloud_google_icon.svg namespace / name1');
     fireEvent.change(screen.getByRole('textbox', { name: 'Name *' }), { target: { value: 'newname' } });
 
     await user.click(screen.getByRole('button', { name: 'Export' }));

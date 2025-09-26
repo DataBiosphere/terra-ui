@@ -163,8 +163,41 @@ describe('job history table', () => {
 
     const viewOutputsButton = screen.getByText('View Outputs');
     expect(viewOutputsButton).toBeInTheDocument();
+    expect(viewOutputsButton).not.toBeDisabled();
 
     expect(screen.queryByText('View Error')).not.toBeInTheDocument();
+  });
+
+  it('disables the View Outputs button for jobs that succeeded more than 14 days ago', async () => {
+    const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+    const pipelineRun = {
+      ...mockPipelineRun('SUCCEEDED'),
+      timeSubmitted: fifteenDaysAgo,
+      timeCompleted: fifteenDaysAgo,
+    };
+    const pipelineRuns = [pipelineRun];
+
+    const mockPipelineRunResponse = {
+      pageToken: null,
+      results: pipelineRuns,
+      totalResults: 1,
+    };
+
+    asMockedFn(Teaspoons).mockReturnValue(
+      partial<TeaspoonsContract>({
+        getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+      })
+    );
+
+    render(<JobHistory />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+    });
+
+    const viewOutputsButton = screen.getByText('View Outputs');
+    expect(viewOutputsButton).toBeInTheDocument();
+    expect(viewOutputsButton).toBeDisabled();
   });
 
   it('shows View Error button for FAILED jobs', async () => {
@@ -426,7 +459,10 @@ describe('job history table', () => {
 
   describe('Deletion Date column', () => {
     it('displays the deletion date for SUCCEEDED jobs', async () => {
-      const pipelineRun = mockPipelineRun('SUCCEEDED');
+      const pipelineRun = {
+        ...mockPipelineRun('SUCCEEDED'),
+        timeCompleted: '2023-10-15T14:00:00Z',
+      };
       const pipelineRuns = [pipelineRun];
 
       const mockPipelineRunResponse = {

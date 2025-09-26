@@ -337,32 +337,47 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
+  const jobOutputsDeleted =
+    pipelineRun.status === 'SUCCEEDED' && (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * 14; // 24 hours * 14 days
+
   return (
     <div>
       {pipelineRun.status === 'SUCCEEDED' && (
         <>
-          <button
-            type='button'
-            style={{
-              color: '#46A3E9',
-              fontWeight: 700,
-              textDecoration: 'underline',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              font: 'inherit',
-            }}
-            onClick={() => {
-              outputsModal.open({ jobId: pipelineRun.jobId });
-              Metrics().captureEvent(Events.teaspoons.viewJobOutputs, {
-                pipelineName: pipelineRun.pipelineName,
-                pipelineVersion: pipelineRun.pipelineVersion,
-              });
-            }}
+          <TooltipTrigger
+            content={
+              jobOutputsDeleted
+                ? 'The outputs for this job have been deleted. Outputs are available for 2 weeks after job completion.'
+                : undefined
+            }
+            side='top'
           >
-            View Outputs
-          </button>
+            <span style={{ cursor: jobOutputsDeleted ? 'not-allowed' : 'pointer' }}>
+              <button
+                type='button'
+                disabled={jobOutputsDeleted}
+                style={{
+                  color: jobOutputsDeleted ? colors.disabled() : '#46A3E9',
+                  fontWeight: 700,
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: jobOutputsDeleted ? 'not-allowed' : 'pointer',
+                  font: 'inherit',
+                }}
+                onClick={() => {
+                  outputsModal.open({ jobId: pipelineRun.jobId });
+                  Metrics().captureEvent(Events.teaspoons.viewJobOutputs, {
+                    pipelineName: pipelineRun.pipelineName,
+                    pipelineVersion: pipelineRun.pipelineVersion,
+                  });
+                }}
+              >
+                View Outputs
+              </button>
+            </span>
+          </TooltipTrigger>
           {outputsModal.maybeRender()}
         </>
       )}
@@ -486,4 +501,13 @@ const hoursElapsedSinceSubmission = (pipelineRun: PipelineRun): number => {
   const submittedTime = new Date(pipelineRun.timeSubmitted);
   const currentTime = new Date();
   return (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60 * 60);
+};
+
+const hoursElapsedSinceCompletion = (pipelineRun: PipelineRun): number | undefined => {
+  if (!pipelineRun.timeCompleted) {
+    return undefined;
+  }
+  const completedTime = new Date(pipelineRun.timeCompleted);
+  const currentTime = new Date();
+  return (currentTime.getTime() - completedTime.getTime()) / (1000 * 60 * 60);
 };

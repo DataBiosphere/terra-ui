@@ -69,7 +69,7 @@ export function mockPipelineRun(status: PipelineRunStatus): PipelineRun {
     status,
     description: 'Test pipeline run',
     timeSubmitted: '2023-10-01T00:00:00Z',
-    timeCompleted: status === 'SUCCEEDED' || status === 'FAILED' ? '2023-10-01T01:00:00Z' : undefined,
+    timeCompleted: status === 'SUCCEEDED' || status === 'FAILED' ? new Date().toISOString() : undefined,
     quotaConsumed: status === 'SUCCEEDED' ? 500 : undefined,
   };
 }

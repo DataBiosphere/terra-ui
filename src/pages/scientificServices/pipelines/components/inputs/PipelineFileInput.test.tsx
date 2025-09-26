@@ -68,6 +68,42 @@ describe('PipelineFileInput', () => {
     expect(screen.getByText(/Upload successful/)).toBeInTheDocument();
   });
 
+  it('shows upload ETA as Calculating when no ETA is ready yet', () => {
+    const uploadState: PipelineInputFileUploadState = { progress: 1, signedUrl: 'http://signed.url' };
+
+    render(
+      <PipelineFileInput
+        input={mockInput}
+        selectedFile={new File(['test'], 'test.vcf.gz')}
+        uploadState={uploadState}
+        onFileSelect={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('Estimated time remaining:')).toBeInTheDocument();
+    expect(screen.getByText('Calculating...')).toBeInTheDocument();
+  });
+
+  it('shows upload progress with ETA', () => {
+    const uploadState: PipelineInputFileUploadState = {
+      progress: 50,
+      signedUrl: 'http://signed.url',
+      uploadEtaSeconds: 121,
+    };
+
+    render(
+      <PipelineFileInput
+        input={mockInput}
+        selectedFile={new File(['test'], 'test.vcf.gz')}
+        uploadState={uploadState}
+        onFileSelect={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('Estimated time remaining:')).toBeInTheDocument();
+    expect(screen.getByText('2 minutes')).toBeInTheDocument();
+  });
+
   it('shows upload error and retry button', () => {
     const uploadState: PipelineInputFileUploadState = {
       progress: 50,
