@@ -48,6 +48,9 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runDescription, setRunDescription] = useState<string>('');
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+
+  console.log(Object.keys(validationErrors).length);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -221,6 +224,12 @@ export const RunJob = () => {
                           [input.name]: value,
                         }))
                       }
+                      onValidationError={(error) =>
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          [input.name]: error,
+                        }))
+                      }
                       value={selectedUserInputs[input.name]}
                       key={`${input.name}`}
                     />
@@ -285,7 +294,13 @@ export const RunJob = () => {
                     </div>
                   )}
                   <ButtonPrimary
-                    disabled={!selectedPipeline || isSubmitting || !areAllRequiredInputsFilled() || !meetsMinimumQuota}
+                    disabled={
+                      !selectedPipeline ||
+                      isSubmitting ||
+                      !areAllRequiredInputsFilled() ||
+                      !meetsMinimumQuota ||
+                      Object.keys(validationErrors).length > 0
+                    }
                     style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                     onClick={handleSubmit}
                   >

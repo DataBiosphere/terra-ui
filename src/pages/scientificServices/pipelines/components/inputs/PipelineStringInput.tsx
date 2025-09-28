@@ -7,10 +7,16 @@ interface PipelineStringInputProps {
   input: PipelineInput;
   value: string;
   onChange: (value: string) => void;
+  onValidationError(error?: string): void;
 }
 
-export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({ input, value, onChange }) => {
-  const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name] || {};
+export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
+  input,
+  value,
+  onChange,
+  onValidationError,
+}) => {
+  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
 
   return (
     <>
@@ -23,7 +29,19 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({ input,
         value={value || ''}
         placeholder={placeholder || ''}
         style={{ width: 400 }}
-        onChange={onChange}
+        //
+        onChange={(e) => {
+          onChange(e);
+          if (validationRegex) {
+            const regex = new RegExp(validationRegex);
+            if (!regex.test(e)) {
+              // Simple inline validation feedback
+              onValidationError(`Input does not match required format: ${validationRegex}`); // Only show error if there's input
+            } else {
+              onValidationError(undefined); // Clear error if input is valid
+            }
+          }
+        }}
       />
       {helpText && <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic' }}>{helpText}</div>}
     </>
