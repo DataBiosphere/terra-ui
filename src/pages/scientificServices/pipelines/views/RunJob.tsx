@@ -81,7 +81,7 @@ export const RunJob = () => {
     });
   };
 
-  const handleValidationError = (inputName: string, error?: string) => {
+  const handleInputValidation = (inputName: string, error?: string) => {
     setValidationErrors((prev) => {
       if (!error) {
         const { [inputName]: _, ...rest } = prev;
@@ -238,7 +238,7 @@ export const RunJob = () => {
                           [input.name]: value,
                         }))
                       }
-                      onValidationError={(error) => handleValidationError(input.name, error)}
+                      onValidation={(error) => handleInputValidation(input.name, error)}
                       value={selectedUserInputs[input.name]}
                       key={`${input.name}`}
                     />
@@ -266,9 +266,7 @@ export const RunJob = () => {
                           [input.name]: file,
                         }));
                       }}
-                      onValidationError={(error) => {
-                        handleValidationError(input.name, error);
-                      }}
+                      onValidation={(error) => handleInputValidation(input.name, error)}
                     />
                   );
                 })}

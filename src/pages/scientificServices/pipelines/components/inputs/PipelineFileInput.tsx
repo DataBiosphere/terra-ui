@@ -23,7 +23,7 @@ interface PipelineInputSelectorProps {
   selectedFile: File | null;
   uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
-  onValidationError(error?: string): void;
+  onValidation(error?: string): void;
   onUploadComplete?: () => void;
   setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
@@ -33,7 +33,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   selectedFile,
   uploadState,
   onFileSelect,
-  onValidationError,
+  onValidation,
   onUploadComplete,
   setUploadState,
 }) => {
@@ -52,9 +52,9 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     if (validationRegex && file) {
       const regex = new RegExp(validationRegex);
       if (!regex.test(file.name)) {
-        onValidationError(`Input does not match required format: ${validationRegex}`);
+        onValidation(`Input does not match required format: ${validationRegex}`);
       } else {
-        onValidationError(undefined);
+        onValidation(undefined);
       }
     }
   };
@@ -63,7 +63,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     e.stopPropagation();
     e.preventDefault();
     onFileSelect(null);
-    onValidationError(undefined);
+    onValidation(undefined);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -76,9 +76,9 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     if (validationRegex && acceptedFiles.length > 0) {
       const regex = new RegExp(validationRegex);
       if (!regex.test(acceptedFiles[0].name)) {
-        onValidationError(`Input does not match required format: ${validationRegex}`);
+        onValidation(`Input does not match required format: ${validationRegex}`);
       } else {
-        onValidationError(undefined);
+        onValidation(undefined);
       }
     }
   };
