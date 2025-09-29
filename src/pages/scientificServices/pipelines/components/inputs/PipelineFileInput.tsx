@@ -90,8 +90,8 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   const handleDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0 && !selectedFile) {
       onFileSelect(acceptedFiles[0]);
+      validateFile(acceptedFiles[0]);
     }
-    validateFile(acceptedFiles[0] || null);
   };
 
   const handleBrowseClick = () => {
@@ -187,10 +187,10 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                           justifyContent: 'left',
                         }}
                       >
-                        {!validationError ? (
-                          <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
-                        ) : (
+                        {validationError ? (
                           <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
+                        ) : (
+                          <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
                         )}
                         <div
                           style={{
