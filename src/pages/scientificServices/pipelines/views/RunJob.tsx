@@ -78,6 +78,7 @@ export const RunJob = () => {
     });
   };
 
+  // Handles updating the input validation map
   const handleInputValidation = (inputName: string, error?: string) => {
     setValidationErrors((prev) => {
       if (!error) {
@@ -236,6 +237,7 @@ export const RunJob = () => {
                         }))
                       }
                       onValidation={(error) => handleInputValidation(input.name, error)}
+                      validationError={validationErrors[input.name]}
                       value={selectedUserInputs[input.name]}
                       key={`${input.name}`}
                     />
