@@ -50,9 +50,6 @@ export const RunJob = () => {
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  console.log(validationErrors);
-
-  console.log(Object.keys(validationErrors).length);
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();

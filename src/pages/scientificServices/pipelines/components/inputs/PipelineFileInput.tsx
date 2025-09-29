@@ -1,5 +1,5 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
-import React, { useRef } from 'react';
+import React, { Dispatch, SetStateAction, useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -25,7 +25,7 @@ interface PipelineInputSelectorProps {
   onFileSelect: (file: File | null) => void;
   onValidation(error?: string): void;
   onUploadComplete?: () => void;
-  setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
+  setUploadState?: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
 
 export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
