@@ -24,6 +24,7 @@ interface PipelineInputSelectorProps {
   uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
   onValidation(error?: string): void;
+  validationError?: string;
   onUploadComplete?: () => void;
   setUploadState?: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
@@ -34,28 +35,45 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   uploadState,
   onFileSelect,
   onValidation,
+  validationError,
   onUploadComplete,
   setUploadState,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name];
 
-  const invalidFileType = selectedFile && !selectedFile.name.endsWith(input.fileSuffix || '');
-  const invalidFileName = selectedFile && validationRegex && !new RegExp(validationRegex).test(selectedFile.name);
-  const isFileValid = !!selectedFile && !invalidFileType && !invalidFileName;
+  const validateFile = (file: File | null) => {
+    // Check for required file
+    if (input.isRequired && !file) {
+      onValidation('This file is required.');
+      return;
+    }
+
+    // Check for valid file type
+    // N.B. this suffix is supplied separately by the backend, which is why it's not included in the validationRegex
+    if (file && input.fileSuffix && !file.name.endsWith(input.fileSuffix)) {
+      onValidation(`Invalid file type. Please upload a ${input.fileSuffix} file.`);
+      return;
+    }
+
+    // Check for valid file name using validation expression
+    if (file && validationRegex) {
+      const regex = new RegExp(validationRegex);
+      if (!regex.test(file.name)) {
+        onValidation('File names may not contain any spaces.');
+      } else {
+        onValidation(undefined);
+      }
+    } else if (!input.isRequired) {
+      onValidation(undefined);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       onFileSelect(file);
-    }
-    if (validationRegex && file) {
-      const regex = new RegExp(validationRegex);
-      if (!regex.test(file.name)) {
-        onValidation(`Input does not match required format: ${validationRegex}`);
-      } else {
-        onValidation(undefined);
-      }
+      validateFile(file);
     }
   };
 
@@ -73,14 +91,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     if (acceptedFiles.length > 0 && !selectedFile) {
       onFileSelect(acceptedFiles[0]);
     }
-    if (validationRegex && acceptedFiles.length > 0) {
-      const regex = new RegExp(validationRegex);
-      if (!regex.test(acceptedFiles[0].name)) {
-        onValidation(`Input does not match required format: ${validationRegex}`);
-      } else {
-        onValidation(undefined);
-      }
-    }
+    validateFile(acceptedFiles[0] || null);
   };
 
   const handleBrowseClick = () => {
@@ -176,7 +187,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                           justifyContent: 'left',
                         }}
                       >
-                        {isFileValid ? (
+                        {!validationError ? (
                           <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
                         ) : (
                           <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
@@ -311,16 +322,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             )}
           </>
         )}
-        {invalidFileType && selectedFile && (
-          <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
-            Invalid file type. Please upload a <strong>{input.fileSuffix}</strong> file.
-          </div>
-        )}
-        {invalidFileName && selectedFile && (
-          <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
-            Invalid file name. File name may not contain any spaces.
-          </div>
-        )}
+        {validationError && <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>{validationError}</div>}
       </div>
     </div>
   );

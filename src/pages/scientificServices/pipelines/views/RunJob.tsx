@@ -258,6 +258,7 @@ export const RunJob = () => {
                       uploadState={uploadState[input.name]}
                       selectedFile={selectedUserInputs[input.name] || null}
                       setUploadState={setUploadState}
+                      validationError={validationErrors[input.name]}
                       onUploadComplete={preparedJobId ? () => onUploadComplete(preparedJobId) : undefined}
                       onFileSelect={(file) => {
                         setSelectedUserInputs((prev) => ({

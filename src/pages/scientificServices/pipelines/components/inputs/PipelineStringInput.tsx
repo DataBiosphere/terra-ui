@@ -37,8 +37,8 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
             onChange(e);
             if (validationRegex) {
               const regex = new RegExp(validationRegex);
-              if (!regex.test(e)) {
-                onValidation('Input does not match required format');
+              if (!regex.test(e) && e.length > 0) {
+                onValidation('This input contains invalid characters');
               } else {
                 onValidation(undefined);
               }
