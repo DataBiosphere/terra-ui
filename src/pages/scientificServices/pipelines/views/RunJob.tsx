@@ -50,8 +50,9 @@ export const RunJob = () => {
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  console.log(Object.keys(validationErrors).length);
+  console.log(validationErrors);
 
+  console.log(Object.keys(validationErrors).length);
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
@@ -77,6 +78,19 @@ export const RunJob = () => {
         return value && value.trim() !== '';
       }
       return true;
+    });
+  };
+
+  const handleValidationError = (inputName: string, error?: string) => {
+    setValidationErrors((prev) => {
+      if (!error) {
+        const { [inputName]: _, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [inputName]: error,
+      };
     });
   };
 
@@ -224,12 +238,7 @@ export const RunJob = () => {
                           [input.name]: value,
                         }))
                       }
-                      onValidationError={(error) =>
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          [input.name]: error,
-                        }))
-                      }
+                      onValidationError={(error) => handleValidationError(input.name, error)}
                       value={selectedUserInputs[input.name]}
                       key={`${input.name}`}
                     />
@@ -256,6 +265,9 @@ export const RunJob = () => {
                           ...prev,
                           [input.name]: file,
                         }));
+                      }}
+                      onValidationError={(error) => {
+                        handleValidationError(input.name, error);
                       }}
                     />
                   );

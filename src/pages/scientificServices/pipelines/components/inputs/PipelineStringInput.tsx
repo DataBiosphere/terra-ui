@@ -35,10 +35,9 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
           if (validationRegex) {
             const regex = new RegExp(validationRegex);
             if (!regex.test(e)) {
-              // Simple inline validation feedback
-              onValidationError(`Input does not match required format: ${validationRegex}`); // Only show error if there's input
+              onValidationError(`Input does not match required format: ${validationRegex}`);
             } else {
-              onValidationError(undefined); // Clear error if input is valid
+              onValidationError(undefined);
             }
           }
         }}

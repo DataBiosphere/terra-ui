@@ -23,6 +23,7 @@ interface PipelineInputSelectorProps {
   selectedFile: File | null;
   uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
+  onValidationError(error?: string): void;
   onUploadComplete?: () => void;
   setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
@@ -32,17 +33,29 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   selectedFile,
   uploadState,
   onFileSelect,
+  onValidationError,
   onUploadComplete,
   setUploadState,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isFileValid = selectedFile && selectedFile.name.endsWith(input.fileSuffix || '');
-  const { label } = INPUT_DESCRIPTIONS[input.name];
+  const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name];
+
+  const invalidFileType = selectedFile && !selectedFile.name.endsWith(input.fileSuffix || '');
+  const invalidFileName = selectedFile && validationRegex && !new RegExp(validationRegex).test(selectedFile.name);
+  const isFileValid = !!selectedFile && !invalidFileType && !invalidFileName;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       onFileSelect(file);
+    }
+    if (validationRegex && file) {
+      const regex = new RegExp(validationRegex);
+      if (!regex.test(file.name)) {
+        onValidationError(`Input does not match required format: ${validationRegex}`);
+      } else {
+        onValidationError(undefined);
+      }
     }
   };
 
@@ -50,6 +63,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     e.stopPropagation();
     e.preventDefault();
     onFileSelect(null);
+    onValidationError(undefined);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -58,6 +72,14 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   const handleDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0 && !selectedFile) {
       onFileSelect(acceptedFiles[0]);
+    }
+    if (validationRegex && acceptedFiles.length > 0) {
+      const regex = new RegExp(validationRegex);
+      if (!regex.test(acceptedFiles[0].name)) {
+        onValidationError(`Input does not match required format: ${validationRegex}`);
+      } else {
+        onValidationError(undefined);
+      }
     }
   };
 
@@ -289,9 +311,14 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             )}
           </>
         )}
-        {!isFileValid && selectedFile && (
+        {invalidFileType && selectedFile && (
           <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
             Invalid file type. Please upload a <strong>{input.fileSuffix}</strong> file.
+          </div>
+        )}
+        {invalidFileName && selectedFile && (
+          <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
+            Invalid file name. File name may not contain any spaces.
           </div>
         )}
       </div>
