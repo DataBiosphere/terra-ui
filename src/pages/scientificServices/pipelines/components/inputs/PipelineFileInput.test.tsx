@@ -119,6 +119,8 @@ describe('PipelineFileInput', () => {
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
+        validationError={undefined}
+        onValidation={jest.fn()}
       />
     );
 
@@ -139,6 +141,8 @@ describe('PipelineFileInput', () => {
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
+        validationError={undefined}
+        onValidation={jest.fn()}
       />
     );
 
