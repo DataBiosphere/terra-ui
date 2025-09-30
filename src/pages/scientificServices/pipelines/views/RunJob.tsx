@@ -305,7 +305,6 @@ export const RunJob = () => {
                   )}
                   <ButtonPrimary
                     disabled={
-                      !selectedPipeline ||
                       isSubmitting ||
                       !areAllRequiredInputsFilled() ||
                       !meetsMinimumQuota ||
