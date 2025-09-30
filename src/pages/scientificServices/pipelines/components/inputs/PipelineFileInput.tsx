@@ -62,7 +62,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
       if (regex.test(file.name)) {
         onValidation(undefined);
       } else {
-        onValidation('File names may not contain any spaces.');
+        onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
       }
     } else if (!input.isRequired) {
       onValidation(undefined);
