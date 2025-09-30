@@ -34,7 +34,7 @@ describe('submission-utils', () => {
       });
     });
 
-    it('generates a job ID and calls Teaspoons preparePipelineRun with correct parameters', async () => {
+    it('trims input strings and handles file inputs correctly when preparing inputs', async () => {
       const useInputs = {
         stringInput: 'testValue',
         fileInput: new File(['super cool test vcf!!!'], 'test.vcf.gz'),
