@@ -19,6 +19,6 @@ export const INPUT_DESCRIPTIONS: Record<string, PipelineInputDescription> = {
   },
   multiSampleVcf: {
     label: 'Select a multi-sample VCF file',
-    validationRegex: '^[^\\s]+$',
+    validationRegex: String.raw`^[^\s]+$`,
   },
 };

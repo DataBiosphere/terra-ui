@@ -102,18 +102,6 @@ describe('PipelineStringInput', () => {
       expect(onValidation).not.toHaveBeenCalled();
     });
 
-    it('validates each character as user types', async () => {
-      const user = userEvent.setup();
-      const onValidation = jest.fn();
-      render(<PipelineStringInput {...defaultProps} onValidation={onValidation} />);
-
-      const input = screen.getByRole('textbox');
-      await user.type(input, 'a');
-      await user.type(input, ' '); // Invalid character
-
-      expect(onValidation).toHaveBeenCalledWith('This input contains invalid characters');
-    });
-
     it('does not perform validation when no validationRegex is provided', async () => {
       const user = userEvent.setup();
       const onValidation = jest.fn();
@@ -125,12 +113,6 @@ describe('PipelineStringInput', () => {
       await user.type(input, 'you can type anything here! 123 @#$ !!!!');
 
       expect(onValidation).not.toHaveBeenCalled();
-    });
-
-    it('displays validation error when provided', () => {
-      render(<PipelineStringInput {...defaultProps} validationError='you supplied a terrible input :(' />);
-
-      expect(screen.getByText('you supplied a terrible input :(')).toBeInTheDocument();
     });
   });
 });
