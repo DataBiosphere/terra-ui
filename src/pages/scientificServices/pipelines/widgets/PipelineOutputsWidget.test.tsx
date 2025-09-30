@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { mockPipelineWithDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
-import { PIPELINE_OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/output-utils';
+import { PIPELINE_OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-output-utils';
 import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/widgets/PipelineOutputsWidget';
 
 describe('PipelineOutputsWidget', () => {

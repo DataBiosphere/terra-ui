@@ -5,7 +5,7 @@ import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 import { PipelineStringInput } from './PipelineStringInput';
 
-jest.mock('src/pages/scientificServices/pipelines/utils/input-utils', () => ({
+jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', () => ({
   INPUT_DESCRIPTIONS: {
     outputBasename: {
       label: 'Enter prefix for output file',

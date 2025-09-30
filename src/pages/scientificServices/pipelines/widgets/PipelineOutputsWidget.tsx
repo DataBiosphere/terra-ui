@@ -1,7 +1,7 @@
 import React from 'react';
 import { PipelineOutput, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { cond, DEFAULT } from 'src/libs/utils';
-import { PIPELINE_OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/output-utils';
+import { PIPELINE_OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-output-utils';
 
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
