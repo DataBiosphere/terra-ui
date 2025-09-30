@@ -114,5 +114,16 @@ describe('PipelineStringInput', () => {
 
       expect(onValidation).not.toHaveBeenCalled();
     });
+
+    it('trims input value before validation', async () => {
+      const user = userEvent.setup();
+      const onValidation = jest.fn();
+      render(<PipelineStringInput {...defaultProps} onValidation={onValidation} />);
+
+      const input = screen.getByRole('textbox');
+      await user.type(input, ' validInput ');
+
+      expect(onValidation).toHaveBeenCalledWith(undefined);
+    });
   });
 });
