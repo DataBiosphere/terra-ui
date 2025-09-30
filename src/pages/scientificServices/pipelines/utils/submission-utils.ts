@@ -17,7 +17,7 @@ export async function preparePipelineRun(
   const jobId = crypto.randomUUID();
 
   const finalUserInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
-    acc[key] = value instanceof File ? value.name : value;
+    acc[key] = value instanceof File ? value.name : value.trim();
     return acc;
   }, {} as Record<string, any>);
 

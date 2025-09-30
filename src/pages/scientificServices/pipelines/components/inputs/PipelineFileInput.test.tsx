@@ -15,14 +15,30 @@ const mockInput: PipelineInput = {
 
 describe('PipelineFileInput', () => {
   it('renders label and required indicator', () => {
-    render(<PipelineFileInput input={mockInput} selectedFile={null} onFileSelect={jest.fn()} />);
+    render(
+      <PipelineFileInput
+        input={mockInput}
+        selectedFile={null}
+        onFileSelect={jest.fn()}
+        validationError={undefined}
+        onValidation={jest.fn()}
+      />
+    );
     expect(screen.getByText(/Select a multi-sample VCF file/i)).toBeInTheDocument();
     expect(screen.getByText('*')).toBeInTheDocument();
   });
 
   it('calls onFileSelect when file is selected via input', async () => {
     const onFileSelect = jest.fn();
-    render(<PipelineFileInput input={mockInput} selectedFile={null} onFileSelect={onFileSelect} />);
+    render(
+      <PipelineFileInput
+        input={mockInput}
+        selectedFile={null}
+        onFileSelect={onFileSelect}
+        validationError={undefined}
+        onValidation={jest.fn()}
+      />
+    );
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(fileInput).toBeInTheDocument();
     const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
@@ -32,15 +48,31 @@ describe('PipelineFileInput', () => {
 
   it('shows valid file icon and info for valid file', () => {
     const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
-    render(<PipelineFileInput input={mockInput} selectedFile={file} onFileSelect={jest.fn()} />);
+    render(
+      <PipelineFileInput
+        input={mockInput}
+        selectedFile={file}
+        onFileSelect={jest.fn()}
+        validationError={undefined}
+        onValidation={jest.fn()}
+      />
+    );
     expect(screen.getByText(file.name)).toBeInTheDocument();
     expect(screen.getByLabelText('Remove selected file')).toBeInTheDocument();
     expect(screen.queryByText(/Invalid file type/)).not.toBeInTheDocument();
   });
 
-  it('shows invalid file icon and error for invalid file', () => {
+  it('shows invalid file icon and error for files with validation errors', () => {
     const file = new File(['test'], 'test.txt', { type: 'text/plain' });
-    render(<PipelineFileInput input={mockInput} selectedFile={file} onFileSelect={jest.fn()} />);
+    render(
+      <PipelineFileInput
+        input={mockInput}
+        selectedFile={file}
+        onFileSelect={jest.fn()}
+        validationError={"Invalid file type. Expected '.vcf.gz'"}
+        onValidation={jest.fn()}
+      />
+    );
     expect(screen.getByText(file.name)).toBeInTheDocument();
     expect(screen.getByText(/Invalid file type/)).toBeInTheDocument();
   });
@@ -48,7 +80,15 @@ describe('PipelineFileInput', () => {
   it('clears file when clear button is clicked', () => {
     const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
     const onFileSelect = jest.fn();
-    render(<PipelineFileInput input={mockInput} selectedFile={file} onFileSelect={onFileSelect} />);
+    render(
+      <PipelineFileInput
+        input={mockInput}
+        selectedFile={file}
+        onFileSelect={onFileSelect}
+        validationError={undefined}
+        onValidation={jest.fn()}
+      />
+    );
     fireEvent.click(screen.getByLabelText('Remove selected file'));
     expect(onFileSelect).toHaveBeenCalledWith(null);
   });
@@ -62,6 +102,8 @@ describe('PipelineFileInput', () => {
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
+        validationError={undefined}
+        onValidation={jest.fn()}
       />
     );
 
@@ -77,6 +119,8 @@ describe('PipelineFileInput', () => {
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
+        validationError={undefined}
+        onValidation={jest.fn()}
       />
     );
 
@@ -97,6 +141,8 @@ describe('PipelineFileInput', () => {
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
+        validationError={undefined}
+        onValidation={jest.fn()}
       />
     );
 
@@ -122,6 +168,8 @@ describe('PipelineFileInput', () => {
         onFileSelect={onFileSelect}
         onUploadComplete={onUploadComplete}
         setUploadState={setUploadState}
+        validationError={undefined}
+        onValidation={jest.fn()}
       />
     );
 

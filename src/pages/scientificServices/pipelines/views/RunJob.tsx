@@ -48,6 +48,7 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runDescription, setRunDescription] = useState<string>('');
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -74,6 +75,20 @@ export const RunJob = () => {
         return value && value.trim() !== '';
       }
       return true;
+    });
+  };
+
+  // Handles updating the input validation map
+  const handleInputValidation = (inputName: string, error?: string) => {
+    setValidationErrors((prev) => {
+      if (!error) {
+        const { [inputName]: _, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [inputName]: error,
+      };
     });
   };
 
@@ -221,6 +236,8 @@ export const RunJob = () => {
                           [input.name]: value,
                         }))
                       }
+                      onValidation={(error) => handleInputValidation(input.name, error)}
+                      validationError={validationErrors[input.name]}
                       value={selectedUserInputs[input.name]}
                       key={`${input.name}`}
                     />
@@ -241,6 +258,8 @@ export const RunJob = () => {
                       uploadState={uploadState[input.name]}
                       selectedFile={selectedUserInputs[input.name] || null}
                       setUploadState={setUploadState}
+                      onValidation={(error) => handleInputValidation(input.name, error)}
+                      validationError={validationErrors[input.name]}
                       onUploadComplete={preparedJobId ? () => onUploadComplete(preparedJobId) : undefined}
                       onFileSelect={(file) => {
                         setSelectedUserInputs((prev) => ({
@@ -285,7 +304,12 @@ export const RunJob = () => {
                     </div>
                   )}
                   <ButtonPrimary
-                    disabled={!selectedPipeline || isSubmitting || !areAllRequiredInputsFilled() || !meetsMinimumQuota}
+                    disabled={
+                      isSubmitting ||
+                      !areAllRequiredInputsFilled() ||
+                      !meetsMinimumQuota ||
+                      Object.keys(validationErrors).length > 0
+                    }
                     style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                     onClick={handleSubmit}
                   >
