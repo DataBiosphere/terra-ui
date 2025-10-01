@@ -70,7 +70,7 @@ window.IGVFilter = {};
 const HISTOGRAM_BAR_MAX_HEIGHT = 20;
 const SLIDER_HANDLEBAR_WIDTH = 6;
 // const HANDLEBAR_Y = -1 * (HISTOGRAM_BAR_MAX_HEIGHT - 1);
-const HISTOGRAM_WIDTH = 240;
+const HISTOGRAM_WIDTH = 225;
 const defaultNumericInputWidth = 55;
 
 type HistogramBarAttributes = {
@@ -582,6 +582,11 @@ function getInputStyle(inputValue, operator, precision) {
     width: `${width}px`,
     fontSize: `${fontSize}px`,
     numDigits, // Not a standard style, but a helpful prop
+    paddingLeft: '0.25em',
+    paddingRight: '0.25em',
+    textAlign: 'center' as const,
+    height: '1.9rem',
+    border: '1px solid #ccc',
   };
 
   return style;
@@ -879,7 +884,6 @@ const prepareNumericFacetData = (facet: NumericFacetAttributes) => {
 
 const NumericFacet: React.FC<{
   facet: NumericFacetAttributes;
-  // selection: any[];
   onChange: (selection: any[]) => void;
 }> = ({ facet, onChange }) => {
   const [currentRange, setCurrentRange] = useState<[number, number] | null>(null);
@@ -999,12 +1003,39 @@ const NumericFacet: React.FC<{
           h(Select, {
             value: operator,
             onChange: handleOperatorChange,
-            style: {
-              width: `${widthsByOperator[operator] || 85}px`,
-              fontSize: '13px',
-              height: 'auto',
-              padding: '1px 2px',
-              // flexShrink: 0,
+            styles: {
+              control: (provided) => ({
+                ...provided,
+                width: `${widthsByOperator[operator] || 85}px`,
+                fontSize: '13px',
+                minHeight: '24px',
+                border: '1px solid #ccc',
+              }),
+              valueContainer: (provided) => ({
+                ...provided,
+                padding: '2px 6px',
+              }),
+              input: (provided) => ({
+                ...provided,
+                margin: '0px',
+                padding: '0px',
+              }),
+              dropdownIndicator: (provided) => ({
+                ...provided,
+                padding: '4px',
+              }),
+              indicatorSeparator: () => ({
+                display: 'none',
+              }),
+              menu: (provided) => ({
+                ...provided,
+                zIndex: 1000, // Ensure dropdown appears above slider handles
+              }),
+              option: (provided) => ({
+                ...provided,
+                fontSize: '13px',
+                padding: '4px 8px',
+              }),
             },
             options: ['between', 'not between', '=', '!=', '<', '<=', '>', '>='].map((op) => ({
               value: op,
@@ -1018,8 +1049,6 @@ const NumericFacet: React.FC<{
             onChange: (e) => handleInputChange(0, e.target.value),
             style: {
               ...styles.input,
-              // flexShrink: 0,
-              width: '55px',
             },
           }),
 
@@ -1041,8 +1070,6 @@ const NumericFacet: React.FC<{
               onChange: (e) => handleInputChange(1, e.target.value),
               style: {
                 ...styles.input2,
-                width: '55px',
-                fontSize: '13px',
               },
             }),
         ]
@@ -1331,7 +1358,6 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({ trackToFilter, onFilterChange, 
       return React.createElement(NumericFacet, {
         key: facet.name,
         facet,
-        selection: selections[facet.name] || [],
         onChange: (newSelection: any[]) => handleFacetChange(facet.name, newSelection),
       });
     }),
