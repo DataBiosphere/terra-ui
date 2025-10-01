@@ -5,6 +5,60 @@ import { a, div, h, input, label, rect, span, svg } from 'react-hyperscript-help
 import { Select } from '../common';
 import { TextInput } from '../input';
 
+const igvStyles = {
+  igvFiltersContainer: {
+    float: 'left' as const,
+    marginLeft: '5px',
+  },
+  igvFacet: {
+    marginTop: '15px',
+    width: '240px',
+  },
+  igvFacetHeader: {
+    fontWeight: 'bold' as const,
+    position: 'relative' as const,
+    top: '-4px',
+  },
+  igvFacetHeaderCategorical: {
+    fontWeight: 'bold' as const,
+    position: 'relative' as const,
+    top: '-4px',
+  },
+  igvFilterLabel: {
+    cursor: 'pointer' as const,
+    ':hover': {
+      color: '#007',
+    },
+  },
+  igvFilterLabelDiv: {
+    marginLeft: '14px',
+  },
+  igvFilterCount: {
+    float: 'right' as const,
+  },
+  igvFacetToggle: {
+    color: '#337ab7',
+    cursor: 'pointer' as const,
+    marginLeft: '14px',
+    ':hover': {
+      color: '#23527c',
+    },
+  },
+  igvPopulationAfToggle: {
+    color: '#337ab7',
+    cursor: 'pointer' as const,
+    ':hover': {
+      color: '#23527c',
+    },
+  },
+  brushSelection: {
+    fillOpacity: 0.1,
+    fill: '#3d5a87',
+    stroke: '#3d5a87',
+    shapeRendering: 'crispEdges' as const,
+  },
+};
+
 declare global {
   interface Window {
     IGVFilter: any;
@@ -76,8 +130,8 @@ const widthsByOperator = {
 function updateIgvFilterOperator(event: { target: any }) {
   const target = event.target;
 
-  const facetName = target.getAttribute('data-igv-facet-name');
-  const facetClass = getFacetClass(facetName);
+  const facetName = (target as HTMLElement).getAttribute('data-igv-facet-name');
+  const facetClass = getFacetClass(facetName ?? '');
   const input = document.querySelector(`.${facetClass} input`);
 
   const newOperator = target.value as keyof typeof widthsByOperator;
@@ -302,27 +356,31 @@ function getMedian(numbers: number[]) {
 // /** Expand or contract a full list of filters within a categorical facet */
 function togglePartialCollapse(event: any) {
   const target = event.target;
+  if (!target) return;
   const attrName = 'data-igv-is-partly-collapsed';
   const oldIsPartlyCollapsed = target.getAttribute(attrName) === 'true';
   const newIsPartlyCollapsed = !oldIsPartlyCollapsed;
-  const facetName = target.getAttribute('data-igv-facet-name');
+  const facetName = (target as HTMLElement).getAttribute('data-igv-facet-name');
 
   const filterSel = `.igv-filter[data-igv-facet-name="${facetName}"]`;
   document.querySelectorAll(filterSel).forEach((checkbox, i) => {
-    const filterDom = checkbox.parentElement.parentElement;
+    const parent = checkbox.parentElement;
+    if (!parent || !parent.parentElement) return;
+    const filterDom = parent.parentElement;
     if (newIsPartlyCollapsed && i >= 5) {
       // TODO: Consider optimizing by batching DOM writes
-      filterDom.style = 'display: none;';
+      filterDom.style.display = 'none';
     } else {
-      filterDom.style = '';
+      filterDom.style.display = '';
     }
   });
 
   const toggler = document.querySelector('.igv-facet-toggle');
-  toggler.setAttribute(attrName, newIsPartlyCollapsed);
-
-  const action = newIsPartlyCollapsed ? 'More...' : 'Less...';
-  toggler.textContent = action;
+  if (toggler) {
+    toggler.setAttribute(attrName, String(newIsPartlyCollapsed));
+    const action = newIsPartlyCollapsed ? 'More...' : 'Less...';
+    toggler.textContent = action;
+  }
 }
 
 window.IGVFilter.togglePartialCollapse = togglePartialCollapse;
@@ -355,16 +413,18 @@ function getFriendlyFacetName(facet: FacetAttributes): string {
 
 /** Add or remove all checked item from list */
 function handleFacetCheckboxChange(event: Event) {
-  const target = event.target;
+  const target = event.target as HTMLInputElement;
+  if (!target) return;
+
   const facetName = target.getAttribute('data-igv-facet-name');
   const isChecked = target.checked;
   const selector = `.igv-filter[data-igv-facet-name="${facetName}"]`;
   const filterCheckboxes = document.querySelectorAll(selector);
   filterCheckboxes.forEach((filterCheckbox) => {
-    filterCheckbox.checked = isChecked;
+    (filterCheckbox as HTMLInputElement).checked = isChecked;
   });
   const changeEvent = new Event('change');
-  filterCheckboxes[0].dispatchEvent(changeEvent);
+  (filterCheckboxes[0] as HTMLInputElement).dispatchEvent(changeEvent);
 }
 
 // Enable calling via standard DOM onChange API
@@ -399,17 +459,6 @@ const CategoricalFacet: React.FC<CategoricalFacetProps> = ({
     [selection, onChange]
   );
 
-  const handleFacetHeaderCheckboxChange = useCallback(
-    (checked: boolean) => {
-      if (checked) {
-        onChange([...facet.filterNames]);
-      } else {
-        onChange([]);
-      }
-    },
-    [facet.filterNames, onChange]
-  );
-
   const togglePartialCollapse = useCallback(() => {
     setIsPartlyCollapsed(!isPartlyCollapsed);
   }, [isPartlyCollapsed]);
@@ -419,31 +468,13 @@ const CategoricalFacet: React.FC<CategoricalFacetProps> = ({
   const friendlyName = getFriendlyFacetName(facet);
   const facetClass = getFacetClass(facet.name);
 
-  // Determine header checkbox state
-  const allSelected = facet.filterNames.every((filterName) => selection.includes(filterName));
-  const noneSelected = !facet.filterNames.some((filterName) => selection.includes(filterName));
-  const someSelected = !allSelected && !noneSelected;
-
-  return div({ className: `igv-facet ${facetClass}` }, [
-    // Facet header with checkbox
+  return div({ className: `igv-facet ${facetClass}`, style: igvStyles.igvFacet }, [
     div([
-      input({
-        type: 'checkbox',
-        className: 'igv-facet-header-checkbox',
-        'data-igv-facet-name': facet.name,
-        name: `igv-facet-${facet.name}`,
-        checked: allSelected,
-        ref: (el) => {
-          if (el) {
-            el.indeterminate = someSelected;
-          }
-        },
-        onChange: (e) => handleFacetHeaderCheckboxChange(e.target.checked),
-      }),
       span(
         {
           className: 'igv-facet-header igv-facet-header-categorical',
           title: facet.description,
+          style: igvStyles.igvFacetHeaderCategorical,
         },
         [friendlyName]
       ),
@@ -458,12 +489,16 @@ const CategoricalFacet: React.FC<CategoricalFacetProps> = ({
         {
           key: filterName,
           className: 'igv-filter-label',
-          style: isHidden ? { display: 'none' } : {},
+          style: {
+            ...igvStyles.igvFilterLabel,
+            ...(isHidden ? { display: 'none' } : {}),
+            cursor: 'pointer',
+          },
           'data-igv-facet-name': facet.name,
           'data-igv-filter-name': filterName,
         },
         [
-          div([
+          div({ style: igvStyles.igvFilterLabelDiv }, [
             input({
               type: 'checkbox',
               value: filterName,
@@ -476,7 +511,7 @@ const CategoricalFacet: React.FC<CategoricalFacetProps> = ({
             }),
             span({ className: 'igv-filter-label-text' }, [filterName]),
             span({ className: 'igv-filter-label-quantities' }, [
-              span({ className: 'igv-filter-count' }, [count.toString()]),
+              span({ className: 'igv-filter-count', style: igvStyles.igvFilterCount }, [count.toString()]),
             ]),
           ]),
         ]
@@ -491,7 +526,7 @@ const CategoricalFacet: React.FC<CategoricalFacetProps> = ({
           'data-igv-facet-name': facet.name,
           'data-igv-is-partly-collapsed': isPartlyCollapsed.toString(),
           onClick: togglePartialCollapse,
-          style: { cursor: 'pointer' },
+          style: igvStyles.igvFacetToggle,
         },
         [isPartlyCollapsed ? 'More...' : 'Less...']
       ),
@@ -517,8 +552,8 @@ function getAndInput2Style(operator: string) {
  * @param {number} [precision]
  * @return {number}
  */
-function round(val: unknown, precision = 0) {
-  return +`${Math.round(`${val}e+${precision}`)}e-${precision}`;
+function round(val: number, precision = 0) {
+  return +`${Math.round(+`${val}e+${precision}`)}e-${precision}`;
 }
 
 /**
@@ -584,17 +619,18 @@ function toggleAfCollapse(event: { target: any }) {
   const facetSel = '.igv-facet-population-af';
   document.querySelectorAll(facetSel).forEach((facetDom) => {
     if (newIsAfCollapsed) {
-      facetDom.style = 'display: none;';
+      (facetDom as HTMLElement).style.display = 'none';
     } else {
-      facetDom.style = '';
+      (facetDom as HTMLElement).style.display = '';
     }
   });
 
   const afToggler = document.querySelector('.igv-population-af-toggle');
-  afToggler.setAttribute(attrName, newIsAfCollapsed);
-
-  const action = newIsAfCollapsed ? 'Show' : 'Hide';
-  afToggler.textContent = `${action} by population`;
+  if (afToggler) {
+    afToggler.setAttribute(attrName, String(newIsAfCollapsed));
+    const action = newIsAfCollapsed ? 'Show' : 'Hide';
+    afToggler.textContent = `${action} by population`;
+  }
 }
 
 window.IGVFilter.toggleAfCollapse = toggleAfCollapse;
@@ -843,7 +879,7 @@ const prepareNumericFacetData = (facet: NumericFacetAttributes) => {
 
 const NumericFacet: React.FC<{
   facet: NumericFacetAttributes;
-  selection: any[];
+  // selection: any[];
   onChange: (selection: any[]) => void;
 }> = ({ facet, onChange }) => {
   const [currentRange, setCurrentRange] = useState<[number, number] | null>(null);
@@ -897,11 +933,8 @@ const NumericFacet: React.FC<{
     [currentRange, onChange]
   );
 
-  // TODO what to do here
   if (!facetData) {
-    return div({ style: { marginBottom: '1rem', padding: '1rem', backgroundColor: '#f5f5f5' } }, [
-      div({ style: { color: '#666' } }, ['Invalid or missing statistics for this facet']),
-    ]);
+    return null;
   }
 
   const { bars, xScale, styles, histogramWidth, histogramHeight, sliderConfig } = facetData;
@@ -915,13 +948,17 @@ const NumericFacet: React.FC<{
   return div(
     {
       className: `igv-facet igv-facet-${facet.name} igv-facet-numeric`,
-      style: { display: isPopulationAf ? 'none' : 'block' },
+      style: {
+        ...igvStyles.igvFacet,
+        display: isPopulationAf ? 'none' : 'block',
+      },
     },
     [
       span(
         {
           className: 'igv-facet-header',
           title: facet.description,
+          style: igvStyles.igvFacetHeader,
         },
         [friendlyName]
       ),
@@ -1017,6 +1054,7 @@ const NumericFacet: React.FC<{
           {
             className: 'igv-population-af-toggle',
             onClick: toggleAfCollapse,
+            style: igvStyles.igvPopulationAfToggle,
           },
           ['Show by population']
         ),
@@ -1280,7 +1318,7 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({ trackToFilter, onFilterChange, 
   //   }
   // }, [trackToFilter, refreshFacets]);
 
-  return div({ className: 'igv-filters-container' }, [
+  return div({ className: 'igv-filters-container', style: igvStyles.igvFiltersContainer }, [
     ...facets.map((facet) => {
       if (facet.type === 'categorical') {
         return React.createElement(CategoricalFacet, {
