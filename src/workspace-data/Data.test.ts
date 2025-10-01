@@ -1,6 +1,6 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { decodeSessionFromUrl, getIgvUrlParams } from 'src/components/useIGVSessions';
+import { decodeSessionFromUrl, getIgvUrlParams } from 'src/components/igv/useIGVSessions';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { asMockedFn, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleBucketOptions, defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';

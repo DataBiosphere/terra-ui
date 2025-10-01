@@ -1,12 +1,11 @@
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useCallback, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link } from 'src/components/common';
 import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils';
 import { centeredSpinner, icon } from 'src/components/icons';
 import IGVAddTrackModal from 'src/components/igv/IGVAddTrackModal';
-import initIgvFacets from 'src/components/igv/IGVFilter';
 import { GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage';
 import colors from 'src/libs/colors';
 import { reportError, withErrorReporting } from 'src/libs/error';
@@ -17,21 +16,9 @@ import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src
 import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
+import { buildFilter, initFacets } from './IGVFilter';
 import IGVSessionModal from './IGVSessionModal';
 import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
-
-const panelContainerSelector = '[aria-label="data in this workspace"]';
-
-/** Hide (or show) default content in sidecar panel, to account for IGV filtering panel */
-function updateDataTablePanelDisplay(display) {
-  const container = document.querySelector(panelContainerSelector);
-
-  const importDataDiv = container.parentElement.children[0];
-  importDataDiv.style.display = display;
-
-  const tableList = container.children[0];
-  tableList.style.display = display;
-}
 
 function getHasVariantFiles(files) {
   return files.some((file) => file.filePath.includes('vcf'));
@@ -45,13 +32,118 @@ function processUrl(url, isSignedUrl) {
 }
 
 // format for selectedFiles prop: [{ filePath, indexFilePath, isSignedUrl } }]
-const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, initialSession }) => {
+const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, initialSession, onFilterPanelChange }) => {
   const [loadingIgv, setLoadingIgv] = useState(true);
   const [requesterPaysModal, setRequesterPaysModal] = useState(null);
   const [showAddTrackModal, setShowAddTrackModal] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [sessionAction, setSessionAction] = useState(null); // 'save' or 'load'
   const [sharingSession, setSharingSession] = useState(false);
+  const [filterPanelData, setFilterPanelData] = useState(null);
+  const currentFilterFunction = useRef(null);
+
+  const findVariantTrack = useCallback(() => {
+    if (!igvBrowser.current) return null;
+
+    for (const trackView of igvBrowser.current.trackViews) {
+      const track = trackView.track;
+
+      if (track.type === 'variant' || track.format === 'vcf' || track.format === 'VCF' || (track.url && track.url.toLowerCase().includes('.vcf'))) {
+        return track;
+      }
+    }
+
+    return null;
+  }, []);
+
+  const handleFilterChange = useCallback(
+    (selections, facets) => {
+      if (!igvBrowser.current) return;
+
+      const filterFunction = buildFilter(selections, facets);
+      currentFilterFunction.current = filterFunction;
+
+      // const trackToFilter = igvBrowser.current.findTracks('type', 'variant')[0];
+      const trackToFilter = findVariantTrack();
+
+      if (trackToFilter) {
+        trackToFilter.filter = filterFunction;
+
+        // Try to refresh the track view
+        const trackView = igvBrowser.current.trackViews.find((tv) => tv.track === trackToFilter);
+        if (trackView) {
+          trackView.repaintViews();
+        }
+      } else {
+        console.error('No variant track found for filtering');
+      }
+    },
+    [findVariantTrack]
+  );
+
+  // Handle locus changes - update filter facets with new data
+  const handleLocusChange = useCallback(() => {
+    if (!filterPanelData || !filterPanelData.onFilterChange) return;
+
+    const trackToFilter = findVariantTrack();
+    if (trackToFilter) {
+      // Re-initialize facets with new features in view
+      const facets = initFacets(trackToFilter);
+
+      // Notify the filter panel to update with new facet data
+      if (filterPanelData.onFacetsUpdate) {
+        filterPanelData.onFacetsUpdate(facets, trackToFilter);
+      }
+
+      // Re-apply the current filter if one exists
+      if (currentFilterFunction.current) {
+        trackToFilter.filter = currentFilterFunction.current;
+        const trackView = igvBrowser.current.trackViews.find((tv) => tv.track === trackToFilter);
+        if (trackView) {
+          trackView.repaintViews();
+        }
+      }
+    }
+  }, [filterPanelData, findVariantTrack]);
+
+  const toggleFilterPanel = useCallback(
+    (show) => {
+      if (onFilterPanelChange) {
+        if (show) {
+          if (!igvBrowser.current) {
+            console.error('IGV browser not initialized');
+            return;
+          }
+
+          const trackToFilter = findVariantTrack();
+
+          if (!trackToFilter) {
+            console.error('No variant track found');
+            return;
+          }
+
+          const panelData = {
+            show: true,
+            trackToFilter,
+            onFilterChange: handleFilterChange,
+            onFacetsUpdate: (facets, track) => {
+              // This will be called when locus changes to update facets
+              setFilterPanelData((prev) => ({ ...prev, currentFacets: facets, trackToFilter: track }));
+            },
+          };
+
+          setFilterPanelData(panelData);
+          onFilterPanelChange(panelData);
+        } else {
+          setFilterPanelData(null);
+          onFilterPanelChange({ show: false });
+        }
+      } else {
+        console.error('onFilterPanelChange is not provided');
+      }
+    },
+    [handleFilterChange, onFilterPanelChange, findVariantTrack]
+  );
 
   const containerRef = useRef();
   const igvLibrary = useRef();
@@ -218,13 +310,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject));
         igvBrowser.current = await igv.createBrowser(containerRef.current, options);
         window.igvBrowser = igvBrowser.current;
-        // const trackToFilter = window.igvBrowser.findTracks('name', 'Phase 3 WGS variants')[0];
         // Update the facet widgets no locus change.  Changing the locus changes the features in view.  This can be
         // relatively frequent,  many times a second if dragging the track.
-        igvBrowser.current.on('locuschange', () => {
-          const trackToFilter = igvBrowser.current.findTracks('type', 'variant')[0];
-          initIgvFacets(trackToFilter, panelContainerSelector);
-        });
+        igvBrowser.current.on('locuschange', handleLocusChange);
 
         const initialTracks = _.map(({ filePath, indexFilePath, isSignedUrl }) => {
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };
@@ -244,7 +332,15 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
 
     igvSetup();
 
-    return () => !!igvLibrary.current && igvLibrary.current.removeAllBrowsers();
+    return () => {
+      if (igvLibrary.current) {
+        // Remove event listeners before cleanup
+        if (igvBrowser.current) {
+          igvBrowser.current.off('locuschange', handleLocusChange);
+        }
+        igvLibrary.current.removeAllBrowsers();
+      }
+    };
   });
 
   return h(Fragment, [
@@ -253,7 +349,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         Link,
         {
           onClick: () => {
-            updateDataTablePanelDisplay('');
             onDismiss();
           },
         },
@@ -308,10 +403,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
               {
                 disabled: loadingIgv,
                 onClick: () => {
-                  const trackToFilter = window.igvBrowser.findTracks('type', 'variant')[0];
-                  updateDataTablePanelDisplay('none');
+                  toggleFilterPanel(true);
                   // Update counts
-                  initIgvFacets(trackToFilter, panelContainerSelector);
+                  // initIgvFacets(trackToFilter, panelContainerSelector);
                 },
               },
               ['Filter variants']

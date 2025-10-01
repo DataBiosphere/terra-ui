@@ -263,6 +263,7 @@ const EntitiesContent = ({
   loadMetadata,
   snapshotName,
   editable,
+  onIgvFilterPanelChange,
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -665,8 +666,13 @@ const EntitiesContent = ({
           setIgvInitialSession(undefined);
           clearIgvUrlParams();
           refreshSessions();
+          // Clear filter panel state when dismissing
+          if (onIgvFilterPanelChange) {
+            onIgvFilterPanelChange({ show: false });
+          }
         },
         initialSession: igvInitialSession,
+        onFilterPanelChange: onIgvFilterPanelChange,
       })
     : h(Fragment, [
         h(DataTable, {
