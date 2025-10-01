@@ -30,7 +30,7 @@ jest.mock('src/libs/error', () => ({
   reportError: jest.fn(),
 }));
 
-jest.mock('src/components/useIGVSessions', () => ({
+jest.mock('src/components/igv/useIGVSessions', () => ({
   getIgvUrlParams: jest.fn().mockReturnValue({
     igvSession: null,
     igvGenome: null,
