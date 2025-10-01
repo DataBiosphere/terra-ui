@@ -7,6 +7,7 @@ export interface PipelineInputDescription {
   label?: string;
   placeholder?: string;
   helpText?: string;
+  validationRegex?: string;
 }
 
 export const INPUT_DESCRIPTIONS: Record<string, PipelineInputDescription> = {
@@ -14,8 +15,10 @@ export const INPUT_DESCRIPTIONS: Record<string, PipelineInputDescription> = {
     label: 'Enter prefix for output file',
     placeholder: 'Enter prefix name',
     helpText: 'May only contain alphanumeric characters, dashes, and underscores.',
+    validationRegex: '^[a-zA-Z0-9_.-]+$',
   },
   multiSampleVcf: {
     label: 'Select a multi-sample VCF file',
+    validationRegex: '^[a-zA-Z0-9_.-]+$',
   },
 };
