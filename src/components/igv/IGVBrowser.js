@@ -41,6 +41,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [sharingSession, setSharingSession] = useState(false);
   const [filterPanelData, setFilterPanelData] = useState(null);
   const currentFilterFunction = useRef(null);
+  const [tracksLoaded, setTracksLoaded] = useState(false);
+  const [savedSelections, setSavedSelections] = useState(null); // To persist selections
+  const [savedFacets, setSavedFacets] = useState(null); // To persist facets
 
   const findVariantTrack = useCallback(() => {
     if (!igvBrowser.current) return null;
@@ -63,7 +66,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const filterFunction = buildFilter(selections, facets);
       currentFilterFunction.current = filterFunction;
 
-      // const trackToFilter = igvBrowser.current.findTracks('type', 'variant')[0];
       const trackToFilter = findVariantTrack();
 
       if (trackToFilter) {
@@ -122,19 +124,26 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
             return;
           }
 
+          // Restore saved state if available
           const panelData = {
             show: true,
             trackToFilter,
             onFilterChange: handleFilterChange,
             onFacetsUpdate: (facets, track) => {
-              // This will be called when locus changes to update facets
               setFilterPanelData((prev) => ({ ...prev, currentFacets: facets, trackToFilter: track }));
             },
+            currentSelections: savedSelections || {}, // Restore saved selections
+            currentFacets: savedFacets || initFacets(trackToFilter), // Restore saved facets or initialize new ones
           };
 
           setFilterPanelData(panelData);
           onFilterPanelChange(panelData);
         } else {
+          // Save current state when closing the panel
+          if (filterPanelData) {
+            setSavedSelections(filterPanelData.currentSelections);
+            setSavedFacets(filterPanelData.currentFacets);
+          }
           setFilterPanelData(null);
           onFilterPanelChange({ show: false });
         }
@@ -142,7 +151,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         console.error('onFilterPanelChange is not provided');
       }
     },
-    [handleFilterChange, onFilterPanelChange, findVariantTrack]
+    [handleFilterChange, onFilterPanelChange, findVariantTrack, filterPanelData, savedSelections, savedFacets]
   );
 
   const containerRef = useRef();
@@ -217,7 +226,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       }
     }
 
-    _.forEach(({ name, url, indexURL, isSignedUrl }) => {
+    const loadTrackPromises = tracks.map(({ name, url, indexURL, isSignedUrl }) => {
       const [bucket] = parseGsUri(url);
       const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined };
 
@@ -235,13 +244,16 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const igvProcessedFullUrl = processUrl(fullUrl, isSignedUrl);
       const igvProcessedFullIndexUrl = processUrl(fullIndexUrl, isSignedUrl);
 
-      igvBrowser.current.loadTrack({
+      return igvBrowser.current.loadTrack({
         name: name || `${simpleUrl} (${url})`,
         url: igvProcessedFullUrl,
         indexURL: indexURL ? igvProcessedFullIndexUrl : undefined,
         visibilityWindow,
       });
-    }, tracks);
+    });
+
+    await Promise.all(loadTrackPromises);
+    setTracksLoaded(true);
   });
 
   const saveSession = async (sessionName) => {
@@ -310,7 +322,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject));
         igvBrowser.current = await igv.createBrowser(containerRef.current, options);
         window.igvBrowser = igvBrowser.current;
-        // Update the facet widgets no locus change.  Changing the locus changes the features in view.  This can be
+        // Update the facet widgets on locus change.  Changing the locus changes the features in view.  This can be
         // relatively frequent,  many times a second if dragging the track.
         igvBrowser.current.on('locuschange', handleLocusChange);
 
@@ -398,7 +410,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           : h(
               ButtonOutline,
               {
-                disabled: loadingIgv,
+                disabled: loadingIgv || !tracksLoaded,
                 onClick: () => {
                   toggleFilterPanel(true);
                   // Update counts

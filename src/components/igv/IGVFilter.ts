@@ -712,7 +712,7 @@ const HistogramSlider: React.FC<{
       setCurrentRange(newRange);
       onRangeChange?.(newRange);
     },
-    [isDragging, currentRange, xScale, facet.statistics, onRangeChange]
+    [isDragging, currentRange, xScale, onRangeChange, facet.statistics]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -1181,7 +1181,8 @@ function initFacets(trackToFilter: {
         name: dimension,
         type,
         description,
-        filterNumbers: [], // TODO should i make statistics required and initialize it with some values?
+        filterNumbers: [],
+        // TODO should i make statistics required and initialize it with some values?
       };
       facets.push(facet);
     }
@@ -1241,14 +1242,19 @@ interface IGVFiltersProps {
     getFilterableAttributes: () => any;
     getInViewFeatures: () => any;
   };
+  currentSelections?: { [facetName: string]: any };
+  currentFacets?: FacetAttributes[];
+
   containerSelector?: string;
   onFilterChange?: (selections: { [facetName: string]: any }, facets: FacetAttributes[]) => void;
   onFacetsUpdate?: (facets: FacetAttributes[], track: any) => void;
-  refreshTrigger?: number; // Add refresh trigger prop
+  refreshTrigger?: number;
 }
 
 const IGVFilters: React.FC<IGVFiltersProps> = ({
   trackToFilter,
+  currentSelections = {},
+  currentFacets = [],
   onFilterChange,
   onFacetsUpdate,
   refreshTrigger = 0,
@@ -1259,13 +1265,16 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
 
   // Initialize facets when trackToFilter changes
   useEffect(() => {
-    if (trackToFilter) {
+    if (trackToFilter && !isInitialized) {
       const initializeFacets = () => {
-        const initializedFacets = initFacets(trackToFilter);
+        // const initializedFacets = initFacets(trackToFilter);
+        const initializedFacets = currentFacets.length > 0 ? currentFacets : initFacets(trackToFilter);
+
         setFacets(initializedFacets);
 
         // Initialize selections with default values
-        const initialSelections: { [facetName: string]: any } = {};
+        // const initialSelections: { [facetName: string]: any } = {};
+        const initialSelections: { [facetName: string]: any } = { ...currentSelections };
 
         initializedFacets.forEach((facet) => {
           if (facet.type === 'categorical') {
@@ -1288,7 +1297,7 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
 
       initializeFacets();
     }
-  }, [trackToFilter, onFacetsUpdate]);
+  }, [trackToFilter, onFacetsUpdate, currentSelections, currentFacets, isInitialized]);
 
   // Update filter counts when filters are initially loaded or when the genomic location changes
   useEffect(() => {
@@ -1462,6 +1471,7 @@ function updateFilterCounts(
 
       return updatedFacet;
     }
+
     return facet;
   });
 
