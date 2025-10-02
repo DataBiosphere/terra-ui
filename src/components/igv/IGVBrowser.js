@@ -335,9 +335,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     return () => {
       if (igvLibrary.current) {
         // Remove event listeners before cleanup
-        if (igvBrowser.current) {
-          igvBrowser.current.off('locuschange', handleLocusChange);
-        }
         igvLibrary.current.removeAllBrowsers();
       }
     };
