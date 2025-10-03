@@ -155,6 +155,18 @@ describe('getValidIgvFiles', () => {
     ]);
   });
 
+  it('condenses duplicate inputs', async () => {
+    expect(
+      await getValidIgvFiles(mockWorkspace, mockEntityType, ['gs://bucket/test2.vcf', 'gs://bucket/test2.vcf', 'gs://bucket/test2.idx'], mockSignal)
+    ).toEqual([
+      {
+        filePath: 'gs://bucket/test2.vcf',
+        indexFilePath: 'gs://bucket/test2.idx',
+        isSignedUrl: false,
+      },
+    ]);
+  });
+
   describe('TDR URLs', () => {
     it('allows TDR URLs', async () => {
       expect(
