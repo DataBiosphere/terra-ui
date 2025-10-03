@@ -23,7 +23,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : '(optional)'}
       </h3>
       <ValidatedInput
         width={400}

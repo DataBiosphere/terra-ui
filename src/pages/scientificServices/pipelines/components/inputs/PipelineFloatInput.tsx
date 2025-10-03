@@ -7,15 +7,21 @@ interface PipelineFloatInputProps {
   input: PipelineInput;
   value: string;
   onChange: (value: string) => void;
+  validationError?: string;
 }
 
-export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({ input, value, onChange }) => {
+export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({ input, value, onChange, validationError }) => {
   const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name] || {};
 
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        {label || input.name}{' '}
+        {input.isRequired ? (
+          <span style={{ color: '#DB3214' }}>*</span>
+        ) : (
+          <span style={{ fontStyle: 'italic', fontWeight: 'normal' }}> - optional</span>
+        )}
       </h3>
       <ValidatedInput
         width={400}

@@ -149,12 +149,16 @@ export const RunJob = () => {
       return;
     }
 
+    const filteredUserInputs = Object.fromEntries(
+      Object.entries(selectedUserInputs).filter(([_, value]) => value !== '')
+    );
+
     setIsSubmitting(true);
 
     const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
       pipelineName,
       selectedPipeline.pipelineVersion,
-      selectedUserInputs,
+      filteredUserInputs,
       runDescription
     );
 
@@ -165,7 +169,7 @@ export const RunJob = () => {
         pipelineName,
         selectedPipeline.pipelineVersion,
         pipelineInputs,
-        selectedUserInputs,
+        filteredUserInputs,
         fileInputUploadUrls,
         setUploadState
       );
