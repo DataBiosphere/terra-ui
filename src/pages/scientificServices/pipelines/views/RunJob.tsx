@@ -19,6 +19,7 @@ import {
   PipelineFileInput,
   PipelineInputFileUploadState,
 } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
+import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFloatInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
@@ -99,7 +100,7 @@ export const RunJob = () => {
   }
 
   useEffect(() => {
-    // Update selected user inputs when pipeline inputs change
+    // Update selected user inputs when pipeline inputs change IS THIS RIGHT???
     resetSelectedUserInputs();
   }, [pipelineInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -229,6 +230,27 @@ export const RunJob = () => {
                 .map((input) => {
                   return (
                     <PipelineStringInput
+                      input={input}
+                      onChange={(value) =>
+                        setSelectedUserInputs((prev) => ({
+                          ...prev,
+                          [input.name]: value,
+                        }))
+                      }
+                      onValidation={(error) => handleInputValidation(input.name, error)}
+                      validationError={validationErrors[input.name]}
+                      value={selectedUserInputs[input.name]}
+                      key={`${input.name}`}
+                    />
+                  );
+                })}
+
+              {/* Displays all FLOAT inputs, one after another */}
+              {pipelineInputs
+                .filter((input) => input.type === 'FLOAT')
+                .map((input) => {
+                  return (
+                    <PipelineFloatInput
                       input={input}
                       onChange={(value) =>
                         setSelectedUserInputs((prev) => ({

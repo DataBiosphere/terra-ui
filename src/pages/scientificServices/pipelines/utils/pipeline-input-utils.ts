@@ -21,4 +21,9 @@ export const INPUT_DESCRIPTIONS: Record<string, PipelineInputDescription> = {
     label: 'Select a multi-sample VCF file',
     validationRegex: '^[a-zA-Z0-9_.-]+$',
   },
+  minDr2ForInclusion: {
+    label: 'Minimum imputation quality for inclusion in output',
+    placeholder: '0.0',
+    helpText: 'Value must be between 0 and 1 (inclusive). Default is 0.0',
+  },
 };

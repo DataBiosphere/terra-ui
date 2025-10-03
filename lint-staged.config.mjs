@@ -15,6 +15,6 @@ export default {
       return []
     }
 
-    return [`yarn eslint --max-warnings=0 ${filesToLint.join(' ')}`];
+    return [`yarn eslint --fix --max-warnings=0 ${filesToLint.join(' ')}`];
   },
 };
