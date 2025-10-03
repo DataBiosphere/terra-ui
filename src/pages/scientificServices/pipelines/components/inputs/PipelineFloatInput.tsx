@@ -8,9 +8,16 @@ interface PipelineFloatInputProps {
   value: string;
   onChange: (value: string) => void;
   validationError?: string;
+  onValidation(error?: string): void;
 }
 
-export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({ input, value, onChange, validationError }) => {
+export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
+  input,
+  value,
+  onChange,
+  validationError,
+  onValidation,
+}) => {
   const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name] || {};
 
   return (
@@ -33,6 +40,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({ input, v
           placeholder: placeholder || '',
           onChange: (e) => {
             onChange(e);
+            onValidation(undefined);
           },
         }}
       />
