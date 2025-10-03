@@ -547,18 +547,23 @@ export const WorkspaceData = _.flow(
           const trackId = filterState.trackToFilter?.name || 'default';
           const cachedState = igvFilterCache.current[trackId];
 
+          const finalSelections = cachedState?.selections || filterState.currentSelections || {};
+          const finalFacets = cachedState?.facets || filterState.currentFacets || [];
+
           setIgvFilterState({
             ...filterState,
-            cachedSelections: cachedState?.selections,
-            cachedFacets: cachedState?.facets,
+            cachedSelections: finalSelections,
+            cachedFacets: finalFacets,
+            isInitialized: filterState.isInitialized || false,
+            setIsInitialized: filterState.setIsInitialized,
           });
         } else {
           // When closing, cache the current state
           if (igvFilterState?.trackToFilter) {
             const trackId = igvFilterState.trackToFilter.name || 'default';
             igvFilterCache.current[trackId] = {
-              selections: igvFilterState.lastSelections,
-              facets: igvFilterState.lastFacets,
+              selections: igvFilterState.cachedSelections,
+              facets: igvFilterState.cachedFacets,
               timestamp: Date.now(),
             };
           }
@@ -691,7 +696,26 @@ export const WorkspaceData = _.flow(
                           ),
                           h(IGVFilters, {
                             trackToFilter: igvFilterState.trackToFilter,
-                            onFilterChange: igvFilterState.onFilterChange,
+                            onFilterChange: (selections, facets) => {
+                              // Original filter change logic
+                              igvFilterState.onFilterChange(selections, facets);
+
+                              // Update the current state for saving
+                              setIgvFilterState((prev) => ({
+                                ...prev,
+                                cachedSelections: selections,
+                                cachedFacets: facets,
+                              }));
+                            },
+                            onFacetsUpdate: (facets, track, selections) => {
+                              if (igvFilterState.onFacetsUpdate) {
+                                igvFilterState.onFacetsUpdate(facets, track, selections);
+                              }
+                            },
+                            currentSelections: igvFilterState.cachedSelections || {},
+                            currentFacets: igvFilterState.cachedFacets || [],
+                            isInitialized: igvFilterState.isInitialized || false,
+                            setIsInitialized: igvFilterState.setIsInitialized,
                           }),
                         ]),
                       ]

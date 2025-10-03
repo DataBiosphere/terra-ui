@@ -1244,10 +1244,11 @@ interface IGVFiltersProps {
   };
   currentSelections?: { [facetName: string]: any };
   currentFacets?: FacetAttributes[];
-
+  isInitialized?: boolean;
+  setIsInitialized?: (initialized: boolean) => void;
   containerSelector?: string;
   onFilterChange?: (selections: { [facetName: string]: any }, facets: FacetAttributes[]) => void;
-  onFacetsUpdate?: (facets: FacetAttributes[], track: any) => void;
+  onFacetsUpdate?: (facets: FacetAttributes[], track: any, selections: { [facetName: string]: any }) => void;
   refreshTrigger?: number;
 }
 
@@ -1255,53 +1256,71 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
   trackToFilter,
   currentSelections = {},
   currentFacets = [],
+  isInitialized = false,
+  setIsInitialized,
   onFilterChange,
   onFacetsUpdate,
   refreshTrigger = 0,
 }) => {
   const [facets, setFacets] = useState<FacetAttributes[]>([]);
   const [selections, setSelections] = useState<{ [facetName: string]: any }>({});
-  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize facets when trackToFilter changes
   useEffect(() => {
     if (trackToFilter && !isInitialized) {
       const initializeFacets = () => {
-        // const initializedFacets = initFacets(trackToFilter);
         const initializedFacets = currentFacets.length > 0 ? currentFacets : initFacets(trackToFilter);
 
         setFacets(initializedFacets);
 
         // Initialize selections with default values
-        // const initialSelections: { [facetName: string]: any } = {};
-        const initialSelections: { [facetName: string]: any } = { ...currentSelections };
+        const hasSavedSelections = Object.keys(currentSelections).length > 0;
+        let initialSelections: { [facetName: string]: any } = {};
 
-        initializedFacets.forEach((facet) => {
-          if (facet.type === 'categorical') {
-            initialSelections[facet.name] = [...facet.filterNames]; // All selected by default
-          } else {
-            initialSelections[facet.name] = [['between', [facet.statistics?.min || 0, facet.statistics?.max || 0]]];
-          }
-
-          return initialSelections; // TODO do i need this line
-        });
+        if (hasSavedSelections) {
+          // Use saved selections
+          initialSelections = { ...currentSelections };
+        } else {
+          // Initialize with defaults (first time only)
+          initializedFacets.forEach((facet) => {
+            if (facet.type === 'categorical') {
+              initialSelections[facet.name] = [...facet.filterNames];
+            } else {
+              initialSelections[facet.name] = [['between', [facet.statistics?.min || 0, facet.statistics?.max || 0]]];
+            }
+          });
+        }
 
         setSelections(initialSelections);
-        setIsInitialized(true);
+
+        if (setIsInitialized) {
+          setIsInitialized(true);
+        }
 
         // Notify parent about facet updates
         if (onFacetsUpdate) {
-          onFacetsUpdate(initializedFacets, trackToFilter);
+          onFacetsUpdate(initializedFacets, trackToFilter, initialSelections);
         }
       };
 
       initializeFacets();
+    } else if (
+      trackToFilter &&
+      isInitialized &&
+      (currentFacets.length > 0 || Object.keys(currentSelections).length > 0)
+    ) {
+      if (currentFacets.length > 0) {
+        setFacets(currentFacets);
+      }
+      if (Object.keys(currentSelections).length > 0) {
+        setSelections(currentSelections);
+      }
     }
-  }, [trackToFilter, onFacetsUpdate, currentSelections, currentFacets, isInitialized]);
+  }, [trackToFilter, onFacetsUpdate, currentSelections, currentFacets, isInitialized, setIsInitialized]);
 
   // Update filter counts when filters are initially loaded or when the genomic location changes
   useEffect(() => {
-    if (isInitialized) {
+    if (facets.length > 0) {
       const updatedFacets = updateFilterCounts(trackToFilter, facets);
 
       // Avoid redundant state updates by checking if facets have actually changed
@@ -1333,10 +1352,14 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
           onFilterChange(updatedSelections, updatedFacets);
         }
 
+        if (onFacetsUpdate) {
+          onFacetsUpdate(updatedFacets, trackToFilter, updatedSelections);
+        }
+
         return updatedSelections;
       });
     },
-    [facets, trackToFilter, onFilterChange]
+    [facets, trackToFilter, onFilterChange, onFacetsUpdate]
   );
 
   return div({ className: 'igv-filters-container', style: igvStyles.igvFiltersContainer }, [

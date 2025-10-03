@@ -44,6 +44,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [tracksLoaded, setTracksLoaded] = useState(false);
   const [savedSelections, setSavedSelections] = useState(null); // To persist selections
   const [savedFacets, setSavedFacets] = useState(null); // To persist facets
+  const [filterInitialized, setFilterInitialized] = useState(false); // Add this line
 
   const findVariantTrack = useCallback(() => {
     if (!igvBrowser.current) return null;
@@ -129,11 +130,27 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
             show: true,
             trackToFilter,
             onFilterChange: handleFilterChange,
-            onFacetsUpdate: (facets, track) => {
-              setFilterPanelData((prev) => ({ ...prev, currentFacets: facets, trackToFilter: track }));
+            onFacetsUpdate: (facets, track, selections) => {
+              setFilterPanelData((prev) => ({
+                ...prev,
+                currentFacets: facets,
+                trackToFilter: track,
+                currentSelections: selections,
+              }));
+
+              // Also update the saved state immediately
+              setSavedSelections(selections || {});
+              setSavedFacets(facets || []);
+
+              // Mark as initialized when we receive the first update
+              if (!filterInitialized) {
+                setFilterInitialized(true);
+              }
             },
-            currentSelections: savedSelections || {}, // Restore saved selections
-            currentFacets: savedFacets || initFacets(trackToFilter), // Restore saved facets or initialize new ones
+            currentSelections: savedSelections || {},
+            currentFacets: savedFacets || [],
+            isInitialized: filterInitialized,
+            setIsInitialized: setFilterInitialized,
           };
 
           setFilterPanelData(panelData);
@@ -141,8 +158,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         } else {
           // Save current state when closing the panel
           if (filterPanelData) {
-            setSavedSelections(filterPanelData.currentSelections);
-            setSavedFacets(filterPanelData.currentFacets);
+            setSavedSelections(filterPanelData.currentSelections || {});
+            setSavedFacets(filterPanelData.currentFacets || []);
           }
           setFilterPanelData(null);
           onFilterPanelChange({ show: false });
@@ -151,8 +168,15 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         console.error('onFilterPanelChange is not provided');
       }
     },
-    [handleFilterChange, onFilterPanelChange, findVariantTrack, filterPanelData, savedSelections, savedFacets]
+    [handleFilterChange, onFilterPanelChange, findVariantTrack, filterPanelData, savedSelections, savedFacets, filterInitialized]
   );
+
+  const handleDismiss = useCallback(() => {
+    setFilterInitialized(false); // Reset when IGV closes
+    setSavedSelections(null);
+    setSavedFacets(null);
+    onDismiss();
+  }, [onDismiss]);
 
   const containerRef = useRef();
   const igvLibrary = useRef();
@@ -358,7 +382,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         Link,
         {
           onClick: () => {
-            onDismiss();
+            handleDismiss();
           },
         },
         [icon('arrowLeft', { style: { marginRight: '1ch' } }), 'Back to data table']
