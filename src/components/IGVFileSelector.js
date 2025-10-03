@@ -190,7 +190,10 @@ const validateUrl = async (fileRef) => {
   return url;
 };
 
-export const getValidIgvFiles = async (workspace, entityType, values, signal) => {
+export const getValidIgvFiles = async (workspace, entityType, allValues, signal) => {
+  // De-duplicate values to prevent processing/displaying the same file multiple times.
+  const values = _.uniq(allValues);
+
   const basicFileUrls = values.filter((value) => {
     let url;
     try {
