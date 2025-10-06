@@ -9,6 +9,7 @@ const igvStyles = {
   igvFiltersContainer: {
     float: 'left' as const,
     marginLeft: '5px',
+    marginBottom: '20px',
   },
   igvFacet: {
     marginTop: '15px',
@@ -445,6 +446,8 @@ const CategoricalFacet: React.FC<CategoricalFacetProps> = ({
 }) => {
   const [isPartlyCollapsed, setIsPartlyCollapsed] = useState(initialCollapsed);
 
+  // Don't render facet if it has fewer than 2 filters
+
   // Categorical facets need > 1 filter to be useful
   const numFilters = facet.filterNames.length;
 
@@ -681,6 +684,10 @@ const HistogramSlider: React.FC<{
   const sliderRef = useRef<HTMLDivElement>(null);
   const { sliderLeft, sliderWidth } = sliderConfig;
 
+  useEffect(() => {
+    setCurrentRange(brushSelection);
+  }, [brushSelection]);
+
   const handleMouseDown = useCallback(
     (handle: 'left' | 'right') => (e: React.MouseEvent) => {
       e.preventDefault();
@@ -884,20 +891,33 @@ const prepareNumericFacetData = (facet: NumericFacetAttributes) => {
 
 const NumericFacet: React.FC<{
   facet: NumericFacetAttributes;
+  selection?: any[];
   onChange: (selection: any[]) => void;
-}> = ({ facet, onChange }) => {
+}> = ({ facet, selection, onChange }) => {
   const [currentRange, setCurrentRange] = useState<[number, number] | null>(null);
   const [operator, setOperator] = useState<string>('between'); // Add operator state
 
   const facetData = useMemo(() => prepareNumericFacetData(facet), [facet]);
 
-  // Initialize current range from facet statistics
+  // Initialize current range from facet statistics or saved selection
   useEffect(() => {
-    if (facetData && !currentRange) {
-      const initialRange: [number, number] = [facetData.inputValue, facetData.inputValue2];
+    if (facetData) {
+      let initialRange: [number, number];
+      let initialOperator = 'between';
+
+      // Check if we have a saved selection to restore
+      if (selection && selection.length > 0 && selection[0].length === 2) {
+        initialOperator = selection[0][0];
+        initialRange = selection[0][1];
+        setOperator(initialOperator);
+      } else {
+        // Use default range from facet statistics
+        initialRange = [facetData.inputValue, facetData.inputValue2];
+      }
+
       setCurrentRange(initialRange);
     }
-  }, [facetData, currentRange]);
+  }, [facetData, selection]);
 
   const handleOperatorChange = useCallback(
     (event: any) => {
@@ -945,7 +965,7 @@ const NumericFacet: React.FC<{
 
   const friendlyName = getFriendlyFacetName(facet);
   const isPopulationAf = facet.name.endsWith('_AF');
-  const isGeneralAf = facet.name === 'AF';
+  // const isGeneralAf = facet.name === 'AF';
 
   const displayRange = currentRange || [facetData.inputValue, facetData.inputValue2];
 
@@ -1076,15 +1096,15 @@ const NumericFacet: React.FC<{
       ),
 
       // Population toggle if needed
-      isGeneralAf &&
-        div(
-          {
-            className: 'igv-population-af-toggle',
-            onClick: toggleAfCollapse,
-            style: igvStyles.igvPopulationAfToggle,
-          },
-          ['Show by population']
-        ),
+      // isGeneralAf &&
+      //   div(
+      //     {
+      //       className: 'igv-population-af-toggle',
+      //       onClick: toggleAfCollapse,
+      //       style: igvStyles.igvPopulationAfToggle,
+      //     },
+      //     ['Show by population']
+      //   ),
     ]
   );
 };
@@ -1249,7 +1269,6 @@ interface IGVFiltersProps {
   containerSelector?: string;
   onFilterChange?: (selections: { [facetName: string]: any }, facets: FacetAttributes[]) => void;
   onFacetsUpdate?: (facets: FacetAttributes[], track: any, selections: { [facetName: string]: any }) => void;
-  refreshTrigger?: number;
 }
 
 const IGVFilters: React.FC<IGVFiltersProps> = ({
@@ -1260,17 +1279,75 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
   setIsInitialized,
   onFilterChange,
   onFacetsUpdate,
-  refreshTrigger = 0,
 }) => {
   const [facets, setFacets] = useState<FacetAttributes[]>([]);
   const [selections, setSelections] = useState<{ [facetName: string]: any }>({});
+
+  // useEffect(() => {
+  //   console.log('IGVFilters useEffect - isInitialized:', isInitialized);
+  //   console.log('Current facets length:', currentFacets.length);
+  //   console.log('Track to filter exists:', !!trackToFilter);
+
+  //   if (trackToFilter && !isInitialized) {
+  //     const initializeFacets = () => {
+  //       // Always get fresh facets when re-initializing
+  //       const initializedFacets = initFacets(trackToFilter);
+  //       console.log('initFacets returned:', initializedFacets.length, 'facets');
+
+  //       // Update filter counts immediately
+  //       const facetsWithCounts = updateFilterCounts(trackToFilter, initializedFacets);
+  //       console.log('Updated facets with counts');
+
+  //       setFacets(facetsWithCounts);
+
+  //       // Initialize selections with default values
+  //       const hasSavedSelections = Object.keys(currentSelections).length > 0;
+  //       let initialSelections: { [facetName: string]: any } = {};
+
+  //       if (hasSavedSelections) {
+  //         initialSelections = { ...currentSelections };
+  //       } else {
+  //         facetsWithCounts.forEach((facet) => {
+  //           if (facet.type === 'categorical') {
+  //             initialSelections[facet.name] = [...facet.filterNames];
+  //           } else {
+  //             initialSelections[facet.name] = [['between', [facet.statistics?.min || 0, facet.statistics?.max || 0]]];
+  //           }
+  //         });
+  //       }
+
+  //       setSelections(initialSelections);
+
+  //       if (setIsInitialized) {
+  //         setIsInitialized(true);
+  //       }
+
+  //       if (onFacetsUpdate) {
+  //         onFacetsUpdate(facetsWithCounts, trackToFilter, initialSelections);
+  //       }
+  //     };
+
+  //     initializeFacets();
+  //   } else if (
+  //     trackToFilter &&
+  //     isInitialized &&
+  //     (currentFacets.length > 0 || Object.keys(currentSelections).length > 0)
+  //   ) {
+  //     // Just updating with saved state (not re-initializing)
+  //     if (currentFacets.length > 0) {
+  //       setFacets(currentFacets);
+  //     }
+  //     if (Object.keys(currentSelections).length > 0) {
+  //       setSelections(currentSelections);
+  //     }
+  //   }
+  // }, [trackToFilter, isInitialized, currentFacets, currentSelections, setIsInitialized, onFacetsUpdate]);
 
   // Initialize facets when trackToFilter changes
   useEffect(() => {
     if (trackToFilter && !isInitialized) {
       const initializeFacets = () => {
         const initializedFacets = currentFacets.length > 0 ? currentFacets : initFacets(trackToFilter);
-
         setFacets(initializedFacets);
 
         // Initialize selections with default values
@@ -1320,7 +1397,8 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
 
   // Update filter counts when filters are initially loaded or when the genomic location changes
   useEffect(() => {
-    if (facets.length > 0) {
+    if (facets.length > 0 && isInitialized) {
+      // Only run after initialization is complete
       const updatedFacets = updateFilterCounts(trackToFilter, facets);
 
       // Avoid redundant state updates by checking if facets have actually changed
@@ -1336,7 +1414,7 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
         return hasCountsChanged ? updatedFacets : prevFacets;
       });
     }
-  }, [isInitialized, trackToFilter, refreshTrigger, facets]);
+  }, [facets, isInitialized, trackToFilter]);
 
   const handleFacetChange = useCallback(
     (facetName: string, newSelection: any) => {
@@ -1361,7 +1439,6 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
     },
     [facets, trackToFilter, onFilterChange, onFacetsUpdate]
   );
-
   return div({ className: 'igv-filters-container', style: igvStyles.igvFiltersContainer }, [
     ...facets.map((facet) => {
       if (facet.type === 'categorical') {
@@ -1375,6 +1452,7 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
       return React.createElement(NumericFacet, {
         key: facet.name,
         facet,
+        selection: selections[facet.name],
         onChange: (newSelection: any[]) => handleFacetChange(facet.name, newSelection),
       });
     }),
@@ -1494,8 +1572,17 @@ function updateFilterCounts(
 
       return updatedFacet;
     }
-
     return facet;
+
+    // console.log('Resetting numeric facet filterNumbers for', facet.name);
+    // // For numeric facets, clear the filterNumbers array
+    // const updatedFacet: NumericFacetAttributes = {
+    //   ...facet,
+    //   filterNumbers: [], // Clear the array to avoid accumulating old data
+    // };
+    // return updatedFacet;
+
+    // });
   });
 
   // Loop through features counting by filter

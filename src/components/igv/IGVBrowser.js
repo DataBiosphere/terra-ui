@@ -42,9 +42,14 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [filterPanelData, setFilterPanelData] = useState(null);
   const currentFilterFunction = useRef(null);
   const [tracksLoaded, setTracksLoaded] = useState(false);
-  const [savedSelections, setSavedSelections] = useState(null); // To persist selections
-  const [savedFacets, setSavedFacets] = useState(null); // To persist facets
-  const [filterInitialized, setFilterInitialized] = useState(false); // Add this line
+  const [savedSelections, setSavedSelections] = useState(null);
+  const [savedFacets, setSavedFacets] = useState(null);
+  const [filterInitialized, setFilterInitialized] = useState(false);
+  // const filterPanelDataRef = useRef(null);
+
+  // useEffect(() => {
+  //   filterPanelDataRef.current = filterPanelData;
+  // }, [filterPanelData]);
 
   const findVariantTrack = useCallback(() => {
     if (!igvBrowser.current) return null;
@@ -86,6 +91,23 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
 
   // Handle locus changes - update filter facets with new data
   const handleLocusChange = useCallback(() => {
+    // console.log('handleLocusChange in IGVBrowser');
+    // console.log('Current filterPanelData:', filterPanelDataRef.current);
+
+    // if (filterPanelDataRef.current?.show) {
+    //   // Reset isInitialized to trigger re-initialization
+    //   setFilterInitialized(false);
+
+    //   // Update the filter panel data to propagate the change
+    //   const updatedPanelData = {
+    //     ...filterPanelDataRef.current,
+    //     isInitialized: false, // Reset initialization
+    //     currentFacets: [], // Clear current facets
+    //     currentSelections: {}, // Clear current selections
+    //   };
+    //   setFilterPanelData(updatedPanelData);
+    //   onFilterPanelChange(updatedPanelData);
+    // }
     if (!filterPanelData || !filterPanelData.onFilterChange) return;
 
     const trackToFilter = findVariantTrack();
@@ -349,6 +371,24 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         // Update the facet widgets on locus change.  Changing the locus changes the features in view.  This can be
         // relatively frequent,  many times a second if dragging the track.
         igvBrowser.current.on('locuschange', handleLocusChange);
+        // igvBrowser.current.on('locuschange', () => {
+        //   console.log('Locus changed, resetting filters:', filterPanelData?.show, filterInitialized);
+
+        //   if (filterPanelDataRef.current?.show) {
+        //     // Reset isInitialized to trigger re-initialization
+        //     setFilterInitialized(false);
+
+        //     // Update the filter panel data to propagate the change
+        //     const updatedPanelData = {
+        //       ...filterPanelDataRef.current,
+        //       isInitialized: false, // Reset initialization
+        //       // currentFacets: [], // Clear current facets
+        //       // currentSelections: {}, // Clear current selections
+        //     };
+        //     setFilterPanelData(updatedPanelData);
+        //     onFilterPanelChange(updatedPanelData);
+        //   }
+        // });
 
         const initialTracks = _.map(({ filePath, indexFilePath, isSignedUrl }) => {
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };
@@ -425,7 +465,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           {
             disabled: loadingIgv,
             onClick: () => setShowAddTrackModal(true),
-            style: { marginRight: '10px' },
           },
           ['Add track']
         ),
@@ -437,9 +476,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
                 disabled: loadingIgv || !tracksLoaded,
                 onClick: () => {
                   toggleFilterPanel(true);
-                  // Update counts
-                  // initIgvFacets(trackToFilter, panelContainerSelector);
                 },
+                style: { marginRight: '5px' },
               },
               ['Filter variants']
             ),
