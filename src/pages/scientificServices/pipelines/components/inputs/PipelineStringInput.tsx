@@ -18,7 +18,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
   validationError,
   onValidation,
 }) => {
-  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
+  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name];
 
   return (
     <>

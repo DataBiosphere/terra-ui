@@ -18,7 +18,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   validationError,
   onValidation,
 }) => {
-  const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name] || {};
+  const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name];
 
   return (
     <>

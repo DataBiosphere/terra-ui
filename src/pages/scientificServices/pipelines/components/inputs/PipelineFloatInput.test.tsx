@@ -12,6 +12,11 @@ jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', (
       placeholder: 'Enter a number',
       helpText: 'Must be a valid floating-point number.',
     },
+    optionalFloatInput: {
+      label: 'Enter an optional float value',
+      placeholder: 'Enter a number',
+      helpText: 'Must be a valid floating-point number.',
+    },
   },
 }));
 
@@ -52,6 +57,11 @@ describe('PipelineFloatInput', () => {
   it('does not show required indicator for optional inputs', () => {
     render(<PipelineFloatInput {...defaultProps} input={optionalInput} />);
     expect(screen.queryByText('*')).not.toBeInTheDocument();
+  });
+
+  it('shows "optional" text for optional inputs', () => {
+    render(<PipelineFloatInput {...defaultProps} input={optionalInput} />);
+    expect(screen.getByText('- optional')).toBeInTheDocument();
   });
 
   it('renders input placeholder', () => {
