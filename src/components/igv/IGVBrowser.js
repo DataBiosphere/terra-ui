@@ -16,7 +16,7 @@ import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src
 import * as Utils from 'src/libs/utils';
 import { RequesterPaysModal } from 'src/workspaces/common/requester-pays/RequesterPaysModal';
 
-import { buildFilter, initFacets } from './IGVFilter';
+import { buildFilter } from './IGVFilter';
 import IGVSessionModal from './IGVSessionModal';
 import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
 
@@ -45,11 +45,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [savedSelections, setSavedSelections] = useState(null);
   const [savedFacets, setSavedFacets] = useState(null);
   const [filterInitialized, setFilterInitialized] = useState(false);
-  // const filterPanelDataRef = useRef(null);
-
-  // useEffect(() => {
-  //   filterPanelDataRef.current = filterPanelData;
-  // }, [filterPanelData]);
 
   const findVariantTrack = useCallback(() => {
     if (!igvBrowser.current) return null;
@@ -89,47 +84,69 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     [findVariantTrack]
   );
 
-  // Handle locus changes - update filter facets with new data
   const handleLocusChange = useCallback(() => {
-    // console.log('handleLocusChange in IGVBrowser');
-    // console.log('Current filterPanelData:', filterPanelDataRef.current);
+    setFilterPanelData((prev) => {
+      if (!prev || !prev.onFilterChange) return prev;
 
-    // if (filterPanelDataRef.current?.show) {
-    //   // Reset isInitialized to trigger re-initialization
-    //   setFilterInitialized(false);
+      // Immediately show loading state
+      const loadingPanelData = {
+        ...prev,
+        isLoading: true, // Add loading flag
+      };
 
-    //   // Update the filter panel data to propagate the change
-    //   const updatedPanelData = {
-    //     ...filterPanelDataRef.current,
-    //     isInitialized: false, // Reset initialization
-    //     currentFacets: [], // Clear current facets
-    //     currentSelections: {}, // Clear current selections
-    //   };
-    //   setFilterPanelData(updatedPanelData);
-    //   onFilterPanelChange(updatedPanelData);
-    // }
-    if (!filterPanelData || !filterPanelData.onFilterChange) return;
-
-    const trackToFilter = findVariantTrack();
-    if (trackToFilter) {
-      // Re-initialize facets with new features in view
-      const facets = initFacets(trackToFilter);
-
-      // Notify the filter panel to update with new facet data
-      if (filterPanelData.onFacetsUpdate) {
-        filterPanelData.onFacetsUpdate(facets, trackToFilter);
+      if (onFilterPanelChange) {
+        onFilterPanelChange(loadingPanelData);
       }
 
-      // Re-apply the current filter if one exists
-      if (currentFilterFunction.current) {
-        trackToFilter.filter = currentFilterFunction.current;
-        const trackView = igvBrowser.current.trackViews.find((tv) => tv.track === trackToFilter);
-        if (trackView) {
-          trackView.repaintViews();
-        }
+      const trackToFilter = findVariantTrack();
+      if (trackToFilter) {
+        let attempts = 0;
+        const maxAttempts = 20;
+
+        const checkFeaturesLoaded = () => {
+          const features = trackToFilter.getInViewFeatures();
+
+          attempts++;
+
+          if (features.length > 0) {
+            // Features are loaded, update panel data
+            const updatedPanelData = {
+              ...prev,
+              trackToFilter,
+              isInitialized: false,
+              isLoading: false, // Clear loading flag
+            };
+
+            if (onFilterPanelChange) {
+              onFilterPanelChange(updatedPanelData);
+            }
+          } else if (attempts < maxAttempts) {
+            // Features not loaded yet, check again
+            setTimeout(checkFeaturesLoaded, 100);
+          } else {
+            // Max attempts reached, assume no features in this region
+            const updatedPanelData = {
+              ...prev,
+              trackToFilter,
+              isInitialized: false,
+              isLoading: false, // Clear loading flag
+            };
+
+            if (onFilterPanelChange) {
+              onFilterPanelChange(updatedPanelData);
+            }
+          }
+        };
+
+        // Start checking
+        setTimeout(checkFeaturesLoaded, 100);
+
+        return loadingPanelData; // Return loading state immediately
       }
-    }
-  }, [filterPanelData, findVariantTrack]);
+
+      return prev;
+    });
+  }, [findVariantTrack, onFilterPanelChange]);
 
   const toggleFilterPanel = useCallback(
     (show) => {
@@ -371,24 +388,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         // Update the facet widgets on locus change.  Changing the locus changes the features in view.  This can be
         // relatively frequent,  many times a second if dragging the track.
         igvBrowser.current.on('locuschange', handleLocusChange);
-        // igvBrowser.current.on('locuschange', () => {
-        //   console.log('Locus changed, resetting filters:', filterPanelData?.show, filterInitialized);
-
-        //   if (filterPanelDataRef.current?.show) {
-        //     // Reset isInitialized to trigger re-initialization
-        //     setFilterInitialized(false);
-
-        //     // Update the filter panel data to propagate the change
-        //     const updatedPanelData = {
-        //       ...filterPanelDataRef.current,
-        //       isInitialized: false, // Reset initialization
-        //       // currentFacets: [], // Clear current facets
-        //       // currentSelections: {}, // Clear current selections
-        //     };
-        //     setFilterPanelData(updatedPanelData);
-        //     onFilterPanelChange(updatedPanelData);
-        //   }
-        // });
 
         const initialTracks = _.map(({ filePath, indexFilePath, isSignedUrl }) => {
           return { url: filePath, indexURL: indexFilePath, isSignedUrl };

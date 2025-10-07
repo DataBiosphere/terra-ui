@@ -715,6 +715,7 @@ export const WorkspaceData = _.flow(
                             currentSelections: igvFilterState.cachedSelections || {},
                             currentFacets: igvFilterState.cachedFacets || [],
                             isInitialized: igvFilterState.isInitialized || false,
+                            isLoading: igvFilterState.isLoading || false,
                             setIsInitialized: igvFilterState.setIsInitialized,
                           }),
                         ]),
