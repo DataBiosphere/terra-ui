@@ -40,7 +40,13 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
           placeholder: placeholder || '',
           onChange: (e) => {
             onChange(e);
-            onValidation(undefined);
+            // Regex to match valid floating-point numbers, including integers and decimals
+            const floatRegex = /^[+-]?(?:\d*\.\d+|\d+\.?\d*)$/;
+            if (!floatRegex.test(e.trim()) && e.length > 0) {
+              onValidation('Invalid float value');
+            } else {
+              onValidation(undefined);
+            }
           },
         }}
       />
