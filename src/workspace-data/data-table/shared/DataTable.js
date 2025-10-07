@@ -634,6 +634,7 @@ const DataTable = (props) => {
                       const editLink =
                         editable &&
                         dataProvider.features.supportsEntityUpdating &&
+                        !updatingEntity &&
                         h(EditDataLink, {
                           'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
                           'aria-haspopup': 'dialog',
