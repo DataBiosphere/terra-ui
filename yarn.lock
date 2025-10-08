@@ -4182,7 +4182,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4196,10 +4196,10 @@ __metadata:
     "@rollup/plugin-typescript": ^11.1.6
     tslib: ^2.6.1
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
   peerDependencies:
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
   languageName: unknown
   linkType: soft
 
@@ -4236,7 +4236,7 @@ __metadata:
     react-select: ^5.7.4
     react-switch: ^6.1.0
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
     vite-plugin-svgr: ^3.3.0
   peerDependencies:
     react: 18.2.0
@@ -4256,7 +4256,7 @@ __metadata:
     jest: ^27.4.3
     lodash: ^4.17.21
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
   languageName: unknown
   linkType: soft
 
@@ -4269,7 +4269,7 @@ __metadata:
     "@types/jest": ^28.1.8
     jest: ^27.4.3
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
   languageName: unknown
   linkType: soft
 
@@ -4285,7 +4285,7 @@ __metadata:
     jest: ^27.4.3
     qs: ^6.10.1
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
   languageName: unknown
   linkType: soft
 
@@ -4309,7 +4309,7 @@ __metadata:
     react: 18.2.0
     react-dom: 18.2.0
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
   peerDependencies:
     react: 18.2.0
     react-dom: 18.2.0
@@ -4340,7 +4340,7 @@ __metadata:
     jest-fail-on-console: ^3.1.1
     jest-watch-typeahead: ^1.0.0
     typescript: ~5.1.6
-    vite: ^5.4.19
+    vite: ^5.4.20
     whatwg-fetch: ^3.6.2
   peerDependencies:
     "@testing-library/react": ^14.0.0
@@ -16212,7 +16212,7 @@ __metadata:
     use-memo-one: ^1.1.3
     uuid: ^8.3.2
     validate.js: ^0.13.1
-    vite: ^5.4.19
+    vite: ^5.4.20
     vite-plugin-svgr: ^3.3.0
   dependenciesMeta:
     "@fortawesome/fontawesome-common-types":
@@ -16983,9 +16983,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.4.19":
-  version: 5.4.19
-  resolution: "vite@npm:5.4.19"
+"vite@npm:^5.4.20":
+  version: 5.4.20
+  resolution: "vite@npm:5.4.20"
   dependencies:
     esbuild: ^0.21.3
     fsevents: ~2.3.3
@@ -17022,7 +17022,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: c15af65f2370b59e674c5fab22d8e05ec5c7f8f0345ed99ffec155c77feb5636b4e0680dbd096a6f06d7c386b259dc0b9c67c4f1ec08486a2f2a677c9ea6971b
+  checksum: 67af97e818977e92d1e55bc35d45f58d41eba6fc87f2a18435d3402adb07f4c4ec1ba838d954829f80f7784e65b65f8d147db695cfaefe45f667ee283530770d
   languageName: node
   linkType: hard
 
