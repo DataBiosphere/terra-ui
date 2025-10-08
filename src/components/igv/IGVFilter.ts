@@ -1405,7 +1405,7 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
         }
 
         if (onFacetsUpdate) {
-          onFacetsUpdate(updatedFacets, trackToFilter, updatedSelections);
+          onFacetsUpdate(updatedFacets, updatedSelections);
         }
 
         return updatedSelections;
