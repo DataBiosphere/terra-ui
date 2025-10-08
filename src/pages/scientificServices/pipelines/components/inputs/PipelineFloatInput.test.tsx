@@ -11,11 +11,7 @@ jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', (
       label: 'Enter a float value',
       placeholder: 'Enter a number',
       helpText: 'Must be a valid floating-point number.',
-    },
-    optionalFloatInput: {
-      label: 'Enter an optional float value',
-      placeholder: 'Enter a number',
-      helpText: 'Must be a valid floating-point number.',
+      validationRegex: '^(?:0(?:\\.\\d+)?|1(?:\\.0+)?|\\.\\d+)$',
     },
   },
 }));
@@ -59,11 +55,6 @@ describe('PipelineFloatInput', () => {
     expect(screen.queryByText('*')).not.toBeInTheDocument();
   });
 
-  it('shows "optional" text for optional inputs', () => {
-    render(<PipelineFloatInput {...defaultProps} input={optionalInput} />);
-    expect(screen.getByText('- optional')).toBeInTheDocument();
-  });
-
   it('renders input placeholder', () => {
     render(<PipelineFloatInput {...defaultProps} />);
     const input = screen.getByRole('textbox');
@@ -81,7 +72,18 @@ describe('PipelineFloatInput', () => {
     render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, '123.45');
+    await user.type(input, '0.5');
+
+    expect(onValidation).toHaveBeenCalledWith(undefined);
+  });
+
+  it('calls onValidation with undefined for valid float input without starting 0', async () => {
+    const user = userEvent.setup();
+    const onValidation = jest.fn();
+    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, '.5');
 
     expect(onValidation).toHaveBeenCalledWith(undefined);
   });
@@ -93,6 +95,17 @@ describe('PipelineFloatInput', () => {
 
     const input = screen.getByRole('textbox');
     await user.type(input, 'invalid');
+
+    expect(onValidation).toHaveBeenCalledWith('Invalid float value');
+  });
+
+  it('calls onValidation with error for float input out of range', async () => {
+    const user = userEvent.setup();
+    const onValidation = jest.fn();
+    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, '2');
 
     expect(onValidation).toHaveBeenCalledWith('Invalid float value');
   });

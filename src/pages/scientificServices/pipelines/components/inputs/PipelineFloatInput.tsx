@@ -18,7 +18,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   validationError,
   onValidation,
 }) => {
-  const { label, placeholder, helpText } = INPUT_DESCRIPTIONS[input.name];
+  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
 
   return (
     <>
@@ -26,9 +26,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
         {label || input.name}{' '}
         {input.isRequired ? (
           <span style={{ color: '#DB3214' }}>*</span>
-        ) : (
-          <span style={{ fontStyle: 'italic', fontWeight: 'normal' }}> - optional</span>
-        )}
+        ) : null}
       </h3>
       <ValidatedInput
         width={400}
@@ -40,12 +38,13 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
           placeholder: placeholder || '',
           onChange: (e) => {
             onChange(e);
-            // Regex to match valid floating-point numbers, including integers and decimals
-            const floatRegex = /^[+-]?(?:\d*\.\d+|\d+\.?\d*)$/;
-            if (!floatRegex.test(e.trim()) && e.length > 0) {
-              onValidation('Invalid float value');
-            } else {
-              onValidation(undefined);
+            if (validationRegex) {
+              const regex = new RegExp(validationRegex);
+              if (!regex.test(e.trim()) && e.length > 0) {
+                onValidation('Invalid float value');
+              } else {
+                onValidation(undefined);
+              }
             }
           },
         }}

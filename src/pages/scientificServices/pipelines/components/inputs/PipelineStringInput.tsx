@@ -18,17 +18,15 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
   validationError,
   onValidation,
 }) => {
-  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name];
+  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
 
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
         {label || input.name}
         {input.isRequired ? (
-          <span style={{ color: '#DB3214' }}>*</span>
-        ) : (
-          <span style={{ fontStyle: 'italic', fontWeight: 'normal' }}> - optional</span>
-        )}
+          <span style={{ color: '#DB3214' }}> *</span>
+        ) : null}
       </h3>
       <ValidatedInput
         width={400}

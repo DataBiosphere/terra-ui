@@ -12,10 +12,6 @@ jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', (
       label: 'Select a multi-sample VCF file',
       validationRegex: '^[a-zA-Z0-9_.-]+$',
     },
-    favoriteDog: {
-      label: 'Select the best dog',
-      validationRegex: '^[a-zA-Z0-9_.-]+$',
-    },
   },
 }));
 
@@ -66,11 +62,6 @@ describe('PipelineFileInput', () => {
   it('does not show required indicator for optional inputs', () => {
     render(<PipelineFileInput {...defaultProps} input={optionalInput} />);
     expect(screen.queryByText('*')).not.toBeInTheDocument();
-  });
-
-  it('shows "optional" text for optional inputs', () => {
-    render(<PipelineFileInput {...defaultProps} input={optionalInput} />);
-    expect(screen.getByText('- optional')).toBeInTheDocument();
   });
 
   it('calls onFileSelect when file is selected via input', async () => {

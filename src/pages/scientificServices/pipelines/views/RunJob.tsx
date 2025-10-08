@@ -100,7 +100,7 @@ export const RunJob = () => {
   }
 
   useEffect(() => {
-    // Update selected user inputs when pipeline inputs change IS THIS RIGHT???
+    // Clear selected user inputs when pipeline inputs change
     resetSelectedUserInputs();
   }, [pipelineInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 

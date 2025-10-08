@@ -13,17 +13,6 @@ jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', (
       helpText: 'May only contain alphanumeric characters, dashes, and underscores.',
       validationRegex: '^[a-zA-Z0-9_-]+$',
     },
-    favoriteCat: {
-      label: 'Enter the name of your favorite cat',
-      placeholder: 'Enter cat name',
-      helpText: 'May only contain very cute cats.',
-      validationRegex: '^[a-zA-Z0-9_-]+$',
-    },
-    noValidationInput: {
-      label: 'Enter the name of your favorite cat',
-      placeholder: 'Enter cat name',
-      helpText: 'May only contain very cute cats.',
-    },
   },
 }));
 
@@ -65,11 +54,6 @@ describe('PipelineStringInput', () => {
     it('does not show required indicator for optional inputs', () => {
       render(<PipelineStringInput {...defaultProps} input={optionalInput} />);
       expect(screen.queryByText('*')).not.toBeInTheDocument();
-    });
-
-    it('shows "optional" text for optional inputs', () => {
-      render(<PipelineStringInput {...defaultProps} input={optionalInput} />);
-      expect(screen.getByText('- optional')).toBeInTheDocument();
     });
 
     it('renders input placeholder', () => {
