@@ -1285,7 +1285,7 @@ interface IGVFiltersProps {
   isLoading?: boolean;
   containerSelector?: string;
   onFilterChange?: (selections: { [facetName: string]: any }, facets: FacetAttributes[]) => void;
-  onFacetsUpdate?: (facets: FacetAttributes[], track: any, selections: { [facetName: string]: any }) => void;
+  onFacetsUpdate?: (facets: FacetAttributes[], selections: { [facetName: string]: any }) => void;
 }
 
 const IGVFilters: React.FC<IGVFiltersProps> = ({
@@ -1302,18 +1302,35 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
   const [selections, setSelections] = useState<{ [facetName: string]: any }>({});
   const [localIsLoading, setLocalIsLoading] = useState(true);
   const isLoading = parentIsLoading || localIsLoading;
+  const prevTrackRef = useRef(trackToFilter); // Track previous track
 
   // Initialize facets when trackToFilter changes
   useEffect(() => {
-    if (trackToFilter) {
-      if (!isInitialized) {
-        const initializeFacets = () => {
-          setLocalIsLoading(true);
-          const initializedFacets = initFacets(trackToFilter);
-          setFacets(initializedFacets);
+    if (!trackToFilter) {
+      setLocalIsLoading(false);
+      return;
+    }
+
+    if (!isInitialized) {
+      const initializeFacets = () => {
+        setLocalIsLoading(true);
+
+        // Check if we have saved state
+        const hasSavedState = currentFacets.length > 0 && Object.keys(currentSelections).length > 0;
+
+        let initializedFacets: FacetAttributes[];
+        let initialSelections: { [facetName: string]: any };
+
+        if (hasSavedState) {
+          // Restore from saved state (panel reopened at same locus)
+          initializedFacets = currentFacets;
+          initialSelections = currentSelections;
+        } else {
+          // Initialize fresh from track data (locus change or first open)
+          initializedFacets = initFacets(trackToFilter);
 
           // Initialize selections with default values
-          const initialSelections: { [facetName: string]: any } = {};
+          initialSelections = {};
           initializedFacets.forEach((facet) => {
             if (facet.type === 'categorical') {
               initialSelections[facet.name] = [...facet.filterNames];
@@ -1321,33 +1338,36 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
               initialSelections[facet.name] = [['between', [facet.statistics?.min || 0, facet.statistics?.max || 0]]];
             }
           });
-
-          setSelections(initialSelections);
-
-          if (setIsInitialized) {
-            setIsInitialized(true);
-          }
-
-          // Notify parent about facet updates
-          if (onFacetsUpdate) {
-            onFacetsUpdate(initializedFacets, trackToFilter, initialSelections);
-          }
-          setLocalIsLoading(false);
-        };
-
-        initializeFacets();
-      } else {
-        // Only use cached state if we're initialized and have cached data
-        if (currentFacets.length > 0) {
-          setFacets(currentFacets);
         }
-        if (Object.keys(currentSelections).length > 0) {
-          setSelections(currentSelections);
+
+        setFacets(initializedFacets);
+        setSelections(initialSelections);
+
+        // Update the previous track reference
+        prevTrackRef.current = trackToFilter;
+
+        if (setIsInitialized) {
+          setIsInitialized(true);
+        }
+
+        // Notify parent about facet updates
+        if (onFacetsUpdate) {
+          onFacetsUpdate(initializedFacets, initialSelections);
         }
         setLocalIsLoading(false);
-      }
+      };
+
+      initializeFacets();
+    } else if (currentFacets.length > 0 && facets.length === 0) {
+      // If already initialized but local state is empty, restore from props
+      setFacets(currentFacets);
+      setSelections(currentSelections);
+      setLocalIsLoading(false);
+    } else {
+      // Already initialized and has local state
+      setLocalIsLoading(false);
     }
-  }, [trackToFilter, onFacetsUpdate, currentSelections, currentFacets, isInitialized, setIsInitialized]);
+  }, [trackToFilter, onFacetsUpdate, isInitialized, setIsInitialized, currentFacets, currentSelections, facets.length]);
 
   // Update filter counts when filters are initially loaded or when the genomic location changes
   useEffect(() => {

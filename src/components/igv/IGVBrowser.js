@@ -1,6 +1,6 @@
 import * as clipboard from 'clipboard-polyfill/text';
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link } from 'src/components/common';
 import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils';
@@ -42,9 +42,14 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [filterPanelData, setFilterPanelData] = useState(null);
   const currentFilterFunction = useRef(null);
   const [tracksLoaded, setTracksLoaded] = useState(false);
-  const [savedSelections, setSavedSelections] = useState(null);
-  const [savedFacets, setSavedFacets] = useState(null);
-  const [filterInitialized, setFilterInitialized] = useState(false);
+  // const [savedSelections, setSavedSelections] = useState(null);
+  // const [savedFacets, setSavedFacets] = useState(null);
+  // const [filterInitialized, setFilterInitialized] = useState(false);
+  const filterPanelDataRef = useRef(null); // Track current panel data
+
+  useEffect(() => {
+    filterPanelDataRef.current = filterPanelData;
+  }, [filterPanelData]);
 
   const findVariantTrack = useCallback(() => {
     if (!igvBrowser.current) return null;
@@ -85,135 +90,112 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   );
 
   const handleLocusChange = useCallback(() => {
-    setFilterPanelData((prev) => {
-      if (!prev || !prev.onFilterChange) return prev;
+    const currentPanelData = filterPanelDataRef.current;
 
-      // Immediately show loading state
-      const loadingPanelData = {
-        ...prev,
-        isLoading: true, // Add loading flag
-      };
-
-      if (onFilterPanelChange) {
-        onFilterPanelChange(loadingPanelData);
-      }
-
+    if (currentPanelData && currentPanelData.show) {
       const trackToFilter = findVariantTrack();
-      if (trackToFilter) {
+
+      if (trackToFilter && onFilterPanelChange) {
+        onFilterPanelChange({
+          ...currentPanelData,
+          isLoading: true,
+        });
+
         let attempts = 0;
         const maxAttempts = 20;
 
         const checkFeaturesLoaded = () => {
           const features = trackToFilter.getInViewFeatures();
-
           attempts++;
 
-          if (features.length > 0) {
-            // Features are loaded, update panel data
+          if (features.length > 0 || attempts >= maxAttempts) {
             const updatedPanelData = {
-              ...prev,
+              ...currentPanelData,
               trackToFilter,
-              isInitialized: false,
-              isLoading: false, // Clear loading flag
+              isInitialized: false, // Force reinitialization
+              currentFacets: [], // Clear saved facets
+              currentSelections: {}, // Clear saved selections
+              isLoading: false,
             };
 
-            if (onFilterPanelChange) {
-              onFilterPanelChange(updatedPanelData);
-            }
-          } else if (attempts < maxAttempts) {
-            // Features not loaded yet, check again
-            setTimeout(checkFeaturesLoaded, 100);
+            setFilterPanelData(updatedPanelData);
+            onFilterPanelChange(updatedPanelData);
           } else {
-            // Max attempts reached, assume no features in this region
-            const updatedPanelData = {
-              ...prev,
-              trackToFilter,
-              isInitialized: false,
-              isLoading: false, // Clear loading flag
-            };
-
-            if (onFilterPanelChange) {
-              onFilterPanelChange(updatedPanelData);
-            }
+            setTimeout(checkFeaturesLoaded, 100);
           }
         };
 
-        // Start checking
         setTimeout(checkFeaturesLoaded, 100);
-
-        return loadingPanelData; // Return loading state immediately
       }
-
-      return prev;
-    });
+    }
   }, [findVariantTrack, onFilterPanelChange]);
 
   const toggleFilterPanel = useCallback(
     (show) => {
-      if (onFilterPanelChange) {
-        if (show) {
-          if (!igvBrowser.current) {
-            console.error('IGV browser not initialized');
-            return;
-          }
+      if (!onFilterPanelChange) return;
 
-          const trackToFilter = findVariantTrack();
+      if (show) {
+        if (!igvBrowser.current) return;
 
-          if (!trackToFilter) {
-            console.error('No variant track found');
-            return;
-          }
+        const trackToFilter = findVariantTrack();
+        if (!trackToFilter) return;
 
-          // Restore saved state if available
-          const panelData = {
+        const currentPanelData = filterPanelDataRef.current;
+
+        // If we already have filter panel data (reopening), reuse it
+        if (currentPanelData && !currentPanelData.show) {
+          const updatedPanelData = {
+            ...currentPanelData,
             show: true,
             trackToFilter,
-            onFilterChange: handleFilterChange,
-            onFacetsUpdate: (facets, track, selections) => {
-              setFilterPanelData((prev) => ({
-                ...prev,
-                currentFacets: facets,
-                trackToFilter: track,
-                currentSelections: selections,
-              }));
-
-              // Also update the saved state immediately
-              setSavedSelections(selections || {});
-              setSavedFacets(facets || []);
-
-              // Mark as initialized when we receive the first update
-              if (!filterInitialized) {
-                setFilterInitialized(true);
-              }
-            },
-            currentSelections: savedSelections || {},
-            currentFacets: savedFacets || [],
-            isInitialized: filterInitialized,
-            setIsInitialized: setFilterInitialized,
           };
-
-          setFilterPanelData(panelData);
-          onFilterPanelChange(panelData);
-        } else {
-          // Save current state when closing the panel
-          if (filterPanelData) {
-            setSavedSelections(filterPanelData.currentSelections || {});
-            setSavedFacets(filterPanelData.currentFacets || []);
-          }
-          setFilterPanelData(null);
-          onFilterPanelChange({ show: false });
+          setFilterPanelData(updatedPanelData);
+          onFilterPanelChange(updatedPanelData);
+          return;
         }
+
+        // First time opening - create new panel data
+        const panelData = {
+          show: true,
+          trackToFilter,
+          onFilterChange: handleFilterChange,
+          onFacetsUpdate: (facets, selections) => {
+            setFilterPanelData((prev) => ({
+              ...prev,
+              currentFacets: facets,
+              currentSelections: selections,
+            }));
+          },
+          onClose: () => toggleFilterPanel(false),
+          currentSelections: {},
+          currentFacets: [],
+          isInitialized: false,
+          setIsInitialized: (value) => {
+            setFilterPanelData((prev) => (prev ? { ...prev, isInitialized: value } : null));
+          },
+          isLoading: false,
+        };
+
+        setFilterPanelData(panelData);
+        onFilterPanelChange(panelData);
       } else {
-        console.error('onFilterPanelChange is not provided');
+        // Closing - keep filterPanelData in state, just hide the panel
+        const currentPanelData = filterPanelDataRef.current;
+        if (currentPanelData) {
+          const hiddenPanelData = {
+            ...currentPanelData,
+            show: false,
+          };
+          setFilterPanelData(hiddenPanelData);
+        }
+        onFilterPanelChange({ show: false });
       }
     },
-    [handleFilterChange, onFilterPanelChange, findVariantTrack, filterPanelData, savedSelections, savedFacets, filterInitialized]
+    [handleFilterChange, onFilterPanelChange, findVariantTrack]
   );
 
   const handleDismiss = useCallback(() => {
-    setFilterInitialized(false); // Reset when IGV closes
-    setSavedSelections(null);
-    setSavedFacets(null);
+    setFilterPanelData(null); // Clear all filter state when IGV closes
     onDismiss();
   }, [onDismiss]);
 
