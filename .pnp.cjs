@@ -5398,7 +5398,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["progress", "npm:2.0.3"],\
             ["proxy-agent", "npm:6.4.0"],\
             ["semver", "npm:7.6.0"],\
-            ["tar-fs", "npm:3.0.5"],\
+            ["tar-fs", "npm:3.1.1"],\
             ["unbzip2-stream", "npm:1.4.3"],\
             ["yargs", "npm:17.7.2"]\
           ],\
@@ -9668,46 +9668,94 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["bare-events", "npm:2.5.0"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:2.7.0", {\
+          "packageLocation": "./.yarn/cache/bare-events-npm-2.7.0-d2a5a0cb6a-b59dd25b08.zip/node_modules/bare-events/",\
+          "packageDependencies": [\
+            ["bare-events", "npm:2.7.0"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["bare-fs", [\
-        ["npm:2.3.5", {\
-          "packageLocation": "./.yarn/unplugged/bare-fs-npm-2.3.5-0a43bbe31a/node_modules/bare-fs/",\
+        ["npm:4.4.5", {\
+          "packageLocation": "./.yarn/unplugged/bare-fs-virtual-63e6e98657/node_modules/bare-fs/",\
           "packageDependencies": [\
-            ["bare-fs", "npm:2.3.5"],\
-            ["bare-events", "npm:2.5.0"],\
-            ["bare-path", "npm:2.1.3"],\
-            ["bare-stream", "npm:2.3.0"]\
+            ["bare-fs", "npm:4.4.5"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:2a32a81dd77232e5ff9b5028539a5b875259175c3e592c3e1213900d422f5a9b30cbc754be9222f190546618bf89b17e8b4632f94b73764cfdbcef3b6ef08a57#npm:4.4.5", {\
+          "packageLocation": "./.yarn/unplugged/bare-fs-virtual-63e6e98657/node_modules/bare-fs/",\
+          "packageDependencies": [\
+            ["bare-fs", "virtual:2a32a81dd77232e5ff9b5028539a5b875259175c3e592c3e1213900d422f5a9b30cbc754be9222f190546618bf89b17e8b4632f94b73764cfdbcef3b6ef08a57#npm:4.4.5"],\
+            ["@types/bare-buffer", null],\
+            ["bare-buffer", null],\
+            ["bare-events", "npm:2.7.0"],\
+            ["bare-path", "npm:3.0.0"],\
+            ["bare-stream", "virtual:63e6e986574db4dfeadabcf22b50c20f199760c8e60860128b85520bbd2761b945032edaf0a439e3d2f90e2bcf4d04b5ad8fa3cb74addbc099b6be985faf2a51#npm:2.7.0"],\
+            ["bare-url", "npm:2.2.2"],\
+            ["fast-fifo", "npm:1.3.2"]\
+          ],\
+          "packagePeers": [\
+            "@types/bare-buffer",\
+            "bare-buffer"\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["bare-os", [\
-        ["npm:2.4.4", {\
-          "packageLocation": "./.yarn/unplugged/bare-os-npm-2.4.4-33410be824/node_modules/bare-os/",\
+        ["npm:3.6.2", {\
+          "packageLocation": "./.yarn/unplugged/bare-os-npm-3.6.2-fb7820f69d/node_modules/bare-os/",\
           "packageDependencies": [\
-            ["bare-os", "npm:2.4.4"]\
+            ["bare-os", "npm:3.6.2"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["bare-path", [\
-        ["npm:2.1.3", {\
-          "packageLocation": "./.yarn/cache/bare-path-npm-2.1.3-06404017b1-20301aeb05.zip/node_modules/bare-path/",\
+        ["npm:3.0.0", {\
+          "packageLocation": "./.yarn/cache/bare-path-npm-3.0.0-d42919fc21-51d559515f.zip/node_modules/bare-path/",\
           "packageDependencies": [\
-            ["bare-path", "npm:2.1.3"],\
-            ["bare-os", "npm:2.4.4"]\
+            ["bare-path", "npm:3.0.0"],\
+            ["bare-os", "npm:3.6.2"]\
           ],\
           "linkType": "HARD"\
         }]\
       ]],\
       ["bare-stream", [\
-        ["npm:2.3.0", {\
-          "packageLocation": "./.yarn/cache/bare-stream-npm-2.3.0-7bc43ea14f-17de9dbd5a.zip/node_modules/bare-stream/",\
+        ["npm:2.7.0", {\
+          "packageLocation": "./.yarn/cache/bare-stream-npm-2.7.0-41d150fb02-aa7a762b65.zip/node_modules/bare-stream/",\
           "packageDependencies": [\
-            ["bare-stream", "npm:2.3.0"],\
-            ["b4a", "npm:1.6.7"],\
-            ["streamx", "npm:2.20.1"]\
+            ["bare-stream", "npm:2.7.0"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:63e6e986574db4dfeadabcf22b50c20f199760c8e60860128b85520bbd2761b945032edaf0a439e3d2f90e2bcf4d04b5ad8fa3cb74addbc099b6be985faf2a51#npm:2.7.0", {\
+          "packageLocation": "./.yarn/__virtual__/bare-stream-virtual-32dece0ece/0/cache/bare-stream-npm-2.7.0-41d150fb02-aa7a762b65.zip/node_modules/bare-stream/",\
+          "packageDependencies": [\
+            ["bare-stream", "virtual:63e6e986574db4dfeadabcf22b50c20f199760c8e60860128b85520bbd2761b945032edaf0a439e3d2f90e2bcf4d04b5ad8fa3cb74addbc099b6be985faf2a51#npm:2.7.0"],\
+            ["@types/bare-buffer", null],\
+            ["@types/bare-events", null],\
+            ["bare-buffer", null],\
+            ["bare-events", "npm:2.7.0"],\
+            ["streamx", "npm:2.23.0"]\
+          ],\
+          "packagePeers": [\
+            "@types/bare-buffer",\
+            "@types/bare-events",\
+            "bare-buffer",\
+            "bare-events"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["bare-url", [\
+        ["npm:2.2.2", {\
+          "packageLocation": "./.yarn/unplugged/bare-url-npm-2.2.2-1494863f56/node_modules/bare-url/",\
+          "packageDependencies": [\
+            ["bare-url", "npm:2.2.2"],\
+            ["bare-path", "npm:3.0.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -12715,6 +12763,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/events-npm-3.3.0-c280bc7e48-f6f487ad21.zip/node_modules/events/",\
           "packageDependencies": [\
             ["events", "npm:3.3.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["events-universal", [\
+        ["npm:1.0.1", {\
+          "packageLocation": "./.yarn/cache/events-universal-npm-1.0.1-389961744a-fb8451c985.zip/node_modules/events-universal/",\
+          "packageDependencies": [\
+            ["events-universal", "npm:1.0.1"],\
+            ["bare-events", "npm:2.7.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -21394,6 +21452,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["text-decoder", "npm:1.2.0"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:2.23.0", {\
+          "packageLocation": "./.yarn/cache/streamx-npm-2.23.0-42786843aa-d57de47db7.zip/node_modules/streamx/",\
+          "packageDependencies": [\
+            ["streamx", "npm:2.23.0"],\
+            ["events-universal", "npm:1.0.1"],\
+            ["fast-fifo", "npm:1.3.2"],\
+            ["text-decoder", "npm:1.2.0"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["string-argv", [\
@@ -21715,12 +21783,12 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["tar-fs", [\
-        ["npm:3.0.5", {\
-          "packageLocation": "./.yarn/cache/tar-fs-npm-3.0.5-5a44f34a8a-e31c7e3e52.zip/node_modules/tar-fs/",\
+        ["npm:3.1.1", {\
+          "packageLocation": "./.yarn/cache/tar-fs-npm-3.1.1-2a32a81dd7-eaae4c5410.zip/node_modules/tar-fs/",\
           "packageDependencies": [\
-            ["tar-fs", "npm:3.0.5"],\
-            ["bare-fs", "npm:2.3.5"],\
-            ["bare-path", "npm:2.1.3"],\
+            ["tar-fs", "npm:3.1.1"],\
+            ["bare-fs", "virtual:2a32a81dd77232e5ff9b5028539a5b875259175c3e592c3e1213900d422f5a9b30cbc754be9222f190546618bf89b17e8b4632f94b73764cfdbcef3b6ef08a57#npm:4.4.5"],\
+            ["bare-path", "npm:3.0.0"],\
             ["pump", "npm:3.0.0"],\
             ["tar-stream", "npm:3.1.7"]\
           ],\

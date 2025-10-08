@@ -153,7 +153,8 @@
   "resolutions": {
     "fbjs/ua-parser-js": "^1.0.33",
     "outdated-browser-rework/ua-parser-js": "^1.0.33",
-    "form-data": "^4.0.4"
+    "form-data": "^4.0.4",
+    "tar-fs": "^3.1.1"
   },
   "browserslist": [
     ">0.2%",
