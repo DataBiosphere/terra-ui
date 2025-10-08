@@ -42,6 +42,7 @@ import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { formatUSD } from 'src/libs/utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace } from 'src/testing/workspace-fixtures';
+import * as workspaceUtils from 'src/workspaces/utils';
 
 jest.mock('src/libs/notifications', () => ({
   notify: (...args) => {
@@ -1612,5 +1613,20 @@ describe('GcpComputeModal', () => {
     expect(screen.getByText(formatUSD(expectedRuntimeConfigCost)));
     expect(screen.getByText(formatUSD(expectedRuntimeConfigBaseCost)));
     expect(screen.getByText(formatUSD(expectedPersistentDiskCostMonthly)));
+  });
+
+  it('disables create button if user cannot edit workspace', async () => {
+    // Arrange
+    jest
+      .spyOn(workspaceUtils, 'canEditWorkspace')
+      .mockReturnValue({ value: false, message: 'This workspace is locked' });
+
+    // Act
+    await act(async () => {
+      render(h(GcpComputeModalBase, defaultModalProps));
+    });
+
+    // Assert
+    verifyDisabled(getCreateButton());
   });
 });

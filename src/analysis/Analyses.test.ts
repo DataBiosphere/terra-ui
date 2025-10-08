@@ -441,4 +441,28 @@ describe('Analyses', () => {
     // Assert
     expect(refreshAnalysesMock).toHaveBeenCalled();
   });
+
+  it('disables Start button when workspace is locked', async () => {
+    // Arrange: set isLocked to true
+    const lockedWorkspaceProps = {
+      ...defaultAnalysesProps,
+      workspace: {
+        ...defaultAnalysesProps.workspace,
+        workspace: {
+          ...defaultAnalysesProps.workspace.workspace,
+          isLocked: true,
+        },
+      },
+    };
+
+    await act(async () => {
+      render(h(BaseAnalyses, lockedWorkspaceProps));
+    });
+
+    const startButton = screen.getByText('Start');
+    expect(startButton).toBeDisabled();
+
+    // Check for the tooltip/message if rendered
+    expect(await screen.getByText('This workspace is Locked')).toBeInTheDocument();
+  });
 });
