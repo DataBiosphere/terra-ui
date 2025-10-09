@@ -23,7 +23,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
       </h3>
       <div style={{ width: 400 }}>
         <NumberInput

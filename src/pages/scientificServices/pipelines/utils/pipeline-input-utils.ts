@@ -14,7 +14,8 @@ export const INPUT_DESCRIPTIONS: Record<string, PipelineInputDescription> = {
   outputBasename: {
     label: 'Enter prefix for output file',
     placeholder: 'Enter prefix name',
-    helpText: 'May only contain alphanumeric characters, dashes, and underscores.',
+    helpText:
+      "The prefix for all of the outputs' filenames. String may only contain alphanumeric characters, dashes, and underscores.",
     validationRegex: '^[a-zA-Z0-9_.-]+$',
   },
   multiSampleVcf: {
@@ -22,9 +23,10 @@ export const INPUT_DESCRIPTIONS: Record<string, PipelineInputDescription> = {
     validationRegex: '^[a-zA-Z0-9_.-]+$',
   },
   minDr2ForInclusion: {
-    label: 'Minimum imputation quality for inclusion in output',
+    label: 'Enter a minimum imputation quality for inclusion',
     placeholder: '0.0',
-    helpText: 'Value must be between 0 and 1 (inclusive). Default is 0.0',
+    helpText:
+      'The minimum imputation quality (DR2) for inclusion in output VCF. Value must be between 0 and 1 (inclusive). Default is 0.0',
     validationRegex: '^(?:0(?:\\.\\d+)?|1(?:\\.0+)?|\\.\\d+)$',
   },
 };
