@@ -119,7 +119,7 @@ describe('RunJob Component', () => {
     // Check for main headings and form elements
     expect(screen.getByText('Select a pipeline version')).toBeInTheDocument();
     expect(screen.getByText('Enter prefix for output file')).toBeInTheDocument();
-    expect(screen.getByText('Minimum imputation quality for inclusion in output')).toBeInTheDocument();
+    expect(screen.getByText('Enter a minimum imputation quality for inclusion')).toBeInTheDocument();
     expect(screen.getByText(/Enter description/)).toBeInTheDocument();
     expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
 
@@ -171,7 +171,7 @@ describe('RunJob Component', () => {
     expect(outputPrefixInput).toHaveValue('test_output');
 
     // Enter minDr2ForInclusion
-    const minDr2Input = screen.getByLabelText('minDr2ForInclusion text input');
+    const minDr2Input = screen.getByLabelText('minDr2ForInclusion spin button');
     await user.type(minDr2Input, '0.3');
 
     expect(minDr2Input).toHaveValue('0.3');
