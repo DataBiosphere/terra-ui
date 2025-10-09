@@ -99,7 +99,7 @@ export const RunJob = () => {
   }
 
   useEffect(() => {
-    // Update selected user inputs when pipeline inputs change
+    // Clear selected user inputs when pipeline inputs change
     resetSelectedUserInputs();
   }, [pipelineInputs]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -148,12 +148,19 @@ export const RunJob = () => {
       return;
     }
 
+    // Filter out empty string inputs to avoid sending them to the backend.
+    // At this point we've already validated required inputs are filled, so this
+    // will only remove optional inputs that the user left blank.
+    const filteredUserInputs = Object.fromEntries(
+      Object.entries(selectedUserInputs).filter(([_, value]) => value !== '')
+    );
+
     setIsSubmitting(true);
 
     const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
       pipelineName,
       selectedPipeline.pipelineVersion,
-      selectedUserInputs,
+      filteredUserInputs,
       runDescription
     );
 
@@ -164,7 +171,7 @@ export const RunJob = () => {
         pipelineName,
         selectedPipeline.pipelineVersion,
         pipelineInputs,
-        selectedUserInputs,
+        filteredUserInputs,
         fileInputUploadUrls,
         setUploadState
       );

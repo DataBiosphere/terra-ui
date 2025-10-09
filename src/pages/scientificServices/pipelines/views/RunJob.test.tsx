@@ -4,7 +4,7 @@ import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { mockUserPipelineQuotaDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
-import { uploadPipelineFiles } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
+import { preparePipelineRun } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { RunJob } from './RunJob';
@@ -17,6 +17,13 @@ jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
   getLink: jest.fn(() => '/'),
+}));
+
+jest.mock('src/pages/scientificServices/pipelines/utils/submission-utils', () => ({
+  ...jest.requireActual('src/pages/scientificServices/pipelines/utils/submission-utils'),
+  preparePipelineRun: jest.fn(),
+  uploadPipelineFiles: jest.fn(),
+  startPipelineRun: jest.fn(),
 }));
 
 // Mock global fetch for file upload testing
@@ -63,6 +70,11 @@ describe('RunJob Component', () => {
       name: 'outputBasename',
       type: 'STRING',
       isRequired: true,
+    },
+    {
+      name: 'someOptionalInput',
+      type: 'STRING',
+      isRequired: false,
     },
   ];
 
@@ -264,6 +276,58 @@ describe('RunJob Component', () => {
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText(/Invalid file type/)).toBeInTheDocument();
   });
+
+  it('handleSubmit filters out empty optional inputs', async () => {
+    asMockedFn(preparePipelineRun).mockResolvedValue({
+      jobId: 'mock-job-id',
+      fileInputUploadUrls: {
+        multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+    });
+
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getQuotaForPipeline).toHaveBeenCalled();
+    });
+
+    // confirm that the optional input field is rendered
+    expect(screen.getByLabelText('someOptionalInput text input')).toBeInTheDocument();
+
+    // only fill in the two required fields
+    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    await user.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    await waitFor(() => userEvent.upload(fileInput, file));
+    expect(fileInput.files?.[0]).toBe(file);
+
+    const submitButton = screen.getByText('Submit');
+    await waitFor(() => user.click(submitButton));
+
+    // verify that preparePipelineRun was called with filtered inputs
+    expect(preparePipelineRun).toHaveBeenCalledWith(
+      'array_imputation',
+      1,
+      {
+        multiSampleVcf: expect.any(File),
+        outputBasename: 'test_output',
+        // someOptionalInput not present
+      },
+      expect.any(String)
+    );
+  });
 });
 
 describe('uploadPipelineFiles function', () => {
@@ -283,21 +347,9 @@ describe('uploadPipelineFiles function', () => {
   ];
   const mockUserPipelineInputs = { multiSampleVcf: mockFile, outputBasename: 'test_output' };
 
-  const mockTeaspoonsContract = partial<TeaspoonsContract>({
-    preparePipelineRun: jest.fn().mockResolvedValue({
-      fileInputUploadUrls: {
-        multiSampleVcf: {
-          signedUrl: 'https://mock-signed-url.com/upload',
-        },
-      },
-      jobId: 'mock-job-id',
-    }),
-    startPipelineRun: jest.fn().mockResolvedValue({ success: true }),
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
-    asMockedFn(Teaspoons).mockReturnValue(mockTeaspoonsContract);
+
     const mockLocationUrl = 'https://mock-session-url.com/upload';
     (global.fetch as jest.Mock).mockResolvedValue({
       headers: {
@@ -326,6 +378,9 @@ describe('uploadPipelineFiles function', () => {
     });
 
     global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    // this test needs the actual implementation of uploadPipelineFiles
+    const { uploadPipelineFiles } = jest.requireActual('src/pages/scientificServices/pipelines/utils/submission-utils');
 
     await uploadPipelineFiles(
       'array_imputation',
@@ -360,6 +415,9 @@ describe('uploadPipelineFiles function', () => {
     mockXHR.send = mockSend;
 
     global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    // this test needs the actual implementation of uploadPipelineFiles
+    const { uploadPipelineFiles } = jest.requireActual('src/pages/scientificServices/pipelines/utils/submission-utils');
 
     await expect(
       uploadPipelineFiles(
