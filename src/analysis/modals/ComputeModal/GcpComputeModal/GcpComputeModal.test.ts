@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
@@ -1617,9 +1617,8 @@ describe('GcpComputeModal', () => {
 
   it('disables create button if user cannot edit workspace', async () => {
     // Arrange
-    jest
-      .spyOn(workspaceUtils, 'canEditWorkspace')
-      .mockReturnValue({ value: false, message: 'This workspace is locked' });
+    const lockedMessage = 'This workspace is locked';
+    jest.spyOn(workspaceUtils, 'canEditWorkspace').mockReturnValue({ value: false, message: lockedMessage });
 
     // Act
     await act(async () => {
@@ -1627,6 +1626,16 @@ describe('GcpComputeModal', () => {
     });
 
     // Assert
-    verifyDisabled(getCreateButton());
+    const startButton = getCreateButton();
+    verifyDisabled(startButton);
+
+    // Hover over the button
+    fireEvent.mouseEnter(startButton);
+
+    // Look for tooltip text in the document
+    await waitFor(() => {
+      const tooltipElements = screen.getAllByText(lockedMessage);
+      expect(tooltipElements.length).toBeGreaterThan(0);
+    });
   });
 });
