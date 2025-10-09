@@ -11,7 +11,7 @@ jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', (
       label: 'Enter a float value',
       placeholder: 'Enter a number',
       helpText: 'Must be a valid floating-point number.',
-      validationRegex: '^(?:0(?:\\.\\d+)?|1(?:\\.0+)?|\\.\\d+)$',
+      validationRegex: '^(0(\\.\\d+)?|1(\\.0+)?|\\.\\d+)$',
     },
   },
 }));
@@ -82,7 +82,7 @@ describe('PipelineFloatInput', () => {
     const onValidation = jest.fn();
     render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
 
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     await user.type(input, '.5');
 
     expect(onValidation).toHaveBeenCalledWith(undefined);
@@ -93,10 +93,22 @@ describe('PipelineFloatInput', () => {
     const onValidation = jest.fn();
     render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
 
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     await user.type(input, '10');
 
     expect(onValidation).toHaveBeenCalledWith('Invalid float value');
+  });
+
+  it('calls onValidation with error for weird floatish input', async () => {
+    const user = userEvent.setup();
+    const onValidation = jest.fn();
+    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, '.');
+    expect(input).toHaveValue(0);
+
+    // expect(onValidation).toHaveBeenCalledWith('Invalid float value');
   });
 
   it('calls onValidation with error for negative float input out of range', async () => {
@@ -104,7 +116,7 @@ describe('PipelineFloatInput', () => {
     const onValidation = jest.fn();
     render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
 
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     await user.type(input, '-0.1');
 
     expect(onValidation).toHaveBeenCalledWith('Invalid float value');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NumberInput } from 'src/components/input';
+import { ValidatedInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 
@@ -26,11 +26,13 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
         {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
       </h3>
       <div style={{ width: 400 }}>
-        <NumberInput
+        <ValidatedInput
           value={value || ''}
           placeholder={placeholder || ''}
           aria-label={`${input.name} float input`}
           onChange={(e) => {
+            // eslint-disable-next-line no-console
+            console.log(e);
             onChange(e);
             if (validationRegex) {
               const regex = new RegExp(validationRegex);
