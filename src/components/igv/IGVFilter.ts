@@ -45,13 +45,6 @@ const igvStyles = {
       color: '#23527c',
     },
   },
-  igvPopulationAfToggle: {
-    color: '#337ab7',
-    cursor: 'pointer' as const,
-    ':hover': {
-      color: '#23527c',
-    },
-  },
   brushSelection: {
     fillOpacity: 0.1,
     fill: '#3d5a87',
@@ -60,17 +53,8 @@ const igvStyles = {
   },
 };
 
-declare global {
-  interface Window {
-    IGVFilter: any;
-  }
-}
-
-window.IGVFilter = {};
-
 const HISTOGRAM_BAR_MAX_HEIGHT = 20;
 const SLIDER_HANDLEBAR_WIDTH = 6;
-// const HANDLEBAR_Y = -1 * (HISTOGRAM_BAR_MAX_HEIGHT - 1);
 const HISTOGRAM_WIDTH = 225;
 const defaultNumericInputWidth = 55;
 
@@ -128,33 +112,9 @@ const widthsByOperator = {
   '>=': 65,
 };
 
-function updateIgvFilterOperator(event: { target: any }) {
-  const target = event.target;
-
-  const facetName = (target as HTMLElement).getAttribute('data-igv-facet-name');
-  const facetClass = getFacetClass(facetName ?? '');
-  const input = document.querySelector(`.${facetClass} input`);
-
-  const newOperator = target.value as keyof typeof widthsByOperator;
-
-  target.setAttribute('value', newOperator);
-  const width = widthsByOperator[newOperator];
-  target.style.width = `${width}px`;
-
-  const andInput2Style = getAndInput2Style(newOperator);
-  target.parentElement.querySelector('.igv-and-input-2').style = andInput2Style;
-
-  const changeEvent = new Event('change');
-  if (input) {
-    input.dispatchEvent(changeEvent);
-  }
-}
-
-window.IGVFilter.updateIgvFilterOperator = updateIgvFilterOperator;
-
 /** Get D3 scale to convert between numeric facet values and pixels */
 export function getXScale(bars: HistogramBarAttributes[], histogramWidth: number, hasNull: boolean | undefined) {
-  hasNull = false; // TODO: Parameterize
+  hasNull = false;
 
   const barStartIndex = hasNull ? 2 : 0;
   const valueDomain: number[] = [];
@@ -186,67 +146,6 @@ function getSliderStyle(bars: HistogramBarAttributes[], histogramWidth: number) 
 
   return [sliderLeft, sliderWidth, extentStartX, extentWidth];
 }
-
-/** Return new values from D3 brush selection */
-// function parseValuesFromBrushSelection(brushSelection: number[], xScale: any, precision: number) {
-//   const extent = brushSelection.map(xScale.invert);
-//   const newValue1 = round(extent[0], precision);
-//   const newValue2 = round(extent[1], precision);
-//   return [newValue1, newValue2];
-// }
-
-/** Handle slider move event (i.e., drag or resize) */
-// function handleBrushMove(event: any, xScale: any, facet: any) {
-//   const brushSelection = event.selection;
-
-//   if (!brushSelection) {
-//     return;
-//   }
-
-//   const precision = getPrecision(facet);
-
-//   const [newValue, newValue2] = parseValuesFromBrushSelection(brushSelection, xScale, precision);
-
-//   const max = facet.statistics?.max || 0;
-//   const min = facet.statistics?.min || 0;
-
-//   if (
-//     newValue > max ||
-//     newValue < min ||
-//     newValue2 > max ||
-//     newValue2 < min ||
-//     Number.isNaN(newValue) ||
-//     Number.isNaN(newValue2)
-//   ) {
-//     // Prevent handlebar misdisplay if crosshair-select moves out-of-bounds
-//     return null;
-//   }
-
-//   return {
-//     newRange: [Math.min(newValue, newValue2), Math.max(newValue, newValue2)] as [number, number],
-//     brushSelection,
-//     handlebarTransforms: [getHandlebarTranslate(brushSelection[0]), getHandlebarTranslate(brushSelection[1])],
-//   };
-// }
-
-/** Handle slider move event (i.e., drag or resize) */
-// function handleBrushEnd(event: any, facet: any) {
-//   const brushSelection = event.selection;
-//   if (!brushSelection) {
-//     return;
-//   }
-
-//   const facetClass = getFacetClass(facet);
-//   const input = document.querySelector(`.${facetClass} input`);
-//   if (!input) return;
-
-//   const changeEvent = new Event('change');
-//   input.dispatchEvent(changeEvent);
-// }
-
-// function getHandlebarTranslate(x: number) {
-//   return `translate(${x}, ${HANDLEBAR_Y})`;
-// }
 
 function getQuantiles(sortedNumbers: number[], max: number, min: number, numBins = 15) {
   const size = (max - min) / numBins;
@@ -294,54 +193,6 @@ function getStatistics(numbers: number[]) {
   return { min, q1, median, q3, max, mean, quantiles };
 }
 
-/**
- * Get SVG for handlebar UI, as an affordance for resizing
- *
- * Inspired by https://crossfilter.github.io/crossfilter
- */
-// function getHandlebarPath(d: { type: any }) {
-//   const sweepFlag = d.type === 'e' ? 1 : 0;
-//   const x = sweepFlag ? 1 : -1;
-//   const y = HISTOGRAM_BAR_MAX_HEIGHT - 0.5;
-//   const width = SLIDER_HANDLEBAR_WIDTH;
-
-//   // Construct an SVG arc
-//   // Docs: https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Paths#arcs
-//   const start = `M${0.5 * x},${y}`;
-//   const rx = width;
-//   const ry = width;
-//   const xAxisRotation = 0;
-//   const largeArcFlag = 0;
-//   const arc1X = (width + 0.5) * x;
-//   const arc1Y = y + 6;
-//   const arc1EndLine = `V${2 * y - width}`;
-//   const arc2X = 0.5 * x;
-//   const arc2Y = 2 * y;
-//   const arc1 = `A${rx},${ry} ${xAxisRotation} ${largeArcFlag} ${sweepFlag} ${arc1X},${arc1Y}`;
-//   const arc2 = `A${rx},${ry} ${xAxisRotation} ${largeArcFlag} ${sweepFlag} ${arc2X},${arc2Y}`;
-
-//   /* eslint-disable */
-//     // Each handlebar has two vertical lines in it, resembling notched grooves
-//     const notches = (
-//         "M" + (2.5 * x) + "," + (y + (width + 2)) +
-//         "V" + (2 * y - (width + 2)) +
-//         "M" + (4.5 * x) + "," + (y + (width + 2)) +
-//         "V" + (2 * y - (width + 2))
-//     )
-//     /* eslint-enable */
-
-//   /* eslint-disable */
-//     return (
-//         start +
-//         arc1 +
-//         arc1EndLine +
-//         arc2 +
-//         "Z" +
-//         notches
-//     )
-//     /* eslint-enable */
-// }
-
 function getMedian(numbers: number[]) {
   const midIndex = Math.floor(numbers.length / 2);
 
@@ -353,39 +204,6 @@ function getMedian(numbers: number[]) {
   // If the array has an even length, return the average of the two middle numbers
   return (numbers[midIndex - 1] + numbers[midIndex]) / 2;
 }
-
-// /** Expand or contract a full list of filters within a categorical facet */
-function togglePartialCollapse(event: any) {
-  const target = event.target;
-  if (!target) return;
-  const attrName = 'data-igv-is-partly-collapsed';
-  const oldIsPartlyCollapsed = target.getAttribute(attrName) === 'true';
-  const newIsPartlyCollapsed = !oldIsPartlyCollapsed;
-  const facetName = (target as HTMLElement).getAttribute('data-igv-facet-name');
-
-  const filterSel = `.igv-filter[data-igv-facet-name="${facetName}"]`;
-  document.querySelectorAll(filterSel).forEach((checkbox, i) => {
-    const parent = checkbox.parentElement;
-    if (!parent || !parent.parentElement) return;
-    const filterDom = parent.parentElement;
-    if (newIsPartlyCollapsed && i >= 5) {
-      // TODO: Consider optimizing by batching DOM writes
-      filterDom.style.display = 'none';
-    } else {
-      filterDom.style.display = '';
-    }
-  });
-
-  const toggler = document.querySelector('.igv-facet-toggle');
-  if (toggler) {
-    toggler.setAttribute(attrName, String(newIsPartlyCollapsed));
-    const action = newIsPartlyCollapsed ? 'More...' : 'Less...';
-    toggler.textContent = action;
-  }
-}
-
-window.IGVFilter.togglePartialCollapse = togglePartialCollapse;
-
 function getFacetClass(facetName: string) {
   return `igv-facet-${facetName}`;
 }
@@ -411,25 +229,6 @@ function getFriendlyFacetName(facet: FacetAttributes): string {
 
   return friendlyName;
 }
-
-/** Add or remove all checked item from list */
-function handleFacetCheckboxChange(event: Event) {
-  const target = event.target as HTMLInputElement;
-  if (!target) return;
-
-  const facetName = target.getAttribute('data-igv-facet-name');
-  const isChecked = target.checked;
-  const selector = `.igv-filter[data-igv-facet-name="${facetName}"]`;
-  const filterCheckboxes = document.querySelectorAll(selector);
-  filterCheckboxes.forEach((filterCheckbox) => {
-    (filterCheckbox as HTMLInputElement).checked = isChecked;
-  });
-  const changeEvent = new Event('change');
-  (filterCheckboxes[0] as HTMLInputElement).dispatchEvent(changeEvent);
-}
-
-// Enable calling via standard DOM onChange API
-window.IGVFilter.handleFacetCheckboxChange = handleFacetCheckboxChange;
 
 interface CategoricalFacetProps {
   facet: CategoricalFacetAttributes;
@@ -537,14 +336,6 @@ function getPrecision(numericFacet: { type: string }): number {
   return numericFacet.type === 'integer' ? 0 : 2;
 }
 
-function getAndInput2Style(operator: string) {
-  let andInput2Style = '';
-  if (!['between', 'not between'].includes(operator)) {
-    andInput2Style = 'display: none';
-  }
-  return andInput2Style;
-}
-
 /**
  * Round, source: https://stackoverflow.com/a/18358056
  *
@@ -592,8 +383,6 @@ function getInputStyle(inputValue, operator, precision) {
   return style;
 }
 
-// TODO add types?
-/** Make big input numbers fit on one more more often */
 function getResponsiveStyles(inputValue, inputValue2, operator, precision) {
   const inputStyle = getInputStyle(inputValue, operator, precision);
   const inputStyle2 = getInputStyle(inputValue2, operator, precision);
@@ -613,32 +402,6 @@ function getResponsiveStyles(inputValue, inputValue2, operator, precision) {
   };
   return styles;
 }
-
-// /** Expand or contract list of population-level allele frequency facets */
-function toggleAfCollapse(event: { target: any }) {
-  const target = event.target;
-  const attrName = 'data-igv-is-af-collapsed';
-  const oldIsAfCollapsed = target.getAttribute(attrName) === 'true';
-  const newIsAfCollapsed = !oldIsAfCollapsed;
-
-  const facetSel = '.igv-facet-population-af';
-  document.querySelectorAll(facetSel).forEach((facetDom) => {
-    if (newIsAfCollapsed) {
-      (facetDom as HTMLElement).style.display = 'none';
-    } else {
-      (facetDom as HTMLElement).style.display = '';
-    }
-  });
-
-  const afToggler = document.querySelector('.igv-population-af-toggle');
-  if (afToggler) {
-    afToggler.setAttribute(attrName, String(newIsAfCollapsed));
-    const action = newIsAfCollapsed ? 'Show' : 'Hide';
-    afToggler.textContent = `${action} by population`;
-  }
-}
-
-window.IGVFilter.toggleAfCollapse = toggleAfCollapse;
 
 // Small, focused component for the histogram
 const Histogram: React.FC<{
@@ -1048,14 +811,12 @@ const NumericFacet: React.FC<{
   const { bars, xScale, styles, histogramWidth, histogramHeight, sliderConfig } = facetData;
 
   const friendlyName = getFriendlyFacetName(facet);
-  const isPopulationAf = facet.name.endsWith('_AF');
 
   return div(
     {
       className: `igv-facet igv-facet-${facet.name} igv-facet-numeric`,
       style: {
         ...igvStyles.igvFacet,
-        display: isPopulationAf ? 'none' : 'block',
       },
     },
     [

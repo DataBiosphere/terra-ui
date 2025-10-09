@@ -42,9 +42,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const [filterPanelData, setFilterPanelData] = useState(null);
   const currentFilterFunction = useRef(null);
   const [tracksLoaded, setTracksLoaded] = useState(false);
-  // const [savedSelections, setSavedSelections] = useState(null);
-  // const [savedFacets, setSavedFacets] = useState(null);
-  // const [filterInitialized, setFilterInitialized] = useState(false);
   const filterPanelDataRef = useRef(null); // Track current panel data
 
   useEffect(() => {
@@ -65,6 +62,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     return null;
   }, []);
 
+  // When the user changes a filter, update the filter function on the variant track and refresh the view
   const handleFilterChange = useCallback(
     (selections, facets) => {
       if (!igvBrowser.current) return;
@@ -89,6 +87,9 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     [findVariantTrack]
   );
 
+  // When the locus changes, either by moving to a different chromosome or zooming in,
+  // update the filter panel with the new features in view
+  // This triggers reinitialization of the filter panel with the new features
   const handleLocusChange = useCallback(() => {
     const currentPanelData = filterPanelDataRef.current;
 
@@ -104,6 +105,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
         let attempts = 0;
         const maxAttempts = 20;
 
+        // It takes time for IGV to load features after a locus change.
+        // Poll for features until we get some or hit max attempts
         const checkFeaturesLoaded = () => {
           const features = trackToFilter.getInViewFeatures();
           attempts++;
@@ -130,6 +133,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     }
   }, [findVariantTrack, onFilterPanelChange]);
 
+  // When the filter panel is opened or closed, notify the parent component to remove/add it from the screen
+  // When closing, save the data in state so we can reuse it if reopening
   const toggleFilterPanel = useCallback(
     (show) => {
       if (!onFilterPanelChange) return;
@@ -361,7 +366,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           genome,
           reference,
           tracks: [],
-          locus: 'LDLR',
         };
 
         igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject));
