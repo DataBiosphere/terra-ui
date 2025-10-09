@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { a, div, h, input, label, rect, span, svg } from 'react-hyperscript-helpers';
 
 import { Select } from '../common';
-import { TextInput } from '../input';
+import { NumberInput } from '../input';
 
 const igvStyles = {
   igvFiltersContainer: {
@@ -913,27 +913,27 @@ const NumericFacet: React.FC<{
   onChange: (selection: any[]) => void;
 }> = ({ facet, selection, onChange }) => {
   const [currentRange, setCurrentRange] = useState<[number, number] | null>(null);
-  const [operator, setOperator] = useState<string>('between'); // Add operator state
+  const [operator, setOperator] = useState<string>('between');
+  const [displayValues, setDisplayValues] = useState<[string, string]>(['0', '0']); // Track display strings
 
   const facetData = useMemo(() => prepareNumericFacetData(facet), [facet]);
 
-  // Initialize current range from facet statistics or saved selection
+  // Initialize current range and display values from facet statistics or saved selection
   useEffect(() => {
     if (facetData) {
       let initialRange: [number, number];
       let initialOperator = 'between';
 
-      // Check if we have a saved selection to restore
       if (selection && selection.length > 0 && selection[0].length === 2) {
         initialOperator = selection[0][0];
         initialRange = selection[0][1];
         setOperator(initialOperator);
       } else {
-        // Use default range from facet statistics
         initialRange = [facetData.inputValue, facetData.inputValue2];
       }
 
       setCurrentRange(initialRange);
+      setDisplayValues([initialRange[0].toString(), initialRange[1].toString()]);
     }
   }, [facetData, selection]);
 
@@ -942,7 +942,6 @@ const NumericFacet: React.FC<{
       const newOperator = event.value;
       setOperator(newOperator);
 
-      // Trigger onChange with new operator
       if (currentRange) {
         onChange([[newOperator, currentRange]]);
       }
@@ -952,27 +951,94 @@ const NumericFacet: React.FC<{
 
   const handleRangeChange = useCallback((newRange: [number, number]) => {
     setCurrentRange(newRange);
+    setDisplayValues([newRange[0].toString(), newRange[1].toString()]);
   }, []);
 
   const handleRangeChangeEnd = useCallback(
     (newRange: [number, number]) => {
       setCurrentRange(newRange);
-      onChange([['between', newRange]]);
+      setDisplayValues([newRange[0].toString(), newRange[1].toString()]);
+      onChange([[operator, newRange]]);
     },
-    [onChange]
+    [onChange, operator]
   );
 
-  const handleInputChange = useCallback(
-    (index: number, value: string) => {
-      if (!currentRange) return;
+  const handleMinInputChange = useCallback((value: string) => {
+    // Allow typing any value, store as display string
+    setDisplayValues((prev) => [value, prev[1]]);
+  }, []);
 
-      const newRange: [number, number] = [...currentRange] as [number, number];
-      newRange[index] = parseFloat(value) || 0;
+  const handleMaxInputChange = useCallback((value: string) => {
+    // Allow typing any value, store as display string
+    setDisplayValues((prev) => [prev[0], value]);
+  }, []);
 
-      setCurrentRange(newRange);
-      onChange([['between', newRange]]);
+  const handleMinInputBlur = useCallback(() => {
+    if (!currentRange || !facetData) return;
+
+    const numValue = parseFloat(displayValues[0]);
+    if (Number.isNaN(numValue)) {
+      // Reset to current value if invalid
+      setDisplayValues((prev) => [currentRange[0].toString(), prev[1]]);
+      return;
+    }
+
+    // Clamp to bounds
+    const min = facetData.inputValue;
+    const max = facetData.inputValue2;
+    const clampedValue = Math.max(min, Math.min(max, numValue));
+
+    // Ensure min <= max
+    const newMin = Math.min(clampedValue, currentRange[1]);
+    const newRange: [number, number] = [newMin, currentRange[1]];
+
+    setCurrentRange(newRange);
+    setDisplayValues([newMin.toString(), newRange[1].toString()]);
+    onChange([[operator, newRange]]);
+  }, [currentRange, displayValues, operator, onChange, facetData]);
+
+  const handleMaxInputBlur = useCallback(() => {
+    if (!currentRange || !facetData) return;
+
+    const numValue = parseFloat(displayValues[1]);
+    if (Number.isNaN(numValue)) {
+      // Reset to current value if invalid
+      setDisplayValues((prev) => [prev[0], currentRange[1].toString()]);
+      return;
+    }
+
+    // Clamp to bounds
+    const min = facetData.inputValue;
+    const max = facetData.inputValue2;
+    const clampedValue = Math.max(min, Math.min(max, numValue));
+
+    // Ensure min <= max
+    const newMax = Math.max(clampedValue, currentRange[0]);
+    const newRange: [number, number] = [currentRange[0], newMax];
+
+    setCurrentRange(newRange);
+    setDisplayValues([newRange[0].toString(), newMax.toString()]);
+    onChange([[operator, newRange]]);
+  }, [currentRange, displayValues, operator, onChange, facetData]);
+
+  const handleMinInputKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleMinInputBlur();
+      }
     },
-    [currentRange, onChange]
+    [handleMinInputBlur]
+  );
+
+  const handleMaxInputKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleMaxInputBlur();
+      }
+    },
+    [handleMaxInputBlur]
   );
 
   if (!facetData) {
@@ -983,9 +1049,6 @@ const NumericFacet: React.FC<{
 
   const friendlyName = getFriendlyFacetName(facet);
   const isPopulationAf = facet.name.endsWith('_AF');
-  // const isGeneralAf = facet.name === 'AF';
-
-  const displayRange = currentRange || [facetData.inputValue, facetData.inputValue2];
 
   return div(
     {
@@ -1014,7 +1077,7 @@ const NumericFacet: React.FC<{
         }),
         h(HistogramSlider, {
           facet,
-          brushSelection: displayRange,
+          brushSelection: currentRange || [facetData.inputValue, facetData.inputValue2],
           sliderConfig,
           xScale,
           onRangeChange: handleRangeChange,
@@ -1031,7 +1094,6 @@ const NumericFacet: React.FC<{
             alignItems: 'center',
             gap: '4px',
             marginTop: '8px',
-            // flexWrap: 'nowrap',
             width: `${histogramWidth}px`,
             maxWidth: `${histogramWidth}px`,
             minHeight: '24px',
@@ -1067,7 +1129,7 @@ const NumericFacet: React.FC<{
               }),
               menu: (provided) => ({
                 ...provided,
-                zIndex: 1000, // Ensure dropdown appears above slider handles
+                zIndex: 1000,
               }),
               option: (provided) => ({
                 ...provided,
@@ -1081,10 +1143,12 @@ const NumericFacet: React.FC<{
             })),
           }),
 
-          h(TextInput, {
+          h(NumberInput, {
             className: 'igv-numeric-query-input igv-numeric-query-input-value',
-            value: displayRange[0],
-            onChange: (e) => handleInputChange(0, e.target.value),
+            value: displayValues[0],
+            onChange: handleMinInputChange,
+            onBlur: handleMinInputBlur,
+            onKeyDown: handleMinInputKeyDown,
             style: {
               ...styles.input,
             },
@@ -1102,27 +1166,18 @@ const NumericFacet: React.FC<{
             ),
 
           ['between', 'not between'].includes(operator) &&
-            h(TextInput, {
+            h(NumberInput, {
               className: 'igv-numeric-query-input igv-numeric-query-input-value2',
-              value: displayRange[1],
-              onChange: (e) => handleInputChange(1, e.target.value),
+              value: displayValues[1],
+              onChange: handleMaxInputChange,
+              onBlur: handleMaxInputBlur,
+              onKeyDown: handleMaxInputKeyDown,
               style: {
                 ...styles.input2,
               },
             }),
         ]
       ),
-
-      // Population toggle if needed
-      // isGeneralAf &&
-      //   div(
-      //     {
-      //       className: 'igv-population-af-toggle',
-      //       onClick: toggleAfCollapse,
-      //       style: igvStyles.igvPopulationAfToggle,
-      //     },
-      //     ['Show by population']
-      //   ),
     ]
   );
 };

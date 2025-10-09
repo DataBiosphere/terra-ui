@@ -67,11 +67,22 @@ const mockLoadSession = jest.fn(() => Promise.resolve());
 jest.mock('igv', () => {
   const igv = {
     setGoogleOauthToken: jest.fn(),
-    createBrowser: jest.fn(async () => ({
-      loadTrack: mockLoadTrack,
-      toJSON: mockToJSON,
-      loadSession: mockLoadSession,
-    })),
+    createBrowser: jest.fn(async () => {
+      const eventHandlers = {};
+      return {
+        loadTrack: mockLoadTrack,
+        toJSON: mockToJSON,
+        loadSession: mockLoadSession,
+        on: jest.fn((event, handler) => {
+          eventHandlers[event] = handler; // Store event handlers
+        }),
+        emit: jest.fn((event, ...args) => {
+          if (eventHandlers[event]) {
+            eventHandlers[event](...args); // Call the stored handler
+          }
+        }),
+      };
+    }),
     removeAllBrowsers: jest.fn(),
   };
   return { __esModule: true, default: igv, ...igv };
@@ -296,7 +307,7 @@ describe('IGVBrowser', () => {
         name: expect.stringContaining('foobar.bazmoo.er.raw.g.vcf.gz'),
         url: `https://storage.googleapis.com/storage/v1/b/${fakeBucketName}/o/a_sub_dir%2Fbig%2Fmultipart%2Fpath%2Ffoobar.bazmoo.er.raw.g.vcf.gz?${fakeSignedParams}&alt=media`,
         indexURL: `https://storage.googleapis.com/storage/v1/b/${fakeBucketName}/o/a_sub_dir%2Fbig%2Fmultipart%2Fpath%2Ffoobar.bazmoo.er.raw.g.vcf.gz.tbi?${fakeSignedParams}&alt=media`,
-        visibilityWindow: 75000,
+        visibilityWindow: 500000,
       });
     });
   });
