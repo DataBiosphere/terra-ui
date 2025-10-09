@@ -300,6 +300,9 @@ describe('RunJob Component', () => {
       expect(mockTeaspoonsContract.getQuotaForPipeline).toHaveBeenCalled();
     });
 
+    // confirm that the optional input field is rendered
+    expect(screen.getByLabelText('someOptionalInput text input')).toBeInTheDocument();
+
     // only fill in the two required fields
     const outputPrefixInput = screen.getByLabelText('outputBasename text input');
     await user.type(outputPrefixInput, 'test_output');
