@@ -71,7 +71,13 @@ import { AppDetails } from 'src/workspaces/common/state/useAppPolling';
 import { CloudEnvironmentDetails } from 'src/workspaces/common/state/useCloudEnvironmentPolling';
 import { InitializedWorkspaceWrapper, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
-import { canWrite, isAzureWorkspace, isGoogleWorkspace, isGoogleWorkspaceInfo } from 'src/workspaces/utils';
+import {
+  canEditWorkspace,
+  canWrite,
+  isAzureWorkspace,
+  isGoogleWorkspace,
+  isGoogleWorkspaceInfo,
+} from 'src/workspaces/utils';
 
 const tableFields = {
   application: 'application',
@@ -711,6 +717,11 @@ export const BaseAnalyses = (
     );
   };
 
+  const {
+    workspace: { isLocked },
+  } = workspace;
+  const canEdit = canEditWorkspace({ accessLevel, workspace: { isLocked: !!isLocked } });
+
   // Render
   return h(
     Dropzone,
@@ -740,8 +751,8 @@ export const BaseAnalyses = (
                   {
                     style: { marginLeft: '1.5rem' },
                     onClick: () => setCreating(true),
-                    disabled: !canWrite(accessLevel),
-                    tooltip: !canWrite(accessLevel) ? noWrite : undefined,
+                    disabled: !canEdit.value,
+                    tooltip: !canEdit.value ? canEdit.message : undefined,
                   },
                   [
                     icon('plus', { size: 14, style: { color: colors.accent() } }),
