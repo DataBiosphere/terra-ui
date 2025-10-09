@@ -149,6 +149,9 @@ export const RunJob = () => {
       return;
     }
 
+    // Filter out empty string inputs to avoid sending them to the backend.
+    // At this point we've already validated required inputs are filled, so this
+    // will only remove optional inputs that the user left blank.
     const filteredUserInputs = Object.fromEntries(
       Object.entries(selectedUserInputs).filter(([_, value]) => value !== '')
     );
