@@ -29,6 +29,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
         <NumberInput
           value={value || ''}
           placeholder={placeholder || ''}
+          aria-label={`${input.name} float input`}
           onChange={(e) => {
             onChange(e);
             if (validationRegex) {

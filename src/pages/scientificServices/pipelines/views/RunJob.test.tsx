@@ -171,10 +171,10 @@ describe('RunJob Component', () => {
     expect(outputPrefixInput).toHaveValue('test_output');
 
     // Enter minDr2ForInclusion
-    const minDr2Input = screen.getByLabelText('minDr2ForInclusion spin button');
+    const minDr2Input = screen.getByLabelText('minDr2ForInclusion float input');
     await user.type(minDr2Input, '0.3');
 
-    expect(minDr2Input).toHaveValue('0.3');
+    expect(minDr2Input).toHaveValue(0.3);
 
     // Enter description
     const descriptionTextArea = screen.getByLabelText('description');
