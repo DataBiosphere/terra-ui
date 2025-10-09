@@ -7,7 +7,7 @@ export interface Pipeline {
 
 export interface PipelineInput {
   name: string;
-  type: 'FILE' | 'STRING';
+  type: 'FILE' | 'STRING' | 'FLOAT';
   isRequired: boolean;
   fileSuffix?: string; // Only present for FILE types
 }

@@ -34,11 +34,11 @@ describe('submission-utils', () => {
       });
     });
 
-    it('trims input strings and handles file inputs correctly when preparing inputs', async () => {
+    it('handles file and float inputs correctly when preparing inputs', async () => {
       const useInputs = {
         stringInput: 'testValue',
         fileInput: new File(['super cool test vcf!!!'], 'test.vcf.gz'),
-        anotherStringInput: '  thisInputShouldBeTrimmedBeforeSendingToTheBackend  ',
+        floatInput: 23.5,
       };
 
       const result = await preparePipelineRun('array_imputation', 1, useInputs, 'Test description');
@@ -51,7 +51,7 @@ describe('submission-utils', () => {
         {
           stringInput: 'testValue',
           fileInput: 'test.vcf.gz',
-          anotherStringInput: 'thisInputShouldBeTrimmedBeforeSendingToTheBackend',
+          floatInput: 23.5,
         },
         'Test description'
       );

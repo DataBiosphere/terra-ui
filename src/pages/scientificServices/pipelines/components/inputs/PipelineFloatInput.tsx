@@ -1,9 +1,9 @@
 import React from 'react';
-import { ValidatedInput } from 'src/components/input';
+import { NumberInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 
-interface PipelineStringInputProps {
+interface PipelineFloatInputProps {
   input: PipelineInput;
   value: string;
   onChange: (value: string) => void;
@@ -11,7 +11,7 @@ interface PipelineStringInputProps {
   onValidation(error?: string): void;
 }
 
-export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
+export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   input,
   value,
   onChange,
@@ -25,27 +25,25 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
       <h3 style={{ marginBottom: '0.5rem' }}>
         {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
       </h3>
-      <ValidatedInput
-        width={400}
-        error={validationError}
-        inputProps={{
-          'aria-label': `${input.name} text input`,
-          type: 'text',
-          value: value || '',
-          placeholder: placeholder || '',
-          onChange: (e) => {
+      <div style={{ width: 400 }}>
+        <NumberInput
+          value={value || ''}
+          placeholder={placeholder || ''}
+          aria-label={`${input.name} float input`}
+          onChange={(e) => {
             onChange(e);
             if (validationRegex) {
               const regex = new RegExp(validationRegex);
-              if (!regex.test(e.trim()) && e.length > 0) {
-                onValidation('This input contains invalid characters');
+              if (!regex.test(e) && e !== null) {
+                onValidation('Invalid float value');
               } else {
                 onValidation(undefined);
               }
             }
-          },
-        }}
-      />
+          }}
+        />
+      </div>
+      {validationError && <div style={{ color: 'red', marginTop: '0.5rem' }}>{validationError}</div>}
       {helpText && <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic' }}>{helpText}</div>}
     </>
   );
