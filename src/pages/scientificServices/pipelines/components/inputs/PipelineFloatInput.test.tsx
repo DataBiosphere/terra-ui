@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -57,7 +57,7 @@ describe('PipelineFloatInput', () => {
 
   it('renders input placeholder', () => {
     render(<PipelineFloatInput {...defaultProps} />);
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     expect(input).toHaveAttribute('placeholder', 'Enter a number');
   });
 
@@ -67,59 +67,53 @@ describe('PipelineFloatInput', () => {
   });
 
   it('calls onValidation with undefined for valid float input', async () => {
-    const user = userEvent.setup();
-    const onValidation = jest.fn();
-    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+    render(<PipelineFloatInput {...defaultProps} />);
 
-    const input = screen.getByRole('spinbutton');
-    await user.type(input, '0.5');
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '0.5' } });
 
-    expect(onValidation).toHaveBeenCalledWith(undefined);
+    expect(defaultProps.onChange).toHaveBeenCalledWith('0.5');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith(undefined);
   });
 
   it('calls onValidation with undefined for valid float input without starting 0', async () => {
-    const user = userEvent.setup();
-    const onValidation = jest.fn();
-    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+    render(<PipelineFloatInput {...defaultProps} />);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, '.5');
+    fireEvent.change(input, { target: { value: '.5' } });
 
-    expect(onValidation).toHaveBeenCalledWith(undefined);
+    expect(defaultProps.onChange).toHaveBeenCalledWith('.5');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith(undefined);
   });
 
   it('calls onValidation with error for float input out of range', async () => {
-    const user = userEvent.setup();
-    const onValidation = jest.fn();
-    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+    render(<PipelineFloatInput {...defaultProps} />);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, '10');
+    fireEvent.change(input, { target: { value: '10' } });
 
-    expect(onValidation).toHaveBeenCalledWith('Invalid float value');
+    expect(defaultProps.onChange).toHaveBeenCalledWith('10');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith('Invalid float value');
   });
 
-  it('calls onValidation with error for weird floatish input', async () => {
-    const user = userEvent.setup();
-    const onValidation = jest.fn();
-    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+  it('calls onValidation with error for . input', async () => {
+    render(<PipelineFloatInput {...defaultProps} />);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, '.');
-    expect(input).toHaveValue(0);
+    fireEvent.change(input, { target: { value: '.' } });
 
-    // expect(onValidation).toHaveBeenCalledWith('Invalid float value');
+    expect(defaultProps.onChange).toHaveBeenCalledWith('.');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith('Invalid float value');
   });
 
   it('calls onValidation with error for negative float input out of range', async () => {
-    const user = userEvent.setup();
-    const onValidation = jest.fn();
-    render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
+    render(<PipelineFloatInput {...defaultProps} />);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, '-0.1');
+    fireEvent.change(input, { target: { value: '-0.1' } });
 
-    expect(onValidation).toHaveBeenCalledWith('Invalid float value');
+    expect(defaultProps.onChange).toHaveBeenCalledWith('-0.1');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith('Invalid float value');
   });
 
   it('does not validate empty input', async () => {
@@ -127,7 +121,7 @@ describe('PipelineFloatInput', () => {
     const onValidation = jest.fn();
     render(<PipelineFloatInput {...defaultProps} onValidation={onValidation} />);
 
-    const input = screen.getByRole('spinbutton');
+    const input = screen.getByRole('textbox');
     await user.clear(input);
 
     expect(onValidation).not.toHaveBeenCalled();
