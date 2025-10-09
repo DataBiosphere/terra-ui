@@ -54,7 +54,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     for (const trackView of igvBrowser.current.trackViews) {
       const track = trackView.track;
 
-      if (track.type === 'variant' || track.format === 'vcf' || track.format === 'VCF' || (track.url && track.url.toLowerCase().includes('.vcf'))) {
+      if (track.type === 'variant' || track.format === 'vcf' || track.format === 'VCF' || track?.url?.toLowerCase().includes('.vcf')) {
         return track;
       }
     }
@@ -93,7 +93,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const handleLocusChange = useCallback(() => {
     const currentPanelData = filterPanelDataRef.current;
 
-    if (currentPanelData && currentPanelData.show) {
+    if (currentPanelData?.show) {
       const trackToFilter = findVariantTrack();
 
       if (trackToFilter && onFilterPanelChange) {
@@ -281,7 +281,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined };
 
       // Omit residual URL parameters from access URLs resolved via DRS Hub
-      const simpleUrl = _.last(url.split('/')).split('?')[0];
+      const simpleUrl = url.split('/').at(-1).split('?')[0];
 
       const fullUrl = isSignedUrl ? url : Utils.mergeQueryParams(userProjectParam, url);
       const fullIndexUrl = isSignedUrl ? indexURL : indexURL && Utils.mergeQueryParams(userProjectParam, indexURL);
@@ -453,9 +453,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
           },
           ['Add track']
         ),
-        !hasVariantFiles
-          ? null
-          : h(
+        hasVariantFiles
+          ? h(
               ButtonOutline,
               {
                 disabled: loadingIgv || !tracksLoaded,
@@ -465,7 +464,8 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
                 style: { marginRight: '5px' },
               },
               ['Filter variants']
-            ),
+            )
+          : null,
       ]),
     ]),
     div(

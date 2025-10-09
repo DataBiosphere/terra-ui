@@ -114,7 +114,7 @@ const widthsByOperator = {
 
 /** Get D3 scale to convert between numeric facet values and pixels */
 export function getXScale(bars: HistogramBarAttributes[], histogramWidth: number, hasNull: boolean | undefined) {
-  hasNull = false;
+  hasNull = false; // TODO use input value
 
   const barStartIndex = hasNull ? 2 : 0;
   const valueDomain: number[] = [];
@@ -125,7 +125,7 @@ export function getXScale(bars: HistogramBarAttributes[], histogramWidth: number
     const x = (bar.x ?? 0) + (hasNull ? 0 : SLIDER_HANDLEBAR_WIDTH + 2);
     pxRange.push(x);
   }
-  const lastBar = bars.slice(-1)[0];
+  const lastBar = bars.at(-1)!;
   valueDomain.push(lastBar.end);
   pxRange.push(histogramWidth + (hasNull ? 0 : SLIDER_HANDLEBAR_WIDTH));
 
@@ -154,8 +154,8 @@ function getQuantiles(sortedNumbers: number[], max: number, min: number, numBins
   for (let i = 1; i < numBins + 1; i++) {
     const prevBinNum = min + (i - 1) * size;
     const binNum = min + i * size;
-    for (let j = 0; j < sortedNumbers.length; j++) {
-      const num = sortedNumbers[j];
+    for (const j of sortedNumbers) {
+      const num = j;
       if (prevBinNum < num && num <= binNum) {
         quantiles[i - 1] += 1;
       }
@@ -171,12 +171,12 @@ function getStatistics(numbers: number[]) {
 
   // Compute the sum using a loop for faster mean calculation
   let sum = 0;
-  for (let i = 0; i < numbers.length; i++) {
-    sum += numbers[i];
+  for (const i of numbers) {
+    sum += i;
   }
   const mean = sum / numbers.length;
 
-  const max = numbers[numbers.length - 1];
+  const max = numbers.at(-1) ?? 0;
   const min = numbers[0];
   const median = getMedian(numbers);
 
@@ -306,7 +306,7 @@ const CategoricalFacet: React.FC<CategoricalFacetProps> = ({
               'data-igv-facet-name': facet.name,
               'data-igv-filter-name': filterName,
               checked: selection.includes(filterName),
-              onChange: (e) => handleCheckboxChange(filterName, e.target.checked),
+              onChange: (e: React.ChangeEvent<HTMLInputElement>) => handleCheckboxChange(filterName, e.target.checked),
             }),
             span({ className: 'igv-filter-label-text' }, [filterName]),
             span({ className: 'igv-filter-label-quantities' }, [
@@ -344,13 +344,17 @@ function getPrecision(numericFacet: { type: string }): number {
  * @return {number}
  */
 function round(val: number, precision = 0) {
-  return +`${Math.round(+`${val}e+${precision}`)}e-${precision}`;
+  const exponent = `e+${precision}`;
+  const withExponent = `${val}${exponent}`;
+  const rounded = Math.round(Number(withExponent));
+  const result = `${rounded}e-${precision}`;
+  return Number(result);
 }
 
 /**
  * Get width and font size for input, to help keep full value glanceable
  */
-function getInputStyle(inputValue, operator, precision) {
+function getInputStyle(inputValue: number, operator: string, precision: number | undefined) {
   let width = defaultNumericInputWidth;
   let fontSize = 13;
 
@@ -383,7 +387,7 @@ function getInputStyle(inputValue, operator, precision) {
   return style;
 }
 
-function getResponsiveStyles(inputValue, inputValue2, operator, precision) {
+function getResponsiveStyles(inputValue: number, inputValue2: number, operator: string, precision: number | undefined) {
   const inputStyle = getInputStyle(inputValue, operator, precision);
   const inputStyle2 = getInputStyle(inputValue2, operator, precision);
   const andStyle: { marginLeft: string; marginRight?: string; fontSize?: number } = { marginLeft: '4px' };
@@ -416,18 +420,16 @@ const Histogram: React.FC<{
       style: { borderBottom: '1px solid #AAA' },
       className: 'numeric-filter-histogram',
     },
-    [
-      ...bars.map((bar, index) =>
-        rect({
-          key: index,
-          fill: bar.color,
-          x: bar.x,
-          y: bar.y,
-          width: bar.width,
-          height: bar.height,
-        })
-      ),
-    ]
+    bars.map((bar, index) =>
+      rect({
+        key: index,
+        fill: bar.color,
+        x: bar.x,
+        y: bar.y,
+        width: bar.width,
+        height: bar.height,
+      })
+    )
   );
 };
 
@@ -656,9 +658,8 @@ const isValidCategoricalFacet = (facet: CategoricalFacetAttributes): boolean => 
 const isValidNumericFacet = (facet: NumericFacetAttributes): boolean => {
   return (
     facet.filterNumbers.length > 0 &&
-    facet.statistics !== undefined &&
-    facet.statistics.min !== undefined &&
-    facet.statistics.max !== undefined &&
+    facet.statistics?.min !== undefined &&
+    facet.statistics?.max !== undefined &&
     facet.statistics.min !== facet.statistics.max
   );
 };
@@ -739,7 +740,7 @@ const NumericFacet: React.FC<{
   const handleMinInputBlur = useCallback(() => {
     if (!currentRange || !facetData) return;
 
-    const numValue = parseFloat(displayValues[0]);
+    const numValue = Number.parseFloat(displayValues[0]);
     if (Number.isNaN(numValue)) {
       // Reset to current value if invalid
       setDisplayValues((prev) => [currentRange[0].toString(), prev[1]]);
@@ -763,7 +764,7 @@ const NumericFacet: React.FC<{
   const handleMaxInputBlur = useCallback(() => {
     if (!currentRange || !facetData) return;
 
-    const numValue = parseFloat(displayValues[1]);
+    const numValue = Number.parseFloat(displayValues[1]);
     if (Number.isNaN(numValue)) {
       // Reset to current value if invalid
       setDisplayValues((prev) => [prev[0], currentRange[1].toString()]);
@@ -865,34 +866,34 @@ const NumericFacet: React.FC<{
             value: operator,
             onChange: handleOperatorChange,
             styles: {
-              control: (provided) => ({
+              control: (provided: any) => ({
                 ...provided,
-                width: `${widthsByOperator[operator] || 85}px`,
+                width: `${widthsByOperator[operator as keyof typeof widthsByOperator] || 85}px`,
                 fontSize: '13px',
                 minHeight: '24px',
                 border: '1px solid #ccc',
               }),
-              valueContainer: (provided) => ({
+              valueContainer: (provided: any) => ({
                 ...provided,
                 padding: '2px 6px',
               }),
-              input: (provided) => ({
+              input: (provided: any) => ({
                 ...provided,
                 margin: '0px',
                 padding: '0px',
               }),
-              dropdownIndicator: (provided) => ({
+              dropdownIndicator: (provided: any) => ({
                 ...provided,
                 padding: '4px',
               }),
               indicatorSeparator: () => ({
                 display: 'none',
               }),
-              menu: (provided) => ({
+              menu: (provided: any) => ({
                 ...provided,
                 zIndex: 1000,
               }),
-              option: (provided) => ({
+              option: (provided: any) => ({
                 ...provided,
                 fontSize: '13px',
                 padding: '4px 8px',
@@ -967,7 +968,7 @@ function getRefinedDescription(facet: FacetAttributes, facetName: string) {
  *     {
  *       "name": <String>, // Internal name of facet, e.g. "VT"
  *
- *       "displayName": <String>, // e.g. "Variant type" TODO
+ *       "displayName": <String>, // e.g. "Variant type"
  *
  *       "type": <String> // "categorical" or "integer" or "float"
  *
@@ -1005,7 +1006,7 @@ function initFacets(trackToFilter: {
 
   const facetOrder = ['VT', 'AF', 'AFR_AF', 'AMR_AF', 'EAS_AF', 'EUR_AF', 'SAS_AF', 'DP', 'AA', 'AC'];
 
-  const dimensions = rawDimensions.sort((a, b) => {
+  const dimensions = rawDimensions.slice().sort((a, b) => {
     const indexA = facetOrder.indexOf(a);
     const indexB = facetOrder.indexOf(b);
     if (indexA === -1) return 100000;
@@ -1014,7 +1015,7 @@ function initFacets(trackToFilter: {
   });
 
   const facets: FacetAttributes[] = [];
-  dimensions.forEach((dimension) => {
+  for (const dimension of dimensions) {
     const igvFacet = headInfo[dimension];
     // string, flag, integer, or float
     const igvType = igvFacet.Type.toLowerCase();
@@ -1035,11 +1036,10 @@ function initFacets(trackToFilter: {
         type,
         description,
         filterNumbers: [],
-        // TODO should i make statistics required and initialize it with some values?
       };
       facets.push(facet);
     }
-  });
+  }
 
   // Populate features, and (for each facet) filterNames
   const featuresInFrame = trackToFilter.getInViewFeatures();
@@ -1069,7 +1069,7 @@ function initFacets(trackToFilter: {
           }
         } else {
           const isFloat = facet.type === 'float';
-          const value = isFloat ? parseFloat(rawValue) : parseInt(rawValue);
+          const value = isFloat ? Number.parseFloat(rawValue) : Number.parseInt(rawValue);
           if ('filterNumbers' in facet) {
             facet.filterNumbers.push(value);
           }
@@ -1147,13 +1147,13 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
 
           // Initialize selections with default values
           initialSelections = {};
-          initializedFacets.forEach((facet) => {
+          for (const facet of initializedFacets) {
             if (facet.type === 'categorical') {
               initialSelections[facet.name] = [...facet.filterNames];
             } else {
               initialSelections[facet.name] = [['between', [facet.statistics?.min || 0, facet.statistics?.max || 0]]];
             }
-          });
+          }
         }
 
         setFacets(initializedFacets);
@@ -1294,7 +1294,7 @@ function buildFilter(
             return false;
           }
         } else {
-          const parser = facet.type === 'float' ? parseFloat : parseInt;
+          const parser = facet.type === 'float' ? Number.parseFloat : Number.parseInt;
           const value = parser(rawValue);
 
           if (Number.isNaN(value)) continue; // Skip invalid numeric values
@@ -1302,50 +1302,58 @@ function buildFilter(
           const op = facetSelection[0][0];
           const selectionValues = facetSelection[0][1];
           switch (op) {
-            case 'between':
+            case 'between': {
               const v1 = parser(selectionValues[0]);
               const v2 = parser(selectionValues[1]);
               if (value < v1 || value > v2) {
                 return false;
               }
               break;
-            case 'not between':
+            }
+            case 'not between': {
               const nv1 = parser(selectionValues[0]);
               const nv2 = parser(selectionValues[1]);
               if (value >= nv1 || value <= nv2) {
                 return false;
               }
               break;
-            case '=':
+            }
+            case '=': {
               if (value !== parser(selectionValues[0])) {
                 return false;
               }
               break;
-            case '!=':
+            }
+            case '!=': {
               if (value === parser(selectionValues[0])) {
                 return false;
               }
               break;
-            case '<':
+            }
+            case '<': {
               if (value >= parser(selectionValues[0])) {
                 return false;
               }
               break;
-            case '<=':
+            }
+            case '<=': {
               if (value > parser(selectionValues[0])) {
                 return false;
               }
               break;
-            case '>':
+            }
+            case '>': {
               if (value <= parser(selectionValues[0])) {
                 return false;
               }
               break;
-            case '>=':
+            }
+            case '>=': {
               if (value < parser(selectionValues[0])) {
                 return false;
               }
               break;
+            }
             default:
               // Unknown operator, skip
               break;
@@ -1399,7 +1407,7 @@ function updateFilterCounts(
           }
         } else {
           const isFloat = facet.type === 'float';
-          const value = isFloat ? parseFloat(rawValue) : parseInt(rawValue);
+          const value = isFloat ? Number.parseFloat(rawValue) : Number.parseInt(rawValue);
           if (!Number.isNaN(value)) {
             facet.filterNumbers.push(value);
           }

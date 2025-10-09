@@ -61,7 +61,7 @@ const isTdrUrl = (fileUrl) => {
 
 const genomicFiles = ['bam', 'bed', 'cram', 'gz', 'vcf'];
 const indexFiles = ['bai', 'crai', 'idx', 'tbi'];
-const allFiles = genomicFiles.concat(indexFiles);
+const allFiles = new Set(genomicFiles.concat(indexFiles));
 
 function indexMap(base) {
   return {
@@ -133,7 +133,7 @@ const findIndexForFile = async (workspace, entityType, fileUrl, fileUrls, signal
 // Determine whether filename has an IGV-eligible extension
 const hasValidIgvExtension = (filename) => {
   const [base, extension] = splitExtension(filename);
-  return !!base && allFiles.includes(extension);
+  return !!base && allFiles.has(extension);
 };
 
 export const getDrsDataObjectMetadata = async (value, fields, signal = undefined) => {
@@ -220,7 +220,7 @@ export const getValidIgvFiles = async (workspace, entityType, allValues, signal)
   });
 
   const accessUrls = await resolveValidIgvDrsUris(values, signal);
-  accessUrls.forEach((accessUrl) => {
+  for (const accessUrl of accessUrls) {
     const url = new URL(accessUrl);
 
     // Reliably indicate this is an access URL that should not be modified
@@ -229,7 +229,7 @@ export const getValidIgvFiles = async (workspace, entityType, allValues, signal)
     url.isSignedUrl = true;
 
     fileUrls.push(url);
-  });
+  }
 
   const results = await Promise.all(
     fileUrls.map(async (fileUrl) => {
@@ -315,7 +315,7 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
               const { filePath, isSelected } = selections[index];
 
               // Show the file name, i.e. the last URL path segment, without URL parameters
-              const fileName = _.last(filePath.split('/')).split('?')[0];
+              const fileName = filePath.split('/').at(-1).split('?')[0];
 
               return h(
                 CellMeasurer,
