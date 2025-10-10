@@ -46,7 +46,9 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
           },
         }}
       />
-      {helpText && <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic', maxWidth: 500 }}>{helpText}</div>}
+      {helpText && (
+        <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic', maxWidth: 500 }}>{helpText}</div>
+      )}
     </>
   );
 };
