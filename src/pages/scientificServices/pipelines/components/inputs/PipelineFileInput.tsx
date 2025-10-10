@@ -72,7 +72,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
       return;
     }
 
-    // If all validations pass, clear any existing error
+    // All validations have passed
     onValidation(undefined);
   };
 
