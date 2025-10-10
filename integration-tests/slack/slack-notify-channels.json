@@ -38,8 +38,8 @@
       ]
     },
     {
-      "name": "dsp-data-team",
-      "id": "C07T2DLHD24",
+      "name": "dsp-tdr",
+      "id": "CD4HBRFMG",
       "tests": [
         {
           "name": "preview-drs-uri"
