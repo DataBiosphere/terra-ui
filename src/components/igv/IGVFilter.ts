@@ -101,8 +101,8 @@ interface NumericFacetAttributes extends BaseFacetAttributes {
 type FacetAttributes = CategoricalFacetAttributes | NumericFacetAttributes;
 
 const widthsByOperator = {
-  between: 95,
-  'not between': 120,
+  between: 85,
+  'not between': 100,
   '=': 65,
   '!=': 65,
   '<': 65,
@@ -915,10 +915,16 @@ const NumericFacet: React.FC<{
                 padding: '4px 8px',
               }),
             },
-            options: ['between', 'not between', '=', '!=', '<', '<=', '>', '>='].map((op) => ({
-              value: op,
-              label: op,
-            })),
+            options: [
+              { value: 'between', label: 'btw' },
+              { value: 'not between', label: 'not btw' },
+              { value: '=', label: '=' },
+              { value: '!=', label: '!=' },
+              { value: '<', label: '<' },
+              { value: '<=', label: '≤' },
+              { value: '>', label: '>' },
+              { value: '>=', label: '≥' },
+            ],
           }),
 
           h(NumberInput, {
@@ -1182,10 +1188,12 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
           setIsInitialized(true);
         }
 
-        // Notify parent about facet updates
-        if (onFacetsUpdate) {
-          onFacetsUpdate(initializedFacets, initialSelections);
-        }
+        // Schedule parent notification for after render completes
+        setTimeout(() => {
+          if (onFacetsUpdate) {
+            onFacetsUpdate(initializedFacets, initialSelections);
+          }
+        }, 0);
         setLocalIsLoading(false);
       };
 
@@ -1227,18 +1235,22 @@ const IGVFilters: React.FC<IGVFiltersProps> = ({
       setSelections((prev) => {
         const updatedSelections = { ...prev, [facetName]: newSelection };
 
+        const newFilter = buildFilter(updatedSelections, facets);
+        trackToFilter.filter = newFilter;
         // Update filter counts
         const updatedFacets = updateFilterCounts(trackToFilter, facets);
         setFacets(updatedFacets);
 
-        // Notify parent about filter changes
-        if (onFilterChange) {
-          onFilterChange(updatedSelections, updatedFacets);
-        }
+        // Schedule parent notifications for after render completes
+        setTimeout(() => {
+          if (onFilterChange) {
+            onFilterChange(updatedSelections, updatedFacets);
+          }
 
-        if (onFacetsUpdate) {
-          onFacetsUpdate(updatedFacets, updatedSelections);
-        }
+          if (onFacetsUpdate) {
+            onFacetsUpdate(updatedFacets, updatedSelections);
+          }
+        }, 0);
 
         return updatedSelections;
       });
@@ -1329,7 +1341,7 @@ function buildFilter(
             case 'not between': {
               const nv1 = parser(selectionValues[0]);
               const nv2 = parser(selectionValues[1]);
-              if (value >= nv1 || value <= nv2) {
+              if (value >= nv1 && value <= nv2) {
                 return false;
               }
               break;
