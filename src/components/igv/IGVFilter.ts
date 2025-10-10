@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { a, div, h, input, label, rect, span, svg } from 'react-hyperscript-helpers';
+import { a, div, h, input, label, span } from 'react-hyperscript-helpers';
+import Slider from 'src/components/common/Slider';
 
+import { Chart } from '../Chart';
 import { Select } from '../common';
 import { NumberInput } from '../input';
 
@@ -53,20 +55,13 @@ const igvStyles = {
 };
 
 const HISTOGRAM_BAR_MAX_HEIGHT = 20;
-const SLIDER_HANDLEBAR_WIDTH = 6;
 const HISTOGRAM_WIDTH = 225;
 const defaultNumericInputWidth = 55;
 
 type HistogramBarAttributes = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  color?: string;
   count: number;
   start: number;
   end: number;
-  isNull?: boolean;
 };
 
 // Base Facet type
@@ -110,58 +105,6 @@ const widthsByOperator = {
   '>': 65,
   '>=': 65,
 };
-
-function createLinearScale(domain: number[], range: number[]) {
-  return {
-    scale: (value: number) => {
-      const domainSpan = domain[domain.length - 1] - domain[0];
-      const rangeSpan = range[range.length - 1] - range[0];
-      const ratio = (value - domain[0]) / domainSpan;
-      return range[0] + ratio * rangeSpan;
-    },
-    invert: (pixel: number) => {
-      const domainSpan = domain[domain.length - 1] - domain[0];
-      const rangeSpan = range[range.length - 1] - range[0];
-      const ratio = (pixel - range[0]) / rangeSpan;
-      return domain[0] + ratio * domainSpan;
-    },
-  };
-}
-
-/** Get D3 scale to convert between numeric facet values and pixels */
-export function getXScale(bars: HistogramBarAttributes[], histogramWidth: number, hasNull: boolean | undefined) {
-  hasNull = false; // TODO use input value
-
-  const barStartIndex = hasNull ? 2 : 0;
-  const valueDomain: number[] = [];
-  const pxRange: number[] = [];
-  for (let i = barStartIndex; i < bars.length; i++) {
-    const bar = bars[i];
-    valueDomain.push(bar.start);
-    const x = (bar.x ?? 0) + (hasNull ? 0 : SLIDER_HANDLEBAR_WIDTH + 2);
-    pxRange.push(x);
-  }
-  const lastBar = bars.at(-1)!;
-  valueDomain.push(lastBar.end);
-  pxRange.push(histogramWidth + (hasNull ? 0 : SLIDER_HANDLEBAR_WIDTH));
-
-  const xScale = createLinearScale(valueDomain, pxRange);
-  return xScale;
-}
-
-/** Get container offsets for brush */
-function getSliderStyle(bars: HistogramBarAttributes[], histogramWidth: number) {
-  const barWidth = bars[0]?.width ?? 0;
-  const hasNull = bars[0]?.isNull ?? false;
-
-  const sliderLeft = hasNull ? 0 : -1 * (SLIDER_HANDLEBAR_WIDTH + 1);
-  const sliderWidth = histogramWidth + (hasNull ? barWidth : 2 * SLIDER_HANDLEBAR_WIDTH + 2);
-
-  const extentStartX = hasNull ? 2 * barWidth + 2 : SLIDER_HANDLEBAR_WIDTH + 2;
-  const extentWidth = hasNull ? histogramWidth : histogramWidth + SLIDER_HANDLEBAR_WIDTH;
-
-  return [sliderLeft, sliderWidth, extentStartX, extentWidth];
-}
 
 function getQuantiles(sortedNumbers: number[], max: number, min: number, numBins = 15) {
   const size = (max - min) / numBins;
@@ -423,248 +366,86 @@ function getResponsiveStyles(inputValue: number, inputValue2: number, operator: 
   return styles;
 }
 
-// Small, focused component for the histogram
-const Histogram: React.FC<{
-  bars: HistogramBarAttributes[];
-  width: number;
-  height: number;
-}> = ({ bars, width, height }) => {
-  return svg(
-    {
-      height,
-      width,
-      style: { borderBottom: '1px solid #AAA' },
-      className: 'numeric-filter-histogram',
-    },
-    bars.map((bar, index) =>
-      rect({
-        key: index,
-        fill: bar.color,
-        x: bar.x,
-        y: bar.y,
-        width: bar.width,
-        height: bar.height,
-      })
-    )
-  );
-};
-
-const HistogramSlider: React.FC<{
+const NumericHistogram: React.FC<{
   facet: NumericFacetAttributes;
-  brushSelection: [number, number];
-  sliderConfig: any;
-  xScale: any;
-  onRangeChange?: (range: [number, number]) => void;
-  onRangeChangeEnd?: (range: [number, number]) => void;
-}> = ({ facet, brushSelection, sliderConfig, xScale, onRangeChange, onRangeChangeEnd }) => {
-  const [currentRange, setCurrentRange] = useState<[number, number]>(brushSelection);
-  const [isDragging, setIsDragging] = useState<'left' | 'right' | null>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const { sliderLeft, sliderWidth } = sliderConfig;
+  currentRange: [number, number];
+}> = ({ facet, currentRange }) => {
+  const bars = getHistogramBars(facet);
 
-  useEffect(() => {
-    setCurrentRange(brushSelection);
-  }, [brushSelection]);
+  const options = useMemo(
+    () => ({
+      chart: {
+        type: 'column',
+        height: 30,
+        width: HISTOGRAM_WIDTH,
+        backgroundColor: 'transparent',
+        margin: [0, 0, 5, 0],
+        spacing: [0, 0, 0, 0],
+      },
+      title: { text: null },
+      credits: { enabled: false },
+      legend: { enabled: false },
+      exporting: { enabled: false },
 
-  const handleMouseDown = useCallback(
-    (handle: 'left' | 'right') => (e: React.MouseEvent) => {
-      e.preventDefault();
-      setIsDragging(handle);
-    },
-    []
-  );
+      xAxis: {
+        min: facet.statistics?.min,
+        max: facet.statistics?.max,
+        labels: { enabled: false },
+        lineWidth: 1,
+        lineColor: '#AAA',
+        tickWidth: 0,
+        plotBands: [
+          {
+            from: currentRange[0],
+            to: currentRange[1],
+            color: 'rgba(61, 90, 135, 0.15)',
+            borderColor: '#3d5a87',
+            borderWidth: 1,
+            zIndex: 3,
+          },
+        ],
+      },
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDragging || !sliderRef.current) return;
+      yAxis: {
+        visible: false,
+        max: Math.max(...bars.map((b) => b.count), 1),
+      },
 
-      const rect = sliderRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const value = xScale.invert(x);
-
-      // Clamp to bounds
-      const min = facet.statistics?.min || 0;
-      const max = facet.statistics?.max || 100;
-      const clampedValue = Math.max(min, Math.min(max, value));
-
-      const newRange: [number, number] = [...currentRange];
-      if (isDragging === 'left') {
-        newRange[0] = Math.min(clampedValue, currentRange[1]);
-      } else {
-        newRange[1] = Math.max(clampedValue, currentRange[0]);
-      }
-
-      setCurrentRange(newRange);
-      onRangeChange?.(newRange);
-    },
-    [isDragging, currentRange, xScale, onRangeChange, facet.statistics]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    if (isDragging) {
-      setIsDragging(null);
-      onRangeChangeEnd?.(currentRange);
-    }
-  }, [isDragging, currentRange, onRangeChangeEnd]);
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
-
-  const leftPosition = xScale.scale(currentRange[0]);
-  const rightPosition = xScale.scale(currentRange[1]);
-
-  return div([
-    div(
-      {
-        ref: sliderRef,
-        style: {
-          position: 'absolute',
-          top: 0,
-          left: `${sliderLeft}px`,
-          width: `${sliderWidth}px`,
-          height: `${HISTOGRAM_BAR_MAX_HEIGHT}px`,
+      plotOptions: {
+        column: {
+          pointPadding: 0,
+          groupPadding: 0.05,
+          borderWidth: 0,
+          color: '#3D5A87',
+          states: {
+            hover: { enabled: false },
+          },
+          enableMouseTracking: true,
         },
       },
-      [
-        // Selection area
-        div({
-          style: {
-            position: 'absolute',
-            left: `${leftPosition}px`,
-            width: `${rightPosition - leftPosition}px`,
-            height: '100%',
-            backgroundColor: 'rgba(61, 90, 135, 0.2)',
-            border: '1px solid #3d5a87',
-            borderLeft: 'none',
-            borderRight: 'none',
-            pointerEvents: 'none', // Allow clicks to pass through to handles
-          },
-        }),
 
-        // Left handle
-        div({
-          style: {
-            position: 'absolute',
-            left: `${leftPosition - 6}px`,
-            top: '-2px',
-            width: '16px',
-            height: `${HISTOGRAM_BAR_MAX_HEIGHT + 4}px`,
-            backgroundColor: '#EEE',
-            cursor: 'ew-resize',
-            borderRadius: '4px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)', // Add shadow for visibility
-          },
-          onMouseDown: handleMouseDown('left'),
-        }),
+      series: [
+        {
+          data: bars.map((bar) => ({
+            x: (bar.start + bar.end) / 2,
+            y: bar.count,
+            custom: { start: bar.start, end: bar.end },
+          })),
+          pointWidth: 11,
+        },
+      ],
 
-        // Right handle
-        div({
-          style: {
-            position: 'absolute',
-            left: `${rightPosition - 8}px`, // Wider handle
-            top: '-2px',
-            width: '16px', // Wider
-            height: `${HISTOGRAM_BAR_MAX_HEIGHT + 4}px`, // Taller
-            backgroundColor: '#EEE',
-            border: '2px solid #3d5a87', // Thicker border with blue color
-            cursor: 'ew-resize',
-            borderRadius: '4px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)', // Add shadow for visibility
-          },
-          onMouseDown: handleMouseDown('right'),
-        }),
+      tooltip: {
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderColor: '#3d5a87',
+        borderRadius: 4,
+        shadow: true,
+      },
+    }),
+    [facet, bars, currentRange]
+  );
 
-        // Left handle grip lines
-        div({
-          style: {
-            position: 'absolute',
-            left: `${leftPosition - 4}px`,
-            top: `${HISTOGRAM_BAR_MAX_HEIGHT / 2 - 4}px`,
-            width: '2px',
-            height: '8px',
-            backgroundColor: '#666',
-            pointerEvents: 'none',
-          },
-        }),
-        div({
-          style: {
-            position: 'absolute',
-            left: `${leftPosition - 1}px`,
-            top: `${HISTOGRAM_BAR_MAX_HEIGHT / 2 - 4}px`,
-            width: '2px',
-            height: '8px',
-            backgroundColor: '#666',
-            pointerEvents: 'none',
-          },
-        }),
-
-        // Right handle grip lines
-        div({
-          style: {
-            position: 'absolute',
-            left: `${rightPosition - 4}px`,
-            top: `${HISTOGRAM_BAR_MAX_HEIGHT / 2 - 4}px`,
-            width: '2px',
-            height: '8px',
-            backgroundColor: '#666',
-            pointerEvents: 'none',
-          },
-        }),
-        div({
-          style: {
-            position: 'absolute',
-            left: `${rightPosition - 1}px`,
-            top: `${HISTOGRAM_BAR_MAX_HEIGHT / 2 - 4}px`,
-            width: '2px',
-            height: '8px',
-            backgroundColor: '#666',
-            pointerEvents: 'none',
-          },
-        }),
-      ]
-    ),
-  ]);
-};
-
-const prepareNumericFacetData = (facet: NumericFacetAttributes) => {
-  if (facet.filterNumbers.length === 0 || !facet.statistics || facet.statistics.min === facet.statistics.max) {
-    return null; // Invalid facet
-  }
-
-  const inputValue = facet.statistics?.min;
-  const inputValue2 = facet.statistics?.max;
-  const operator = 'between';
-  const precision: number = getPrecision(facet);
-  const histogramWidth = HISTOGRAM_WIDTH;
-  const histogramHeight = HISTOGRAM_BAR_MAX_HEIGHT;
-
-  const bars = getHistogramBars(facet);
-  const xScale = getXScale(bars, histogramWidth, false);
-  const brushSelection = [inputValue, inputValue2].map(xScale.scale);
-  const styles = getResponsiveStyles(inputValue, inputValue2, operator, precision);
-  const [sliderLeft, sliderWidth, extentStartX, extentWidth] = getSliderStyle(bars, histogramWidth);
-
-  return {
-    bars,
-    xScale,
-    brushSelection,
-    styles,
-    operator,
-    precision,
-    histogramWidth,
-    histogramHeight,
-    sliderConfig: { sliderLeft, sliderWidth, extentStartX, extentWidth },
-    inputValue,
-    inputValue2,
-  };
+  return h(Chart, { options });
 };
 
 const isValidCategoricalFacet = (facet: CategoricalFacetAttributes): boolean => {
@@ -696,11 +477,34 @@ const NumericFacet: React.FC<{
   const [operator, setOperator] = useState<string>('between');
   const [displayValues, setDisplayValues] = useState<[string, string]>(['0', '0']); // Track display strings
 
-  const facetData = useMemo(() => prepareNumericFacetData(facet), [facet]);
+  // const facetData = useMemo(() => prepareNumericFacetData(facet), [facet]);
+
+  const precision = useMemo(() => getPrecision(facet), [facet]);
+  const styles = useMemo(
+    () => (currentRange ? getResponsiveStyles(currentRange[0], currentRange[1], operator, precision) : null),
+    [currentRange, operator, precision]
+  );
 
   // Initialize current range and display values from facet statistics or saved selection
+  // useEffect(() => {
+  //   if (facetData) {
+  //     let initialRange: [number, number];
+  //     let initialOperator = 'between';
+
+  //     if (selection && selection.length > 0 && selection[0].length === 2) {
+  //       initialOperator = selection[0][0];
+  //       initialRange = selection[0][1];
+  //       setOperator(initialOperator);
+  //     } else {
+  //       initialRange = [facetData.inputValue, facetData.inputValue2];
+  //     }
+
+  //     setCurrentRange(initialRange);
+  //     setDisplayValues([initialRange[0].toString(), initialRange[1].toString()]);
+  //   }
+  // }, [facetData, selection]);
   useEffect(() => {
-    if (facetData) {
+    if (facet.statistics) {
       let initialRange: [number, number];
       let initialOperator = 'between';
 
@@ -709,13 +513,13 @@ const NumericFacet: React.FC<{
         initialRange = selection[0][1];
         setOperator(initialOperator);
       } else {
-        initialRange = [facetData.inputValue, facetData.inputValue2];
+        initialRange = [facet.statistics.min, facet.statistics.max];
       }
 
       setCurrentRange(initialRange);
       setDisplayValues([initialRange[0].toString(), initialRange[1].toString()]);
     }
-  }, [facetData, selection]);
+  }, [facet.statistics, selection]);
 
   const handleOperatorChange = useCallback(
     (event: any) => {
@@ -729,20 +533,15 @@ const NumericFacet: React.FC<{
     [currentRange, onChange]
   );
 
-  const handleRangeChange = useCallback((newRange: [number, number]) => {
-    setCurrentRange(newRange);
-    setDisplayValues([newRange[0].toString(), newRange[1].toString()]);
-  }, []);
-
-  const handleRangeChangeEnd = useCallback(
-    (newRange: [number, number]) => {
-      setCurrentRange(newRange);
-      setDisplayValues([newRange[0].toString(), newRange[1].toString()]);
-      onChange([[operator, newRange]]);
+  const handleSliderChange = useCallback(
+    (value: number | number[]) => {
+      const range = value as [number, number];
+      setCurrentRange(range);
+      setDisplayValues([range[0].toFixed(precision), range[1].toFixed(precision)]);
+      onChange([[operator, range]]);
     },
-    [onChange, operator]
+    [onChange, operator, precision]
   );
-
   const handleMinInputChange = useCallback((value: string) => {
     // Allow typing any value, store as display string
     setDisplayValues((prev) => [value, prev[1]]);
@@ -754,52 +553,46 @@ const NumericFacet: React.FC<{
   }, []);
 
   const handleMinInputBlur = useCallback(() => {
-    if (!currentRange || !facetData) return;
+    if (!currentRange || !facet.statistics) return;
 
     const numValue = Number.parseFloat(displayValues[0]);
     if (Number.isNaN(numValue)) {
-      // Reset to current value if invalid
       setDisplayValues((prev) => [currentRange[0].toString(), prev[1]]);
       return;
     }
 
-    // Clamp to bounds
-    const min = facetData.inputValue;
-    const max = facetData.inputValue2;
-    const clampedValue = Math.max(min, Math.min(max, numValue));
+    // For between/not between, ensure min <= max
+    let newMin = numValue;
+    if (['between', 'not between'].includes(operator)) {
+      newMin = Math.min(numValue, currentRange[1]);
+    }
 
-    // Ensure min <= max
-    const newMin = Math.min(clampedValue, currentRange[1]);
     const newRange: [number, number] = [newMin, currentRange[1]];
-
     setCurrentRange(newRange);
     setDisplayValues([newMin.toString(), newRange[1].toString()]);
     onChange([[operator, newRange]]);
-  }, [currentRange, displayValues, operator, onChange, facetData]);
+  }, [currentRange, displayValues, operator, onChange, facet.statistics]);
 
   const handleMaxInputBlur = useCallback(() => {
-    if (!currentRange || !facetData) return;
+    if (!currentRange || !facet.statistics) return;
 
     const numValue = Number.parseFloat(displayValues[1]);
     if (Number.isNaN(numValue)) {
-      // Reset to current value if invalid
       setDisplayValues((prev) => [prev[0], currentRange[1].toString()]);
       return;
     }
 
-    // Clamp to bounds
-    const min = facetData.inputValue;
-    const max = facetData.inputValue2;
-    const clampedValue = Math.max(min, Math.min(max, numValue));
+    // For between/not between, ensure max >= min
+    let newMax = numValue;
+    if (['between', 'not between'].includes(operator)) {
+      newMax = Math.max(numValue, currentRange[0]);
+    }
 
-    // Ensure min <= max
-    const newMax = Math.max(clampedValue, currentRange[0]);
     const newRange: [number, number] = [currentRange[0], newMax];
-
     setCurrentRange(newRange);
     setDisplayValues([newRange[0].toString(), newMax.toString()]);
     onChange([[operator, newRange]]);
-  }, [currentRange, displayValues, operator, onChange, facetData]);
+  }, [currentRange, displayValues, operator, onChange, facet.statistics]);
 
   const handleMinInputKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -821,13 +614,12 @@ const NumericFacet: React.FC<{
     [handleMaxInputBlur]
   );
 
-  if (!facetData) {
+  if (!facet.statistics || !currentRange || !styles) {
     return null;
   }
 
-  const { bars, xScale, styles, histogramWidth, histogramHeight, sliderConfig } = facetData;
-
   const friendlyName = getFriendlyFacetName(facet);
+  const step = facet.type === 'integer' ? 1 : (facet.statistics.max - facet.statistics.min) / 1000;
 
   return div(
     {
@@ -846,20 +638,36 @@ const NumericFacet: React.FC<{
         [friendlyName]
       ),
 
-      // Histogram container
-      div({ style: { position: 'relative' } }, [
-        h(Histogram, {
-          bars,
-          width: histogramWidth,
-          height: histogramHeight,
-        }),
-        h(HistogramSlider, {
-          facet,
-          brushSelection: currentRange || [facetData.inputValue, facetData.inputValue2],
-          sliderConfig,
-          xScale,
-          onRangeChange: handleRangeChange,
-          onRangeChangeEnd: handleRangeChangeEnd,
+      // Highcharts histogram
+      div(
+        {
+          style: {
+            marginTop: '8px',
+            marginBottom: '4px',
+            border: '1px solid #AAA',
+            borderTop: 'none',
+            borderLeft: 'none',
+            borderRight: 'none',
+          },
+        },
+        [
+          h(NumericHistogram, {
+            facet,
+            currentRange,
+          }),
+        ]
+      ),
+
+      // slider for range selection
+      div({ style: { marginTop: '8px', marginBottom: '12px', padding: '0 8px' } }, [
+        h(Slider, {
+          range: true,
+          value: currentRange,
+          min: facet.statistics.min,
+          onChange: (values) => handleSliderChange(values),
+          step,
+          max: facet.statistics.max,
+          ariaLabelForHandle: [`${facet.name} low slider`, `${facet.name} high slider`],
         }),
       ]),
 
@@ -872,8 +680,8 @@ const NumericFacet: React.FC<{
             alignItems: 'center',
             gap: '4px',
             marginTop: '8px',
-            width: `${histogramWidth}px`,
-            maxWidth: `${histogramWidth}px`,
+            width: `${HISTOGRAM_WIDTH}px`,
+            maxWidth: `${HISTOGRAM_WIDTH}px`,
             minHeight: '24px',
           },
         },
@@ -1467,14 +1275,12 @@ export const getHistogramBars = (facet: NumericFacetAttributes): HistogramBarAtt
 
   const processedBars: HistogramBarAttributes[] = [];
   for (let i = 0; i < numBins; i++) {
-    const isNull = Number.isNaN(bars[i]) || i < 2;
     const start = minValue + binSize * i;
     const end = minValue + binSize * (i + 1);
     processedBars.push({
       count: bars[i],
       start,
       end,
-      isNull,
     });
   }
 

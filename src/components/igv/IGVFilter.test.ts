@@ -187,9 +187,20 @@ describe('IGVFilters', () => {
         expect(screen.getByText(/Allele Frequency/i)).toBeInTheDocument();
       });
 
-      // Check for histogram SVG
-      const histograms = document.querySelectorAll('.numeric-filter-histogram');
-      expect(histograms.length).toBeGreaterThan(0);
+      await waitFor(() => {
+        const highchartsContainers = document.querySelectorAll('.highcharts-container');
+        expect(highchartsContainers.length).toBeGreaterThan(0);
+      });
+
+      // Check for rc-slider range selector
+      await waitFor(() => {
+        const sliders = document.querySelectorAll('.rc-slider');
+        expect(sliders.length).toBeGreaterThan(0);
+      });
+
+      // Verify we have the expected number of numeric facets (AF and DP)
+      const highchartsContainers = document.querySelectorAll('.highcharts-container');
+      expect(highchartsContainers.length).toBe(2); // AF and DP facets
     });
 
     it('displays operator dropdown and input fields', async () => {
