@@ -11,7 +11,7 @@ jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', (
       label: 'Enter a float value',
       placeholder: 'Enter a number',
       helpText: 'Must be a valid floating-point number.',
-      validationRegex: '^(0(\\.\\d*)?|1(\\.0*)?|\\.\\d+)$',
+      validationRegex: String.raw`^(0(\.\d*)?|1(\.0*)?|\.\d+)$`,
     },
   },
 }));
