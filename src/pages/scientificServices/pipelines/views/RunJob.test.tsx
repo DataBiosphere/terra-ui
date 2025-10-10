@@ -186,7 +186,7 @@ describe('RunJob Component', () => {
     const minDr2Input = screen.getByLabelText('minDr2ForInclusion float input');
     await user.type(minDr2Input, '0.3');
 
-    expect(minDr2Input).toHaveValue(0.3);
+    expect(minDr2Input).toHaveValue('0.3');
 
     // Enter description
     const descriptionTextArea = screen.getByLabelText('description');
