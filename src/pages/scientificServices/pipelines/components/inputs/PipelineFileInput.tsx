@@ -42,31 +42,35 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
 
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024 * 1024; // 50 GiB
+
   const validateFile = (file: File | null) => {
-    // Check for required file
-    if (input.isRequired && !file) {
-      onValidation('This file is required.');
+    // Check if a file is selected, if required
+    if (!file) {
+      onValidation(input.isRequired ? 'This file is required.' : undefined);
       return;
     }
 
-    // Check for valid file type
-    // N.B. this suffix is supplied separately by the backend, which is why it's not included in the validationRegex
-    if (file && input.fileSuffix && !file.name.endsWith(input.fileSuffix)) {
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      onValidation(`File size exceeds the ${formatBytes(MAX_FILE_SIZE_BYTES)} limit. Please upload a smaller file.`);
+      return;
+    }
+
+    // Validate file type based on suffix
+    if (input.fileSuffix && !file.name.endsWith(input.fileSuffix)) {
       onValidation(`Invalid file type. Please upload a ${input.fileSuffix} file.`);
       return;
     }
 
-    // Check for valid file name using validation expression
-    if (file && validationRegex) {
-      const regex = new RegExp(validationRegex);
-      if (regex.test(file.name)) {
-        onValidation(undefined);
-      } else {
-        onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
-      }
-    } else if (!input.isRequired) {
-      onValidation(undefined);
+    // Validate file name against regex
+    if (validationRegex && !new RegExp(validationRegex).test(file.name)) {
+      onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
+      return;
     }
+
+    // If all validations pass, clear any existing error
+    onValidation(undefined);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
