@@ -40,7 +40,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   setUploadState,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name];
+  const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
 
   const validateFile = (file: File | null) => {
     // Check for required file

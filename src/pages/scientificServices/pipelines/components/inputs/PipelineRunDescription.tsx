@@ -9,9 +9,7 @@ interface PipelineRunDescriptionProps {
 export const PipelineRunDescription: React.FC<PipelineRunDescriptionProps> = ({ value, onChange }) => {
   return (
     <>
-      <h3 style={{ marginBottom: '0.5rem' }}>
-        Enter description <span style={{ fontStyle: 'italic', fontWeight: 'normal' }}> - optional</span>
-      </h3>
+      <h3 style={{ marginBottom: '0.5rem' }}>Enter description</h3>
       <TextArea
         rows={4}
         aria-label='description'
