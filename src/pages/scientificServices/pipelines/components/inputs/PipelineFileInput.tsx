@@ -5,6 +5,7 @@ import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
+import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 import {
   resumeUpload,
@@ -42,8 +43,6 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
 
-  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024 * 1024; // 50 GiB
-
   const validateFile = (file: File | null) => {
     // Check if a file is selected, if required
     if (!file) {
@@ -52,8 +51,12 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     }
 
     // Validate file size
-    if (file.size > MAX_FILE_SIZE_BYTES) {
-      onValidation(`File size exceeds the ${formatBytes(MAX_FILE_SIZE_BYTES)} limit. Please upload a smaller file.`);
+    if (file.size > TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES) {
+      onValidation(
+        `File size exceeds the ${formatBytes(
+          TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES
+        )} limit. Please upload a smaller file.`
+      );
       return;
     }
 

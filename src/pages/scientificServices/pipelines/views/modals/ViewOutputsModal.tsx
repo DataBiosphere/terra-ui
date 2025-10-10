@@ -6,6 +6,7 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
+import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -148,8 +149,8 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
               </div>
             ) : (
               <div style={{ padding: '1rem', textAlign: 'center' }}>
-                No output information found for this job. If this job completed more than 14 days ago, the outputs have
-                been deleted.
+                No output information found for this job. If this job completed more than $
+                {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days ago, the outputs have been deleted.
               </div>
             )}
           </div>

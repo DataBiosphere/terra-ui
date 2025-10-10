@@ -16,6 +16,7 @@ import {
   pipelinesTopBar,
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
@@ -288,7 +289,7 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
 
   const completionDate = new Date(pipelineRun?.timeCompleted);
   const deletionDate = new Date(completionDate);
-  deletionDate.setDate(deletionDate.getDate() + 14);
+  deletionDate.setDate(deletionDate.getDate() + TEASPOONS_FILE_OUTPUT_TTL_DAYS);
 
   const today = new Date();
   const threeDaysFromNow = new Date();
@@ -338,7 +339,8 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   });
 
   const jobOutputsDeleted =
-    pipelineRun.status === 'SUCCEEDED' && (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * 14; // 24 hours * 14 days
+    pipelineRun.status === 'SUCCEEDED' &&
+    (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * TEASPOONS_FILE_OUTPUT_TTL_DAYS; // 24 hours * 14 days
 
   return (
     <div>
