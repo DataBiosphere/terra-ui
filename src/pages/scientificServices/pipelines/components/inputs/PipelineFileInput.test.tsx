@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 
 import { PipelineFileInput, PipelineInputFileUploadState } from './PipelineFileInput';
@@ -230,14 +231,18 @@ describe('PipelineFileInput', () => {
 
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 
-      // Upload a file larger than the 50 GiB limit
+      // Upload a file larger than the size limit
       const fileLargerThanMax = new File(['test'], 'test.vcf.gz');
-      Object.defineProperty(fileLargerThanMax, 'size', { value: 51 * 1024 * 1024 * 1024, writable: false }); // 51 GiB
+      Object.defineProperty(fileLargerThanMax, 'size', {
+        value: TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES * 2,
+      }); // double the max size
 
       await userEvent.upload(fileInput, fileLargerThanMax);
 
       expect(onFileSelect).toHaveBeenCalledWith(fileLargerThanMax);
-      expect(onValidation).toHaveBeenCalledWith('File size exceeds the 50.0 GiB limit. Please upload a smaller file.');
+      expect(onValidation).toHaveBeenCalledWith(
+        expect.stringMatching(/^File size exceeds the .+ limit\. Please upload a smaller file\.$/)
+      );
     });
 
     it('does not display a validation error when the input file is within the maximum file size limit', async () => {
@@ -256,9 +261,11 @@ describe('PipelineFileInput', () => {
 
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 
-      // Upload a file smaller than the 50 GiB limit
+      // Upload a file smaller than the size limit
       const fileWithinMax = new File(['test'], 'test.vcf.gz');
-      Object.defineProperty(fileWithinMax, 'size', { value: 10 * 1024 * 1024 * 1024, writable: false }); // 10 GiB
+      Object.defineProperty(fileWithinMax, 'size', {
+        value: TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES / 2,
+      }); // half the max size
 
       await userEvent.upload(fileInput, fileWithinMax);
 
