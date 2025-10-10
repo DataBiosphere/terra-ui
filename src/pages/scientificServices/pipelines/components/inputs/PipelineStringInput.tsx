@@ -46,7 +46,9 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
           },
         }}
       />
-      {helpText && <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic' }}>{helpText}</div>}
+      {helpText && (
+        <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic', maxWidth: 500 }}>{helpText}</div>
+      )}
     </>
   );
 };

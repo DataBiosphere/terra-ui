@@ -11,7 +11,7 @@ jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', (
       label: 'Enter a float value',
       placeholder: 'Enter a number',
       helpText: 'Must be a valid floating-point number.',
-      validationRegex: '^(0(\\.\\d+)?|1(\\.0+)?|\\.\\d+)$',
+      validationRegex: '^(0(\\.\\d*)?|1(\\.0*)?|\\.\\d+)$',
     },
   },
 }));
@@ -83,6 +83,16 @@ describe('PipelineFloatInput', () => {
     fireEvent.change(input, { target: { value: '.5' } });
 
     expect(defaultProps.onChange).toHaveBeenCalledWith('.5');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith(undefined);
+  });
+
+  it('calls onValidation with undefined for valid input ending in .', async () => {
+    render(<PipelineFloatInput {...defaultProps} />);
+
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '0.' } });
+
+    expect(defaultProps.onChange).toHaveBeenCalledWith('0.');
     expect(defaultProps.onValidation).toHaveBeenCalledWith(undefined);
   });
 

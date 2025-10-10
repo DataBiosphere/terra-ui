@@ -26,6 +26,6 @@ export const INPUT_DESCRIPTIONS: Record<string, PipelineInputDescription> = {
     placeholder: '0.0',
     helpText:
       'The minimum imputation quality (DR2) for inclusion in output VCF. Value must be between 0 and 1 (inclusive). Default is 0.0',
-    validationRegex: '^(0(\\.\\d+)?|1(\\.0+)?|\\.\\d+)$',
+    validationRegex: '^(0(\\.\\d*)?|1(\\.0*)?|\\.\\d+)$',
   },
 };
