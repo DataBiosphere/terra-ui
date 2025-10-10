@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { a, div, h, input, label, rect, span, svg } from 'react-hyperscript-helpers';
 
@@ -112,6 +111,23 @@ const widthsByOperator = {
   '>=': 65,
 };
 
+function createLinearScale(domain: number[], range: number[]) {
+  return {
+    scale: (value: number) => {
+      const domainSpan = domain[domain.length - 1] - domain[0];
+      const rangeSpan = range[range.length - 1] - range[0];
+      const ratio = (value - domain[0]) / domainSpan;
+      return range[0] + ratio * rangeSpan;
+    },
+    invert: (pixel: number) => {
+      const domainSpan = domain[domain.length - 1] - domain[0];
+      const rangeSpan = range[range.length - 1] - range[0];
+      const ratio = (pixel - range[0]) / rangeSpan;
+      return domain[0] + ratio * domainSpan;
+    },
+  };
+}
+
 /** Get D3 scale to convert between numeric facet values and pixels */
 export function getXScale(bars: HistogramBarAttributes[], histogramWidth: number, hasNull: boolean | undefined) {
   hasNull = false; // TODO use input value
@@ -129,7 +145,7 @@ export function getXScale(bars: HistogramBarAttributes[], histogramWidth: number
   valueDomain.push(lastBar.end);
   pxRange.push(histogramWidth + (hasNull ? 0 : SLIDER_HANDLEBAR_WIDTH));
 
-  const xScale = d3.scaleLinear(valueDomain, pxRange);
+  const xScale = createLinearScale(valueDomain, pxRange);
   return xScale;
 }
 
@@ -502,8 +518,8 @@ const HistogramSlider: React.FC<{
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const leftPosition = xScale(currentRange[0]);
-  const rightPosition = xScale(currentRange[1]);
+  const leftPosition = xScale.scale(currentRange[0]);
+  const rightPosition = xScale.scale(currentRange[1]);
 
   return div([
     div(
@@ -632,7 +648,7 @@ const prepareNumericFacetData = (facet: NumericFacetAttributes) => {
 
   const bars = getHistogramBars(facet);
   const xScale = getXScale(bars, histogramWidth, false);
-  const brushSelection = [inputValue, inputValue2].map(xScale);
+  const brushSelection = [inputValue, inputValue2].map(xScale.scale);
   const styles = getResponsiveStyles(inputValue, inputValue2, operator, precision);
   const [sliderLeft, sliderWidth, extentStartX, extentWidth] = getSliderStyle(bars, histogramWidth);
 
