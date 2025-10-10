@@ -80,7 +80,8 @@ export const JobHistory = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <h3>Job History</h3>
           <div style={{ marginBottom: '0.25rem' }}>
-            All files associated with jobs will be automatically deleted after 2 weeks from completion.
+            All files associated with jobs will be automatically deleted after {TEASPOONS_FILE_OUTPUT_TTL_DAYS / 7}{' '}
+            weeks from completion.
           </div>
           <div>
             For support, email{' '}
@@ -349,7 +350,9 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
           <TooltipTrigger
             content={
               jobOutputsDeleted
-                ? 'The outputs for this job have been deleted. Outputs are available for 2 weeks after job completion.'
+                ? `The outputs for this job have been deleted. Outputs are available for ${
+                    TEASPOONS_FILE_OUTPUT_TTL_DAYS / 7
+                  } weeks after job completion.`
                 : undefined
             }
             side='top'
