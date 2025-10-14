@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { a, div, h, input, label, span } from 'react-hyperscript-helpers';
+import * as ss from 'simple-statistics';
 import Slider from 'src/components/common/Slider';
 
 import { Chart } from '../Chart';
@@ -107,62 +108,53 @@ const widthsByOperator = {
 };
 
 function getQuantiles(sortedNumbers: number[], max: number, min: number, numBins = 15) {
-  const size = (max - min) / numBins;
+  // Guard against empty array or invalid range
+  if (sortedNumbers.length === 0 || max === min) {
+    return new Array(numBins).fill(0);
+  }
+
+  const binSize = (max - min) / numBins;
   const quantiles = new Array(numBins).fill(0);
 
-  for (let i = 1; i < numBins + 1; i++) {
-    const prevBinNum = min + (i - 1) * size;
-    const binNum = min + i * size;
-    for (const j of sortedNumbers) {
-      const num = j;
-      if (prevBinNum < num && num <= binNum) {
-        quantiles[i - 1] += 1;
-      }
-    }
+  for (const num of sortedNumbers) {
+    // Calculate which bin this number belongs to
+    const binIndex = Math.min(
+      Math.floor((num - min) / binSize),
+      numBins - 1 // Handle edge case where num === max
+    );
+    quantiles[binIndex] += 1;
   }
 
   return quantiles;
 }
 
 function getStatistics(numbers: number[]) {
-  // Sort the array in ascending order
-  numbers.sort((a, b) => a - b);
-
-  // Compute the sum using a loop for faster mean calculation
-  let sum = 0;
-  for (const i of numbers) {
-    sum += i;
-  }
-  const mean = sum / numbers.length;
-
-  const max = numbers.at(-1) ?? 0;
-  const min = numbers[0];
-  const median = getMedian(numbers);
-
-  // Divide the array into two halves
-  const midIndex = Math.floor(numbers.length / 2);
-  const lowerHalf = numbers.slice(0, midIndex);
-  const upperHalf = numbers.length % 2 === 0 ? numbers.slice(midIndex) : numbers.slice(midIndex + 1);
-
-  const q1 = getMedian(lowerHalf);
-  const q3 = getMedian(upperHalf);
-
-  const quantiles = getQuantiles(numbers, max, min);
-
-  return { min, q1, median, q3, max, mean, quantiles };
-}
-
-function getMedian(numbers: number[]) {
-  const midIndex = Math.floor(numbers.length / 2);
-
-  // If the array has an odd length, return the middle number
-  if (numbers.length % 2 !== 0) {
-    return numbers[midIndex];
+  // Guard against empty arrays
+  if (numbers.length === 0) {
+    return {
+      min: 0,
+      q1: 0,
+      median: 0,
+      q3: 0,
+      max: 0,
+      mean: 0,
+      quantiles: [],
+    };
   }
 
-  // If the array has an even length, return the average of the two middle numbers
-  return (numbers[midIndex - 1] + numbers[midIndex]) / 2;
+  const sorted = numbers.slice().sort((a, b) => a - b);
+
+  return {
+    min: ss.min(numbers),
+    q1: ss.quantile(numbers, 0.25),
+    median: ss.median(numbers),
+    q3: ss.quantile(numbers, 0.75),
+    max: ss.max(numbers),
+    mean: ss.mean(numbers),
+    quantiles: getQuantiles(sorted, ss.max(numbers), ss.min(numbers)),
+  };
 }
+
 function getFacetClass(facetName: string) {
   return `igv-facet-${facetName}`;
 }
