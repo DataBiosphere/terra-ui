@@ -1,4 +1,5 @@
 import * as clipboard from 'clipboard-polyfill/text';
+import debounce from 'lodash/debounce';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
@@ -21,7 +22,7 @@ import IGVSessionModal from './IGVSessionModal';
 import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
 
 function getHasVariantFiles(files) {
-  return files.some((file) => file.filePath.includes('vcf'));
+  return files.some((file) => file.filePath.endsWith('vcf'));
 }
 
 function processUrl(url, isSignedUrl) {
@@ -90,48 +91,59 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   // When the locus changes, either by moving to a different chromosome or zooming in,
   // update the filter panel with the new features in view
   // This triggers reinitialization of the filter panel with the new features
-  const handleLocusChange = useCallback(() => {
-    const currentPanelData = filterPanelDataRef.current;
+  const debouncedHandleLocusChange = useRef(
+    debounce(() => {
+      const currentPanelData = filterPanelDataRef.current;
 
-    if (currentPanelData?.show) {
-      const trackToFilter = findVariantTrack();
+      if (currentPanelData?.show) {
+        const trackToFilter = findVariantTrack();
 
-      if (trackToFilter && onFilterPanelChange) {
-        onFilterPanelChange({
-          ...currentPanelData,
-          isLoading: true,
-        });
+        if (trackToFilter && onFilterPanelChange) {
+          onFilterPanelChange({
+            ...currentPanelData,
+            isLoading: true,
+          });
 
-        let attempts = 0;
-        const maxAttempts = 20;
+          let attempts = 0;
+          const maxAttempts = 20;
 
-        // It takes time for IGV to load features after a locus change.
-        // Poll for features until we get some or hit max attempts
-        const checkFeaturesLoaded = () => {
-          const features = trackToFilter.getInViewFeatures();
-          attempts++;
+          const checkFeaturesLoaded = () => {
+            const features = trackToFilter.getInViewFeatures();
+            attempts++;
 
-          if (features.length > 0 || attempts >= maxAttempts) {
-            const updatedPanelData = {
-              ...currentPanelData,
-              trackToFilter,
-              isInitialized: false, // Force reinitialization
-              currentFacets: [], // Clear saved facets
-              currentSelections: {}, // Clear saved selections
-              isLoading: false,
-            };
+            if (features.length > 0 || attempts >= maxAttempts) {
+              const updatedPanelData = {
+                ...currentPanelData,
+                trackToFilter,
+                isInitialized: false,
+                currentFacets: [],
+                currentSelections: {},
+                isLoading: false,
+              };
 
-            setFilterPanelData(updatedPanelData);
-            onFilterPanelChange(updatedPanelData);
-          } else {
-            setTimeout(checkFeaturesLoaded, 100);
-          }
-        };
+              setFilterPanelData(updatedPanelData);
+              onFilterPanelChange(updatedPanelData);
+            } else {
+              setTimeout(checkFeaturesLoaded, 100);
+            }
+          };
 
-        setTimeout(checkFeaturesLoaded, 100);
+          setTimeout(checkFeaturesLoaded, 100);
+        }
       }
-    }
-  }, [findVariantTrack, onFilterPanelChange]);
+    }, 500) // Wait 500ms after the last locus change
+  ).current;
+
+  const handleLocusChange = useCallback(() => {
+    debouncedHandleLocusChange();
+  }, [debouncedHandleLocusChange]);
+
+  // Cleanup debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedHandleLocusChange.cancel();
+    };
+  }, [debouncedHandleLocusChange]);
 
   // When the filter panel is opened or closed, notify the parent component to remove/add it from the screen
   // When closing, save the data in state so we can reuse it if reopening
