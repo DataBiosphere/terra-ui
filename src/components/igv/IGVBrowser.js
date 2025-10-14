@@ -22,7 +22,7 @@ import IGVSessionModal from './IGVSessionModal';
 import { updateUrlWithSession, useIGVSessions } from './useIGVSessions';
 
 function getHasVariantFiles(files) {
-  return files.some((file) => file.filePath.includes('vcf'));
+  return files.some((file) => file.filePath.includes('.vcf'));
 }
 
 function processUrl(url, isSignedUrl) {

@@ -145,13 +145,13 @@ function getStatistics(numbers: number[]) {
   const sorted = numbers.slice().sort((a, b) => a - b);
 
   return {
-    min: ss.min(numbers),
-    q1: ss.quantile(numbers, 0.25),
+    min: ss.minSorted(sorted),
+    q1: ss.quantileSorted(sorted, 0.25),
     median: ss.median(numbers),
-    q3: ss.quantile(numbers, 0.75),
-    max: ss.max(numbers),
+    q3: ss.quantileSorted(sorted, 0.75),
+    max: ss.maxSorted(sorted),
     mean: ss.mean(numbers),
-    quantiles: getQuantiles(sorted, ss.max(numbers), ss.min(numbers)),
+    quantiles: getQuantiles(sorted, ss.maxSorted(sorted), ss.minSorted(sorted)),
   };
 }
 
@@ -469,32 +469,12 @@ const NumericFacet: React.FC<{
   const [operator, setOperator] = useState<string>('between');
   const [displayValues, setDisplayValues] = useState<[string, string]>(['0', '0']); // Track display strings
 
-  // const facetData = useMemo(() => prepareNumericFacetData(facet), [facet]);
-
   const precision = useMemo(() => getPrecision(facet), [facet]);
   const styles = useMemo(
     () => (currentRange ? getResponsiveStyles(currentRange[0], currentRange[1], operator, precision) : null),
     [currentRange, operator, precision]
   );
 
-  // Initialize current range and display values from facet statistics or saved selection
-  // useEffect(() => {
-  //   if (facetData) {
-  //     let initialRange: [number, number];
-  //     let initialOperator = 'between';
-
-  //     if (selection && selection.length > 0 && selection[0].length === 2) {
-  //       initialOperator = selection[0][0];
-  //       initialRange = selection[0][1];
-  //       setOperator(initialOperator);
-  //     } else {
-  //       initialRange = [facetData.inputValue, facetData.inputValue2];
-  //     }
-
-  //     setCurrentRange(initialRange);
-  //     setDisplayValues([initialRange[0].toString(), initialRange[1].toString()]);
-  //   }
-  // }, [facetData, selection]);
   useEffect(() => {
     if (facet.statistics) {
       let initialRange: [number, number];
