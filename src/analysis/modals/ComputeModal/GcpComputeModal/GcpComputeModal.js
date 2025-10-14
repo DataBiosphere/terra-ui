@@ -70,7 +70,7 @@ import { betaVersionTag } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
-import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
+import { canEditWorkspace, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 import validate from 'validate.js';
 
 import { computeStyles } from '../../modalStyles';
@@ -905,7 +905,7 @@ export const GcpComputeModalBase = ({
           ButtonPrimary,
           {
             ...commonButtonProps,
-            disabled: isUpdateDisabledByRuntimeStatus || commonButtonProps.disabled,
+            disabled: isUpdateDisabledByRuntimeStatus || commonButtonProps.disabled || !canEditWorkspace(workspace).value,
             onClick: () => {
               applyChanges();
             },
@@ -913,6 +913,7 @@ export const GcpComputeModalBase = ({
             tooltip: Utils.cond(
               [isUpdateDisabledByRuntimeStatus, () => `Cannot perform change on environment in (${currentRuntimeDetails.status}) status`],
               [commonButtonProps.disabled, () => commonButtonProps.tooltip],
+              [!canEditWorkspace(workspace).value, () => canEditWorkspace(workspace).message],
               () => 'Update Environment'
             ),
           },

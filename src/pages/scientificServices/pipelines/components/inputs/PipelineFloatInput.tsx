@@ -3,7 +3,7 @@ import { ValidatedInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 
-interface PipelineStringInputProps {
+interface PipelineFloatInputProps {
   input: PipelineInput;
   value: string;
   onChange: (value: string) => void;
@@ -11,7 +11,7 @@ interface PipelineStringInputProps {
   onValidation(error?: string): void;
 }
 
-export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
+export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   input,
   value,
   onChange,
@@ -29,7 +29,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
         width={400}
         error={validationError}
         inputProps={{
-          'aria-label': `${input.name} text input`,
+          'aria-label': `${input.name} float input`,
           type: 'text',
           value: value || '',
           placeholder: placeholder || '',
@@ -38,7 +38,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
             if (validationRegex) {
               const regex = new RegExp(validationRegex);
               if (!regex.test(e.trim()) && e.length > 0) {
-                onValidation('This input contains invalid characters');
+                onValidation('Invalid float value');
               } else {
                 onValidation(undefined);
               }

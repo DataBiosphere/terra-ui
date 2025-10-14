@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -70,25 +70,23 @@ describe('PipelineStringInput', () => {
     });
 
     it('calls onValidation with undefined for valid input', async () => {
-      const user = userEvent.setup();
-      const onValidation = jest.fn();
-      render(<PipelineStringInput {...defaultProps} onValidation={onValidation} />);
+      render(<PipelineStringInput {...defaultProps} />);
 
       const input = screen.getByRole('textbox');
-      await user.type(input, 'valid_input-123');
+      fireEvent.change(input, { target: { value: 'valid_input-123' } });
 
-      expect(onValidation).toHaveBeenCalledWith(undefined);
+      expect(defaultProps.onChange).toHaveBeenCalledWith('valid_input-123');
+      expect(defaultProps.onValidation).toHaveBeenCalledWith(undefined);
     });
 
     it('calls onValidation with error for invalid input', async () => {
-      const user = userEvent.setup();
-      const onValidation = jest.fn();
-      render(<PipelineStringInput {...defaultProps} onValidation={onValidation} />);
+      render(<PipelineStringInput {...defaultProps} />);
 
       const input = screen.getByRole('textbox');
-      await user.type(input, 'invalid input with spaces');
+      fireEvent.change(input, { target: { value: 'invalid input with spaces' } });
 
-      expect(onValidation).toHaveBeenCalledWith('This input contains invalid characters');
+      expect(defaultProps.onChange).toHaveBeenCalledWith('invalid input with spaces');
+      expect(defaultProps.onValidation).toHaveBeenCalledWith('This input contains invalid characters');
     });
 
     it('does not validate empty input', async () => {
@@ -103,27 +101,25 @@ describe('PipelineStringInput', () => {
     });
 
     it('does not perform validation when no validationRegex is provided', async () => {
-      const user = userEvent.setup();
       const onValidation = jest.fn();
       const inputWithoutValidation = { ...mockInput, name: 'noValidationInput' };
 
       render(<PipelineStringInput {...defaultProps} input={inputWithoutValidation} onValidation={onValidation} />);
 
       const input = screen.getByRole('textbox');
-      await user.type(input, 'you can type anything here! 123 @#$ !!!!');
+      fireEvent.change(input, { target: { value: 'type whatever you want! go nuts! $%^&#*(@' } });
 
-      expect(onValidation).not.toHaveBeenCalled();
+      expect(defaultProps.onValidation).not.toHaveBeenCalled();
     });
 
     it('trims input value before validation', async () => {
-      const user = userEvent.setup();
-      const onValidation = jest.fn();
-      render(<PipelineStringInput {...defaultProps} onValidation={onValidation} />);
+      render(<PipelineStringInput {...defaultProps} />);
 
       const input = screen.getByRole('textbox');
-      await user.type(input, ' validInput ');
+      fireEvent.change(input, { target: { value: ' validInput ' } });
 
-      expect(onValidation).toHaveBeenCalledWith(undefined);
+      expect(defaultProps.onChange).toHaveBeenCalledWith(' validInput ');
+      expect(defaultProps.onValidation).toHaveBeenCalledWith(undefined);
     });
   });
 });
