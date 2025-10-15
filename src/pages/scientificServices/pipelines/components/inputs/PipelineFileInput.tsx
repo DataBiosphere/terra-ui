@@ -1,5 +1,5 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
-import React, { Dispatch, SetStateAction, useRef } from 'react';
+import React, { Dispatch, ReactNode, SetStateAction, useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -24,8 +24,8 @@ interface PipelineInputSelectorProps {
   selectedFile: File | null;
   uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
-  onValidation(error?: string): void;
-  validationError?: string;
+  onValidation(error?: ReactNode): void;
+  validationError?: ReactNode;
   onUploadComplete?: () => void;
   setUploadState?: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
@@ -53,9 +53,23 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     // Validate file size
     if (file.size > TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES) {
       onValidation(
-        `File size exceeds the ${formatBytes(
-          TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES
-        )} limit. Please upload a smaller file.`
+        <>
+          <span>
+            File size exceeds the {formatBytes(TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES)} limit. Please upload a smaller
+            file.{' '}
+          </span>
+          <div style={{ marginTop: '0.5rem' }}>
+            <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
+            <a
+              href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
+              target='_blank'
+              style={{ color: '#46A3E9', textDecoration: 'underline' }}
+              rel='noreferrer'
+            >
+              Learn more about how to reduce your file size.
+            </a>
+          </div>
+        </>
       );
       return;
     }
