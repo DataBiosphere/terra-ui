@@ -55,7 +55,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     for (const trackView of igvBrowser.current.trackViews) {
       const track = trackView.track;
 
-      if (track.type === 'variant' || track.format === 'vcf' || track.format === 'VCF' || track?.url?.toLowerCase().includes('.vcf')) {
+      if (track.type?.toLowerCase() === 'variant' || track.format?.toLowerCase() === 'vcf' || track?.url?.toLowerCase().includes('.vcf')) {
         return track;
       }
     }

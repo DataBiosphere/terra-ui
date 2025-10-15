@@ -361,8 +361,52 @@ function getResponsiveStyles(inputValue: number, inputValue2: number, operator: 
 const NumericHistogram: React.FC<{
   facet: NumericFacetAttributes;
   currentRange: [number, number];
-}> = ({ facet, currentRange }) => {
+  operator: string;
+}> = ({ facet, currentRange, operator }) => {
   const bars = getHistogramBars(facet);
+
+  const createPlotBand = (from: number, to: number) => ({
+    from,
+    to,
+    color: 'rgba(61, 90, 135, 0.15)',
+    borderColor: '#3d5a87',
+    borderWidth: 1,
+    zIndex: 3,
+  });
+
+  // Calculate plot bands based on operator
+  const getPlotBands = useCallback(() => {
+    if (!facet.statistics) return [];
+
+    const { min, max } = facet.statistics;
+    const [val1, val2] = currentRange;
+    const smallBand = (max - min) * 0.01; // 1% of range for visibility
+
+    switch (operator) {
+      case 'between':
+        return [createPlotBand(val1, val2)];
+
+      case 'not between':
+        return [createPlotBand(min, val1), createPlotBand(val2, max)];
+
+      case '=':
+        return [createPlotBand(val1 - smallBand, val1 + smallBand)];
+
+      case '!=':
+        return [createPlotBand(min, val1 - smallBand), createPlotBand(val1 + smallBand, max)];
+
+      case '<':
+      case '<=':
+        return [createPlotBand(min, val1)];
+
+      case '>':
+      case '>=':
+        return [createPlotBand(val1, max)];
+
+      default:
+        return [];
+    }
+  }, [facet.statistics, currentRange, operator]);
 
   const options = useMemo(
     () => ({
@@ -386,16 +430,7 @@ const NumericHistogram: React.FC<{
         lineWidth: 1,
         lineColor: '#AAA',
         tickWidth: 0,
-        plotBands: [
-          {
-            from: currentRange[0],
-            to: currentRange[1],
-            color: 'rgba(61, 90, 135, 0.15)',
-            borderColor: '#3d5a87',
-            borderWidth: 1,
-            zIndex: 3,
-          },
-        ],
+        plotBands: getPlotBands(),
       },
 
       yAxis: {
@@ -434,7 +469,7 @@ const NumericHistogram: React.FC<{
         shadow: true,
       },
     }),
-    [facet, bars, currentRange]
+    [facet, bars, getPlotBands]
   );
 
   return h(Chart, { options });
@@ -626,6 +661,7 @@ const NumericFacet: React.FC<{
           h(NumericHistogram, {
             facet,
             currentRange,
+            operator,
           }),
         ]
       ),
