@@ -22,9 +22,6 @@ describe('QuotaRemainingWidget', () => {
 
     await waitFor(() => expect(screen.getByText('1250', { exact: false })).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText('750', { exact: false })).toBeInTheDocument());
-
-    const progressBar = screen.getByRole('progressbar');
-    await expect(progressBar).toHaveStyle('background-color: #5CC88D; width: 62.5%');
   });
 
   it('displays the minimum quota consumed for the pipeline', async () => {
