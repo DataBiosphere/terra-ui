@@ -6,6 +6,7 @@
 /src/groups/ @DataBiosphere/broad-core-services
 /src/pages/EnvironmentsPage/ @DataBiosphere/dsp-analysis
 /src/constants/datasets.js @DataBiosphere/jadeteam
+/src/images/brands/scientificServices/ @DataBiosphere/teaspoons-developers
 /src/import-data/ @DataBiosphere/jadeteam @DataBiosphere/broad-core-services
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
@@ -15,6 +16,7 @@
 /src/libs/ajax/billing/ @DataBiosphere/broad-core-services
 /src/libs/ajax/GoogleStorage.js @DataBiosphere/dsp-analysis
 /src/libs/ajax/Groups.ts @DataBiosphere/broad-core-services
+/src/libs/ajax/teaspoons/ @DataBiosphere/teaspoons-developers
 /src/libs/ajax/workflows-app/ @DataBiosphere/dsp-analysis
 /src/libs/ajax/workspaces/ @DataBiosphere/broad-core-services
 /src/pages/library/Datasets* @DataBiosphere/jadeteam
@@ -23,6 +25,7 @@
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
 /src/pages/billing/ @DataBiosphere/broad-core-services
 /src/pages/groups/ @DataBiosphere/broad-core-services
+/src/pages/scientificServices/ @DataBiosphere/teaspoons-developers
 /src/pages/workspaces/* @DataBiosphere/broad-core-services
 /src/profile/notification-settings/* @DataBiosphere/broad-core-services
 /src/workflows-app/ @DataBiosphere/dsp-analysis
