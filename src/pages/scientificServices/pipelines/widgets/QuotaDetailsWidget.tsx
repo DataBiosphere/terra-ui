@@ -7,7 +7,7 @@ import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUs
 
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
-export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
+export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
   const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   return (
