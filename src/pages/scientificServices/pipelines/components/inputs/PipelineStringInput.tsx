@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { ValidatedInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
@@ -7,8 +7,8 @@ interface PipelineStringInputProps {
   input: PipelineInput;
   value: string;
   onChange: (value: string) => void;
-  validationError?: string;
-  onValidation(error?: string): void;
+  validationError?: ReactNode;
+  onValidation(error?: ReactNode): void;
 }
 
 export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({

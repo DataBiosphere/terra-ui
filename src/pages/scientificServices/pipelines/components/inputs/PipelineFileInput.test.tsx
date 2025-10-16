@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 
 import { PipelineFileInput, PipelineInputFileUploadState } from './PipelineFileInput';
@@ -77,13 +78,13 @@ describe('PipelineFileInput', () => {
     );
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(fileInput).toBeInTheDocument();
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    const file = new File(['test'], 'test.vcf.gz');
     await waitFor(() => userEvent.upload(fileInput, file));
     expect(onFileSelect).toHaveBeenCalledWith(file);
   });
 
   it('shows valid file icon and info for valid file', () => {
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    const file = new File(['test'], 'test.vcf.gz');
     render(
       <PipelineFileInput
         input={mockInput}
@@ -99,7 +100,7 @@ describe('PipelineFileInput', () => {
   });
 
   it('shows invalid file icon and error for files with validation errors', () => {
-    const file = new File(['test'], 'test.txt', { type: 'text/plain' });
+    const file = new File(['test'], 'test.txt');
     render(
       <PipelineFileInput
         input={mockInput}
@@ -114,7 +115,7 @@ describe('PipelineFileInput', () => {
   });
 
   it('clears file when clear button is clicked', () => {
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    const file = new File(['test'], 'test.vcf.gz');
     const onFileSelect = jest.fn();
     render(
       <PipelineFileInput
@@ -211,5 +212,189 @@ describe('PipelineFileInput', () => {
 
     expect(screen.getByText(/There was an error uploading/)).toBeInTheDocument();
     expect(screen.getByText(/Retry/)).toBeInTheDocument();
+  });
+
+  describe('validateFile', () => {
+    it('displays a validation error when the input file exceeds the maximum file size limit', async () => {
+      const onValidation = jest.fn();
+      const onFileSelect = jest.fn();
+
+      render(
+        <PipelineFileInput
+          input={mockInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={onValidation}
+        />
+      );
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+
+      // Upload a file larger than the size limit
+      const fileLargerThanMax = new File(['test'], 'test.vcf.gz');
+      Object.defineProperty(fileLargerThanMax, 'size', {
+        value: TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES * 2,
+      }); // double the max size
+
+      await userEvent.upload(fileInput, fileLargerThanMax);
+
+      expect(onFileSelect).toHaveBeenCalledWith(fileLargerThanMax);
+      // Here we're just asserting that the onValidation callback was called with some error
+      // message because it's a ReactNode and those are hard to assert against directly
+      expect(onValidation).toHaveBeenCalledWith(expect.any(Object));
+    });
+
+    it('does not display a validation error when the input file is within the maximum file size limit', async () => {
+      const onValidation = jest.fn();
+      const onFileSelect = jest.fn();
+
+      render(
+        <PipelineFileInput
+          input={mockInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={onValidation}
+        />
+      );
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+
+      // Upload a file smaller than the size limit
+      const fileWithinMax = new File(['test'], 'test.vcf.gz');
+      Object.defineProperty(fileWithinMax, 'size', {
+        value: TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES / 2,
+      }); // half the max size
+
+      await userEvent.upload(fileInput, fileWithinMax);
+
+      expect(onFileSelect).toHaveBeenCalledWith(fileWithinMax);
+      expect(onValidation).toHaveBeenCalledWith(undefined);
+    });
+
+    it('displays a validation error when the input file suffix is incorrect', async () => {
+      const onValidation = jest.fn();
+      const onFileSelect = jest.fn();
+
+      render(
+        <PipelineFileInput
+          input={mockInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={onValidation}
+        />
+      );
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const wrongSuffixFile = new File(['test'], 'test.txt');
+
+      await userEvent.upload(fileInput, wrongSuffixFile);
+
+      expect(onValidation).toHaveBeenCalledWith(`Invalid file type. Please upload a ${mockInput.fileSuffix} file.`);
+    });
+
+    it('does not display a validation error when the input file suffix is correct', async () => {
+      const onValidation = jest.fn();
+      const onFileSelect = jest.fn();
+
+      render(
+        <PipelineFileInput
+          input={mockInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={onValidation}
+        />
+      );
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const correctSuffixFile = new File(['test'], 'test.vcf.gz');
+
+      await userEvent.upload(fileInput, correctSuffixFile);
+
+      expect(onFileSelect).toHaveBeenCalledWith(correctSuffixFile);
+      expect(onValidation).toHaveBeenCalledWith(undefined);
+    });
+
+    it('displays a validation error when the input file name does not pass validation', async () => {
+      const onValidation = jest.fn();
+      const onFileSelect = jest.fn();
+
+      render(
+        <PipelineFileInput
+          input={mockInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={onValidation}
+        />
+      );
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const invalidNameFile = new File(['test'], 'really bad file name !#$.vcf.gz');
+
+      await userEvent.upload(fileInput, invalidNameFile);
+
+      expect(onFileSelect).toHaveBeenCalledWith(invalidNameFile);
+      expect(onValidation).toHaveBeenCalledWith(
+        'File names may only contain alphanumeric characters, dashes, underscores, and periods.'
+      );
+    });
+
+    it('does not display a validation error when the input file name passes validation', async () => {
+      const onValidation = jest.fn();
+      const onFileSelect = jest.fn();
+
+      render(
+        <PipelineFileInput
+          input={mockInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={onValidation}
+        />
+      );
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const validFile = new File(['test'], 'valid_file-name.123.vcf.gz');
+
+      await userEvent.upload(fileInput, validFile);
+
+      expect(onFileSelect).toHaveBeenCalledWith(validFile);
+      expect(onValidation).toHaveBeenCalledWith(undefined);
+    });
+
+    it('clears existing validation error when a new valid file is selected', async () => {
+      const onValidation = jest.fn();
+      const onFileSelect = jest.fn();
+
+      render(
+        <PipelineFileInput
+          input={mockInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={onValidation}
+        />
+      );
+
+      // First upload an invalid file to trigger a validation error
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const invalidFile = new File(['test'], 'test.txt');
+
+      await userEvent.upload(fileInput, invalidFile);
+
+      expect(onValidation).toHaveBeenCalledWith(`Invalid file type. Please upload a ${mockInput.fileSuffix} file.`);
+      expect(onFileSelect).toHaveBeenCalledWith(invalidFile);
+
+      // Now upload a valid file
+      const validFile = new File(['test'], 'valid_file.vcf.gz');
+
+      await userEvent.upload(fileInput, validFile);
+      expect(onValidation).toHaveBeenCalledWith(undefined);
+      expect(onFileSelect).toHaveBeenCalledWith(validFile);
+    });
   });
 });

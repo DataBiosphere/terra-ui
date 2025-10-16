@@ -16,6 +16,7 @@ import {
   pipelinesTopBar,
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
@@ -79,7 +80,8 @@ export const JobHistory = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <h3>Job History</h3>
           <div style={{ marginBottom: '0.25rem' }}>
-            All files associated with jobs will be automatically deleted after 2 weeks from completion.
+            All files associated with jobs will be automatically deleted after {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days
+            from completion.
           </div>
           <div>
             For support, email{' '}
@@ -288,7 +290,7 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
 
   const completionDate = new Date(pipelineRun?.timeCompleted);
   const deletionDate = new Date(completionDate);
-  deletionDate.setDate(deletionDate.getDate() + 14);
+  deletionDate.setDate(deletionDate.getDate() + TEASPOONS_FILE_OUTPUT_TTL_DAYS);
 
   const today = new Date();
   const threeDaysFromNow = new Date();
@@ -338,7 +340,8 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   });
 
   const jobOutputsDeleted =
-    pipelineRun.status === 'SUCCEEDED' && (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * 14; // 24 hours * 14 days
+    pipelineRun.status === 'SUCCEEDED' &&
+    (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * TEASPOONS_FILE_OUTPUT_TTL_DAYS; // 24 hours * 14 days
 
   return (
     <div>
@@ -347,7 +350,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
           <TooltipTrigger
             content={
               jobOutputsDeleted
-                ? 'The outputs for this job have been deleted. Outputs are available for 2 weeks after job completion.'
+                ? `The outputs for this job have been deleted. Outputs are available for ${TEASPOONS_FILE_OUTPUT_TTL_DAYS} days after job completion.`
                 : undefined
             }
             side='top'

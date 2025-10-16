@@ -1,10 +1,11 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
-import React, { Dispatch, SetStateAction, useRef } from 'react';
+import React, { Dispatch, ReactNode, SetStateAction, useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
+import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 import {
   resumeUpload,
@@ -23,8 +24,8 @@ interface PipelineInputSelectorProps {
   selectedFile: File | null;
   uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
-  onValidation(error?: string): void;
-  validationError?: string;
+  onValidation(error?: ReactNode): void;
+  validationError?: ReactNode;
   onUploadComplete?: () => void;
   setUploadState?: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
@@ -43,30 +44,50 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
 
   const validateFile = (file: File | null) => {
-    // Check for required file
-    if (input.isRequired && !file) {
-      onValidation('This file is required.');
+    // Check if a file is selected, if required
+    if (!file) {
+      onValidation(input.isRequired ? 'This file is required.' : undefined);
       return;
     }
 
-    // Check for valid file type
-    // N.B. this suffix is supplied separately by the backend, which is why it's not included in the validationRegex
-    if (file && input.fileSuffix && !file.name.endsWith(input.fileSuffix)) {
+    // Validate file size
+    if (file.size > TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES) {
+      onValidation(
+        <>
+          <span>
+            File size exceeds the {formatBytes(TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES)} limit. Please upload a smaller
+            file.{' '}
+          </span>
+          <div style={{ marginTop: '0.5rem' }}>
+            <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
+            <a
+              href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
+              target='_blank'
+              style={{ color: '#46A3E9', textDecoration: 'underline' }}
+              rel='noreferrer'
+            >
+              Learn more about how to reduce your file size.
+            </a>
+          </div>
+        </>
+      );
+      return;
+    }
+
+    // Validate file type based on suffix
+    if (input.fileSuffix && !file.name.endsWith(input.fileSuffix)) {
       onValidation(`Invalid file type. Please upload a ${input.fileSuffix} file.`);
       return;
     }
 
-    // Check for valid file name using validation expression
-    if (file && validationRegex) {
-      const regex = new RegExp(validationRegex);
-      if (regex.test(file.name)) {
-        onValidation(undefined);
-      } else {
-        onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
-      }
-    } else if (!input.isRequired) {
-      onValidation(undefined);
+    // Validate file name against regex
+    if (validationRegex && !new RegExp(validationRegex).test(file.name)) {
+      onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
+      return;
     }
+
+    // All validations have passed
+    onValidation(undefined);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

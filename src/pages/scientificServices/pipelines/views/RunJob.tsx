@@ -1,6 +1,6 @@
 import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/components';
 import { isEmpty } from 'lodash';
-import React, { useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
@@ -49,7 +49,7 @@ export const RunJob = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runDescription, setRunDescription] = useState<string>('');
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
-  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, ReactNode | undefined>>({});
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -80,7 +80,7 @@ export const RunJob = () => {
   };
 
   // Handles updating the input validation map
-  const handleInputValidation = (inputName: string, error?: string) => {
+  const handleInputValidation = (inputName: string, error?: ReactNode) => {
     setValidationErrors((prev) => {
       if (!error) {
         const { [inputName]: _, ...rest } = prev;
