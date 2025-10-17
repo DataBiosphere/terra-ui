@@ -12,6 +12,7 @@ const igvStyles = {
     float: 'left' as const,
     marginLeft: '5px',
     marginBottom: '20px',
+    userSelect: 'none' as const,
   },
   igvFacet: {
     marginTop: '15px',
@@ -32,9 +33,12 @@ const igvStyles = {
     ':hover': {
       color: '#007',
     },
+    display: 'block' as const,
   },
   igvFilterLabelDiv: {
     marginLeft: '14px',
+    alignItems: 'center' as const,
+    gap: '6px' as const,
   },
   igvFilterCount: {
     float: 'right' as const,
