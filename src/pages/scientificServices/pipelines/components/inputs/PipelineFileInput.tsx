@@ -6,7 +6,6 @@ import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
-import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 import {
   resumeUpload,
   uploadTimeRemainingDisplayText,
@@ -41,7 +40,8 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   setUploadState,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { label, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
+  const { name, displayName, isRequired, fileSuffix } = input;
+  const validationRegex = '^[a-zA-Z0-9_.-]+$';
 
   const validateFile = (file: File | null) => {
     // Check if a file is selected, if required
@@ -75,13 +75,13 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     }
 
     // Validate file type based on suffix
-    if (input.fileSuffix && !file.name.endsWith(input.fileSuffix)) {
-      onValidation(`Invalid file type. Please upload a ${input.fileSuffix} file.`);
+    if (fileSuffix && !file.name.endsWith(fileSuffix)) {
+      onValidation(`Invalid file type. Please upload a ${fileSuffix} file.`);
       return;
     }
 
     // Validate file name against regex
-    if (validationRegex && !new RegExp(validationRegex).test(file.name)) {
+    if (!new RegExp(validationRegex).test(file.name)) {
       onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
       return;
     }
@@ -142,7 +142,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   return (
     <div>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        Select a {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
       </h3>
       <div
         style={{
@@ -181,7 +181,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   ref={fileInputRef}
                   type='file'
                   onChange={handleFileChange}
-                  accept={input.fileSuffix}
+                  accept={fileSuffix}
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -249,7 +249,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                     </div>
                   ) : (
                     <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
-                      {dragging ? `Drop ${input.fileSuffix} file here` : `Drop ${input.fileSuffix} file or`}{' '}
+                      {dragging ? `Drop ${fileSuffix} file here` : `Drop ${fileSuffix} file or`}{' '}
                       {!dragging && (
                         <button
                           type='button'
@@ -312,7 +312,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                     </ButtonPrimary>
                   </div>
                 )}
-                <div key={input.name} style={{ marginTop: '1rem' }}>
+                <div key={name} style={{ marginTop: '1rem' }}>
                   <div
                     style={{
                       backgroundColor: '#e4e5e6',

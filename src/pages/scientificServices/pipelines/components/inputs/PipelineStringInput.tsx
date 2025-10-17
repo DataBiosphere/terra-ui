@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import { ValidatedInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 
 interface PipelineStringInputProps {
   input: PipelineInput;
@@ -18,37 +17,43 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
   validationError,
   onValidation,
 }) => {
-  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
+  const { name, displayName, description, defaultValue, isRequired } = input;
 
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
+        Enter {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
       </h3>
       <ValidatedInput
         width={400}
         error={validationError}
         inputProps={{
-          'aria-label': `${input.name} text input`,
+          'aria-label': `${displayName} text input`,
           type: 'text',
           value: value || '',
-          placeholder: placeholder || '',
+          placeholder: defaultValue || `Enter ${displayName || name}`,
           onChange: (e) => {
             onChange(e);
-            if (validationRegex) {
-              const regex = new RegExp(validationRegex);
-              if (!regex.test(e.trim()) && e.length > 0) {
-                onValidation('This input contains invalid characters');
-              } else {
-                onValidation(undefined);
-              }
-            }
+            onValidation(validatePipelineStringInput(e));
           },
         }}
       />
-      {helpText && (
-        <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic', maxWidth: 500 }}>{helpText}</div>
+      {description && (
+        <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic', maxWidth: 500 }}>
+          {description}
+        </div>
       )}
     </>
   );
+};
+
+export const validatePipelineStringInput = (value: string): string | undefined => {
+  const regex = new RegExp('^[a-zA-Z0-9_.-]+$');
+  if (value.trim().length === 0) {
+    return undefined;
+  }
+  if (!regex.test(value)) {
+    return 'This input contains invalid characters';
+  }
+  return undefined;
 };

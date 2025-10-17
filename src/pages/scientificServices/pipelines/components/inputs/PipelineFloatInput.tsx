@@ -17,18 +17,18 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   validationError,
   onValidation,
 }) => {
-  const { name, displayName, description, defaultValue, minValue, maxValue } = input;
+  const { name, displayName, description, isRequired, defaultValue, minValue, maxValue } = input;
 
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        Enter {displayName || name} {input.isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
+        Enter {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
       </h3>
       <ValidatedInput
         width={400}
         error={validationError}
         inputProps={{
-          'aria-label': `${input.displayName} float input`,
+          'aria-label': `${displayName} float input`,
           type: 'text',
           value: value || '',
           placeholder: defaultValue || '',
