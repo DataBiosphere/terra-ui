@@ -99,6 +99,12 @@ export const RunJob = () => {
     setIsSubmitting(false);
   }
 
+  const handlePipelineSubmissionError = (error: unknown, fallbackMessage: string) => {
+    const errorMessage = error instanceof Error ? error.message : fallbackMessage;
+    notify('error', `Error: ${errorMessage}`);
+    setIsSubmitting(false);
+  };
+
   useEffect(() => {
     // Clear selected user inputs when pipeline inputs change
     resetSelectedUserInputs();
@@ -164,9 +170,7 @@ export const RunJob = () => {
       fileInputUploadUrls = result.fileInputUploadUrls;
       setPreparedJobId(preparedJobId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to prepare pipeline run';
-      notify('error', `Error: ${errorMessage}`);
-      setIsSubmitting(false);
+      handlePipelineSubmissionError(error, 'Failed to prepare pipeline run');
       return;
     }
 
@@ -181,9 +185,7 @@ export const RunJob = () => {
         setUploadState
       );
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'File upload failed';
-      notify('error', `Error during file upload: ${errorMessage}`);
-      setIsSubmitting(false);
+      handlePipelineSubmissionError(error, 'File upload failed');
       return;
     }
 
@@ -191,9 +193,7 @@ export const RunJob = () => {
     try {
       await onUploadComplete(preparedJobId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to start pipeline run';
-      notify('error', `Error: ${errorMessage}`);
-      setIsSubmitting(false);
+      handlePipelineSubmissionError(error, 'Failed to start pipeline run');
       return;
     }
 
