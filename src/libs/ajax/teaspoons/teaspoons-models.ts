@@ -15,6 +15,8 @@ export interface PipelineInput {
 export interface PipelineOutput {
   name: string;
   type: string;
+  displayName: string;
+  description: string;
 }
 
 /* Represents the quota settings for a particular pipeline */

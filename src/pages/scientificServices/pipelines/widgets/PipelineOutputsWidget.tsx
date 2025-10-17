@@ -1,7 +1,6 @@
 import React from 'react';
 import { PipelineOutput, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { cond, DEFAULT } from 'src/libs/utils';
-import { PIPELINE_OUTPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-output-utils';
 
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
@@ -27,11 +26,7 @@ export const PipelineOutputsWidget = ({
             return (
               <div style={{ marginTop: '1rem' }}>
                 {pipelineOutputs.map((output) => (
-                  <OutputDetails
-                    key={output.name}
-                    pipelineName={selectedPipelineDetails.pipelineName}
-                    output={output}
-                  />
+                  <OutputDetails key={output.name} output={output} />
                 ))}
               </div>
             );
@@ -43,9 +38,7 @@ export const PipelineOutputsWidget = ({
   );
 };
 
-const OutputDetails = ({ pipelineName, output }: { pipelineName: string; output: PipelineOutput }) => {
-  const outputDescription = PIPELINE_OUTPUT_DESCRIPTIONS[pipelineName]?.[output.name]?.description;
-
+const OutputDetails = ({ output }: { output: PipelineOutput }) => {
   return (
     <div style={{ marginTop: '1rem', borderLeft: '3px solid #e4e5e6', paddingLeft: '0.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -71,7 +64,7 @@ const OutputDetails = ({ pipelineName, output }: { pipelineName: string; output:
           </span>
         </div>
       </div>
-      <div style={{ width: '80%', fontSize: 13 }}>{outputDescription || 'No description available'}</div>
+      <div style={{ width: '80%', fontSize: 13 }}>{output.description || 'No description available'}</div>
     </div>
   );
 };
