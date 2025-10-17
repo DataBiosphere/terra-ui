@@ -136,16 +136,18 @@ export const RunJob = () => {
 
   const handleSubmit = async () => {
     if (!selectedPipeline) {
-      notify('error', 'Missing required fields');
+      // This should not happen as the submit button is disabled when no pipeline is selected,
+      // but it's helpful as a type-guard here since Typescript obviously can't infer that
+      notify('error', 'Please select a pipeline before submitting.');
       return;
     }
 
-    const pipeline = pipelinesList?.find((pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion);
+    const pipeline = pipelinesList?.find((pipeline) => pipeline.pipelineVersion === selectedPipeline.pipelineVersion);
     const pipelineName = pipeline?.pipelineName;
 
     // Only proceed if we have a valid pipeline name
     if (!pipelineName) {
-      notify('error', 'No pipeline selected or pipeline name not found');
+      notify('error', 'There was an error loading the pipeline details.');
       return;
     }
 
@@ -158,30 +160,37 @@ export const RunJob = () => {
 
     setIsSubmitting(true);
 
-    const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
-      pipelineName,
-      selectedPipeline.pipelineVersion,
-      filteredUserInputs,
-      runDescription
-    );
-
-    setPreparedJobId(preparedJobId);
-
     try {
-      await uploadPipelineFiles(
+      const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
         pipelineName,
         selectedPipeline.pipelineVersion,
-        pipelineInputs,
         filteredUserInputs,
-        fileInputUploadUrls,
-        setUploadState
+        runDescription
       );
 
-      await onUploadComplete(preparedJobId);
+      setPreparedJobId(preparedJobId);
+
+      try {
+        await uploadPipelineFiles(
+          pipelineName,
+          selectedPipeline.pipelineVersion,
+          pipelineInputs,
+          filteredUserInputs,
+          fileInputUploadUrls,
+          setUploadState
+        );
+
+        await onUploadComplete(preparedJobId);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : '';
+        console.error(errorMessage);
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '';
-      console.error(errorMessage);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to prepare pipeline run';
+      notify('error', `Error: ${errorMessage}`);
+      console.error('Error preparing pipeline run:', error);
     } finally {
+      setIsSubmitting(false);
       Metrics().captureEvent(Events.teaspoons.submitJob, {
         pipelineName,
         pipelineVersion: selectedPipeline.pipelineVersion,
