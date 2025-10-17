@@ -154,41 +154,54 @@ export const RunJob = () => {
 
     setIsSubmitting(true);
 
+    let preparedJobId: string;
+    let fileInputUploadUrls: Record<string, { signedUrl: string }>;
+
+    // Prepare pipeline run
     try {
-      const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
-        pipelineName,
-        pipelineVersion,
-        filteredUserInputs,
-        runDescription
-      );
-
+      const result = await preparePipelineRun(pipelineName, pipelineVersion, filteredUserInputs, runDescription);
+      preparedJobId = result.jobId;
+      fileInputUploadUrls = result.fileInputUploadUrls;
       setPreparedJobId(preparedJobId);
-
-      try {
-        await uploadPipelineFiles(
-          pipelineName,
-          pipelineVersion,
-          pipelineInputs,
-          filteredUserInputs,
-          fileInputUploadUrls,
-          setUploadState
-        );
-
-        await onUploadComplete(preparedJobId);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '';
-        notify('error', `Error during file upload: ${errorMessage}`);
-      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to prepare pipeline run';
       notify('error', `Error: ${errorMessage}`);
-    } finally {
       setIsSubmitting(false);
-      Metrics().captureEvent(Events.teaspoons.submitJob, {
+      return;
+    }
+
+    // Upload pipeline input files
+    try {
+      await uploadPipelineFiles(
         pipelineName,
         pipelineVersion,
-      });
+        pipelineInputs,
+        filteredUserInputs,
+        fileInputUploadUrls,
+        setUploadState
+      );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'File upload failed';
+      notify('error', `Error during file upload: ${errorMessage}`);
+      setIsSubmitting(false);
+      return;
     }
+
+    // Submit the pipeline run
+    try {
+      await onUploadComplete(preparedJobId);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start pipeline run';
+      notify('error', `Error: ${errorMessage}`);
+      setIsSubmitting(false);
+      return;
+    }
+
+    setIsSubmitting(false);
+    Metrics().captureEvent(Events.teaspoons.submitJob, {
+      pipelineName,
+      pipelineVersion,
+    });
   };
 
   return (
