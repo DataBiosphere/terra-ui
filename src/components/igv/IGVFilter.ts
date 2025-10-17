@@ -160,6 +160,9 @@ function getFacetClass(facetName: string) {
 }
 
 function getFriendlyFacetName(facet: FacetAttributes): string {
+  // These names come from "reserved INFO keys" in the VCF specification
+  // (https://samtools.github.io/hts-specs/VCFv4.5.pdf#page=10)
+  // and populations in the 1000 Genomes Project
   const friendlyNames: { [key: string]: string } = {
     VT: 'Variant Type',
     AA: 'Ancestral Allele',
