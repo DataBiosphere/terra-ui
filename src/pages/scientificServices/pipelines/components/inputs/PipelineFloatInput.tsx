@@ -28,10 +28,10 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
         width={400}
         error={validationError}
         inputProps={{
-          'aria-label': `${displayName} float input`,
+          'aria-label': `${displayName || name} float input`,
           type: 'text',
           value: value || '',
-          placeholder: defaultValue || '',
+          placeholder: defaultValue || `Enter ${displayName || name}`,
           onChange: (e) => {
             onChange(e);
             onValidation(validatePipelineFloatInput(e, minValue, maxValue));

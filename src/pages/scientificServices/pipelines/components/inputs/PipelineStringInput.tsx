@@ -28,7 +28,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
         width={400}
         error={validationError}
         inputProps={{
-          'aria-label': `${displayName} text input`,
+          'aria-label': `${displayName || name} text input`,
           type: 'text',
           value: value || '',
           placeholder: defaultValue || `Enter ${displayName || name}`,
