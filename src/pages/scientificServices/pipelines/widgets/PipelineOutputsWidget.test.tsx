@@ -8,7 +8,10 @@ describe('PipelineOutputsWidget', () => {
   it('renders all outputs for a pipeline', () => {
     const pipelineDetails = mockPipelineWithDetails('array_imputation');
     const expectedOutputDescriptions: Record<string, { description: string }> = Object.fromEntries(
-      pipelineDetails.outputs.map((output) => [output.name, { description: output.description }])
+      pipelineDetails.outputs.map((output) => [
+        output.name,
+        { description: output.description || 'No description available' },
+      ])
     );
 
     render(<PipelineOutputsWidget selectedPipelineDetails={pipelineDetails} />);

@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import { ValidatedInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/pipeline-input-utils';
 
 interface PipelineFloatInputProps {
   input: PipelineInput;
@@ -18,37 +17,49 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   validationError,
   onValidation,
 }) => {
-  const { label, placeholder, helpText, validationRegex } = INPUT_DESCRIPTIONS[input.name] || {};
+  const { name, displayName, description, defaultValue, minValue, maxValue } = input;
 
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
+        Enter {displayName || name} {input.isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
       </h3>
       <ValidatedInput
         width={400}
         error={validationError}
         inputProps={{
-          'aria-label': `${input.name} float input`,
+          'aria-label': `${input.displayName} float input`,
           type: 'text',
           value: value || '',
-          placeholder: placeholder || '',
+          placeholder: defaultValue || '',
           onChange: (e) => {
             onChange(e);
-            if (validationRegex) {
-              const regex = new RegExp(validationRegex);
-              if (!regex.test(e.trim()) && e.length > 0) {
-                onValidation('Invalid float value');
-              } else {
-                onValidation(undefined);
-              }
-            }
+            onValidation(validatePipelineFloatInput(e, minValue, maxValue));
           },
         }}
       />
-      {helpText && (
-        <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic', maxWidth: 500 }}>{helpText}</div>
+      {description && (
+        <div style={{ marginTop: '0.5rem', marginBottom: '2rem', fontStyle: 'italic', maxWidth: 500 }}>
+          {description}
+        </div>
       )}
     </>
   );
+};
+
+export const validatePipelineFloatInput = (value: string, minValue?: number, maxValue?: number): string | undefined => {
+  const floatValue = parseFloat(value);
+  if (value.trim().length === 0) {
+    return undefined;
+  }
+  if (Number.isNaN(floatValue)) {
+    return 'Enter a valid float value';
+  }
+  if (minValue && floatValue < minValue) {
+    return `Value must be between ${minValue} and ${maxValue}`;
+  }
+  if (maxValue && floatValue > maxValue) {
+    return `Value must be between ${minValue} and ${maxValue}`;
+  }
+  return undefined;
 };
