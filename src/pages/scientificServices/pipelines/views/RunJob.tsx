@@ -142,14 +142,8 @@ export const RunJob = () => {
       return;
     }
 
-    const pipeline = pipelinesList?.find((pipeline) => pipeline.pipelineVersion === selectedPipeline.pipelineVersion);
-    const pipelineName = pipeline?.pipelineName;
-
-    // Only proceed if we have a valid pipeline name
-    if (!pipelineName) {
-      notify('error', 'There was an error loading the pipeline details.');
-      return;
-    }
+    const pipelineName = selectedPipeline.pipelineName;
+    const pipelineVersion = selectedPipeline.pipelineVersion;
 
     // Filter out empty string inputs to avoid sending them to the backend.
     // At this point we've already validated required inputs are filled, so this
@@ -163,7 +157,7 @@ export const RunJob = () => {
     try {
       const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
         pipelineName,
-        selectedPipeline.pipelineVersion,
+        pipelineVersion,
         filteredUserInputs,
         runDescription
       );
@@ -173,7 +167,7 @@ export const RunJob = () => {
       try {
         await uploadPipelineFiles(
           pipelineName,
-          selectedPipeline.pipelineVersion,
+          pipelineVersion,
           pipelineInputs,
           filteredUserInputs,
           fileInputUploadUrls,
@@ -183,17 +177,16 @@ export const RunJob = () => {
         await onUploadComplete(preparedJobId);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '';
-        console.error(errorMessage);
+        notify('error', `Error during file upload: ${errorMessage}`);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to prepare pipeline run';
       notify('error', `Error: ${errorMessage}`);
-      console.error('Error preparing pipeline run:', error);
     } finally {
       setIsSubmitting(false);
       Metrics().captureEvent(Events.teaspoons.submitJob, {
         pipelineName,
-        pipelineVersion: selectedPipeline.pipelineVersion,
+        pipelineVersion,
       });
     }
   };
