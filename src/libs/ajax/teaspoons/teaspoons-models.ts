@@ -7,12 +7,12 @@ export interface Pipeline {
 
 export interface PipelineInput {
   name: string;
-  type: 'STRING' | 'FLOAT' | 'FILE';
+  type: 'STRING' | 'FILE' | 'FLOAT';
   isRequired: boolean;
   displayName?: string;
   description?: string;
   defaultValue?: string;
-  fileSuffix: string; // Only present for FILE types
+  fileSuffix?: string; // Only present for FILE types
   minValue?: number; // Only present for FLOAT types
   maxValue?: number; // Only present for FLOAT types
 }
