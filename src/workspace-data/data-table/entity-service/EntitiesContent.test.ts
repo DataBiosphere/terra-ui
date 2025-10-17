@@ -148,6 +148,7 @@ describe('EntitiesContent', () => {
           loadMetadata: () => {},
           snapshotName: null,
           editable: false,
+          onIgvFilterPanelChange: () => {},
         })
       );
     });
@@ -242,6 +243,7 @@ describe('EntitiesContent', () => {
           loadMetadata: () => {},
           snapshotName: null,
           editable: false,
+          onIgvFilterPanelChange: () => {},
         })
       );
     });
@@ -321,6 +323,7 @@ describe('EntitiesContent', () => {
           loadMetadata: () => {},
           snapshotName: null,
           editable: false,
+          onIgvFilterPanelChange: () => {},
         })
       );
     });
@@ -412,6 +415,7 @@ describe('EntitiesContent', () => {
           loadMetadata: () => {},
           snapshotName: null,
           editable: false,
+          onIgvFilterPanelChange: () => {},
         })
       );
     });
@@ -505,6 +509,7 @@ describe('EntitiesContent', () => {
           loadMetadata: () => {},
           snapshotName: null,
           editable: false,
+          onIgvFilterPanelChange: () => {},
         })
       );
     });
@@ -558,6 +563,7 @@ describe('IGV & Workflow Icons and Tool Drawer', () => {
         loadMetadata: jest.fn(),
         snapshotName: null,
         editable: true,
+        onIgvFilterPanelChange: () => {},
         ...props,
       })
     );

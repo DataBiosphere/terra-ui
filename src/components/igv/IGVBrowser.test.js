@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import * as clipboard from 'clipboard-polyfill/text';
 import { h } from 'react-hyperscript-helpers';
 import * as DataUtils from 'src/components/data/data-utils';
-import IGVBrowser from 'src/components/IGVBrowser';
+import IGVBrowser from 'src/components/igv/IGVBrowser';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import * as Notifications from 'src/libs/notifications';
 import * as state from 'src/libs/state';
@@ -38,7 +38,7 @@ jest.mock('src/libs/error', () => ({
 let submitTrack;
 
 // Mock IGVAddTrackModal
-jest.mock('src/components/IGVAddTrackModal', () => ({
+jest.mock('src/components/igv/IGVAddTrackModal', () => ({
   __esModule: true,
   default: ({ onSubmitTrack }) => {
     submitTrack = () =>
@@ -62,16 +62,38 @@ const mockToJSON = jest.fn(() =>
   })
 );
 const mockLoadSession = jest.fn(() => Promise.resolve());
+const mockCreateBrowser = jest.fn(async () => {
+  const eventHandlers = {};
+  return {
+    loadTrack: mockLoadTrack,
+    toJSON: mockToJSON,
+    loadSession: mockLoadSession,
+    on: jest.fn((event, handler) => {
+      eventHandlers[event] = handler; // Store event handlers
+    }),
+    emit: jest.fn((event, ...args) => {
+      if (eventHandlers[event]) {
+        eventHandlers[event](...args); // Call the stored handler
+      }
+    }),
+    trackViews: [
+      {
+        track: {
+          type: 'variant',
+          format: 'vcf',
+          url: 'gs://bucket/test.vcf',
+          getInViewFeatures: jest.fn(() => [{ info: { VT: 'SNP', AF: 0.5 } }]),
+        },
+      },
+    ],
+  };
+});
 
 // Mock IGV library
 jest.mock('igv', () => {
   const igv = {
     setGoogleOauthToken: jest.fn(),
-    createBrowser: jest.fn(async () => ({
-      loadTrack: mockLoadTrack,
-      toJSON: mockToJSON,
-      loadSession: mockLoadSession,
-    })),
+    createBrowser: mockCreateBrowser,
     removeAllBrowsers: jest.fn(),
   };
   return { __esModule: true, default: igv, ...igv };
@@ -296,7 +318,7 @@ describe('IGVBrowser', () => {
         name: expect.stringContaining('foobar.bazmoo.er.raw.g.vcf.gz'),
         url: `https://storage.googleapis.com/storage/v1/b/${fakeBucketName}/o/a_sub_dir%2Fbig%2Fmultipart%2Fpath%2Ffoobar.bazmoo.er.raw.g.vcf.gz?${fakeSignedParams}&alt=media`,
         indexURL: `https://storage.googleapis.com/storage/v1/b/${fakeBucketName}/o/a_sub_dir%2Fbig%2Fmultipart%2Fpath%2Ffoobar.bazmoo.er.raw.g.vcf.gz.tbi?${fakeSignedParams}&alt=media`,
-        visibilityWindow: 75000,
+        visibilityWindow: 500000,
       });
     });
   });
@@ -843,5 +865,147 @@ describe('IGVBrowser Session Management', () => {
 
     // No success notification should be shown
     expect(mockNotify).not.toHaveBeenCalledWith('success', 'Session URL copied to clipboard', expect.any(Object));
+  });
+});
+
+describe('IGVBrowser Filter Panel', () => {
+  const mockSelectedFilesWithVariants = [
+    {
+      filePath: 'gs://bucket/test.vcf.gz',
+      indexFilePath: 'gs://bucket/test.vcf.gz.tbi',
+      isSignedUrl: false,
+    },
+  ];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('shows filter variants button for VCF files', async () => {
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithVariants,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Filter variants')).toBeInTheDocument();
+    });
+  });
+
+  it('does not show filter variants button for non-VCF files', async () => {
+    const nonVcfFiles = [
+      {
+        filePath: 'gs://bucket/test.bam',
+        indexFilePath: 'gs://bucket/test.bai',
+        isSignedUrl: false,
+      },
+    ];
+
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: nonVcfFiles,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Filter variants')).not.toBeInTheDocument();
+    });
+  });
+
+  it('calls onFilterPanelChange when filter panel is opened', async () => {
+    const mockOnFilterPanelChange = jest.fn();
+
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithVariants,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+          onFilterPanelChange: mockOnFilterPanelChange,
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Filter variants')).toBeInTheDocument();
+    });
+
+    const filterButton = screen.getByText('Filter variants');
+
+    await act(async () => {
+      fireEvent.click(filterButton);
+    });
+
+    await waitFor(() => {
+      expect(mockOnFilterPanelChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          show: true,
+          trackToFilter: expect.anything(),
+          onFilterChange: expect.any(Function),
+        })
+      );
+    });
+  });
+
+  it('reinitializes filter panel on locus change', async () => {
+    const mockOnFilterPanelChange = jest.fn();
+
+    await act(async () => {
+      render(
+        h(IGVBrowser, {
+          selectedFiles: mockSelectedFilesWithVariants,
+          refGenome: { genome: 'hg38', reference: null },
+          workspace: mockWorkspace,
+          onDismiss: jest.fn(),
+          onFilterPanelChange: mockOnFilterPanelChange,
+        })
+      );
+    });
+
+    // Wait for IGV browser to be created
+    await waitFor(() => {
+      expect(mockCreateBrowser).toHaveBeenCalled();
+    });
+
+    // Retrieve the browser instance
+    const igvBrowserInstance = await mockCreateBrowser.mock.results[0].value;
+
+    // Extract the locuschange handler from the on.mock.calls
+    const locusChangeCall = igvBrowserInstance.on.mock.calls.find(([event]) => event === 'locuschange');
+    expect(locusChangeCall).toBeDefined();
+    const handleLocusChange = locusChangeCall[1];
+
+    // Open filter panel
+    await act(async () => {
+      fireEvent.click(screen.getByText('Filter variants'));
+    });
+
+    mockOnFilterPanelChange.mockClear();
+
+    // Trigger locus change
+    await act(async () => {
+      handleLocusChange();
+    });
+
+    await waitFor(() => {
+      expect(mockOnFilterPanelChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isInitialized: false,
+          isLoading: true,
+        })
+      );
+    });
   });
 });
