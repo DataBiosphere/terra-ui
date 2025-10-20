@@ -23,10 +23,31 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
     type: 'test-type',
     inputs: [
       {
-        name: 'testInput',
+        name: 'minDr2ForInclusion',
+        displayName: 'minimum imputation quality for inclusion',
+        description:
+          'The minimum imputation quality (DR2) for inclusion in output VCF. Value must be between 0 and 1 (inclusive). Default is 0.0',
+        type: 'FLOAT',
+        isRequired: false,
+        defaultValue: '0.0',
+        minValue: 0,
+        maxValue: 1,
+      },
+      {
+        name: 'multiSampleVcf',
+        displayName: 'multi-sample VCF file',
+        description: 'A bgzipped, multi-sample VCF containing array data from one or more chromosomes to be imputed',
         type: 'FILE',
         isRequired: true,
         fileSuffix: '.vcf.gz',
+      },
+      {
+        name: 'outputBasename',
+        displayName: 'output basename',
+        description:
+          "The prefix for all of the outputs' filenames. May only contain alphanumeric characters, dashes, and underscores",
+        type: 'STRING',
+        isRequired: true,
       },
     ] as PipelineInput[],
     outputs: [

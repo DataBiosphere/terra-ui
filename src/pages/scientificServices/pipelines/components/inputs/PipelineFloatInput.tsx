@@ -55,10 +55,10 @@ export const validatePipelineFloatInput = (value: string, minValue?: number, max
   if (Number.isNaN(floatValue)) {
     return 'Enter a valid float value';
   }
-  if (minValue && floatValue < minValue) {
+  if (minValue !== undefined && floatValue < minValue) {
     return `Value must be between ${minValue} and ${maxValue}`;
   }
-  if (maxValue && floatValue > maxValue) {
+  if (maxValue !== undefined && floatValue > maxValue) {
     return `Value must be between ${minValue} and ${maxValue}`;
   }
   return undefined;

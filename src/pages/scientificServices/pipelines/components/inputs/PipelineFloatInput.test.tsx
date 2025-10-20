@@ -3,12 +3,15 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
-import { PipelineFloatInput } from './PipelineFloatInput';
+import { PipelineFloatInput, validatePipelineFloatInput } from './PipelineFloatInput';
 
 const mockInput: PipelineInput = {
   name: 'floatInput',
   type: 'FLOAT',
   isRequired: true,
+  description: 'Must be a valid floating-point number.',
+  minValue: 0,
+  maxValue: 1,
 };
 
 const optionalInput: PipelineInput = {
@@ -31,7 +34,7 @@ describe('PipelineFloatInput', () => {
 
   it('renders input label', () => {
     render(<PipelineFloatInput {...defaultProps} />);
-    expect(screen.getByText('Enter a float value')).toBeInTheDocument();
+    expect(screen.getByText('Enter floatInput')).toBeInTheDocument();
   });
 
   it('shows required indicator for required inputs', () => {
@@ -47,7 +50,7 @@ describe('PipelineFloatInput', () => {
   it('renders input placeholder', () => {
     render(<PipelineFloatInput {...defaultProps} />);
     const input = screen.getByRole('textbox');
-    expect(input).toHaveAttribute('placeholder', 'Enter a number');
+    expect(input).toHaveAttribute('placeholder', 'Enter floatInput');
   });
 
   it('renders help text', () => {
@@ -92,7 +95,7 @@ describe('PipelineFloatInput', () => {
     fireEvent.change(input, { target: { value: '10' } });
 
     expect(defaultProps.onChange).toHaveBeenCalledWith('10');
-    expect(defaultProps.onValidation).toHaveBeenCalledWith('Invalid float value');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith('Value must be between 0 and 1');
   });
 
   it('calls onValidation with error for . input', async () => {
@@ -102,7 +105,7 @@ describe('PipelineFloatInput', () => {
     fireEvent.change(input, { target: { value: '.' } });
 
     expect(defaultProps.onChange).toHaveBeenCalledWith('.');
-    expect(defaultProps.onValidation).toHaveBeenCalledWith('Invalid float value');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith('Enter a valid float value');
   });
 
   it('calls onValidation with error for negative float input out of range', async () => {
@@ -112,7 +115,7 @@ describe('PipelineFloatInput', () => {
     fireEvent.change(input, { target: { value: '-0.1' } });
 
     expect(defaultProps.onChange).toHaveBeenCalledWith('-0.1');
-    expect(defaultProps.onValidation).toHaveBeenCalledWith('Invalid float value');
+    expect(defaultProps.onValidation).toHaveBeenCalledWith('Value must be between 0 and 1');
   });
 
   it('does not validate empty input', async () => {
@@ -124,5 +127,27 @@ describe('PipelineFloatInput', () => {
     await user.clear(input);
 
     expect(onValidation).not.toHaveBeenCalled();
+  });
+
+  describe('validatePipelineFloatInput', () => {
+    it('returns undefined for empty input', () => {
+      expect(validatePipelineFloatInput('', 0, 1)).toBeUndefined();
+    });
+
+    it('returns error for non-numeric input', () => {
+      expect(validatePipelineFloatInput('abc', 0, 1)).toBe('Enter a valid float value');
+    });
+
+    it('returns error for input below minValue', () => {
+      expect(validatePipelineFloatInput('-1', 0, 1)).toBe('Value must be between 0 and 1');
+    });
+
+    it('returns error for input above maxValue', () => {
+      expect(validatePipelineFloatInput('2', 0, 1)).toBe('Value must be between 0 and 1');
+    });
+
+    it('returns undefined for valid input within range', () => {
+      expect(validatePipelineFloatInput('0.5', 0, 1)).toBeUndefined();
+    });
   });
 });

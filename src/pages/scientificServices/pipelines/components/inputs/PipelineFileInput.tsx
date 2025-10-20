@@ -41,7 +41,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { name, displayName, isRequired, fileSuffix } = input;
-  const validationRegex = '^[a-zA-Z0-9_.-]+$';
+  const FILE_NAME_VALIDATION_REGEX = '^[a-zA-Z0-9_.-]+$';
 
   const validateFile = (file: File | null) => {
     // Check if a file is selected, if required
@@ -81,7 +81,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     }
 
     // Validate file name against regex
-    if (!new RegExp(validationRegex).test(file.name)) {
+    if (!new RegExp(FILE_NAME_VALIDATION_REGEX).test(file.name)) {
       onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
       return;
     }
