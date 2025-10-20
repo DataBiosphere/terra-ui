@@ -48,11 +48,11 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
 };
 
 export const validatePipelineStringInput = (value: string): string | undefined => {
-  const regex = new RegExp('^[a-zA-Z0-9_.-]+$');
+  const validationRegex = /^[a-zA-Z0-9_.-]+$/;
   if (value.trim().length === 0) {
     return undefined;
   }
-  if (!regex.test(value.trim())) {
+  if (!validationRegex.test(value.trim())) {
     return 'This input contains invalid characters';
   }
   return undefined;

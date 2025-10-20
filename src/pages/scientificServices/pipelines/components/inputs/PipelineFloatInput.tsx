@@ -48,7 +48,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
 };
 
 export const validatePipelineFloatInput = (value: string, minValue?: number, maxValue?: number): string | undefined => {
-  const floatValue = parseFloat(value);
+  const floatValue = Number.parseFloat(value);
   if (value.trim().length === 0) {
     return undefined;
   }
