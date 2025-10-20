@@ -115,23 +115,24 @@ const statusCell = (workflowStatuses, status) => {
   );
 };
 
-const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
-  div([
-    'You have not run any submissions yet. To get started, go to the ',
-    span({ style: { fontWeight: 600 } }, ['Workflows']),
-    ' tab and select a workflow to run.',
-  ]),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    h(
-      Link,
-      {
-        ...Utils.newTabLinkProps,
-        href: 'https://support.terra.bio/hc/en-us/articles/360037096272',
-      },
-      ['What is a submission?']
-    ),
-  ]),
-]);
+const noJobsMessage = (dateRange) =>
+  div({ style: { fontSize: 20, margin: '1rem' } }, [
+    div([
+      `You have not run any submissions ${dateRange === '30' ? 'in the last 30 days' : 'yet'}. To get started, go to the `,
+      span({ style: { fontWeight: 600 } }, ['Workflows']),
+      ' tab and select a workflow to run.',
+    ]),
+    div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+      h(
+        Link,
+        {
+          ...Utils.newTabLinkProps,
+          href: 'https://support.terra.bio/hc/en-us/articles/360037096272',
+        },
+        ['What is a submission?']
+      ),
+    ]),
+  ]);
 
 export const SubmissionHistory = _.flow(
   forwardRefWithName('SubmissionHistory'),
@@ -499,7 +500,7 @@ export const SubmissionHistory = _.flow(
               ],
             }),
         ]),
-      !loading && !hasJobs && noJobsMessage,
+      !loading && !hasJobs && noJobsMessage(dateRange),
       !!abortingId &&
         h(
           Modal,

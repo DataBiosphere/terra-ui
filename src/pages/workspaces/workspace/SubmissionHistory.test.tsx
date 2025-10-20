@@ -47,7 +47,7 @@ asMockedFn(useWorkspace).mockReturnValue({
     canShare: true,
     canCompute: true,
     policies: [],
-    workspaceInitialized: true,
+    workspaceInitialized: false,
   },
   accessError: false,
   loadingWorkspace: false,
@@ -98,35 +98,34 @@ describe('SubmissionHistory date range filter', () => {
   const now = new Date();
   const recentSubmissionTime = now.toISOString();
   const oldSubmissionTime = new Date(new Date().setDate(now.getDate() - 45)).toISOString();
-  const mockSubmissions = [
-    {
-      submissionDate: recentSubmissionTime, // 10 days ago
-      methodConfigurationName: 'Recent Submission',
-      methodConfigurationNamespace: 'Test',
-      submissionId: 'recent-1',
-      submissionRoot: 'gs://test-bucket/recent-1',
-      workflowStatuses: { running: 1 },
-      status: 'Done',
-      submitter: 'user1',
-      submissionEntity: { entityName: 'entity1', entityType: 'type1' },
-      userComment: 'Recent',
-    },
-    {
-      submissionDate: oldSubmissionTime, // 40 days ago
-      methodConfigurationName: 'Old Submission',
-      methodConfigurationNamespace: 'Test',
-      submissionId: 'old-1',
-      submissionRoot: 'gs://test-bucket/old-1',
-      workflowStatuses: { succeeded: 1 },
-      status: 'Done',
-      submitter: 'user2',
-      submissionEntity: { entityName: 'entity2', entityType: 'type2' },
-      userComment: 'Old',
-    },
-  ];
+  const newerSubmission = {
+    submissionDate: recentSubmissionTime, // 10 days ago
+    methodConfigurationName: 'Recent Submission',
+    methodConfigurationNamespace: 'Test',
+    submissionId: 'recent-1',
+    submissionRoot: 'gs://test-bucket/recent-1',
+    workflowStatuses: { running: 1 },
+    status: 'Done',
+    submitter: 'user1',
+    submissionEntity: { entityName: 'entity1', entityType: 'type1' },
+    userComment: 'Recent',
+  };
+  const oldSubmission = {
+    submissionDate: oldSubmissionTime, // 40 days ago
+    methodConfigurationName: 'Old Submission',
+    methodConfigurationNamespace: 'Test',
+    submissionId: 'old-1',
+    submissionRoot: 'gs://test-bucket/old-1',
+    workflowStatuses: { succeeded: 1 },
+    status: 'Done',
+    submitter: 'user2',
+    submissionEntity: { entityName: 'entity2', entityType: 'type2' },
+    userComment: 'Old',
+  };
+  const allSubmissions = [newerSubmission, oldSubmission];
   const listSubmissions = jest.fn();
 
-  beforeEach(() => {
+  const mockListSubmissions = (mockSubmissions: any[]) => {
     listSubmissions.mockImplementation((params) => {
       if (params?.startDate) {
         return Promise.resolve(mockSubmissions.filter((s) => s.submissionDate >= params.startDate));
@@ -138,9 +137,20 @@ describe('SubmissionHistory date range filter', () => {
         listSubmissions,
       }),
     } as unknown as ReturnType<typeof Workspaces>);
-  });
+  };
+
+  async function selectAllSubmissionsOption() {
+    const user = userEvent.setup();
+    const selectElement = document.getElementById('submission-date-range-select');
+    if (!selectElement) {
+      fail('Select element not found');
+    }
+    const selectHelper = new SelectHelper(selectElement, user);
+    await selectHelper.selectOption('All Submissions');
+  }
 
   test('shows only submissions from the past 30 days by default', async () => {
+    mockListSubmissions(allSubmissions);
     await act(async () => {
       renderSubmissionHistory();
     });
@@ -153,6 +163,7 @@ describe('SubmissionHistory date range filter', () => {
   });
 
   test('shows all submissions when "All Submissions" is selected', async () => {
+    mockListSubmissions(allSubmissions);
     await act(async () => {
       renderSubmissionHistory();
     });
@@ -163,17 +174,50 @@ describe('SubmissionHistory date range filter', () => {
     });
 
     // Open the select dropdown and choose "All Submissions"
-    const user = userEvent.setup();
-    const selectElement = document.getElementById('submission-date-range-select');
-    if (!selectElement) {
-      fail('Select element not found');
-    }
-    const selectHelper = new SelectHelper(selectElement, user);
-    await selectHelper.selectOption('All Submissions');
+    await selectAllSubmissionsOption();
 
     await waitFor(() => {
       expect(screen.getByText('Old Submission')).toBeInTheDocument();
       expect(screen.getByText('Recent Submission')).toBeInTheDocument();
+    });
+  });
+
+  test('shows no submissions for the past 30 days when only old submissions exist', async () => {
+    mockListSubmissions([oldSubmission]);
+    await act(async () => {
+      renderSubmissionHistory();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Recent Submission')).not.toBeInTheDocument();
+      expect(screen.queryByText('Old Submission')).not.toBeInTheDocument();
+      expect(screen.getByText(/You have not run any submissions in the last 30 days/)).toBeInTheDocument();
+    });
+
+    await selectAllSubmissionsOption();
+
+    await waitFor(() => {
+      expect(screen.getByText('Old Submission')).toBeInTheDocument();
+    });
+  });
+
+  test('shows no submissions message when no submissions exist', async () => {
+    mockListSubmissions([]);
+    await act(async () => {
+      renderSubmissionHistory();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Recent Submission')).not.toBeInTheDocument();
+      expect(screen.queryByText('Old Submission')).not.toBeInTheDocument();
+      expect(screen.getByText(/You have not run any submissions in the last 30 days/)).toBeInTheDocument();
+    });
+
+    // Open the select dropdown and choose "All Submissions"
+    await selectAllSubmissionsOption();
+
+    await waitFor(() => {
+      expect(screen.getByText(/You have not run any submissions yet/)).toBeInTheDocument();
     });
   });
 });
