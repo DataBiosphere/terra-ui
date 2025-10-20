@@ -3,8 +3,13 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { notify } from 'src/libs/notifications';
 import { mockUserPipelineQuotaDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
-import { preparePipelineRun } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
+import {
+  preparePipelineRun,
+  startPipelineRun,
+  uploadPipelineFiles,
+} from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { RunJob } from './RunJob';
@@ -17,6 +22,11 @@ jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
   getLink: jest.fn(() => '/'),
+}));
+
+jest.mock('src/libs/notifications', () => ({
+  ...jest.requireActual('src/libs/notifications'),
+  notify: jest.fn(),
 }));
 
 jest.mock('src/pages/scientificServices/pipelines/utils/submission-utils', () => ({
@@ -339,6 +349,112 @@ describe('RunJob Component', () => {
       },
       expect.any(String)
     );
+  });
+
+  it('handles error when preparePipelineRun fails', async () => {
+    const mockError = new Error('Failed to prepare pipeline');
+    asMockedFn(preparePipelineRun).mockRejectedValue(mockError);
+
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Fill in required fields
+    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    await user.type(outputPrefixInput, 'test_output');
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    await waitFor(() => userEvent.upload(fileInput, file));
+
+    const submitButton = screen.getByText('Submit');
+    await waitFor(() => user.click(submitButton));
+
+    await waitFor(() => {
+      expect(notify).toHaveBeenCalledWith('error', 'Error: Failed to prepare pipeline');
+    });
+
+    // Verify submit button is re-enabled after error
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('handles error when uploadPipelineFiles fails', async () => {
+    asMockedFn(preparePipelineRun).mockResolvedValue({
+      jobId: 'mock-job-id',
+      fileInputUploadUrls: {
+        multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+    });
+
+    const mockError = new Error('Upload failed :(');
+    asMockedFn(uploadPipelineFiles).mockRejectedValue(mockError);
+
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Fill in required fields
+    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    await user.type(outputPrefixInput, 'test_output');
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    await waitFor(() => userEvent.upload(fileInput, file));
+
+    const submitButton = screen.getByText('Submit');
+    await waitFor(() => user.click(submitButton));
+
+    await waitFor(() => {
+      expect(notify).toHaveBeenCalledWith('error', 'Error: Upload failed :(');
+    });
+
+    // Verify submit button is re-enabled after error
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('handles error when startPipelineRun fails', async () => {
+    asMockedFn(preparePipelineRun).mockResolvedValue({
+      jobId: 'mock-job-id',
+      fileInputUploadUrls: {
+        multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+    });
+
+    asMockedFn(uploadPipelineFiles).mockResolvedValue(undefined);
+
+    const mockError = new Error('Failed to start run');
+    asMockedFn(startPipelineRun).mockRejectedValue(mockError);
+
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Fill in required fields
+    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    await user.type(outputPrefixInput, 'test_output');
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
+    await waitFor(() => userEvent.upload(fileInput, file));
+
+    const submitButton = screen.getByText('Submit');
+    await waitFor(() => user.click(submitButton));
+
+    await waitFor(() => {
+      expect(notify).toHaveBeenCalledWith('error', 'Error: Failed to start run');
+    });
+
+    // Verify submit button is re-enabled after error
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
   });
 });
 

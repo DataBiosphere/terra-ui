@@ -99,6 +99,12 @@ export const RunJob = () => {
     setIsSubmitting(false);
   }
 
+  const handlePipelineSubmissionError = (error: unknown, fallbackMessage: string) => {
+    const errorMessage = error instanceof Error ? error.message : fallbackMessage;
+    notify('error', `Error: ${errorMessage}`);
+    setIsSubmitting(false);
+  };
+
   useEffect(() => {
     // Clear selected user inputs when pipeline inputs change
     resetSelectedUserInputs();
@@ -136,18 +142,14 @@ export const RunJob = () => {
 
   const handleSubmit = async () => {
     if (!selectedPipeline) {
-      notify('error', 'Missing required fields');
+      // This should not happen as the submit button is disabled when no pipeline is selected,
+      // but it's helpful as a type-guard here since Typescript obviously can't infer that
+      notify('error', 'Please select a pipeline before submitting.');
       return;
     }
 
-    const pipeline = pipelinesList?.find((pipeline) => pipeline?.pipelineVersion === selectedPipeline?.pipelineVersion);
-    const pipelineName = pipeline?.pipelineName;
-
-    // Only proceed if we have a valid pipeline name
-    if (!pipelineName) {
-      notify('error', 'No pipeline selected or pipeline name not found');
-      return;
-    }
+    const pipelineName = selectedPipeline.pipelineName;
+    const pipelineVersion = selectedPipeline.pipelineVersion;
 
     // Filter out empty string inputs to avoid sending them to the backend.
     // At this point we've already validated required inputs are filled, so this
@@ -158,35 +160,48 @@ export const RunJob = () => {
 
     setIsSubmitting(true);
 
-    const { jobId: preparedJobId, fileInputUploadUrls } = await preparePipelineRun(
-      pipelineName,
-      selectedPipeline.pipelineVersion,
-      filteredUserInputs,
-      runDescription
-    );
+    let preparedJobId: string;
+    let fileInputUploadUrls: Record<string, { signedUrl: string }>;
 
-    setPreparedJobId(preparedJobId);
+    // Prepare pipeline run
+    try {
+      const result = await preparePipelineRun(pipelineName, pipelineVersion, filteredUserInputs, runDescription);
+      preparedJobId = result.jobId;
+      fileInputUploadUrls = result.fileInputUploadUrls;
+      setPreparedJobId(preparedJobId);
+    } catch (error) {
+      handlePipelineSubmissionError(error, 'Failed to prepare pipeline run');
+      return;
+    }
 
+    // Upload pipeline input files
     try {
       await uploadPipelineFiles(
         pipelineName,
-        selectedPipeline.pipelineVersion,
+        pipelineVersion,
         pipelineInputs,
         filteredUserInputs,
         fileInputUploadUrls,
         setUploadState
       );
+    } catch (error) {
+      handlePipelineSubmissionError(error, 'File upload failed');
+      return;
+    }
 
+    // Submit the pipeline run
+    try {
       await onUploadComplete(preparedJobId);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '';
-      console.error(errorMessage);
-    } finally {
-      Metrics().captureEvent(Events.teaspoons.submitJob, {
-        pipelineName,
-        pipelineVersion: selectedPipeline.pipelineVersion,
-      });
+      handlePipelineSubmissionError(error, 'Failed to start pipeline run');
+      return;
     }
+
+    setIsSubmitting(false);
+    Metrics().captureEvent(Events.teaspoons.submitJob, {
+      pipelineName,
+      pipelineVersion,
+    });
   };
 
   return (
