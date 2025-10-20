@@ -10,6 +10,8 @@ const mockInput: PipelineInput = {
   type: 'FLOAT',
   isRequired: true,
   description: 'Must be a valid floating-point number.',
+  displayName: 'float input',
+  defaultValue: '0.0',
   minValue: 0,
   maxValue: 1,
 };
@@ -32,8 +34,13 @@ describe('PipelineFloatInput', () => {
     jest.clearAllMocks();
   });
 
-  it('renders input label', () => {
+  it('renders input label with displayName when present', () => {
     render(<PipelineFloatInput {...defaultProps} />);
+    expect(screen.getByText('Enter float input')).toBeInTheDocument();
+  });
+
+  it('renders input label with name when displayName is absent', () => {
+    render(<PipelineFloatInput {...defaultProps} input={{ ...mockInput, displayName: undefined }} />);
     expect(screen.getByText('Enter floatInput')).toBeInTheDocument();
   });
 
@@ -47,10 +54,16 @@ describe('PipelineFloatInput', () => {
     expect(screen.queryByText('*')).not.toBeInTheDocument();
   });
 
-  it('renders input placeholder', () => {
+  it('renders input placeholder with defaultValue when present', () => {
     render(<PipelineFloatInput {...defaultProps} />);
     const input = screen.getByRole('textbox');
-    expect(input).toHaveAttribute('placeholder', 'Enter floatInput');
+    expect(input).toHaveAttribute('placeholder', '0.0');
+  });
+
+  it('renders input placeholder with text when defaultValue is absent', () => {
+    render(<PipelineFloatInput {...defaultProps} input={{ ...mockInput, defaultValue: undefined }} />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('placeholder', 'Enter float input');
   });
 
   it('renders help text', () => {
