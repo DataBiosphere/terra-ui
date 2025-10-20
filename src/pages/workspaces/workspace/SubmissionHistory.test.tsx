@@ -29,22 +29,34 @@ jest.mock(
 jest.mock('src/workspaces/common/state/useWorkspace');
 jest.mock('src/libs/ajax/workspaces/Workspaces');
 asMockedFn(useWorkspace).mockReturnValue({
-  loadingWorkspace: false,
   workspace: {
     workspace: {
       namespace: 'test-ns',
       name: 'test-ws',
-      cloudPlatform: 'Gcp',
-      bucketName: 'test-bucket',
+      workspaceId: 'ws-123',
       authorizationDomain: [],
+      createdDate: '2025-01-01T00:00:00.000Z',
+      createdBy: 'test-user',
+      lastModified: '2025-01-02T00:00:00.000Z',
+      cloudPlatform: 'Gcp',
+      googleProject: 'test-project',
+      billingAccount: 'test-billing-account',
+      bucketName: 'test-bucket',
     },
+    accessLevel: 'OWNER',
+    canShare: true,
+    canCompute: true,
+    policies: [],
+    workspaceInitialized: true,
   },
+  accessError: false,
+  loadingWorkspace: false,
   storageDetails: {
     googleBucketLocation: 'US',
     googleBucketType: 'multi-region',
     fetchedGoogleBucketLocation: 'SUCCESS',
   },
-  refresh: jest.fn(),
+  refreshWorkspace: jest.fn(),
 });
 
 describe('Route Accessibility', () => {
@@ -153,6 +165,9 @@ describe('SubmissionHistory date range filter', () => {
     // Open the select dropdown and choose "All Submissions"
     const user = userEvent.setup();
     const selectElement = document.getElementById('submission-date-range-select');
+    if (!selectElement) {
+      fail('Select element not found');
+    }
     const selectHelper = new SelectHelper(selectElement, user);
     await selectHelper.selectOption('All Submissions');
 
