@@ -9,6 +9,7 @@ import { PipelineFileInput, PipelineInputFileUploadState } from './PipelineFileI
 
 const mockInput: PipelineInput = {
   name: 'multiSampleVcf',
+  displayName: 'multi-sample VCF file',
   type: 'FILE',
   isRequired: true,
   fileSuffix: '.vcf.gz',

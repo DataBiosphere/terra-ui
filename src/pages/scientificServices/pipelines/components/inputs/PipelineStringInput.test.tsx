@@ -7,6 +7,8 @@ import { PipelineStringInput } from './PipelineStringInput';
 
 const mockInput: PipelineInput = {
   name: 'outputBasename',
+  displayName: 'output basename',
+  description: 'May only contain alphanumeric characters, dashes, and underscores.',
   type: 'STRING',
   isRequired: true,
 };
@@ -32,7 +34,7 @@ describe('PipelineStringInput', () => {
   describe('PipelineStringInput', () => {
     it('renders input label', () => {
       render(<PipelineStringInput {...defaultProps} />);
-      expect(screen.getByText('Enter prefix for output file')).toBeInTheDocument();
+      expect(screen.getByText('Enter output basename')).toBeInTheDocument();
     });
 
     it('shows required indicator for required inputs', () => {
@@ -48,7 +50,7 @@ describe('PipelineStringInput', () => {
     it('renders input placeholder', () => {
       render(<PipelineStringInput {...defaultProps} />);
       const input = screen.getByRole('textbox');
-      expect(input).toHaveAttribute('placeholder', 'Enter prefix name');
+      expect(input).toHaveAttribute('placeholder', 'Enter output basename');
     });
 
     it('renders help text', () => {

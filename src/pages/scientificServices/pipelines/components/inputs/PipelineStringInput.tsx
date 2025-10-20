@@ -52,7 +52,7 @@ export const validatePipelineStringInput = (value: string): string | undefined =
   if (value.trim().length === 0) {
     return undefined;
   }
-  if (!regex.test(value)) {
+  if (!regex.test(value.trim())) {
     return 'This input contains invalid characters';
   }
   return undefined;
