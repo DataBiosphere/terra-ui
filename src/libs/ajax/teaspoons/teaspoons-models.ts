@@ -12,9 +12,9 @@ export interface PipelineInput {
   displayName?: string;
   description?: string;
   defaultValue?: string;
-  fileSuffix?: string; // Only present for FILE types
-  minValue?: number; // Only present for FLOAT types
-  maxValue?: number; // Only present for FLOAT types
+  fileSuffix?: string; // Optional, and only for FILE types
+  minValue?: number; // Optional, and only for FLOAT types
+  maxValue?: number; // Optional, and only for FLOAT types
 }
 
 export interface PipelineOutput {

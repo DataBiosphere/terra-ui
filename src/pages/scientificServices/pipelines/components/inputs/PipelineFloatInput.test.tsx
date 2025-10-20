@@ -149,5 +149,17 @@ describe('PipelineFloatInput', () => {
     it('returns undefined for valid input within range', () => {
       expect(validatePipelineFloatInput('0.5', 0, 1)).toBeUndefined();
     });
+
+    it('returns undefined for valid input when min/max are undefined', () => {
+      expect(validatePipelineFloatInput('100')).toBeUndefined();
+    });
+
+    it('returns error for input below minValue when only minValue is defined', () => {
+      expect(validatePipelineFloatInput('-10', 0)).toBe('Value must be between 0 and undefined');
+    });
+
+    it('returns error for input above maxValue when only maxValue is defined', () => {
+      expect(validatePipelineFloatInput('10', undefined, 5)).toBe('Value must be between undefined and 5');
+    });
   });
 });
