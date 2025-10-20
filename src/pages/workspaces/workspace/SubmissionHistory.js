@@ -5,7 +5,7 @@ import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { Clickable, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { collapseStatus, statusType } from 'src/components/job-common';
@@ -37,6 +37,15 @@ const styles = {
   },
   multiLineCellText: {
     fontSize: 12,
+  },
+  dropdownStyle: {
+    padding: '0.5rem 0.5rem',
+    borderRadius: 4,
+    border: `1px solid ${colors.dark(0.2)}`,
+    background: colors.light(0.1),
+    fontSize: 14,
+    height: 36,
+    cursor: 'pointer',
   },
 };
 
@@ -124,7 +133,7 @@ const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   ]),
 ]);
 
-const SubmissionHistory = _.flow(
+export const SubmissionHistory = _.flow(
   forwardRefWithName('SubmissionHistory'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -137,6 +146,7 @@ const SubmissionHistory = _.flow(
   const [loading, setLoading] = useState(false);
   const [abortingId, setAbortingId] = useState(undefined);
   const [textFilter, setTextFilter] = useState('');
+  const [dateRange, setDateRange] = useState('30');
   const [sort, setSort] = useState({ field: 'submissionDate', direction: 'desc' });
   const [updatingCommentId, setUpdatingCommentId] = useState(undefined);
 
@@ -151,6 +161,19 @@ const SubmissionHistory = _.flow(
   // Helpers
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
+      let startDate;
+      const endDate = new Date();
+      if (dateRange === '30') {
+        startDate = new Date();
+        startDate.setDate(endDate.getDate() - 30);
+      } else {
+        startDate = undefined;
+      }
+
+      const params = {};
+      if (startDate) params.startDate = startDate.toISOString().split('T')[0];
+      params.endDate = endDate.toISOString().split('T')[0];
+
       const submissions = _.flow(
         _.orderBy('submissionDate', 'desc'),
         _.map((sub) => {
@@ -179,7 +202,7 @@ const SubmissionHistory = _.flow(
 
           return _.set('asText', subAsText, sub);
         })
-      )(await Workspaces(signal).workspace(namespace, name).listSubmissions());
+      )(await Workspaces(signal).workspace(namespace, name).listSubmissions(params));
       setSubmissions(submissions);
 
       if (_.some(({ status }) => !isTerminal(status), submissions)) {
@@ -214,6 +237,11 @@ const SubmissionHistory = _.flow(
     };
   });
 
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange]);
+
   useImperativeHandle(ref, () => ({ refresh }));
 
   // Render
@@ -244,6 +272,19 @@ const SubmissionHistory = _.flow(
 
   return h(Fragment, [
     div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Date range']),
+        h(Select, {
+          id: 'submission-date-range-select',
+          isSearchable: false,
+          value: dateRange,
+          onChange: (option) => setDateRange(option.value),
+          options: [
+            { value: '30', label: 'Last 30 Days' },
+            { value: 'all', label: 'All Submissions' },
+          ],
+        }),
+      ]),
       div({ style: { flexGrow: 1 } }),
       h(DelayedSearchInput, {
         'aria-label': 'Search',
@@ -474,7 +515,7 @@ const SubmissionHistory = _.flow(
                 refresh();
               } catch (e) {
                 setLoading(false);
-                reportError('Error aborting submission', e);
+                // reportError('Error aborting submission', e);
               }
             },
           },
