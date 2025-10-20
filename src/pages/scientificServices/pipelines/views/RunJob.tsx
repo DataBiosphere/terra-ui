@@ -31,7 +31,7 @@ import {
 } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
 import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/widgets/PipelineOutputsWidget';
-import { QuotaRemainingWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaRemainingWidget';
+import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaDetailsWidget';
 
 export const RunJob = () => {
   const signal = useCancellation();
@@ -406,7 +406,7 @@ export const RunJob = () => {
           )}
         </div>
         <div>
-          <QuotaRemainingWidget selectedPipeline={selectedPipeline} />
+          <QuotaDetailsWidget selectedPipeline={selectedPipeline} />
           <PipelineOutputsWidget selectedPipelineDetails={pipelineDetails} />
           <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
         </div>
