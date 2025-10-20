@@ -163,17 +163,15 @@ export const SubmissionHistory = _.flow(
   const refresh = Utils.withBusyState(setLoading, async () => {
     try {
       let startDate;
-      const endDate = new Date();
       if (dateRange === '30') {
         startDate = new Date();
-        startDate.setDate(endDate.getDate() - 30);
+        startDate.setDate(new Date().getDate() - 30);
       } else {
         startDate = undefined;
       }
 
       const params = {};
       if (startDate) params.startDate = startDate.toISOString().split('T')[0];
-      params.endDate = endDate.toISOString().split('T')[0];
 
       const submissions = _.flow(
         _.orderBy('submissionDate', 'desc'),
