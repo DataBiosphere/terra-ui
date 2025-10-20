@@ -7,11 +7,11 @@ import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUs
 
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
-export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
+export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
   const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   return (
-    <PipelineWidgetContainer title='Quota Remaining' marginBottom='1rem'>
+    <PipelineWidgetContainer title='Quota Details' marginBottom='1rem'>
       {cond(
         [!selectedPipeline, () => <div style={{ marginTop: '1rem' }}>Select a pipeline to see quota</div>],
         [
@@ -24,48 +24,38 @@ export const QuotaRemainingWidget = ({ selectedPipeline }: { selectedPipeline?: 
             }
             return (
               <div style={{ marginTop: '1rem' }}>
-                <div style={{ fontWeight: 'bold', textTransform: 'capitalize' }}>{quota.quotaUnits}</div>
-                <div style={{ marginTop: '0.5rem' }}>
-                  <div
-                    style={{
-                      backgroundColor: '#e4e5e6',
-                      borderRadius: '4px',
-                      overflow: 'hidden',
-                    }}
-                  >
+                <div
+                  style={{
+                    borderLeft: `3px solid ${meetsMinimumQuota ? '#5CC88D' : colors.warning(0.7)}`,
+                    paddingLeft: '1rem',
+                  }}
+                >
+                  <div style={{ marginTop: '0.5rem', gap: '5rem' }}>
                     <div
-                      aria-label={`quota: ${quota.quotaLimit - quota.quotaConsumed} remaining, ${
-                        quota.quotaConsumed
-                      } used`}
-                      role='progressbar'
                       style={{
-                        width: `${((quota.quotaLimit - quota.quotaConsumed) / quota.quotaLimit) * 100}%`,
-                        height: '6px',
-                        backgroundColor: meetsMinimumQuota ? '#5CC88D' : colors.warning(0.6),
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
                       }}
-                    />
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', gap: '5rem' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    <div style={{ fontWeight: 'bold' }}>{quota.quotaLimit - quota.quotaConsumed}</div>
-                    <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Remaining</div>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-end',
-                    }}
-                  >
-                    <div style={{ fontWeight: 'bold' }}>{quota.quotaConsumed}</div>
-                    <div style={{ color: '#6B6C6E', marginTop: '0.125rem' }}>Used</div>
+                    >
+                      <div style={{ fontWeight: 'bold', fontSize: 16 }}>{quota.quotaLimit - quota.quotaConsumed}</div>
+                      <div style={{ color: '#6B6C6E', marginTop: '0.125rem', fontSize: 13 }}>
+                        {quota.quotaUnits} remaining
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        marginTop: '0.75rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <div style={{ fontWeight: 'bold', fontSize: 16 }}>{quota.quotaConsumed}</div>
+                      <div style={{ color: '#6B6C6E', marginTop: '0.125rem', fontSize: 13 }}>
+                        {quota.quotaUnits} used
+                      </div>
+                    </div>
                   </div>
                 </div>
                 {pipelineDetails && (

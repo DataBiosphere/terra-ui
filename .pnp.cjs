@@ -190,6 +190,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.5"],\
             ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch::version=9.22.5&hash=5f11d8&locator=terra-ui%40workspace%3A."],\
             ["setimmediate", "npm:1.0.5"],\
+            ["simple-statistics", "npm:7.8.8"],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["storybook", "npm:8.3.6"],\
             ["svgo", "npm:1.3.2"],\
@@ -21137,6 +21138,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["simple-statistics", [\
+        ["npm:7.8.8", {\
+          "packageLocation": "./.yarn/cache/simple-statistics-npm-7.8.8-dcf5f873b9-8f98a857bc.zip/node_modules/simple-statistics/",\
+          "packageDependencies": [\
+            ["simple-statistics", "npm:7.8.8"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["simple-swizzle", [\
         ["npm:0.2.2", {\
           "packageLocation": "./.yarn/cache/simple-swizzle-npm-0.2.2-8dee37fad1-a7f3f2ab5c.zip/node_modules/simple-swizzle/",\
@@ -21993,6 +22003,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.5"],\
             ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.5#./.yarn/patches/react-virtualized-9.22.5.patch::version=9.22.5&hash=5f11d8&locator=terra-ui%40workspace%3A."],\
             ["setimmediate", "npm:1.0.5"],\
+            ["simple-statistics", "npm:7.8.8"],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["storybook", "npm:8.3.6"],\
             ["svgo", "npm:1.3.2"],\

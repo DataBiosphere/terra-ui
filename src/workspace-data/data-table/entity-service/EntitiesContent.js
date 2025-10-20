@@ -10,15 +10,15 @@ import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/u
 import { tools } from 'src/analysis/utils/tool-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import IGVBrowser from 'src/components/IGVBrowser';
-import IGVFileSelector, { getIgvMetricDetails } from 'src/components/IGVFileSelector';
-import IGVSessionModal from 'src/components/IGVSessionModal';
+import IGVBrowser from 'src/components/igv/IGVBrowser';
+import IGVFileSelector, { getIgvMetricDetails } from 'src/components/igv/IGVFileSelector';
+import IGVSessionModal from 'src/components/igv/IGVSessionModal';
+import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams, useIGVSessions } from 'src/components/igv/useIGVSessions';
 import { MenuButton } from 'src/components/MenuButton';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import { ModalToolButton } from 'src/components/ModalToolButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
 import TitleBar from 'src/components/TitleBar';
-import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams, useIGVSessions } from 'src/components/useIGVSessions';
 import WorkflowSelector from 'src/components/WorkflowSelector';
 import datasets from 'src/constants/datasets';
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg';
@@ -263,6 +263,7 @@ const EntitiesContent = ({
   loadMetadata,
   snapshotName,
   editable,
+  onIgvFilterPanelChange,
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -665,8 +666,13 @@ const EntitiesContent = ({
           setIgvInitialSession(undefined);
           clearIgvUrlParams();
           refreshSessions();
+          // Clear filter panel state when dismissing
+          if (onIgvFilterPanelChange) {
+            onIgvFilterPanelChange({ show: false });
+          }
         },
         initialSession: igvInitialSession,
+        onFilterPanelChange: onIgvFilterPanelChange,
       })
     : h(Fragment, [
         h(DataTable, {

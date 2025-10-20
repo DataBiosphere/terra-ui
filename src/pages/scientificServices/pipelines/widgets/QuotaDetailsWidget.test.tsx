@@ -7,7 +7,7 @@ import {
   mockUserPipelineQuotaDetails,
 } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 
-import { QuotaRemainingWidget } from './QuotaRemainingWidget';
+import { QuotaDetailsWidget } from './QuotaDetailsWidget';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons', () => ({
   Teaspoons: () => ({
@@ -16,19 +16,16 @@ jest.mock('src/libs/ajax/teaspoons/Teaspoons', () => ({
   }),
 }));
 
-describe('QuotaRemainingWidget', () => {
+describe('QuotaDetailsWidget', () => {
   it('displays the correct remaining and used quota', async () => {
-    render(<QuotaRemainingWidget selectedPipeline={mockPipeline('test_pipeline')} />);
+    render(<QuotaDetailsWidget selectedPipeline={mockPipeline('test_pipeline')} />);
 
     await waitFor(() => expect(screen.getByText('1250', { exact: false })).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText('750', { exact: false })).toBeInTheDocument());
-
-    const progressBar = screen.getByRole('progressbar');
-    await expect(progressBar).toHaveStyle('background-color: #5CC88D; width: 62.5%');
   });
 
   it('displays the minimum quota consumed for the pipeline', async () => {
-    render(<QuotaRemainingWidget selectedPipeline={mockPipeline('test_pipeline')} />);
+    render(<QuotaDetailsWidget selectedPipeline={mockPipeline('test_pipeline')} />);
 
     await waitFor(() => expect(screen.getByText(/every submitted job will consume at least/i)).toBeInTheDocument());
 
@@ -38,7 +35,7 @@ describe('QuotaRemainingWidget', () => {
   });
 
   it('displays a message when no pipeline is selected', () => {
-    render(<QuotaRemainingWidget selectedPipeline={undefined} />);
+    render(<QuotaDetailsWidget selectedPipeline={undefined} />);
 
     expect(screen.getByText('Select a pipeline to see quota')).toBeInTheDocument();
   });
