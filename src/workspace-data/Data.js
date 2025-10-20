@@ -11,11 +11,12 @@ import Collapse from 'src/components/Collapse';
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common';
 import FileBrowser from 'src/components/data/FileBrowser';
 import { icon } from 'src/components/icons';
-import IGVBrowser from 'src/components/IGVBrowser';
+import IGVBrowser from 'src/components/igv/IGVBrowser';
+import { IGVFilters } from 'src/components/igv/IGVFilter';
+import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams } from 'src/components/igv/useIGVSessions';
 import { ConfirmedSearchInput } from 'src/components/input';
 import { MenuButton } from 'src/components/MenuButton';
 import { MenuDivider, MenuTrigger } from 'src/components/PopupTrigger';
-import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams } from 'src/components/useIGVSessions';
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
@@ -536,6 +537,17 @@ export const WorkspaceData = _.flow(
     const [crossTableResultCounts, setCrossTableResultCounts] = useState({});
     const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false);
     const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}); // { [entityType: string]: boolean }
+    const [igvFilterState, setIgvFilterState] = useState(null); // { show: boolean, trackToFilter?, onFilterChange? }
+
+    const handleIgvFilterPanelChange = useCallback((filterState) => {
+      if (filterState?.show === false) {
+        // Just hide the panel, keep the state
+        setIgvFilterState({ ...filterState, show: false });
+      } else {
+        // Show or update the panel
+        setIgvFilterState(filterState);
+      }
+    }, []);
 
     const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } =
       useDataTableVersions(workspace);
@@ -637,287 +649,333 @@ export const WorkspaceData = _.flow(
       !entityMetadata
         ? spinnerOverlay
         : h(Fragment, [
-            div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-              div(
-                {
-                  style: {
-                    display: 'flex',
-                    padding: '1rem 1.5rem',
-                    backgroundColor: colors.light(),
-                    borderBottom: `1px solid ${colors.grey(0.4)}`,
-                  },
-                },
-                [
-                  h(
-                    MenuTrigger,
-                    {
-                      side: 'bottom',
-                      closeOnClick: true,
-                      // Make the width of the dropdown menu match the width of the button.
-                      popupProps: { style: { width: `calc(${sidebarWidth}px - 3rem` } },
-                      content: h(Fragment, [
+            div(
+              { style: { ...styles.sidebarContainer, width: sidebarWidth } },
+              igvFilterState?.show
+                ? [
+                    h(
+                      DataTypeSection,
+                      {
+                        title: 'Filter Variants',
+                      },
+                      [
+                        div({ style: { padding: '0 1rem' } }, [
+                          h(
+                            ButtonOutline,
+                            {
+                              onClick: () => {
+                                if (igvFilterState?.onClose) {
+                                  igvFilterState.onClose();
+                                }
+                              },
+                              style: { marginBottom: '1rem', width: '100%' },
+                            },
+                            ['Close Filters']
+                          ),
+                          h(IGVFilters, {
+                            trackToFilter: igvFilterState.trackToFilter,
+                            onFilterChange: (selections, facets) => {
+                              if (igvFilterState?.onFilterChange) {
+                                igvFilterState.onFilterChange(selections, facets);
+                              }
+                            },
+                            onFacetsUpdate: (facets, selections) => {
+                              if (igvFilterState?.onFacetsUpdate) {
+                                igvFilterState.onFacetsUpdate(facets, selections);
+                              }
+                            },
+                            currentSelections: igvFilterState.currentSelections || {},
+                            currentFacets: igvFilterState.currentFacets || [],
+                            isInitialized: igvFilterState.isInitialized || false,
+                            isLoading: igvFilterState.isLoading || false,
+                            setIsInitialized: igvFilterState.setIsInitialized,
+                          }),
+                        ]),
+                      ]
+                    ),
+                  ]
+                : [
+                    div(
+                      {
+                        style: {
+                          display: 'flex',
+                          padding: '1rem 1.5rem',
+                          backgroundColor: colors.light(),
+                          borderBottom: `1px solid ${colors.grey(0.4)}`,
+                        },
+                      },
+                      [
                         h(
-                          MenuButton,
+                          MenuTrigger,
                           {
-                            'aria-haspopup': 'dialog',
-                            onClick: () => setUploadingFile(true),
+                            side: 'bottom',
+                            closeOnClick: true,
+                            // Make the width of the dropdown menu match the width of the button.
+                            popupProps: { style: { width: `calc(${sidebarWidth}px - 3rem` } },
+                            content: h(Fragment, [
+                              h(
+                                MenuButton,
+                                {
+                                  'aria-haspopup': 'dialog',
+                                  onClick: () => setUploadingFile(true),
+                                },
+                                'Upload TSV'
+                              ),
+                              isGoogleWorkspace &&
+                                h(
+                                  MenuButton,
+                                  {
+                                    href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`,
+                                    onClick: () =>
+                                      void Metrics().captureEvent(Events.dataTableOpenUploader, {
+                                        workspaceNamespace: namespace,
+                                        workspaceName: name,
+                                      }),
+                                  },
+                                  ['Open data uploader']
+                                ),
+                              isGoogleWorkspace &&
+                                h(
+                                  MenuButton,
+                                  {
+                                    'aria-haspopup': 'dialog',
+                                    onClick: () => setImportingReference(true),
+                                  },
+                                  'Add reference data'
+                                ),
+                            ]),
                           },
-                          'Upload TSV'
+                          [
+                            h(
+                              ButtonOutline,
+                              {
+                                disabled: !canEditWorkspace,
+                                tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
+                                style: { flex: 1 },
+                              },
+                              [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])]
+                            ),
+                          ]
                         ),
+                      ]
+                    ),
+                    div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
+                      div({ role: 'list' }, [
                         isGoogleWorkspace &&
                           h(
-                            MenuButton,
+                            DataTypeSection,
                             {
-                              href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`,
-                              onClick: () =>
-                                void Metrics().captureEvent(Events.dataTableOpenUploader, {
-                                  workspaceNamespace: namespace,
-                                  workspaceName: name,
-                                }),
+                              title: 'Tables',
+                              error: entityMetadataError,
+                              retryFunction: loadEntityMetadata,
                             },
-                            ['Open data uploader']
+                            [
+                              runningImportJobs.length > 0 && h(DataImportPlaceholder),
+                              runningImportJobs.length === 0 &&
+                                _.isEmpty(sortedEntityPairs) &&
+                                h(NoDataPlaceholder, {
+                                  message: 'No tables have been uploaded.',
+                                  buttonText: 'Upload TSV',
+                                  onAdd: () => setUploadingFile(true),
+                                }),
+                              !_.isEmpty(sortedEntityPairs) &&
+                                div({ role: 'listitem', style: { margin: '1rem' } }, [
+                                  h(ConfirmedSearchInput, {
+                                    'aria-label': 'Search all tables',
+                                    placeholder: 'Search all tables',
+                                    onChange: (activeCrossTableTextFilter) => {
+                                      setActiveCrossTableTextFilter(activeCrossTableTextFilter);
+                                      searchAcrossTables(_.keys(entityMetadata), activeCrossTableTextFilter);
+                                    },
+                                    defaultValue: activeCrossTableTextFilter,
+                                  }),
+                                ]),
+                              activeCrossTableTextFilter !== '' &&
+                                div(
+                                  { style: { margin: '0rem 1rem 1rem 1rem' } },
+                                  crossTableSearchInProgress
+                                    ? ['Loading...', icon('loadingSpinner', { size: 13, color: colors.primary() })]
+                                    : [`${_.sum(_.map((c) => c.filteredCount, crossTableResultCounts))} results`]
+                                ),
+                              _.map(([type, typeDetails]) => {
+                                const isShowingVersionHistory = !!showDataTableVersionHistory[type];
+                                return div({ key: type, role: 'listitem' }, [
+                                  h(DataTypeButton, {
+                                    key: type,
+                                    selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
+                                    entityName: type,
+                                    entityCount: typeDetails.count,
+                                    filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
+                                    activeCrossTableTextFilter,
+                                    crossTableSearchInProgress,
+                                    onClick: () => {
+                                      setSelectedData({ type: workspaceDataTypes.entities, entityType: type });
+                                      forceRefresh();
+                                    },
+                                    after: h(DataTableActions, {
+                                      dataProvider: entityServiceDataTableProvider,
+                                      tableName: type,
+                                      rowCount: typeDetails.count,
+                                      entityMetadata,
+                                      workspace,
+                                      onRenameTable: () => loadMetadata(),
+                                      onDeleteTable: (tableName) => {
+                                        setSelectedData(undefined);
+                                        setEntityMetadata(_.unset(tableName));
+                                      },
+                                      isShowingVersionHistory,
+                                      onSaveVersion: withErrorReporting('Error saving version')((versionOpts) => {
+                                        type = type.endsWith('_set') ? getRootTypeForSetTable(type) : type;
+                                        setShowDataTableVersionHistory(_.set(type, true));
+                                        return saveDataTableVersion(type, versionOpts);
+                                      }),
+                                      onToggleVersionHistory: withErrorReporting('Error loading version history')((showVersionHistory) => {
+                                        setShowDataTableVersionHistory(_.set(type, showVersionHistory));
+                                        if (showVersionHistory) {
+                                          loadDataTableVersions(type.endsWith('_set') ? getRootTypeForSetTable(type) : type);
+                                        }
+                                      }),
+                                    }),
+                                  }),
+                                  isShowingVersionHistory &&
+                                    h(DataTableVersions, {
+                                      ...Utils.cond(
+                                        [
+                                          type.endsWith('_set'),
+                                          () => {
+                                            const referencedType = getRootTypeForSetTable(type);
+                                            return _.update(
+                                              'versions',
+                                              _.filter((version) => _.includes(type, version.includedSetEntityTypes)),
+                                              dataTableVersions[referencedType]
+                                            );
+                                          },
+                                        ],
+                                        () => dataTableVersions[type]
+                                      ),
+                                      onClickVersion: (version) => setSelectedData({ type: workspaceDataTypes.entitiesVersion, version }),
+                                    }),
+                                ]);
+                              }, sortedEntityPairs),
+                            ]
                           ),
                         isGoogleWorkspace &&
                           h(
-                            MenuButton,
+                            DataTypeSection,
                             {
-                              'aria-haspopup': 'dialog',
-                              onClick: () => setImportingReference(true),
+                              title: 'Reference Data',
                             },
-                            'Add reference data'
+                            [
+                              _.isEmpty(referenceData) &&
+                                h(NoDataPlaceholder, {
+                                  message: 'No references have been added.',
+                                  buttonText: 'Add reference data',
+                                  onAdd: () => setImportingReference(true),
+                                }),
+                              _.map(
+                                (type) =>
+                                  h(
+                                    DataTypeButton,
+                                    {
+                                      key: type,
+                                      wrapperProps: { role: 'listitem' },
+                                      selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
+                                      onClick: () => {
+                                        setSelectedData({ type: workspaceDataTypes.referenceData, reference: type });
+                                        refreshWorkspace();
+                                      },
+                                      after: h(
+                                        Link,
+                                        {
+                                          style: { flex: 0 },
+                                          tooltip: `Delete ${getReferenceLabel(type)} reference`,
+                                          ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
+                                          onClick: (e) => {
+                                            e.stopPropagation();
+                                            setDeletingReference(type);
+                                          },
+                                        },
+                                        [icon('minus-circle', { size: 16 })]
+                                      ),
+                                    },
+                                    [getReferenceLabel(type)]
+                                  ),
+                                _.keys(referenceData)
+                              ),
+                            ]
+                          ),
+                        importingReference &&
+                          h(ReferenceDataImporter, {
+                            onDismiss: () => setImportingReference(false),
+                            onSuccess: (reference) => {
+                              setImportingReference(false);
+                              refreshWorkspace();
+                              void Metrics().captureEvent(Events.workspaceDataAddReferenceData, {
+                                ...extractWorkspaceDetails(workspace.workspace),
+                                reference,
+                              });
+                            },
+                            namespace,
+                            name,
+                          }),
+                        deletingReference &&
+                          h(ReferenceDataDeleter, {
+                            onDismiss: () => setDeletingReference(false),
+                            onSuccess: (reference) => {
+                              setDeletingReference(false);
+                              if (selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === deletingReference) {
+                                setSelectedData(undefined);
+                              }
+                              refreshWorkspace();
+                              void Metrics().captureEvent(Events.workspaceDataRemoveReference, {
+                                ...extractWorkspaceDetails(workspace.workspace),
+                                reference,
+                              });
+                            },
+                            namespace,
+                            name,
+                            referenceDataType: deletingReference,
+                          }),
+                        uploadingFile &&
+                          h(EntityUploader, {
+                            onDismiss: () => setUploadingFile(false),
+                            onSuccess: () => {
+                              setUploadingFile(false);
+                              forceRefresh();
+                              loadMetadata();
+                            },
+                            namespace,
+                            name,
+                            entityTypes: _.keys(entityMetadata),
+                            dataProvider: entityServiceDataTableProvider,
+                            isGoogleWorkspace,
+                            region,
+                          }),
+                        isGoogleWorkspace &&
+                          h(
+                            DataTypeSection,
+                            {
+                              title: 'Other Data',
+                            },
+                            [
+                              h(
+                                DataTypeButton,
+                                {
+                                  wrapperProps: { role: 'listitem' },
+                                  selected: selectedData?.type === workspaceDataTypes.localVariables,
+                                  onClick: () => {
+                                    setSelectedData({ type: workspaceDataTypes.localVariables });
+                                    forceRefresh();
+                                  },
+                                },
+                                ['Workspace Data']
+                              ),
+                            ]
                           ),
                       ]),
-                    },
-                    [
-                      h(
-                        ButtonOutline,
-                        {
-                          disabled: !canEditWorkspace,
-                          tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
-                          style: { flex: 1 },
-                        },
-                        [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])]
-                      ),
-                    ]
-                  ),
-                ]
-              ),
-              div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
-                div({ role: 'list' }, [
-                  isGoogleWorkspace &&
-                    h(
-                      DataTypeSection,
-                      {
-                        title: 'Tables',
-                        error: entityMetadataError,
-                        retryFunction: loadEntityMetadata,
-                      },
-                      [
-                        runningImportJobs.length > 0 && h(DataImportPlaceholder),
-                        runningImportJobs.length === 0 &&
-                          _.isEmpty(sortedEntityPairs) &&
-                          h(NoDataPlaceholder, {
-                            message: 'No tables have been uploaded.',
-                            buttonText: 'Upload TSV',
-                            onAdd: () => setUploadingFile(true),
-                          }),
-                        !_.isEmpty(sortedEntityPairs) &&
-                          div({ role: 'listitem', style: { margin: '1rem' } }, [
-                            h(ConfirmedSearchInput, {
-                              'aria-label': 'Search all tables',
-                              placeholder: 'Search all tables',
-                              onChange: (activeCrossTableTextFilter) => {
-                                setActiveCrossTableTextFilter(activeCrossTableTextFilter);
-                                searchAcrossTables(_.keys(entityMetadata), activeCrossTableTextFilter);
-                              },
-                              defaultValue: activeCrossTableTextFilter,
-                            }),
-                          ]),
-                        activeCrossTableTextFilter !== '' &&
-                          div(
-                            { style: { margin: '0rem 1rem 1rem 1rem' } },
-                            crossTableSearchInProgress
-                              ? ['Loading...', icon('loadingSpinner', { size: 13, color: colors.primary() })]
-                              : [`${_.sum(_.map((c) => c.filteredCount, crossTableResultCounts))} results`]
-                          ),
-                        _.map(([type, typeDetails]) => {
-                          const isShowingVersionHistory = !!showDataTableVersionHistory[type];
-                          return div({ key: type, role: 'listitem' }, [
-                            h(DataTypeButton, {
-                              key: type,
-                              selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
-                              entityName: type,
-                              entityCount: typeDetails.count,
-                              filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
-                              activeCrossTableTextFilter,
-                              crossTableSearchInProgress,
-                              onClick: () => {
-                                setSelectedData({ type: workspaceDataTypes.entities, entityType: type });
-                                forceRefresh();
-                              },
-                              after: h(DataTableActions, {
-                                dataProvider: entityServiceDataTableProvider,
-                                tableName: type,
-                                rowCount: typeDetails.count,
-                                entityMetadata,
-                                workspace,
-                                onRenameTable: () => loadMetadata(),
-                                onDeleteTable: (tableName) => {
-                                  setSelectedData(undefined);
-                                  setEntityMetadata(_.unset(tableName));
-                                },
-                                isShowingVersionHistory,
-                                onSaveVersion: withErrorReporting('Error saving version')((versionOpts) => {
-                                  type = type.endsWith('_set') ? getRootTypeForSetTable(type) : type;
-                                  setShowDataTableVersionHistory(_.set(type, true));
-                                  return saveDataTableVersion(type, versionOpts);
-                                }),
-                                onToggleVersionHistory: withErrorReporting('Error loading version history')((showVersionHistory) => {
-                                  setShowDataTableVersionHistory(_.set(type, showVersionHistory));
-                                  if (showVersionHistory) {
-                                    loadDataTableVersions(type.endsWith('_set') ? getRootTypeForSetTable(type) : type);
-                                  }
-                                }),
-                              }),
-                            }),
-                            isShowingVersionHistory &&
-                              h(DataTableVersions, {
-                                ...Utils.cond(
-                                  [
-                                    type.endsWith('_set'),
-                                    () => {
-                                      const referencedType = getRootTypeForSetTable(type);
-                                      return _.update(
-                                        'versions',
-                                        _.filter((version) => _.includes(type, version.includedSetEntityTypes)),
-                                        dataTableVersions[referencedType]
-                                      );
-                                    },
-                                  ],
-                                  () => dataTableVersions[type]
-                                ),
-                                onClickVersion: (version) => setSelectedData({ type: workspaceDataTypes.entitiesVersion, version }),
-                              }),
-                          ]);
-                        }, sortedEntityPairs),
-                      ]
-                    ),
-                  isGoogleWorkspace &&
-                    h(
-                      DataTypeSection,
-                      {
-                        title: 'Reference Data',
-                      },
-                      [
-                        _.isEmpty(referenceData) &&
-                          h(NoDataPlaceholder, {
-                            message: 'No references have been added.',
-                            buttonText: 'Add reference data',
-                            onAdd: () => setImportingReference(true),
-                          }),
-                        _.map(
-                          (type) =>
-                            h(
-                              DataTypeButton,
-                              {
-                                key: type,
-                                wrapperProps: { role: 'listitem' },
-                                selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
-                                onClick: () => {
-                                  setSelectedData({ type: workspaceDataTypes.referenceData, reference: type });
-                                  refreshWorkspace();
-                                },
-                                after: h(
-                                  Link,
-                                  {
-                                    style: { flex: 0 },
-                                    tooltip: `Delete ${getReferenceLabel(type)} reference`,
-                                    ...WorkspaceUtils.getWorkspaceEditControlProps(workspace),
-                                    onClick: (e) => {
-                                      e.stopPropagation();
-                                      setDeletingReference(type);
-                                    },
-                                  },
-                                  [icon('minus-circle', { size: 16 })]
-                                ),
-                              },
-                              [getReferenceLabel(type)]
-                            ),
-                          _.keys(referenceData)
-                        ),
-                      ]
-                    ),
-                  importingReference &&
-                    h(ReferenceDataImporter, {
-                      onDismiss: () => setImportingReference(false),
-                      onSuccess: (reference) => {
-                        setImportingReference(false);
-                        refreshWorkspace();
-                        void Metrics().captureEvent(Events.workspaceDataAddReferenceData, {
-                          ...extractWorkspaceDetails(workspace.workspace),
-                          reference,
-                        });
-                      },
-                      namespace,
-                      name,
-                    }),
-                  deletingReference &&
-                    h(ReferenceDataDeleter, {
-                      onDismiss: () => setDeletingReference(false),
-                      onSuccess: (reference) => {
-                        setDeletingReference(false);
-                        if (selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === deletingReference) {
-                          setSelectedData(undefined);
-                        }
-                        refreshWorkspace();
-                        void Metrics().captureEvent(Events.workspaceDataRemoveReference, {
-                          ...extractWorkspaceDetails(workspace.workspace),
-                          reference,
-                        });
-                      },
-                      namespace,
-                      name,
-                      referenceDataType: deletingReference,
-                    }),
-                  uploadingFile &&
-                    h(EntityUploader, {
-                      onDismiss: () => setUploadingFile(false),
-                      onSuccess: () => {
-                        setUploadingFile(false);
-                        forceRefresh();
-                        loadMetadata();
-                      },
-                      namespace,
-                      name,
-                      entityTypes: _.keys(entityMetadata),
-                      dataProvider: entityServiceDataTableProvider,
-                      isGoogleWorkspace,
-                      region,
-                    }),
-                  isGoogleWorkspace &&
-                    h(
-                      DataTypeSection,
-                      {
-                        title: 'Other Data',
-                      },
-                      [
-                        h(
-                          DataTypeButton,
-                          {
-                            wrapperProps: { role: 'listitem' },
-                            selected: selectedData?.type === workspaceDataTypes.localVariables,
-                            onClick: () => {
-                              setSelectedData({ type: workspaceDataTypes.localVariables });
-                              forceRefresh();
-                            },
-                          },
-                          ['Workspace Data']
-                        ),
-                      ]
-                    ),
-                ]),
-              ]),
-            ]),
+                    ]),
+                  ]
+            ),
             h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
             div({ style: styles.tableViewPanel }, [
               Utils.switchCase(
@@ -976,6 +1034,7 @@ export const WorkspaceData = _.flow(
                       loadMetadata,
                       forceRefresh,
                       editable: canEditWorkspace,
+                      onIgvFilterPanelChange: handleIgvFilterPanelChange,
                     }),
                 ],
                 [
@@ -1004,9 +1063,11 @@ export const WorkspaceData = _.flow(
                       workspace,
                       onDismiss: () => {
                         setSelectedData(undefined);
+                        setIgvFilterState(null);
                         clearIgvUrlParams(); // Clear URL parameters when dismissing
                       },
                       initialSession: selectedData.sessionData,
+                      onFilterPanelChange: handleIgvFilterPanelChange,
                     }),
                 ]
               ),
