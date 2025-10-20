@@ -5,17 +5,6 @@ import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 import { PipelineStringInput } from './PipelineStringInput';
 
-jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', () => ({
-  INPUT_DESCRIPTIONS: {
-    outputBasename: {
-      label: 'Enter prefix for output file',
-      placeholder: 'Enter prefix name',
-      helpText: 'May only contain alphanumeric characters, dashes, and underscores.',
-      validationRegex: '^[a-zA-Z0-9_-]+$',
-    },
-  },
-}));
-
 const mockInput: PipelineInput = {
   name: 'outputBasename',
   type: 'STRING',

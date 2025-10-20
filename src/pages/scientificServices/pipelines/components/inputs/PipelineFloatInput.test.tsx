@@ -5,17 +5,6 @@ import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 import { PipelineFloatInput } from './PipelineFloatInput';
 
-jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', () => ({
-  INPUT_DESCRIPTIONS: {
-    floatInput: {
-      label: 'Enter a float value',
-      placeholder: 'Enter a number',
-      helpText: 'Must be a valid floating-point number.',
-      validationRegex: String.raw`^(0(\.\d*)?|1(\.0*)?|\.\d+)$`,
-    },
-  },
-}));
-
 const mockInput: PipelineInput = {
   name: 'floatInput',
   type: 'FLOAT',
