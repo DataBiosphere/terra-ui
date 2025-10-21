@@ -248,11 +248,6 @@ export const SubmissionHistory = _.flow(
     };
   });
 
-  useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateRange]);
-
   // Set dateRange in URL if missing on mount
   useEffect(() => {
     const hashParts = window.location.hash.split('?');
@@ -273,6 +268,7 @@ export const SubmissionHistory = _.flow(
       params.set('dateRange', dateRange);
       window.history.replaceState({}, '', `${window.location.pathname}${hashParts[0]}?${params.toString()}`);
     }
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange]);
 
