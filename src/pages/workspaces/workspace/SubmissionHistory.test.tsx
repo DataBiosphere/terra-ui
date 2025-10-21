@@ -257,4 +257,21 @@ describe('SubmissionHistory date range filter', () => {
     // Verify the URL parameter is preserved
     expect(window.location.hash).toContain('?dateRange=all');
   });
+
+  test('should default dateRange to 30 when URL parameter is invalid', async () => {
+    // Set the URL before rendering
+    window.location.hash = '#workspaces/test-ns/test-ws/submission_history?dateRange=45';
+
+    mockListSubmissions(allSubmissions);
+    await act(async () => {
+      renderSubmissionHistory();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Recent Submission')).toBeInTheDocument();
+    });
+
+    // Verify the URL parameter is set to default instead of invalid value
+    expect(window.location.hash).toContain('?dateRange=30');
+  });
 });

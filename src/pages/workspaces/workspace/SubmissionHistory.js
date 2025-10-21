@@ -137,7 +137,13 @@ const noJobsMessage = (dateRange) =>
 const getInitialDateRange = () => {
   const hashParts = window.location.hash.split('?');
   const params = new URLSearchParams(hashParts[1] || '');
-  return params.get('dateRange') || '30';
+  const urlDateRange = params.get('dateRange');
+
+  // Only return valid values, otherwise default to 30
+  if (urlDateRange === 'all' || urlDateRange === '30') {
+    return urlDateRange;
+  }
+  return '30';
 };
 
 export const SubmissionHistory = _.flow(
