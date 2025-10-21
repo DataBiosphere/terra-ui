@@ -259,8 +259,20 @@ export const SubmissionHistory = _.flow(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update URL when dateRange changes
   useEffect(() => {
+    // Sync dateRange state with URL changes
+    const handleHashChange = () => {
+      const hashParts = window.location.hash.split('?');
+      const params = new URLSearchParams(hashParts[1] || '');
+      const urlDateRange = params.get('dateRange');
+
+      if ((urlDateRange === 'all' || urlDateRange === '30') && urlDateRange !== dateRange) {
+        setDateRange(urlDateRange);
+        // eslint-disable-next-line
+        return; // return to avoid duplicate refresh
+      }
+    };
+    // Update URL when dateRange changes
     const hashParts = window.location.hash.split('?');
     const params = new URLSearchParams(hashParts[1] || '');
     const urlDateRange = params.get('dateRange');
@@ -269,6 +281,10 @@ export const SubmissionHistory = _.flow(
       window.history.replaceState({}, '', `${window.location.pathname}${hashParts[0]}?${params.toString()}`);
     }
     refresh();
+
+    // Listen for URL changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange]);
 
