@@ -21,6 +21,8 @@ const styles = {
 };
 
 const SignIn = () => {
+  // Scientific Services wants to display the menu even for logged out views. All other brands
+  // will have the menu hidden on the sign-in page.
   return h(HeroWrapper, { showMenu: !!isScientificServices(), showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
       div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
