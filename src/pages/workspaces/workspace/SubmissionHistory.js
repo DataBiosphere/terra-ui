@@ -134,6 +134,12 @@ const noJobsMessage = (dateRange) =>
     ]),
   ]);
 
+const getInitialDateRange = () => {
+  const hashParts = window.location.hash.split('?');
+  const params = new URLSearchParams(hashParts[1] || '');
+  return params.get('dateRange') || '30';
+};
+
 export const SubmissionHistory = _.flow(
   forwardRefWithName('SubmissionHistory'),
   wrapWorkspace({
@@ -147,7 +153,7 @@ export const SubmissionHistory = _.flow(
   const [loading, setLoading] = useState(false);
   const [abortingId, setAbortingId] = useState(undefined);
   const [textFilter, setTextFilter] = useState('');
-  const [dateRange, setDateRange] = useState('30');
+  const [dateRange, setDateRange] = useState(getInitialDateRange);
   const [sort, setSort] = useState({ field: 'submissionDate', direction: 'desc' });
   const [updatingCommentId, setUpdatingCommentId] = useState(undefined);
 
@@ -238,6 +244,29 @@ export const SubmissionHistory = _.flow(
 
   useEffect(() => {
     refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange]);
+
+  // Set dateRange in URL if missing on mount
+  useEffect(() => {
+    const hashParts = window.location.hash.split('?');
+    const params = new URLSearchParams(hashParts[1] || '');
+    if (!params.has('dateRange')) {
+      params.set('dateRange', dateRange);
+      window.history.replaceState({}, '', `${window.location.pathname}${hashParts[0]}?${params.toString()}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Update URL when dateRange changes
+  useEffect(() => {
+    const hashParts = window.location.hash.split('?');
+    const params = new URLSearchParams(hashParts[1] || '');
+    const urlDateRange = params.get('dateRange');
+    if (dateRange !== urlDateRange) {
+      params.set('dateRange', dateRange);
+      window.history.replaceState({}, '', `${window.location.pathname}${hashParts[0]}?${params.toString()}`);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange]);
 
@@ -514,7 +543,7 @@ export const SubmissionHistory = _.flow(
                 refresh();
               } catch (e) {
                 setLoading(false);
-                // reportError('Error aborting submission', e);
+                reportError('Error aborting submission', e);
               }
             },
           },

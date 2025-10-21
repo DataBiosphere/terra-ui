@@ -149,6 +149,23 @@ describe('SubmissionHistory date range filter', () => {
     await selectHelper.selectOption('All Submissions');
   }
 
+  beforeEach(() => {
+    window.location.hash = '#workspaces/test-ns/test-ws/submission_history';
+    jest.spyOn(window.history, 'replaceState').mockImplementation((_data, _unused, url) => {
+      if (url) {
+        const urlString = url.toString();
+        const match = urlString.match(/#.*/);
+        if (match) {
+          window.location.hash = match[0];
+        }
+      }
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   test('shows only submissions from the past 30 days by default', async () => {
     mockListSubmissions(allSubmissions);
     await act(async () => {
@@ -160,6 +177,7 @@ describe('SubmissionHistory date range filter', () => {
       expect(recentSubmission).toBeInTheDocument();
     });
     expect(screen.queryByText('Old Submission')).not.toBeInTheDocument();
+    expect(window.location.hash).toContain('?dateRange=30');
   });
 
   test('shows all submissions when "All Submissions" is selected', async () => {
@@ -179,6 +197,7 @@ describe('SubmissionHistory date range filter', () => {
     await waitFor(() => {
       expect(screen.getByText('Old Submission')).toBeInTheDocument();
       expect(screen.getByText('Recent Submission')).toBeInTheDocument();
+      expect(window.location.hash).toContain('?dateRange=all');
     });
   });
 
@@ -219,5 +238,23 @@ describe('SubmissionHistory date range filter', () => {
     await waitFor(() => {
       expect(screen.getByText(/You have not run any submissions yet/)).toBeInTheDocument();
     });
+  });
+
+  test('should initialize dateRange from URL parameter', async () => {
+    // Set the URL before rendering
+    window.location.hash = '#workspaces/test-ns/test-ws/submission_history?dateRange=all';
+
+    mockListSubmissions(allSubmissions);
+    await act(async () => {
+      renderSubmissionHistory();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Old Submission')).toBeInTheDocument();
+      expect(screen.getByText('Recent Submission')).toBeInTheDocument();
+    });
+
+    // Verify the URL parameter is preserved
+    expect(window.location.hash).toContain('?dateRange=all');
   });
 });
