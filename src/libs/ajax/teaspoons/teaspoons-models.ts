@@ -9,12 +9,19 @@ export interface PipelineInput {
   name: string;
   type: 'FILE' | 'STRING' | 'FLOAT';
   isRequired: boolean;
-  fileSuffix?: string; // Only present for FILE types
+  displayName?: string;
+  description?: string;
+  defaultValue?: string;
+  fileSuffix?: string; // Optional, and only for FILE types
+  minValue?: number; // Optional, and only for FLOAT types
+  maxValue?: number; // Optional, and only for FLOAT types
 }
 
 export interface PipelineOutput {
   name: string;
   type: string;
+  displayName?: string;
+  description?: string;
 }
 
 /* Represents the quota settings for a particular pipeline */

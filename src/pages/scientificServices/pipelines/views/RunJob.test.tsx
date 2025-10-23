@@ -2,9 +2,12 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { Pipeline, PipelineInput, PipelineList, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { Pipeline, PipelineInput, PipelineList } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { notify } from 'src/libs/notifications';
-import { mockUserPipelineQuotaDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
+import {
+  mockPipelineWithDetails,
+  mockUserPipelineQuotaDetails,
+} from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import {
   preparePipelineRun,
   startPipelineRun,
@@ -69,44 +72,13 @@ describe('RunJob Component', () => {
     description: 'Test pipeline for array imputation',
   };
 
-  const mockPipelineInputs: PipelineInput[] = [
-    {
-      name: 'multiSampleVcf',
-      type: 'FILE',
-      isRequired: true,
-      fileSuffix: '.vcf.gz',
-    },
-    {
-      name: 'outputBasename',
-      type: 'STRING',
-      isRequired: true,
-    },
-    {
-      name: 'someOptionalInput',
-      type: 'STRING',
-      isRequired: false,
-    },
-    {
-      name: 'minDr2ForInclusion',
-      type: 'FLOAT',
-      isRequired: false,
-    },
-  ];
-
-  const mockPipelineDetails: PipelineWithDetails = {
-    ...mockPipeline,
-    type: 'imputation',
-    inputs: mockPipelineInputs,
-    outputs: [],
-  };
-
   const mockPipelineList: PipelineList = {
     results: [mockPipeline],
   };
 
   const mockTeaspoonsContract = partial<TeaspoonsContract>({
     getPipelines: jest.fn().mockResolvedValue(mockPipelineList),
-    getPipelineDetails: jest.fn().mockResolvedValue(mockPipelineDetails),
+    getPipelineDetails: jest.fn().mockResolvedValue(mockPipelineWithDetails('array_imputation')),
     preparePipelineRun: jest.fn().mockResolvedValue({
       fileInputUploadUrls: {
         multiSampleVcf: {
@@ -140,8 +112,8 @@ describe('RunJob Component', () => {
 
     // Check for main headings and form elements
     expect(screen.getByText('Select a pipeline version')).toBeInTheDocument();
-    expect(screen.getByText('Enter prefix for output file')).toBeInTheDocument();
-    expect(screen.getByText('Enter a minimum imputation quality for inclusion')).toBeInTheDocument();
+    expect(screen.getByText('Enter output basename')).toBeInTheDocument();
+    expect(screen.getByText('Enter minimum imputation quality for inclusion')).toBeInTheDocument();
     expect(screen.getByText(/Enter description/)).toBeInTheDocument();
     expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
 
@@ -168,32 +140,19 @@ describe('RunJob Component', () => {
     const user = userEvent.setup();
     render(<RunJob />);
 
-    // Wait for pipelines to load
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
-    });
-
-    // Wait for pipeline details to load
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getQuotaForPipeline).toHaveBeenCalled();
-    });
-
+    // Wait for submit button to appear, indicating page has loaded
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
 
     // Enter output file prefix
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     expect(outputPrefixInput).toHaveValue('test_output');
 
     // Enter minDr2ForInclusion
-    const minDr2Input = screen.getByLabelText('minDr2ForInclusion float input');
+    const minDr2Input = screen.getByLabelText('minimum imputation quality for inclusion float input');
     await user.type(minDr2Input, '0.3');
 
     expect(minDr2Input).toHaveValue('0.3');
@@ -208,22 +167,9 @@ describe('RunJob Component', () => {
   it('handles file selection and triggers upload process', async () => {
     render(<RunJob />);
 
+    // Wait for submit button to appear, indicating page has loaded
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
-    });
-
-    // Wait for pipelines to load
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
-    });
-
-    // Wait for pipeline details to be loaded
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getQuotaForPipeline).toHaveBeenCalled();
     });
 
     // Get the file input directly (it should be present even without pipeline selected)
@@ -237,7 +183,7 @@ describe('RunJob Component', () => {
   it('validates required fields before allowing submission', async () => {
     render(<RunJob />);
 
-    // Wait for page setup
+    // Wait for submit button to appear, indicating page has loaded
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
@@ -252,7 +198,7 @@ describe('RunJob Component', () => {
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
 
     // Fill in the output prefix
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await userEvent.type(outputPrefixInput, 'test_output');
     expect(outputPrefixInput).toHaveValue('test_output');
 
@@ -272,7 +218,7 @@ describe('RunJob Component', () => {
   it('disables the submit button if an invalid file type is selected', async () => {
     render(<RunJob />);
 
-    // Wait for page setup
+    // Wait for submit button to appear, indicating page has loaded
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
@@ -284,7 +230,7 @@ describe('RunJob Component', () => {
     const submitButton = screen.getByText('Submit');
 
     // Fill in the output prefix, since it's required
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await userEvent.type(outputPrefixInput, 'test_output');
     expect(outputPrefixInput).toHaveValue('test_output');
 
@@ -310,23 +256,16 @@ describe('RunJob Component', () => {
     const user = userEvent.setup();
     render(<RunJob />);
 
+    // Wait for submit button to appear, indicating page has loaded
     await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getQuotaForPipeline).toHaveBeenCalled();
+      expect(screen.getByText('Submit')).toBeInTheDocument();
     });
 
     // confirm that the optional input field is rendered
-    expect(screen.getByLabelText('someOptionalInput text input')).toBeInTheDocument();
+    expect(screen.getByLabelText('minimum imputation quality for inclusion float input')).toBeInTheDocument();
 
     // only fill in the two required fields
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
     expect(outputPrefixInput).toHaveValue('test_output');
 
@@ -345,7 +284,7 @@ describe('RunJob Component', () => {
       {
         multiSampleVcf: expect.any(File),
         outputBasename: 'test_output',
-        // someOptionalInput not present
+        // minDr2ForInclusion not present
       },
       expect.any(String)
     );
@@ -363,7 +302,7 @@ describe('RunJob Component', () => {
     });
 
     // Fill in required fields
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -400,7 +339,7 @@ describe('RunJob Component', () => {
     });
 
     // Fill in required fields
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -439,7 +378,7 @@ describe('RunJob Component', () => {
     });
 
     // Fill in required fields
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
