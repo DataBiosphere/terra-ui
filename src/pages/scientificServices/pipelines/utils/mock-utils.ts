@@ -53,16 +53,19 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
     outputs: [
       {
         name: 'imputedMultiSampleVcf',
+        displayName: 'imputed multi-sample VCF',
         type: 'FILE',
         description: 'A multi-sample VCF file containing imputed genotypes for all samples',
       },
       {
         name: 'imputedMultiSampleVcfIndex',
+        displayName: 'imputed multi-sample VCF index',
         type: 'FILE',
         description: 'An index file for the imputed multi-sample VCF file',
       },
       {
         name: 'chunksInfo',
+        displayName: 'imputation chunks QC tsv',
         type: 'FILE',
         description: 'A TSV file containing QC information about the chunks used during imputation',
       },
