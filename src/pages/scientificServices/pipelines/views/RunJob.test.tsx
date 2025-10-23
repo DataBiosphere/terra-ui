@@ -8,7 +8,11 @@ import {
   mockPipelineWithDetails,
   mockUserPipelineQuotaDetails,
 } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
-import { preparePipelineRun } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
+import {
+  preparePipelineRun,
+  startPipelineRun,
+  uploadPipelineFiles,
+} from 'src/pages/scientificServices/pipelines/utils/submission-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { RunJob } from './RunJob';
@@ -298,7 +302,7 @@ describe('RunJob Component', () => {
     });
 
     // Fill in required fields
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -335,7 +339,7 @@ describe('RunJob Component', () => {
     });
 
     // Fill in required fields
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -374,7 +378,7 @@ describe('RunJob Component', () => {
     });
 
     // Fill in required fields
-    const outputPrefixInput = screen.getByLabelText('outputBasename text input');
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
