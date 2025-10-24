@@ -276,8 +276,9 @@ export const Workspaces = (signal?: AbortSignal) => ({
         };
       },
 
-      listSubmissions: async () => {
-        const res = await fetchRawls(`${root}/submissions`, _.merge(authOpts(), { signal }));
+      listSubmissions: async (params?: { startDate?: string; endDate?: string }) => {
+        const query = params ? `?${qs.stringify(params)}` : '';
+        const res = await fetchRawls(`${root}/submissions${query}`, _.merge(authOpts(), { signal }));
         return res.json();
       },
 

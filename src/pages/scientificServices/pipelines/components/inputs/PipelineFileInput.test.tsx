@@ -7,17 +7,9 @@ import { renderWithAppContexts } from 'src/testing/test-utils';
 
 import { PipelineFileInput, PipelineInputFileUploadState } from './PipelineFileInput';
 
-jest.mock('src/pages/scientificServices/pipelines/utils/pipeline-input-utils', () => ({
-  INPUT_DESCRIPTIONS: {
-    multiSampleVcf: {
-      label: 'Select a multi-sample VCF file',
-      validationRegex: '^[a-zA-Z0-9_.-]+$',
-    },
-  },
-}));
-
 const mockInput: PipelineInput = {
   name: 'multiSampleVcf',
+  displayName: 'multi-sample VCF file',
   type: 'FILE',
   isRequired: true,
   fileSuffix: '.vcf.gz',
