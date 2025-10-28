@@ -216,7 +216,10 @@ export const SubmissionHistory = _.flow(
       )(await Workspaces(signal).workspace(namespace, name).listSubmissions(params));
       setSubmissions(submissions);
 
-      if (_.some(({ status }) => !isTerminal(status), submissions)) {
+      if (dateRange !== 'all' && _.some(({ status }) => !isTerminal(status), submissions)) {
+        if (scheduledRefresh.current) {
+          clearTimeout(scheduledRefresh.current);
+        }
         scheduledRefresh.current = setTimeout(refresh, 1000 * 60);
       }
     } catch (error) {
