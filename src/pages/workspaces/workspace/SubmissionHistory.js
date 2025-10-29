@@ -240,8 +240,6 @@ export const SubmissionHistory = _.flow(
 
   // Lifecycle
   useOnMount(() => {
-    refresh();
-
     return () => {
       if (scheduledRefresh.current) {
         clearTimeout(scheduledRefresh.current);
