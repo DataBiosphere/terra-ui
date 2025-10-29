@@ -2,7 +2,6 @@ export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
 export const RAS_PROVIDER = 'rasProvider';
-export const IMPROVED_DATA_TABLES = 'improvedDataTables';
 export const WORKFLOW_RETRY_WITH_MORE_MEMORY = 'retryWithMoreMemory';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
@@ -74,16 +73,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     groups: ['preview-ras-provider'],
     feedbackUrl: 'https://support.terra.bio/hc/en-us/articles/32634034451099',
     lastUpdated: '6/26/2025',
-  },
-  {
-    id: IMPROVED_DATA_TABLES,
-    title: 'Improved Data Table Performance',
-    description: 'Opt-in to enable a workspace setting that will migrate your data tables for improved performance.',
-    groups: ['preview-improved-data-tables'],
-    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
-      'Support for Improved Data Table Performance'
-    )}`,
-    lastUpdated: '7/10/2025',
   },
   {
     id: WORKFLOW_RETRY_WITH_MORE_MEMORY,

@@ -6,7 +6,6 @@ import React from 'react';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import {
-  ImprovedDataTablesSetting,
   SeparateSubmissionFinalOutputsSetting,
   WorkspaceAnalysisLogRetentionSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
@@ -130,16 +129,6 @@ describe('SettingsModal', () => {
 
   const requesterPaysDisabledSetting: RequesterPaysSetting = {
     settingType: 'GcpBucketRequesterPays',
-    config: { enabled: false },
-  };
-
-  const improvedDataTablesEnabledSetting: ImprovedDataTablesSetting = {
-    settingType: 'CompactDataTables',
-    config: { enabled: true },
-  };
-
-  const improvedDataTablesDisabledSetting: ImprovedDataTablesSetting = {
-    settingType: 'CompactDataTables',
     config: { enabled: false },
   };
 
@@ -957,95 +946,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(getImprovedDataTablesToggle()).not.toBeChecked();
-    });
-
-    it('renders the option as off if improved data tables is disabled', async () => {
-      // Arrange
-      setup([improvedDataTablesDisabledSetting], jest.fn());
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getImprovedDataTablesToggle()).not.toBeChecked();
-    });
-
-    it('renders the option as on but disabled if improved data tables is enabled', async () => {
-      // Arrange
-      setup([improvedDataTablesEnabledSetting], jest.fn());
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getImprovedDataTablesToggle()).toBeChecked();
-      expect(getImprovedDataTablesToggle()).toBeDisabled();
-    });
-
-    it('does not support disabling improved data tables', async () => {
-      // Arrange
-      const updateSettingsMock = jest.fn();
-      setup([improvedDataTablesEnabledSetting], updateSettingsMock);
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getImprovedDataTablesToggle();
-      expect(toggle).toBeDisabled();
-    });
-
-    it('supports enabling improved data tables', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getImprovedDataTablesToggle();
-      expect(toggle).not.toBeChecked();
-      await user.click(toggle);
-      expect(toggle).toBeChecked();
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsImprovedDataTables, {
-        enabled: true,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-
-    it('does not event if improved data tables did not change', async () => {
-      // Arrange
-      const updateSettingsMock = jest.fn();
-      setup([improvedDataTablesEnabledSetting], updateSettingsMock);
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-      const toggle = getImprovedDataTablesToggle();
-      expect(toggle).toBeDisabled();
-
-      // Assert
-      expect(updateSettingsMock).not.toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).not.toHaveBeenCalledWith();
     });
   });
 
