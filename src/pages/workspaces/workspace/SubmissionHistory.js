@@ -173,6 +173,9 @@ export const SubmissionHistory = _.flow(
 
   // Helpers
   const refresh = Utils.withBusyState(setLoading, async () => {
+    if (scheduledRefresh.current) {
+      clearTimeout(scheduledRefresh.current);
+    }
     try {
       let startDate;
       if (dateRange === '30') {
@@ -184,7 +187,6 @@ export const SubmissionHistory = _.flow(
 
       const params = {};
       if (startDate) params.startDate = startDate.toISOString().split('T')[0];
-
       const submissions = _.flow(
         _.orderBy('submissionDate', 'desc'),
         _.map((sub) => {
@@ -215,8 +217,7 @@ export const SubmissionHistory = _.flow(
         })
       )(await Workspaces(signal).workspace(namespace, name).listSubmissions(params));
       setSubmissions(submissions);
-
-      if (_.some(({ status }) => !isTerminal(status), submissions)) {
+      if (dateRange !== 'all' && _.some(({ status }) => !isTerminal(status), submissions)) {
         scheduledRefresh.current = setTimeout(refresh, 1000 * 60);
       }
     } catch (error) {
@@ -239,8 +240,6 @@ export const SubmissionHistory = _.flow(
 
   // Lifecycle
   useOnMount(() => {
-    refresh();
-
     return () => {
       if (scheduledRefresh.current) {
         clearTimeout(scheduledRefresh.current);

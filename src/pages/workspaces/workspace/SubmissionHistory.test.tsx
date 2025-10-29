@@ -274,4 +274,28 @@ describe('SubmissionHistory date range filter', () => {
     // Verify the URL parameter is set to default instead of invalid value
     expect(window.location.hash).toContain('?dateRange=30');
   });
+
+  test('does not schedule refresh when "All Submissions" is selected', async () => {
+    // Set the URL to "all" to ensure that the refresh logic is tested correctly
+    window.location.hash = '#workspaces/test-ns/test-ws/submission_history?dateRange=all';
+
+    jest.useFakeTimers();
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    const runningSubmission = { ...newerSubmission, status: 'Running' };
+    mockListSubmissions([runningSubmission]);
+    await act(async () => {
+      renderSubmissionHistory();
+    });
+
+    // Wait for UI update
+    await waitFor(() => {
+      expect(screen.getByText('Recent Submission')).toBeInTheDocument();
+    });
+
+    // Assert setTimeout was not called to schedule a refresh
+    expect(setTimeoutSpy).not.toHaveBeenCalledWith(expect.any(Function), 1000 * 60);
+
+    setTimeoutSpy.mockRestore();
+    jest.useRealTimers();
+  });
 });
