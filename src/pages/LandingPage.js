@@ -58,14 +58,15 @@ const makeRightArrowWithBackgroundIcon = () =>
   );
 
 const makeCard = (customStyles = {}, cardConfigs = [], isExternalLink = false) =>
-  _.map(({ link, title, body, linkPathParams, linkQueryParams }) =>
-    h(
+  _.map(({ link, title, body, linkPathParams, linkQueryParams }) => {
+    const isExternal = isExternalLink || link.startsWith('http://') || link.startsWith('https://');
+    return h(
       Clickable,
       {
-        href: isExternalLink ? link : Nav.getLink(link, linkPathParams, linkQueryParams),
+        href: isExternal ? link : Nav.getLink(link, linkPathParams, linkQueryParams),
         style: { ...Style.elements.card.container, ...customStyles },
         hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' },
-        target: isExternalLink ? '_blank' : '',
+        target: isExternal ? '_blank' : '',
       },
       [
         h2({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
@@ -73,8 +74,8 @@ const makeCard = (customStyles = {}, cardConfigs = [], isExternalLink = false) =
         div({ style: { flexGrow: 1 } }),
         makeRightArrowWithBackgroundIcon(),
       ]
-    )
-  )(cardConfigs);
+    );
+  })(cardConfigs);
 
 const makeDocLinks = _.map(({ link, text }) =>
   div({ style: { marginBottom: '1rem', fontSize: 18 } }, [

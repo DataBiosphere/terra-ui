@@ -1,6 +1,5 @@
 import { Theme } from '@terra-ui-packages/components';
-import { ReactNode } from 'react';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
@@ -122,9 +121,9 @@ export const landingPageCardsDefault = [
     body: 'Browse our gallery of showcase Workspaces to see how science gets done.',
   },
   {
-    link: 'library-datasets',
+    link: 'https://duos.org',
     title: 'Browse Data',
-    body: 'Access data from a rich ecosystem of data portals.',
+    body: 'Access data from a rich ecosystem in DUOS.',
   },
 ];
 
