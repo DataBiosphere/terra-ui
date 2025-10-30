@@ -3,20 +3,14 @@ import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { SamResources } from 'src/libs/ajax/SamResources';
-import {
-  ImprovedDataTablesSetting,
-  WorkspaceAnalysisLogRetentionSetting,
-} from 'src/libs/ajax/workspaces/workspace-models';
+import { WorkspaceAnalysisLogRetentionSetting } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
 import { withErrorReporting } from 'src/libs/error';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { IMPROVED_DATA_TABLES } from 'src/libs/feature-previews-config';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import BucketLifecycleSettings from 'src/workspaces/SettingsModal/BucketLifecycleSettings';
-import ImprovedDataTables from 'src/workspaces/SettingsModal/ImprovedDataTables';
 import RequesterPays from 'src/workspaces/SettingsModal/RequesterPays';
 import SoftDelete from 'src/workspaces/SettingsModal/SoftDelete';
 import {
@@ -24,13 +18,11 @@ import {
   DeleteBucketLifecycleRule,
   isBucketLifecycleSetting,
   isDeleteBucketLifecycleRule,
-  isImprovedDataTablesSetting,
   isLogRetentionSetting,
   isRequesterPaysSetting,
   isSoftDeleteSetting,
   modifyFirstBucketDeletionRule,
   modifyFirstSoftDeleteSetting,
-  modifyImprovedDataTablesSetting,
   modifyLogRetentionSetting,
   modifyRequesterPaysSetting,
   removeFirstBucketDeletionRule,
@@ -64,9 +56,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
   const [softDeleteRetention, setSoftDeleteRetention] = useState<number | null>(null);
 
   const [requesterPaysEnabled, setRequesterPaysEnabled] = useState(false);
-
-  const [originalImprovedDataTablesSetting, setOriginalImprovedDataTablesSetting] = useState(false);
-  const [improvedDataTablesEnabled, setImprovedDataTablesEnabled] = useState(false);
 
   // initial is null so that the input is empty when the modal opens
   const [logRetention, setLogRetention] = useState<number | null>(null);
@@ -149,12 +138,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     return settings.find((setting: WorkspaceSetting) => isRequesterPaysSetting(setting)) as RequesterPaysSetting;
   };
 
-  const getImproveDataTableSetting = (settings: WorkspaceSetting[]): ImprovedDataTablesSetting | undefined => {
-    return settings.find((setting: WorkspaceSetting) =>
-      isImprovedDataTablesSetting(setting)
-    ) as ImprovedDataTablesSetting;
-  };
-
   const getLogRetentionSetting = (settings: WorkspaceSetting[]): WorkspaceAnalysisLogRetentionSetting | undefined => {
     return settings.find((setting: WorkspaceSetting) =>
       isLogRetentionSetting(setting)
@@ -198,11 +181,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       const requesterPaysEnabled = requesterPays === undefined ? false : requesterPays.config.enabled;
       setRequesterPaysEnabled(requesterPaysEnabled);
 
-      const improvedDataTables = getImproveDataTableSetting(settings);
-      const improvedDataTablesEnabled = improvedDataTables ? improvedDataTables.config.enabled : false;
-      setOriginalImprovedDataTablesSetting(improvedDataTablesEnabled);
-      setImprovedDataTablesEnabled(improvedDataTablesEnabled);
-
       // if GcpLogBucketRetention setting doesn't exist, default to 30 days
       const logRetentionSetting = getLogRetentionSetting(settings);
       const logRetentionDays = logRetentionSetting ? logRetentionSetting.config.retentionDurationInDays : 30;
@@ -230,9 +208,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
     const logRetentionInDays = logRetention ? logRetention! : 30; // default to 30 days if null
     newSettings = modifyLogRetentionSetting(newSettings, logRetentionInDays);
 
-    if (isFeaturePreviewEnabled(IMPROVED_DATA_TABLES) && improvedDataTablesEnabled) {
-      newSettings = modifyImprovedDataTablesSetting(newSettings, improvedDataTablesEnabled);
-    }
     await Workspaces().workspaceV2(namespace, name).updateSettings(newSettings);
 
     props.onDismiss();
@@ -293,19 +268,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
       // Event if the setting changed.
       void Metrics().captureEvent(Events.workspaceSettingsRequesterPays, {
         enabled: requesterPaysEnabled,
-        ...extractWorkspaceDetails(props.workspace),
-      });
-    }
-
-    // Event about improved data tables setting only if something actually changed.
-    const originalImprovedDataTablesSetting = getImproveDataTableSetting(workspaceSettings || []);
-    const newImprovedDataTablesSetting = getImproveDataTableSetting(newSettings);
-    if (originalImprovedDataTablesSetting === undefined && !newImprovedDataTablesSetting?.config.enabled) {
-      // If the workspace had no improved data tables setting before, and the current one is disabled, don't event.
-    } else if (!_.isEqual(originalImprovedDataTablesSetting, newImprovedDataTablesSetting)) {
-      // Event if the setting changed.
-      void Metrics().captureEvent(Events.workspaceSettingsImprovedDataTables, {
-        enabled: improvedDataTablesEnabled,
         ...extractWorkspaceDetails(props.workspace),
       });
     }
@@ -377,14 +339,6 @@ const SettingsModal = (props: SettingsModalProps): ReactNode => {
           isOwner={isOwner}
         />
       </div>
-      {isFeaturePreviewEnabled(IMPROVED_DATA_TABLES) && (
-        <ImprovedDataTables
-          originalImprovedDataTablesEnabled={originalImprovedDataTablesSetting}
-          improvedDataTablesEnabled={improvedDataTablesEnabled}
-          setImprovedDataTablesEnabled={setImprovedDataTablesEnabled}
-          isOwner={isOwner}
-        />
-      )}
       <div style={{ paddingBottom: '1.0rem', borderBottom: `1px solid ${colors.accent()}` }}>
         <WorkspaceAnalysisLogRetention
           retentionPeriodInDays={logRetention}

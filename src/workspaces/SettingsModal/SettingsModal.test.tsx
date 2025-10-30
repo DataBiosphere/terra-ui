@@ -6,13 +6,11 @@ import React from 'react';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { SamResources, SamResourcesContract } from 'src/libs/ajax/SamResources';
 import {
-  ImprovedDataTablesSetting,
   SeparateSubmissionFinalOutputsSetting,
   WorkspaceAnalysisLogRetentionSetting,
 } from 'src/libs/ajax/workspaces/workspace-models';
 import { Workspaces, WorkspacesAjaxContract, WorkspaceV2Contract } from 'src/libs/ajax/workspaces/Workspaces';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { defaultGoogleWorkspace, makeGoogleWorkspace } from 'src/testing/workspace-fixtures';
 import SettingsModal from 'src/workspaces/SettingsModal/SettingsModal';
@@ -133,16 +131,6 @@ describe('SettingsModal', () => {
     config: { enabled: false },
   };
 
-  const improvedDataTablesEnabledSetting: ImprovedDataTablesSetting = {
-    settingType: 'CompactDataTables',
-    config: { enabled: true },
-  };
-
-  const improvedDataTablesDisabledSetting: ImprovedDataTablesSetting = {
-    settingType: 'CompactDataTables',
-    config: { enabled: false },
-  };
-
   const separateSubmissionOutputsDisabledSetting: SeparateSubmissionFinalOutputsSetting = {
     settingType: 'SeparateSubmissionFinalOutputs',
     config: { enabled: false },
@@ -187,10 +175,6 @@ describe('SettingsModal', () => {
       })
     );
     asMockedFn(isWorkspaceOwner).mockReturnValue(false);
-  };
-
-  const enableFeaturePreview = () => {
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true); // Mock IMPROVED_DATA_TABLES as enabled
   };
 
   it('has no accessibility errors', async () => {
@@ -922,129 +906,6 @@ describe('SettingsModal', () => {
 
       // Assert
       expect(updateSettingsMock).toHaveBeenCalledWith([requesterPaysEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).not.toHaveBeenCalledWith();
-    });
-  });
-
-  describe('Improved DataTables Settings', () => {
-    const getImprovedDataTablesToggle = () => screen.getByLabelText('Improved Data Tables:');
-
-    it('renders the option as disabled if the user is not an owner', async () => {
-      // Arrange
-      setup([], jest.fn());
-      mockNotOwner();
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={makeGoogleWorkspace({ accessLevel: 'READER' })} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getImprovedDataTablesToggle()).toBeDisabled();
-    });
-
-    it('renders the option as off if no settings exist', async () => {
-      // Arrange
-      setup([], jest.fn());
-      mockNotOwner();
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getImprovedDataTablesToggle()).not.toBeChecked();
-    });
-
-    it('renders the option as off if improved data tables is disabled', async () => {
-      // Arrange
-      setup([improvedDataTablesDisabledSetting], jest.fn());
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getImprovedDataTablesToggle()).not.toBeChecked();
-    });
-
-    it('renders the option as on but disabled if improved data tables is enabled', async () => {
-      // Arrange
-      setup([improvedDataTablesEnabledSetting], jest.fn());
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      // Assert
-      expect(getImprovedDataTablesToggle()).toBeChecked();
-      expect(getImprovedDataTablesToggle()).toBeDisabled();
-    });
-
-    it('does not support disabling improved data tables', async () => {
-      // Arrange
-      const updateSettingsMock = jest.fn();
-      setup([improvedDataTablesEnabledSetting], updateSettingsMock);
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getImprovedDataTablesToggle();
-      expect(toggle).toBeDisabled();
-    });
-
-    it('supports enabling improved data tables', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const updateSettingsMock = jest.fn();
-      setup([], updateSettingsMock);
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-
-      const toggle = getImprovedDataTablesToggle();
-      expect(toggle).not.toBeChecked();
-      await user.click(toggle);
-      expect(toggle).toBeChecked();
-
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-
-      // Assert
-      expect(updateSettingsMock).toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
-      expect(captureEvent).toHaveBeenCalledWith(Events.workspaceSettingsImprovedDataTables, {
-        enabled: true,
-        ...extractWorkspaceDetails(defaultGoogleWorkspace),
-      });
-    });
-
-    it('does not event if improved data tables did not change', async () => {
-      // Arrange
-      const updateSettingsMock = jest.fn();
-      setup([improvedDataTablesEnabledSetting], updateSettingsMock);
-      enableFeaturePreview();
-
-      // Act
-      await act(async () => {
-        render(<SettingsModal workspace={defaultGoogleWorkspace} onDismiss={jest.fn()} />);
-      });
-      const toggle = getImprovedDataTablesToggle();
-      expect(toggle).toBeDisabled();
-
-      // Assert
-      expect(updateSettingsMock).not.toHaveBeenCalledWith([improvedDataTablesEnabledSetting, defaultSoftDeleteSetting]);
       expect(captureEvent).not.toHaveBeenCalledWith();
     });
   });
