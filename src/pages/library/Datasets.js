@@ -122,7 +122,7 @@ const duos = () =>
       title: 'Duos Data Catalog',
       description: h(Fragment, [
         h(Link, { href: 'https://duos.org/datalibrary', ...Utils.newTabLinkProps }, 'DUOS'),
-        ' - the Data Use Oversight System - is a platform for managing access to controlled-access datasets. DUOS streamlines the often-tedious data access process by allowing Signing Officials to pre-authorize approved researchers to submit data access requests. It contains data from NHGRI as well as the Human Cell Atlas and data generated from The Broad Institute labs.',
+        ' - search and access an ecosystem of scientific data',
       ]),
     },
     [
