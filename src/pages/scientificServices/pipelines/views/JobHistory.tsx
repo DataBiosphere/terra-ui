@@ -2,13 +2,13 @@ import { Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packag
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useMemo, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
@@ -19,30 +19,30 @@ import {
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
-
+import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/views/TableFilters';
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
-
 interface SortProperties {
   field: string;
   direction: 'asc' | 'desc';
 }
-
 export const JobHistory = () => {
   const signal = useCancellation();
-
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<PipelineRunStatus | null>(null);
+  const [filters, setFilters] = useState<FilterValues>({});
   const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
   });
-
-  const STATUS_FILTER_OPTIONS: PipelineRunStatus[] = ['SUCCEEDED', 'RUNNING', 'FAILED', 'PREPARING'];
-
+  // Extract unique pipeline names from the results
+  const availablePipelineNames = useMemo(() => {
+    if (!pipelineRunsResponse?.results) return [];
+    const uniqueNames = new Set(pipelineRunsResponse.results.map((run) => run.pipelineName));
+    return Array.from(uniqueNames).sort();
+  }, [pipelineRunsResponse]);
   // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {
     async function fetchPipelineRuns() {
@@ -53,7 +53,10 @@ export const JobHistory = () => {
           pageNumber,
           sort?.field,
           sort?.direction,
-          selectedStatus ?? undefined
+          filters.status,
+          filters.description,
+          filters.jobId,
+          filters.pipelineName
         );
         setPipelineRunsResponse(response);
       } finally {
@@ -61,18 +64,11 @@ export const JobHistory = () => {
       }
     }
     fetchPipelineRuns();
-  }, [pageNumber, itemsPerPage, sort, selectedStatus, signal]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleStatusChange = (status: PipelineRunStatus) => {
-    setSelectedStatus(status);
+  }, [pageNumber, itemsPerPage, sort, filters, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleFilterChange = (newFilters: FilterValues) => {
+    setFilters(newFilters);
     setPageNumber(1);
   };
-
-  const handleClearFilter = () => {
-    setSelectedStatus(null);
-    setPageNumber(1);
-  };
-
   return (
     <FooterWrapper alwaysShow>
       {pipelinesTopBar('job history')}
@@ -103,55 +99,12 @@ export const JobHistory = () => {
             </a>
           </div>
         </div>
-
-        {/* Status Filter */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <div style={{ fontWeight: 600 }}>Filter by Status:</div>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            {STATUS_FILTER_OPTIONS.map((status) => (
-              <div
-                key={status}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  cursor: 'pointer',
-                }}
-                onClick={() => handleStatusChange(status)}
-              >
-                <input
-                  type='radio'
-                  name='status-filter'
-                  checked={selectedStatus === status}
-                  onChange={() => handleStatusChange(status)}
-                  style={{ cursor: 'pointer' }}
-                  aria-label={`Filter by ${status} status`}
-                />
-                <span>{status}</span>
-              </div>
-            ))}
-            {selectedStatus && (
-              <button
-                type='button'
-                onClick={handleClearFilter}
-                style={{
-                  color: '#46A3E9',
-                  fontWeight: 600,
-                  textDecoration: 'underline',
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                  font: 'inherit',
-                  marginLeft: '0.5rem',
-                }}
-              >
-                Clear filter
-              </button>
-            )}
-          </div>
-        </div>
-
+        {/* Table Filters */}
+        <TableFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          availablePipelineNames={availablePipelineNames}
+        />
         <div style={{ flex: 1, marginTop: '1rem' }}>
           {pipelineRunsResponse && !isLoading ? (
             <AutoSizer>
@@ -166,11 +119,7 @@ export const JobHistory = () => {
                     setSort(sort);
                     setPageNumber(1);
                   })}
-                  noContentMessage={
-                    pipelineRunsResponse.totalResults > 0
-                      ? 'No results match the selected filters'
-                      : 'Nothing to display'
-                  }
+                  noContentMessage={filters ? 'No results match the selected filters' : 'Nothing to display'}
                   tabIndex={-1}
                   variant={undefined}
                   styleHeader={() => ({ backgroundColor: '#eff0f1' })}
@@ -203,7 +152,6 @@ export const JobHistory = () => {
     </FooterWrapper>
   );
 };
-
 const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: (sort: SortProperties) => void) => {
   return [
     {
@@ -245,7 +193,6 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
     {
       field: 'completed',
       headerRenderer: () => (
-        // updated is a proxy for timeCompleted, since timeCompleted is not a value in the TSPS PipelineRuns database table
         <Sortable sort={sort} field='updated' onSort={onSort}>
           <HeaderCell>Completed</HeaderCell>
         </Sortable>
@@ -285,13 +232,10 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
     },
   ];
 };
-
 interface CellProps {
-  // I have absolutely no clue why TS thinks this is unused
   // eslint-disable-next-line react/no-unused-prop-types
   pipelineRun: PipelineRun;
 }
-
 const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
@@ -323,29 +267,21 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
     </div>
   );
 };
-
 const DescriptionCell = ({ pipelineRun }: CellProps): ReactNode => {
-  // descriptions can be long, so truncate them and allow the user to hover over them to see the full description
   return <TooltipCell tooltip={null}>{pipelineRun.description}</TooltipCell>;
 };
-
 const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun)}</div>;
 };
-
-/** Format date like "Feb 15, 2025", and enable tooltip with precise time */
 const MediumDateWithTooltip = ({ date }: { date: string | Date }): React.JSX.Element => {
   return <TooltipCell tooltip={formatDatetime(date)}>{formatDate(date)}</TooltipCell>;
 };
-
 const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <MediumDateWithTooltip date={pipelineRun.timeSubmitted} />;
 };
-
 const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div>{pipelineRun.timeCompleted ? <MediumDateWithTooltip date={pipelineRun.timeCompleted} /> : ''}</div>;
 };
-
 const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
   if (!pipelineRun.outputExpirationDate || !(pipelineRun.status === 'SUCCEEDED')) {
     return <div>N/A</div>;
@@ -356,9 +292,7 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
   const today = new Date();
   const threeDaysFromNow = new Date();
   threeDaysFromNow.setDate(today.getDate() + 3);
-  // Check if the deletion date is within the next 3 days
   const isDeletionSoon = deletionDate >= today && deletionDate <= threeDaysFromNow;
-
   return (
     <div
       style={
@@ -374,7 +308,6 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
     </div>
   );
 };
-
 const QuotaUsedCell = (props: CellProps): ReactNode => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -390,12 +323,10 @@ const QuotaUsedCell = (props: CellProps): ReactNode => {
     </div>
   );
 };
-
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   const outputsModal = useModalHandler(() => {
     return <ViewOutputsModal jobId={pipelineRun.jobId} onDismiss={outputsModal.close} />;
   });
-
   const errorModal = useModalHandler(() => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
@@ -521,11 +452,7 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
         </div>
       );
     case 'PREPARING': {
-      // In most cases, jobs stuck in Preparing can be considered failures.
-      // However, we have a window where we still show "Preparing" in case the user happens
-      // to check the Job History page while the job submission is still in progress (i.e. due to a slow/large file upload).
       const hoursElapsed = hoursElapsedSinceSubmission(pipelineRun);
-
       if (hoursElapsed > PREPARING_JOB_CUTOFF_HOURS) {
         return (
           <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
@@ -533,7 +460,6 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
           </div>
         );
       }
-
       return (
         <TooltipCell
           tooltip={`This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than ${PREPARING_JOB_CUTOFF_HOURS} hours will be marked as failed.`}

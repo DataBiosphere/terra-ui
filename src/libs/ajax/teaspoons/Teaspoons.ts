@@ -41,7 +41,10 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     pageNumber: number,
     sortProperty?: string,
     sortDirection?: string,
-    status?: string
+    status?: string,
+    description?: string,
+    jobId?: string,
+    pipelineName?: string
   ): Promise<GetPipelineRunsResponse> => {
     const queryString = qs.stringify(
       {
@@ -50,6 +53,9 @@ export const Teaspoons = (signal?: AbortSignal) => ({
         ...(sortProperty ? { sortProperty } : {}),
         ...(sortDirection ? { sortDirection } : {}),
         ...(status ? { status } : {}),
+        ...(description ? { description } : {}),
+        ...(jobId ? { jobId } : {}),
+        ...(pipelineName ? { pipelineName } : {}),
       },
       { addQueryPrefix: true }
     );
