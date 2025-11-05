@@ -40,7 +40,8 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     pageSize: number,
     pageNumber: number,
     sortProperty?: string,
-    sortDirection?: string
+    sortDirection?: string,
+    status?: string
   ): Promise<GetPipelineRunsResponse> => {
     const queryString = qs.stringify(
       {
@@ -48,6 +49,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
         pageNumber,
         ...(sortProperty ? { sortProperty } : {}),
         ...(sortDirection ? { sortDirection } : {}),
+        ...(status ? { status } : {}),
       },
       { addQueryPrefix: true }
     );

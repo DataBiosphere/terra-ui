@@ -8,7 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { GetPipelineRunsResponse, PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
@@ -28,10 +28,6 @@ interface SortProperties {
   direction: 'asc' | 'desc';
 }
 
-/*
-   Right now, this will show all pipeline runs. Once we support more than one pipeline,
-   we'll need to add a filter for the pipeline name.
-*/
 export const JobHistory = () => {
   const signal = useCancellation();
 
@@ -39,12 +35,15 @@ export const JobHistory = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<PipelineRunStatus | null>(null);
   const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
   });
 
-  // Fetch pipeline runs when the component mounts or when pagination/sorting controls change
+  const STATUS_FILTER_OPTIONS: PipelineRunStatus[] = ['SUCCEEDED', 'RUNNING', 'FAILED', 'PREPARING'];
+
+  // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {
     async function fetchPipelineRuns() {
       setIsLoading(true);
@@ -53,7 +52,8 @@ export const JobHistory = () => {
           itemsPerPage,
           pageNumber,
           sort?.field,
-          sort?.direction
+          sort?.direction,
+          selectedStatus ?? undefined
         );
         setPipelineRunsResponse(response);
       } finally {
@@ -61,7 +61,17 @@ export const JobHistory = () => {
       }
     }
     fetchPipelineRuns();
-  }, [pageNumber, itemsPerPage, sort, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pageNumber, itemsPerPage, sort, selectedStatus, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleStatusChange = (status: PipelineRunStatus) => {
+    setSelectedStatus(status);
+    setPageNumber(1);
+  };
+
+  const handleClearFilter = () => {
+    setSelectedStatus(null);
+    setPageNumber(1);
+  };
 
   return (
     <FooterWrapper alwaysShow>
@@ -93,6 +103,55 @@ export const JobHistory = () => {
             </a>
           </div>
         </div>
+
+        {/* Status Filter */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ fontWeight: 600 }}>Filter by Status:</div>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {STATUS_FILTER_OPTIONS.map((status) => (
+              <div
+                key={status}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  cursor: 'pointer',
+                }}
+                onClick={() => handleStatusChange(status)}
+              >
+                <input
+                  type='radio'
+                  name='status-filter'
+                  checked={selectedStatus === status}
+                  onChange={() => handleStatusChange(status)}
+                  style={{ cursor: 'pointer' }}
+                  aria-label={`Filter by ${status} status`}
+                />
+                <span>{status}</span>
+              </div>
+            ))}
+            {selectedStatus && (
+              <button
+                type='button'
+                onClick={handleClearFilter}
+                style={{
+                  color: '#46A3E9',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  font: 'inherit',
+                  marginLeft: '0.5rem',
+                }}
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
+        </div>
+
         <div style={{ flex: 1, marginTop: '1rem' }}>
           {pipelineRunsResponse && !isLoading ? (
             <AutoSizer>
@@ -107,7 +166,11 @@ export const JobHistory = () => {
                     setSort(sort);
                     setPageNumber(1);
                   })}
-                  noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
+                  noContentMessage={
+                    pipelineRunsResponse.totalResults > 0
+                      ? 'No results match the selected filters'
+                      : 'Nothing to display'
+                  }
                   tabIndex={-1}
                   variant={undefined}
                   styleHeader={() => ({ backgroundColor: '#eff0f1' })}
@@ -122,7 +185,7 @@ export const JobHistory = () => {
           <div style={{ marginBottom: '0.5rem' }}>
             {/* @ts-ignore */}
             <Paginator
-              filteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+              filteredDataLength={pipelineRunsResponse?.results.length ?? 0}
               unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
               pageNumber={pageNumber}
               setPageNumber={(v) => {
