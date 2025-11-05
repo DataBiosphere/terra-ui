@@ -111,8 +111,8 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       return workspace.importEntitiesFile(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues });
     }
     const filesize = uploadParams.file?.size || Number.MAX_SAFE_INTEGER;
-    if (filesize < 524288) {
-      // 512k
+    if (filesize < 10485760) {
+      // 10MB
       return workspace.importFlexibleEntitiesFileSynchronous(uploadParams.file, {
         deleteEmptyValues: uploadParams.deleteEmptyValues,
       });
