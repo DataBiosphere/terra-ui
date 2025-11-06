@@ -13,24 +13,24 @@ import {
   pipelinesTopBar,
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
+import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import {
   PipelineFileInput,
   PipelineInputFileUploadState,
-} from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
-import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFloatInput';
-import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
-import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
-import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
-import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
+} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
+import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFloatInput';
+import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineRunDescription';
+import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineStringInput';
+import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/HelpfulTipsWidget';
+import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
+import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/QuotaDetailsWidget';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 import {
   preparePipelineRun,
   startPipelineRun,
   uploadPipelineFiles,
 } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
-import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
-import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/widgets/PipelineOutputsWidget';
-import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaDetailsWidget';
 
 export const RunJob = () => {
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);

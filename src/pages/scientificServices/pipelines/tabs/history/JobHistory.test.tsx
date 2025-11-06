@@ -6,10 +6,9 @@ import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons'
 import { PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { mockPipeline, mockPipelineRun } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
-import { PREPARING_JOB_CUTOFF_HOURS } from 'src/pages/scientificServices/pipelines/views/JobHistory';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { JobHistory } from './JobHistory';
+import { JobHistory, PREPARING_JOB_CUTOFF_HOURS } from './JobHistory';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 

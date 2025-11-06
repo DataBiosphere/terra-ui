@@ -1,7 +1,7 @@
 import { CliAuth } from 'src/pages/scientificServices/cli-auth/CliAuth';
-import { About } from 'src/pages/scientificServices/pipelines/views/About';
-import { JobHistory } from 'src/pages/scientificServices/pipelines/views/JobHistory';
-import { RunJob } from 'src/pages/scientificServices/pipelines/views/RunJob';
+import { About } from 'src/pages/scientificServices/pipelines/tabs/about/About';
+import { JobHistory } from 'src/pages/scientificServices/pipelines/tabs/history/JobHistory';
+import { RunJob } from 'src/pages/scientificServices/pipelines/tabs/run/RunJob';
 
 export const navPaths = [
   // For now, redirect /pipelines to the Imputation home page
