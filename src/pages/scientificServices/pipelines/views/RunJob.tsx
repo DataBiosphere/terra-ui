@@ -50,8 +50,7 @@ export const RunJob = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
 
-  // API calls
-  const { isLoading, pipelines: pipelinesList } = usePipelinesList();
+  const { isLoading: isLoadingPipelines, pipelines: pipelinesList } = usePipelinesList();
   const { quota, pipelineDetails, meetsMinimumQuota, isLoading: isLoadingQuota } = useUserQuota(selectedPipeline);
 
   const resetSelectedUserInputs = () => {
@@ -233,7 +232,7 @@ export const RunJob = () => {
             )}
           </div>
 
-          {!isLoading && !isLoadingQuota && (
+          {!isLoadingPipelines && !isLoadingQuota && (
             <>
               {/* Displays all STRING inputs, one after another */}
               {pipelineInputs
@@ -403,7 +402,7 @@ export const RunJob = () => {
               )}
             </>
           )}
-          {(isLoading || isLoadingQuota) && (
+          {(isLoadingPipelines || isLoadingQuota) && (
             <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Spinner /> Loading pipeline details...
             </div>

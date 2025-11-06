@@ -107,7 +107,7 @@ export const JobHistory = () => {
               </div>
             </div>
             {!isLoading && (
-              <div style={{ display: 'flex', flexDirection: 'row', gap: '0.25rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
                 {isLoadingPipelines && <Spinner size={20} />}
                 <ButtonPrimary
                   type='button'
@@ -123,10 +123,11 @@ export const JobHistory = () => {
             )}
           </div>
         </div>
-        {/* Table Filters */}
+
         {showFilters && (
           <TableFilters filters={filters} onFilterChange={handleFilterChange} pipelinesList={pipelinesList} />
         )}
+
         <div style={{ flex: 1 }}>
           {pipelineRunsResponse && !isLoading ? (
             <AutoSizer>
@@ -352,7 +353,6 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
   const today = new Date();
   const threeDaysFromNow = new Date();
   threeDaysFromNow.setDate(today.getDate() + 3);
-
   // Check if the deletion date is within the next 3 days
   const isDeletionSoon = deletionDate >= today && deletionDate <= threeDaysFromNow;
 
@@ -473,9 +473,6 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
         </>
       )}
       {pipelineRun.status === 'PREPARING' && hoursElapsedSinceSubmission(pipelineRun) > PREPARING_JOB_CUTOFF_HOURS && (
-        // In most cases, jobs stuck in Preparing can be considered failures.
-        // However, we have a window where we still show "Preparing" in case the user happens
-        // to check the Job History page while the job submission is still in progress (i.e. due to a slow/large file upload).
         <>
           <button
             type='button'
@@ -521,7 +518,11 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
         </div>
       );
     case 'PREPARING': {
+      // In most cases, jobs stuck in Preparing can be considered failures.
+      // However, we have a window where we still show "Preparing" in case the user happens
+      // to check the Job History page while the job submission is still in progress (i.e. due to a slow/large file upload).
       const hoursElapsed = hoursElapsedSinceSubmission(pipelineRun);
+
       if (hoursElapsed > PREPARING_JOB_CUTOFF_HOURS) {
         return (
           <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
