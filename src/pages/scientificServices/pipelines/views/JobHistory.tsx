@@ -2,7 +2,7 @@ import { Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packag
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
-import React, { ReactNode, useEffect, useMemo, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
@@ -20,12 +20,15 @@ import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pip
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/views/TableFilters';
+
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
+
 interface SortProperties {
   field: string;
   direction: 'asc' | 'desc';
 }
+
 export const JobHistory = () => {
   const signal = useCancellation();
   const [pageNumber, setPageNumber] = useState(1);
@@ -37,12 +40,9 @@ export const JobHistory = () => {
     field: 'created',
     direction: 'desc',
   });
-  // Extract unique pipeline names from the results
-  const availablePipelineNames = useMemo(() => {
-    if (!pipelineRunsResponse?.results) return [];
-    const uniqueNames = new Set(pipelineRunsResponse.results.map((run) => run.pipelineName));
-    return Array.from(uniqueNames).sort();
-  }, [pipelineRunsResponse]);
+
+  const availablePipelineNames = ['array_imputation', 'bge_imputation'];
+
   // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {
     async function fetchPipelineRuns() {
@@ -65,10 +65,12 @@ export const JobHistory = () => {
     }
     fetchPipelineRuns();
   }, [pageNumber, itemsPerPage, sort, filters, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFilterChange = (newFilters: FilterValues) => {
     setFilters(newFilters);
     setPageNumber(1);
   };
+
   return (
     <FooterWrapper alwaysShow>
       {pipelinesTopBar('job history')}
@@ -105,7 +107,7 @@ export const JobHistory = () => {
           onFilterChange={handleFilterChange}
           availablePipelineNames={availablePipelineNames}
         />
-        <div style={{ flex: 1, marginTop: '1rem' }}>
+        <div style={{ flex: 1 }}>
           {pipelineRunsResponse && !isLoading ? (
             <AutoSizer>
               {({ width, height }) => (
@@ -119,7 +121,7 @@ export const JobHistory = () => {
                     setSort(sort);
                     setPageNumber(1);
                   })}
-                  noContentMessage={filters ? 'No results match the selected filters' : 'Nothing to display'}
+                  noContentMessage={filters ? <div>No results match the selected filters</div> : 'Nothing to display'}
                   tabIndex={-1}
                   variant={undefined}
                   styleHeader={() => ({ backgroundColor: '#eff0f1' })}
@@ -152,6 +154,7 @@ export const JobHistory = () => {
     </FooterWrapper>
   );
 };
+
 const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: (sort: SortProperties) => void) => {
   return [
     {
@@ -232,10 +235,12 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
     },
   ];
 };
+
 interface CellProps {
   // eslint-disable-next-line react/no-unused-prop-types
   pipelineRun: PipelineRun;
 }
+
 const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
@@ -267,21 +272,27 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
     </div>
   );
 };
+
 const DescriptionCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <TooltipCell tooltip={null}>{pipelineRun.description}</TooltipCell>;
 };
+
 const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun)}</div>;
 };
+
 const MediumDateWithTooltip = ({ date }: { date: string | Date }): React.JSX.Element => {
   return <TooltipCell tooltip={formatDatetime(date)}>{formatDate(date)}</TooltipCell>;
 };
+
 const SubmittedCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <MediumDateWithTooltip date={pipelineRun.timeSubmitted} />;
 };
+
 const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div>{pipelineRun.timeCompleted ? <MediumDateWithTooltip date={pipelineRun.timeCompleted} /> : ''}</div>;
 };
+
 const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
   if (!pipelineRun.outputExpirationDate || !(pipelineRun.status === 'SUCCEEDED')) {
     return <div>N/A</div>;
@@ -308,6 +319,7 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
     </div>
   );
 };
+
 const QuotaUsedCell = (props: CellProps): ReactNode => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -323,6 +335,7 @@ const QuotaUsedCell = (props: CellProps): ReactNode => {
     </div>
   );
 };
+
 const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   const outputsModal = useModalHandler(() => {
     return <ViewOutputsModal jobId={pipelineRun.jobId} onDismiss={outputsModal.close} />;

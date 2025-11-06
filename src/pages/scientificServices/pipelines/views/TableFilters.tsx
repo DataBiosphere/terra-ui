@@ -1,6 +1,8 @@
+import { Select } from '@terra-ui-packages/components';
 import React from 'react';
-import { TextInput } from 'src/components/input';
+import { DelayedSearchInput, TextInput } from 'src/components/input';
 import { PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 
 export interface FilterValues {
   description?: string;
@@ -15,7 +17,7 @@ interface TableFiltersProps {
   availablePipelineNames: string[];
 }
 
-const STATUS_OPTIONS: PipelineRunStatus[] = ['SUCCEEDED', 'RUNNING', 'FAILED', 'PREPARING'];
+const STATUS_OPTIONS: string[] = ['Succeeded', 'Running', 'Failed', 'Preparing'];
 
 export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterChange, availablePipelineNames }) => {
   const handleInputChange = (field: keyof FilterValues, value: string) => {
@@ -32,7 +34,17 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
   const hasActiveFilters = Object.values(filters).some((value) => value !== undefined && value !== '');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        backgroundColor: '#eff0f1',
+        border: '1px solid #d7d9dc',
+        borderRadius: '0.25rem',
+        padding: '0.75rem 0.75rem',
+      }}
+    >
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         {/* Description Filter */}
         <div
@@ -41,12 +53,11 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
             flexDirection: 'column',
             gap: '0.25rem',
             minWidth: '200px',
-            maxWidth: '400px',
-            flex: 1,
+            flex: '1 1 25%',
           }}
         >
           <div style={{ fontWeight: 600, fontSize: '14px' }}>Description</div>
-          <TextInput
+          <DelayedSearchInput
             id='filter-description'
             placeholder='Filter by description...'
             value={filters.description || ''}
@@ -62,12 +73,11 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
             flexDirection: 'column',
             gap: '0.25rem',
             minWidth: '200px',
-            maxWidth: '400px',
-            flex: 1,
+            flex: '1 1 25%',
           }}
         >
           <div style={{ fontWeight: 600, fontSize: '14px' }}>Job ID</div>
-          <TextInput
+          <DelayedSearchInput
             id='filter-jobId'
             placeholder='Filter by Job ID...'
             value={filters.jobId || ''}
@@ -77,57 +87,47 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
         </div>
 
         {/* Status Filter */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '150px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '150px', flex: '1 1 15%' }}>
           <div style={{ fontWeight: 600, fontSize: '14px' }}>Status</div>
-          <select
+          <Select
             id='filter-status'
-            value={filters.status || ''}
-            onChange={(e) => handleInputChange('status', e.target.value)}
-            style={{
-              padding: '0.5rem',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '14px',
-              backgroundColor: 'white',
-              cursor: 'pointer',
+            options={STATUS_OPTIONS.map((status) => ({ value: status, label: status }))}
+            value={filters.status ? { value: filters.status, label: filters.status } : 'bla'}
+            placeholder='All Statuses'
+            onChange={(selected) => {
+              if (selected === null) {
+                return;
+              }
+              // @ts-ignore
+              handleInputChange('status', selected.value);
             }}
-          >
-            <option value=''>All Statuses</option>
-            {STATUS_OPTIONS.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+            isClearable
+            styles={{ container: (base) => ({ ...base, minWidth: '150px' }) }}
+          />
         </div>
 
         {/* Pipeline Name Filter */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '150px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '150px', flex: '1 1 15%' }}>
           <div style={{ fontWeight: 600, fontSize: '14px' }}>Pipeline</div>
-          <select
+          <Select
             id='filter-pipelineName'
-            value={filters.pipelineName || ''}
-            onChange={(e) => handleInputChange('pipelineName', e.target.value)}
-            style={{
-              padding: '0.5rem',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '14px',
-              backgroundColor: 'white',
-              cursor: 'pointer',
+            options={availablePipelineNames.map((name) => ({ value: name, label: name }))}
+            value={filters.pipelineName ? { value: filters.pipelineName, label: filters.pipelineName } : null}
+            placeholder='All Pipelines'
+            onChange={(selected) => {
+              if (selected === null) {
+                return;
+              }
+              // @ts-ignore
+              handleInputChange('pipelineName', selected.value);
             }}
-          >
-            <option value=''>All Pipelines</option>
-            {availablePipelineNames.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
+            isClearable
+            styles={{ container: (base) => ({ ...base, minWidth: '150px' }) }}
+          />
         </div>
 
         {/* Clear Filters Button */}
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', flex: '0 0 auto' }}>
           <button
             type='button'
             disabled={!hasActiveFilters}
