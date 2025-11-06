@@ -36,13 +36,14 @@ export const JobHistory = () => {
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true); // todo flip back
   const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
   });
 
-  const availablePipelineNames = ['array_imputation', 'bge_imputation'];
+  // todo populate this from a hook
+  const AVAILABLE_PIPELINE_NAMES = ['array_imputation'];
 
   // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {
@@ -123,7 +124,7 @@ export const JobHistory = () => {
           <TableFilters
             filters={filters}
             onFilterChange={handleFilterChange}
-            availablePipelineNames={availablePipelineNames}
+            availablePipelineNames={AVAILABLE_PIPELINE_NAMES}
           />
         )}
         <div style={{ flex: 1 }}>

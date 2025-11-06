@@ -1,7 +1,7 @@
 import { ButtonPrimary, Select } from '@terra-ui-packages/components';
 import React from 'react';
 import { DelayedSearchInput } from 'src/components/input';
-import { PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { Pipeline, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 export interface FilterValues {
   description?: string;
@@ -16,7 +16,12 @@ interface TableFiltersProps {
   availablePipelineNames: string[];
 }
 
-const STATUS_OPTIONS: string[] = ['Succeeded', 'Running', 'Failed', 'Preparing'];
+const STATUS_OPTIONS: { value: PipelineRunStatus; label: string }[] = [
+  { value: 'PREPARING', label: 'Preparing' },
+  { value: 'RUNNING', label: 'In Progress' },
+  { value: 'SUCCEEDED', label: 'Done' },
+  { value: 'FAILED', label: 'Failed' },
+];
 
 export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterChange, availablePipelineNames }) => {
   const handleInputChange = (field: keyof FilterValues, value: string) => {
@@ -31,6 +36,8 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
   };
 
   const hasActiveFilters = Object.values(filters).some((value) => value !== undefined && value !== '');
+
+  const PIPELINE_OPTIONS = availablePipelineNames.map((name) => ({ value: name, label: name }));
 
   return (
     <div
@@ -90,15 +97,16 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
           <div style={{ fontWeight: 600, fontSize: '14px' }}>Status</div>
           <Select
             id='filter-status'
-            options={STATUS_OPTIONS.map((status) => ({ value: status, label: status }))}
-            value={filters.status ? { value: filters.status, label: filters.status } : 'bla'}
+            options={STATUS_OPTIONS}
+            value={filters.status}
             placeholder='All Statuses'
-            onChange={(selected) => {
-              if (selected === null) {
+            onChange={(selectedStatus) => {
+              if (selectedStatus === null) {
+                // Clear the status filter
+                handleInputChange('status', '');
                 return;
               }
-              // @ts-ignore
-              handleInputChange('status', selected.value);
+              handleInputChange('status', selectedStatus.value);
             }}
             isClearable
             styles={{ container: (base) => ({ ...base, minWidth: '150px' }) }}
@@ -110,15 +118,16 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
           <div style={{ fontWeight: 600, fontSize: '14px' }}>Pipeline</div>
           <Select
             id='filter-pipelineName'
-            options={availablePipelineNames.map((name) => ({ value: name, label: name }))}
-            value={filters.pipelineName ? { value: filters.pipelineName, label: filters.pipelineName } : null}
+            options={PIPELINE_OPTIONS}
+            value={filters.pipelineName}
             placeholder='All Pipelines'
-            onChange={(selected) => {
-              if (selected === null) {
+            onChange={(selectedPipeline) => {
+              if (selectedPipeline === null) {
+                // Clear the pipeline name filter
+                handleInputChange('pipelineName', '');
                 return;
               }
-              // @ts-ignore
-              handleInputChange('pipelineName', selected.value);
+              handleInputChange('pipelineName', selectedPipeline.value);
             }}
             isClearable
             styles={{ container: (base) => ({ ...base, minWidth: '150px' }) }}
@@ -129,14 +138,15 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
           style={{
             display: 'flex',
             flex: '0 0 auto',
+            justifyContent: 'center',
           }}
         >
           <ButtonPrimary
             disabled={!hasActiveFilters}
             onClick={handleClearFilters}
-            style={{
-              height: '2.33rem',
-            }}
+            // style={{
+            //   height: '2.33rem',
+            // }}
           >
             Clear
           </ButtonPrimary>
