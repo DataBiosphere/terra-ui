@@ -101,6 +101,13 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
             options={STATUS_OPTIONS}
             value={filters.status}
             placeholder='All Statuses'
+            styles={{
+              control: (provided) => ({
+                ...provided,
+                minHeight: '2.25rem',
+                height: '2.25rem',
+              }),
+            }}
             onChange={(selectedStatus) => {
               if (selectedStatus === null) {
                 // Clear the status filter
@@ -121,6 +128,13 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
             options={PIPELINE_OPTIONS}
             value={filters.pipelineName}
             placeholder='All Pipelines'
+            styles={{
+              control: (provided) => ({
+                ...provided,
+                minHeight: '2.25rem',
+                height: '2.25rem',
+              }),
+            }}
             onChange={(selectedPipeline) => {
               if (selectedPipeline === null) {
                 // Clear the pipeline name filter
