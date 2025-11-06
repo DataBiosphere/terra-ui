@@ -156,7 +156,7 @@ export const JobHistory = () => {
           <div style={{ marginBottom: '0.5rem' }}>
             {/* @ts-ignore */}
             <Paginator
-              filteredDataLength={pipelineRunsResponse?.results.length ?? 0}
+              filteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
               unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
               pageNumber={pageNumber}
               setPageNumber={(v) => {
