@@ -20,7 +20,7 @@ const getFileSize = async (url: string): Promise<string> => {
   try {
     const response = await fetch(url, { method: 'HEAD' });
     const size = response.headers.get('content-length');
-    return size ? formatBytes(parseInt(size)) : 'Unknown size';
+    return size ? formatBytes(Number.parseInt(size)) : 'Unknown size';
   } catch {
     return 'Unknown size';
   }

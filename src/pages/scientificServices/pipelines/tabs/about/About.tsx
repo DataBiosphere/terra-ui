@@ -19,21 +19,20 @@ export const About = () => {
 
         {error && <div style={{ color: 'red' }}>{error.message}</div>}
 
-        {pipelines &&
-          pipelines.map((pipeline) => (
-            <div key={pipeline.pipelineName}>
-              <h3>
-                <AoUStylizedString text={pipeline.displayName} />
-              </h3>
-              <div style={{ width: '50%' }}>
-                {pipeline.description ? (
-                  <AoUStylizedString text={pipeline.description} />
-                ) : (
-                  <em>No description available</em>
-                )}
-              </div>
+        {pipelines?.map((pipeline) => (
+          <div key={pipeline.pipelineName}>
+            <h3>
+              <AoUStylizedString text={pipeline.displayName} />
+            </h3>
+            <div style={{ width: '50%' }}>
+              {pipeline.description ? (
+                <AoUStylizedString text={pipeline.description} />
+              ) : (
+                <em>No description available</em>
+              )}
             </div>
-          ))}
+          </div>
+        ))}
 
         <h2 style={{ marginTop: '2rem' }}>User Documentation</h2>
         <div style={{ marginTop: '1rem' }}>

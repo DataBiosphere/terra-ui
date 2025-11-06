@@ -55,10 +55,7 @@ export const JobHistory = () => {
           pageNumber,
           sort?.field,
           sort?.direction,
-          filters.status,
-          filters.description,
-          filters.jobId,
-          filters.pipelineName
+          filters
         );
         setPipelineRunsResponse(response);
       } finally {
@@ -126,7 +123,7 @@ export const JobHistory = () => {
           <TableFilters filters={filters} onFilterChange={handleFilterChange} pipelinesList={pipelinesList} />
         )}
 
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, marginTop: '0.75rem' }}>
           {pipelineRunsResponse && !isLoading ? (
             <AutoSizer>
               {({ width, height }) => (
