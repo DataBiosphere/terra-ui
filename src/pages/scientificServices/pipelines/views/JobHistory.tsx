@@ -110,9 +110,10 @@ export const JobHistory = () => {
                 type='button'
                 onClick={() => setShowFilters(!showFilters)}
                 aria-label={showFilters ? 'Hide filters' : 'Show filters'}
+                style={{ minWidth: '140px' }}
               >
-                <Icon icon='search' size={16} />
-                Filter
+                <Icon icon='search' size={16} style={{ marginRight: '0.5rem' }} />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
               </ButtonPrimary>
             )}
           </div>
