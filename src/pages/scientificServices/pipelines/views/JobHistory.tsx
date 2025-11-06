@@ -145,17 +145,22 @@ export const JobHistory = () => {
                     filters ? (
                       <div>
                         No results match the selected filters.{' '}
-                        <a
+                        <button
+                          type='button'
                           style={{
                             color: '#46A3E9',
                             fontWeight: 700,
                             textDecoration: 'underline',
                             cursor: 'pointer',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            fontStyle: 'italic',
                           }}
                           onClick={() => setFilters({})}
                         >
                           Clear filters
-                        </a>{' '}
+                        </button>{' '}
                         to see all jobs.
                       </div>
                     ) : (

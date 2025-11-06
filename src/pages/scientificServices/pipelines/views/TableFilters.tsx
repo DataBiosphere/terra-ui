@@ -1,7 +1,7 @@
 import { ButtonPrimary, Select } from '@terra-ui-packages/components';
 import React from 'react';
 import { DelayedSearchInput } from 'src/components/input';
-import { Pipeline, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 export interface FilterValues {
   description?: string;
@@ -68,7 +68,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
             placeholder='Filter by description...'
             value={filters.description || ''}
             onChange={(value: string) => handleInputChange('description', value)}
-            styleProps={{ width: '100%' }}
           />
         </div>
 
@@ -88,7 +87,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
             placeholder='Filter by Job ID...'
             value={filters.jobId || ''}
             onChange={(value: string) => handleInputChange('jobId', value)}
-            styleProps={{ width: '100%' }}
           />
         </div>
 
@@ -109,7 +107,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
               handleInputChange('status', selectedStatus.value);
             }}
             isClearable
-            styles={{ container: (base) => ({ ...base, minWidth: '150px' }) }}
           />
         </div>
 
@@ -130,7 +127,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
               handleInputChange('pipelineName', selectedPipeline.value);
             }}
             isClearable
-            styles={{ container: (base) => ({ ...base, minWidth: '150px' }) }}
           />
         </div>
 
