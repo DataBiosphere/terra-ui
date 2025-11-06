@@ -3,7 +3,7 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
 import { initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 // Helper functions for orchestrating the pipeline run submission process
