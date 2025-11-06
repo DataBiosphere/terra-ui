@@ -37,7 +37,7 @@ export const JobHistory = () => {
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
-  const [showFilters, setShowFilters] = useState(false); // todo flip back
+  const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
@@ -241,6 +241,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
     {
       field: 'completed',
       headerRenderer: () => (
+        // updated is a proxy for timeCompleted, since timeCompleted is not a value in the TSPS PipelineRuns database table
         <Sortable sort={sort} field='updated' onSort={onSort}>
           <HeaderCell>Completed</HeaderCell>
         </Sortable>
@@ -282,6 +283,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
 };
 
 interface CellProps {
+  // I have absolutely no clue why TS thinks this is unused
   // eslint-disable-next-line react/no-unused-prop-types
   pipelineRun: PipelineRun;
 }
@@ -319,6 +321,7 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const DescriptionCell = ({ pipelineRun }: CellProps): ReactNode => {
+  // descriptions can be long, so truncate them and allow the user to hover over them to see the full description
   return <TooltipCell tooltip={null}>{pipelineRun.description}</TooltipCell>;
 };
 
@@ -326,6 +329,7 @@ const StatusCell = ({ pipelineRun }: CellProps): ReactNode => {
   return <div style={{ display: 'flex', alignItems: 'center' }}>{getRunStatusIcon(pipelineRun)}</div>;
 };
 
+/** Format date like "Feb 15, 2025", and enable tooltip with precise time */
 const MediumDateWithTooltip = ({ date }: { date: string | Date }): React.JSX.Element => {
   return <TooltipCell tooltip={formatDatetime(date)}>{formatDate(date)}</TooltipCell>;
 };
@@ -348,7 +352,10 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
   const today = new Date();
   const threeDaysFromNow = new Date();
   threeDaysFromNow.setDate(today.getDate() + 3);
+
+  // Check if the deletion date is within the next 3 days
   const isDeletionSoon = deletionDate >= today && deletionDate <= threeDaysFromNow;
+
   return (
     <div
       style={
@@ -385,6 +392,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
   const outputsModal = useModalHandler(() => {
     return <ViewOutputsModal jobId={pipelineRun.jobId} onDismiss={outputsModal.close} />;
   });
+
   const errorModal = useModalHandler(() => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
@@ -465,6 +473,9 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
         </>
       )}
       {pipelineRun.status === 'PREPARING' && hoursElapsedSinceSubmission(pipelineRun) > PREPARING_JOB_CUTOFF_HOURS && (
+        // In most cases, jobs stuck in Preparing can be considered failures.
+        // However, we have a window where we still show "Preparing" in case the user happens
+        // to check the Job History page while the job submission is still in progress (i.e. due to a slow/large file upload).
         <>
           <button
             type='button'
@@ -518,6 +529,7 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
           </div>
         );
       }
+
       return (
         <TooltipCell
           tooltip={`This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than ${PREPARING_JOB_CUTOFF_HOURS} hours will be marked as failed.`}
