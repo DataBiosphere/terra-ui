@@ -211,17 +211,21 @@ describe('CloudInformation', () => {
     );
 
     // Act
-    render(
-      h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
-    );
-    await user.click(screen.getByLabelText('More info'));
+    await act(async () => {
+      render(
+        h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
+      );
+    });
+
+    const moreInfoButtons = screen.getAllByLabelText('More info');
+    await user.click(moreInfoButtons[0]); // First button is in the storage details
 
     // Assert
     expect(screen.getByText(/Only shows object storage costs/i)).toBeInTheDocument();
     expect(screen.getByText(/Based on GCP list prices/i)).toBeInTheDocument();
 
     // Clicking the info button again should hide the tooltip
-    await user.click(screen.getByLabelText('More info'));
+    await user.click(moreInfoButtons[0]);
 
     // Expect the tooltip content to disappear
     expect(screen.queryByText(/Only shows object storage costs/i)).not.toBeInTheDocument();
@@ -354,5 +358,21 @@ describe('CloudInformation', () => {
       Events.workspaceOpenedProjectInConsole,
       extractWorkspaceDetails(defaultGoogleWorkspace)
     );
+  });
+  it('renders the quota section', async () => {
+    // Act
+    await act(async () => {
+      render(
+        h(CloudInformation, {
+          workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true },
+          storageDetails,
+        })
+      );
+    });
+
+    // Assert
+    expect(screen.getByText('Quota')).toBeInTheDocument();
+    expect(screen.getByText('View quotas')).toBeInTheDocument();
+    expect(screen.getByText('Open quota adjuster')).toBeInTheDocument();
   });
 });

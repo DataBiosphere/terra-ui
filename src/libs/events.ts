@@ -202,6 +202,7 @@ const eventsList = {
   workspacesListSelectTab: 'workspace:list:tab',
   workspaceFindWorkflowDockstore: 'workspace:find-workflow:dockstoreClick',
   workspaceFindWorkflowTerraRepo: 'workspace:find-workflow:terraWorkflowRepoClick',
+  workspaceOpenQuotaInConsole: 'workspace:openedQuotaInConsole',
 } as const;
 
 // Helper type to create BaseMetricsEventName.
