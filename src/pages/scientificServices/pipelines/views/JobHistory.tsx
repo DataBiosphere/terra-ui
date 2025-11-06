@@ -106,21 +106,21 @@ export const JobHistory = () => {
                 </a>
               </div>
             </div>
-            {!isLoading && (
-              <div style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
-                {isLoadingPipelines && <Spinner size={20} />}
-                <ButtonPrimary
-                  type='button'
-                  disabled={isLoadingPipelines}
-                  onClick={() => setShowFilters(!showFilters)}
-                  aria-label={showFilters ? 'Hide filters' : 'Show filters'}
-                  style={{ minWidth: '140px' }}
-                >
-                  <Icon icon='search' size={16} style={{ marginRight: '0.5rem' }} />
-                  {showFilters ? 'Hide Filters' : 'Show Filters'}
-                </ButtonPrimary>
-              </div>
-            )}
+            {/* {!isLoading && ( */}
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
+              {isLoadingPipelines && <Spinner size={20} />}
+              <ButtonPrimary
+                type='button'
+                disabled={isLoadingPipelines}
+                onClick={() => setShowFilters(!showFilters)}
+                aria-label={showFilters ? 'Hide filters' : 'Show filters'}
+                style={{ minWidth: '140px' }}
+              >
+                <Icon icon='search' size={16} style={{ marginRight: '0.5rem' }} />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+              </ButtonPrimary>
+            </div>
+            {/* )} */}
           </div>
         </div>
 
