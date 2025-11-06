@@ -1,4 +1,4 @@
-import { Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packages/components';
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
@@ -36,6 +36,7 @@ export const JobHistory = () => {
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
+  const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
@@ -87,26 +88,43 @@ export const JobHistory = () => {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <h3>Job History</h3>
-          <div style={{ marginBottom: '0.25rem' }}>
-            All files associated with jobs will be automatically deleted after {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days
-            from completion.
-          </div>
-          <div>
-            For support, email{' '}
-            <a
-              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-              href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
-            >
-              {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
-            </a>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ marginBottom: '0.25rem' }}>
+                All files associated with jobs will be automatically deleted after {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days
+                from completion.
+              </div>
+              <div>
+                For support, email{' '}
+                <a
+                  style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+                  href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
+                >
+                  {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+                </a>
+              </div>
+            </div>
+            {!isLoading && (
+              <ButtonPrimary
+                type='button'
+                onClick={() => setShowFilters(!showFilters)}
+                aria-label={showFilters ? 'Hide filters' : 'Show filters'}
+              >
+                <Icon icon='search' size={16} />
+                Filter
+              </ButtonPrimary>
+            )}
           </div>
         </div>
         {/* Table Filters */}
-        <TableFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          availablePipelineNames={availablePipelineNames}
-        />
+        {showFilters && (
+          <TableFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            availablePipelineNames={availablePipelineNames}
+          />
+        )}
         <div style={{ flex: 1 }}>
           {pipelineRunsResponse && !isLoading ? (
             <AutoSizer>
