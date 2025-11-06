@@ -106,7 +106,6 @@ export const JobHistory = () => {
                 </a>
               </div>
             </div>
-            {/* {!isLoading && ( */}
             <div style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
               {isLoadingPipelines && <Spinner size={20} />}
               <ButtonPrimary
@@ -120,7 +119,6 @@ export const JobHistory = () => {
                 {showFilters ? 'Hide Filters' : 'Show Filters'}
               </ButtonPrimary>
             </div>
-            {/* )} */}
           </div>
         </div>
 
