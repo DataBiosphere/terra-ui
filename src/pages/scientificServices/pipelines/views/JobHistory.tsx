@@ -121,7 +121,27 @@ export const JobHistory = () => {
                     setSort(sort);
                     setPageNumber(1);
                   })}
-                  noContentMessage={filters ? <div>No results match the selected filters</div> : 'Nothing to display'}
+                  noContentMessage={
+                    filters ? (
+                      <div>
+                        No results match the selected filters.{' '}
+                        <a
+                          style={{
+                            color: '#46A3E9',
+                            fontWeight: 700,
+                            textDecoration: 'underline',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => setFilters({})}
+                        >
+                          Clear filters
+                        </a>{' '}
+                        to see all jobs.
+                      </div>
+                    ) : (
+                      'Nothing to display'
+                    )
+                  }
                   tabIndex={-1}
                   variant={undefined}
                   styleHeader={() => ({ backgroundColor: '#eff0f1' })}

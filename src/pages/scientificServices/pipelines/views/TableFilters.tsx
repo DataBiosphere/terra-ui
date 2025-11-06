@@ -1,8 +1,7 @@
-import { Select } from '@terra-ui-packages/components';
+import { ButtonPrimary, Select } from '@terra-ui-packages/components';
 import React from 'react';
-import { DelayedSearchInput, TextInput } from 'src/components/input';
+import { DelayedSearchInput } from 'src/components/input';
 import { PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import colors from 'src/libs/colors';
 
 export interface FilterValues {
   description?: string;
@@ -126,25 +125,21 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
           />
         </div>
 
-        {/* Clear Filters Button */}
-        <div style={{ display: 'flex', flex: '0 0 auto' }}>
-          <button
-            type='button'
+        <div
+          style={{
+            display: 'flex',
+            flex: '0 0 auto',
+          }}
+        >
+          <ButtonPrimary
             disabled={!hasActiveFilters}
             onClick={handleClearFilters}
             style={{
-              color: hasActiveFilters ? '#46A3E9' : '#aaa',
-              fontWeight: 600,
-              textDecoration: 'underline',
-              background: 'none',
-              border: 'none',
-              padding: '0.5rem',
-              cursor: hasActiveFilters ? 'default' : 'not-allowed',
-              fontSize: '14px',
+              height: '2.33rem',
             }}
           >
             Clear
-          </button>
+          </ButtonPrimary>
         </div>
       </div>
     </div>
