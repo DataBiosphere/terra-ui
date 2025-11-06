@@ -5,12 +5,10 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
@@ -22,6 +20,7 @@ import {
 import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFloatInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
+import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 import {
@@ -34,10 +33,6 @@ import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/wi
 import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaDetailsWidget';
 
 export const RunJob = () => {
-  const signal = useCancellation();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
   const [uploadState, setUploadState] = useState<Record<string, PipelineInputFileUploadState>>({});
   const [preparedJobId, setPreparedJobId] = useState<string>();
@@ -55,7 +50,8 @@ export const RunJob = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
 
-  // User quota for the selected pipeline
+  // API calls
+  const { isLoading, pipelines: pipelinesList } = usePipelinesList();
   const { quota, pipelineDetails, meetsMinimumQuota, isLoading: isLoadingQuota } = useUserQuota(selectedPipeline);
 
   const resetSelectedUserInputs = () => {
@@ -118,27 +114,20 @@ export const RunJob = () => {
   }, [pipelineDetails]);
 
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      const response = await Teaspoons(signal).getPipelines();
-
-      const options = response.results.map((pipeline) => ({
+    if (pipelinesList && pipelinesList.length > 0) {
+      const options = pipelinesList.map((pipeline) => ({
         value: pipeline,
         label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
       }));
 
-      setPipelinesList(response.results);
       setPipelineVersionOptions(options);
 
       // Automatically select the first pipeline if there's only one available
-      if (response.results.length === 1) {
-        setSelectedPipeline(response.results[0]);
+      if (pipelinesList.length === 1) {
+        setSelectedPipeline(pipelinesList[0]);
       }
-
-      setIsLoading(false);
     }
-    fetchData();
-  }, [signal]);
+  }, [pipelinesList]);
 
   const handleSubmit = async () => {
     if (!selectedPipeline) {

@@ -17,6 +17,7 @@ import {
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/views/TableFilters';
@@ -36,14 +37,13 @@ export const JobHistory = () => {
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
-  const [showFilters, setShowFilters] = useState(true); // todo flip back
+  const [showFilters, setShowFilters] = useState(false); // todo flip back
   const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
   });
 
-  // todo populate this from a hook
-  const AVAILABLE_PIPELINE_NAMES = ['array_imputation'];
+  const { isLoading: isLoadingPipelines, pipelines: pipelinesList } = usePipelinesList();
 
   // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {
@@ -107,25 +107,25 @@ export const JobHistory = () => {
               </div>
             </div>
             {!isLoading && (
-              <ButtonPrimary
-                type='button'
-                onClick={() => setShowFilters(!showFilters)}
-                aria-label={showFilters ? 'Hide filters' : 'Show filters'}
-                style={{ minWidth: '140px' }}
-              >
-                <Icon icon='search' size={16} style={{ marginRight: '0.5rem' }} />
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </ButtonPrimary>
+              <div style={{ display: 'flex', flexDirection: 'row', gap: '0.25rem', alignItems: 'center' }}>
+                {isLoadingPipelines && <Spinner size={20} />}
+                <ButtonPrimary
+                  type='button'
+                  disabled={isLoadingPipelines}
+                  onClick={() => setShowFilters(!showFilters)}
+                  aria-label={showFilters ? 'Hide filters' : 'Show filters'}
+                  style={{ minWidth: '140px' }}
+                >
+                  <Icon icon='search' size={16} style={{ marginRight: '0.5rem' }} />
+                  {showFilters ? 'Hide Filters' : 'Show Filters'}
+                </ButtonPrimary>
+              </div>
             )}
           </div>
         </div>
         {/* Table Filters */}
         {showFilters && (
-          <TableFilters
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            availablePipelineNames={AVAILABLE_PIPELINE_NAMES}
-          />
+          <TableFilters filters={filters} onFilterChange={handleFilterChange} pipelinesList={pipelinesList} />
         )}
         <div style={{ flex: 1 }}>
           {pipelineRunsResponse && !isLoading ? (

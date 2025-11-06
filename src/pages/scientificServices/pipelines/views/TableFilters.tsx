@@ -1,7 +1,7 @@
 import { ButtonPrimary, Select } from '@terra-ui-packages/components';
 import React from 'react';
 import { DelayedSearchInput } from 'src/components/input';
-import { PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { Pipeline, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 export interface FilterValues {
   description?: string;
@@ -13,7 +13,7 @@ export interface FilterValues {
 interface TableFiltersProps {
   filters: FilterValues;
   onFilterChange: (filters: FilterValues) => void;
-  availablePipelineNames: string[];
+  pipelinesList: Pipeline[];
 }
 
 const STATUS_OPTIONS: { value: PipelineRunStatus; label: string }[] = [
@@ -23,7 +23,7 @@ const STATUS_OPTIONS: { value: PipelineRunStatus; label: string }[] = [
   { value: 'FAILED', label: 'Failed' },
 ];
 
-export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterChange, availablePipelineNames }) => {
+export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterChange, pipelinesList }) => {
   const handleInputChange = (field: keyof FilterValues, value: string) => {
     onFilterChange({
       ...filters,
@@ -37,7 +37,10 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
 
   const hasActiveFilters = Object.values(filters).some((value) => value !== undefined && value !== '');
 
-  const PIPELINE_OPTIONS = availablePipelineNames.map((name) => ({ value: name, label: name }));
+  const PIPELINE_OPTIONS = pipelinesList.map((pipeline) => ({
+    value: pipeline.pipelineName,
+    label: pipeline.pipelineName,
+  }));
 
   return (
     <div

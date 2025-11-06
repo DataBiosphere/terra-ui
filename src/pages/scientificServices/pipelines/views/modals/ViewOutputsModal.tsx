@@ -149,7 +149,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
               </div>
             ) : (
               <div style={{ padding: '1rem', textAlign: 'center' }}>
-                No output information found for this job. If this job completed more than $
+                No output information found for this job. If this job completed more than{' '}
                 {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days ago, the outputs have been deleted.
               </div>
             )}
