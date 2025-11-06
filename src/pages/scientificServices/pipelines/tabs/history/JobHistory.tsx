@@ -18,9 +18,9 @@ import {
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
+import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewOutputsModal';
-import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/tabs/history/TableFilters';
 
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
