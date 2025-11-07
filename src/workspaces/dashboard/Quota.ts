@@ -15,7 +15,7 @@ interface QuotaProps {
 }
 
 const quotaInfoBox = h(InfoBox, { style: { marginLeft: '1ch' } }, [
-  'For more information on quotas, please refer to the ',
+  'For more information, please refer to the ',
   h(
     Link,
     {
