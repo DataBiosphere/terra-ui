@@ -1,6 +1,6 @@
 import { icon, InfoBox, Link, TooltipTrigger } from '@terra-ui-packages/components';
 import { CSSProperties, Fragment } from 'react';
-import { br, div, h, h3 } from 'react-hyperscript-helpers';
+import { br, div, h, h3, span } from 'react-hyperscript-helpers';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
@@ -67,7 +67,7 @@ export const Quota = ({ workspace }: QuotaProps) => {
               'You do not have permission to adjust quotas for this project. Please contact your workspace owner(s) for assistance.',
           },
       [
-        h('span', { style: { display: 'inline-block' } }, [
+        span({ style: { display: 'inline-block' } }, [
           h(
             Link,
             {
