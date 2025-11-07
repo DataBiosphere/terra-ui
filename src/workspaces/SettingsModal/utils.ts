@@ -3,7 +3,6 @@ import {
   BucketLifecycleRule,
   BucketLifecycleSetting,
   DeleteBucketLifecycleRule,
-  ImprovedDataTablesSetting,
   RequesterPaysSetting,
   SeparateSubmissionFinalOutputsSetting,
   SoftDeleteSetting,
@@ -40,9 +39,6 @@ export const isSoftDeleteSetting = (setting: WorkspaceSetting): setting is SoftD
 
 export const isRequesterPaysSetting = (setting: WorkspaceSetting): setting is RequesterPaysSetting =>
   setting.settingType === 'GcpBucketRequesterPays';
-
-export const isImprovedDataTablesSetting = (setting: WorkspaceSetting): setting is ImprovedDataTablesSetting =>
-  setting.settingType === 'CompactDataTables';
 
 export const isLogRetentionSetting = (setting: WorkspaceSetting): setting is WorkspaceAnalysisLogRetentionSetting =>
   setting.settingType === 'GcpLogBucketRetention';
@@ -214,41 +210,6 @@ export const modifyRequesterPaysSetting = (
         settingType: 'GcpBucketRequesterPays',
         config: { enabled },
       } as RequesterPaysSetting,
-    ],
-    otherSettings
-  );
-};
-
-/**
- * Modifies the improved data tables setting in the workspace settings.
- * If no such setting exists and improved data tables is set to enabled, it will be created.
- *
- * Note that any other settings will be preserved but moved to the end of the array.
- */
-export const modifyImprovedDataTablesSetting = (
-  originalSettings: WorkspaceSetting[],
-  enabled: boolean
-): WorkspaceSetting[] => {
-  // Clone original for testing purposes and to allow eventing only if there was a change.
-  const workspaceSettings = _.cloneDeep(originalSettings);
-
-  const improvedDataTablesSettings: ImprovedDataTablesSetting[] = workspaceSettings.filter(
-    (setting: WorkspaceSetting) => isImprovedDataTablesSetting(setting)
-  ) as ImprovedDataTablesSetting[];
-  const otherSettings: WorkspaceSetting[] = workspaceSettings.filter(
-    (setting) => !isImprovedDataTablesSetting(setting)
-  );
-
-  // If no ImprovedDataTablesSetting existed and improved data tables is set to disabled, do nothing
-  if (improvedDataTablesSettings.length === 0 && !enabled) {
-    return workspaceSettings;
-  }
-  return _.concat(
-    [
-      {
-        settingType: 'CompactDataTables',
-        config: { enabled },
-      } as ImprovedDataTablesSetting,
     ],
     otherSettings
   );

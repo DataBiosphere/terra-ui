@@ -5,7 +5,7 @@ import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
-import { Clickable, Link, spinnerOverlay } from 'src/components/common';
+import { Clickable, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { DelayedSearchInput } from 'src/components/input';
 import { collapseStatus, statusType } from 'src/components/job-common';
@@ -37,6 +37,15 @@ const styles = {
   },
   multiLineCellText: {
     fontSize: 12,
+  },
+  dropdownStyle: {
+    padding: '0.5rem 0.5rem',
+    borderRadius: 4,
+    border: `1px solid ${colors.dark(0.2)}`,
+    background: colors.light(0.1),
+    fontSize: 14,
+    height: 36,
+    cursor: 'pointer',
   },
 };
 
@@ -106,25 +115,38 @@ const statusCell = (workflowStatuses, status) => {
   );
 };
 
-const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
-  div([
-    'You have not run any submissions yet. To get started, go to the ',
-    span({ style: { fontWeight: 600 } }, ['Workflows']),
-    ' tab and select a workflow to run.',
-  ]),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    h(
-      Link,
-      {
-        ...Utils.newTabLinkProps,
-        href: 'https://support.terra.bio/hc/en-us/articles/360037096272',
-      },
-      ['What is a submission?']
-    ),
-  ]),
-]);
+const noJobsMessage = (dateRange) =>
+  div({ style: { fontSize: 20, margin: '1rem' } }, [
+    div([
+      `You have not run any submissions ${dateRange === '30' ? 'in the last 30 days' : 'yet'}. To get started, go to the `,
+      span({ style: { fontWeight: 600 } }, ['Workflows']),
+      ' tab and select a workflow to run.',
+    ]),
+    div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+      h(
+        Link,
+        {
+          ...Utils.newTabLinkProps,
+          href: 'https://support.terra.bio/hc/en-us/articles/360037096272',
+        },
+        ['What is a submission?']
+      ),
+    ]),
+  ]);
 
-const SubmissionHistory = _.flow(
+const getInitialDateRange = () => {
+  const hashParts = window.location.hash.split('?');
+  const params = new URLSearchParams(hashParts[1] || '');
+  const urlDateRange = params.get('dateRange');
+
+  // Only return valid values, otherwise default to 30
+  if (urlDateRange === 'all' || urlDateRange === '30') {
+    return urlDateRange;
+  }
+  return '30';
+};
+
+export const SubmissionHistory = _.flow(
   forwardRefWithName('SubmissionHistory'),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -137,6 +159,7 @@ const SubmissionHistory = _.flow(
   const [loading, setLoading] = useState(false);
   const [abortingId, setAbortingId] = useState(undefined);
   const [textFilter, setTextFilter] = useState('');
+  const [dateRange, setDateRange] = useState(getInitialDateRange);
   const [sort, setSort] = useState({ field: 'submissionDate', direction: 'desc' });
   const [updatingCommentId, setUpdatingCommentId] = useState(undefined);
 
@@ -150,7 +173,20 @@ const SubmissionHistory = _.flow(
 
   // Helpers
   const refresh = Utils.withBusyState(setLoading, async () => {
+    if (scheduledRefresh.current) {
+      clearTimeout(scheduledRefresh.current);
+    }
     try {
+      let startDate;
+      if (dateRange === '30') {
+        startDate = new Date();
+        startDate.setDate(new Date().getDate() - 30);
+      } else {
+        startDate = undefined;
+      }
+
+      const params = {};
+      if (startDate) params.startDate = startDate.toISOString().split('T')[0];
       const submissions = _.flow(
         _.orderBy('submissionDate', 'desc'),
         _.map((sub) => {
@@ -179,10 +215,9 @@ const SubmissionHistory = _.flow(
 
           return _.set('asText', subAsText, sub);
         })
-      )(await Workspaces(signal).workspace(namespace, name).listSubmissions());
+      )(await Workspaces(signal).workspace(namespace, name).listSubmissions(params));
       setSubmissions(submissions);
-
-      if (_.some(({ status }) => !isTerminal(status), submissions)) {
+      if (dateRange !== 'all' && _.some(({ status }) => !isTerminal(status), submissions)) {
         scheduledRefresh.current = setTimeout(refresh, 1000 * 60);
       }
     } catch (error) {
@@ -205,14 +240,52 @@ const SubmissionHistory = _.flow(
 
   // Lifecycle
   useOnMount(() => {
-    refresh();
-
     return () => {
       if (scheduledRefresh.current) {
         clearTimeout(scheduledRefresh.current);
       }
     };
   });
+
+  // Set dateRange in URL if missing on mount
+  useEffect(() => {
+    const hashParts = window.location.hash.split('?');
+    const params = new URLSearchParams(hashParts[1] || '');
+    if (!params.has('dateRange')) {
+      params.set('dateRange', dateRange);
+      window.history.replaceState({}, '', `${window.location.pathname}${hashParts[0]}?${params.toString()}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Sync dateRange state with URL changes
+    const handleHashChange = () => {
+      const hashParts = window.location.hash.split('?');
+      const params = new URLSearchParams(hashParts[1] || '');
+      const urlDateRange = params.get('dateRange');
+
+      if ((urlDateRange === 'all' || urlDateRange === '30') && urlDateRange !== dateRange) {
+        setDateRange(urlDateRange);
+        // eslint-disable-next-line
+        return; // return to avoid duplicate refresh
+      }
+    };
+    // Update URL when dateRange changes
+    const hashParts = window.location.hash.split('?');
+    const params = new URLSearchParams(hashParts[1] || '');
+    const urlDateRange = params.get('dateRange');
+    if (dateRange !== urlDateRange) {
+      params.set('dateRange', dateRange);
+      window.history.replaceState({}, '', `${window.location.pathname}${hashParts[0]}?${params.toString()}`);
+    }
+    refresh();
+
+    // Listen for URL changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange]);
 
   useImperativeHandle(ref, () => ({ refresh }));
 
@@ -244,6 +317,19 @@ const SubmissionHistory = _.flow(
 
   return h(Fragment, [
     div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        span({ style: { marginRight: '0.5rem', fontWeight: 'bold' } }, ['Date range']),
+        h(Select, {
+          id: 'submission-date-range-select',
+          isSearchable: false,
+          value: dateRange,
+          onChange: (option) => setDateRange(option.value),
+          options: [
+            { value: '30', label: 'Last 30 Days' },
+            { value: 'all', label: 'All Submissions' },
+          ],
+        }),
+      ]),
       div({ style: { flexGrow: 1 } }),
       h(DelayedSearchInput, {
         'aria-label': 'Search',
@@ -458,7 +544,7 @@ const SubmissionHistory = _.flow(
               ],
             }),
         ]),
-      !loading && !hasJobs && noJobsMessage,
+      !loading && !hasJobs && noJobsMessage(dateRange),
       !!abortingId &&
         h(
           Modal,

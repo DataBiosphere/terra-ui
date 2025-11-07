@@ -40,18 +40,6 @@ describe('RenameColumnModal', () => {
     expect(renameModal.getByText(/Column name cannot be/));
   });
 
-  it('Does not error on GCP reserved word in azure', async () => {
-    // Arrange
-    const renameProps = { ...defaultRenameColumnModalProps, dataProvider: { providerName: 'WDS' } };
-    // Act
-    const renameModal = render(h(RenameColumnModal, renameProps));
-    // User enters defaultEntityType_id
-    const input = screen.getByLabelText(/New Name/);
-    await userEvent.type(input, 'defaultEntityType_id');
-    // Assert
-    expect(renameModal.queryByText(/Column name cannot be/)).toBeNull();
-  });
-
   it('Errors on existing name for column name', async () => {
     // Arrange
     const renameProps = { ...defaultRenameColumnModalProps };
@@ -64,18 +52,6 @@ describe('RenameColumnModal', () => {
     expect(renameModal.getByText(/already exists as an attribute name/));
   });
 
-  it('Errors on column name starting with sys_ in azure', async () => {
-    // Arrange
-    const renameProps = { ...defaultRenameColumnModalProps, dataProvider: { providerName: 'WDS' } };
-    // Act
-    const renameModal = render(h(RenameColumnModal, renameProps));
-    // User enters 'attribute2'
-    const input = screen.getByLabelText(/New Name/);
-    await userEvent.type(input, 'sys_attribute');
-    // Assert
-    expect(renameModal.getByText(/Column name cannot start with "sys_"/));
-  });
-
   it('Does not errors on column name starting with sys_ in gcp', async () => {
     // Arrange
     const renameProps = { ...defaultRenameColumnModalProps };
@@ -86,18 +62,6 @@ describe('RenameColumnModal', () => {
     await userEvent.type(input, 'sys_attribute');
     // Assert
     expect(renameModal.queryByText(/Column name cannot start with "sys_"/)).toBeNull();
-  });
-
-  it('Does not allow colons in azure', async () => {
-    // Arrange
-    const renameProps = { ...defaultRenameColumnModalProps, dataProvider: { providerName: 'WDS' } };
-    // Act
-    const renameModal = render(h(RenameColumnModal, renameProps));
-    // User enters 'attribute2'
-    const input = screen.getByLabelText(/New Name/);
-    await userEvent.type(input, 'namespace:attribute');
-    // Assert
-    expect(renameModal.getByText(/Column name may only contain alphanumeric characters, underscores, and dashes./));
   });
 
   it('Allows a single colon in gcp', async () => {

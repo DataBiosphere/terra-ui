@@ -37,7 +37,6 @@ export type WorkspaceSetting =
   | SoftDeleteSetting
   | RequesterPaysSetting
   | SeparateSubmissionFinalOutputsSetting
-  | ImprovedDataTablesSetting
   | WorkspaceAnalysisLogRetentionSetting;
 
 export interface BucketLifecycleSetting {
@@ -52,11 +51,6 @@ export interface SoftDeleteSetting {
 
 export interface RequesterPaysSetting {
   settingType: 'GcpBucketRequesterPays';
-  config: { enabled: boolean };
-}
-
-export interface ImprovedDataTablesSetting {
-  settingType: 'CompactDataTables';
   config: { enabled: boolean };
 }
 
@@ -130,6 +124,7 @@ export interface BaseWorkspaceInfo {
   totalSpend?: string;
   totalCompute?: string;
   totalStorage?: string;
+  otherSpend?: string;
 }
 
 export interface AzureWorkspaceInfo extends BaseWorkspaceInfo {

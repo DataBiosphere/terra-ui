@@ -11,15 +11,6 @@ import { JobHistory } from './JobHistory';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 
-type FeaturePreviewExports = typeof import('src/libs/feature-previews');
-jest.mock(
-  'src/libs/feature-previews',
-  (): FeaturePreviewExports => ({
-    ...jest.requireActual('src/libs/feature-previews'),
-    isFeaturePreviewEnabled: jest.fn().mockReturnValue(true),
-  })
-);
-
 jest.mock('react-virtualized', () => {
   const actual = jest.requireActual('react-virtualized');
 
@@ -46,6 +37,14 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn(() => '/'),
 }));
 
+beforeEach(() => {
+  global.fetch = jest.fn().mockResolvedValue({
+    headers: {
+      get: jest.fn().mockReturnValue('1234'),
+    },
+  } as any);
+});
+
 describe('job history table', () => {
   it('renders the job history table', async () => {
     const pipelineRun = mockPipelineRun('RUNNING');
@@ -67,8 +66,47 @@ describe('job history table', () => {
 
     expect(await screen.findByText('Job History')).toBeInTheDocument();
     expect(screen.queryAllByText(pipelineRun.description!)).toHaveLength(2);
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.queryAllByText('In Progress', { exact: false })).toHaveLength(2);
     expect(screen.getByText('array_imputation v1')).toBeInTheDocument();
+  });
+
+  it('allows sorting by columns', async () => {
+    const pipelineRun1 = mockPipelineRun('RUNNING');
+    const pipelineRun2 = {
+      ...mockPipelineRun('SUCCEEDED'),
+      jobId: 'run-id-124',
+      timeSubmitted: '2024-10-01T00:00:00Z',
+      description: 'Another Test Job',
+    };
+    const pipelineRuns = [pipelineRun1, pipelineRun2];
+
+    const mockPipelineRunResponse = {
+      pageToken: 'nextPageToken',
+      results: pipelineRuns,
+      totalResults: 2,
+    };
+
+    asMockedFn(Teaspoons).mockReturnValue(
+      partial<TeaspoonsContract>({
+        getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+      })
+    );
+
+    render(<JobHistory />);
+
+    expect(await screen.findByText('Job History')).toBeInTheDocument();
+    expect(screen.queryAllByText(/Test Job/)).toHaveLength(2);
+
+    // Verify initial call to API without sort parameters defaults to (created, desc)
+    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(1, 10, 1, 'created', 'desc');
+
+    // Click Quota Used header to sort ascending
+    const jobIdHeader = screen.getByText('Quota Used');
+    expect(jobIdHeader).toBeInTheDocument();
+    await userEvent.click(jobIdHeader);
+
+    // Verify that API was called with correct sort parameters (quotaConsumed, asc)
+    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(2, 10, 1, 'quotaConsumed', 'asc');
   });
 
   it('displays pipeline name without version when version is not available', async () => {
@@ -125,8 +163,41 @@ describe('job history table', () => {
 
     const viewOutputsButton = screen.getByText('View Outputs');
     expect(viewOutputsButton).toBeInTheDocument();
+    expect(viewOutputsButton).not.toBeDisabled();
 
     expect(screen.queryByText('View Error')).not.toBeInTheDocument();
+  });
+
+  it('disables the View Outputs button for jobs that succeeded more than 14 days ago', async () => {
+    const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+    const pipelineRun = {
+      ...mockPipelineRun('SUCCEEDED'),
+      timeSubmitted: fifteenDaysAgo,
+      timeCompleted: fifteenDaysAgo,
+    };
+    const pipelineRuns = [pipelineRun];
+
+    const mockPipelineRunResponse = {
+      pageToken: null,
+      results: pipelineRuns,
+      totalResults: 1,
+    };
+
+    asMockedFn(Teaspoons).mockReturnValue(
+      partial<TeaspoonsContract>({
+        getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+      })
+    );
+
+    render(<JobHistory />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+    });
+
+    const viewOutputsButton = screen.getByText('View Outputs');
+    expect(viewOutputsButton).toBeInTheDocument();
+    expect(viewOutputsButton).toBeDisabled();
   });
 
   it('shows View Error button for FAILED jobs', async () => {
@@ -181,7 +252,7 @@ describe('job history table', () => {
 
     expect(screen.queryByText('View Outputs')).not.toBeInTheDocument();
     expect(screen.queryByText('View Error')).not.toBeInTheDocument();
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.queryAllByText('In Progress', { exact: false })).toHaveLength(2);
   });
 
   it('opens the outputs modal when View Outputs button is clicked', async () => {
@@ -219,6 +290,8 @@ describe('job history table', () => {
     await user.click(screen.getByText('View Outputs'));
 
     expect(await screen.findByText('Pipeline Outputs', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('output1.txt')).toBeInTheDocument();
+    expect(await screen.findByText('1.21 KiB', { exact: false })).toBeInTheDocument();
   });
 
   it('opens the error modal when View Error button is clicked', async () => {
@@ -286,6 +359,12 @@ describe('job history table', () => {
 
       expect(screen.getByText('Preparing')).toBeInTheDocument();
       expect(screen.queryByText('View Error')).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByText(
+          'This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than 12 hours will be marked as failed.'
+        )
+      ).toBeInTheDocument();
     });
 
     it(`displays FAILED if the job was submitted more than ${PREPARING_JOB_CUTOFF_HOURS} hours ago and is in PREPARING status`, async () => {
@@ -375,6 +454,36 @@ describe('job history table', () => {
           'This job is still in progress. The amount of quota consumed may change as the job progresses. If the job fails, no quota will be consumed.'
         )
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('Deletion Date column', () => {
+    it('displays the deletion date for SUCCEEDED jobs', async () => {
+      const pipelineRun = {
+        ...mockPipelineRun('SUCCEEDED'),
+        timeCompleted: '2023-10-15T14:00:00Z',
+      };
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      expect(screen.getByText('Oct 15, 2023')).toBeInTheDocument();
     });
   });
 });

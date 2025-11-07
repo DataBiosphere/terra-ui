@@ -4,14 +4,16 @@ import FileSaver from 'file-saver';
 import JSZip from 'jszip';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { div, h, img, p } from 'react-hyperscript-helpers';
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/analysis/utils/notebook-utils';
 import { tools } from 'src/analysis/utils/tool-utils';
 import { ButtonSecondary } from 'src/components/common';
 import { icon } from 'src/components/icons';
-import IGVBrowser from 'src/components/IGVBrowser';
-import IGVFileSelector, { getIgvMetricDetails } from 'src/components/IGVFileSelector';
+import IGVBrowser from 'src/components/igv/IGVBrowser';
+import IGVFileSelector, { getIgvMetricDetails } from 'src/components/igv/IGVFileSelector';
+import IGVSessionModal from 'src/components/igv/IGVSessionModal';
+import { clearIgvUrlParams, decodeSessionFromUrl, getIgvUrlParams, useIGVSessions } from 'src/components/igv/useIGVSessions';
 import { MenuButton } from 'src/components/MenuButton';
 import { withModalDrawer } from 'src/components/ModalDrawer';
 import { ModalToolButton } from 'src/components/ModalToolButton';
@@ -126,6 +128,8 @@ const ToolDrawer = _.flow(
           title: 'IGV',
           drawerContent: h(IGVFileSelector, {
             onSuccess: onIgvSuccess,
+            workspace,
+            entityType: entityKey,
             selectedEntities,
           }),
         }),
@@ -259,6 +263,7 @@ const EntitiesContent = ({
   loadMetadata,
   snapshotName,
   editable,
+  onIgvFilterPanelChange,
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({});
@@ -273,6 +278,7 @@ const EntitiesContent = ({
   const [showToolSelector, setShowToolSelector] = useState(false);
   const [igvFiles, setIgvFiles] = useState(undefined);
   const [igvRefGenome, setIgvRefGenome] = useState('');
+  const [igvInitialSession, setIgvInitialSession] = useState(null);
   const [selectedViewer, setSelectedViewer] = useState('');
   const {
     columnProvenance,
@@ -281,6 +287,34 @@ const EntitiesContent = ({
     loadColumnProvenance,
   } = useColumnProvenance(workspace, entityKey);
   const [showColumnProvenance, setShowColumnProvenance] = useState(undefined);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [sessionAction, setSessionAction] = useState(null);
+
+  const {
+    savedSessions,
+    getSavedSessions,
+    loadSession: loadSessionData,
+    deleteSession,
+    refreshSessions,
+  } = useIGVSessions(workspace?.workspace?.workspaceId);
+
+  const loadSession = async (sessionName) => {
+    try {
+      const sessionData = await loadSessionData(sessionName);
+      if (sessionData) {
+        // Load IGV with the session data
+        setIgvFiles([]);
+        setIgvRefGenome(sessionData.genome || 'hg38');
+        setIgvInitialSession(sessionData.data);
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to load session:', error);
+      return false;
+    }
+  };
 
   const buildTSV = (columnSettings, entities, forDownload) => {
     const sortedEntities = _.sortBy('name', entities);
@@ -507,17 +541,79 @@ const EntitiesContent = ({
   };
 
   const renderIGVMenu = () => {
-    return renderIconButton(
-      igvLogo,
-      !entitiesSelected ? 'Select rows to open in IGV' : 'Open with Integrative Genomics Viewer',
-      () => {
-        setSelectedViewer('IGV');
-        setShowToolSelector(true);
-      },
-      !entitiesSelected,
-      {
-        image: { width: 25, height: 25 },
-      }
+    const openIgvDisabled = !entitiesSelected;
+    const loadSessionDisabled = savedSessions.length === 0;
+    const allMenuItemsDisabled = openIgvDisabled && loadSessionDisabled;
+
+    return (
+      !snapshotName &&
+      h(
+        MenuTrigger,
+        {
+          side: 'bottom',
+          closeOnClick: true,
+          content: h(Fragment, [
+            h(
+              MenuButton,
+              {
+                onClick: () => {
+                  setSelectedViewer('IGV');
+                  setShowToolSelector(true);
+                },
+                disabled: openIgvDisabled,
+                tooltip: openIgvDisabled && 'Select rows to open in IGV',
+              },
+              'Open with IGV'
+            ),
+            h(MenuDivider),
+            h(
+              MenuButton,
+              {
+                onClick: () => {
+                  setSessionAction('load');
+                  setShowSessionModal(true);
+                },
+                disabled: loadSessionDisabled,
+                tooltip: loadSessionDisabled ? 'No saved sessions available' : 'Load a saved IGV session',
+              },
+              'Load IGV Session'
+            ),
+          ]),
+        },
+        [
+          h(
+            ButtonSecondary,
+            {
+              tooltip: !entitiesSelected
+                ? 'Select rows to open in IGV or load a saved session'
+                : 'Open with Integrative Genomics Viewer or load session',
+              'data-testid': 'igv-button',
+              disabled: allMenuItemsDisabled,
+              style: {
+                width: '3rem',
+                height: '2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '0.5rem',
+                borderRadius: '0.375rem',
+              },
+            },
+            [
+              img({
+                src: igvLogo,
+                alt: 'igv-logo',
+                style: {
+                  width: 25,
+                  height: 25,
+                  borderRadius: '0.375rem',
+                  opacity: allMenuItemsDisabled ? 0.5 : undefined,
+                },
+              }),
+            ]
+          ),
+        ]
+      )
     );
   };
 
@@ -542,8 +638,42 @@ const EntitiesContent = ({
 
   const dataProvider = new EntityServiceDataTableProvider(namespace, name);
 
-  return igvFiles
-    ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) })
+  useEffect(() => {
+    const { igvSession, igvGenome } = getIgvUrlParams();
+
+    if (igvSession && igvGenome && igvFiles === undefined) {
+      const sessionData = decodeSessionFromUrl(igvSession);
+      if (sessionData) {
+        setIgvFiles([]);
+        setIgvRefGenome(igvGenome);
+        setIgvInitialSession(sessionData);
+      }
+    }
+  }, [igvFiles]);
+
+  useEffect(() => {
+    // Refresh savedSessions when the component mounts
+    getSavedSessions();
+  }, [getSavedSessions]);
+
+  return igvFiles !== undefined
+    ? h(IGVBrowser, {
+        selectedFiles: igvFiles,
+        refGenome: igvRefGenome,
+        workspace,
+        onDismiss: () => {
+          setIgvFiles(undefined);
+          setIgvInitialSession(undefined);
+          clearIgvUrlParams();
+          refreshSessions();
+          // Clear filter panel state when dismissing
+          if (onIgvFilterPanelChange) {
+            onIgvFilterPanelChange({ show: false });
+          }
+        },
+        initialSession: igvInitialSession,
+        onFilterPanelChange: onIgvFilterPanelChange,
+      })
     : h(Fragment, [
         h(DataTable, {
           dataProvider,
@@ -721,6 +851,23 @@ const EntitiesContent = ({
               ),
             ]
           ),
+        showSessionModal &&
+          h(IGVSessionModal, {
+            action: sessionAction,
+            savedSessions,
+            onDismiss: () => setShowSessionModal(false),
+            onSave: () => false, // Not applicable from data table
+            onLoad: async (name) => {
+              const success = await loadSession(name);
+              if (success) {
+                setShowSessionModal(false);
+              }
+              return success;
+            },
+            onDelete: async (name) => {
+              deleteSession(name);
+            },
+          }),
         h(ToolDrawer, {
           workspace,
           isOpen: showToolSelector,

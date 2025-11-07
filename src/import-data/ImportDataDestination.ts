@@ -386,9 +386,6 @@ export const ImportDataDestination = (props: ImportDataDestinationProps): ReactN
                   return children.length > 0 ? h(Fragment, children) : undefined;
                 },
                 requireEnhancedBucketLogging: importRequiresSecurityMonitoring,
-                waitForServices: {
-                  wds: true,
-                },
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: (w) => {
                   setMode('existing');

@@ -1,32 +1,100 @@
-import { Icon } from '@terra-ui-packages/components';
-import React, { useRef } from 'react';
+import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
+import React, { Dispatch, ReactNode, SetStateAction, useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
-import { INPUT_DESCRIPTIONS } from 'src/pages/scientificServices/pipelines/utils/input-utils';
+import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import {
+  resumeUpload,
+  uploadTimeRemainingDisplayText,
+} from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+
+export interface PipelineInputFileUploadState {
+  signedUrl?: string; // The resumable upload session URL
+  progress: number; // Progress percentage (0-100)
+  uploadEtaSeconds?: number; // Estimated time remaining in seconds
+  errorMessage?: string; // Optional error message
+}
 
 interface PipelineInputSelectorProps {
   input: PipelineInput;
   selectedFile: File | null;
-  uploadProgress?: number;
+  uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | null) => void;
+  onValidation(error?: ReactNode): void;
+  validationError?: ReactNode;
+  onUploadComplete?: () => void;
+  setUploadState?: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>;
 }
 
 export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   input,
   selectedFile,
-  uploadProgress,
+  uploadState,
   onFileSelect,
+  onValidation,
+  validationError,
+  onUploadComplete,
+  setUploadState,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isFileValid = selectedFile && selectedFile.name.endsWith(input.fileSuffix || '');
-  const { label } = INPUT_DESCRIPTIONS[input.name];
+  const { name, displayName, isRequired, fileSuffix } = input;
+  const FILE_NAME_VALIDATION_REGEX = '^[a-zA-Z0-9_.-]+$';
+
+  const validateFile = (file: File | null) => {
+    // Check if a file is selected, if required
+    if (!file) {
+      onValidation(input.isRequired ? 'This file is required.' : undefined);
+      return;
+    }
+
+    // Validate file size
+    if (file.size > TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES) {
+      onValidation(
+        <>
+          <span>
+            File size exceeds the {formatBytes(TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES)} limit. Please upload a smaller
+            file.{' '}
+          </span>
+          <div style={{ marginTop: '0.5rem' }}>
+            <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
+            <a
+              href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
+              target='_blank'
+              style={{ color: '#46A3E9', textDecoration: 'underline' }}
+              rel='noreferrer'
+            >
+              Learn more about how to reduce your file size.
+            </a>
+          </div>
+        </>
+      );
+      return;
+    }
+
+    // Validate file type based on suffix
+    if (fileSuffix && !file.name.endsWith(fileSuffix)) {
+      onValidation(`Invalid file type. Please upload a ${fileSuffix} file.`);
+      return;
+    }
+
+    // Validate file name against regex
+    if (!new RegExp(FILE_NAME_VALIDATION_REGEX).test(file.name)) {
+      onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
+      return;
+    }
+
+    // All validations have passed
+    onValidation(undefined);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       onFileSelect(file);
+      validateFile(file);
     }
   };
 
@@ -34,6 +102,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     e.stopPropagation();
     e.preventDefault();
     onFileSelect(null);
+    onValidation(undefined);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -42,6 +111,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   const handleDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0 && !selectedFile) {
       onFileSelect(acceptedFiles[0]);
+      validateFile(acceptedFiles[0]);
     }
   };
 
@@ -56,10 +126,23 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     }
   };
 
+  const handleResumeUpload = async () => {
+    if (selectedFile && uploadState?.signedUrl && setUploadState) {
+      try {
+        await resumeUpload(input.name, selectedFile, uploadState.signedUrl, setUploadState);
+        if (onUploadComplete) {
+          onUploadComplete();
+        }
+      } catch (error) {
+        notify('error', `Failed to resume upload for ${input.name}: ${error}`);
+      }
+    }
+  };
+
   return (
     <div>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        {label || input.name} {input.isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        Select a {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
       </h3>
       <div
         style={{
@@ -73,7 +156,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           flexDirection: 'column',
         }}
       >
-        {!uploadProgress ? (
+        {!uploadState?.progress ? (
           <Dropzone
             onDrop={handleDrop}
             disabled={!!selectedFile}
@@ -98,7 +181,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   ref={fileInputRef}
                   type='file'
                   onChange={handleFileChange}
-                  accept={input.fileSuffix}
+                  accept={fileSuffix}
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -125,10 +208,10 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                           justifyContent: 'left',
                         }}
                       >
-                        {isFileValid ? (
-                          <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
-                        ) : (
+                        {validationError ? (
                           <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
+                        ) : (
+                          <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
                         )}
                         <div
                           style={{
@@ -148,11 +231,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                       <button
                         type='button'
                         onClick={handleClearFile}
-                        disabled={uploadProgress === 100}
+                        disabled={!!uploadState?.progress}
                         style={{
                           background: 'none',
                           border: 'none',
-                          cursor: uploadProgress === 100 ? 'not-allowed' : 'pointer',
+                          cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
                           color: '#666',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -161,12 +244,12 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                         }}
                         aria-label='Remove selected file'
                       >
-                        <Icon icon='times' size={24} color={uploadProgress === 100 ? colors.disabled() : '#4D72AA'} />
+                        <Icon icon='times' size={24} color={uploadState?.progress ? colors.disabled() : '#4D72AA'} />
                       </button>
                     </div>
                   ) : (
                     <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
-                      {dragging ? `Drop ${input.fileSuffix} file here` : `Drop ${input.fileSuffix} file or`}{' '}
+                      {dragging ? `Drop ${fileSuffix} file here` : `Drop ${fileSuffix} file or`}{' '}
                       {!dragging && (
                         <button
                           type='button'
@@ -195,13 +278,41 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         ) : (
           <>
             <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Upload status</div>
-            {uploadProgress < 100 ? (
+            {uploadState.progress < 100 ? (
               <>
-                <div>
-                  <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on your
-                  input file size. <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
-                </div>
-                <div key={input.name} style={{ marginTop: '1rem' }}>
+                {!uploadState.errorMessage ? (
+                  <div>
+                    <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on
+                    your input file size.{' '}
+                    <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', verticalAlign: 'middle' }} />{' '}
+                      <div>There was an error uploading the file.</div>
+                    </div>
+                    <ButtonPrimary type='button' onClick={handleResumeUpload}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <Icon icon='sync' />
+                        Retry
+                      </div>
+                    </ButtonPrimary>
+                  </div>
+                )}
+                <div key={name} style={{ marginTop: '1rem' }}>
                   <div
                     style={{
                       backgroundColor: '#e4e5e6',
@@ -211,12 +322,16 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   >
                     <div
                       style={{
-                        width: `${uploadProgress}%`,
+                        width: `${uploadState.progress}%`,
                         height: '21px',
-                        backgroundColor: '#5CC88D',
+                        backgroundColor: uploadState.errorMessage ? colors.danger() : '#5CC88D',
                         transition: 'width 0.3s ease-in-out',
                       }}
                     />
+                  </div>
+                  <div style={{ marginTop: '0.5rem', display: 'flex' }}>
+                    <div style={{ fontWeight: 'bold', marginRight: '0.25rem' }}>Estimated time remaining:</div>
+                    {uploadTimeRemainingDisplayText(uploadState.uploadEtaSeconds)}
                   </div>
                 </div>
               </>
@@ -228,11 +343,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             )}
           </>
         )}
-        {!isFileValid && selectedFile && (
-          <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>
-            Invalid file type. Please upload a <strong>{input.fileSuffix}</strong> file.
-          </div>
-        )}
+        {validationError && <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>{validationError}</div>}
       </div>
     </div>
   );

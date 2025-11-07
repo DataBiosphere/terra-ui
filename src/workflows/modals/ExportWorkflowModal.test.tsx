@@ -352,7 +352,7 @@ describe('export workflow main modal', () => {
     });
 
     const workspaceSelector = new SelectHelper(screen.getByRole('combobox', { name: 'Select a workspace' }), user);
-    await workspaceSelector.selectOption('cloud_azure_icon.svg name1');
+    await workspaceSelector.selectOption('cloud_azure_icon.svg good namespace / name1');
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
@@ -386,7 +386,7 @@ describe('export workflow main modal', () => {
     });
 
     const workspaceSelector = new SelectHelper(screen.getByRole('combobox', { name: 'Select a workspace' }), user);
-    await workspaceSelector.selectOption('cloud_azure_icon.svg name1');
+    await workspaceSelector.selectOption('cloud_azure_icon.svg good namespace / name1');
 
     await user.click(screen.getByRole('button', { name: 'Export' }));
 
@@ -453,7 +453,7 @@ describe('export workflow main modal', () => {
     });
 
     const workspaceSelector = new SelectHelper(screen.getByRole('combobox', { name: 'Select a workspace' }), user);
-    await workspaceSelector.selectOption('cloud_azure_icon.svg name1');
+    await workspaceSelector.selectOption('cloud_azure_icon.svg good namespace / name1');
 
     await user.click(screen.getByRole('button', { name: 'Export' }));
 
@@ -488,7 +488,7 @@ describe('export workflow main modal', () => {
     });
 
     const workspaceSelector = new SelectHelper(screen.getByRole('combobox', { name: 'Select a workspace' }), user);
-    await workspaceSelector.selectOption('cloud_azure_icon.svg name1');
+    await workspaceSelector.selectOption('cloud_azure_icon.svg good namespace / name1');
 
     await user.click(screen.getByRole('button', { name: 'Export' }));
 
@@ -615,7 +615,7 @@ describe('export workflow post-export modal', () => {
     });
 
     const workspaceSelector = new SelectHelper(screen.getByRole('combobox', { name: 'Select a workspace' }), user);
-    await workspaceSelector.selectOption('cloud_azure_icon.svg name1');
+    await workspaceSelector.selectOption('cloud_azure_icon.svg good namespace / name1');
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Name *' }), { target: { value: 'customname' } });
 

@@ -2,24 +2,31 @@ import { Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packag
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { FlexTable, HeaderCell, Paginator, TooltipCell } from 'src/components/table';
+import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-import { ImputationPrivatePreviewGate } from 'src/pages/scientificServices/pipelines/components/ImputationPrivatePreviewGate';
+import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/views/modals/ViewOutputsModal';
 
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
+
+interface SortProperties {
+  field: string;
+  direction: 'asc' | 'desc';
+}
 
 /*
    Right now, this will show all pipeline runs. Once we support more than one pipeline,
@@ -31,98 +38,110 @@ export const JobHistory = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
-  const nextPageToken = useRef<string>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [sort, setSort] = useState<SortProperties>({
+    field: 'created',
+    direction: 'desc',
+  });
 
+  // Fetch pipeline runs when the component mounts or when pagination/sorting controls change
   useEffect(() => {
     async function fetchPipelineRuns() {
-      const response = await Teaspoons(signal).getAllPipelineRuns(itemsPerPage, nextPageToken.current);
-      setPipelineRunsResponse(response);
-      nextPageToken.current = response.pageToken;
+      setIsLoading(true);
+      try {
+        const response = await Teaspoons(signal).getAllPipelineRuns(
+          itemsPerPage,
+          pageNumber,
+          sort?.field,
+          sort?.direction
+        );
+        setPipelineRunsResponse(response);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchPipelineRuns();
-  }, [pageNumber, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pageNumber, itemsPerPage, sort, signal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <FooterWrapper alwaysShow>
       {pipelinesTopBar('job history')}
-      <ImputationPrivatePreviewGate>
-        <main
-          style={{
-            paddingLeft: '2rem',
-            paddingRight: '2rem',
-            paddingTop: '1rem',
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            rowGap: '1rem',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <h3>Job History</h3>
-            <div style={{ marginBottom: '0.25rem' }}>
-              All files associated with jobs will be automatically deleted after 2 weeks from completion.
-            </div>
-            <div>
-              For support, email{' '}
-              <a
-                style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-                href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
-              >
-                {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
-              </a>
-            </div>
+      <main
+        style={{
+          paddingLeft: '2rem',
+          paddingRight: '2rem',
+          paddingTop: '1rem',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          rowGap: '1rem',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <h3>Job History</h3>
+          <div style={{ marginBottom: '0.25rem' }}>
+            All files associated with jobs will be automatically deleted after {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days
+            from completion.
           </div>
-          <div style={{ flex: 1, marginTop: '1rem' }}>
-            {pipelineRunsResponse ? (
-              <AutoSizer>
-                {({ width, height }) => (
-                  // Sorting is unsupported on this table for now. Eventually
-                  // we may update the paginated Teaspoons getAllPipelineRuns endpoint
-                  // to support filters and sorting. Until then, the results will be
-                  // sorted by creation date, with the most recent displayed first.
-                  <FlexTable
-                    aria-label='job history table'
-                    width={width}
-                    height={height}
-                    rowHeight={55}
-                    rowCount={pipelineRunsResponse.results.length}
-                    columns={getColumns(pipelineRunsResponse.results)}
-                    noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
-                    tabIndex={-1}
-                    variant={undefined}
-                    styleHeader={() => ({ backgroundColor: '#eff0f1' })}
-                  />
-                )}
-              </AutoSizer>
-            ) : (
-              <Spinner />
-            )}
+          <div>
+            For support, email{' '}
+            <a
+              style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+              href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
+            >
+              {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+            </a>
           </div>
-          {!_.isEmpty(pipelineRunsResponse?.results) && (
-            <div style={{ marginBottom: '0.5rem' }}>
-              {/* @ts-ignore */}
-              <Paginator
-                filteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
-                unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
-                pageNumber={pageNumber}
-                setPageNumber={(v) => {
-                  setPageNumber(v);
-                }}
-                itemsPerPage={itemsPerPage}
-                setItemsPerPage={(v) => {
-                  setPageNumber(1);
-                  setItemsPerPage(v);
-                }}
-              />
-            </div>
+        </div>
+        <div style={{ flex: 1, marginTop: '1rem' }}>
+          {pipelineRunsResponse && !isLoading ? (
+            <AutoSizer>
+              {({ width, height }) => (
+                <FlexTable
+                  aria-label='job history table'
+                  width={width}
+                  height={height}
+                  rowHeight={55}
+                  rowCount={pipelineRunsResponse.results.length}
+                  columns={getColumns(pipelineRunsResponse.results, sort, (sort) => {
+                    setSort(sort);
+                    setPageNumber(1);
+                  })}
+                  noContentMessage={pipelineRunsResponse.totalResults > 0 ? ' ' : 'Nothing to display'}
+                  tabIndex={-1}
+                  variant={undefined}
+                  styleHeader={() => ({ backgroundColor: '#eff0f1' })}
+                />
+              )}
+            </AutoSizer>
+          ) : (
+            <Spinner />
           )}
-        </main>
-      </ImputationPrivatePreviewGate>
+        </div>
+        {!_.isEmpty(pipelineRunsResponse?.results) && (
+          <div style={{ marginBottom: '0.5rem' }}>
+            {/* @ts-ignore */}
+            <Paginator
+              filteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+              unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+              pageNumber={pageNumber}
+              setPageNumber={(v) => {
+                setPageNumber(v);
+              }}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={(v) => {
+                setPageNumber(1);
+                setItemsPerPage(v);
+              }}
+            />
+          </div>
+        )}
+      </main>
     </FooterWrapper>
   );
 };
 
-const getColumns = (paginatedRuns: PipelineRun[]) => {
+const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: (sort: SortProperties) => void) => {
   return [
     {
       field: 'id',
@@ -138,7 +157,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 140 },
+      size: { basis: 150 },
     },
     {
       field: 'status',
@@ -146,11 +165,15 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 50 },
+      size: { basis: 40 },
     },
     {
       field: 'submitted',
-      headerRenderer: () => <HeaderCell>Submitted</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='created' onSort={onSort}>
+          <HeaderCell>Submitted</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -158,7 +181,12 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'completed',
-      headerRenderer: () => <HeaderCell>Completed</HeaderCell>,
+      headerRenderer: () => (
+        // updated is a proxy for timeCompleted, since timeCompleted is not a value in the TSPS PipelineRuns database table
+        <Sortable sort={sort} field='updated' onSort={onSort}>
+          <HeaderCell>Completed</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
@@ -174,11 +202,15 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
     },
     {
       field: 'quotaUsed',
-      headerRenderer: () => <HeaderCell>Quota Used</HeaderCell>,
+      headerRenderer: () => (
+        <Sortable sort={sort} field='quotaConsumed' onSort={onSort}>
+          <HeaderCell>Quota Used</HeaderCell>
+        </Sortable>
+      ),
       cellRenderer: ({ rowIndex }) => {
         return <QuotaUsedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 30 },
+      size: { basis: 40 },
     },
     {
       field: 'resultURL',
@@ -186,7 +218,7 @@ const getColumns = (paginatedRuns: PipelineRun[]) => {
       cellRenderer: ({ rowIndex }) => {
         return <ActionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 100 },
+      size: { basis: 40 },
     },
   ];
 };
@@ -258,9 +290,28 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
 
   const completionDate = new Date(pipelineRun?.timeCompleted);
   const deletionDate = new Date(completionDate);
-  deletionDate.setDate(deletionDate.getDate() + 14);
+  deletionDate.setDate(deletionDate.getDate() + TEASPOONS_FILE_OUTPUT_TTL_DAYS);
 
-  return <MediumDateWithTooltip date={deletionDate} />;
+  const today = new Date();
+  const threeDaysFromNow = new Date();
+  threeDaysFromNow.setDate(today.getDate() + 3);
+  // Check if the deletion date is within the next 3 days
+  const isDeletionSoon = deletionDate >= today && deletionDate <= threeDaysFromNow;
+
+  return (
+    <div
+      style={
+        isDeletionSoon
+          ? {
+              color: '#DB3214',
+              fontWeight: 600,
+            }
+          : {}
+      }
+    >
+      <MediumDateWithTooltip date={deletionDate} />
+    </div>
+  );
 };
 
 const QuotaUsedCell = (props: CellProps): ReactNode => {
@@ -288,26 +339,48 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
+  const jobOutputsDeleted =
+    pipelineRun.status === 'SUCCEEDED' &&
+    (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * TEASPOONS_FILE_OUTPUT_TTL_DAYS; // 24 hours * 14 days
+
   return (
     <div>
       {pipelineRun.status === 'SUCCEEDED' && (
         <>
-          <button
-            type='button'
-            style={{
-              color: '#46A3E9',
-              fontWeight: 700,
-              textDecoration: 'underline',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              font: 'inherit',
-            }}
-            onClick={() => outputsModal.open({ jobId: pipelineRun.jobId })}
+          <TooltipTrigger
+            content={
+              jobOutputsDeleted
+                ? `The outputs for this job have been deleted. Outputs are available for ${TEASPOONS_FILE_OUTPUT_TTL_DAYS} days after job completion.`
+                : undefined
+            }
+            side='top'
           >
-            View Outputs
-          </button>
+            <span style={{ cursor: jobOutputsDeleted ? 'not-allowed' : 'pointer' }}>
+              <button
+                type='button'
+                disabled={jobOutputsDeleted}
+                style={{
+                  color: jobOutputsDeleted ? colors.disabled() : '#46A3E9',
+                  fontWeight: 700,
+                  textDecoration: 'underline',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: jobOutputsDeleted ? 'not-allowed' : 'pointer',
+                  font: 'inherit',
+                }}
+                onClick={() => {
+                  outputsModal.open({ jobId: pipelineRun.jobId });
+                  Metrics().captureEvent(Events.teaspoons.viewJobOutputs, {
+                    pipelineName: pipelineRun.pipelineName,
+                    pipelineVersion: pipelineRun.pipelineVersion,
+                  });
+                }}
+              >
+                View Outputs
+              </button>
+            </span>
+          </TooltipTrigger>
           {outputsModal.maybeRender()}
         </>
       )}
@@ -325,7 +398,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              errorModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobErrors, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Error
           </button>
@@ -346,7 +425,13 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
               cursor: 'pointer',
               font: 'inherit',
             }}
-            onClick={() => errorModal.open({ jobId: pipelineRun.jobId })}
+            onClick={() => {
+              errorModal.open({ jobId: pipelineRun.jobId });
+              Metrics().captureEvent(Events.teaspoons.viewJobErrors, {
+                pipelineName: pipelineRun.pipelineName,
+                pipelineVersion: pipelineRun.pipelineVersion,
+              });
+            }}
           >
             View Error
           </button>
@@ -366,7 +451,11 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
         </div>
       );
     case 'RUNNING':
-      return <div style={{ display: 'flex', alignItems: 'center' }}>In Progress</div>;
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Icon icon='sync' /> In Progress
+        </div>
+      );
     case 'PREPARING': {
       // In most cases, jobs stuck in Preparing can be considered failures.
       // However, we have a window where we still show "Preparing" in case the user happens
@@ -381,7 +470,15 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
         );
       }
 
-      return <div style={{ display: 'flex', alignItems: 'center' }}>Preparing</div>;
+      return (
+        <TooltipCell
+          tooltip={`This job is either still uploading data or has failed before submission. Jobs stuck in Preparing for more than ${PREPARING_JOB_CUTOFF_HOURS} hours will be marked as failed.`}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Icon icon='sync' /> Preparing
+          </div>
+        </TooltipCell>
+      );
     }
     case 'FAILED':
       return (
@@ -407,4 +504,13 @@ const hoursElapsedSinceSubmission = (pipelineRun: PipelineRun): number => {
   const submittedTime = new Date(pipelineRun.timeSubmitted);
   const currentTime = new Date();
   return (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60 * 60);
+};
+
+const hoursElapsedSinceCompletion = (pipelineRun: PipelineRun): number | undefined => {
+  if (!pipelineRun.timeCompleted) {
+    return undefined;
+  }
+  const completedTime = new Date(pipelineRun.timeCompleted);
+  const currentTime = new Date();
+  return (currentTime.getTime() - completedTime.getTime()) / (1000 * 60 * 60);
 };

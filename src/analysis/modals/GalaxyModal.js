@@ -26,6 +26,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { withDisplayName } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { canEditWorkspace } from 'src/workspaces/utils';
 
 import { computeStyles } from './modalStyles';
 
@@ -172,7 +173,16 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           Utils.DEFAULT,
           () =>
             !app
-              ? h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('createWarn') }, ['Next'])
+              ? h(
+                  ButtonPrimary,
+                  {
+                    disabled: !canEditWorkspace(workspace).value,
+                    tooltip: !canEditWorkspace(workspace).value ? canEditWorkspace(workspace).message : false,
+                    tooltipSide: 'left',
+                    onClick: () => setViewMode('createWarn'),
+                  },
+                  ['Next']
+                )
               : Utils.switchCase(
                   app.status,
                   [

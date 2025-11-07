@@ -4,9 +4,11 @@ import _ from 'lodash/fp';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { SearchFilter } from 'src/billing/Filter/SearchFilter';
+import { SpendReportDownloader } from 'src/billing/SpendReport/SpendReportDownloader';
 import {
   billingAccountIconSize,
   BillingAccountStatus,
+  creditedCost,
   getBillingAccountIconProps,
   parseCurrencyIfNeeded,
 } from 'src/billing/utils';
@@ -206,6 +208,7 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
         totalSpend: 'N/A',
         totalCompute: 'N/A',
         totalStorage: 'N/A',
+        otherSpend: 'N/A',
       });
 
       setUpdating(true);
@@ -241,12 +244,15 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
 
           return {
             ...workspace,
-            totalSpend: costFormatter.format(parseFloat(spendItem.cost ?? '0.00')),
+            totalSpend: costFormatter.format(creditedCost(spendItem)),
             totalCompute: costFormatter.format(
-              parseFloat(_.find({ category: 'Compute' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+              creditedCost(_.find({ category: 'Compute' }, spendItem.subAggregation.spendData))
             ),
             totalStorage: costFormatter.format(
-              parseFloat(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData)?.cost ?? '0.00')
+              creditedCost(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData))
+            ),
+            otherSpend: costFormatter.format(
+              creditedCost(_.find({ category: 'Other' }, spendItem.subAggregation.spendData))
             ),
           };
         });
@@ -299,6 +305,11 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
           placeholder='Search by name, project or bucket'
           style={{ gridRowStart: 1, gridColumnStart: 2, margin: '1.35rem' }}
           onChange={setSearchValue}
+        />
+        <SpendReportDownloader
+          title={`${billingProject.projectName} Spend Report (${selectedDays} days)`}
+          filteredOwnedWorkspaces={allWorkspacesInProject}
+          style={{ gridRowStart: 1, gridColumnStart: 3, margin: '2.3rem' }}
         />
       </div>
       <div aria-live='polite' aria-atomic>

@@ -12,11 +12,11 @@ import { Clickable, Link } from 'src/components/common';
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink';
 import headerRightHexes from 'src/images/brands/terra/header-right-hexes.svg';
 import {
-  getEnabledBrand,
   isBaseline,
   isBioDataCatalyst,
   isDatastage,
   isFirecloud,
+  isScientificServices,
   isTerra,
 } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
@@ -153,8 +153,6 @@ export const TopBar = (props: TopBarProps): ReactNode => {
   const authState = useStore(authStore);
   const userState = useStore(userStore);
 
-  const compact = getEnabledBrand().compactTopBar;
-
   const showNav = () => {
     setNavShown(true);
     document.body.classList.add('overlayOpen');
@@ -199,7 +197,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                 onClick={() => setOpenUserMenu(!openUserMenu)}
                 isOpened={openUserMenu}
               >
-                {!compact && (
+                {!isScientificServices() && (
                   <>
                     <DropDownSubItem href={Nav.getLink('profile')} onClick={hideNav}>
                       Profile
@@ -251,7 +249,28 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                 </Clickable>
               </div>
             )}
-            {!compact && (
+            {isScientificServices() && (
+              <>
+                <NavSection
+                  href='https://broadscientificservices.zendesk.com/hc/en-us/categories/39899029682331'
+                  onClick={hideNav}
+                  {...Utils.newTabLinkProps}
+                >
+                  <Icon icon='newspaper' size={24} style={navIconStyles} />
+                  Service News
+                </NavSection>
+                <NavSection
+                  href='https://broadscientificservices.zendesk.com/hc/en-us'
+                  onClick={hideNav}
+                  {...Utils.newTabLinkProps}
+                >
+                  <Icon icon='help' size={24} style={navIconStyles} />
+                  Documentation
+                </NavSection>
+              </>
+            )}
+
+            {!isScientificServices() && (
               <>
                 <NavSection href={Nav.getLink('workspaces')} onClick={hideNav}>
                   <Icon icon='view-cards' size={24} style={navIconStyles} />
@@ -450,7 +469,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   icon='bars'
                   size={36}
                   style={{
-                    color: isTerra() ? 'white' : colors.accent(),
+                    color: isTerra() || isScientificServices() ? 'white' : colors.accent(),
                     flex: 'none',
                     transform: navShown ? 'rotate(90deg)' : undefined,
                     transition: 'transform 0.1s ease-out',

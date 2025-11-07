@@ -1,12 +1,8 @@
-import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-
 export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
 export const RAS_PROVIDER = 'rasProvider';
-export const IMPROVED_DATA_TABLES = 'improvedDataTables';
 export const WORKFLOW_RETRY_WITH_MORE_MEMORY = 'retryWithMoreMemory';
-export const IMPUTATION_UI = 'imputationUI';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
@@ -79,16 +75,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     lastUpdated: '6/26/2025',
   },
   {
-    id: IMPROVED_DATA_TABLES,
-    title: 'Improved Data Table Performance',
-    description: 'Opt-in to enable a workspace setting that will migrate your data tables for improved performance.',
-    groups: ['preview-improved-data-tables'],
-    feedbackUrl: `mailto:dsp-core-services@broadinstitute.org?subject=${encodeURIComponent(
-      'Support for Improved Data Table Performance'
-    )}`,
-    lastUpdated: '7/10/2025',
-  },
-  {
     id: WORKFLOW_RETRY_WITH_MORE_MEMORY,
     title: 'Retry Workflow Tasks with More Memory',
     description:
@@ -99,16 +85,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     documentationUrl:
       'https://support.terra.bio/hc/en-us/articles/39412460844699-Automatically-retrying-workflows-with-more-memory',
     lastUpdated: '8/8/2025',
-  },
-  {
-    id: IMPUTATION_UI,
-    title: 'Imputation UI',
-    description: 'Enables the user interface for the All of Us + AnVIL Imputation Service.',
-    groups: ['preview-imputation-ui'],
-    feedbackUrl: `mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=${encodeURIComponent(
-      'Feedback on Imputation Service UI'
-    )}`,
-    lastUpdated: '8/10/2025',
   },
 ];
 

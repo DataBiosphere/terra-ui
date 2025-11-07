@@ -1,6 +1,5 @@
 import { Theme } from '@terra-ui-packages/components';
-import { ReactNode } from 'react';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
@@ -108,9 +107,6 @@ export interface BrandConfiguration {
     /** Card body */
     body: string;
   };
-
-  /** Optional flag to use the compact TopBar with login/logout only */
-  compactTopBar?: boolean;
 }
 
 export const landingPageCardsDefault = [
@@ -125,9 +121,9 @@ export const landingPageCardsDefault = [
     body: 'Browse our gallery of showcase Workspaces to see how science gets done.',
   },
   {
-    link: 'library-datasets',
+    link: 'https://duos.org',
     title: 'Browse Data',
-    body: 'Access data from a rich ecosystem of data portals.',
+    body: 'Access data from a rich ecosystem in DUOS.',
   },
 ];
 
@@ -202,8 +198,25 @@ export const brands: Record<string, BrandConfiguration> = {
     name: 'NHLBI BioData Catalyst',
     queryName: 'nhlbi biodata catalyst',
     welcomeHeader: 'Welcome to NHLBI BioData Catalyst',
-    description:
-      'NHLBI BioData Catalyst (BDC) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
+    description: (
+      <>
+        NHLBI BioData Catalyst (BDC) is a project powered by Terra for biomedical researchers to access data, run
+        analysis tools, and collaborate.
+        <br />
+        <br />
+        Because of a lapse in government funding, the information on this website may not be up to date, transactions
+        submitted via the website may not be processed, and the agency may not be able to respond to inquiries until
+        appropriations are enacted. The NIH Clinical Center (the research hospital of NIH) is open. For more details
+        about its operating status, please visit{' '}
+        <a href='https://cc.nih.gov/' target='_blank' rel='noopener noreferrer'>
+          cc.nih.gov.
+        </a>{' '}
+        Updates regarding government operating status and resumption of normal operations can be found at{' '}
+        <a href='https://opm.gov/' target='_blank' rel='noopener noreferrer'>
+          opm.gov.
+        </a>
+      </>
+    ),
     hostName: 'terra.biodatacatalyst.nhlbi.nih.gov',
     docLinks: [
       {
@@ -406,7 +419,6 @@ export const brands: Record<string, BrandConfiguration> = {
     welcomeHeader: <ScientificServicesWelcomeHeader />,
     description: <ScientificServicesDescription />,
     hostName: 'services.terra.bio',
-    compactTopBar: true,
     docLinks: [],
     landingPageCards: [],
     logos: {

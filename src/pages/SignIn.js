@@ -1,9 +1,9 @@
 import { Fragment } from 'react';
-import { div, h, p } from 'react-hyperscript-helpers';
+import { div, h, p, span } from 'react-hyperscript-helpers';
 import { Link } from 'src/components/common';
 import { HeroWrapper } from 'src/components/HeroWrapper';
 import SignInButton from 'src/components/SignInButton';
-import { isAnvil, isBioDataCatalyst, isElwazi, isFirecloud } from 'src/libs/brand-utils';
+import { isAnvil, isBioDataCatalyst, isElwazi, isFirecloud, isScientificServices } from 'src/libs/brand-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
@@ -21,7 +21,7 @@ const styles = {
 };
 
 const SignIn = () => {
-  return h(HeroWrapper, { showMenu: false, showDocLink: true }, [
+  return h(HeroWrapper, { showMenu: true, showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
       div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
         'If you are a new user or returning user, click sign in to continue.',
@@ -104,6 +104,27 @@ const SignIn = () => {
                 ['https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records']
               ),
             ]),
+        ]),
+      isScientificServices() &&
+        div({ style: styles.warningNoticeContainer }, [
+          div({ style: styles.warningNotice }, ['Disclaimer']),
+          p([
+            'The ',
+            span({ style: { fontStyle: 'italic' } }, ['All of Us']),
+            ` + AnVIL Imputation Service is not intended as a diagnostic or clinical tool.
+            By using this service, you acknowledge that the service and any results returned to you are
+            not intended, validated, or approved by the United States Food and Drug Administration, the
+            European Medicines Agency, or by any other agency for clinical use. You agree not to use this
+            service for clinical purposes or rely on them for medical or other professional advice. You
+            agree to comply with all applicable laws and regulations when using the service and any
+            results returned to you, including laws and regulations governing data privacy, human subjects
+            research, medical devices, and nondiscrimination in genetics. Any content regarding those
+            topics is provided for informational purposes only and is not a substitute for advice from a
+            qualified professional. Broad shall have no liability to any patient or to any user of this
+            service with respect to the use and/or results from this service, or any interpretation of
+            the results thereof, by any of the users of this service.
+            `,
+          ]),
         ]),
       (isAnvil() || isElwazi()) &&
         div({ style: styles.warningNoticeContainer }, [

@@ -9,7 +9,6 @@ import { FirecloudBucket, FirecloudBucketAjaxContract } from 'src/libs/ajax/fire
 import { CurrentUserGroupMembership, GroupContract, Groups, GroupsContract } from 'src/libs/ajax/Groups';
 import { Apps, AppsAjaxContract } from 'src/libs/ajax/leonardo/Apps';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
-import { WorkspaceData, WorkspaceDataAjaxContract } from 'src/libs/ajax/WorkspaceDataService';
 import {
   WorkspaceContract,
   Workspaces,
@@ -59,7 +58,6 @@ interface SetupResult {
   createWorkspace: jest.MockedFunction<WorkspacesAjaxContract['create']>;
   getWorkspaceDetails: jest.MockedFunction<WorkspaceContract['details']>;
   listApps: jest.MockedFunction<AppsAjaxContract['listAppsV2']>;
-  listWdsCollections: jest.MockedFunction<WorkspaceDataAjaxContract['listCollections']>;
 }
 
 const setup = (opts: SetupOptions = {}): SetupResult => {
@@ -87,8 +85,6 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
   const captureEvent: jest.MockedFunction<MetricsContract['captureEvent']> = jest.fn();
   const listApps: jest.MockedFunction<AppsAjaxContract['listAppsV2']> = jest.fn();
   listApps.mockResolvedValue([]);
-  const listWdsCollections: jest.MockedFunction<WorkspaceDataAjaxContract['listCollections']> = jest.fn();
-  listWdsCollections.mockResolvedValue([]);
 
   asMockedFn(Apps).mockReturnValue(partial<AppsAjaxContract>({ listAppsV2: listApps }));
   asMockedFn(Billing).mockReturnValue(partial<BillingContract>({ listProjects: listBillingProjects }));
@@ -130,11 +126,6 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
         }),
     })
   );
-  asMockedFn(WorkspaceData).mockReturnValue(
-    partial<WorkspaceDataAjaxContract>({
-      listCollections: listWdsCollections,
-    })
-  );
 
   return {
     checkBucketLocation,
@@ -143,7 +134,6 @@ const setup = (opts: SetupOptions = {}): SetupResult => {
     getWorkspaceDetails,
     captureEvent,
     listApps,
-    listWdsCollections,
   };
 };
 

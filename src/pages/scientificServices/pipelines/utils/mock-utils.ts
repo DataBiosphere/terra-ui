@@ -1,6 +1,7 @@
 import {
   Pipeline,
   PipelineInput,
+  PipelineOutput,
   PipelineRun,
   PipelineRunStatus,
   PipelineWithDetails,
@@ -22,12 +23,53 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
     type: 'test-type',
     inputs: [
       {
-        name: 'testInput',
+        name: 'minDr2ForInclusion',
+        displayName: 'minimum imputation quality for inclusion',
+        description:
+          'The minimum imputation quality (DR2) for inclusion in output VCF. Value must be between 0 and 1 (inclusive). Default is 0.0',
+        type: 'FLOAT',
+        isRequired: false,
+        defaultValue: '0.0',
+        minValue: 0,
+        maxValue: 1,
+      },
+      {
+        name: 'multiSampleVcf',
+        displayName: 'multi-sample VCF file',
+        description: 'A bgzipped, multi-sample VCF containing array data from one or more chromosomes to be imputed',
         type: 'FILE',
         isRequired: true,
         fileSuffix: '.vcf.gz',
       },
+      {
+        name: 'outputBasename',
+        displayName: 'output basename',
+        description:
+          "The prefix for all of the outputs' filenames. May only contain alphanumeric characters, dashes, and underscores",
+        type: 'STRING',
+        isRequired: true,
+      },
     ] as PipelineInput[],
+    outputs: [
+      {
+        name: 'imputedMultiSampleVcf',
+        displayName: 'imputed multi-sample VCF',
+        type: 'FILE',
+        description: 'A multi-sample VCF file containing imputed genotypes for all samples',
+      },
+      {
+        name: 'imputedMultiSampleVcfIndex',
+        displayName: 'imputed multi-sample VCF index',
+        type: 'FILE',
+        description: 'An index file for the imputed multi-sample VCF file',
+      },
+      {
+        name: 'chunksInfo',
+        displayName: 'imputation chunks QC tsv',
+        type: 'FILE',
+        description: 'A TSV file containing QC information about the chunks used during imputation',
+      },
+    ] as PipelineOutput[],
     pipelineQuota: {
       pipelineName: name,
       defaultQuota: 2500,
@@ -54,7 +96,7 @@ export function mockPipelineRun(status: PipelineRunStatus): PipelineRun {
     status,
     description: 'Test pipeline run',
     timeSubmitted: '2023-10-01T00:00:00Z',
-    timeCompleted: status === 'SUCCEEDED' || status === 'FAILED' ? '2023-10-01T01:00:00Z' : undefined,
+    timeCompleted: status === 'SUCCEEDED' || status === 'FAILED' ? new Date().toISOString() : undefined,
     quotaConsumed: status === 'SUCCEEDED' ? 500 : undefined,
   };
 }

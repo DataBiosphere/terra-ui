@@ -60,7 +60,7 @@ a {
   overflow-y: scroll;
 }
 
-.table-row:not(:hover, :focus-within) .hover-only, .table-cell:not(:hover, :focus-within) .cell-hover-only {
+.table-row:not(:hover) .hover-only, .table-cell:not(:hover) .cell-hover-only {
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
   height: 1px;
