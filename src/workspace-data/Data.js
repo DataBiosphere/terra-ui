@@ -74,7 +74,7 @@ const styles = {
   },
   tableViewPanel: {
     position: 'relative',
-    overflow: 'hidden',
+    overflow: 'auto',
     width: '100%',
     flex: 1,
     display: 'flex',
