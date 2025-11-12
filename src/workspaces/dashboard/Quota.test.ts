@@ -16,7 +16,7 @@ describe('Quota', () => {
     jest.resetAllMocks();
   });
 
-  it('displays the quota section with view quotas link', () => {
+  it('displays the quota section with view quotas link when user is a writer with canCompute', () => {
     // Arrange
     const workspace = { ...defaultGoogleWorkspace, workspaceInitialized: true };
 
@@ -28,7 +28,7 @@ describe('Quota', () => {
     expect(docLink).toBeInTheDocument();
     expect(docLink.closest('a')).toHaveAttribute(
       'href',
-      'https://console.cloud.google.com/iam-admin/quotas?project=test-gcp-ws-project'
+      'https://console.cloud.google.com/iam-admin/quotas?project=test-gcp-ws-project&authuser=undefined'
     );
   });
 
@@ -43,7 +43,7 @@ describe('Quota', () => {
     const linkElement = quotaAdjusterLink.closest('a');
     expect(linkElement).toHaveAttribute(
       'href',
-      'https://console.cloud.google.com/iam-admin/quotas/configurations?project=test-gcp-ws-project'
+      'https://console.cloud.google.com/iam-admin/quotas/configurations?project=test-gcp-ws-project&authuser=undefined'
     );
     expect(linkElement).not.toHaveStyle({ pointerEvents: 'none' });
   });
@@ -93,6 +93,40 @@ describe('Quota', () => {
     );
   });
 
+  it('shows disabled view quotas link with tooltip when user does not have canCompute', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    // Act
+    render(
+      h(Quota, {
+        workspace: {
+          ...defaultGoogleWorkspace,
+          workspaceInitialized: true,
+          accessLevel: 'WRITER',
+          canCompute: false,
+        },
+      })
+    );
+
+    // Assert
+    const viewQuotasLink = screen.getByText('View quotas');
+    expect(viewQuotasLink).toBeInTheDocument();
+
+    const linkElement = viewQuotasLink.closest('a');
+    expect(linkElement).toHaveStyle({ pointerEvents: 'none' });
+
+    // Hover over the link to trigger tooltip
+    const spanWrapper = linkElement?.closest('span');
+    await user.hover(spanWrapper!);
+
+    // Check that tooltip appears
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent(
+      'You do not have permission to view quotas for this project. Please contact your workspace owner(s) for assistance.'
+    );
+  });
+
   it('renders quota documentation link in info box', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -104,7 +138,7 @@ describe('Quota', () => {
     await user.click(infoButton);
 
     // Assert
-    expect(screen.getByText('For more information on quotas, please refer to the')).toBeInTheDocument();
+    expect(screen.getByText('For more information, please refer to the')).toBeInTheDocument();
     const docLink = screen.getByText('resource quota documentation');
     expect(docLink).toBeInTheDocument();
     expect(docLink.closest('a')).toHaveAttribute(
