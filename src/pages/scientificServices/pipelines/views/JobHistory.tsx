@@ -284,13 +284,11 @@ const CompletedCell = ({ pipelineRun }: CellProps): ReactNode => {
 };
 
 const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
-  if (!pipelineRun.timeCompleted || !(pipelineRun.status === 'SUCCEEDED')) {
+  if (!pipelineRun.outputExpirationDate || !(pipelineRun.status === 'SUCCEEDED')) {
     return <div>N/A</div>;
   }
 
-  const completionDate = new Date(pipelineRun?.timeCompleted);
-  const deletionDate = new Date(completionDate);
-  deletionDate.setDate(deletionDate.getDate() + TEASPOONS_FILE_OUTPUT_TTL_DAYS);
+  const deletionDate = new Date(pipelineRun?.outputExpirationDate);
 
   const today = new Date();
   const threeDaysFromNow = new Date();
@@ -339,9 +337,11 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
-  const jobOutputsDeleted =
+  const jobOutputsDeleted = !!(
     pipelineRun.status === 'SUCCEEDED' &&
-    (hoursElapsedSinceCompletion(pipelineRun) ?? -1) > 24 * TEASPOONS_FILE_OUTPUT_TTL_DAYS; // 24 hours * 14 days
+    pipelineRun.outputExpirationDate &&
+    new Date() >= new Date(pipelineRun.outputExpirationDate)
+  );
 
   return (
     <div>
@@ -504,13 +504,4 @@ const hoursElapsedSinceSubmission = (pipelineRun: PipelineRun): number => {
   const submittedTime = new Date(pipelineRun.timeSubmitted);
   const currentTime = new Date();
   return (currentTime.getTime() - submittedTime.getTime()) / (1000 * 60 * 60);
-};
-
-const hoursElapsedSinceCompletion = (pipelineRun: PipelineRun): number | undefined => {
-  if (!pipelineRun.timeCompleted) {
-    return undefined;
-  }
-  const completedTime = new Date(pipelineRun.timeCompleted);
-  const currentTime = new Date();
-  return (currentTime.getTime() - completedTime.getTime()) / (1000 * 60 * 60);
 };

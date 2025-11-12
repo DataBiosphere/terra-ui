@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -174,6 +174,7 @@ describe('job history table', () => {
       ...mockPipelineRun('SUCCEEDED'),
       timeSubmitted: fifteenDaysAgo,
       timeCompleted: fifteenDaysAgo,
+      outputExpirationDate: new Date(Date.now()).toISOString(),
     };
     const pipelineRuns = [pipelineRun];
 
@@ -195,9 +196,21 @@ describe('job history table', () => {
       expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
     });
 
-    const viewOutputsButton = screen.getByText('View Outputs');
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const dataRow = within(rows[1]).getAllByRole('cell');
+
+    const viewOutputsButton = within(dataRow[7]).getByText('View Outputs');
     expect(viewOutputsButton).toBeInTheDocument();
     expect(viewOutputsButton).toBeDisabled();
+
+    const user = userEvent.setup();
+    await user.hover(viewOutputsButton);
+
+    const tooltip = await within(dataRow[7]).findByText(
+      'The outputs for this job have been deleted. Outputs are available for 14 days after job completion.'
+    );
+    expect(tooltip).toBeInTheDocument();
   });
 
   it('shows View Error button for FAILED jobs', async () => {
@@ -462,6 +475,7 @@ describe('job history table', () => {
       const pipelineRun = {
         ...mockPipelineRun('SUCCEEDED'),
         timeCompleted: '2023-10-15T14:00:00Z',
+        outputExpirationDate: '2023-10-29T14:00:00Z',
       };
       const pipelineRuns = [pipelineRun];
 
@@ -483,7 +497,10 @@ describe('job history table', () => {
         expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
       });
 
-      expect(screen.getByText('Oct 15, 2023')).toBeInTheDocument();
+      const table = screen.getByRole('table');
+      const rows = within(table).getAllByRole('row');
+      const cells = within(rows[1]).getAllByRole('cell');
+      expect(cells[5]).toHaveTextContent('Oct 29, 2023');
     });
   });
 });
