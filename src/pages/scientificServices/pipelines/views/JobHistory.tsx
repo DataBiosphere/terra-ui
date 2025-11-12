@@ -337,6 +337,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
     return <ViewErrorModal pipelineRun={pipelineRun} onDismiss={errorModal.close} />;
   });
 
+  // `!!` converts the expression to a boolean
   const jobOutputsDeleted = !!(
     pipelineRun.status === 'SUCCEEDED' &&
     pipelineRun.outputExpirationDate &&

@@ -504,7 +504,7 @@ describe('job history table', () => {
       expect(cells[5]).toHaveTextContent('Oct 29, 2023');
     });
 
-    it('displays the deletion date in red for job outputs expiring in 2 days', async () => {
+    it('displays the deletion date in red for job outputs expiring within 3 days', async () => {
       const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
       const twelveDaysAgo = new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString();
       const pipelineRun = {
