@@ -1,3 +1,4 @@
+import { formatDatetime } from '@terra-ui-packages/core-utils';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -501,6 +502,45 @@ describe('job history table', () => {
       const rows = within(table).getAllByRole('row');
       const cells = within(rows[1]).getAllByRole('cell');
       expect(cells[5]).toHaveTextContent('Oct 29, 2023');
+    });
+
+    it('displays the deletion date in red for job outputs expiring in 2 days', async () => {
+      const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
+      const twelveDaysAgo = new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString();
+      const pipelineRun = {
+        ...mockPipelineRun('SUCCEEDED'),
+        timeCompleted: twelveDaysAgo,
+        outputExpirationDate: twoDaysFromNow,
+      };
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      const table = screen.getByRole('table');
+      const rows = within(table).getAllByRole('row');
+      const cells = within(rows[1]).getAllByRole('cell');
+      expect(cells[5]).toHaveTextContent(formatDatetime(twoDaysFromNow));
+
+      // assert the date text is in red
+      const deletionDateDiv = within(cells[5]).getByText(formatDatetime(twoDaysFromNow)).parentElement!;
+      const style = window.getComputedStyle(deletionDateDiv);
+      expect(style.color).toBe('rgb(219, 50, 20)');
     });
   });
 });
