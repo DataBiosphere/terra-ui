@@ -95,7 +95,10 @@ describe('CloudInformation', () => {
 
     await act(() =>
       render(
-        h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: false }, storageDetails })
+        h(CloudInformation, {
+          workspace: { ...defaultGoogleWorkspace, workspaceInitialized: false },
+          storageDetails,
+        })
       )
     );
     return captureEvent;
@@ -161,7 +164,10 @@ describe('CloudInformation', () => {
     // Act
     await act(() =>
       render(
-        h(CloudInformation, { workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true }, storageDetails })
+        h(CloudInformation, {
+          workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true },
+          storageDetails,
+        })
       )
     );
 
@@ -233,9 +239,12 @@ describe('CloudInformation', () => {
 
   it('displays bucket size for users with reader access', async () => {
     // Arrange
-    const mockStorageCostEstimateV2 = jest
-      .fn()
-      .mockResolvedValue({ estimate: 1.23, usageInBytes: 50, usage: { 'live-object': 50 }, lastUpdated: '2024-07-26' });
+    const mockStorageCostEstimateV2 = jest.fn().mockResolvedValue({
+      estimate: 1.23,
+      usageInBytes: 50,
+      usage: { 'live-object': 50 },
+      lastUpdated: '2024-07-26',
+    });
     asMockedFn(Workspaces).mockReturnValue(
       partial<WorkspacesAjaxContract>({
         workspace: () => partial<WorkspaceContract>({ storageCostEstimateV2: mockStorageCostEstimateV2 }),
@@ -360,15 +369,33 @@ describe('CloudInformation', () => {
     );
   });
   it('renders the quota section', async () => {
+    // Arrange
+    const mockStorageCostEstimateV2 = jest.fn().mockResolvedValue({
+      estimate: 1000000,
+      usageInBytes: 100,
+      usage: {
+        'live-object': 100,
+      },
+      lastUpdated: '2023-12-01',
+    });
+    asMockedFn(Workspaces).mockReturnValue(
+      partial<WorkspacesAjaxContract>({
+        workspace: () =>
+          partial<WorkspaceContract>({
+            storageCostEstimateV2: mockStorageCostEstimateV2,
+          }),
+      })
+    );
+
     // Act
-    await act(async () => {
+    await act(() =>
       render(
         h(CloudInformation, {
           workspace: { ...defaultGoogleWorkspace, workspaceInitialized: true },
           storageDetails,
         })
-      );
-    });
+      )
+    );
 
     // Assert
     expect(screen.getByText('Quota')).toBeInTheDocument();
