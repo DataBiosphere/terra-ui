@@ -18,6 +18,7 @@ import { newTabLinkProps } from 'src/libs/utils';
 import { InitializedWorkspaceWrapper as Workspace, StorageDetails } from 'src/workspaces/common/state/useWorkspace';
 import { BucketLocation } from 'src/workspaces/dashboard/BucketLocation';
 import { InfoRow } from 'src/workspaces/dashboard/InfoRow';
+import { Quota } from 'src/workspaces/dashboard/Quota';
 import { canRead, canWrite, GoogleWorkspace, isGoogleWorkspace } from 'src/workspaces/utils';
 
 interface CloudInformationProps {
@@ -113,6 +114,22 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
           },
         }),
       ]),
+      div({ style: { paddingBottom: '0.5rem' } }, [
+        h(
+          Link,
+          {
+            style: { margin: '1rem 0.5rem' },
+            ...newTabLinkProps,
+            onClick: () => {
+              void Metrics().captureEvent(Events.workspaceOpenedProjectInConsole, {
+                ...extractWorkspaceDetails(workspace),
+              });
+            },
+            href: `https://console.cloud.google.com/welcome?project=${googleProject}&authuser=${getTerraUser().email}`,
+          },
+          ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+        ),
+      ]),
       h(hr),
       h(InfoRow, {
         title: h3({ style: { ...Style.dashboard.collapsibleHeader, padding: 0, margin: 0 } as CSSProperties }, [
@@ -191,22 +208,8 @@ const GoogleCloudInformation = (props: GoogleCloudInformationProps): ReactNode =
         ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       ),
     ]),
-    div({ style: { paddingBottom: '0.5rem' } }, [
-      h(
-        Link,
-        {
-          style: { margin: '1rem 0.5rem' },
-          ...newTabLinkProps,
-          onClick: () => {
-            void Metrics().captureEvent(Events.workspaceOpenedProjectInConsole, {
-              ...extractWorkspaceDetails(workspace),
-            });
-          },
-          href: `https://console.cloud.google.com/welcome?project=${googleProject}&authuser=${getTerraUser().email}`,
-        },
-        ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-      ),
-    ]),
+    h(hr),
+    h(Quota, { workspace }),
   ]);
 };
 
