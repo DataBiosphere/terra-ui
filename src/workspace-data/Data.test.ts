@@ -133,4 +133,45 @@ describe('WorkspaceData', () => {
       { timeout: 10000 }
     );
   }, 15000);
+
+  it('has scrollable tableViewPanel to allow vertical scrolling when content is too tall', async () => {
+    // Setup mocks for the test
+    const mockEntityMetadata = jest.fn();
+    mockEntityMetadata.mockResolvedValue(entityMetadata);
+
+    asMockedFn(Workspaces).mockReturnValue({
+      workspace: (_namespace: string, _name: string) => ({
+        entityMetadata: mockEntityMetadata,
+      }),
+    } as any);
+
+    (getIgvUrlParams as jest.Mock).mockReturnValue({
+      igvSession: null,
+      igvGenome: null,
+    });
+
+    const workspaceDataProps = {
+      namespace: 'test-namespace',
+      name: 'test-name',
+      workspace: defaultGoogleWorkspace,
+      refreshWorkspace: () => {},
+      storageDetails: { ...defaultGoogleBucketOptions },
+    };
+
+    await act(async () => {
+      render(h(WorkspaceData, workspaceDataProps));
+    });
+
+    await waitFor(() => {
+      // Find the element with the tableViewPanel styles
+      // The tableViewPanel should have overflow: 'auto' to enable scrolling
+      const tableViewPanels = document.querySelectorAll('[style*="overflow"]');
+      const hasScrollablePanel = Array.from(tableViewPanels).some((el) => {
+        const style = (el as HTMLElement).style;
+        return style.overflow === 'auto' || style.overflowY === 'auto';
+      });
+
+      expect(hasScrollablePanel).toBe(true);
+    });
+  });
 });

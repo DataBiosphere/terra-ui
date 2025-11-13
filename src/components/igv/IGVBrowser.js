@@ -484,7 +484,6 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       {
         ref: containerRef,
         style: {
-          overflowY: 'visible',
           padding: '10px 0',
           margin: 8,
           border: `1px solid ${colors.dark(0.25)}`,
