@@ -90,11 +90,11 @@ describe('TableFilters', () => {
 
   describe('Job ID Filter', () => {
     it('displays current job ID filter value', () => {
-      const filters: FilterValues = { jobId: 'job-123' };
+      const filters: FilterValues = { jobId: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60' };
       render(<TableFilters {...defaultProps} filters={filters} />);
 
       const jobIdInput = screen.getByPlaceholderText('Filter by Job ID...');
-      expect(jobIdInput).toHaveValue('job-123');
+      expect(jobIdInput).toHaveValue('f05e07fe-bd21-4690-8cee-be8cd23c1b60');
     });
 
     it('calls onFilterChange when job ID is entered', async () => {
@@ -103,17 +103,17 @@ describe('TableFilters', () => {
       render(<TableFilters {...defaultProps} onFilterChange={onFilterChange} />);
 
       const jobIdInput = screen.getByPlaceholderText('Filter by Job ID...');
-      fireEvent.change(jobIdInput, { target: { value: 'job-456' } });
+      fireEvent.change(jobIdInput, { target: { value: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60' } });
 
       expect(onFilterChange).toHaveBeenCalledWith({
-        jobId: 'job-456',
+        jobId: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60',
       });
     });
 
     it('calls onFilterChange with undefined when job ID is cleared', async () => {
       const user = userEvent.setup();
       const onFilterChange = jest.fn();
-      const filters: FilterValues = { jobId: 'job-123' };
+      const filters: FilterValues = { jobId: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60' };
 
       render(<TableFilters {...defaultProps} filters={filters} onFilterChange={onFilterChange} />);
 
@@ -123,6 +123,17 @@ describe('TableFilters', () => {
       expect(onFilterChange).toHaveBeenCalledWith({
         jobId: undefined,
       });
+    });
+
+    it('does not call onFilterChange when invalid job ID is entered', async () => {
+      const onFilterChange = jest.fn();
+
+      render(<TableFilters {...defaultProps} onFilterChange={onFilterChange} />);
+      const jobIdInput = screen.getByPlaceholderText('Filter by Job ID...');
+      fireEvent.change(jobIdInput, { target: { value: 'invalid-uuid' } });
+
+      expect(onFilterChange).not.toHaveBeenCalled();
+      expect(screen.getByText('Enter a valid job ID')).toBeInTheDocument();
     });
   });
 
@@ -225,7 +236,7 @@ describe('TableFilters', () => {
       const onFilterChange = jest.fn();
       const filters: FilterValues = {
         description: 'test',
-        jobId: 'job-123',
+        jobId: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60',
         status: 'SUCCEEDED',
         pipelineName: 'array_imputation',
       };
@@ -250,19 +261,19 @@ describe('TableFilters', () => {
       render(<TableFilters {...defaultProps} filters={filters} onFilterChange={onFilterChange} />);
 
       const jobIdInput = screen.getByPlaceholderText('Filter by Job ID...');
-      fireEvent.change(jobIdInput, { target: { value: 'new-job-id' } });
+      fireEvent.change(jobIdInput, { target: { value: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60' } });
 
       expect(onFilterChange).toHaveBeenCalledWith({
         description: 'existing description',
         status: 'SUCCEEDED',
-        jobId: 'new-job-id',
+        jobId: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60',
       });
     });
 
     it('displays all active filters simultaneously', () => {
       const filters: FilterValues = {
         description: 'test description',
-        jobId: 'job-789',
+        jobId: 'f05e07fe-bd21-4690-8cee-be8cd23c1b60',
         status: 'RUNNING',
         pipelineName: 'glimpse_imputation',
       };
@@ -273,7 +284,7 @@ describe('TableFilters', () => {
       const jobIdInput = screen.getByPlaceholderText('Filter by Job ID...');
 
       expect(descriptionInput).toHaveValue('test description');
-      expect(jobIdInput).toHaveValue('job-789');
+      expect(jobIdInput).toHaveValue('f05e07fe-bd21-4690-8cee-be8cd23c1b60');
       expect(screen.getByText('In Progress')).toBeInTheDocument();
       expect(screen.getByText('glimpse_imputation')).toBeInTheDocument();
     });
