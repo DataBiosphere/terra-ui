@@ -98,5 +98,7 @@ export function mockPipelineRun(status: PipelineRunStatus): PipelineRun {
     timeSubmitted: '2023-10-01T00:00:00Z',
     timeCompleted: status === 'SUCCEEDED' || status === 'FAILED' ? new Date().toISOString() : undefined,
     quotaConsumed: status === 'SUCCEEDED' ? 500 : undefined,
+    outputExpirationDate:
+      status === 'SUCCEEDED' ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() : undefined, // job outputs expire in 14 days
   };
 }

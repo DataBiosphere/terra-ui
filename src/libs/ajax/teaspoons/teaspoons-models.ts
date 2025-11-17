@@ -66,6 +66,7 @@ export interface PipelineRun {
   timeSubmitted: string;
   timeCompleted?: string;
   quotaConsumed?: number;
+  outputExpirationDate?: string;
 }
 
 export interface GetPipelineRunsResponse {
