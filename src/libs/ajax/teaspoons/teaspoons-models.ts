@@ -71,6 +71,7 @@ export interface PipelineRun {
 
 export interface GetPipelineRunsResponse {
   totalResults: number;
+  totalFilteredResults: number;
   pageToken: string;
   results: PipelineRun[];
 }

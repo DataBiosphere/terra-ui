@@ -1,6 +1,6 @@
 import pluralize from 'pluralize';
 import { Dispatch, SetStateAction } from 'react';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
 
 // Returns a function that handles progress events for file uploads
 // This function updates the upload state with progress percentage and

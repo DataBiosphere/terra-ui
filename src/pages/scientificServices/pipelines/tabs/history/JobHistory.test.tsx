@@ -4,13 +4,17 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { mockPipelineRun } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
-import { PREPARING_JOB_CUTOFF_HOURS } from 'src/pages/scientificServices/pipelines/views/JobHistory';
+import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
+import { mockPipeline, mockPipelineRun } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { JobHistory } from './JobHistory';
+import { JobHistory, PREPARING_JOB_CUTOFF_HOURS } from './JobHistory';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
+
+jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList');
+
+const mockUsePipelinesList = usePipelinesList as jest.MockedFunction<typeof usePipelinesList>;
 
 jest.mock('react-virtualized', () => {
   const actual = jest.requireActual('react-virtualized');
@@ -44,6 +48,11 @@ beforeEach(() => {
       get: jest.fn().mockReturnValue('1234'),
     },
   } as any);
+  mockUsePipelinesList.mockReturnValue({
+    pipelines: [mockPipeline('array_imputation')],
+    isLoading: false,
+    error: undefined,
+  });
 });
 
 describe('job history table', () => {
@@ -99,7 +108,7 @@ describe('job history table', () => {
     expect(screen.queryAllByText(/Test Job/)).toHaveLength(2);
 
     // Verify initial call to API without sort parameters defaults to (created, desc)
-    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(1, 10, 1, 'created', 'desc');
+    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(1, 10, 1, 'created', 'desc', {});
 
     // Click Quota Used header to sort ascending
     const jobIdHeader = screen.getByText('Quota Used');
@@ -107,7 +116,7 @@ describe('job history table', () => {
     await userEvent.click(jobIdHeader);
 
     // Verify that API was called with correct sort parameters (quotaConsumed, asc)
-    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(2, 10, 1, 'quotaConsumed', 'asc');
+    expect(Teaspoons().getAllPipelineRuns).toHaveBeenNthCalledWith(2, 10, 1, 'quotaConsumed', 'asc', {});
   });
 
   it('displays pipeline name without version when version is not available', async () => {
