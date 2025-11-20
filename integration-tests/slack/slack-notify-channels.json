@@ -9,66 +9,6 @@
     {
       "name": "dsde-qa",
       "id": "C53JYBV9A"
-    },
-    {
-      "name": "dsp-analysis-non-prod-alerts",
-      "id": "C07RX0CJV0D",
-      "tests": [
-        {
-          "name": "run-analysis"
-        },
-        {
-          "name": "run-rstudio"
-        },
-        {
-          "name": "analysis-context-bar"
-        },
-        {
-          "name": "run-analysis-azure"
-        },
-        {
-          "name": "find-workflow"
-        },
-        {
-          "name": "import-dockstore-workflow"
-        },
-        {
-          "name": "run-workflow"
-        }
-      ]
-    },
-    {
-      "name": "dsp-tdr",
-      "id": "CD4HBRFMG",
-      "tests": [
-        {
-          "name": "preview-drs-uri"
-        }
-      ]
-    },
-    {
-      "name": "dsp-core-services-alerts",
-      "id": "C07Q8H7F8LV",
-      "tests": [
-        {
-          "name": "preview-drs-uri"
-        },
-        {
-          "name": "import-tdr-snapshot"
-        },
-        {
-          "name": "billing-projects"
-        },
-        {
-          "name": "delete-orphaned-workspaces"
-        },
-        {
-          "name": "register-user"
-        },
-        {
-          "name": "request-access"
-        }
-      ]
     }
   ]
 }
