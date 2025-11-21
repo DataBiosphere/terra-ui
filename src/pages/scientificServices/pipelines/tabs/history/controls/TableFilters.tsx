@@ -2,6 +2,7 @@ import { ButtonPrimary, Icon, Select } from '@terra-ui-packages/components';
 import React, { useEffect, useState } from 'react';
 import { DelayedSearchInput } from 'src/components/input';
 import { Pipeline, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 
 export interface FilterValues {
   description?: string;
@@ -134,7 +135,7 @@ const JobIdFilterControl = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <div style={{ fontWeight: 600, fontSize: '14px' }}>Job ID</div>
         {showValidationWarning && (
-          <div style={{ color: '#DB3214', fontSize: '14px' }}>
+          <div style={{ color: colors.danger(), fontSize: '14px' }}>
             <Icon icon='warning-standard' size={14} /> Enter a valid job ID
           </div>
         )}

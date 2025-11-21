@@ -356,7 +356,7 @@ const DataDeletionDateCell = ({ pipelineRun }: CellProps): ReactNode => {
       style={
         isDeletionSoon
           ? {
-              color: '#DB3214',
+              color: colors.danger(),
               fontWeight: 600,
             }
           : {}
@@ -502,7 +502,7 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
   switch (pipelineRun.status) {
     case 'SUCCEEDED':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', color: '#74AE43', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', color: colors.success(), gap: '0.5rem' }}>
           <Icon icon='success-standard' /> Done
         </div>
       );
@@ -520,7 +520,7 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
 
       if (hoursElapsed > PREPARING_JOB_CUTOFF_HOURS) {
         return (
-          <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', color: colors.danger(), gap: '0.5rem' }}>
             <Icon icon='warning-standard' /> Failed
           </div>
         );
@@ -538,7 +538,7 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
     }
     case 'FAILED':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', color: '#DB3214', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', color: colors.danger(), gap: '0.5rem' }}>
           <Icon icon='warning-standard' /> Failed
         </div>
       );

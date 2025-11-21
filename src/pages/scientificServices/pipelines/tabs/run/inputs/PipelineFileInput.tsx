@@ -142,7 +142,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   return (
     <div>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        Select a {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        Select a {displayName || name} {isRequired ? <span style={{ color: colors.danger() }}>*</span> : null}
       </h3>
       <div
         style={{
@@ -209,9 +209,17 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                         }}
                       >
                         {validationError ? (
-                          <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
+                          <Icon
+                            icon='warning-standard'
+                            size={36}
+                            style={{ color: colors.danger(), marginLeft: '1rem' }}
+                          />
                         ) : (
-                          <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
+                          <Icon
+                            icon='success-standard'
+                            size={36}
+                            style={{ color: colors.success(), marginLeft: '1rem' }}
+                          />
                         )}
                         <div
                           style={{
@@ -295,7 +303,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', verticalAlign: 'middle' }} />{' '}
+                      <Icon
+                        icon='warning-standard'
+                        size={24}
+                        style={{ color: colors.danger(), verticalAlign: 'middle' }}
+                      />{' '}
                       <div>There was an error uploading the file.</div>
                     </div>
                     <ButtonPrimary type='button' onClick={handleResumeUpload}>
@@ -337,13 +349,13 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
               </>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Icon icon='success-standard' size={24} style={{ color: '#74AE43' }} />{' '}
+                <Icon icon='success-standard' size={24} style={{ color: colors.success() }} />{' '}
                 <span style={{ fontWeight: 'bold' }}>Upload successful.</span>
               </div>
             )}
           </>
         )}
-        {validationError && <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>{validationError}</div>}
+        {validationError && <div style={{ color: colors.danger(), paddingTop: '0.5rem' }}>{validationError}</div>}
       </div>
     </div>
   );

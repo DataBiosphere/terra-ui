@@ -6,6 +6,7 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
@@ -198,7 +199,7 @@ export const RunJob = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', margin: '1rem 2rem' }}>
         <div style={{ flex: 1, marginRight: '2rem' }}>
           <h3 style={{ marginBottom: '0.5rem' }}>
-            Select a pipeline version <span style={{ color: '#DB3214' }}>*</span>
+            Select a pipeline version <span style={{ color: colors.danger() }}>*</span>
           </h3>
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -321,7 +322,11 @@ export const RunJob = () => {
                           alignItems: 'center',
                         }}
                       >
-                        <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginRight: '1rem' }} />
+                        <Icon
+                          icon='warning-standard'
+                          size={36}
+                          style={{ color: colors.danger(), marginRight: '1rem' }}
+                        />
                         <div>
                           You do not have enough quota remaining to run this pipeline. Please{' '}
                           <Link
@@ -372,7 +377,7 @@ export const RunJob = () => {
                         alignItems: 'center',
                       }}
                     >
-                      <Icon icon='success-standard' size={36} style={{ color: '#74AE43', margin: '0 1rem' }} />
+                      <Icon icon='success-standard' size={36} style={{ color: colors.success(), margin: '0 1rem' }} />
                       <div>
                         Your job has been submitted. You can check the status of that job by going to the{' '}
                         <Link style={{ color: '#46A3E9' }} href={Nav.getLink('pipelines-history')}>

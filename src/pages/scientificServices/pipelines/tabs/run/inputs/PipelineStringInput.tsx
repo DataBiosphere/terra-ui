@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { ValidatedInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 
 interface PipelineStringInputProps {
   input: PipelineInput;
@@ -22,7 +23,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        Enter {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
+        Enter {displayName || name} {isRequired ? <span style={{ color: colors.danger() }}> *</span> : null}
       </h3>
       <ValidatedInput
         width={400}
