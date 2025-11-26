@@ -31,6 +31,13 @@ export const About = () => {
                 <em>No description available</em>
               )}
             </div>
+            <a
+              target='_blank'
+              href='https://drive.google.com/uc?export=view&id=1u9HZa9u_2ZeKD-F3l3PFMzVA-jv-6P6D'
+              rel='noreferrer'
+            >
+              bla
+            </a>
           </div>
         ))}
 

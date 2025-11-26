@@ -21,6 +21,7 @@ import {
   PipelineInputFileUploadState,
 } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
 import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFloatInput';
+import { PipelineOutputConfiguration } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineOutputConfiguration';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineStringInput';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/HelpfulTipsWidget';
@@ -44,6 +45,7 @@ export const RunJob = () => {
   // User inputs for the run
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline>();
   const [runDescription, setRunDescription] = useState<string>('');
+  const [outputConfigPath, setOutputConfigPath] = useState<string>('');
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, ReactNode | undefined>>({});
 
@@ -303,6 +305,17 @@ export const RunJob = () => {
                     />
                   );
                 })}
+
+              {/* Output Configuration */}
+              {selectedPipeline && (
+                <PipelineOutputConfiguration
+                  value={outputConfigPath}
+                  onChange={setOutputConfigPath}
+                  onValidation={(error) => handleInputValidation('outputConfig', error)}
+                  validationError={validationErrors.outputConfig}
+                />
+              )}
+
               {/* Submit button */}
               {!submittedJobId && quota && (
                 <>
@@ -397,6 +410,7 @@ export const RunJob = () => {
                     onClick={() => {
                       resetSelectedUserInputs();
                       setRunDescription('');
+                      setOutputConfigPath('');
                       setSubmittedJobId(undefined);
                       setUploadState({});
                     }}
