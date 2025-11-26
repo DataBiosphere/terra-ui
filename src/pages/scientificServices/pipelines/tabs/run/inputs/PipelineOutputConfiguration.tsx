@@ -1,4 +1,5 @@
 import React, { ReactNode, useState } from 'react';
+import Collapse from 'src/components/Collapse';
 import { ValidatedInput } from 'src/components/input';
 import colors from 'src/libs/colors';
 
@@ -46,24 +47,26 @@ export const PipelineOutputConfiguration: React.FC<PipelineOutputConfigurationPr
   };
 
   return (
-    <div style={{ marginBottom: '2rem' }}>
-      <h3 style={{ marginBottom: '0.5rem' }}>Output Configuration (Optional)</h3>
-      <ValidatedInput
-        width={500}
-        error={validationError}
-        inputProps={{
-          'aria-label': 'output configuration path',
-          type: 'text',
-          value: value || '',
-          placeholder: 'gs://bucket-name/path/to/outputs',
-          onChange: (e) => handleChange(e),
-        }}
-      />
-      <div style={{ marginTop: '0.5rem', fontStyle: 'italic', maxWidth: 500 }}>
-        Specify a Google Cloud Storage path where pipeline outputs will be delivered. If not provided, outputs will be
-        delivered to the default location.
-        {isVerifying && <span style={{ color: colors.accent(), marginLeft: '0.5rem' }}>Verifying access...</span>}
-      </div>
+    <div style={{}}>
+      <Collapse title={<h3>Output Configuration</h3>} initialOpenState={false} summaryStyle={{}}>
+        <div style={{ marginBottom: '1rem' }}>
+          <ValidatedInput
+            width={500}
+            error={validationError}
+            inputProps={{
+              'aria-label': 'output configuration path',
+              type: 'text',
+              value: value || '',
+              placeholder: 'gs://bucket-name/path/to/outputs',
+              onChange: (e) => handleChange(e),
+            }}
+          />
+          <div style={{ marginTop: '0.5rem', fontStyle: 'italic', maxWidth: 600 }}>
+            Specify an optional Google Cloud Storage path to deliver pipeline outputs.
+            {isVerifying && <span style={{ color: colors.accent(), marginLeft: '0.5rem' }}>Verifying access...</span>}
+          </div>
+        </div>
+      </Collapse>
     </div>
   );
 };

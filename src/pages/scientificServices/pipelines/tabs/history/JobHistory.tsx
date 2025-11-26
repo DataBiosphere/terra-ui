@@ -414,7 +414,7 @@ const ActionCell = ({ pipelineRun }: CellProps): ReactNode => {
             <span style={{ cursor: jobOutputsDeleted ? 'not-allowed' : 'pointer' }}>
               <button
                 type='button'
-                disabled={jobOutputsDeleted}
+                // disabled={jobOutputsDeleted}
                 style={{
                   color: jobOutputsDeleted ? colors.disabled() : '#46A3E9',
                   fontWeight: 700,

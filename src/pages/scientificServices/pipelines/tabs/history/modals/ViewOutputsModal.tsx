@@ -7,6 +7,7 @@ import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { PipelineOutputConfiguration } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineOutputConfiguration';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -36,23 +37,61 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
     const fetchPipelineRunResults = async () => {
       try {
         setLoading(true);
-        const results = await Teaspoons(signal).getPipelineRunResult(jobId);
-        setResult(results);
 
-        if (results?.pipelineRunReport.outputs) {
-          const outputs = Object.entries(results.pipelineRunReport.outputs);
+        // TODO: Remove this mock data once real API is available
+        // Mock data for testing
+        const mockResults: PipelineRunResponse = {
+          pipelineRunReport: {
+            jobId,
+            pipelineName: 'test-pipeline',
+            pipelineVersion: '1.0.0',
+            status: 'SUCCEEDED',
+            outputs: {
+              'imputed_sample_1.cram': 'https://storage.googleapis.com/mock-bucket/large_analysis_results.bam',
+              'imputed_sample_1.crai': 'https://storage.googleapis.com/mock-bucket/summary_report.html',
+            },
+            outputExpirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          },
+        } as PipelineRunResponse;
+
+        setResult(mockResults);
+
+        // Mock file sizes for testing
+        const mockFileSizes: Record<string, string> = {
+          'imputed_sample_1.cram': formatBytes(54.4 * 1024 * 1024 * 1024), // 54.4 GiB
+          'imputed_sample_1.crai': formatBytes(200 * 1024 * 1024), // 200 MiB
+        };
+
+        if (mockResults?.pipelineRunReport.outputs) {
+          const outputs = Object.entries(mockResults.pipelineRunReport.outputs);
           const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
           setFileSizes(initialState);
 
-          for (const [key, url] of outputs) {
-            try {
-              const size = await getFileSize(url);
-              setFileSizes((prev) => ({ ...prev, [key]: size }));
-            } catch {
-              setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
-            }
+          // Simulate loading delay for each file
+          for (const [key] of outputs) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            setFileSizes((prev) => ({ ...prev, [key]: mockFileSizes[key] || 'Unknown size' }));
           }
         }
+
+        // Uncomment below when real API is available
+        // const results = await Teaspoons(signal).getPipelineRunResult(jobId);
+        // setResult(results);
+        //
+        // if (results?.pipelineRunReport.outputs) {
+        //   const outputs = Object.entries(results.pipelineRunReport.outputs);
+        //   const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
+        //   setFileSizes(initialState);
+        //
+        //   for (const [key, url] of outputs) {
+        //     try {
+        //       const size = await getFileSize(url);
+        //       setFileSizes((prev) => ({ ...prev, [key]: size }));
+        //     } catch {
+        //       setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
+        //     }
+        //   }
+        // }
       } finally {
         setLoading(false);
       }
@@ -128,6 +167,28 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     </ButtonPrimary>
                   </div>
                 ))}
+                <div
+                  style={{
+                    // display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0.5rem',
+                    borderRadius: '4px',
+                    backgroundColor: '#f5f5f5',
+                  }}
+                >
+                  <PipelineOutputConfiguration
+                    value=''
+                    onChange={() => console.log('foo')}
+                    onValidation={() => console.log('bar')}
+                  />
+                  <ButtonPrimary onClick={() => console.log('Configure output delivery path clicked')}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <Icon icon='cloud' size={16} />
+                      Deliver Outputs
+                    </div>
+                  </ButtonPrimary>
+                </div>
                 {result.pipelineRunReport.outputExpirationDate && (
                   <div
                     style={{
@@ -143,7 +204,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     <span style={{ fontWeight: 'bold' }}>
                       {formatDate(result.pipelineRunReport.outputExpirationDate)}
                     </span>
-                    . Please download them before this date.
+                    . Please download them or transfer them to another location before this date.
                   </div>
                 )}
               </div>
