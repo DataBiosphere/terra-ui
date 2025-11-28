@@ -27,7 +27,28 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
       setError(null);
       try {
         const response = await Teaspoons(signal).getPipelineRunResult(jobId);
-        setPipelineRunResult(response);
+
+        // Add mock outputs to the response for testing
+        const mockResponse: PipelineRunResponse = {
+          ...response,
+          pipelineRunReport: {
+            ...response.pipelineRunReport,
+            inputs: {
+              'Output Basename': 'test',
+              'Minimum Imputation Quality': '0.3',
+              'Multi-Sample VCF': 'bla.vcf.gz',
+            },
+            outputs: {
+              'Imputed Multi-Sample VCF': 'gs://fc-secure-bucket/imputation-results/chr1-22.dose.vcf.gz',
+              'Imputed Multi-Sample VCF Index': 'gs://fc-secure-bucket/imputation-results/chr1-22.info',
+              'Contigs Metrics TSV': 'gs://fc-secure-bucket/imputation-results/qc-report.html',
+              'Imputation Chunks QC TSV': 'gs://fc-secure-bucket/imputation-results/summary-statistics.tsv',
+            },
+            outputExpirationDate: '2025-12-28T10:20:01Z',
+          },
+        };
+
+        setPipelineRunResult(mockResponse);
       } catch (err) {
         setError('Failed to load job details. Please try again later.');
         // eslint-disable-next-line no-console

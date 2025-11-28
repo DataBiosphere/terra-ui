@@ -94,7 +94,15 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
       <div style={{ marginBottom: '1rem' }}>
         <h2>{pipelineDetails && <AoUStylizedString text={pipelineDetails.displayName} />}</h2>
       </div>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '2rem',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+        }}
+      >
         {/* Pipeline Name */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '200px' }}>
           <div style={{ color: colors.dark(0.6), fontWeight: 500 }}>Pipeline</div>
@@ -134,33 +142,6 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
 
         {/* Job ID */}
         <InfoItem label='Job ID' value={<code>{pipelineRunResult.jobReport.id}</code>} />
-
-        {/* Submitted */}
-        <InfoItem
-          label='Submitted'
-          value={
-            <div>
-              <div>{new Date(pipelineRunResult.jobReport.submitted).toLocaleString()}</div>
-            </div>
-          }
-        />
-
-        {/* Completed */}
-        {pipelineRunResult.jobReport.completed ? (
-          <InfoItem
-            label='Completed'
-            value={
-              <div>
-                <div>{new Date(pipelineRunResult.jobReport.completed).toLocaleString()}</div>
-              </div>
-            }
-          />
-        ) : (
-          <InfoItem label='Completed' value='—' />
-        )}
-
-        {/* Duration */}
-        <InfoItem label='Duration' value={calculateDuration()} />
       </div>
     </div>
   );
