@@ -30,6 +30,12 @@ export const navPaths = [
     title: 'Job History',
   },
   {
+    name: 'pipelines-history-detail',
+    path: '/pipelines/imputation/history/:jobId',
+    component: JobHistory,
+    title: 'Job Details',
+  },
+  {
     name: 'cli-auth',
     path: '/pipelines/cli-auth',
     component: CliAuth,
