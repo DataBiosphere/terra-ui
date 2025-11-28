@@ -319,7 +319,7 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
         style={{
           width: 'fit-content',
           fontWeight: 600,
-          backgroundColor: pipelineNameToColor(pipelineRun),
+          backgroundColor: pipelineNameToColor(pipelineRun.pipelineName),
           padding: '0.33rem',
           borderRadius: '4px',
           fontSize: '10px',
@@ -562,8 +562,8 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
   }
 };
 
-const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
-  switch (pipelineRun.pipelineName) {
+export const pipelineNameToColor = (pipelineName: string): string => {
+  switch (pipelineName) {
     case 'array_imputation':
       return '#4D72AA4D';
     default:

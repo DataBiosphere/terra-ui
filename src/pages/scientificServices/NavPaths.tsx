@@ -1,5 +1,6 @@
 import { CliAuth } from 'src/pages/scientificServices/cli-auth/CliAuth';
 import { About } from 'src/pages/scientificServices/pipelines/tabs/about/About';
+import { JobDetails } from 'src/pages/scientificServices/pipelines/tabs/history/details/JobDetails';
 import { JobHistory } from 'src/pages/scientificServices/pipelines/tabs/history/JobHistory';
 import { RunJob } from 'src/pages/scientificServices/pipelines/tabs/run/RunJob';
 
@@ -32,7 +33,7 @@ export const navPaths = [
   {
     name: 'pipelines-history-detail',
     path: '/pipelines/imputation/history/:jobId',
-    component: JobHistory,
+    component: JobDetails,
     title: 'Job Details',
   },
   {
