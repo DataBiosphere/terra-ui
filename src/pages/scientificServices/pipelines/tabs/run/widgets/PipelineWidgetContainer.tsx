@@ -16,7 +16,7 @@ export const PipelineWidgetContainer = ({
   children,
   marginTop = '1rem',
   marginBottom = '1rem',
-  width = 400,
+  width,
   padding = '1rem 1rem 1.5rem',
 }: PipelineWidgetWrapperProps) => {
   return (
