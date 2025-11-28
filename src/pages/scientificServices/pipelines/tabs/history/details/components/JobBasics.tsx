@@ -81,12 +81,13 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
     <div
       style={{
         width: '100%',
-        backgroundColor: '#ffffff',
-        border: `1px solid ${colors.light()}`,
+        backgroundColor: '#f5f6f9',
+        // border: `1px solid ${colors.light()}`,
         borderRadius: '4px',
         paddingLeft: '1.5rem',
         paddingRight: '1.5rem',
         paddingBottom: '1.5rem',
+        paddingTop: '0.5rem',
         marginBottom: '1.5rem',
       }}
     >

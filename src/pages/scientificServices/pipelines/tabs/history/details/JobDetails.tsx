@@ -48,7 +48,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
           paddingBottom: '2rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
           <ButtonSecondary
             onClick={() => Nav.goToPath('pipelines-history')}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
