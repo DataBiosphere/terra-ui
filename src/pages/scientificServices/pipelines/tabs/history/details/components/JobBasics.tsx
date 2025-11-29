@@ -13,8 +13,8 @@ interface JobBasicsProps {
 
 const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-    <div style={{ color: colors.dark(0.6), fontWeight: 500 }}>{label}</div>
-    <div style={{ fontWeight: 600, color: colors.dark() }}>{value}</div>
+    <div style={{ color: colors.dark(), fontWeight: 600 }}>{label}</div>
+    <div style={{ fontWeight: 500, color: colors.dark(0.7) }}>{value}</div>
   </div>
 );
 
@@ -54,28 +54,6 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
     }
   };
 
-  const calculateDuration = () => {
-    if (!pipelineRunResult.jobReport.completed) {
-      return 'In progress';
-    }
-
-    const submitted = new Date(pipelineRunResult.jobReport.submitted);
-    const completed = new Date(pipelineRunResult.jobReport.completed);
-    const durationMs = completed.getTime() - submitted.getTime();
-
-    const hours = Math.floor(durationMs / (1000 * 60 * 60));
-    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    }
-    return `${seconds}s`;
-  };
-
   return isLoadingPipelineDetails ? (
     <Spinner />
   ) : (
@@ -95,7 +73,27 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
-            <h2>{pipelineDetails && <AoUStylizedString text={pipelineDetails.displayName} />}</h2>
+            <h2>
+              {pipelineDetails && (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <AoUStylizedString text={pipelineDetails.displayName} />
+                  <span
+                    style={{
+                      backgroundColor: 'white',
+                      // color: colors.dark(0.8),
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '20px',
+                      fontSize: 12,
+                      marginLeft: '0.5rem',
+                      fontWeight: 500,
+                      border: '1px solid #d7d9dc',
+                    }}
+                  >
+                    Version {pipelineRunResult.pipelineRunReport.pipelineVersion}
+                  </span>
+                </div>
+              )}
+            </h2>
             {pipelineDetails && pipelineDetails.description && (
               <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
             )}
@@ -132,25 +130,6 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
           // justifyContent: 'space-between',
         }}
       >
-        {/* Pipeline Name */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '200px' }}>
-          <div style={{ color: colors.dark(0.6), fontWeight: 500 }}>Pipeline</div>
-          <div
-            style={{
-              width: 'fit-content',
-              fontWeight: 600,
-              backgroundColor: pipelineNameToColor(pipelineRunResult.pipelineRunReport.pipelineName),
-              padding: '0.33rem',
-              borderRadius: '4px',
-            }}
-          >
-            {pipelineRunResult.pipelineRunReport.pipelineName}{' '}
-            {pipelineRunResult.pipelineRunReport.pipelineVersion
-              ? `v${pipelineRunResult.pipelineRunReport.pipelineVersion}`
-              : ''}
-          </div>
-        </div>
-
         {/* Job ID */}
         <InfoItem
           label='Job ID'
@@ -164,24 +143,6 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
 
         {/* Description */}
         <InfoItem label='Description' value={pipelineRunResult.jobReport.description || 'No description'} />
-
-        {/* /!* Status *!/ */}
-        {/* <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}> */}
-        {/*   <div style={{ color: colors.dark(0.6), fontWeight: 500 }}>Status</div> */}
-        {/*   <div */}
-        {/*     style={{ */}
-        {/*       display: 'flex', */}
-        {/*       alignItems: 'center', */}
-        {/*       gap: '0.5rem', */}
-        {/*       textTransform: 'capitalize', */}
-        {/*       fontWeight: 600, */}
-        {/*       color: getStatusColor(pipelineRunResult.jobReport.status), */}
-        {/*     }} */}
-        {/*   > */}
-        {/*     {getStatusIcon(pipelineRunResult.jobReport.status)} */}
-        {/*     {pipelineRunResult.jobReport.status.toLowerCase()} */}
-        {/*   </div> */}
-        {/* </div> */}
       </div>
     </div>
   );
