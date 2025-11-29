@@ -1,3 +1,4 @@
+import { Icon } from '@terra-ui-packages/components';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -28,14 +29,19 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
               paddingBottom: '0.75rem',
               borderLeft: '3px solid #5CC88D',
               paddingLeft: '0.5rem',
+              padding: '0.5rem',
+              backgroundColor: 'white',
+              borderBottomRightRadius: '4px',
+              borderTopRightRadius: '4px',
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <div>{event.event}</div>
+              <div style={{ fontWeight: 'bold' }}>{event.event}</div>
               {event.event === 'Passed QC' && (
-                <div style={{ fontSize: '0.875rem', color: '#46A3E9', fontStyle: 'italic' }}>
+                <div style={{ fontSize: 14, color: '#46A3E9', fontStyle: 'italic' }}>
                   <a target='_blank' href='https://app.terra.bio' rel='noreferrer'>
                     Learn more about the QC process
+                    <Icon icon='pop-out' size={12} style={{ marginLeft: '0.25rem' }} />
                   </a>
                 </div>
               )}

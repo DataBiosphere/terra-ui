@@ -36,7 +36,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
             inputs: {
               'Output Basename': 'test',
               'Minimum Imputation Quality': '0.3',
-              'Multi-Sample VCF': 'bla.vcf.gz',
+              'Multi-Sample VCF': 'NA12878_50_duplicate_renamed.clean.vcf.gz',
             },
             outputs: {
               'Imputed Multi-Sample VCF': 'gs://fc-secure-bucket/imputation-results/chr1-22.dose.vcf.gz',

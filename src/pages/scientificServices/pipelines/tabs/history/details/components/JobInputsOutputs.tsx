@@ -19,42 +19,36 @@ const MOCK_FILE_SIZES: Record<string, string> = {
 
 const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div>
-    <div style={{ marginBottom: '0.25rem', fontWeight: 500 }}>{label}</div>
+    <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>{label}</div>
     <div style={{ color: colors.dark(), wordBreak: 'break-all' }}>{value}</div>
   </div>
 );
 
 const OutputItem = ({ label, url, fileSize }: { label: string; url: string; fileSize: string }) => {
   return (
-    <div>
-      <div style={{ marginBottom: '0.25rem', fontWeight: 500 }}>{label}</div>
-      <div
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>{label}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span>{fileSize}</span>
+        </div>
+      </div>
+      <ButtonPrimary
+        onClick={() => {
+          console.log(url);
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem',
-          flexWrap: 'wrap',
+          padding: '0.75rem',
+          gap: '0.25rem',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          marginLeft: '1rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{}}>{fileSize}</span>
-          <ButtonPrimary
-            onClick={() => {
-              console.log(url);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0.75rem',
-              gap: '0.25rem',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            <Icon icon='download' size={16} />
-          </ButtonPrimary>
-        </div>
-      </div>
+        <Icon icon='download' size={16} />
+      </ButtonPrimary>
     </div>
   );
 };
@@ -87,10 +81,19 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
                       borderLeft: '3px solid #e4e5e6',
                       padding: '0.5rem',
                       backgroundColor: 'white',
-                      borderRadius: '4px',
+                      borderBottomRightRadius: '4px',
+                      borderTopRightRadius: '4px',
                     }}
                   >
-                    <InfoItem key={key} label={key} value={<div style={{ fontSize: 13 }}>{value}</div>} />
+                    <InfoItem
+                      key={key}
+                      label={key}
+                      value={
+                        <div style={{ fontSize: 13 }}>
+                          <code>{value}</code>
+                        </div>
+                      }
+                    />
                   </div>
                 ))}
               </div>
@@ -116,7 +119,8 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
                       borderLeft: '3px solid #e4e5e6',
                       padding: '0.5rem',
                       backgroundColor: 'white',
-                      borderRadius: '4px',
+                      borderBottomRightRadius: '4px',
+                      borderTopRightRadius: '4px',
                     }}
                   >
                     <OutputItem key={key} label={key} url={value} fileSize={MOCK_FILE_SIZES[key] || '0 KB'} />
