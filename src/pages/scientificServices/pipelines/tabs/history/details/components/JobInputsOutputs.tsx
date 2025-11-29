@@ -1,4 +1,4 @@
-import { Icon } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -18,26 +18,15 @@ const MOCK_FILE_SIZES: Record<string, string> = {
 };
 
 const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div style={{ marginBottom: '1rem' }}>
+  <div>
     <div style={{ marginBottom: '0.25rem', fontWeight: 500 }}>{label}</div>
     <div style={{ color: colors.dark(), wordBreak: 'break-all' }}>{value}</div>
   </div>
 );
 
 const OutputItem = ({ label, url, fileSize }: { label: string; url: string; fileSize: string }) => {
-  const handleDownload = () => {
-    // Create a temporary anchor element to trigger download
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = url.split('/').pop() || 'download';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
-    <div style={{ marginBottom: '1rem' }}>
+    <div>
       <div style={{ marginBottom: '0.25rem', fontWeight: 500 }}>{label}</div>
       <div
         style={{
@@ -49,31 +38,21 @@ const OutputItem = ({ label, url, fileSize }: { label: string; url: string; file
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{}}>{fileSize}</span>
-          <button
-            onClick={handleDownload}
+          <ButtonPrimary
+            onClick={() => {
+              console.log(url);
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
+              padding: '0.75rem',
               gap: '0.25rem',
-              padding: '0.25rem 0.5rem',
-              backgroundColor: colors.accent(0.1),
-              border: `1px solid ${colors.accent()}`,
               borderRadius: '4px',
-              color: colors.accent(),
               cursor: 'pointer',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colors.accent(0.2);
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colors.accent(0.1);
             }}
           >
-            <Icon icon='download' size={12} />
-            Download
-          </button>
+            <Icon icon='download' size={16} />
+          </ButtonPrimary>
         </div>
       </div>
     </div>
@@ -102,7 +81,17 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
               <div>
                 {/* @ts-ignore */}
                 {Object.entries(pipelineRunResult.pipelineRunReport.inputs!).map(([key, value]) => (
-                  <InfoItem key={key} label={key} value={<div style={{ fontSize: 13 }}>{value}</div>} />
+                  <div
+                    style={{
+                      marginTop: '1rem',
+                      borderLeft: '3px solid #e4e5e6',
+                      padding: '0.5rem',
+                      backgroundColor: 'white',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <InfoItem key={key} label={key} value={<div style={{ fontSize: 13 }}>{value}</div>} />
+                  </div>
                 ))}
               </div>
             ) : (
@@ -121,7 +110,17 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
             {hasOutputs ? (
               <div>
                 {Object.entries(pipelineRunResult.pipelineRunReport.outputs!).map(([key, value]) => (
-                  <OutputItem key={key} label={key} url={value} fileSize={MOCK_FILE_SIZES[key] || '0 KB'} />
+                  <div
+                    style={{
+                      marginTop: '1rem',
+                      borderLeft: '3px solid #e4e5e6',
+                      padding: '0.5rem',
+                      backgroundColor: 'white',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <OutputItem key={key} label={key} url={value} fileSize={MOCK_FILE_SIZES[key] || '0 KB'} />
+                  </div>
                 ))}
               </div>
             ) : pipelineRunResult.jobReport.status === 'SUCCEEDED' ? (
