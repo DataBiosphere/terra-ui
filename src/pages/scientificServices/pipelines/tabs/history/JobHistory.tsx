@@ -205,7 +205,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <JobIdCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 140 },
+      size: { basis: 250 },
     },
     {
       field: 'description',
@@ -213,7 +213,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 150 },
+      size: { basis: 160 },
     },
     {
       field: 'status',
@@ -221,7 +221,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 40 },
+      size: { basis: 20 },
     },
     {
       field: 'submitted',
@@ -233,7 +233,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'completed',
@@ -246,7 +246,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'dataDeletionDate',
@@ -254,7 +254,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <DataDeletionDateCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'quotaUsed',
@@ -268,14 +268,14 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       },
       size: { basis: 40 },
     },
-    {
-      field: 'resultURL',
-      headerRenderer: () => <HeaderCell>Actions</HeaderCell>,
-      cellRenderer: ({ rowIndex }) => {
-        return <ActionCell pipelineRun={paginatedRuns[rowIndex]} />;
-      },
-      size: { basis: 40 },
-    },
+    // {
+    //   field: 'resultURL',
+    //   headerRenderer: () => <HeaderCell>Actions</HeaderCell>,
+    //   cellRenderer: ({ rowIndex }) => {
+    //     return <ActionCell pipelineRun={paginatedRuns[rowIndex]} />;
+    //   },
+    //   size: { basis: 40 },
+    // },
   ];
 };
 
