@@ -130,7 +130,9 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                       color: colors.dark(0.7),
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}
+                    >
                       <div>524 samples </div>
                       <div
                         style={{

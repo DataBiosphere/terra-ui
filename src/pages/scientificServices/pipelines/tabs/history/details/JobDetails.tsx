@@ -9,6 +9,7 @@ import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { JobBasics } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobBasics';
 import { JobInputsOutputs } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobInputsOutputs';
+import { JobMetrics } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobMetrics';
 import { JobTimeline } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobTimeline';
 
 export interface JobDetailsProps {
@@ -116,6 +117,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
               {/* Inputs & Outputs - 2/3 width */}
               <div style={{ flex: '0 0 calc(66.667% - 0.5rem)' }}>
                 <JobInputsOutputs pipelineRunResult={pipelineRunResult} />
+                <JobMetrics pipelineRunResult={pipelineRunResult} />
               </div>
             </div>
           </div>
