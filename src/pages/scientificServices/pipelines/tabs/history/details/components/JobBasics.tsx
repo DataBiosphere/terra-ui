@@ -88,12 +88,16 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
         paddingRight: '1.5rem',
         paddingBottom: '1.5rem',
         paddingTop: '0.5rem',
-        marginBottom: '1.5rem',
+        marginBottom: '0.5rem',
       }}
     >
       <div style={{ marginBottom: '1rem' }}>
         <h2>{pipelineDetails && <AoUStylizedString text={pipelineDetails.displayName} />}</h2>
       </div>
+      {/* Description */}
+      {pipelineDetails && pipelineDetails.description && (
+        <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
+      )}
       <div
         style={{
           display: 'flex',
@@ -122,6 +126,12 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
           </div>
         </div>
 
+        {/* Job ID */}
+        <InfoItem label='Job ID' value={<code>{pipelineRunResult.jobReport.id}</code>} />
+
+        {/* Description */}
+        <InfoItem label='Description' value={pipelineRunResult.jobReport.description || 'No description'} />
+
         {/* Status */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <div style={{ color: colors.dark(0.6), fontWeight: 500 }}>Status</div>
@@ -140,8 +150,15 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
           </div>
         </div>
 
-        {/* Job ID */}
-        <InfoItem label='Job ID' value={<code>{pipelineRunResult.jobReport.id}</code>} />
+        {/* Duration */}
+        <InfoItem
+          label='Duration'
+          value={
+            <>
+              <Icon icon='clock' /> {calculateDuration()}
+            </>
+          }
+        />
       </div>
     </div>
   );

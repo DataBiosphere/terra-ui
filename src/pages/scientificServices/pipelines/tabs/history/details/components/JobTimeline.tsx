@@ -23,7 +23,7 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
           <div
             style={{
               display: 'flex',
-              alignItems: 'center', // vertically center content
+              alignItems: 'center',
               padding: '0.75rem',
               borderLeft: '3px solid #5CC88D',
               backgroundColor: 'white',
@@ -33,7 +33,6 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
             }}
           >
             <div style={{ flex: 1 }}>
-              {/* Top row: event name left, timestamp right */}
               <div
                 style={{
                   display: 'flex',
