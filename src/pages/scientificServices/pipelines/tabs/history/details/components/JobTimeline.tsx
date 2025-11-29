@@ -10,14 +10,67 @@ interface JobTimelineProps {
 
 const MOCK_TIMELINE_EVENTS = [
   { timestamp: '2024-01-01T10:00:00Z', event: 'Submitted' },
-  { timestamp: '2024-01-01T10:05:37Z', event: 'Passed QC' },
   { timestamp: '2024-01-01T10:05:11Z', event: 'Started' },
-  { timestamp: '2024-01-01T10:20:01Z', event: 'Completed' },
+  { timestamp: '2024-01-01T10:05:37Z', event: 'Passed QC' },
+  { timestamp: '2024-01-01T10:20:01Z', event: 'Succeeded' },
 ];
 
 export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
+  // Calculate job duration from first to last event
+  const firstEvent = MOCK_TIMELINE_EVENTS[0];
+  const lastEvent = MOCK_TIMELINE_EVENTS[MOCK_TIMELINE_EVENTS.length - 1];
+  const startTime = new Date(firstEvent.timestamp);
+  const endTime = new Date(lastEvent.timestamp);
+  const durationMs = endTime.getTime() - startTime.getTime();
+
+  // Format duration
+  const formatDuration = (ms: number) => {
+    const minutes = Math.floor(ms / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
   return (
-    <PipelineWidgetContainer title='Timeline' border='1px solid #d7d9dc'>
+    <div
+      style={{
+        backgroundColor: '#f4f6f9',
+        border: '1px solid #d7d9dc',
+        borderRadius: '4px',
+        padding: '1rem 1rem 1.5rem',
+        margin: '1rem 0',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem',
+        }}
+      >
+        <h3 style={{ marginTop: '0.5rem', marginBottom: 0 }}>Timeline</h3>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            backgroundColor: 'white',
+            padding: '0.5rem 0.75rem',
+            border: `1px solid ${colors.light(0.4)}`,
+            borderRadius: '20px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+          }}
+        >
+          <Icon icon='clock' size={16} style={{ color: colors.dark(0.7) }} />
+          {formatDuration(durationMs)}
+        </div>
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {MOCK_TIMELINE_EVENTS.map((event, index) => (
           <div key={index} style={{ position: 'relative' }}>
@@ -32,6 +85,11 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                 minHeight: '4rem',
               }}
             >
+              {/* Success icon */}
+              <div style={{ marginRight: '0.75rem' }}>
+                <Icon icon='success-standard' size={20} style={{ color: colors.success() }} />
+              </div>
+
               <div style={{ flex: 1 }}>
                 <div
                   style={{
@@ -69,7 +127,7 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
               <div
                 style={{
                   width: '3px',
-                  height: '2rem',
+                  height: '1.5rem',
                   backgroundColor: colors.light(0.2),
                   marginLeft: 'calc(50% - 1px)',
                   position: 'relative',
@@ -80,6 +138,6 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
           </div>
         ))}
       </div>
-    </PipelineWidgetContainer>
+    </div>
   );
 };

@@ -1,5 +1,6 @@
 import { Icon, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
+import { ClipboardButton } from 'src/components/ClipboardButton';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
@@ -93,18 +94,18 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
     >
       <div style={{ marginBottom: '1rem' }}>
         <h2>{pipelineDetails && <AoUStylizedString text={pipelineDetails.displayName} />}</h2>
+        {pipelineDetails && pipelineDetails.description && (
+          <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
+        )}
       </div>
       {/* Description */}
-      {pipelineDetails && pipelineDetails.description && (
-        <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
-      )}
       <div
         style={{
           display: 'flex',
           alignItems: 'flex-start',
           gap: '2rem',
           flexWrap: 'wrap',
-          justifyContent: 'space-between',
+          // justifyContent: 'space-between',
         }}
       >
         {/* Pipeline Name */}
@@ -127,38 +128,36 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
         </div>
 
         {/* Job ID */}
-        <InfoItem label='Job ID' value={<code>{pipelineRunResult.jobReport.id}</code>} />
+        <InfoItem
+          label='Job ID'
+          value={
+            <div>
+              <code>{pipelineRunResult.jobReport.id}</code>
+              <ClipboardButton style={{ marginLeft: '0.5rem' }} text={pipelineRunResult.jobReport.id} />
+            </div>
+          }
+        />
 
         {/* Description */}
         <InfoItem label='Description' value={pipelineRunResult.jobReport.description || 'No description'} />
 
-        {/* Status */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <div style={{ color: colors.dark(0.6), fontWeight: 500 }}>Status</div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              textTransform: 'capitalize',
-              fontWeight: 600,
-              color: getStatusColor(pipelineRunResult.jobReport.status),
-            }}
-          >
-            {getStatusIcon(pipelineRunResult.jobReport.status)}
-            {pipelineRunResult.jobReport.status.toLowerCase()}
-          </div>
-        </div>
-
-        {/* Duration */}
-        <InfoItem
-          label='Duration'
-          value={
-            <>
-              <Icon icon='clock' /> {calculateDuration()}
-            </>
-          }
-        />
+        {/* /!* Status *!/ */}
+        {/* <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}> */}
+        {/*   <div style={{ color: colors.dark(0.6), fontWeight: 500 }}>Status</div> */}
+        {/*   <div */}
+        {/*     style={{ */}
+        {/*       display: 'flex', */}
+        {/*       alignItems: 'center', */}
+        {/*       gap: '0.5rem', */}
+        {/*       textTransform: 'capitalize', */}
+        {/*       fontWeight: 600, */}
+        {/*       color: getStatusColor(pipelineRunResult.jobReport.status), */}
+        {/*     }} */}
+        {/*   > */}
+        {/*     {getStatusIcon(pipelineRunResult.jobReport.status)} */}
+        {/*     {pipelineRunResult.jobReport.status.toLowerCase()} */}
+        {/*   </div> */}
+        {/* </div> */}
       </div>
     </div>
   );

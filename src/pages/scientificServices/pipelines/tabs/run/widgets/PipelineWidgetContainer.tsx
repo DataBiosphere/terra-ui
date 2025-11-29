@@ -9,6 +9,7 @@ interface PipelineWidgetWrapperProps {
   width?: number;
   padding?: string;
   border?: string;
+  showIcon?: boolean;
 }
 
 // Wrapper component for sidebar widgets to ensure consistent styling
@@ -20,6 +21,7 @@ export const PipelineWidgetContainer = ({
   width,
   padding = '1rem 1rem 1.5rem',
   border = 'none',
+  showIcon = true,
 }: PipelineWidgetWrapperProps) => {
   return (
     <div
@@ -34,7 +36,7 @@ export const PipelineWidgetContainer = ({
       }}
     >
       <h3 style={{ marginTop: '0.5rem' }}>
-        <Icon icon='info-circle' style={{ color: '#5CC88D' }} /> {title}
+        {showIcon && <Icon icon='info-circle' style={{ color: '#5CC88D' }} />} {title}
       </h3>
       {children}
     </div>
