@@ -82,7 +82,7 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
     <div
       style={{
         width: '100%',
-        backgroundColor: '#f5f6f9',
+        background: `linear-gradient(to right, #f5f6f9, ${getStatusColor(pipelineRunResult.jobReport.status)}15)`,
         border: '1px solid #d7d9dc',
         borderRadius: '4px',
         paddingLeft: '1.5rem',
@@ -93,10 +93,34 @@ export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
       }}
     >
       <div style={{ marginBottom: '1rem' }}>
-        <h2>{pipelineDetails && <AoUStylizedString text={pipelineDetails.displayName} />}</h2>
-        {pipelineDetails && pipelineDetails.description && (
-          <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
-        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ flex: 1 }}>
+            <h2>{pipelineDetails && <AoUStylizedString text={pipelineDetails.displayName} />}</h2>
+            {pipelineDetails && pipelineDetails.description && (
+              <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
+            )}
+          </div>
+
+          {/* Status Badge */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              textTransform: 'capitalize',
+              fontSize: 18,
+              fontWeight: 600,
+              border: '1px solid #d7d9dc',
+              padding: '0.5rem 0.75rem',
+              borderRadius: '4px',
+              backgroundColor: '#fff',
+              color: getStatusColor(pipelineRunResult.jobReport.status),
+            }}
+          >
+            {getStatusIcon(pipelineRunResult.jobReport.status)}
+            {pipelineRunResult.jobReport.status.toLowerCase()}
+          </div>
+        </div>
       </div>
       {/* Description */}
       <div

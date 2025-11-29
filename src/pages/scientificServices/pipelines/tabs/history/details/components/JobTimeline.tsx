@@ -10,8 +10,8 @@ interface JobTimelineProps {
 
 const MOCK_TIMELINE_EVENTS = [
   { timestamp: '2024-01-01T10:00:00Z', event: 'Submitted' },
-  { timestamp: '2024-01-01T10:05:11Z', event: 'Started' },
-  { timestamp: '2024-01-01T10:05:37Z', event: 'Passed QC' },
+  { timestamp: '2024-01-01T10:05:10Z', event: 'Passed QC' },
+  { timestamp: '2024-01-01T10:06:11Z', event: 'Started' },
   { timestamp: '2024-01-01T10:20:01Z', event: 'Succeeded' },
 ];
 
@@ -61,9 +61,8 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
             gap: '0.5rem',
             backgroundColor: 'white',
             padding: '0.5rem 0.75rem',
-            border: `1px solid ${colors.light(0.4)}`,
+            border: '1px solid #D8D9DC',
             borderRadius: '20px',
-            fontSize: '0.875rem',
             fontWeight: 500,
           }}
         >
