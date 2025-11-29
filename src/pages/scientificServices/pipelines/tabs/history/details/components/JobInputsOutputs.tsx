@@ -69,7 +69,7 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
     pipelineRunResult.pipelineRunReport.outputs && Object.keys(pipelineRunResult.pipelineRunReport.outputs).length > 0;
 
   return (
-    <PipelineWidgetContainer title='Inputs & Outputs'>
+    <PipelineWidgetContainer title='Inputs & Outputs' border='1px solid #d7d9dc'>
       {isLoading ? (
         <div style={{ color: colors.dark(0.6) }}>Loading...</div>
       ) : (

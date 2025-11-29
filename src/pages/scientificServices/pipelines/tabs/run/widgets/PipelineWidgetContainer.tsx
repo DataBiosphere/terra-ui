@@ -8,6 +8,7 @@ interface PipelineWidgetWrapperProps {
   marginBottom?: string;
   width?: number;
   padding?: string;
+  border?: string;
 }
 
 // Wrapper component for sidebar widgets to ensure consistent styling
@@ -18,6 +19,7 @@ export const PipelineWidgetContainer = ({
   marginBottom = '1rem',
   width,
   padding = '1rem 1rem 1.5rem',
+  border = 'none',
 }: PipelineWidgetWrapperProps) => {
   return (
     <div
@@ -27,6 +29,7 @@ export const PipelineWidgetContainer = ({
         backgroundColor: '#f4f6f9',
         width,
         padding,
+        border,
         borderRadius: '4px',
       }}
     >

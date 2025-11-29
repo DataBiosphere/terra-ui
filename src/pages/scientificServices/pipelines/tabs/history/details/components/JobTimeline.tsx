@@ -16,7 +16,7 @@ const MOCK_TIMELINE_EVENTS = [
 
 export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
   return (
-    <PipelineWidgetContainer title='Timeline'>
+    <PipelineWidgetContainer title='Timeline' border='1px solid #d7d9dc'>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {MOCK_TIMELINE_EVENTS.map((event, index) => (
           <div
