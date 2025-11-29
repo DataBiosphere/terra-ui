@@ -11,7 +11,8 @@ interface JobTimelineProps {
 const MOCK_TIMELINE_EVENTS = [
   { timestamp: '2024-01-01T10:00:00Z', event: 'Submitted' },
   { timestamp: '2024-01-01T10:05:10Z', event: 'Passed QC' },
-  { timestamp: '2024-01-01T10:06:11Z', event: 'Started' },
+  { timestamp: '2024-01-01T10:06:22Z', event: 'Quota Charged' },
+  { timestamp: '2024-01-01T10:08:11Z', event: 'Started' },
   { timestamp: '2024-01-01T10:20:01Z', event: 'Succeeded' },
 ];
 
@@ -79,6 +80,7 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0.75rem',
+                border: '1px solid #d7d9dc',
                 backgroundColor: 'white',
                 borderRadius: '4px',
                 minHeight: '4rem',
@@ -116,6 +118,32 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                       Learn more about the QC process
                       <Icon icon='pop-out' size={12} style={{ marginLeft: '0.25rem' }} />
                     </a>
+                  </div>
+                )}
+
+                {event.event === 'Quota Charged' && (
+                  <div
+                    style={{
+                      marginTop: '0.25rem',
+                      fontSize: 14,
+                      color: colors.dark(0.7),
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div>524 samples </div>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          color: '#46A3E9',
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        <a target='_blank' href='https://app.terra.bio' rel='noreferrer'>
+                          Learn more about quota
+                          <Icon icon='pop-out' size={12} style={{ marginLeft: '0.25rem' }} />
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

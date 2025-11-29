@@ -83,11 +83,13 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
                   <div
                     style={{
                       marginTop: '1rem',
-                      borderLeft: '3px solid #e4e5e6',
+                      // borderLeft: '3px solid #e4e5e6',
+                      border: '1px solid #d7d9dc',
                       padding: '0.5rem',
                       backgroundColor: 'white',
-                      borderBottomRightRadius: '4px',
-                      borderTopRightRadius: '4px',
+                      borderRadius: '4px',
+                      // borderBottomRightRadius: '4px',
+                      // borderTopRightRadius: '4px',
                     }}
                   >
                     <InfoItem
@@ -124,8 +126,10 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
                       borderLeft: '3px solid #e4e5e6',
                       padding: '0.5rem',
                       backgroundColor: 'white',
-                      borderBottomRightRadius: '4px',
-                      borderTopRightRadius: '4px',
+                      border: '1px solid #d7d9dc',
+                      borderRadius: '4px',
+                      // borderBottomRightRadius: '4px',
+                      // borderTopRightRadius: '4px',
                     }}
                   >
                     <OutputItem key={key} label={key} url={value} fileSize={MOCK_FILE_SIZES[key] || '0 KB'} />
