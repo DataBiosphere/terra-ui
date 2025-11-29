@@ -12,7 +12,7 @@ const MOCK_TIMELINE_EVENTS = [
   { timestamp: '2024-01-01T10:00:00Z', event: 'Submitted' },
   { timestamp: '2024-01-01T10:05:37Z', event: 'Passed QC' },
   { timestamp: '2024-01-01T10:05:11Z', event: 'Started' },
-  { timestamp: '2024-01-01T10:20:01Z', event: 'Job Completed' },
+  { timestamp: '2024-01-01T10:20:01Z', event: 'Completed' },
 ];
 
 export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
@@ -21,24 +21,41 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {MOCK_TIMELINE_EVENTS.map((event, index) => (
           <div
-            key={index}
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
-              paddingTop: '0.75rem',
-              paddingBottom: '0.75rem',
+              alignItems: 'center', // vertically center content
+              padding: '0.75rem',
               borderLeft: '3px solid #5CC88D',
-              paddingLeft: '0.5rem',
-              padding: '0.5rem',
               backgroundColor: 'white',
               borderBottomRightRadius: '4px',
               borderTopRightRadius: '4px',
+              minHeight: '4rem',
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <div style={{ fontWeight: 'bold' }}>{event.event}</div>
+            <div style={{ flex: 1 }}>
+              {/* Top row: event name left, timestamp right */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
+              >
+                <div style={{ fontWeight: 'bold' }}>{event.event}</div>
+                <div>{new Date(event.timestamp).toLocaleString()}</div>
+              </div>
+
+              {/* Conditional QC message */}
               {event.event === 'Passed QC' && (
-                <div style={{ fontSize: 14, color: '#46A3E9', fontStyle: 'italic' }}>
+                <div
+                  style={{
+                    marginTop: '0.25rem',
+                    fontSize: 14,
+                    color: '#46A3E9',
+                    fontStyle: 'italic',
+                  }}
+                >
                   <a target='_blank' href='https://app.terra.bio' rel='noreferrer'>
                     Learn more about the QC process
                     <Icon icon='pop-out' size={12} style={{ marginLeft: '0.25rem' }} />
@@ -46,7 +63,6 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                 </div>
               )}
             </div>
-            <div>{new Date(event.timestamp).toLocaleString()}</div>
           </div>
         ))}
       </div>

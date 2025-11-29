@@ -1,4 +1,5 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -19,7 +20,11 @@ const MOCK_FILE_SIZES: Record<string, string> = {
 
 const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div>
-    <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>{label}</div>
+    <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>
+      <TooltipTrigger content='Here is a full description for the input'>
+        <span>{label}</span>
+      </TooltipTrigger>
+    </div>
     <div style={{ color: colors.dark(), wordBreak: 'break-all' }}>{value}</div>
   </div>
 );
