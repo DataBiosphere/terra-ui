@@ -26,14 +26,15 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
 
   // Format duration
   const formatDuration = (ms: number) => {
-    const minutes = Math.floor(ms / (1000 * 60));
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
 
     if (hours > 0) {
-      return `${hours}h ${remainingMinutes}m`;
+      return `${hours}h ${minutes}m ${seconds}s`;
     }
-    return `${minutes}m`;
+    return `${minutes}m ${seconds}s`;
   };
 
   return (
@@ -151,16 +152,32 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
 
             {/* Connecting line to next event */}
             {index < MOCK_TIMELINE_EVENTS.length - 1 && (
-              <div
-                style={{
-                  width: '3px',
-                  height: '1.5rem',
-                  backgroundColor: colors.light(0.2),
-                  marginLeft: 'calc(50% - 1px)',
-                  position: 'relative',
-                  zIndex: 0,
-                }}
-              />
+              <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    width: '3px',
+                    height: '1.5rem',
+                    backgroundColor: colors.light(0.2),
+                    position: 'relative',
+                    zIndex: 0,
+                  }}
+                />
+                {/* Empty circle in the middle of the line */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '8px',
+                    height: '8px',
+                    backgroundColor: 'white',
+                    border: `2px solid ${colors.light(0.4)}`,
+                    borderRadius: '50%',
+                    zIndex: 1,
+                  }}
+                />
+              </div>
             )}
           </div>
         ))}
