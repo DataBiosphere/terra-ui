@@ -17,6 +17,11 @@ export async function preparePipelineRun(
   const jobId = crypto.randomUUID();
 
   const finalUserInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
+    // if it's a boolean, keep as is; if it's a File, use the name; otherwise, trim whitespace
+    if (typeof value === 'boolean') {
+      acc[key] = value;
+      return acc;
+    }
     acc[key] = value instanceof File ? value.name : value.trim();
     return acc;
   }, {} as Record<string, any>);

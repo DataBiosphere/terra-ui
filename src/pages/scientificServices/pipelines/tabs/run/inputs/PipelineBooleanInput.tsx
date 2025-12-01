@@ -5,7 +5,7 @@ import colors from 'src/libs/colors';
 
 interface PipelineBooleanInputProps {
   input: PipelineInput;
-  value: string;
+  value: boolean;
   onChange: (value: boolean) => void;
 }
 
@@ -16,10 +16,9 @@ export const PipelineBooleanInput: React.FC<PipelineBooleanInputProps> = ({ inpu
     <>
       <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
         <LabeledCheckbox
-          checked={defaultValue === 'true' ? true : value === 'true'}
+          checked={value ?? defaultValue ?? false}
           width={400}
           onChange={(e) => {
-            console.log(e);
             onChange(e);
           }}
         >

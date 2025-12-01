@@ -302,7 +302,7 @@ export const RunJob = () => {
                       onChange={(value) => {
                         setSelectedUserInputs((prev) => ({
                           ...prev,
-                          [input.name]: value.toString(),
+                          [input.name]: value,
                         }));
                       }}
                     />
