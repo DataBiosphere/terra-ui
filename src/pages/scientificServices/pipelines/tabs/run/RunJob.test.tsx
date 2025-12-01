@@ -116,6 +116,7 @@ describe('RunJob Component', () => {
     expect(screen.getByText('Enter minimum imputation quality for inclusion')).toBeInTheDocument();
     expect(screen.getByText(/Enter description/)).toBeInTheDocument();
     expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
+    expect(screen.getByText('Allow chunk failures')).toBeInTheDocument();
 
     // Wait for pipeline options to load
     await waitFor(() => {
@@ -162,6 +163,12 @@ describe('RunJob Component', () => {
     await user.type(descriptionTextArea, 'Test description for pipeline run');
 
     expect(descriptionTextArea).toHaveValue('Test description for pipeline run');
+
+    // Toggle allowChunkFailures
+    const allowChunkFailuresCheckbox = screen.getByLabelText('allow chunk failures');
+    await user.click(allowChunkFailuresCheckbox);
+
+    expect(allowChunkFailuresCheckbox).toBeChecked();
   });
 
   it('handles file selection and triggers upload process', async () => {
