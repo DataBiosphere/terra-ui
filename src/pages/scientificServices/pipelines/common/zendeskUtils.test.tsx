@@ -17,22 +17,22 @@ describe('zendeskUtils', () => {
       );
     });
   });
-});
 
-describe('ZendeskLink', () => {
-  it('renders correctly with given children and href', () => {
-    const { getByText } = render(
-      <ZendeskLink dockKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'italics' }}>
-        Link to my excellent documentation
-      </ZendeskLink>
-    );
+  describe('ZendeskLink', () => {
+    it('renders correctly with given children and href', () => {
+      const { getByText } = render(
+        <ZendeskLink dockKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'italics' }}>
+          Link to my excellent documentation
+        </ZendeskLink>
+      );
 
-    const linkElement = getByText('Link to my excellent documentation');
-    expect(linkElement).toBeInTheDocument();
-    expect(linkElement).toHaveAttribute(
-      'href',
-      'https://broadscientificservices.zendesk.com/hc/en-us/articles/39903092619035'
-    );
-    expect(linkElement).toHaveStyle('font-weight: italics');
+      const linkElement = getByText('Link to my excellent documentation');
+      expect(linkElement).toBeInTheDocument();
+      expect(linkElement).toHaveAttribute(
+        'href',
+        'https://broadscientificservices.zendesk.com/hc/en-us/articles/39903092619035'
+      );
+      expect(linkElement).toHaveStyle('font-weight: italics');
+    });
   });
 });
