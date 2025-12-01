@@ -9,7 +9,7 @@ import { Alert } from './Alert';
 
 export const getServiceAlerts = async (): Promise<Alert[]> => {
   const serviceAlerts = isScientificServices()
-    ? await FirecloudBucket().getTeaspoonsAlerts()
+    ? await FirecloudBucket().getTeaspoonsServiceAlerts()
     : await FirecloudBucket().getServiceAlerts();
   const hashes = await Promise.all(_.map(_.flow(JSON.stringify, Utils.sha256), serviceAlerts));
   const severityMap = {
