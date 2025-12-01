@@ -6,6 +6,7 @@ import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { DocsKey, zendeskUrl } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import {
   resumeUpload,
   uploadTimeRemainingDisplayText,
@@ -61,7 +62,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           <div style={{ marginTop: '0.5rem' }}>
             <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
             <a
-              href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
+              href={zendeskUrl(DocsKey.INPUT_REQ)}
               target='_blank'
               style={{ color: '#46A3E9', textDecoration: 'underline' }}
               rel='noreferrer'
