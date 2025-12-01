@@ -22,6 +22,7 @@ export const zendeskUrl = (key: DocsKey): string => {
   return ZENDESK_PAGES[key] ?? ZENDESK_PAGES.GETTING_STARTED;
 };
 
+// Renders a component with link to the specified Zendesk documentation page
 export const ZendeskLink = ({
   dockKey,
   additionalStyle,
