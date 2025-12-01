@@ -117,7 +117,9 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
               {/* Inputs & Outputs - 2/3 width */}
               <div style={{ flex: '0 0 calc(66.667% - 0.5rem)' }}>
                 <JobInputsOutputs pipelineRunResult={pipelineRunResult} />
-                <JobMetrics pipelineRunResult={pipelineRunResult} />
+                {pipelineRunResult.jobReport.status === 'SUCCEEDED' && (
+                  <JobMetrics pipelineRunResult={pipelineRunResult} />
+                )}
               </div>
             </div>
           </div>

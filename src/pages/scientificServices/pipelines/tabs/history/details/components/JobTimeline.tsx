@@ -8,24 +8,44 @@ interface JobTimelineProps {
   pipelineRunResult: PipelineRunResponse;
 }
 
-const MOCK_TIMELINE_EVENTS = [
-  { timestamp: '2024-01-01T10:00:00Z', event: 'Submitted' },
-  { timestamp: '2024-01-01T10:05:10Z', event: 'Passed QC' },
-  { timestamp: '2024-01-01T10:06:22Z', event: 'Quota Charged' },
-  { timestamp: '2024-01-01T10:08:11Z', event: 'Started' },
-  { timestamp: '2024-01-01T10:20:01Z', event: 'Succeeded' },
+const SUCCESS_MOCK_TIMELINE_EVENTS = [
+  { timestamp: '2024-01-01T10:00:00Z', event: 'Submitted', status: 'SUCCESS' },
+  { timestamp: '2024-01-01T10:05:10Z', event: 'Passed QC', status: 'SUCCESS' },
+  { timestamp: '2024-01-01T10:06:22Z', event: 'Quota Charged', status: 'SUCCESS' },
+  { timestamp: '2024-01-01T10:08:11Z', event: 'Started', status: 'SUCCESS' },
+  { timestamp: '2024-01-01T10:20:01Z', event: 'Succeeded', status: 'SUCCESS' },
+];
+
+const FAILED_MOCK_TIMELINE_EVENTS = [
+  { timestamp: '2024-01-01T10:00:00Z', event: 'Submitted', status: 'SUCCESS' },
+  { timestamp: '2024-01-01T10:05:10Z', event: 'Failed QC', status: 'FAILED' },
+  { timestamp: undefined, event: 'Quota Charged', status: 'QUEUED' },
+  { timestamp: undefined, event: 'Started', status: 'QUEUED' },
+  { timestamp: undefined, event: 'Completed', status: 'QUEUED' },
 ];
 
 export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
-  // Calculate job duration from first to last event
-  const firstEvent = MOCK_TIMELINE_EVENTS[0];
-  const lastEvent = MOCK_TIMELINE_EVENTS[MOCK_TIMELINE_EVENTS.length - 1];
-  const startTime = new Date(firstEvent.timestamp);
-  const endTime = new Date(lastEvent.timestamp);
-  const durationMs = endTime.getTime() - startTime.getTime();
+  const MOCK_TIMELINE_EVENTS =
+    pipelineRunResult.jobReport.status === 'SUCCEEDED' ? SUCCESS_MOCK_TIMELINE_EVENTS : FAILED_MOCK_TIMELINE_EVENTS;
+
+  // Calculate job duration from first to last event with valid timestamps
+  const eventsWithTimestamps = MOCK_TIMELINE_EVENTS.filter((event) => event.timestamp);
+  const firstEvent = eventsWithTimestamps[0];
+  const lastEvent = eventsWithTimestamps[eventsWithTimestamps.length - 1];
+
+  let durationMs = 0;
+  if (firstEvent && lastEvent && firstEvent.timestamp && lastEvent.timestamp) {
+    const startTime = new Date(firstEvent.timestamp);
+    const endTime = new Date(lastEvent.timestamp);
+    durationMs = endTime.getTime() - startTime.getTime();
+  }
 
   // Format duration
   const formatDuration = (ms: number) => {
+    if (ms === 0) {
+      return 'In progress';
+    }
+
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -35,6 +55,32 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
       return `${hours}h ${minutes}m ${seconds}s`;
     }
     return `${minutes}m ${seconds}s`;
+  };
+
+  // Get icon based on status
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'SUCCESS':
+        return <Icon icon='success-standard' size={20} style={{ color: colors.success() }} />;
+      case 'RUNNING':
+        return <Icon icon='sync' size={20} style={{ color: colors.accent() }} />;
+      case 'QUEUED':
+        return (
+          <div
+            style={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: colors.dark(0.3),
+              border: `2px solid ${colors.dark(0.3)}`,
+            }}
+          />
+        );
+      case 'FAILED':
+        return <Icon icon='warning-standard' size={20} style={{ color: colors.danger() }} />;
+      default:
+        return <Icon icon='success-standard' size={20} style={{ color: colors.success() }} />;
+    }
   };
 
   return (
@@ -88,9 +134,7 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
               }}
             >
               {/* Success icon */}
-              <div style={{ marginRight: '0.75rem' }}>
-                <Icon icon='success-standard' size={20} style={{ color: colors.success() }} />
-              </div>
+              <div style={{ marginRight: '0.75rem' }}>{getStatusIcon(event.status)}</div>
 
               <div style={{ flex: 1 }}>
                 <div
@@ -102,7 +146,15 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                   }}
                 >
                   <div style={{ fontWeight: 'bold' }}>{event.event}</div>
-                  <div>{new Date(event.timestamp).toLocaleString()}</div>
+                  <div>
+                    {event.timestamp ? (
+                      new Date(event.timestamp).toLocaleString()
+                    ) : pipelineRunResult.jobReport.status === 'FAILED' ? (
+                      ''
+                    ) : (
+                      <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Pending</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Conditional QC message */}
@@ -122,6 +174,19 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                   </div>
                 )}
 
+                {event.event === 'Failed QC' && (
+                  <div
+                    style={{
+                      marginTop: '0.25rem',
+                      fontSize: 14,
+                      color: colors.danger(),
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {'Input failed QC: VCF version < 4.0 or not found.'}
+                  </div>
+                )}
+
                 {event.event === 'Quota Charged' && (
                   <div
                     style={{
@@ -133,7 +198,10 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                     <div
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}
                     >
-                      <div>524 samples </div>
+                      {pipelineRunResult.jobReport.status === 'SUCCEEDED' && <div>524 samples</div>}
+                      {pipelineRunResult.jobReport.status === 'FAILED' && (
+                        <div style={{ fontStyle: 'italic' }}>No quota charged.</div>
+                      )}
                       <div
                         style={{
                           fontSize: 14,
