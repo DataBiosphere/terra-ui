@@ -14,7 +14,7 @@ export const PipelineBooleanInput: React.FC<PipelineBooleanInputProps> = ({ inpu
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.5rem' }}>
         <LabeledCheckbox
           checked={value ?? defaultValue ?? false}
           width={400}
@@ -28,7 +28,7 @@ export const PipelineBooleanInput: React.FC<PipelineBooleanInputProps> = ({ inpu
         </LabeledCheckbox>
       </div>
       {description && (
-        <div style={{ marginBottom: '1.5rem', marginTop: '0.25rem', fontStyle: 'italic', maxWidth: 500 }}>
+        <div style={{ marginBottom: '1.5rem', marginTop: '0.5rem', fontStyle: 'italic', maxWidth: 500 }}>
           {description}
         </div>
       )}
