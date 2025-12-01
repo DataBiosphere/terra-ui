@@ -110,16 +110,7 @@ export const RunJob = () => {
   useEffect(() => {
     // Update pipeline inputs when pipeline details change
     if (pipelineDetails?.inputs) {
-      setPipelineInputs([
-        {
-          name: 'allow_chunk_failures',
-          displayName: 'Allow chunk failures',
-          description: 'If true, allow up to 10% chunk failure rate. Default false.',
-          type: 'BOOLEAN',
-          isRequired: false,
-        },
-        ...pipelineDetails.inputs,
-      ]);
+      setPipelineInputs(pipelineDetails.inputs);
     }
   }, [pipelineDetails]);
 
