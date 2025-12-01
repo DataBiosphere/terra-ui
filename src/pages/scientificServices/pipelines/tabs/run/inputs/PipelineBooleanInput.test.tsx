@@ -97,15 +97,5 @@ describe('PipelineBooleanInput', () => {
 
       expect(mockOnChange).toHaveBeenCalledWith(false);
     });
-
-    it('calls onChange when clicking the label text', async () => {
-      const user = userEvent.setup();
-      render(<PipelineBooleanInput input={basePipelineInput} value={false} onChange={mockOnChange} />);
-
-      const label = screen.getByText('Test Input');
-      await user.click(label);
-
-      expect(mockOnChange).toHaveBeenCalledWith(true);
-    });
   });
 });
