@@ -29,13 +29,25 @@ const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) =
   </div>
 );
 
-const OutputItem = ({ label, url, fileSize }: { label: string; url: string; fileSize: string }) => {
+const OutputItem = ({
+  label,
+  url,
+  fileSize,
+  disabled,
+}: {
+  label: string;
+  url: string;
+  fileSize: string;
+  disabled?: boolean;
+}) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ flex: 1 }}>
         <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>{label}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span>{fileSize}</span>
+          <span style={{ color: disabled ? colors.dark(0.5) : colors.dark() }}>
+            {disabled ? 'Not available' : fileSize}
+          </span>
         </div>
       </div>
       <ButtonPrimary
@@ -48,9 +60,11 @@ const OutputItem = ({ label, url, fileSize }: { label: string; url: string; file
           padding: '0.75rem',
           gap: '0.25rem',
           borderRadius: '4px',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
           marginLeft: '1rem',
+          opacity: disabled ? 0.5 : 1,
         }}
+        disabled={disabled}
       >
         <Icon icon='download' size={16} />
       </ButtonPrimary>
@@ -115,7 +129,7 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
           </div>
 
           {/* Outputs Column */}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, opacity: pipelineRunResult.jobReport.status === 'SUCCEEDED' ? 1 : 0.5 }}>
             <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>Outputs</h4>
             {hasOutputs ? (
               <div>
@@ -128,11 +142,15 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
                       backgroundColor: 'white',
                       border: '1px solid #d7d9dc',
                       borderRadius: '4px',
-                      // borderBottomRightRadius: '4px',
-                      // borderTopRightRadius: '4px',
                     }}
                   >
-                    <OutputItem key={key} label={key} url={value} fileSize={MOCK_FILE_SIZES[key] || '0 KB'} />
+                    <OutputItem
+                      key={key}
+                      label={key}
+                      url={value}
+                      fileSize={MOCK_FILE_SIZES[key] || '0 KB'}
+                      disabled={pipelineRunResult.jobReport.status !== 'SUCCEEDED'}
+                    />
                   </div>
                 ))}
               </div>
