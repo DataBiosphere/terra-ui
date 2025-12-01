@@ -166,6 +166,9 @@ describe('RunJob Component', () => {
 
     // Toggle allowChunkFailures
     const allowChunkFailuresCheckbox = screen.getByLabelText('Allow chunk failures');
+    // initially assert unchecked because the default is false
+    expect(allowChunkFailuresCheckbox).not.toBeChecked();
+
     await user.click(allowChunkFailuresCheckbox);
 
     expect(allowChunkFailuresCheckbox).toBeChecked();
