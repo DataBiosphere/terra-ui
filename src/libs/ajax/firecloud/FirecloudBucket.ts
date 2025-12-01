@@ -7,6 +7,11 @@ export const FirecloudBucket = (signal?: AbortSignal) => ({
     return res.json();
   },
 
+  getTeaspoonsServiceAlerts: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/teaspoons-alerts.json`, { signal });
+    return res.json();
+  },
+
   getFeaturedWorkspaces: async () => {
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal });
     return res.json();
