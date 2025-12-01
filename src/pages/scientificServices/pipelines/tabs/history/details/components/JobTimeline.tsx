@@ -131,6 +131,7 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                 backgroundColor: 'white',
                 borderRadius: '4px',
                 minHeight: '4rem',
+                opacity: !event.timestamp && pipelineRunResult.jobReport.status === 'FAILED' ? 0.5 : 1,
               }}
             >
               {/* Success icon */}
@@ -145,7 +146,17 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
                     width: '100%',
                   }}
                 >
-                  <div style={{ fontWeight: 'bold' }}>{event.event}</div>
+                  <div
+                    style={{
+                      fontWeight: 'bold',
+                      color:
+                        !event.timestamp && pipelineRunResult.jobReport.status === 'FAILED'
+                          ? colors.dark(0.5)
+                          : colors.dark(),
+                    }}
+                  >
+                    {event.event}
+                  </div>
                   <div>
                     {event.timestamp ? (
                       new Date(event.timestamp).toLocaleString()
