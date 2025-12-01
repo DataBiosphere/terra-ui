@@ -1,4 +1,6 @@
 // Enum representing different documentation keys
+import React from 'react';
+
 export enum DocsKey {
   GETTING_STARTED = 'GETTING_STARTED',
   ABOUT_SERVICE = 'ABOUT_SERVICE',
@@ -18,4 +20,25 @@ const ZENDESK_PAGES: Record<DocsKey, string> = {
 export const zendeskUrl = (key: DocsKey): string => {
   // typescript should make sure all keys are valid, but just in case, default to the home page
   return ZENDESK_PAGES[key] ?? ZENDESK_PAGES.GETTING_STARTED;
+};
+
+export const ZendeskLink = ({
+  dockKey,
+  additionalStyle,
+  children,
+}: {
+  dockKey: DocsKey;
+  additionalStyle?;
+  children: React.ReactNode;
+}) => {
+  return (
+    <a
+      href={zendeskUrl(dockKey)}
+      target='_blank'
+      style={{ color: '#46A3E9', textDecoration: 'underline', ...additionalStyle }}
+      rel='noreferrer'
+    >
+      {children}
+    </a>
+  );
 };

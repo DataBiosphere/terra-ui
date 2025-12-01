@@ -6,7 +6,7 @@ import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
-import { DocsKey, zendeskUrl } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import {
   resumeUpload,
   uploadTimeRemainingDisplayText,
@@ -61,14 +61,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           </span>
           <div style={{ marginTop: '0.5rem' }}>
             <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
-            <a
-              href={zendeskUrl(DocsKey.INPUT_REQ)}
-              target='_blank'
-              style={{ color: '#46A3E9', textDecoration: 'underline' }}
-              rel='noreferrer'
-            >
-              Learn more about how to reduce your file size.
-            </a>
+            <ZendeskLink dockKey={DocsKey.INPUT_REQ}>Learn more about how to reduce your file size.</ZendeskLink>
           </div>
         </>
       );

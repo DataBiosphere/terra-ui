@@ -3,7 +3,7 @@ import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { cond, DEFAULT } from 'src/libs/utils';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-import { DocsKey, zendeskUrl } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
@@ -82,14 +82,9 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
         &nbsp;for quota.
       </div>
       <div style={{ marginTop: '1rem' }}>
-        <a
-          href={zendeskUrl(DocsKey.QUOTA_DETAILS)}
-          target='_blank'
-          rel='noreferrer'
-          style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-        >
+        <ZendeskLink dockKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'bold' }}>
           Get help
-        </a>
+        </ZendeskLink>
         &nbsp;with quota.
       </div>
     </PipelineWidgetContainer>

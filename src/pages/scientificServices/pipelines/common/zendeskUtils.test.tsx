@@ -1,4 +1,6 @@
-import { DocsKey, zendeskUrl } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import { render } from '@testing-library/react';
+import React from 'react';
+import { DocsKey, ZendeskLink, zendeskUrl } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 
 describe('zendeskUtils', () => {
   describe('zendeskUrl', () => {
@@ -14,5 +16,23 @@ describe('zendeskUtils', () => {
         'https://broadscientificservices.zendesk.com/hc/en-us/sections/39901025462171' // Getting Started URL
       );
     });
+  });
+});
+
+describe('ZendeskLink', () => {
+  it('renders correctly with given children and href', () => {
+    const { getByText } = render(
+      <ZendeskLink dockKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'bold' }}>
+        Link to my excellent documentation
+      </ZendeskLink>
+    );
+
+    const linkElement = getByText('Link to my excellent documentation');
+    expect(linkElement).toBeInTheDocument();
+    expect(linkElement).toHaveAttribute(
+      'href',
+      'https://broadscientificservices.zendesk.com/hc/en-us/articles/39903092619035'
+    );
+    expect(linkElement).toHaveStyle('font-weight: bold');
   });
 });
