@@ -35,7 +35,7 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
       },
       {
         name: 'allowChunkFailures',
-        displayName: 'allow chunk failures',
+        displayName: 'Allow chunk failures',
         description: 'If true, allow up to 10% chunk failure rate. Default false.',
         type: 'BOOLEAN',
         isRequired: false,

@@ -165,7 +165,7 @@ describe('RunJob Component', () => {
     expect(descriptionTextArea).toHaveValue('Test description for pipeline run');
 
     // Toggle allowChunkFailures
-    const allowChunkFailuresCheckbox = screen.getByLabelText('allow chunk failures');
+    const allowChunkFailuresCheckbox = screen.getByLabelText('Allow chunk failures');
     await user.click(allowChunkFailuresCheckbox);
 
     expect(allowChunkFailuresCheckbox).toBeChecked();
