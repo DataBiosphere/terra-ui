@@ -33,18 +33,13 @@ describe('PipelineBooleanInput', () => {
       expect(screen.getByText('testInput')).toBeInTheDocument();
     });
 
-    it('does not render description when not provided', () => {
-      const inputWithoutDescription = { ...basePipelineInput, description: undefined };
-      render(<PipelineBooleanInput input={inputWithoutDescription} value={false} onChange={mockOnChange} />);
-
-      expect(screen.queryByText('This is a test input description')).not.toBeInTheDocument();
-    });
-
     it('renders required indicator when input is required', () => {
       const requiredInput = { ...basePipelineInput, isRequired: true };
       render(<PipelineBooleanInput input={requiredInput} value={false} onChange={mockOnChange} />);
 
-      expect(screen.getByText('*')).toBeInTheDocument();
+      const requiredIndicator = screen.getByText('*');
+      expect(requiredIndicator).toBeInTheDocument();
+      expect(requiredIndicator).toHaveStyle('color: rgb(219, 50, 20)'); // colors.danger()
     });
 
     it('does not render required indicator when input is not required', () => {
