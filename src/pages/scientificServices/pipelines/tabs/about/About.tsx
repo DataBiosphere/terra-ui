@@ -37,12 +37,12 @@ export const About = () => {
 
         <h2 style={{ marginTop: '2rem' }}>User Documentation</h2>
         <div style={{ marginTop: '1rem' }}>
-          <ZendeskLink dockKey={DocsKey.GETTING_STARTED} additionalStyle={{ fontWeight: 'bold' }}>
+          <ZendeskLink docsKey={DocsKey.GETTING_STARTED} additionalStyle={{ fontWeight: 'bold' }}>
             Get Started
           </ZendeskLink>
         </div>
         <div style={{ marginTop: '1rem' }}>
-          <ZendeskLink dockKey={DocsKey.ABOUT_SERVICE} additionalStyle={{ fontWeight: 'bold' }}>
+          <ZendeskLink docsKey={DocsKey.ABOUT_SERVICE} additionalStyle={{ fontWeight: 'bold' }}>
             About this Service
           </ZendeskLink>
         </div>

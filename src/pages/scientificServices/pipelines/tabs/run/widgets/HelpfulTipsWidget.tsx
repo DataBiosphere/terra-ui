@@ -15,7 +15,7 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
       content: (
         <>
           View{' '}
-          <ZendeskLink dockKey={DocsKey.INPUT_REQ} additionalStyle={{ fontWeight: 'bold' }}>
+          <ZendeskLink docsKey={DocsKey.INPUT_REQ} additionalStyle={{ fontWeight: 'bold' }}>
             formatting guidelines
           </ZendeskLink>{' '}
           for input VCF files

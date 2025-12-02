@@ -82,7 +82,7 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
         &nbsp;for quota.
       </div>
       <div style={{ marginTop: '1rem' }}>
-        <ZendeskLink dockKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'bold' }}>
+        <ZendeskLink docsKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'bold' }}>
           Get help
         </ZendeskLink>
         &nbsp;with quota.

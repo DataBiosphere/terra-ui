@@ -24,17 +24,17 @@ export const zendeskUrl = (key: DocsKey): string => {
 
 // Renders a component with link to the specified Zendesk documentation page
 export const ZendeskLink = ({
-  dockKey,
+  docsKey,
   additionalStyle,
   children,
 }: {
-  dockKey: DocsKey;
+  docsKey: DocsKey;
   additionalStyle?;
   children: React.ReactNode;
 }) => {
   return (
     <a
-      href={zendeskUrl(dockKey)}
+      href={zendeskUrl(docsKey)}
       target='_blank'
       style={{ color: '#46A3E9', textDecoration: 'underline', ...additionalStyle }}
       rel='noreferrer'

@@ -21,7 +21,7 @@ describe('zendeskUtils', () => {
   describe('ZendeskLink', () => {
     it('renders correctly with given children and href', () => {
       const { getByText } = render(
-        <ZendeskLink dockKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'italics' }}>
+        <ZendeskLink docsKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'italics' }}>
           Link to my excellent documentation
         </ZendeskLink>
       );
