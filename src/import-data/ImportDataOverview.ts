@@ -47,12 +47,25 @@ export interface ImportDataOverviewProps {
 export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode => {
   const { importRequest } = props;
 
+  const getDisplayUrl = (url: string) => url.replace(/^https?:\/\//, '').split('?')[0];
+
   return div({ style: styles.card }, [
     h2({ style: styles.title }, [getTitleForImportRequest(importRequest)]),
     'url' in importRequest &&
       h(Fragment, [
-        h3({ style: { fontSize: 16 } }, ['Dataset source:']),
-        div({ style: { marginTop: '1rem' } }, [`${importRequest.url.href.split('?')[0]}`]),
+        h3({ style: { fontSize: 16, marginBottom: 2 } }, ['Dataset source:']),
+        div(
+          {
+            style: {
+              fontSize: 13,
+              color: colors.dark(0.7),
+              marginBottom: 8,
+              marginTop: 0,
+            },
+          },
+          ['(For reference only — not a direct link)']
+        ),
+        div({ style: { marginTop: '1rem', marginBottom: '0.5rem' } }, [getDisplayUrl(importRequest.url.href)]),
       ]),
     h(ImportRequirements, { importRequest }),
   ]);

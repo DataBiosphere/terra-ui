@@ -34,6 +34,13 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
         maxValue: 1,
       },
       {
+        name: 'allowChunkFailures',
+        displayName: 'Allow chunk failures',
+        description: 'If true, allow up to 10% chunk failure rate. Default false.',
+        type: 'BOOLEAN',
+        isRequired: false,
+      },
+      {
         name: 'multiSampleVcf',
         displayName: 'multi-sample VCF file',
         description: 'A bgzipped, multi-sample VCF containing array data from one or more chromosomes to be imputed',

@@ -16,6 +16,7 @@ import {
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
+import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineBooleanInput';
 import {
   PipelineFileInput,
   PipelineInputFileUploadState,
@@ -280,6 +281,25 @@ export const RunJob = () => {
               {/* Displays optional run description */}
               {selectedPipeline && <PipelineRunDescription value={runDescription} onChange={setRunDescription} />}
 
+              {/* Displays all BOOLEAN inputs, one after another */}
+              {pipelineInputs
+                .filter((input) => input.type === 'BOOLEAN')
+                .map((input) => {
+                  return (
+                    <PipelineBooleanInput
+                      value={selectedUserInputs[input.name]}
+                      input={input}
+                      key={`${input.name}`}
+                      onChange={(value) => {
+                        setSelectedUserInputs((prev) => ({
+                          ...prev,
+                          [input.name]: value,
+                        }));
+                      }}
+                    />
+                  );
+                })}
+
               {/* Displays all FILE inputs, one after another */}
               {pipelineInputs
                 .filter((input) => input.type === 'FILE')
@@ -303,6 +323,7 @@ export const RunJob = () => {
                     />
                   );
                 })}
+
               {/* Submit button */}
               {!submittedJobId && quota && (
                 <>
