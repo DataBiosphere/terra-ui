@@ -2,6 +2,7 @@ import { Spinner } from '@terra-ui-packages/components';
 import React from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 
@@ -36,24 +37,14 @@ export const About = () => {
 
         <h2 style={{ marginTop: '2rem' }}>User Documentation</h2>
         <div style={{ marginTop: '1rem' }}>
-          <a
-            href='https://broadscientificservices.zendesk.com/hc/en-us/sections/39901025462171'
-            target='_blank'
-            style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-            rel='noreferrer'
-          >
+          <ZendeskLink docsKey={DocsKey.GETTING_STARTED} additionalStyle={{ fontWeight: 'bold' }}>
             Get Started
-          </a>
+          </ZendeskLink>
         </div>
         <div style={{ marginTop: '1rem' }}>
-          <a
-            target='_blank'
-            href='https://broadscientificservices.zendesk.com/hc/en-us/articles/39901941351323'
-            style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-            rel='noreferrer'
-          >
+          <ZendeskLink docsKey={DocsKey.ABOUT_SERVICE} additionalStyle={{ fontWeight: 'bold' }}>
             About this Service
-          </a>
+          </ZendeskLink>
         </div>
       </div>
     </FooterWrapper>
