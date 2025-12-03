@@ -562,7 +562,7 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
   }
 };
 
-export const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
+const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
   switch (pipelineRun.pipelineName) {
     case 'array_imputation':
       return '#4D72AA4D';

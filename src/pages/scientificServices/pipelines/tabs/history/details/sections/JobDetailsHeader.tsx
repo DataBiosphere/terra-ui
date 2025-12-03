@@ -38,16 +38,12 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getHeaderColor = (status: string) => {
     switch (status) {
       case 'SUCCEEDED':
         return colors.success();
       case 'RUNNING':
         return colors.accent();
-      case 'PREPARING':
-        return colors.warning();
-      case 'FAILED':
-        return colors.danger();
       default:
         return colors.dark();
     }
@@ -59,7 +55,7 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
     <div
       style={{
         width: '100%',
-        background: `linear-gradient(to right, #f5f6f9, ${getStatusColor(pipelineRunResult.jobReport.status)}15)`,
+        background: `linear-gradient(to right, #f5f6f9, ${getHeaderColor(pipelineRunResult.jobReport.status)}15)`,
         border: '1px solid #d7d9dc',
         borderRadius: '4px',
         paddingLeft: '1.5rem',
@@ -98,7 +94,6 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
             )}
           </div>
 
-          {/* Status Badge */}
           <div
             style={{
               display: 'flex',
@@ -111,7 +106,7 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
               padding: '0.5rem 0.75rem',
               borderRadius: '4px',
               backgroundColor: '#fff',
-              color: getStatusColor(pipelineRunResult.jobReport.status),
+              color: getHeaderColor(pipelineRunResult.jobReport.status),
             }}
           >
             {getStatusIcon(pipelineRunResult.jobReport.status)}
@@ -119,17 +114,14 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
           </div>
         </div>
       </div>
-      {/* Description */}
       <div
         style={{
           display: 'flex',
           alignItems: 'flex-start',
           gap: '2rem',
           flexWrap: 'wrap',
-          // justifyContent: 'space-between',
         }}
       >
-        {/* Job ID */}
         <InfoItem
           label='Job ID'
           value={
@@ -140,7 +132,6 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
           }
         />
 
-        {/* Description */}
         <InfoItem label='Description' value={pipelineRunResult.jobReport.description || 'No description'} />
       </div>
     </div>
