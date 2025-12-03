@@ -211,7 +211,8 @@ jobs:
     executor: node
     resource_class: large
     steps:
-      - checkout
+      - checkout:
+          method: full
       - restore_cache:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
