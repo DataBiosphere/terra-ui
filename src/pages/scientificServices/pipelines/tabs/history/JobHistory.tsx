@@ -268,14 +268,14 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       },
       size: { basis: 40 },
     },
-    // {
-    //   field: 'resultURL',
-    //   headerRenderer: () => <HeaderCell>Actions</HeaderCell>,
-    //   cellRenderer: ({ rowIndex }) => {
-    //     return <ActionCell pipelineRun={paginatedRuns[rowIndex]} />;
-    //   },
-    //   size: { basis: 40 },
-    // },
+    {
+      field: 'resultURL',
+      headerRenderer: () => <HeaderCell>Actions</HeaderCell>,
+      cellRenderer: ({ rowIndex }) => {
+        return <ActionCell pipelineRun={paginatedRuns[rowIndex]} />;
+      },
+      size: { basis: 40 },
+    },
   ];
 };
 
@@ -319,7 +319,7 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
         style={{
           width: 'fit-content',
           fontWeight: 600,
-          backgroundColor: pipelineNameToColor(pipelineRun.pipelineName),
+          backgroundColor: pipelineNameToColor(pipelineRun),
           padding: '0.33rem',
           borderRadius: '4px',
           fontSize: '10px',
@@ -562,8 +562,8 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
   }
 };
 
-export const pipelineNameToColor = (pipelineName: string): string => {
-  switch (pipelineName) {
+export const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
+  switch (pipelineRun.pipelineName) {
     case 'array_imputation':
       return '#4D72AA4D';
     default:

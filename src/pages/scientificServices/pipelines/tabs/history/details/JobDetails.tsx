@@ -3,14 +3,13 @@ import React, { useEffect, useState } from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
+import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-import { JobBasics } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobBasics';
-import { JobInputsOutputs } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobInputsOutputs';
-import { JobMetrics } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobMetrics';
-import { JobTimeline } from 'src/pages/scientificServices/pipelines/tabs/history/details/components/JobTimeline';
+import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
+import { JobInputsOutputs } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobInputsOutputs';
+import { JobTimeline } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobTimeline';
 
 export interface JobDetailsProps {
   jobId: string;
@@ -29,31 +28,32 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
       try {
         const response = await Teaspoons(signal).getPipelineRunResult(jobId);
 
-        // Add mock outputs to the response for testing
-        const mockResponse: PipelineRunResponse = {
-          ...response,
-          pipelineRunReport: {
-            ...response.pipelineRunReport,
-            inputs: {
-              'Output Basename': 'test',
-              'Minimum Imputation Quality': '0.3',
-              'Multi-Sample VCF': 'NA12878_50_duplicate_renamed.clean.vcf.gz',
-            },
-            outputs: {
-              'Imputed Multi-Sample VCF': 'gs://fc-secure-bucket/imputation-results/chr1-22.dose.vcf.gz',
-              'Imputed Multi-Sample VCF Index': 'gs://fc-secure-bucket/imputation-results/chr1-22.info',
-              'Contigs Metrics TSV': 'gs://fc-secure-bucket/imputation-results/qc-report.html',
-              'Imputation Chunks QC TSV': 'gs://fc-secure-bucket/imputation-results/summary-statistics.tsv',
-            },
-            outputExpirationDate: '2025-12-28T10:20:01Z',
-          },
-        };
+        // // Add mock outputs to the response for testing
+        // const mockResponse: PipelineRunResponse = {
+        //   ...response,
+        //   pipelineRunReport: {
+        //     ...response.pipelineRunReport,
+        //     inputs: {
+        //       'Output Basename': 'test',
+        //       'Minimum Imputation Quality': '0.3',
+        //       'Multi-Sample VCF': 'NA12878_50_duplicate_renamed.clean.vcf.gz',
+        //     },
+        //     outputs: {
+        //       'Imputed Multi-Sample VCF': 'gs://fc-secure-bucket/imputation-results/chr1-22.dose.vcf.gz',
+        //       'Imputed Multi-Sample VCF Index': 'gs://fc-secure-bucket/imputation-results/chr1-22.info',
+        //       'Contigs Metrics TSV': 'gs://fc-secure-bucket/imputation-results/qc-report.html',
+        //       'Imputation Chunks QC TSV': 'gs://fc-secure-bucket/imputation-results/summary-statistics.tsv',
+        //     },
+        //     outputExpirationDate: '2025-12-28T10:20:01Z',
+        //   },
+        // };
 
-        setPipelineRunResult(mockResponse);
+        setPipelineRunResult(response);
       } catch (err) {
-        setError('Failed to load job details. Please try again later.');
-        // eslint-disable-next-line no-console
-        console.error('Error fetching job details:', err);
+        setError('Failed to load job details.');
+        notify('error', 'Error', {
+          detail: `Failed to load job details: ${err instanceof Error ? err.message : String(err)}`,
+        });
       } finally {
         setIsLoading(false);
       }
@@ -88,38 +88,19 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
           </div>
         )}
 
-        {error && (
-          <div
-            style={{
-              padding: '1rem',
-              backgroundColor: colors.danger(0.1),
-              border: `1px solid ${colors.danger()}`,
-              borderRadius: '4px',
-              color: colors.danger(),
-            }}
-          >
-            {error}
-          </div>
-        )}
-
         {!isLoading && !error && pipelineRunResult && (
           <div>
             {/* Job Summary Widget */}
-            <JobBasics pipelineRunResult={pipelineRunResult} />
+            <JobDetailsHeader pipelineRunResult={pipelineRunResult} />
 
             {/* Timeline and Inputs/Outputs Section */}
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              {/* Timeline - 1/3 width */}
               <div style={{ flex: '0 0 calc(33.333% - 1rem)' }}>
                 <JobTimeline pipelineRunResult={pipelineRunResult} />
               </div>
 
-              {/* Inputs & Outputs - 2/3 width */}
               <div style={{ flex: '0 0 calc(66.667% - 0.5rem)' }}>
                 <JobInputsOutputs pipelineRunResult={pipelineRunResult} />
-                {pipelineRunResult.jobReport.status === 'SUCCEEDED' && (
-                  <JobMetrics pipelineRunResult={pipelineRunResult} />
-                )}
               </div>
             </div>
           </div>

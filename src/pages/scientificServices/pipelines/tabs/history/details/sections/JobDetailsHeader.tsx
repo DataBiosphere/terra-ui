@@ -4,7 +4,6 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
-import { pipelineNameToColor } from 'src/pages/scientificServices/pipelines/tabs/history/JobHistory';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 
 interface JobBasicsProps {
@@ -18,7 +17,7 @@ const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) =
   </div>
 );
 
-export const JobBasics = ({ pipelineRunResult }: JobBasicsProps) => {
+export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
   const { pipelineDetails, isLoading: isLoadingPipelineDetails } = usePipelineDetails(
     pipelineRunResult.pipelineRunReport.pipelineName,
     pipelineRunResult.pipelineRunReport.pipelineVersion

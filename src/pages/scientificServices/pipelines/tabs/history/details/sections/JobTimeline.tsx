@@ -101,7 +101,7 @@ export const JobTimeline = ({ pipelineRunResult }: JobTimelineProps) => {
           marginBottom: '1rem',
         }}
       >
-        <h3 style={{ marginTop: '0.5rem', marginBottom: 0 }}>Timeline</h3>
+        <h3 style={{ marginTop: '0.5rem', marginBottom: 0 }}>Run Information</h3>
         <div
           style={{
             display: 'flex',
