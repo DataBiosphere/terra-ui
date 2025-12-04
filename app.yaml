@@ -9,6 +9,7 @@ handlers:
   secure: always
   http_headers:
     X-Content-Type-Options: "nosniff"
+    Strict-Transport-Security: "max-age=31536000; includeSubdomains; preload"
 
 - url: /(google.*\.html)
   mime_type: text/html
@@ -17,6 +18,7 @@ handlers:
   secure: always
   http_headers:
     X-Content-Type-Options: "nosniff"
+    Strict-Transport-Security: "max-age=31536000; includeSubdomains; preload"
 
 - url: /.*
   static_files: build/index.html
