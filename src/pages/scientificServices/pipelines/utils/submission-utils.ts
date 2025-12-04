@@ -3,7 +3,7 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
 import { initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 // Helper functions for orchestrating the pipeline run submission process
@@ -17,7 +17,13 @@ export async function preparePipelineRun(
   const jobId = crypto.randomUUID();
 
   const finalUserInputs = Object.entries(selectedUserInputs).reduce((acc, [key, value]) => {
-    acc[key] = value instanceof File ? value.name : value.trim();
+    if (typeof value === 'boolean') {
+      acc[key] = value;
+    } else if (value instanceof File) {
+      acc[key] = value.name;
+    } else {
+      acc[key] = value.trim();
+    }
     return acc;
   }, {} as Record<string, any>);
 

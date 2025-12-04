@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
 import { mockPipelineWithDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
-import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/widgets/PipelineOutputsWidget';
 
 describe('PipelineOutputsWidget', () => {
   it('renders all outputs for a pipeline', () => {

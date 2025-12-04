@@ -5,39 +5,36 @@ import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
   SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
+import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
+import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineBooleanInput';
 import {
   PipelineFileInput,
   PipelineInputFileUploadState,
-} from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFileInput';
-import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineFloatInput';
-import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineRunDescription';
-import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/components/inputs/PipelineStringInput';
-import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
+} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
+import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFloatInput';
+import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineRunDescription';
+import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineStringInput';
+import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/HelpfulTipsWidget';
+import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
+import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/QuotaDetailsWidget';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 import {
   preparePipelineRun,
   startPipelineRun,
   uploadPipelineFiles,
 } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
-import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/widgets/HelpfulTipsWidget';
-import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/widgets/PipelineOutputsWidget';
-import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/widgets/QuotaDetailsWidget';
 
 export const RunJob = () => {
-  const signal = useCancellation();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  const [pipelinesList, setPipelinesList] = useState<Pipeline[]>([]);
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
   const [uploadState, setUploadState] = useState<Record<string, PipelineInputFileUploadState>>({});
   const [preparedJobId, setPreparedJobId] = useState<string>();
@@ -55,7 +52,7 @@ export const RunJob = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
 
-  // User quota for the selected pipeline
+  const { isLoading: isLoadingPipelines, pipelines: pipelinesList } = usePipelinesList();
   const { quota, pipelineDetails, meetsMinimumQuota, isLoading: isLoadingQuota } = useUserQuota(selectedPipeline);
 
   const resetSelectedUserInputs = () => {
@@ -118,27 +115,20 @@ export const RunJob = () => {
   }, [pipelineDetails]);
 
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      const response = await Teaspoons(signal).getPipelines();
-
-      const options = response.results.map((pipeline) => ({
+    if (pipelinesList && pipelinesList.length > 0) {
+      const options = pipelinesList.map((pipeline) => ({
         value: pipeline,
         label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
       }));
 
-      setPipelinesList(response.results);
       setPipelineVersionOptions(options);
 
       // Automatically select the first pipeline if there's only one available
-      if (response.results.length === 1) {
-        setSelectedPipeline(response.results[0]);
+      if (pipelinesList.length === 1) {
+        setSelectedPipeline(pipelinesList[0]);
       }
-
-      setIsLoading(false);
     }
-    fetchData();
-  }, [signal]);
+  }, [pipelinesList]);
 
   const handleSubmit = async () => {
     if (!selectedPipeline) {
@@ -210,7 +200,7 @@ export const RunJob = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', margin: '1rem 2rem' }}>
         <div style={{ flex: 1, marginRight: '2rem' }}>
           <h3 style={{ marginBottom: '0.5rem' }}>
-            Select a pipeline version <span style={{ color: '#DB3214' }}>*</span>
+            Select a pipeline version <span style={{ color: colors.danger() }}>*</span>
           </h3>
           <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -244,7 +234,7 @@ export const RunJob = () => {
             )}
           </div>
 
-          {!isLoading && !isLoadingQuota && (
+          {!isLoadingPipelines && !isLoadingQuota && (
             <>
               {/* Displays all STRING inputs, one after another */}
               {pipelineInputs
@@ -291,6 +281,25 @@ export const RunJob = () => {
               {/* Displays optional run description */}
               {selectedPipeline && <PipelineRunDescription value={runDescription} onChange={setRunDescription} />}
 
+              {/* Displays all BOOLEAN inputs, one after another */}
+              {pipelineInputs
+                .filter((input) => input.type === 'BOOLEAN')
+                .map((input) => {
+                  return (
+                    <PipelineBooleanInput
+                      value={selectedUserInputs[input.name]}
+                      input={input}
+                      key={`${input.name}`}
+                      onChange={(value) => {
+                        setSelectedUserInputs((prev) => ({
+                          ...prev,
+                          [input.name]: value,
+                        }));
+                      }}
+                    />
+                  );
+                })}
+
               {/* Displays all FILE inputs, one after another */}
               {pipelineInputs
                 .filter((input) => input.type === 'FILE')
@@ -314,6 +323,7 @@ export const RunJob = () => {
                     />
                   );
                 })}
+
               {/* Submit button */}
               {!submittedJobId && quota && (
                 <>
@@ -333,7 +343,11 @@ export const RunJob = () => {
                           alignItems: 'center',
                         }}
                       >
-                        <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginRight: '1rem' }} />
+                        <Icon
+                          icon='warning-standard'
+                          size={36}
+                          style={{ color: colors.danger(), marginRight: '1rem' }}
+                        />
                         <div>
                           You do not have enough quota remaining to run this pipeline. Please{' '}
                           <Link
@@ -384,7 +398,7 @@ export const RunJob = () => {
                         alignItems: 'center',
                       }}
                     >
-                      <Icon icon='success-standard' size={36} style={{ color: '#74AE43', margin: '0 1rem' }} />
+                      <Icon icon='success-standard' size={36} style={{ color: colors.success(), margin: '0 1rem' }} />
                       <div>
                         Your job has been submitted. You can check the status of that job by going to the{' '}
                         <Link style={{ color: '#46A3E9' }} href={Nav.getLink('pipelines-history')}>
@@ -414,7 +428,7 @@ export const RunJob = () => {
               )}
             </>
           )}
-          {(isLoading || isLoadingQuota) && (
+          {(isLoadingPipelines || isLoadingQuota) && (
             <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Spinner /> Loading pipeline details...
             </div>

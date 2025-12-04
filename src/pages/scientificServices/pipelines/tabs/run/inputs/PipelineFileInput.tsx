@@ -6,6 +6,7 @@ import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import {
   resumeUpload,
   uploadTimeRemainingDisplayText,
@@ -60,14 +61,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           </span>
           <div style={{ marginTop: '0.5rem' }}>
             <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
-            <a
-              href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
-              target='_blank'
-              style={{ color: '#46A3E9', textDecoration: 'underline' }}
-              rel='noreferrer'
-            >
-              Learn more about how to reduce your file size.
-            </a>
+            <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more about how to reduce your file size.</ZendeskLink>
           </div>
         </>
       );
@@ -142,7 +136,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   return (
     <div>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        Select a {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}>*</span> : null}
+        Select a {displayName || name} {isRequired ? <span style={{ color: colors.danger() }}>*</span> : null}
       </h3>
       <div
         style={{
@@ -209,9 +203,17 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                         }}
                       >
                         {validationError ? (
-                          <Icon icon='warning-standard' size={36} style={{ color: '#DB3214', marginLeft: '1rem' }} />
+                          <Icon
+                            icon='warning-standard'
+                            size={36}
+                            style={{ color: colors.danger(), marginLeft: '1rem' }}
+                          />
                         ) : (
-                          <Icon icon='success-standard' size={36} style={{ color: '#74AE43', marginLeft: '1rem' }} />
+                          <Icon
+                            icon='success-standard'
+                            size={36}
+                            style={{ color: colors.success(), marginLeft: '1rem' }}
+                          />
                         )}
                         <div
                           style={{
@@ -295,7 +297,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Icon icon='warning-standard' size={24} style={{ color: '#DB3214', verticalAlign: 'middle' }} />{' '}
+                      <Icon
+                        icon='warning-standard'
+                        size={24}
+                        style={{ color: colors.danger(), verticalAlign: 'middle' }}
+                      />{' '}
                       <div>There was an error uploading the file.</div>
                     </div>
                     <ButtonPrimary type='button' onClick={handleResumeUpload}>
@@ -337,13 +343,13 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
               </>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Icon icon='success-standard' size={24} style={{ color: '#74AE43' }} />{' '}
+                <Icon icon='success-standard' size={24} style={{ color: colors.success() }} />{' '}
                 <span style={{ fontWeight: 'bold' }}>Upload successful.</span>
               </div>
             )}
           </>
         )}
-        {validationError && <div style={{ color: '#DB3214', paddingTop: '0.5rem' }}>{validationError}</div>}
+        {validationError && <div style={{ color: colors.danger(), paddingTop: '0.5rem' }}>{validationError}</div>}
       </div>
     </div>
   );

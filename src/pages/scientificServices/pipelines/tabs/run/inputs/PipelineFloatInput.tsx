@@ -1,8 +1,9 @@
 import React, { ReactNode } from 'react';
 import { ValidatedInput } from 'src/components/input';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 
-interface PipelineStringInputProps {
+interface PipelineFloatInputProps {
   input: PipelineInput;
   value: string;
   onChange: (value: string) => void;
@@ -10,31 +11,31 @@ interface PipelineStringInputProps {
   onValidation(error?: ReactNode): void;
 }
 
-export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
+export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   input,
   value,
   onChange,
   validationError,
   onValidation,
 }) => {
-  const { name, displayName, description, defaultValue, isRequired } = input;
+  const { name, displayName, description, isRequired, defaultValue, minValue, maxValue } = input;
 
   return (
     <>
       <h3 style={{ marginBottom: '0.5rem' }}>
-        Enter {displayName || name} {isRequired ? <span style={{ color: '#DB3214' }}> *</span> : null}
+        Enter {displayName || name} {isRequired ? <span style={{ color: colors.danger() }}> *</span> : null}
       </h3>
       <ValidatedInput
         width={400}
         error={validationError}
         inputProps={{
-          'aria-label': `${displayName || name} text input`,
+          'aria-label': `${displayName || name} float input`,
           type: 'text',
           value: value || '',
           placeholder: defaultValue || `Enter ${displayName || name}`,
           onChange: (e) => {
             onChange(e);
-            onValidation(validatePipelineStringInput(e));
+            onValidation(validatePipelineFloatInput(e, minValue, maxValue));
           },
         }}
       />
@@ -47,13 +48,19 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
   );
 };
 
-export const validatePipelineStringInput = (value: string): string | undefined => {
-  const validationRegex = /^[a-zA-Z0-9_.-]+$/;
+export const validatePipelineFloatInput = (value: string, minValue?: number, maxValue?: number): string | undefined => {
+  const floatValue = Number.parseFloat(value);
   if (value.trim().length === 0) {
     return undefined;
   }
-  if (!validationRegex.test(value.trim())) {
-    return 'This input contains invalid characters';
+  if (Number.isNaN(floatValue)) {
+    return 'Enter a valid float value';
+  }
+  if (minValue !== undefined && floatValue < minValue) {
+    return `Value must be between ${minValue} and ${maxValue}`;
+  }
+  if (maxValue !== undefined && floatValue > maxValue) {
+    return `Value must be between ${minValue} and ${maxValue}`;
   }
   return undefined;
 };

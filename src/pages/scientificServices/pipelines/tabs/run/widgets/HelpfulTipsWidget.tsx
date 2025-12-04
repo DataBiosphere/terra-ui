@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
@@ -14,14 +15,9 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
       content: (
         <>
           View{' '}
-          <a
-            href='https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
-            target='_blank'
-            style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-            rel='noreferrer'
-          >
+          <ZendeskLink docsKey={DocsKey.INPUT_REQ} additionalStyle={{ fontWeight: 'bold' }}>
             formatting guidelines
-          </a>{' '}
+          </ZendeskLink>{' '}
           for input VCF files
         </>
       ),

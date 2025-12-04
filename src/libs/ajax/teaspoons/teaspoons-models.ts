@@ -7,7 +7,7 @@ export interface Pipeline {
 
 export interface PipelineInput {
   name: string;
-  type: 'FILE' | 'STRING' | 'FLOAT';
+  type: 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN';
   isRequired: boolean;
   displayName?: string;
   description?: string;
@@ -71,6 +71,7 @@ export interface PipelineRun {
 
 export interface GetPipelineRunsResponse {
   totalResults: number;
+  totalFilteredResults: number;
   pageToken: string;
   results: PipelineRun[];
 }

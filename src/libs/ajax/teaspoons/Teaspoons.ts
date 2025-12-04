@@ -12,6 +12,7 @@ import {
   StartPipelineResponse,
   UserPipelineQuotaDetails,
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { FilterValues } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
 
 export const Teaspoons = (signal?: AbortSignal) => ({
   /* Lists all pipelines available to the user */
@@ -40,17 +41,25 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     pageSize: number,
     pageNumber: number,
     sortProperty?: string,
-    sortDirection?: string
+    sortDirection?: string,
+    filters?: FilterValues
   ): Promise<GetPipelineRunsResponse> => {
+    const { status, description, jobId, pipelineName } = filters || {};
+
     const queryString = qs.stringify(
       {
         pageSize,
         pageNumber,
         ...(sortProperty ? { sortProperty } : {}),
         ...(sortDirection ? { sortDirection } : {}),
+        ...(status ? { status } : {}),
+        ...(description ? { description } : {}),
+        ...(jobId ? { jobId } : {}),
+        ...(pipelineName ? { pipelineName } : {}),
       },
       { addQueryPrefix: true }
     );
+
     const res = await fetchTeaspoons(`pipelineruns/v2/pipelineruns${queryString}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
