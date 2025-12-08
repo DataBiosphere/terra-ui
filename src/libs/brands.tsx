@@ -2,21 +2,15 @@ import { Theme } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg';
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg';
-import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg';
-import baselineLogoWhite from 'src/images/brands/baseline/baseline-logo-white.svg';
 import bioDataCatalystLogo from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-color.svg';
 import bioDataCatalystLogoWhite from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-white.svg';
 import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg';
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg';
 import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg';
 import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg';
-import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg';
-import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg';
 import publicHealthBackground from 'src/images/brands/publicHealth/Terra-PHG-background.png';
 import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg';
 import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
-import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
-import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
 import dspLogo from 'src/images/brands/scientificServices/dspLogo.svg';
 import dspLogoLight from 'src/images/brands/scientificServices/dspLogoLight.svg';
 import scientificServicesBackground from 'src/images/brands/scientificServices/scientificServicesBackground.jpg';
@@ -26,8 +20,6 @@ import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg';
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg';
 import { ScientificServicesDescription } from 'src/pages/scientificServices/landingPage/ScientificServicesDescription';
 import { ScientificServicesWelcomeHeader } from 'src/pages/scientificServices/landingPage/ScientificServicesWelcomeHeader';
-
-const nonBreakingHyphen = '\u2011';
 
 export interface BrandConfiguration {
   /** Brand name */
@@ -173,27 +165,6 @@ export const brands: Record<string, BrandConfiguration> = {
     },
     showRoadmap: true,
   },
-  baseline: {
-    name: 'Project Baseline',
-    queryName: 'project baseline',
-    welcomeHeader: 'Welcome to Project Baseline',
-    description:
-      'The Baseline Health Study Data Portal is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
-    hostName: 'baseline.terra.bio',
-    docLinks: [
-      {
-        link: 'https://support.terra.bio/hc/en-us',
-        text: "Find how-to's, documentation, video tutorials, and discussion forums",
-      },
-    ],
-    logos: {
-      color: baselineLogo,
-      white: baselineLogoWhite,
-    },
-    theme: {
-      colorPalette: { ...baseColors, primary: '#c41061', secondary: '#31164c', light: '#f6f7f4', dark: '#012840' },
-    },
-  },
   bioDataCatalyst: {
     name: 'NHLBI BioData Catalyst',
     queryName: 'nhlbi biodata catalyst',
@@ -278,27 +249,6 @@ export const brands: Record<string, BrandConfiguration> = {
       },
     },
   },
-  projectSingular: {
-    name: 'Project Singular',
-    queryName: 'project singular',
-    welcomeHeader: 'Welcome to Project Singular',
-    description:
-      'Project Singular is a project funded by Additional Ventures and powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
-    hostName: 'projectsingular.terra.bio',
-    docLinks: [
-      {
-        link: 'https://support.terra.bio/hc/en-us',
-        text: "Find how-to's, documentation, video tutorials, and discussion forums",
-      },
-    ],
-    logos: {
-      color: projectSingularLogo,
-      white: projectSingularLogoWhite,
-    },
-    theme: {
-      colorPalette: { ...baseColors, primary: '#521b93', secondary: '#011c48', accent: '#521b93' },
-    },
-  },
   publicHealth: {
     name: 'Terra for Public Health Genomics',
     queryName: 'publicHealth',
@@ -358,41 +308,6 @@ export const brands: Record<string, BrandConfiguration> = {
       },
     },
     showRoadmap: true,
-  },
-  rareX: {
-    name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
-    queryName: `the rare${nonBreakingHyphen}x data analysis platform`,
-    welcomeHeader: `Welcome to the RARE${nonBreakingHyphen}X Data Analysis Platform`,
-    description: `The RARE${nonBreakingHyphen}X Data Analysis Platform is a federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
-    hostName: 'rare-x.terra.bio',
-    docLinks: [
-      {
-        link: 'https://docs.google.com/forms/d/e/1FAIpQLScpqfZIXW53IJOiYz2RhASJzm7lZBYAjzkjJ67qFDERUpuDAQ/viewform',
-        text: 'Request access to the RARE-X data set within Terra',
-      },
-      {
-        link: 'https://rare-x.org/researchers/',
-        text: 'Learn more about the data available from RARE-X',
-      },
-      {
-        link: 'https://support.terra.bio/hc/en-us',
-        text: "Find Terra how-to's, documentation, video tutorials, and discussion forums",
-      },
-    ],
-    logos: {
-      color: rareXLogo,
-      white: rareXLogoWhite,
-    },
-    theme: {
-      colorPalette: {
-        ...baseColors,
-        primary: '#26355c',
-        secondary: '#26355c',
-        dark: '#414042',
-        accent: '#4e6888',
-        light: '#f4efea',
-      },
-    },
   },
   scientificServices: {
     name: 'Scientific Services',
