@@ -1,29 +1,33 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
 import { TooltipTrigger } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
-import { PipelineInput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineInput, PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
+import { InputTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/InputTypeBadge';
 import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineWidgetContainer';
 
 interface JobInputsOutputsProps {
   pipelineRunResult: PipelineRunResponse;
 }
 
-// Mock file sizes for demonstration
-const MOCK_FILE_SIZES: Record<string, string> = {
-  'Imputed Multi-Sample VCF': '2.4 GB',
-  'Imputed Multi-Sample VCF Index': '1.2 MB',
-  'Contigs Metrics TSV': '45 KB',
-  'Imputation Chunks QC TSV': '128 KB',
-};
-
-const InfoItem = ({ label, value, tooltip }: { label: string; value: ReactNode; tooltip: string }) => (
+const InputItem = ({
+  label,
+  value,
+  tooltip,
+  inputType,
+}: {
+  label: string;
+  value: ReactNode;
+  tooltip: string;
+  inputType: string;
+}) => (
   <div>
-    <div style={{ marginBottom: '0.5rem', fontWeight: 500, textTransform: 'capitalize' }}>
+    <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <TooltipTrigger content={tooltip}>
-        <span>{label}</span>
+        <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
       </TooltipTrigger>
+      <InputTypeBadge type={inputType} />
     </div>
     <div style={{ color: colors.dark(), wordBreak: 'break-all' }}>{value}</div>
   </div>
@@ -32,43 +36,49 @@ const InfoItem = ({ label, value, tooltip }: { label: string; value: ReactNode; 
 const OutputItem = ({
   label,
   url,
+  outputType,
   fileSize,
   disabled,
 }: {
   label: string;
   url: string;
+  outputType: string;
   fileSize: string;
   disabled?: boolean;
 }) => {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ flex: 1 }}>
-        <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>{label}</div>
+        <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
+          <InputTypeBadge type={outputType} />
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ color: disabled ? colors.dark(0.5) : colors.dark() }}>
             {disabled ? 'Not available' : fileSize}
           </span>
         </div>
       </div>
-      <ButtonPrimary
-        onClick={() => {
-          // TODO: capture mixpanel download metric
-          window.open(url, '_blank');
-        }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0.75rem',
-          gap: '0.25rem',
-          borderRadius: '4px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          marginLeft: '1rem',
-          opacity: disabled ? 0.5 : 1,
-        }}
-        disabled={disabled}
-      >
-        <Icon icon='download' size={16} />
-      </ButtonPrimary>
+      <div style={{ borderLeft: '1px solid #d7d9dc' }}>
+        <ButtonPrimary
+          onClick={() => {
+            // TODO: capture mixpanel download metric
+            window.open(url, '_blank');
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            borderRadius: '4px',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            marginLeft: '0.5rem',
+            opacity: disabled ? 0.5 : 1,
+          }}
+          disabled={disabled}
+        >
+          <Icon icon='download' size={16} />
+        </ButtonPrimary>
+      </div>
     </div>
   );
 };
@@ -86,31 +96,32 @@ const JobInputs = ({ inputDefinitions, inputs }: JobInputsProps) => {
       <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>Inputs</h4>
       {hasInputs ? (
         <div>
-          {Object.entries(inputs).map(([key, value]) => (
-            <div
-              key={key}
-              style={{
-                marginTop: '1rem',
-                border: '1px solid #d7d9dc',
-                padding: '0.5rem',
-                backgroundColor: 'white',
-                borderRadius: '4px',
-              }}
-            >
-              <InfoItem
-                label={inputDefinitions.find((input) => input.name === key)?.displayName || key}
-                value={
-                  <div style={{ fontSize: 13 }}>
-                    <code>{value}</code>
-                  </div>
-                }
-                tooltip={
-                  inputDefinitions.find((input) => input.name === key)?.description ||
-                  'No description available for this input'
-                }
-              />
-            </div>
-          ))}
+          {Object.entries(inputs).map(([key, value]) => {
+            const inputDef = inputDefinitions.find((input) => input.name === key);
+            return (
+              <div
+                key={key}
+                style={{
+                  marginTop: '1rem',
+                  border: '1px solid #d7d9dc',
+                  padding: '0.5rem',
+                  backgroundColor: 'white',
+                  borderRadius: '4px',
+                }}
+              >
+                <InputItem
+                  label={inputDef?.displayName || key}
+                  value={
+                    <div style={{ fontSize: 13 }}>
+                      <code>{value}</code>
+                    </div>
+                  }
+                  tooltip={inputDef?.description || 'No description available for this input'}
+                  inputType={inputDef?.type || 'STRING'}
+                />
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div style={{ color: colors.dark(0.6), fontSize: '0.875rem' }}>No inputs available</div>
@@ -120,31 +131,34 @@ const JobInputs = ({ inputDefinitions, inputs }: JobInputsProps) => {
 };
 
 interface JobOutputsProps {
+  outputDefinitions: PipelineOutput[];
   outputs: Record<string, string> | undefined;
   status: string;
 }
 
-const JobOutputs = ({ outputs, status }: JobOutputsProps) => {
+const JobOutputs = ({ outputDefinitions, outputs, status }: JobOutputsProps) => {
   const hasOutputs = outputs && Object.keys(outputs).length > 0;
   const isSucceeded = status === 'SUCCEEDED';
-  const isRunning = status === 'RUNNING' || status === 'PREPARING';
+  const isFailed = status === 'FAILED';
 
   const getEmptyMessage = () => {
     if (isSucceeded) {
       return 'No outputs available';
     }
-    if (isRunning) {
+    if (status === 'RUNNING') {
       return 'Outputs will be available when job completes';
     }
-    return 'No outputs generated';
+    if (isFailed) {
+      return 'No outputs generated due to job failure';
+    }
   };
 
   return (
-    <div style={{ flex: 1, opacity: isSucceeded ? 1 : 0.5 }}>
+    <div style={{ flex: 1 }}>
       <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>Outputs</h4>
       {hasOutputs ? (
         <div>
-          {Object.entries(outputs!).map(([key, value]) => (
+          {Object.entries(outputs).map(([key, value]) => (
             <div
               key={key}
               style={{
@@ -156,24 +170,49 @@ const JobOutputs = ({ outputs, status }: JobOutputsProps) => {
                 borderRadius: '4px',
               }}
             >
-              <OutputItem label={key} url={value} fileSize={MOCK_FILE_SIZES[key] || '0 KB'} disabled={!isSucceeded} />
+              <OutputItem
+                label={outputDefinitions.find((output) => output.name === key)?.displayName || key}
+                outputType={outputDefinitions.find((output) => output.name === key)?.type || 'Unknown'}
+                url={value}
+                fileSize='n/a KB'
+                disabled={!isSucceeded}
+              />
             </div>
           ))}
         </div>
       ) : (
-        <div style={{ color: colors.dark(0.6), fontSize: '0.875rem' }}>{getEmptyMessage()}</div>
+        <div style={{ color: colors.dark(0.6), fontSize: '0.875rem', fontStyle: isFailed ? 'italic' : 'normal' }}>
+          {getEmptyMessage()}
+        </div>
       )}
     </div>
   );
 };
 
-export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) => {
+export const JobInputsOutputs = ({ pipelineRunResult: foo }: JobInputsOutputsProps) => {
   const { pipelineDetails, isLoading } = usePipelineDetails(
-    pipelineRunResult.pipelineRunReport.pipelineName,
-    pipelineRunResult.pipelineRunReport.pipelineVersion
+    foo.pipelineRunReport.pipelineName,
+    foo.pipelineRunReport.pipelineVersion
   );
 
   const inputDefinitions = pipelineDetails?.inputs || [];
+  const outputDefinitions = pipelineDetails?.outputs || [];
+
+  const pipelineRunResult = {
+    ...foo,
+    pipelineRunReport: {
+      ...foo.pipelineRunReport,
+      outputs:
+        foo.jobReport.status === 'SUCCEEDED'
+          ? {
+              imputedMultiSampleVcfIndex: 'empty_file',
+              imputedMultiSampleVcf: 'empty_file',
+              contigsInfo: 'empty_file',
+              chunksInfo: 'empty_file',
+            }
+          : undefined,
+    },
+  };
 
   return (
     <PipelineWidgetContainer title='Inputs & Outputs' border='1px solid #d7d9dc' showIcon={false}>
@@ -187,10 +226,11 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
           />
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon icon='arrowRight' size={24} style={{ color: colors.dark(0.7) }} />
+            <Icon icon='arrowRight' size={24} style={{ color: colors.dark(0.8) }} />
           </div>
 
           <JobOutputs
+            outputDefinitions={outputDefinitions}
             outputs={pipelineRunResult.pipelineRunReport.outputs}
             status={pipelineRunResult.jobReport.status}
           />

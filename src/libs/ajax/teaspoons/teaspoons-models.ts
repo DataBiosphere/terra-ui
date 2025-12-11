@@ -126,6 +126,9 @@ export interface PipelineRunReport {
   outputs?: Record<string, string>;
   userInputs?: Record<string, string>;
   outputExpirationDate?: string;
+  inputSize?: number;
+  inputSizeUnits?: string;
+  quotaConsumed?: number;
 }
 
 export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
