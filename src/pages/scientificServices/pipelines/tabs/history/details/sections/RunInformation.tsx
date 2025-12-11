@@ -8,17 +8,20 @@ interface JobTimelineProps {
 }
 
 export const RunInformation = ({ pipelineRunResult }: JobTimelineProps) => {
-  // const jobDuration = pipelineRunResult.jobReport.completed - pipelineRunResult.jobReport.submitted;
+  const calculateDuration = (pipelineRunResult: PipelineRunResponse) => {
+    if (!pipelineRunResult.jobReport.submitted || !pipelineRunResult.jobReport.completed) {
+      return 'N/A';
+    }
 
-  const durationMs = 1000;
+    const durationMs =
+      new Date(pipelineRunResult.jobReport.completed).getTime() -
+      new Date(pipelineRunResult.jobReport.submitted).getTime();
 
-  // Format duration
-  const formatDuration = (ms: number) => {
-    if (ms === 0) {
+    if (durationMs === 0) {
       return 'In progress';
     }
 
-    const totalSeconds = Math.floor(ms / 1000);
+    const totalSeconds = Math.floor(durationMs / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
@@ -87,7 +90,7 @@ export const RunInformation = ({ pipelineRunResult }: JobTimelineProps) => {
           }}
         >
           <Icon icon='clock' size={16} style={{ color: colors.dark(0.7) }} />
-          {formatDuration(durationMs)}
+          {calculateDuration(pipelineRunResult)}
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column' }} />
