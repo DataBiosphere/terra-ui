@@ -1,7 +1,7 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
 import { TooltipTrigger } from '@terra-ui-packages/components';
-import React from 'react';
-import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import React, { ReactNode } from 'react';
+import { PipelineInput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
 import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineWidgetContainer';
@@ -18,10 +18,10 @@ const MOCK_FILE_SIZES: Record<string, string> = {
   'Imputation Chunks QC TSV': '128 KB',
 };
 
-const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
+const InfoItem = ({ label, value, tooltip }: { label: string; value: ReactNode; tooltip: string }) => (
   <div>
-    <div style={{ marginBottom: '0.5rem', fontWeight: 500 }}>
-      <TooltipTrigger content='Here is a full description for the input'>
+    <div style={{ marginBottom: '0.5rem', fontWeight: 500, textTransform: 'capitalize' }}>
+      <TooltipTrigger content={tooltip}>
         <span>{label}</span>
       </TooltipTrigger>
     </div>
@@ -74,10 +74,11 @@ const OutputItem = ({
 };
 
 interface JobInputsProps {
+  inputDefinitions: PipelineInput[];
   inputs: Record<string, any>;
 }
 
-const JobInputs = ({ inputs }: JobInputsProps) => {
+const JobInputs = ({ inputDefinitions, inputs }: JobInputsProps) => {
   const hasInputs = inputs && Object.keys(inputs).length > 0;
 
   return (
@@ -97,11 +98,15 @@ const JobInputs = ({ inputs }: JobInputsProps) => {
               }}
             >
               <InfoItem
-                label={key}
+                label={inputDefinitions.find((input) => input.name === key)?.displayName || key}
                 value={
                   <div style={{ fontSize: 13 }}>
                     <code>{value}</code>
                   </div>
+                }
+                tooltip={
+                  inputDefinitions.find((input) => input.name === key)?.description ||
+                  'No description available for this input'
                 }
               />
             </div>
@@ -168,13 +173,18 @@ export const JobInputsOutputs = ({ pipelineRunResult }: JobInputsOutputsProps) =
     pipelineRunResult.pipelineRunReport.pipelineVersion
   );
 
+  const inputDefinitions = pipelineDetails?.inputs || [];
+
   return (
     <PipelineWidgetContainer title='Inputs & Outputs' border='1px solid #d7d9dc' showIcon={false}>
       {isLoading ? (
         <div style={{ color: colors.dark(0.6) }}>Loading...</div>
       ) : (
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          <JobInputs inputs={pipelineRunResult.pipelineRunReport.inputs || {}} />
+          <JobInputs
+            inputDefinitions={inputDefinitions}
+            inputs={pipelineRunResult.pipelineRunReport.userInputs || {}}
+          />
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon icon='arrowRight' size={24} style={{ color: colors.dark(0.7) }} />

@@ -42,6 +42,8 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
     switch (status) {
       case 'SUCCEEDED':
         return colors.success();
+      case 'FAILED':
+        return colors.danger();
       case 'RUNNING':
         return colors.accent();
       default:

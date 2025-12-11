@@ -124,7 +124,7 @@ export interface PipelineRunReport {
   pipelineVersion: number;
   toolVersion: string;
   outputs?: Record<string, string>;
-  inputs?: Record<string, string>;
+  userInputs?: Record<string, string>;
   outputExpirationDate?: string;
 }
 

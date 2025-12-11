@@ -286,20 +286,38 @@ interface CellProps {
 }
 
 const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
+  const canViewDetails = ['FAILED', 'RUNNING', 'SUCCEEDED'].includes(pipelineRun.status);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
       <div style={{ width: '100%', overflow: 'hidden' }}>
-        <Link
-          href={Nav.getLink('pipelines-history-detail', { jobId: pipelineRun.jobId })}
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            width: '100%',
-            display: 'block',
-          }}
-          aria-label={`View details for job ${pipelineRun.jobId}`}
-        >
+        {canViewDetails ? (
+          <Link
+            href={Nav.getLink('pipelines-history-detail', { jobId: pipelineRun.jobId })}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              width: '100%',
+              display: 'block',
+            }}
+            aria-label={`View details for job ${pipelineRun.jobId}`}
+          >
+            <TooltipTrigger content={pipelineRun.jobId} side='top'>
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%',
+                  display: 'block',
+                }}
+              >
+                {pipelineRun.jobId}
+              </span>
+            </TooltipTrigger>
+          </Link>
+        ) : (
           <TooltipTrigger content={pipelineRun.jobId} side='top'>
             <span
               style={{
@@ -308,12 +326,13 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
                 textOverflow: 'ellipsis',
                 width: '100%',
                 display: 'block',
+                color: colors.dark(),
               }}
             >
               {pipelineRun.jobId}
             </span>
           </TooltipTrigger>
-        </Link>
+        )}
       </div>
       <div
         style={{
