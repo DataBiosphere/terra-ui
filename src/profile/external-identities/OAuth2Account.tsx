@@ -75,7 +75,8 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
     additionalProperties: undefined,
   };
   const eraUserId = additionalProperties?.era_user_id ?? 'none';
-  const nihSettingsPage = `${getConfig().nihAuthRoot}/settings/profile/loadIdentities`;
+  const nihSettings = getConfig().terraDeploymentEnv === 'prod' ? 'settings' : 'settings2';
+  const nihSettingsPage = `${getConfig().nihAuthRoot}/${nihSettings}/profile/loadIdentities`;
 
   const signal = useCancellation();
   const callbacks: Array<OAuth2Callback['name']> = ['oauth-callback', 'ecm-callback', 'fence-callback']; // ecm-callback is deprecated, but still needs to be supported
