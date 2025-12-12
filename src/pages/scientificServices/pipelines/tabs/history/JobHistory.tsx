@@ -22,6 +22,7 @@ import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/u
 import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewOutputsModal';
+import { getPipelineStatusColor } from 'src/pages/scientificServices/pipelines/utils/pipeline-style-utils';
 
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
@@ -536,7 +537,14 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
   switch (pipelineRun.status) {
     case 'SUCCEEDED':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', color: colors.success(), gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: getPipelineStatusColor(pipelineRun.status),
+            gap: '0.5rem',
+          }}
+        >
           <Icon icon='success-standard' /> Done
         </div>
       );

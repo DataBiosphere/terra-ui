@@ -241,11 +241,18 @@ export const JobInputsOutputs = ({ pipelineRunResult: foo }: JobInputsOutputsPro
             <Icon icon='arrowRight' size={24} style={{ color: colors.dark(0.8) }} />
           </div>
 
-          <JobOutputs
-            outputDefinitions={outputDefinitions}
-            outputs={pipelineRunResult.pipelineRunReport.outputs}
-            status={pipelineRunResult.jobReport.status}
-          />
+          <div style={{ flex: 1 }}>
+            <JobOutputs
+              outputDefinitions={outputDefinitions}
+              outputs={pipelineRunResult.pipelineRunReport.outputs}
+              status={pipelineRunResult.jobReport.status}
+            />
+            {pipelineRunResult.errorReport && (
+              <div style={{ marginTop: '1rem', color: colors.danger(), fontStyle: 'italic' }}>
+                Error Report: {pipelineRunResult.errorReport.message}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </PipelineWidgetContainer>
