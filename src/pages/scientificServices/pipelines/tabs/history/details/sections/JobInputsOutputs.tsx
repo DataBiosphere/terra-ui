@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 import { PipelineInput, PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
-import { InputTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/InputTypeBadge';
+import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
 import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineWidgetContainer';
 
 interface JobInputsOutputsProps {
@@ -27,7 +27,7 @@ const InputItem = ({
       <TooltipTrigger content={tooltip}>
         <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
       </TooltipTrigger>
-      <InputTypeBadge type={inputType} />
+      <PipelineIOTypeBadge type={inputType} />
     </div>
     <div style={{ color: colors.dark(), wordBreak: 'break-all' }}>{value}</div>
   </div>
@@ -54,7 +54,7 @@ const OutputItem = ({
         <TooltipTrigger content={tooltip}>
           <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
         </TooltipTrigger>
-        <InputTypeBadge type={outputType} />
+        <PipelineIOTypeBadge type={outputType} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         {!disabled && (

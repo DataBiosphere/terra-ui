@@ -1,12 +1,11 @@
 import React from 'react';
+import { PipelineIOType } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
-export type InputType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN';
-
-interface InputTypeBadgeProps {
-  type: InputType | string;
+interface PipelineIOTypeBadgeProps {
+  type: PipelineIOType | string;
 }
 
-const getTypeColor = (type: string): string => {
+const getTypeColor = (type: PipelineIOType | string): string => {
   switch (type.toUpperCase()) {
     case 'FILE':
       return '#e7f3fb';
@@ -21,7 +20,7 @@ const getTypeColor = (type: string): string => {
   }
 };
 
-export const InputTypeBadge = ({ type }: InputTypeBadgeProps) => {
+export const PipelineIOTypeBadge = ({ type }: PipelineIOTypeBadgeProps) => {
   return (
     <div
       style={{
@@ -37,7 +36,7 @@ export const InputTypeBadge = ({ type }: InputTypeBadgeProps) => {
         style={{
           textTransform: 'capitalize',
           fontWeight: 500,
-          fontSize: '0.875rem',
+          fontSize: 12,
         }}
       >
         {type.toLowerCase()}

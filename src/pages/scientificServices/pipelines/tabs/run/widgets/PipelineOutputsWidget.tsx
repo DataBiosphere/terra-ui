@@ -2,7 +2,7 @@ import React from 'react';
 import { PipelineOutput, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { cond, DEFAULT } from 'src/libs/utils';
 
-import { InputTypeBadge } from './InputTypeBadge';
+import { PipelineIOTypeBadge } from './PipelineIOTypeBadge';
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
 export const PipelineOutputsWidget = ({
@@ -48,7 +48,7 @@ const OutputDetails = ({ output }: { output: PipelineOutput }) => {
         <div style={{ fontWeight: 500, paddingBottom: '0.5rem', textTransform: 'capitalize' }}>
           {displayName || name}
         </div>
-        <InputTypeBadge type={type} />
+        <PipelineIOTypeBadge type={type} />
       </div>
       <div style={{ width: '80%', fontSize: 13 }}>{description || 'No description available'}</div>
     </div>
