@@ -36,53 +36,55 @@ const InputItem = ({
 const OutputItem = ({
   label,
   url,
+  tooltip,
   outputType,
   fileSize,
   disabled,
 }: {
   label: string;
   url: string;
+  tooltip: string;
   outputType: string;
   fileSize: string;
   disabled?: boolean;
 }) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ marginBottom: '0.5rem', fontWeight: 500, textTransform: 'capitalize' }}>{label}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {!disabled && (
-            <button
-              type='button'
-              onClick={() => {
-                // TODO: capture mixpanel download metric
-                window.open(url, '_blank');
-              }}
-              style={{
-                color: '#46A3E9',
-                fontWeight: 700,
-                textDecoration: 'underline',
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                font: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              <Icon icon='download' size={14} />
-              Download
-            </button>
-          )}
-          <span style={{ color: disabled ? colors.dark(0.5) : colors.dark() }}>
-            {disabled ? 'Not available' : fileSize}
-          </span>
-        </div>
-      </div>
-      <div style={{ alignSelf: 'flex-start' }}>
+    <div>
+      <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <TooltipTrigger content={tooltip}>
+          <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
+        </TooltipTrigger>
         <InputTypeBadge type={outputType} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {!disabled && (
+          <button
+            type='button'
+            onClick={() => {
+              // TODO: capture mixpanel download metric
+              window.open(url, '_blank');
+            }}
+            style={{
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              font: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+            }}
+          >
+            <Icon icon='download' size={14} />
+            Download
+          </button>
+        )}
+        <span style={{ color: disabled ? colors.dark(0.5) : colors.dark(), fontStyle: 'italic' }}>
+          {disabled ? 'Not available' : fileSize}
+        </span>
       </div>
     </div>
   );
@@ -163,27 +165,32 @@ const JobOutputs = ({ outputDefinitions, outputs, status }: JobOutputsProps) => 
       <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>Outputs</h4>
       {hasOutputs ? (
         <div>
-          {Object.entries(outputs).map(([key, value]) => (
-            <div
-              key={key}
-              style={{
-                marginTop: '1rem',
-                borderLeft: '3px solid #e4e5e6',
-                padding: '0.5rem',
-                backgroundColor: 'white',
-                border: '1px solid #d7d9dc',
-                borderRadius: '4px',
-              }}
-            >
-              <OutputItem
-                label={outputDefinitions.find((output) => output.name === key)?.displayName || key}
-                outputType={outputDefinitions.find((output) => output.name === key)?.type || 'Unknown'}
-                url={value}
-                fileSize='127 KB'
-                disabled={!isSucceeded}
-              />
-            </div>
-          ))}
+          {Object.entries(outputs).map(([key, value]) => {
+            const outputDefinition = outputDefinitions.find((input) => input.name === key);
+
+            return (
+              <div
+                key={key}
+                style={{
+                  marginTop: '1rem',
+                  borderLeft: '3px solid #e4e5e6',
+                  padding: '0.5rem',
+                  backgroundColor: 'white',
+                  border: '1px solid #d7d9dc',
+                  borderRadius: '4px',
+                }}
+              >
+                <OutputItem
+                  label={outputDefinition?.displayName || key}
+                  outputType={outputDefinition?.type || 'Unknown'}
+                  tooltip={outputDefinition?.description || 'No description available for this output'}
+                  url={value}
+                  fileSize='127 KB'
+                  disabled={!isSucceeded}
+                />
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div style={{ color: colors.dark(0.6), fontSize: '0.875rem', fontStyle: isFailed ? 'italic' : 'normal' }}>

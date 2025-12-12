@@ -6,7 +6,7 @@ import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 
-interface JobBasicsProps {
+interface JobDetailsHeaderProps {
   pipelineRunResult: PipelineRunResponse;
 }
 
@@ -17,7 +17,7 @@ const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) =
   </div>
 );
 
-export const JobDetailsHeader = ({ pipelineRunResult }: JobBasicsProps) => {
+export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) => {
   const { pipelineDetails, isLoading: isLoadingPipelineDetails } = usePipelineDetails(
     pipelineRunResult.pipelineRunReport.pipelineName,
     pipelineRunResult.pipelineRunReport.pipelineVersion

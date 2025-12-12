@@ -63,7 +63,6 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
 
         {!isLoading && pipelineRunResult && (
           <div>
-            {/* Job Summary Widget */}
             <JobDetailsHeader pipelineRunResult={pipelineRunResult} />
 
             {/* Timeline and Inputs/Outputs Section */}
