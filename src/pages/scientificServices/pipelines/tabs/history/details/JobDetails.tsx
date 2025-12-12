@@ -7,7 +7,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
-import { JobInputsOutputs } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobInputsOutputs';
+import { PipelineRunIOView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/PipelineRunIOView';
 import { RunInformation } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/RunInformation';
 
 export interface JobDetailsProps {
@@ -72,7 +72,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
               </div>
 
               <div style={{ flex: '0 0 calc(66.667% - 0.5rem)' }}>
-                <JobInputsOutputs pipelineRunResult={pipelineRunResult} />
+                <PipelineRunIOView pipelineRunResult={pipelineRunResult} />
               </div>
             </div>
           </div>

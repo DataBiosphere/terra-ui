@@ -1,5 +1,5 @@
 import { Spinner } from '@terra-ui-packages/components';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -14,10 +14,10 @@ interface JobDetailsHeaderProps {
   pipelineRunResult: PipelineRunResponse;
 }
 
-const HeaderItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
+const HeaderItem = ({ label, value }: { label: string; value: ReactNode }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
     <div style={{ color: colors.dark(), fontWeight: 600 }}>{label}</div>
-    <div style={{ fontWeight: 500, color: colors.dark(0.7) }}>{value}</div>
+    <div style={{ color: colors.dark(0.7) }}>{value}</div>
   </div>
 );
 
@@ -36,7 +36,7 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
         background: `linear-gradient(to right, #f5f6f9, ${getPipelineStatusColor(
           pipelineRunResult.jobReport.status
         )}15)`,
-        border: '1px solid #d7d9dc',
+        border: '1px solid #d6d9dc',
         borderRadius: '4px',
         padding: '0.5rem 1.5rem 1.5rem',
         marginBottom: '0.5rem',
@@ -57,7 +57,7 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
                       fontSize: 12,
                       marginLeft: '0.5rem',
                       fontWeight: 500,
-                      border: '1px solid #d7d9dc',
+                      border: '1px solid #d6d9dc',
                     }}
                   >
                     Version {pipelineRunResult.pipelineRunReport.pipelineVersion}
@@ -78,10 +78,10 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
               textTransform: 'capitalize',
               fontSize: 18,
               fontWeight: 600,
-              border: '1px solid #d7d9dc',
+              border: '1px solid #d6d9dc',
               padding: '0.5rem 0.75rem',
               borderRadius: '4px',
-              backgroundColor: '#fff',
+              backgroundColor: 'white',
               color: getPipelineStatusColor(pipelineRunResult.jobReport.status),
             }}
           >
@@ -101,10 +101,10 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
         <HeaderItem
           label='Job ID'
           value={
-            <div>
+            <>
               <code>{pipelineRunResult.jobReport.id}</code>
               <ClipboardButton style={{ marginLeft: '0.5rem' }} text={pipelineRunResult.jobReport.id} />
-            </div>
+            </>
           }
         />
 
