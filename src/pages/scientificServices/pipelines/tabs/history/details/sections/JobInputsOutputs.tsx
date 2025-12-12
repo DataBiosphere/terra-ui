@@ -1,4 +1,4 @@
-import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
+import { Icon } from '@terra-ui-packages/components';
 import { TooltipTrigger } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 import { PipelineInput, PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -47,37 +47,42 @@ const OutputItem = ({
   disabled?: boolean;
 }) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       <div style={{ flex: 1 }}>
-        <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
-          <InputTypeBadge type={outputType} />
-        </div>
+        <div style={{ marginBottom: '0.5rem', fontWeight: 500, textTransform: 'capitalize' }}>{label}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {!disabled && (
+            <button
+              type='button'
+              onClick={() => {
+                // TODO: capture mixpanel download metric
+                window.open(url, '_blank');
+              }}
+              style={{
+                color: '#46A3E9',
+                fontWeight: 700,
+                textDecoration: 'underline',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                font: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}
+            >
+              <Icon icon='download' size={14} />
+              Download
+            </button>
+          )}
           <span style={{ color: disabled ? colors.dark(0.5) : colors.dark() }}>
             {disabled ? 'Not available' : fileSize}
           </span>
         </div>
       </div>
-      <div style={{ borderLeft: '1px solid #d7d9dc' }}>
-        <ButtonPrimary
-          onClick={() => {
-            // TODO: capture mixpanel download metric
-            window.open(url, '_blank');
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem',
-            borderRadius: '4px',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            marginLeft: '0.5rem',
-            opacity: disabled ? 0.5 : 1,
-          }}
-          disabled={disabled}
-        >
-          <Icon icon='download' size={16} />
-        </ButtonPrimary>
+      <div style={{ alignSelf: 'flex-start' }}>
+        <InputTypeBadge type={outputType} />
       </div>
     </div>
   );
@@ -174,7 +179,7 @@ const JobOutputs = ({ outputDefinitions, outputs, status }: JobOutputsProps) => 
                 label={outputDefinitions.find((output) => output.name === key)?.displayName || key}
                 outputType={outputDefinitions.find((output) => output.name === key)?.type || 'Unknown'}
                 url={value}
-                fileSize='n/a KB'
+                fileSize='127 KB'
                 disabled={!isSucceeded}
               />
             </div>
