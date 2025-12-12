@@ -1,4 +1,4 @@
-import { ButtonPrimary, Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packages/components';
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
@@ -11,6 +11,7 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
@@ -204,7 +205,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <JobIdCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 140 },
+      size: { basis: 250 },
     },
     {
       field: 'description',
@@ -212,7 +213,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 150 },
+      size: { basis: 160 },
     },
     {
       field: 'status',
@@ -220,7 +221,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 40 },
+      size: { basis: 20 },
     },
     {
       field: 'submitted',
@@ -232,7 +233,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'completed',
@@ -245,7 +246,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'dataDeletionDate',
@@ -253,7 +254,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <DataDeletionDateCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'quotaUsed',
@@ -285,20 +286,53 @@ interface CellProps {
 }
 
 const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
+  const canViewDetails = ['FAILED', 'RUNNING', 'SUCCEEDED'].includes(pipelineRun.status);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
       <div style={{ width: '100%', overflow: 'hidden' }}>
-        <TooltipCell
-          tooltip={pipelineRun.jobId}
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            width: '100%',
-          }}
-        >
-          {pipelineRun.jobId}
-        </TooltipCell>
+        {canViewDetails ? (
+          <Link
+            href={Nav.getLink('pipelines-history-detail', { jobId: pipelineRun.jobId })}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              width: '100%',
+              display: 'block',
+            }}
+            aria-label={`View details for job ${pipelineRun.jobId}`}
+          >
+            <TooltipTrigger content={pipelineRun.jobId} side='top'>
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%',
+                  display: 'block',
+                }}
+              >
+                {pipelineRun.jobId}
+              </span>
+            </TooltipTrigger>
+          </Link>
+        ) : (
+          <TooltipTrigger content={pipelineRun.jobId} side='top'>
+            <span
+              style={{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                width: '100%',
+                display: 'block',
+                color: colors.dark(),
+              }}
+            >
+              {pipelineRun.jobId}
+            </span>
+          </TooltipTrigger>
+        )}
       </div>
       <div
         style={{

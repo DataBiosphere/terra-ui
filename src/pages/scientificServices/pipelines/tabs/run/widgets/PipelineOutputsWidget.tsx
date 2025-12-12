@@ -2,6 +2,7 @@ import React from 'react';
 import { PipelineOutput, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { cond, DEFAULT } from 'src/libs/utils';
 
+import { PipelineIOTypeBadge } from './PipelineIOTypeBadge';
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
 export const PipelineOutputsWidget = ({
@@ -12,7 +13,7 @@ export const PipelineOutputsWidget = ({
   const pipelineOutputs = selectedPipelineDetails?.outputs;
 
   return (
-    <PipelineWidgetContainer title='Pipeline Outputs'>
+    <PipelineWidgetContainer title='Pipeline Outputs' width={400}>
       {cond(
         [!selectedPipelineDetails, () => <div style={{ marginTop: '1rem' }}>Select a pipeline to see outputs</div>],
         [
@@ -47,26 +48,7 @@ const OutputDetails = ({ output }: { output: PipelineOutput }) => {
         <div style={{ fontWeight: 500, paddingBottom: '0.5rem', textTransform: 'capitalize' }}>
           {displayName || name}
         </div>
-        <div
-          style={{
-            backgroundColor: '#e7f3fb',
-            borderRadius: 8,
-            border: '1px solid #e4e5e6',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0.25rem 0.5rem',
-          }}
-        >
-          <span
-            style={{
-              textTransform: 'capitalize',
-              fontWeight: 500,
-              fontSize: '0.875rem',
-            }}
-          >
-            {type.toLowerCase()}
-          </span>
-        </div>
+        <PipelineIOTypeBadge type={type} />
       </div>
       <div style={{ width: '80%', fontSize: 13 }}>{description || 'No description available'}</div>
     </div>

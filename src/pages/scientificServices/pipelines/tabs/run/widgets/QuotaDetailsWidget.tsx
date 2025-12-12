@@ -12,7 +12,7 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
   const { quota, pipelineDetails, meetsMinimumQuota } = useUserQuota(selectedPipeline);
 
   return (
-    <PipelineWidgetContainer title='Quota Details' marginBottom='1rem'>
+    <PipelineWidgetContainer title='Quota Details' marginBottom='1rem' width={400}>
       {cond(
         [!selectedPipeline, () => <div style={{ marginTop: '1rem' }}>Select a pipeline to see quota</div>],
         [
