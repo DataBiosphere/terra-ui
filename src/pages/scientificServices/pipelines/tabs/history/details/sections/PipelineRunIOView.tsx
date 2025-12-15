@@ -1,7 +1,7 @@
 import { Icon } from '@terra-ui-packages/components';
 import { TooltipTrigger } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
-import { PipelineInput, PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineInput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
 import { JobOutputsView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/inputs/JobOutputsView';
@@ -128,8 +128,19 @@ export const PipelineRunIOView = ({ pipelineRunResult: foo }: PipelineRunIOViewP
               status={pipelineRunResult.jobReport.status}
             />
             {pipelineRunResult.errorReport && (
-              <div style={{ marginTop: '1rem', color: colors.danger(), fontStyle: 'italic' }}>
-                {pipelineRunResult.errorReport.message}
+              <div
+                style={{
+                  marginTop: '1rem',
+                  padding: '0.5rem',
+                  borderRadius: '4px',
+                  backgroundColor: '#f8d7da',
+                  color: '#842029',
+                }}
+              >
+                <div style={{ margin: '1rem 0', fontWeight: 'bold' }}>
+                  No outputs were generated due to the following error:
+                </div>
+                <div style={{ margin: '1rem 0', fontFamily: 'monospace' }}>{pipelineRunResult.errorReport.message}</div>
               </div>
             )}
           </div>

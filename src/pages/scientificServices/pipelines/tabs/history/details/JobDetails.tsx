@@ -8,7 +8,6 @@ import { notify } from 'src/libs/notifications';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
 import { PipelineRunIOView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/PipelineRunIOView';
-import { RunInformation } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/RunInformation';
 
 export interface JobDetailsProps {
   jobId: string;
@@ -65,13 +64,8 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
           <div>
             <JobDetailsHeader pipelineRunResult={pipelineRunResult} />
 
-            {/* Timeline and Inputs/Outputs Section */}
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              <div style={{ flex: '0 0 calc(33.333% - 1rem)' }}>
-                <RunInformation pipelineRunResult={pipelineRunResult} />
-              </div>
-
-              <div style={{ flex: '0 0 calc(66.667% - 0.5rem)' }}>
+              <div style={{ flex: 1 }}>
                 <PipelineRunIOView pipelineRunResult={pipelineRunResult} />
               </div>
             </div>

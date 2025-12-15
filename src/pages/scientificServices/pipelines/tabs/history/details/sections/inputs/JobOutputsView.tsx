@@ -22,9 +22,6 @@ export const JobOutputsView = ({ outputDefinitions, outputs, status }: JobOutput
     if (status === 'RUNNING') {
       return 'Outputs will be available when job completes';
     }
-    if (isFailed) {
-      return 'No outputs generated due to job failure';
-    }
   };
 
   return (
