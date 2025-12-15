@@ -22,7 +22,10 @@ import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/u
 import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewOutputsModal';
-import { getPipelineStatusColor } from 'src/pages/scientificServices/pipelines/utils/pipeline-style-utils';
+import {
+  getPipelineColor,
+  getPipelineStatusColor,
+} from 'src/pages/scientificServices/pipelines/utils/pipeline-style-utils';
 
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
@@ -287,6 +290,7 @@ interface CellProps {
 }
 
 const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
+  // note that you cannot view details for jobs that are in PREPARING status, so we only link to details for other statuses
   const canViewDetails = ['FAILED', 'RUNNING', 'SUCCEEDED'].includes(pipelineRun.status);
 
   return (
@@ -339,7 +343,7 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
         style={{
           width: 'fit-content',
           fontWeight: 600,
-          backgroundColor: pipelineNameToColor(pipelineRun),
+          backgroundColor: getPipelineColor(pipelineRun),
           padding: '0.33rem',
           borderRadius: '4px',
           fontSize: '10px',
@@ -600,15 +604,6 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
       );
     default:
       return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(pipelineRun.status)}</div>;
-  }
-};
-
-const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
-  switch (pipelineRun.pipelineName) {
-    case 'array_imputation':
-      return '#4D72AA4D';
-    default:
-      return '#AA4D8B4D';
   }
 };
 

@@ -1,7 +1,7 @@
 import { Icon } from '@terra-ui-packages/components';
 import { ReactNode } from 'react';
 import React from 'react';
-import { PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 
 export const getPipelineStatusColor = (status: PipelineRunStatus): string => {
@@ -29,5 +29,14 @@ export const getPipelineStatusIcon = (status: PipelineRunStatus | string, size =
       return <Icon icon='warning-standard' size={size} style={{ color: getPipelineStatusColor(status) }} />;
     default:
       return null;
+  }
+};
+
+export const getPipelineColor = (pipelineRun: PipelineRun): string => {
+  switch (pipelineRun.pipelineName) {
+    case 'array_imputation':
+      return '#4D72AA4D';
+    default:
+      return '#AA4D8B4D';
   }
 };
