@@ -562,7 +562,14 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
 
       if (hoursElapsed > PREPARING_JOB_CUTOFF_HOURS) {
         return (
-          <div style={{ display: 'flex', alignItems: 'center', color: colors.danger(), gap: '0.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              color: getPipelineStatusColor('FAILED'),
+              gap: '0.5rem',
+            }}
+          >
             <Icon icon='warning-standard' /> Failed
           </div>
         );
@@ -580,7 +587,14 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
     }
     case 'FAILED':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', color: colors.danger(), gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: getPipelineStatusColor(pipelineRun.status),
+            gap: '0.5rem',
+          }}
+        >
           <Icon icon='warning-standard' /> Failed
         </div>
       );

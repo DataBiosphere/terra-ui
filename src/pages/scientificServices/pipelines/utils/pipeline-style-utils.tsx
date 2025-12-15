@@ -20,13 +20,13 @@ export const getPipelineStatusColor = (status: PipelineRunStatus): string => {
 export const getPipelineStatusIcon = (status: PipelineRunStatus | string, size = 16): ReactNode => {
   switch (status) {
     case 'SUCCEEDED':
-      return <Icon icon='success-standard' size={size} style={{ color: colors.success() }} />;
+      return <Icon icon='success-standard' size={size} style={{ color: getPipelineStatusColor(status) }} />;
     case 'RUNNING':
-      return <Icon icon='sync' size={size} style={{ color: colors.accent() }} />;
+      return <Icon icon='sync' size={size} style={{ color: getPipelineStatusColor(status) }} />;
     case 'PREPARING':
-      return <Icon icon='sync' size={size} style={{ color: colors.warning() }} />;
+      return <Icon icon='sync' size={size} style={{ color: getPipelineStatusColor(status) }} />;
     case 'FAILED':
-      return <Icon icon='warning-standard' size={size} style={{ color: colors.danger() }} />;
+      return <Icon icon='warning-standard' size={size} style={{ color: getPipelineStatusColor(status) }} />;
     default:
       return null;
   }

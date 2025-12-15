@@ -38,10 +38,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
       {pipelinesTopBar('job history')}
       <main
         style={{
-          paddingLeft: '2rem',
-          paddingRight: '2rem',
-          paddingTop: '1rem',
-          paddingBottom: '2rem',
+          padding: '1rem 2rem 2rem',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
@@ -66,6 +63,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
 
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div style={{ flex: 1 }}>
+                {/* Eventually, the Job Timeline / Run Information component will go here too */}
                 <PipelineRunIOView pipelineRunResult={pipelineRunResult} />
               </div>
             </div>
