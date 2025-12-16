@@ -7,7 +7,7 @@
 /src/pages/EnvironmentsPage/ @DataBiosphere/manifold-analysis
 /src/constants/datasets.js @DataBiosphere/manifold-data-management
 /src/images/brands/scientificServices/ @DataBiosphere/teaspoons-developers
-/src/import-data/ @DataBiosphere/manifold-data-management @DataBiosphere/manifold-data-management
+/src/import-data/ @DataBiosphere/manifold-data-management
 /src/libs/brand*.js @DataBiosphere/terra-cobranding
 /src/libs/colors.js @DataBiosphere/terra-cobranding
 /src/libs/ajax/Apps.ts @DataBiosphere/manifold-analysis
