@@ -13,7 +13,7 @@ export const PipelineOutputsWidget = ({
   const pipelineOutputs = selectedPipelineDetails?.outputs;
 
   return (
-    <PipelineWidgetContainer title='Pipeline Outputs' width={400}>
+    <PipelineWidgetContainer title='Pipeline Outputs'>
       {cond(
         [!selectedPipelineDetails, () => <div style={{ marginTop: '1rem' }}>Select a pipeline to see outputs</div>],
         [

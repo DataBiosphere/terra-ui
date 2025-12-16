@@ -30,7 +30,7 @@ export const HelpfulTipsWidget = ({ selectedPipeline }: { selectedPipeline?: Pip
   if (!pipelineTips || pipelineTips.length === 0) return null;
 
   return (
-    <PipelineWidgetContainer title='Helpful Tips' padding='1rem' width={400}>
+    <PipelineWidgetContainer title='Helpful Tips' padding='1rem'>
       <ul style={{ paddingInlineStart: '1.5rem' }}>
         {pipelineTips.map((tip) => (
           <li key={tip.id} data-testid={`tip-${tip.id}`} style={{ marginTop: '1rem' }}>

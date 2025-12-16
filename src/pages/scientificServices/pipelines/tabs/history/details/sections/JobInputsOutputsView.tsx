@@ -5,7 +5,6 @@ import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
 import { JobInputsView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/io/JobInputsView';
 import { JobOutputsView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/io/JobOutputsView';
-import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineWidgetContainer';
 
 interface PipelineRunIOViewProps {
   pipelineRunResult: PipelineRunResponse;
@@ -37,7 +36,16 @@ export const JobInputsOutputsView = ({ pipelineRunResult: foo }: PipelineRunIOVi
   };
 
   return (
-    <PipelineWidgetContainer title='Inputs & Outputs' border='1px solid #d6d9dc' showIcon={false}>
+    <div
+      style={{
+        backgroundColor: '#f4f6f9',
+        border: '1px solid #d6d9dc',
+        borderRadius: '4px',
+        padding: '1rem 1rem 1.5rem',
+        margin: '1rem 0',
+      }}
+    >
+      <h3 style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>Inputs & Outputs</h3>
       {isLoading ? (
         <div style={{ color: colors.dark(0.6) }}>Loading...</div>
       ) : (
@@ -76,6 +84,6 @@ export const JobInputsOutputsView = ({ pipelineRunResult: foo }: PipelineRunIOVi
           </div>
         </div>
       )}
-    </PipelineWidgetContainer>
+    </div>
   );
 };

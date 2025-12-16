@@ -1,6 +1,5 @@
 import { Icon } from '@terra-ui-packages/components';
-import { ReactNode } from 'react';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 
