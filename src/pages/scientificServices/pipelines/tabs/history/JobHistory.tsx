@@ -225,7 +225,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 20 },
+      size: { basis: 50 },
     },
     {
       field: 'submitted',
