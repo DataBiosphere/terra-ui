@@ -58,7 +58,7 @@ export const JobInputsView = ({ inputDefinitions, inputs }: JobInputsProps) => {
 
   return (
     <div style={{ flex: 1 }}>
-      <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>Inputs</h4>
+      <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: 16, fontWeight: 600 }}>Inputs</h4>
       {hasInputs ? (
         <div>
           {Object.entries(allInputs).map(([key, { value, isDefault }]) => {
@@ -90,7 +90,7 @@ export const JobInputsView = ({ inputDefinitions, inputs }: JobInputsProps) => {
           })}
         </div>
       ) : (
-        <div style={{ color: colors.dark(0.6), fontSize: '0.875rem' }}>No inputs available</div>
+        <div style={{ color: colors.dark(0.6), fontSize: '0.875rem' }}>There are no inputs to display</div>
       )}
     </div>
   );

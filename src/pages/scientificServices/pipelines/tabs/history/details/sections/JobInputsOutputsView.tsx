@@ -10,30 +10,14 @@ interface PipelineRunIOViewProps {
   pipelineRunResult: PipelineRunResponse;
 }
 
-export const JobInputsOutputsView = ({ pipelineRunResult: foo }: PipelineRunIOViewProps) => {
+export const JobInputsOutputsView = ({ pipelineRunResult }: PipelineRunIOViewProps) => {
   const { pipelineDetails, isLoading } = usePipelineDetails(
-    foo.pipelineRunReport.pipelineName,
-    foo.pipelineRunReport.pipelineVersion
+    pipelineRunResult.pipelineRunReport.pipelineName,
+    pipelineRunResult.pipelineRunReport.pipelineVersion
   );
 
   const inputDefinitions = pipelineDetails?.inputs || [];
   const outputDefinitions = pipelineDetails?.outputs || [];
-
-  const pipelineRunResult = {
-    ...foo,
-    pipelineRunReport: {
-      ...foo.pipelineRunReport,
-      outputs:
-        foo.jobReport.status === 'SUCCEEDED'
-          ? {
-              imputedMultiSampleVcfIndex: 'empty_file',
-              imputedMultiSampleVcf: 'empty_file',
-              contigsInfo: 'empty_file',
-              chunksInfo: 'empty_file',
-            }
-          : undefined,
-    },
-  };
 
   return (
     <div
@@ -60,11 +44,7 @@ export const JobInputsOutputsView = ({ pipelineRunResult: foo }: PipelineRunIOVi
           </div>
 
           <div style={{ flex: 1 }}>
-            <JobOutputsView
-              outputDefinitions={outputDefinitions}
-              outputs={pipelineRunResult.pipelineRunReport.outputs}
-              status={pipelineRunResult.jobReport.status}
-            />
+            <JobOutputsView outputDefinitions={outputDefinitions} pipelineRunResult={pipelineRunResult} />
             {pipelineRunResult.errorReport && (
               <div
                 style={{
@@ -75,10 +55,10 @@ export const JobInputsOutputsView = ({ pipelineRunResult: foo }: PipelineRunIOVi
                   color: '#842029',
                 }}
               >
-                <div style={{ margin: '1rem 0', fontWeight: 'bold' }}>
+                <div style={{ margin: '1rem', fontWeight: 'bold' }}>
                   No outputs were generated due to the following error:
                 </div>
-                <div style={{ margin: '1rem 0', fontFamily: 'monospace' }}>{pipelineRunResult.errorReport.message}</div>
+                <div style={{ margin: '1rem', fontFamily: 'monospace' }}>{pipelineRunResult.errorReport.message}</div>
               </div>
             )}
           </div>

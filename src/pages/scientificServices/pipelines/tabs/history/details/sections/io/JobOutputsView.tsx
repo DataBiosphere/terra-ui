@@ -1,32 +1,76 @@
 import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
-import React from 'react';
-import { PipelineOutput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import React, { useEffect, useState } from 'react';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
+import { useCancellation } from 'src/libs/react-utils';
 import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
 interface JobOutputsViewProps {
   outputDefinitions: PipelineOutput[];
-  outputs: Record<string, string> | undefined;
-  status: string;
+  pipelineRunResult: PipelineRunResponse;
 }
 
-export const JobOutputsView = ({ outputDefinitions, outputs, status }: JobOutputsViewProps) => {
+export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutputsViewProps) => {
+  const [loading, setLoading] = useState(true);
+  const [fileSizes, setFileSizes] = useState<Record<string, string | null>>({});
+  const signal = useCancellation();
+
+  const isSucceeded = pipelineRunResult.jobReport.status === 'SUCCEEDED';
+  const isFailed = pipelineRunResult.jobReport.status === 'FAILED';
+  const outputs = pipelineRunResult.pipelineRunReport.outputs;
   const hasOutputs = outputs && Object.keys(outputs).length > 0;
-  const isSucceeded = status === 'SUCCEEDED';
-  const isFailed = status === 'FAILED';
+
+  useEffect(() => {
+    const fetchOutputFileSizes = async () => {
+      try {
+        setLoading(true);
+        if (pipelineRunResult.pipelineRunReport.outputs) {
+          const outputs = Object.entries(pipelineRunResult.pipelineRunReport.outputs);
+          const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
+          setFileSizes(initialState);
+
+          for (const [key, url] of outputs) {
+            try {
+              const size = await getOutputFileSize(url);
+              setFileSizes((prev) => ({ ...prev, [key]: size }));
+            } catch {
+              setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
+            }
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOutputFileSizes();
+  }, [pipelineRunResult.pipelineRunReport.outputs, signal]);
 
   const getEmptyMessage = () => {
-    if (isSucceeded) {
-      return 'No outputs available';
+    const now = new Date();
+    if (
+      isSucceeded &&
+      pipelineRunResult.pipelineRunReport.outputExpirationDate &&
+      now > new Date(pipelineRunResult.pipelineRunReport.outputExpirationDate)
+    ) {
+      return `The outputs for this job expired on ${new Date(
+        pipelineRunResult.pipelineRunReport.outputExpirationDate
+      ).toLocaleDateString()} and are no longer available.`;
     }
-    if (status === 'RUNNING') {
-      return 'Outputs will be available when job completes';
+    if (isSucceeded) {
+      return 'This job succeeded, but did not produce any outputs.';
+    }
+    if (pipelineRunResult.jobReport.status === 'RUNNING') {
+      return 'The job is still in progress. Outputs will be available after the job completes.';
     }
   };
 
   return (
     <div style={{ flex: 1 }}>
-      <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>Outputs</h4>
+      <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: 16, fontWeight: 600 }}>Outputs</h4>
       {hasOutputs ? (
         <div>
           {Object.entries(outputs).map(([key, value]) => {
@@ -49,15 +93,16 @@ export const JobOutputsView = ({ outputDefinitions, outputs, status }: JobOutput
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
                   url={value}
-                  fileSize='127 KB'
+                  fileSize={loading ? 'Loading file size...' : fileSizes[key] || undefined}
                   disabled={!isSucceeded}
+                  pipelineRunResult={pipelineRunResult}
                 />
               </div>
             );
           })}
         </div>
       ) : (
-        <div style={{ color: colors.dark(0.6), fontSize: '0.875rem', fontStyle: isFailed ? 'italic' : 'normal' }}>
+        <div style={{ color: colors.dark(0.6), fontSize: 14, fontStyle: isFailed ? 'italic' : 'normal' }}>
           {getEmptyMessage()}
         </div>
       )}
@@ -72,13 +117,15 @@ const OutputItem = ({
   outputType,
   fileSize,
   disabled,
+  pipelineRunResult,
 }: {
   label: string;
   url: string;
   tooltip: string;
   outputType: string;
-  fileSize: string;
+  fileSize?: string;
   disabled?: boolean;
+  pipelineRunResult: PipelineRunResponse;
 }) => {
   return (
     <div>
@@ -93,8 +140,13 @@ const OutputItem = ({
           <button
             type='button'
             onClick={() => {
-              // TODO: capture mixpanel download metric
               window.open(url, '_blank');
+              Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
+                pipelineName: pipelineRunResult.pipelineRunReport.pipelineName,
+                pipelineVersion: pipelineRunResult.pipelineRunReport.pipelineVersion,
+                outputName: label,
+                fileSize,
+              });
             }}
             style={{
               color: '#46A3E9',
@@ -114,9 +166,11 @@ const OutputItem = ({
             Download
           </button>
         )}
-        <span style={{ color: disabled ? colors.dark(0.5) : colors.dark(), fontStyle: 'italic' }}>
-          {disabled ? 'Not available' : fileSize}
-        </span>
+        {fileSize && (
+          <span style={{ color: disabled ? colors.dark(0.5) : colors.dark(), fontStyle: 'italic' }}>
+            {disabled ? 'Not available' : fileSize}
+          </span>
+        )}
       </div>
     </div>
   );
