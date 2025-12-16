@@ -7,7 +7,7 @@ import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
-import { PipelineRunIOSection } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/PipelineRunIOSection';
+import { JobInputsOutputsView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobInputsOutputsView';
 
 export interface JobDetailsProps {
   jobId: string;
@@ -64,7 +64,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div style={{ flex: 1 }}>
                 {/* Eventually, the Job Timeline / Run Information component will go here too */}
-                <PipelineRunIOSection pipelineRunResult={pipelineRunResult} />
+                <JobInputsOutputsView pipelineRunResult={pipelineRunResult} />
               </div>
             </div>
           </div>
