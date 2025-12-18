@@ -1,9 +1,9 @@
 # Each line is a file pattern followed by one or more owners.
 # See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
 /src/analysis @DataBiosphere/manifold-analysis
-/src/billing-core/ @DataBiosphere/broad-core-services
-/src/billing/ @DataBiosphere/broad-core-services
-/src/groups/ @DataBiosphere/broad-core-services
+/src/billing-core/ @DataBiosphere/manifold-core-services
+/src/billing/ @DataBiosphere/manifold-core-services
+/src/groups/ @DataBiosphere/manifold-core-services
 /src/pages/EnvironmentsPage/ @DataBiosphere/manifold-analysis
 /src/constants/datasets.js @DataBiosphere/manifold-data-management
 /src/images/brands/scientificServices/ @DataBiosphere/teaspoons-developers
@@ -13,9 +13,9 @@
 /src/libs/ajax/Apps.ts @DataBiosphere/manifold-analysis
 /src/libs/ajax/Runtimes.ts @DataBiosphere/manifold-analysis
 /src/libs/ajax/AzureStorage.js @DataBiosphere/manifold-analysis
-/src/libs/ajax/billing/ @DataBiosphere/broad-core-services
+/src/libs/ajax/billing/ @DataBiosphere/manifold-core-services
 /src/libs/ajax/GoogleStorage.js @DataBiosphere/manifold-analysis
-/src/libs/ajax/Groups.ts @DataBiosphere/broad-core-services
+/src/libs/ajax/Groups.ts @DataBiosphere/manifold-core-services
 /src/libs/ajax/teaspoons/ @DataBiosphere/teaspoons-developers
 /src/libs/ajax/workflows-app/ @DataBiosphere/manifold-analysis
 /src/libs/ajax/workspaces/ @DataBiosphere/manifold-data-management
@@ -23,15 +23,15 @@
 /src/pages/library/SearchAndFilterComponent* @DataBiosphere/manifold-data-management
 /src/dataset-builder/ @DataBiosphere/manifold-data-management
 /src/pages/LandingPage* @DataBiosphere/terra-cobranding
-/src/pages/billing/ @DataBiosphere/broad-core-services
-/src/pages/groups/ @DataBiosphere/broad-core-services
+/src/pages/billing/ @DataBiosphere/manifold-core-services
+/src/pages/groups/ @DataBiosphere/manifold-core-services
 /src/pages/scientificServices/ @DataBiosphere/teaspoons-developers
 /src/pages/workspaces/* @DataBiosphere/manifold-data-management
-/src/profile/notification-settings/* @DataBiosphere/broad-core-services
+/src/profile/notification-settings/* @DataBiosphere/manifold-core-services
 /src/workflows-app/ @DataBiosphere/manifold-analysis
 /src/workspace-data/ @DataBiosphere/manifold-data-management
 /src/workspaces/ @DataBiosphere/manifold-data-management
-/integration-tests/tests/billing-projects.js @DataBiosphere/broad-core-services
+/integration-tests/tests/billing-projects.js @DataBiosphere/manifold-core-services
 /integration-tests/tests/delete-orphaned-workspaces.js @DataBiosphere/manifold-data-management
 /integration-tests/tests/run-analysis.js @DataBiosphere/manifold-analysis
 /integration-tests/tests/run-analysis-azure.js @DataBiosphere/manifold-analysis
