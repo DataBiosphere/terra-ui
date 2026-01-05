@@ -179,7 +179,7 @@ describe('JobOutputsView', () => {
     });
   });
 
-  it('displays "Loading file size..." initially', () => {
+  it('displays "Loading file size..." initially', async () => {
     const mockResult = createMockPipelineRunResult('SUCCEEDED', {
       imputedMultiSampleVcf: 'gs://bucket/output.vcf',
     });
@@ -187,6 +187,10 @@ describe('JobOutputsView', () => {
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
     expect(screen.getByText('Loading file size...')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading file size...')).not.toBeInTheDocument();
+    });
   });
 
   it('displays "Unknown size" when file size fetch fails', async () => {
