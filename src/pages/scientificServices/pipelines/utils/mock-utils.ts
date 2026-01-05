@@ -3,6 +3,7 @@ import {
   PipelineInput,
   PipelineOutput,
   PipelineRun,
+  PipelineRunResponse,
   PipelineRunStatus,
   PipelineWithDetails,
   UserPipelineQuotaDetails,
@@ -109,3 +110,19 @@ export function mockPipelineRun(status: PipelineRunStatus): PipelineRun {
       status === 'SUCCEEDED' ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() : undefined, // job outputs expire in 14 days
   };
 }
+
+export const mockPipelineRunResponse = (status: PipelineRunStatus, description?: string): PipelineRunResponse => ({
+  jobReport: {
+    id: 'job-123-456-789',
+    status,
+    submitted: '2024-01-01T00:00:00Z',
+    completed: '2024-01-01T01:00:00Z',
+    description: description || undefined,
+  },
+  pipelineRunReport: {
+    pipelineName: 'array_imputation',
+    pipelineVersion: 1,
+    toolVersion: '1.0.0',
+    outputs: {},
+  },
+});
