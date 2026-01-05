@@ -1,4 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -9,13 +9,11 @@ const InputItem = ({
   value,
   tooltip,
   inputType,
-  isDefault = false,
 }: {
   label: string;
   value: ReactNode;
   tooltip: string;
   inputType: string;
-  isDefault?: boolean;
 }) => (
   <div>
     <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -24,10 +22,7 @@ const InputItem = ({
       </TooltipTrigger>
       <PipelineIOTypeBadge type={inputType} />
     </div>
-    <div style={{ color: colors.dark(), wordBreak: 'break-all', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-      {value}
-      {isDefault && <span style={{ color: colors.dark(0.6), fontStyle: 'italic' }}>(default)</span>}
-    </div>
+    <div style={{ color: colors.dark(), wordBreak: 'break-all' }}>{value}</div>
   </div>
 );
 
@@ -37,31 +32,19 @@ interface JobInputsProps {
 }
 
 export const JobInputsView = ({ inputDefinitions, inputs }: JobInputsProps) => {
-  // Combine user inputs with default values from definitions
-  const allInputs = React.useMemo(() => {
-    const combinedInputs: Record<string, { value: any; isDefault: boolean }> = {};
-
-    Object.entries(inputs || {}).forEach(([key, value]) => {
-      combinedInputs[key] = { value, isDefault: false };
-    });
-
-    inputDefinitions.forEach((inputDef) => {
-      if (inputDef.defaultValue !== undefined && !(inputDef.name in combinedInputs)) {
-        combinedInputs[inputDef.name] = { value: inputDef.defaultValue, isDefault: true };
-      }
-    });
-
-    return combinedInputs;
-  }, [inputs, inputDefinitions]);
-
-  const hasInputs = Object.keys(allInputs).length > 0;
+  const hasInputs = inputs && Object.keys(inputs).length > 0;
 
   return (
     <div style={{ flex: 1 }}>
-      <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: 16, fontWeight: 600 }}>Inputs</h4>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+        <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Inputs</h4>
+        <TooltipTrigger content='Inputs include both values you provided and defaults for any parameters you did not specify.'>
+          <Icon icon='help' size={16} style={{ color: colors.dark(0.55) }} />
+        </TooltipTrigger>
+      </div>
       {hasInputs ? (
         <div>
-          {Object.entries(allInputs).map(([key, { value, isDefault }]) => {
+          {Object.entries(inputs).map(([key, value]) => {
             const inputDef = inputDefinitions.find((input) => input.name === key);
             return (
               <div
@@ -83,7 +66,6 @@ export const JobInputsView = ({ inputDefinitions, inputs }: JobInputsProps) => {
                   }
                   tooltip={inputDef?.description || 'No description available for this input'}
                   inputType={inputDef?.type || 'STRING'}
-                  isDefault={isDefault}
                 />
               </div>
             );

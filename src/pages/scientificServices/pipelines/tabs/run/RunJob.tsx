@@ -401,10 +401,13 @@ export const RunJob = () => {
                       <Icon icon='success-standard' size={36} style={{ color: colors.success(), margin: '0 1rem' }} />
                       <div>
                         Your job has been submitted. You can check the status of that job by going to the{' '}
-                        <Link style={{ color: '#46A3E9' }} href={Nav.getLink('pipelines-history')}>
-                          Job History
+                        <Link
+                          style={{ color: '#46A3E9' }}
+                          href={Nav.getLink('pipelines-history-detail', { jobId: submittedJobId })}
+                        >
+                          Job Details
                         </Link>{' '}
-                        tab.
+                        page.
                         <div style={{ marginTop: '1rem' }}>
                           <span style={{ fontWeight: 'bold' }}>Job ID:</span> <code>{submittedJobId}</code>
                           <ClipboardButton style={{ marginLeft: '0.5rem' }} text={submittedJobId} />
