@@ -1,0 +1,264 @@
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import React from 'react';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { PipelineOutput, PipelineRunResponse, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import Events from 'src/libs/events';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { mockPipelineWithDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
+import { renderWithAppContexts as render } from 'src/testing/test-utils';
+
+import { JobOutputsView } from './JobOutputsView';
+
+jest.mock('src/libs/ajax/Metrics');
+jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
+
+describe('JobOutputsView', () => {
+  const mockCaptureEvent = jest.fn();
+  const mockWindowOpen = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (Metrics as jest.Mock).mockReturnValue({
+      captureEvent: mockCaptureEvent,
+    });
+    (getOutputFileSize as jest.Mock).mockResolvedValue('10.5 MB');
+    window.open = mockWindowOpen;
+  });
+
+  const mockOutputDefinitions: PipelineOutput[] = mockPipelineWithDetails('array_imputation').outputs;
+
+  const createMockPipelineRunResult = (
+    status: PipelineRunStatus,
+    outputs?: Record<string, string>,
+    outputExpirationDate?: string
+  ): PipelineRunResponse => ({
+    jobReport: {
+      id: 'job-123',
+      status,
+      submitted: '2024-01-01T00:00:00Z',
+      completed: '2024-01-01T01:00:00Z',
+    },
+    pipelineRunReport: {
+      pipelineName: 'test-pipeline',
+      pipelineVersion: 1,
+      toolVersion: '1.0.0',
+      outputs: outputs || {},
+      outputExpirationDate,
+    },
+  });
+
+  it('renders output items when outputs are available', async () => {
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/imputedMultiSampleVcf.vcf',
+      imputedMultiSampleVcfIndex: 'gs://bucket/imputedMultiSampleVcfIndex.vcf',
+      chunksInfo: 'gs://bucket/chunksInfo.tsv',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('imputed multi-sample VCF')).toBeInTheDocument();
+      expect(screen.getByText('imputed multi-sample VCF index')).toBeInTheDocument();
+      expect(screen.getByText('imputation chunks QC tsv')).toBeInTheDocument();
+    });
+  });
+
+  it('renders output type badges', async () => {
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('file')).toBeInTheDocument();
+    });
+  });
+
+  it('falls back to output key when display name is not available', async () => {
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      unknownOutput: 'gs://bucket/unknown.txt',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('unknownOutput')).toBeInTheDocument();
+    });
+  });
+
+  it('shows download button for succeeded jobs', async () => {
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
+    });
+  });
+
+  it('does not show download button for failed jobs', async () => {
+    const mockResult = createMockPipelineRunResult('FAILED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not show download button for running jobs', async () => {
+    const mockResult = createMockPipelineRunResult('RUNNING', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /download/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it('opens URL in new tab when download button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
+    });
+
+    const downloadButton = screen.getByRole('button', { name: /download/i });
+    await user.click(downloadButton);
+
+    expect(mockWindowOpen).toHaveBeenCalledWith('gs://bucket/output.vcf', '_blank');
+  });
+
+  it('captures mixpanel event when download button is clicked', async () => {
+    const user = userEvent.setup();
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
+    });
+
+    const downloadButton = screen.getByRole('button', { name: /download/i });
+    await user.click(downloadButton);
+
+    await waitFor(() => {
+      expect(mockCaptureEvent).toHaveBeenCalledWith(Events.teaspoons.downloadJobOutputFile, {
+        pipelineName: 'test-pipeline',
+        pipelineVersion: 1,
+        outputName: 'imputed multi-sample VCF',
+        fileSize: '10.5 MB',
+      });
+    });
+  });
+
+  it('displays file size when loaded', async () => {
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('10.5 MB')).toBeInTheDocument();
+    });
+  });
+
+  it('displays "Loading file size..." initially', () => {
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    expect(screen.getByText('Loading file size...')).toBeInTheDocument();
+  });
+
+  it('displays "Unknown size" when file size fetch fails', async () => {
+    (getOutputFileSize as jest.Mock).mockRejectedValue(new Error('Failed to fetch size'));
+
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Unknown size')).toBeInTheDocument();
+    });
+  });
+
+  it('displays "Not available" for file size when job is not succeeded', async () => {
+    const mockResult = createMockPipelineRunResult('FAILED', {
+      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+    });
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Not available')).toBeInTheDocument();
+    });
+  });
+
+  it('shows message when no outputs are available for succeeded job', () => {
+    const mockResult = createMockPipelineRunResult('SUCCEEDED');
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    expect(screen.getByText('This job succeeded, but did not produce any outputs.')).toBeInTheDocument();
+  });
+
+  it('shows message when job is still running', () => {
+    const mockResult = createMockPipelineRunResult('RUNNING');
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    expect(
+      screen.getByText('The job is still in progress. Outputs will be available after the job completes.')
+    ).toBeInTheDocument();
+  });
+
+  it('shows expired message when outputs have expired', () => {
+    // Set expiration date to a past date
+    const pastDate = new Date('2020-01-01').toISOString();
+    const mockResult = createMockPipelineRunResult('SUCCEEDED', {}, pastDate);
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    expect(screen.getByText(/The outputs for this job expired on/)).toBeInTheDocument();
+    expect(screen.getByText(/and are no longer available/)).toBeInTheDocument();
+  });
+
+  it('does not show expired message when outputs have not expired', async () => {
+    // Set expiration date to a future date
+    const futureDate = new Date('2030-01-01').toISOString();
+    const mockResult = createMockPipelineRunResult(
+      'SUCCEEDED',
+      {
+        output_file: 'gs://bucket/output.vcf',
+      },
+      futureDate
+    );
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText(/The outputs for this job expired on/)).not.toBeInTheDocument();
+    });
+  });
+});
