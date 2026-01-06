@@ -25,6 +25,26 @@ describe('JobDetails', () => {
     (getOutputFileSize as jest.Mock).mockResolvedValue('10.5 MB');
   });
 
+  it('renders all job details sections after successful load', async () => {
+    const mockResult = mockPipelineRunResponse('SUCCEEDED');
+    mockGetPipelineRunResult.mockResolvedValue(mockResult);
+
+    render(<JobDetails jobId='job-123' />);
+
+    await waitFor(() => {
+      // Back button
+      expect(screen.getByRole('button', { name: /View All/i })).toBeInTheDocument();
+
+      // JobDetailsHeader elements
+      expect(screen.getByText('Job ID')).toBeInTheDocument();
+      expect(screen.getByText('job-123-456-789')).toBeInTheDocument();
+
+      // JobIOView elements
+      expect(screen.getByText('Inputs')).toBeInTheDocument();
+      expect(screen.getByText('Outputs')).toBeInTheDocument();
+    });
+  });
+
   it('fetches job details on render', async () => {
     const mockResult = mockPipelineRunResponse('SUCCEEDED');
     mockGetPipelineRunResult.mockResolvedValue(mockResult);
@@ -33,43 +53,6 @@ describe('JobDetails', () => {
 
     await waitFor(() => {
       expect(mockGetPipelineRunResult).toHaveBeenCalledWith('job-123');
-    });
-  });
-
-  it('renders JobDetailsHeader after loading', async () => {
-    const mockResult = mockPipelineRunResponse('SUCCEEDED');
-    mockGetPipelineRunResult.mockResolvedValue(mockResult);
-
-    render(<JobDetails jobId='job-123' />);
-
-    await waitFor(() => {
-      // JobDetailsHeader renders the job ID
-      expect(screen.getByText('job-123-456-789')).toBeInTheDocument();
-      expect(screen.getByText('Job ID')).toBeInTheDocument();
-    });
-  });
-
-  it('renders JobInputsOutputsView after loading', async () => {
-    const mockResult = mockPipelineRunResponse('SUCCEEDED');
-    mockGetPipelineRunResult.mockResolvedValue(mockResult);
-
-    render(<JobDetails jobId='job-123' />);
-
-    await waitFor(() => {
-      // JobInputsOutputsView renders Inputs and Outputs headers
-      expect(screen.getByText('Inputs')).toBeInTheDocument();
-      expect(screen.getByText('Outputs')).toBeInTheDocument();
-    });
-  });
-
-  it('renders View All back button', async () => {
-    const mockResult = mockPipelineRunResponse('SUCCEEDED');
-    mockGetPipelineRunResult.mockResolvedValue(mockResult);
-
-    render(<JobDetails jobId='job-123' />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /View All/i })).toBeInTheDocument();
     });
   });
 
@@ -88,25 +71,5 @@ describe('JobDetails', () => {
     await user.click(backButton);
 
     expect(Nav.goToPath).toHaveBeenCalledWith('pipelines-history');
-  });
-
-  it('renders all job details sections after successful load', async () => {
-    const mockResult = mockPipelineRunResponse('SUCCEEDED');
-    mockGetPipelineRunResult.mockResolvedValue(mockResult);
-
-    render(<JobDetails jobId='job-123' />);
-
-    await waitFor(() => {
-      // Back button
-      expect(screen.getByRole('button', { name: /View All/i })).toBeInTheDocument();
-
-      // JobDetailsHeader elements
-      expect(screen.getByText('Job ID')).toBeInTheDocument();
-      expect(screen.getByText('job-123-456-789')).toBeInTheDocument();
-
-      // JobInputsOutputsView elements
-      expect(screen.getByText('Inputs')).toBeInTheDocument();
-      expect(screen.getByText('Outputs')).toBeInTheDocument();
-    });
   });
 });

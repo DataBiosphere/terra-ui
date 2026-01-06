@@ -10,7 +10,7 @@ interface PipelineRunIOViewProps {
   pipelineRunResult: PipelineRunResponse;
 }
 
-export const JobInputsOutputsView = ({ pipelineRunResult }: PipelineRunIOViewProps) => {
+export const JobIOView = ({ pipelineRunResult }: PipelineRunIOViewProps) => {
   const { pipelineDetails, isLoading } = usePipelineDetails(
     pipelineRunResult.pipelineRunReport.pipelineName,
     pipelineRunResult.pipelineRunReport.pipelineVersion

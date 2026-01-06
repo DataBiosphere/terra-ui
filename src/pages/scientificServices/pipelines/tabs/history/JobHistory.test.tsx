@@ -3,7 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineRun, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { mockPipeline, mockPipelineRun } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -550,6 +550,50 @@ describe('job history table', () => {
       const deletionDateDiv = within(cells[5]).getByText(formatDatetime(twoDaysFromNow)).parentElement!;
       const style = window.getComputedStyle(deletionDateDiv);
       expect(style.color).toBe('rgb(219, 50, 20)');
+    });
+  });
+
+  describe('Job ID column', () => {
+    it.each([
+      { status: 'SUCCEEDED' as PipelineRunStatus, shouldHaveLink: true, linkText: 'a link' },
+      { status: 'FAILED' as PipelineRunStatus, shouldHaveLink: true, linkText: 'a link' },
+      { status: 'RUNNING' as PipelineRunStatus, shouldHaveLink: true, linkText: 'a link' },
+      { status: 'PREPARING' as PipelineRunStatus, shouldHaveLink: false, linkText: 'plain text' },
+    ])('renders job ID as $linkText for $status jobs', async ({ status, shouldHaveLink }) => {
+      const elevenHoursAgo = new Date(Date.now() - 60 * 60 * 1000 * (PREPARING_JOB_CUTOFF_HOURS - 1)).toISOString();
+      const pipelineRun = {
+        ...mockPipelineRun(status),
+        // For PREPARING status, set the timeSubmitted to less than PREPARING_JOB_CUTOFF_HOURS ago
+        ...(status === 'PREPARING' && { timeSubmitted: elevenHoursAgo }),
+      };
+      const pipelineRuns = [pipelineRun];
+
+      const mockPipelineRunResponse = {
+        pageToken: null,
+        results: pipelineRuns,
+        totalResults: 1,
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getAllPipelineRuns: jest.fn().mockReturnValue(mockPipelineRunResponse),
+        })
+      );
+
+      render(<JobHistory />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText(pipelineRun.jobId)).toHaveLength(2);
+      });
+
+      if (shouldHaveLink) {
+        // look for aria-label on the link
+        const jobIdLink = screen.getByLabelText(`View details for job ${pipelineRun.jobId}`);
+        expect(jobIdLink).toBeInTheDocument();
+      } else {
+        // For PREPARING status, the job ID should not have an aria-label (i.e. no link)
+        expect(screen.queryByLabelText(`View details for job ${pipelineRun.jobId}`)).not.toBeInTheDocument();
+      }
     });
   });
 });

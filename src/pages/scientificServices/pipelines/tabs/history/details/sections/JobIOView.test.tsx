@@ -9,12 +9,12 @@ import {
 } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { JobInputsOutputsView } from './JobInputsOutputsView';
+import { JobIOView } from './JobIOView';
 
 jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelineDetails');
 jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
 
-describe('JobInputsOutputsView', () => {
+describe('JobIOView', () => {
   const mockUsePipelineDetails = usePipelineDetails as jest.MockedFunction<typeof usePipelineDetails>;
 
   const mockPipelineDetails = mockPipelineWithDetails('array_imputation');
@@ -31,7 +31,7 @@ describe('JobInputsOutputsView', () => {
 
   it('renders JobInputsView component with Inputs and Outputs side by side', async () => {
     const mockResult = mockPipelineRunResponse('SUCCEEDED');
-    render(<JobInputsOutputsView pipelineRunResult={mockResult} />);
+    render(<JobIOView pipelineRunResult={mockResult} />);
 
     expect(mockUsePipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
 
@@ -52,7 +52,7 @@ describe('JobInputsOutputsView', () => {
       },
     };
 
-    render(<JobInputsOutputsView pipelineRunResult={mockResult} />);
+    render(<JobIOView pipelineRunResult={mockResult} />);
 
     await waitFor(() => {
       expect(screen.getByText('No outputs were generated due to the following error:')).toBeInTheDocument();

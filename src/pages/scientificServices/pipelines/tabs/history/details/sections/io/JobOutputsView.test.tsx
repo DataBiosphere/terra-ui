@@ -2,10 +2,13 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { PipelineOutput, PipelineRunResponse, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineOutput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
 import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
-import { mockPipelineWithDetails } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
+import {
+  mockPipelineRunResponse,
+  mockPipelineWithDetails,
+} from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { JobOutputsView } from './JobOutputsView';
@@ -28,32 +31,18 @@ describe('JobOutputsView', () => {
 
   const mockOutputDefinitions: PipelineOutput[] = mockPipelineWithDetails('array_imputation').outputs;
 
-  const createMockPipelineRunResult = (
-    status: PipelineRunStatus,
-    outputs?: Record<string, string>,
-    outputExpirationDate?: string
-  ): PipelineRunResponse => ({
-    jobReport: {
-      id: 'job-123',
-      status,
-      submitted: '2024-01-01T00:00:00Z',
-      completed: '2024-01-01T01:00:00Z',
-    },
-    pipelineRunReport: {
-      pipelineName: 'test-pipeline',
-      pipelineVersion: 1,
-      toolVersion: '1.0.0',
-      outputs: outputs || {},
-      outputExpirationDate,
-    },
-  });
-
   it('renders output items when outputs are available', async () => {
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/imputedMultiSampleVcf.vcf',
-      imputedMultiSampleVcfIndex: 'gs://bucket/imputedMultiSampleVcfIndex.vcf',
-      chunksInfo: 'gs://bucket/chunksInfo.tsv',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/imputedMultiSampleVcf.vcf',
+          imputedMultiSampleVcfIndex: 'gs://bucket/imputedMultiSampleVcfIndex.vcf',
+          chunksInfo: 'gs://bucket/chunksInfo.tsv',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -65,9 +54,15 @@ describe('JobOutputsView', () => {
   });
 
   it('renders output type badges', async () => {
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -77,9 +72,15 @@ describe('JobOutputsView', () => {
   });
 
   it('falls back to output key when display name is not available', async () => {
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      unknownOutput: 'gs://bucket/unknown.txt',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          unknownOutput: 'gs://bucket/unknown.txt',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -89,9 +90,15 @@ describe('JobOutputsView', () => {
   });
 
   it('shows download button for succeeded jobs', async () => {
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -101,9 +108,15 @@ describe('JobOutputsView', () => {
   });
 
   it('does not show download button for failed jobs', async () => {
-    const mockResult = createMockPipelineRunResult('FAILED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('FAILED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('FAILED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -113,9 +126,15 @@ describe('JobOutputsView', () => {
   });
 
   it('does not show download button for running jobs', async () => {
-    const mockResult = createMockPipelineRunResult('RUNNING', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('RUNNING'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('RUNNING').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -126,9 +145,15 @@ describe('JobOutputsView', () => {
 
   it('opens URL in new tab when download button is clicked', async () => {
     const user = userEvent.setup();
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -144,9 +169,16 @@ describe('JobOutputsView', () => {
 
   it('captures mixpanel event when download button is clicked', async () => {
     const user = userEvent.setup();
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        pipelineName: 'test-pipeline',
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -168,9 +200,15 @@ describe('JobOutputsView', () => {
   });
 
   it('displays file size when loaded', async () => {
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -180,9 +218,15 @@ describe('JobOutputsView', () => {
   });
 
   it('displays "Loading file size..." initially', async () => {
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -196,9 +240,15 @@ describe('JobOutputsView', () => {
   it('displays "Unknown size" when file size fetch fails', async () => {
     (getOutputFileSize as jest.Mock).mockRejectedValue(new Error('Failed to fetch size'));
 
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -208,9 +258,15 @@ describe('JobOutputsView', () => {
   });
 
   it('displays "Not available" for file size when job is not succeeded', async () => {
-    const mockResult = createMockPipelineRunResult('FAILED', {
-      imputedMultiSampleVcf: 'gs://bucket/output.vcf',
-    });
+    const mockResult = {
+      ...mockPipelineRunResponse('FAILED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('FAILED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -220,7 +276,7 @@ describe('JobOutputsView', () => {
   });
 
   it('shows message when no outputs are available for succeeded job', () => {
-    const mockResult = createMockPipelineRunResult('SUCCEEDED');
+    const mockResult = mockPipelineRunResponse('SUCCEEDED');
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -228,7 +284,7 @@ describe('JobOutputsView', () => {
   });
 
   it('shows message when job is still running', () => {
-    const mockResult = createMockPipelineRunResult('RUNNING');
+    const mockResult = mockPipelineRunResponse('RUNNING');
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -240,7 +296,13 @@ describe('JobOutputsView', () => {
   it('shows expired message when outputs have expired', () => {
     // Set expiration date to a past date
     const pastDate = new Date('2020-01-01').toISOString();
-    const mockResult = createMockPipelineRunResult('SUCCEEDED', {}, pastDate);
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputExpirationDate: pastDate,
+      },
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
@@ -251,13 +313,16 @@ describe('JobOutputsView', () => {
   it('does not show expired message when outputs have not expired', async () => {
     // Set expiration date to a future date
     const futureDate = new Date('2030-01-01').toISOString();
-    const mockResult = createMockPipelineRunResult(
-      'SUCCEEDED',
-      {
-        output_file: 'gs://bucket/output.vcf',
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+        outputExpirationDate: futureDate,
       },
-      futureDate
-    );
+    };
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 

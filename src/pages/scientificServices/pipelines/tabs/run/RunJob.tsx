@@ -403,7 +403,7 @@ export const RunJob = () => {
                         Your job has been submitted. You can check the status of that job by going to the{' '}
                         <Link
                           style={{ color: '#46A3E9' }}
-                          href={Nav.getLink('pipelines-history-detail', { jobId: submittedJobId })}
+                          href={Nav.getLink('pipelines-detail', { jobId: submittedJobId })}
                         >
                           Job Details
                         </Link>{' '}

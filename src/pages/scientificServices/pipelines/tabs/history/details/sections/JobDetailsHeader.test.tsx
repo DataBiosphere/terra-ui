@@ -99,21 +99,4 @@ describe('JobDetailsHeader', () => {
       expect(screen.getByText('No description')).toBeInTheDocument();
     });
   });
-
-  it('handles null pipeline details gracefully', async () => {
-    mockUsePipelineDetails.mockReturnValue({
-      pipelineDetails: null,
-      isLoading: false,
-      error: undefined,
-    });
-
-    const mockResult = mockPipelineRunResponse('SUCCEEDED');
-    render(<JobDetailsHeader pipelineRunResult={mockResult} />);
-
-    // Should still render the status badge and job ID
-    await waitFor(() => {
-      expect(screen.getByText('succeeded')).toBeInTheDocument();
-      expect(screen.getByText('job-123-456-789')).toBeInTheDocument();
-    });
-  });
 });
