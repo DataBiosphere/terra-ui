@@ -46,7 +46,7 @@ describe('JobIOView', () => {
     const mockResult: PipelineRunResponse = {
       ...mockPipelineRunResponse('FAILED'),
       errorReport: {
-        message: 'Pipeline failed due to insufficient memory',
+        message: 'Pipeline failed because your vcf was terrrrrrrrible',
         errorCode: 500,
         causes: [],
       },
@@ -56,7 +56,7 @@ describe('JobIOView', () => {
 
     await waitFor(() => {
       expect(screen.getByText('No outputs were generated due to the following error:')).toBeInTheDocument();
-      expect(screen.getByText('Pipeline failed due to insufficient memory')).toBeInTheDocument();
+      expect(screen.getByText('Pipeline failed because your vcf was terrrrrrrrible')).toBeInTheDocument();
     });
   });
 });

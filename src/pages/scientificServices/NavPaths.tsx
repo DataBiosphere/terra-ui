@@ -31,7 +31,7 @@ export const navPaths = [
     title: 'Job History',
   },
   {
-    name: 'pipelines-detail',
+    name: 'pipelines-job-detail',
     path: '/pipelines/imputation/history/:jobId',
     component: JobDetails,
     title: 'Job Details',

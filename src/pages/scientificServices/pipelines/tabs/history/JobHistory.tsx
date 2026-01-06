@@ -298,7 +298,7 @@ const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
       <div style={{ width: '100%', overflow: 'hidden' }}>
         {canViewDetails ? (
           <Link
-            href={Nav.getLink('pipelines-detail', { jobId: pipelineRun.jobId })}
+            href={Nav.getLink('pipelines-job-detail', { jobId: pipelineRun.jobId })}
             style={{
               whiteSpace: 'nowrap',
               overflow: 'hidden',
