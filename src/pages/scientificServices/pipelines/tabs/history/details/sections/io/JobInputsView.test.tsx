@@ -75,8 +75,9 @@ describe('JobInputsView', () => {
   it('does not render input items when inputs object is empty', () => {
     render(<JobInputsView inputDefinitions={mockInputDefinitions} inputs={{}} />);
 
-    expect(screen.queryByText('Input File')).not.toBeInTheDocument();
-    expect(screen.queryByText('Threshold')).not.toBeInTheDocument();
-    expect(screen.queryByText('Enable Feature')).not.toBeInTheDocument();
+    expect(screen.getByText('minimum imputation quality for inclusion')).not.toBeInTheDocument();
+    expect(screen.getByText('Allow chunk failures')).not.toBeInTheDocument();
+    expect(screen.getByText('multi-sample VCF file')).not.toBeInTheDocument();
+    expect(screen.getByText('output basename')).not.toBeInTheDocument();
   });
 });
