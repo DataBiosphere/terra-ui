@@ -13886,7 +13886,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["gaxios", "npm:4.3.2"],\
             ["gcp-metadata", "npm:4.3.1"],\
             ["gtoken", "npm:5.3.2"],\
-            ["jws", "npm:4.0.0"],\
+            ["jws", "npm:4.0.1"],\
             ["lru-cache", "npm:6.0.0"]\
           ],\
           "linkType": "HARD"\
@@ -13977,7 +13977,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["gtoken", "npm:5.3.2"],\
             ["gaxios", "npm:4.3.2"],\
             ["google-p12-pem", "npm:3.1.3"],\
-            ["jws", "npm:4.0.0"]\
+            ["jws", "npm:4.0.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -16568,10 +16568,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["jwa", [\
-        ["npm:2.0.0", {\
-          "packageLocation": "./.yarn/cache/jwa-npm-2.0.0-52a7c3f1ca-8f00b71ad5.zip/node_modules/jwa/",\
+        ["npm:2.0.1", {\
+          "packageLocation": "./.yarn/cache/jwa-npm-2.0.1-9ebe28a626-6a9828c054.zip/node_modules/jwa/",\
           "packageDependencies": [\
-            ["jwa", "npm:2.0.0"],\
+            ["jwa", "npm:2.0.1"],\
             ["buffer-equal-constant-time", "npm:1.0.1"],\
             ["ecdsa-sig-formatter", "npm:1.0.11"],\
             ["safe-buffer", "npm:5.2.1"]\
@@ -16580,11 +16580,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["jws", [\
-        ["npm:4.0.0", {\
-          "packageLocation": "./.yarn/cache/jws-npm-4.0.0-2a24fd53b9-d68d07aa6d.zip/node_modules/jws/",\
+        ["npm:4.0.1", {\
+          "packageLocation": "./.yarn/cache/jws-npm-4.0.1-0d8c257cbe-c33a060b2c.zip/node_modules/jws/",\
           "packageDependencies": [\
-            ["jws", "npm:4.0.0"],\
-            ["jwa", "npm:2.0.0"],\
+            ["jws", "npm:4.0.1"],\
+            ["jwa", "npm:2.0.1"],\
             ["safe-buffer", "npm:5.2.1"]\
           ],\
           "linkType": "HARD"\
