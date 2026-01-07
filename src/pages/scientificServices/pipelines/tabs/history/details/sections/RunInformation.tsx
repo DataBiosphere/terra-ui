@@ -131,7 +131,7 @@ const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): Timeli
 
 const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: TimelineEvent, isLast: boolean) => {
   return (
-    <div style={{ position: 'relative', display: 'flex' }}>
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'stretch' }}>
       {/* the line/icon connector to the left */}
       <div
         style={{
@@ -163,7 +163,6 @@ const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: Timelin
               width: '3px',
               flex: 1,
               backgroundColor: colors.light(0.2),
-              minHeight: '0.5rem',
             }}
           />
         )}
