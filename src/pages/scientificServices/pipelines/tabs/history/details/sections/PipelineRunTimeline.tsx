@@ -7,35 +7,11 @@ import {
   getPipelineStatusIcon,
 } from 'src/pages/scientificServices/pipelines/utils/pipeline-style-utils';
 
-interface JobTimelineProps {
+interface PipelineRunTimelineProps {
   pipelineRunResult: PipelineRunResponse;
 }
 
-export const RunInformation = ({ pipelineRunResult }: JobTimelineProps) => {
-  const calculateDuration = (pipelineRunResult: PipelineRunResponse) => {
-    if (!pipelineRunResult.jobReport.submitted || !pipelineRunResult.jobReport.completed) {
-      return 'N/A';
-    }
-
-    const durationMs =
-      new Date(pipelineRunResult.jobReport.completed).getTime() -
-      new Date(pipelineRunResult.jobReport.submitted).getTime();
-
-    if (durationMs === 0) {
-      return 'In progress';
-    }
-
-    const totalSeconds = Math.floor(durationMs / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${seconds}s`;
-    }
-    return `${minutes}m ${seconds}s`;
-  };
-
+export const PipelineRunTimeline = ({ pipelineRunResult }: PipelineRunTimelineProps) => {
   const timelineEvents = calculateTimelineEvents(pipelineRunResult);
 
   return (
@@ -56,7 +32,7 @@ export const RunInformation = ({ pipelineRunResult }: JobTimelineProps) => {
           marginBottom: '1rem',
         }}
       >
-        <h3 style={{ marginTop: '0.5rem', marginBottom: 0 }}>Run Information</h3>
+        <h3>Timeline</h3>
         <div
           style={{
             display: 'flex',
@@ -70,11 +46,11 @@ export const RunInformation = ({ pipelineRunResult }: JobTimelineProps) => {
           }}
         >
           <Icon icon='clock' size={16} style={{ color: colors.dark(0.7) }} />
-          {calculateDuration(pipelineRunResult)}
+          {calculateRunDuration(pipelineRunResult)}
         </div>
       </div>
       {timelineEvents.map((event, index) => (
-        <div key={event.label}>{getTimelineEvent(pipelineRunResult, event, index === timelineEvents.length - 1)}</div>
+        <div key={event.label}>{getTimelineEvent(event, index === timelineEvents.length - 1)}</div>
       ))}
       <div style={{ display: 'flex', flexDirection: 'column' }} />
     </div>
@@ -132,6 +108,7 @@ const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): Timeli
 
   const qcFailed = pipelineRunResult.errorReport?.message?.includes('failed QC');
   const pipelineFailed = pipelineRunResult.jobReport.status === 'FAILED';
+  const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
   const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
 
   events.push({
@@ -149,70 +126,53 @@ const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): Timeli
 
   events.push({
     label: getTerminalEventLabel(pipelineRunResult),
-    timestamp: qcFailed ? undefined : pipelineRunResult.jobReport.completed,
-    status: qcFailed ? 'CANCELLED' : pipelineRunResult.jobReport.status,
+    timestamp: pipelineRunResult.jobReport.completed,
+    status: pipelineRunResult.jobReport.status,
   });
 
   return events;
 };
 
-const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: TimelineEvent, isLast: boolean) => {
+const getTimelineEvent = (event: TimelineEvent, isLast: boolean) => {
   return (
-    <div style={{ position: 'relative', display: 'flex', alignItems: 'stretch' }}>
+    <div style={{ display: 'flex', alignItems: 'center' }}>
       <div
         style={{
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          marginRight: '0.75rem',
-          width: '20px',
+          marginRight: '1rem',
         }}
       >
-        <div
-          style={{
-            flexShrink: 0,
-            borderRadius: '50%',
-            padding: '2px',
-            marginBottom: isLast ? 0 : '0.5rem',
-          }}
-        >
-          {getTimelineStatusIcon(event.status)}
-        </div>
-
-        {!isLast && (
-          <div
-            style={{
-              width: '3px',
-              flex: 1,
-              backgroundColor: colors.light(0.2),
-            }}
-          />
-        )}
+        {getTimelineEventStatusIcon(event.status)}
       </div>
 
-      {/* Timeline event content */}
       <div
         style={{
           flex: 1,
-          display: 'flex',
-          alignItems: 'center',
           padding: '0.75rem',
           border: '1px solid #d7d9dc',
           backgroundColor: 'white',
           borderRadius: '4px',
           minHeight: '4rem',
           marginBottom: isLast ? 0 : '0.5rem',
+          position: 'relative',
         }}
       >
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        {!isLast && (
           <div
             style={{
-              fontWeight: 'bold',
-              color: colors.dark(),
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '3px',
+              height: '1rem',
+              backgroundColor: '#d7d9dc',
             }}
-          >
-            {event.label}
-          </div>
+          />
+        )}
+
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <div style={{ fontWeight: 'bold', color: colors.dark() }}>{event.label}</div>
           {event.timestamp && (
             <div style={{ color: colors.dark(0.9), fontStyle: 'italic' }}>
               {new Date(event.timestamp).toLocaleString()}
@@ -225,7 +185,7 @@ const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: Timelin
   );
 };
 
-const getTimelineStatusIcon = (status: string) => {
+const getTimelineEventStatusIcon = (status: string) => {
   if (status === 'CANCELLED') {
     return <Icon icon='ban' size={20} style={{ color: colors.dark(0.6) }} />;
   }
@@ -236,4 +196,28 @@ const getTimelineStatusIcon = (status: string) => {
     return <Icon icon='error-standard' size={20} style={{ color: getPipelineStatusColor(status) }} />;
   }
   return getPipelineStatusIcon(status, 20);
+};
+
+const calculateRunDuration = (pipelineRunResult: PipelineRunResponse): string => {
+  if (!pipelineRunResult.jobReport.submitted || !pipelineRunResult.jobReport.completed) {
+    return 'N/A';
+  }
+
+  const durationMs =
+    new Date(pipelineRunResult.jobReport.completed).getTime() -
+    new Date(pipelineRunResult.jobReport.submitted).getTime();
+
+  if (durationMs === 0) {
+    return 'In progress';
+  }
+
+  const totalSeconds = Math.floor(durationMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+  return `${minutes}m ${seconds}s`;
 };
