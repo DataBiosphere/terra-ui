@@ -73,52 +73,61 @@ export const PipelineRunTimelineEvent = ({ event, isLast }: PipelineRunTimelineE
 
 // While we don't have precise insight into which steps have actually completed, we can infer based on a few things:
 // If an error message indicates QC failure, we know QC checks failed.
-// If quota has been charged, we know the pipeline progressed past QC checks.
-const getQcStatusAndMessage = (pipelineRunResult: PipelineRunResponse): { status: string; message?: string } => {
+// If quota has been charged, we know the pipeline progressed past QC checks
+const getQcEvent = (pipelineRunResult: PipelineRunResponse): TimelineEvent => {
   const qcFailed = pipelineRunResult.errorReport?.message?.includes('failed QC');
   const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
   const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
 
   if (qcFailed) {
-    return { status: 'FAILED', message: 'Input data failed QC checks' };
+    return { label: 'Quality Checks', status: 'FAILED', moreInfo: 'Input data failed QC checks' };
   }
   if (pipelineRunning && !quotaCharged) {
-    return { status: 'PENDING', message: 'Quality checks pending' };
+    return { label: 'Quality Checks', status: 'PENDING', moreInfo: 'Quality checks pending' };
   }
   if (quotaCharged || pipelineRunResult.jobReport.completed) {
-    return { status: 'SUCCEEDED', message: 'Input data passed QC checks' };
+    return { label: 'Quality Checks', status: 'SUCCEEDED', moreInfo: 'Input data passed QC checks' };
   }
-  return { status: 'SUCCEEDED', message: undefined };
+  return { label: 'Quality Checks', status: 'SUCCEEDED' };
 };
 
-const getQuotaStatusAndMessage = (pipelineRunResult: PipelineRunResponse): { status: string; message?: string } => {
+const getQuotaEvent = (pipelineRunResult: PipelineRunResponse): TimelineEvent => {
   const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
   const pipelineFailed = pipelineRunResult.jobReport.status === 'FAILED';
   const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
 
   if (quotaCharged) {
     return {
+      label: 'Quota Charged',
       status: 'SUCCEEDED',
-      message: `${pipelineRunResult.pipelineRunReport.quotaConsumed} ${pipelineRunResult.pipelineRunReport.inputSizeUnits}`,
+      moreInfo: `${pipelineRunResult.pipelineRunReport.quotaConsumed} ${pipelineRunResult.pipelineRunReport.inputSizeUnits}`,
     };
   }
   if (pipelineFailed) {
-    return { status: 'CANCELLED', message: 'No quota charged' };
+    return { label: 'Quota Charged', status: 'CANCELLED', moreInfo: 'No quota charged' };
   }
   if (pipelineRunning) {
-    return { status: 'PENDING', message: 'Quota charges pending' };
+    return { label: 'Quota Charged', status: 'PENDING', moreInfo: 'Quota charges pending' };
   }
-  return { status: 'SUCCEEDED', message: undefined };
+  return { label: 'Quota Charged', status: 'SUCCEEDED' };
 };
 
-const getTerminalEventLabel = (pipelineRunResult: PipelineRunResponse): string => {
+const getTerminalEvent = (pipelineRunResult: PipelineRunResponse): TimelineEvent => {
+  const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
+
+  let label = 'Running';
   if (pipelineRunResult.jobReport.status === 'SUCCEEDED') {
-    return 'Pipeline Succeeded';
+    label = 'Pipeline Succeeded';
+  } else if (pipelineRunResult.jobReport.status === 'FAILED') {
+    label = 'Pipeline Failed';
   }
-  if (pipelineRunResult.jobReport.status === 'FAILED') {
-    return 'Pipeline Failed';
-  }
-  return 'Running';
+
+  return {
+    label,
+    timestamp: pipelineRunResult.jobReport.completed,
+    status: pipelineRunResult.jobReport.status,
+    moreInfo: pipelineRunning ? 'This pipeline is currently running' : undefined,
+  };
 };
 
 export const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): TimelineEvent[] => {
@@ -130,27 +139,9 @@ export const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse):
     timestamp: pipelineRunResult.jobReport.submitted,
   });
 
-  const qcStatusAndMessage = getQcStatusAndMessage(pipelineRunResult);
-  events.push({
-    label: 'Quality Checks',
-    status: qcStatusAndMessage.status,
-    moreInfo: qcStatusAndMessage.message,
-  });
-
-  const quotaStatusAndMessage = getQuotaStatusAndMessage(pipelineRunResult);
-  events.push({
-    label: 'Quota Charged',
-    status: quotaStatusAndMessage.status,
-    moreInfo: quotaStatusAndMessage.message,
-  });
-
-  const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
-  events.push({
-    label: getTerminalEventLabel(pipelineRunResult),
-    timestamp: pipelineRunResult.jobReport.completed,
-    status: pipelineRunResult.jobReport.status,
-    moreInfo: pipelineRunning ? 'This pipeline is currently running' : undefined,
-  });
+  events.push(getQcEvent(pipelineRunResult));
+  events.push(getQuotaEvent(pipelineRunResult));
+  events.push(getTerminalEvent(pipelineRunResult));
 
   return events;
 };
