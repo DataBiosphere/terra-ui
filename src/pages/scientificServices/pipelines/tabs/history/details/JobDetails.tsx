@@ -8,7 +8,7 @@ import { notify } from 'src/libs/notifications';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
 import { JobIOView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobIOView';
-import { PipelineRunTimeline } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/PipelineRunTimeline';
+import { PipelineRunTimeline } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/timeline/PipelineRunTimeline';
 
 export interface JobDetailsProps {
   jobId: string;
