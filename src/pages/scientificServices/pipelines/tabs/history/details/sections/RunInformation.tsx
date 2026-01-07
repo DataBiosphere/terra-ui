@@ -2,7 +2,10 @@ import { Icon } from '@terra-ui-packages/components';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { getPipelineStatusIcon } from 'src/pages/scientificServices/pipelines/utils/pipeline-style-utils';
+import {
+  getPipelineStatusColor,
+  getPipelineStatusIcon,
+} from 'src/pages/scientificServices/pipelines/utils/pipeline-style-utils';
 
 interface JobTimelineProps {
   pipelineRunResult: PipelineRunResponse;
@@ -85,6 +88,29 @@ interface TimelineEvent {
   timestamp?: string;
 }
 
+// While we don't have precise insight into which steps have actually completed, we can infer based on a few things:
+// If an error message indicates QC failure, we know QC checks failed.
+// If quota has been charged, we know the pipeline progressed past QC checks.
+const getQcMessage = (pipelineRunResult: PipelineRunResponse): string | undefined => {
+  if (pipelineRunResult.errorReport?.message?.includes('failed QC')) {
+    return pipelineRunResult.errorReport?.message;
+  }
+  if (pipelineRunResult.pipelineRunReport.quotaConsumed) {
+    return 'Input data passed QC checks';
+  }
+  return undefined;
+};
+
+const getQuotaMessage = (pipelineRunResult: PipelineRunResponse): string | undefined => {
+  if (pipelineRunResult.pipelineRunReport.quotaConsumed) {
+    return `${pipelineRunResult.pipelineRunReport.quotaConsumed} ${pipelineRunResult.pipelineRunReport.inputSizeUnits}`;
+  }
+  if (pipelineRunResult.jobReport.status === 'FAILED') {
+    return 'No quota charged';
+  }
+  return undefined;
+};
+
 const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): TimelineEvent[] => {
   const events: TimelineEvent[] = [];
 
@@ -99,28 +125,23 @@ const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): Timeli
   const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
 
   events.push({
-    label: 'QC Checks',
+    label: 'Quality Checks',
     status: qcFailed ? 'FAILED' : 'SUCCEEDED',
     timestamp: qcFailed ? pipelineRunResult.jobReport.completed : undefined,
-    moreInfo: qcFailed ? pipelineRunResult.errorReport?.message : undefined,
+    moreInfo: getQcMessage(pipelineRunResult),
   });
 
   events.push({
     label: 'Quota Charged',
     // eslint-disable-next-line no-nested-ternary
     status: quotaCharged ? 'SUCCEEDED' : pipelineFailed ? 'CANCELLED' : 'SUCCEEDED',
-    timestamp: undefined,
-  });
-
-  events.push({
-    label: 'Running',
-    status: qcFailed ? 'CANCELLED' : pipelineRunResult.jobReport.status,
+    moreInfo: getQuotaMessage(pipelineRunResult),
     timestamp: undefined,
   });
 
   if (pipelineRunResult.jobReport.completed) {
     events.push({
-      label: 'Completed',
+      label: pipelineRunResult.jobReport.status.toLowerCase(),
       timestamp: qcFailed ? undefined : pipelineRunResult.jobReport.completed,
       status: qcFailed ? 'CANCELLED' : pipelineRunResult.jobReport.status,
     });
@@ -132,7 +153,6 @@ const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): Timeli
 const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: TimelineEvent, isLast: boolean) => {
   return (
     <div style={{ position: 'relative', display: 'flex', alignItems: 'stretch' }}>
-      {/* the line/icon connector to the left */}
       <div
         style={{
           display: 'flex',
@@ -142,21 +162,17 @@ const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: Timelin
           width: '20px',
         }}
       >
-        {/* Status icon centered */}
         <div
           style={{
             flexShrink: 0,
-            backgroundColor: 'white',
             borderRadius: '50%',
             padding: '2px',
-            marginTop: 'calc(2rem - 12px)', // centers the 20px icon in a 4rem tall container
             marginBottom: isLast ? 0 : '0.5rem',
           }}
         >
           {getTimelineStatusIcon(event.status)}
         </div>
 
-        {/* Vertical line connecting to next event */}
         {!isLast && (
           <div
             style={{
@@ -191,16 +207,12 @@ const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: Timelin
           >
             {event.label}
           </div>
-          {event.timestamp ? (
-            <div style={{ color: colors.dark(0.7), fontStyle: 'italic', fontSize: '0.875rem' }}>
+          {event.timestamp && (
+            <div style={{ color: colors.dark(0.9), fontStyle: 'italic' }}>
               {new Date(event.timestamp).toLocaleString()}
             </div>
-          ) : (
-            <span style={{ color: colors.dark(0.5), fontStyle: 'italic', fontSize: '0.875rem' }}>
-              {event.status === 'CANCELLED' ? 'Cancelled' : event.status === 'PENDING' ? 'Pending' : ''}
-            </span>
           )}
-          {event.moreInfo && <div style={{ color: colors.dark(0.6), fontSize: '0.875rem' }}>{event.moreInfo}</div>}
+          {event.moreInfo && <div style={{ color: colors.dark(0.9), fontStyle: 'italic' }}>{event.moreInfo}</div>}
         </div>
       </div>
     </div>
@@ -208,18 +220,14 @@ const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: Timelin
 };
 
 const getTimelineStatusIcon = (status: string) => {
-  if (status === 'PENDING' || status === 'CANCELLED') {
-    return (
-      <div
-        style={{
-          width: '20px',
-          height: '20px',
-          borderRadius: '50%',
-          backgroundColor: colors.dark(0.3),
-          border: `2px solid ${colors.dark(0.3)}`,
-        }}
-      />
-    );
+  if (status === 'PENDING') {
+    return <Icon icon='ban' size={20} style={{ color: colors.dark(0.6) }} />;
+  }
+  if (status === 'CANCELLED') {
+    return <Icon icon='circle' size={20} style={{ color: colors.dark(0.6) }} />;
+  }
+  if (status === 'FAILED') {
+    return <Icon icon='error-standard' size={20} style={{ color: getPipelineStatusColor(status) }} />;
   }
   return getPipelineStatusIcon(status, 20);
 };
