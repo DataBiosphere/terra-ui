@@ -93,9 +93,9 @@ interface TimelineEvent {
 // If quota has been charged, we know the pipeline progressed past QC checks.
 const getQcMessage = (pipelineRunResult: PipelineRunResponse): string | undefined => {
   if (pipelineRunResult.errorReport?.message?.includes('failed QC')) {
-    return pipelineRunResult.errorReport?.message;
+    return 'Input data failed QC checks';
   }
-  if (pipelineRunResult.pipelineRunReport.quotaConsumed) {
+  if (pipelineRunResult.pipelineRunReport.quotaConsumed || pipelineRunResult.jobReport.completed) {
     return 'Input data passed QC checks';
   }
   return undefined;
@@ -109,6 +109,16 @@ const getQuotaMessage = (pipelineRunResult: PipelineRunResponse): string | undef
     return 'No quota charged';
   }
   return undefined;
+};
+
+const getTerminalEventLabel = (pipelineRunResult: PipelineRunResponse): string => {
+  if (pipelineRunResult.jobReport.status === 'SUCCEEDED') {
+    return 'Pipeline Succeeded';
+  }
+  if (pipelineRunResult.jobReport.status === 'FAILED') {
+    return 'Pipeline Failed';
+  }
+  return 'In Progress';
 };
 
 const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): TimelineEvent[] => {
@@ -127,7 +137,6 @@ const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): Timeli
   events.push({
     label: 'Quality Checks',
     status: qcFailed ? 'FAILED' : 'SUCCEEDED',
-    timestamp: qcFailed ? pipelineRunResult.jobReport.completed : undefined,
     moreInfo: getQcMessage(pipelineRunResult),
   });
 
@@ -136,16 +145,13 @@ const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse): Timeli
     // eslint-disable-next-line no-nested-ternary
     status: quotaCharged ? 'SUCCEEDED' : pipelineFailed ? 'CANCELLED' : 'SUCCEEDED',
     moreInfo: getQuotaMessage(pipelineRunResult),
-    timestamp: undefined,
   });
 
-  if (pipelineRunResult.jobReport.completed) {
-    events.push({
-      label: pipelineRunResult.jobReport.status.toLowerCase(),
-      timestamp: qcFailed ? undefined : pipelineRunResult.jobReport.completed,
-      status: qcFailed ? 'CANCELLED' : pipelineRunResult.jobReport.status,
-    });
-  }
+  events.push({
+    label: getTerminalEventLabel(pipelineRunResult),
+    timestamp: qcFailed ? undefined : pipelineRunResult.jobReport.completed,
+    status: qcFailed ? 'CANCELLED' : pipelineRunResult.jobReport.status,
+  });
 
   return events;
 };
@@ -220,10 +226,10 @@ const getTimelineEvent = (pipelineRunResult: PipelineRunResponse, event: Timelin
 };
 
 const getTimelineStatusIcon = (status: string) => {
-  if (status === 'PENDING') {
+  if (status === 'CANCELLED') {
     return <Icon icon='ban' size={20} style={{ color: colors.dark(0.6) }} />;
   }
-  if (status === 'CANCELLED') {
+  if (status === 'PENDING') {
     return <Icon icon='circle' size={20} style={{ color: colors.dark(0.6) }} />;
   }
   if (status === 'FAILED') {
