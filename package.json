@@ -44,7 +44,7 @@
     "pluralize": "^8.0.0",
     "prismjs": "^1.30.0",
     "prop-types": "^15.7.2",
-    "qs": "^6.10.1",
+    "qs": "^6.14.1",
     "rc-slider": "^10.2.1",
     "react": "18.2.0",
     "react-collapse": "^5.1.0",
