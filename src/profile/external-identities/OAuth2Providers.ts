@@ -55,12 +55,16 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
         isFence: false,
       };
     case 'ras':
+      const scopes = ['openid', 'email', 'ga4gh_passport_v1'];
+      if (getConfig().terraDeploymentEnv !== 'prod') {
+        scopes.push('federated_identities_ial2');
+      }
       return {
         key: providerKey,
         name: 'NIH Researcher Auth Service (RAS)',
         short: 'RAS',
         queryParams: {
-          scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+          scopes,
           redirectUri: createRedirectUri('ecm-callback'),
         },
         supportsAccessToken: false,

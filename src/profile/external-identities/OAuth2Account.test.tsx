@@ -308,7 +308,7 @@ describe('OAuth2Account', () => {
 
       // Assert
       const manageLink = screen.getByRole('link', { name: 'Manage your linked identities' });
-      expect(manageLink).toHaveAttribute('href', expect.stringContaining('/settings/profile/loadIdentities'));
+      expect(manageLink).toHaveAttribute('href', expect.stringContaining('/settings2/profile/loadIdentities'));
       expect(manageLink).toHaveAttribute('target', '_blank');
     });
 
