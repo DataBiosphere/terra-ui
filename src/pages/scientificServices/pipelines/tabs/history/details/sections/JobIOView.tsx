@@ -2,6 +2,7 @@ import { Icon } from '@terra-ui-packages/components';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
 import { JobInputsView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/io/JobInputsView';
 import { JobOutputsView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/io/JobOutputsView';
@@ -46,20 +47,10 @@ export const JobIOView = ({ pipelineRunResult }: PipelineRunIOViewProps) => {
           <div style={{ flex: 1 }}>
             <JobOutputsView outputDefinitions={outputDefinitions} pipelineRunResult={pipelineRunResult} />
             {pipelineRunResult.errorReport && (
-              <div
-                style={{
-                  marginTop: '1rem',
-                  padding: '0.5rem',
-                  borderRadius: '4px',
-                  backgroundColor: '#f8d7da',
-                  color: '#842029',
-                }}
-              >
-                <div style={{ margin: '1rem', fontWeight: 'bold' }}>
-                  No outputs were generated due to the following error:
-                </div>
-                <div style={{ margin: '1rem', fontFamily: 'monospace' }}>{pipelineRunResult.errorReport.message}</div>
-              </div>
+              <PipelineErrorMessage
+                title='No outputs were generated due to the following error:'
+                message={pipelineRunResult.errorReport.message}
+              />
             )}
           </div>
         </div>

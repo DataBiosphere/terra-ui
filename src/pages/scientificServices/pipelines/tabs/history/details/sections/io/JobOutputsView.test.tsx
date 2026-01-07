@@ -280,7 +280,7 @@ describe('JobOutputsView', () => {
 
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
-    expect(screen.getByText('This job succeeded, but did not produce any outputs.')).toBeInTheDocument();
+    expect(screen.getByText('There was an error.')).toBeInTheDocument();
   });
 
   it('shows message when job is still running', () => {
