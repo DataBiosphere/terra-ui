@@ -35,7 +35,7 @@ export const getQcEvent = (pipelineRunResult: PipelineRunResponse): PipelineTime
   }
 };
 
-const getQuotaEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent | undefined => {
+export const getQuotaEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent | undefined => {
   const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
   const pipelineFailed = pipelineRunResult.jobReport.status === 'FAILED';
   const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
@@ -57,7 +57,7 @@ const getQuotaEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimeline
   }
 };
 
-const getTerminalEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent => {
+export const getTerminalEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent => {
   const pipelineStatus = pipelineRunResult.jobReport.status;
 
   let label = 'Pipeline Running';
