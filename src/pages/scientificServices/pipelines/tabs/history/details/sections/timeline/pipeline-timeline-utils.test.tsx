@@ -17,6 +17,13 @@ describe('pipeline-timeline-utils', () => {
           errorCode: 400,
           causes: [],
         },
+        pipelineRunReport: {
+          pipelineName: 'array_imputation',
+          pipelineVersion: 2,
+          toolVersion: '1.1.1',
+          quotaConsumed: undefined,
+          inputSizeUnits: undefined,
+        },
       } as PipelineRunResponse;
 
       const qcEvent = getQcEvent(mockPipelineRun);
@@ -98,11 +105,11 @@ describe('pipeline-timeline-utils', () => {
     it('should return Quota event with SUCCEEDED status and amount when quota is charged', () => {
       const mockPipelineRun = {
         pipelineRunReport: {
-          pipelineName: 'array_imputation',
-          pipelineVersion: 2,
-          toolVersion: '1.1.1',
           quotaConsumed: 250,
           inputSizeUnits: 'samples',
+        },
+        jobReport: {
+          status: 'SUCCEEDED',
         },
       } as PipelineRunResponse;
 
@@ -116,15 +123,9 @@ describe('pipeline-timeline-utils', () => {
     it('should return Quota event with CANCELLED status when pipeline fails', () => {
       const mockPipelineRun = {
         jobReport: {
-          id: 'test-id',
           status: 'FAILED',
-          submitted: '2024-01-01T10:00:00Z',
-          completed: '2024-01-01T10:05:00Z',
         },
         pipelineRunReport: {
-          pipelineName: 'array_imputation',
-          pipelineVersion: 2,
-          toolVersion: '1.1.1',
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
@@ -140,15 +141,9 @@ describe('pipeline-timeline-utils', () => {
     it('should return Quota event with PENDING status when pipeline is running without quota', () => {
       const mockPipelineRun = {
         jobReport: {
-          id: 'test-id',
           status: 'RUNNING',
-          submitted: '2024-01-01T10:00:00Z',
-          completed: undefined,
         },
         pipelineRunReport: {
-          pipelineName: 'array_imputation',
-          pipelineVersion: 2,
-          toolVersion: '1.1.1',
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
@@ -161,18 +156,12 @@ describe('pipeline-timeline-utils', () => {
       expect(quotaEvent?.moreInfo).toBe('Quota charges pending');
     });
 
-    it('should return undefined when no quota conditions are met', () => {
+    it('should return undefined when expected quota fields arent present', () => {
       const mockPipelineRun = {
         jobReport: {
-          id: 'test-id',
           status: 'SUCCEEDED',
-          submitted: '2024-01-01T10:00:00Z',
-          completed: '2024-01-01T11:30:45Z',
         },
         pipelineRunReport: {
-          pipelineName: 'array_imputation',
-          pipelineVersion: 2,
-          toolVersion: '1.1.1',
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
@@ -186,11 +175,11 @@ describe('pipeline-timeline-utils', () => {
     it('should handle different quota units correctly', () => {
       const mockPipelineRun = {
         pipelineRunReport: {
-          pipelineName: 'array_imputation',
-          pipelineVersion: 2,
-          toolVersion: '1.1.1',
           quotaConsumed: 5,
           inputSizeUnits: 'other things',
+        },
+        jobReport: {
+          status: 'SUCCEEDED',
         },
       } as PipelineRunResponse;
 
