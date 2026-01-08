@@ -17,7 +17,7 @@ export interface PipelineTimelineEvent {
 // While we don't have precise insight into which steps have actually completed, we can infer some stuff:
 // If an error message indicates 'QC failure', we know QC checks failed.
 // If quota has been charged, we know the pipeline has progressed past QC checks
-const getQcEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent | undefined => {
+export const getQcEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent | undefined => {
   const qcFailed = pipelineRunResult.errorReport?.message?.includes('failed QC');
   const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
   const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
