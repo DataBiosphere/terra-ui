@@ -12,7 +12,7 @@ interface PipelineRunTimelineEventProps {
 
 export const PipelineRunTimelineEvent = ({ event, isLast }: PipelineRunTimelineEventProps) => {
   return (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
+    <div style={{ display: 'flex', alignItems: 'center', marginBottom: isLast ? 0 : '0.5rem' }}>
       <div
         style={{
           display: 'flex',
@@ -30,10 +30,36 @@ export const PipelineRunTimelineEvent = ({ event, isLast }: PipelineRunTimelineE
           backgroundColor: 'white',
           borderRadius: '4px',
           minHeight: '4rem',
-          marginBottom: isLast ? 0 : '0.5rem',
           position: 'relative',
         }}
       >
+        <div
+          style={{
+            position: 'absolute',
+            left: '-8px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: 0,
+            height: 0,
+            borderTop: '8px solid transparent',
+            borderBottom: '8px solid transparent',
+            borderRight: '8px solid #d7d9dc',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            left: '-6px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: 0,
+            height: 0,
+            borderTop: '7px solid transparent',
+            borderBottom: '7px solid transparent',
+            borderRight: '7px solid white',
+          }}
+        />
+
         {!isLast && (
           <div
             style={{
