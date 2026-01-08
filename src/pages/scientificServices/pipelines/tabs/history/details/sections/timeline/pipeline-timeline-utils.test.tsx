@@ -2,27 +2,10 @@ import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
 import { getQcEvent, getQuotaEvent, getTerminalEvent } from './pipeline-timeline-utils';
 
-const createMockPipelineRunResult = (overrides?: Partial<PipelineRunResponse>): PipelineRunResponse =>
-  ({
-    jobReport: {
-      id: 'test-id',
-      jobId: 'test-job-id',
-      status: 'SUCCEEDED',
-      submitted: '2026-01-01T10:00:00Z',
-      completed: '2026-01-01T11:30:45Z',
-    },
-    pipelineRunReport: {
-      quotaConsumed: 100,
-      inputSizeUnits: 'samples',
-    },
-    errorReport: null,
-    ...overrides,
-  } as PipelineRunResponse);
-
 describe('pipeline-timeline-utils', () => {
   describe('getQcEvent', () => {
     it('should return QC event with FAILED status when QC fails', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'FAILED',
@@ -34,7 +17,7 @@ describe('pipeline-timeline-utils', () => {
           errorCode: 400,
           causes: [],
         },
-      });
+      } as PipelineRunResponse;
 
       const qcEvent = getQcEvent(mockPipelineRun);
 
@@ -44,7 +27,7 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return QC event with PENDING status when pipeline is running and quota not charged', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'RUNNING',
@@ -58,7 +41,7 @@ describe('pipeline-timeline-utils', () => {
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
-      });
+      } as PipelineRunResponse;
 
       const qcEvent = getQcEvent(mockPipelineRun);
 
@@ -68,7 +51,18 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return QC event with SUCCEEDED status when quota is charged', () => {
-      const mockPipelineRun = createMockPipelineRunResult();
+      const mockPipelineRun = {
+        jobReport: {
+          id: 'test-id',
+          status: 'SUCCEEDED',
+          submitted: '2026-01-01T10:00:00Z',
+          completed: '2026-01-01T11:30:45Z',
+        },
+        pipelineRunReport: {
+          quotaConsumed: 100,
+          inputSizeUnits: 'samples',
+        },
+      } as PipelineRunResponse;
 
       const qcEvent = getQcEvent(mockPipelineRun);
 
@@ -78,7 +72,7 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return undefined when QC event conditions are not met', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'SUCCEEDED',
@@ -92,7 +86,7 @@ describe('pipeline-timeline-utils', () => {
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
-      });
+      } as PipelineRunResponse;
 
       const qcEvent = getQcEvent(mockPipelineRun);
 
@@ -102,7 +96,7 @@ describe('pipeline-timeline-utils', () => {
 
   describe('getQuotaEvent', () => {
     it('should return Quota event with SUCCEEDED status and amount when quota is charged', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         pipelineRunReport: {
           pipelineName: 'array_imputation',
           pipelineVersion: 2,
@@ -110,7 +104,7 @@ describe('pipeline-timeline-utils', () => {
           quotaConsumed: 250,
           inputSizeUnits: 'samples',
         },
-      });
+      } as PipelineRunResponse;
 
       const quotaEvent = getQuotaEvent(mockPipelineRun);
 
@@ -120,7 +114,7 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return Quota event with CANCELLED status when pipeline fails', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'FAILED',
@@ -134,7 +128,7 @@ describe('pipeline-timeline-utils', () => {
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
-      });
+      } as PipelineRunResponse;
 
       const quotaEvent = getQuotaEvent(mockPipelineRun);
 
@@ -144,7 +138,7 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return Quota event with PENDING status when pipeline is running without quota', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'RUNNING',
@@ -158,7 +152,7 @@ describe('pipeline-timeline-utils', () => {
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
-      });
+      } as PipelineRunResponse;
 
       const quotaEvent = getQuotaEvent(mockPipelineRun);
 
@@ -168,7 +162,7 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return undefined when no quota conditions are met', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'SUCCEEDED',
@@ -182,7 +176,7 @@ describe('pipeline-timeline-utils', () => {
           quotaConsumed: undefined,
           inputSizeUnits: undefined,
         },
-      });
+      } as PipelineRunResponse;
 
       const quotaEvent = getQuotaEvent(mockPipelineRun);
 
@@ -190,7 +184,7 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should handle different quota units correctly', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         pipelineRunReport: {
           pipelineName: 'array_imputation',
           pipelineVersion: 2,
@@ -198,7 +192,7 @@ describe('pipeline-timeline-utils', () => {
           quotaConsumed: 5,
           inputSizeUnits: 'other things',
         },
-      });
+      } as PipelineRunResponse;
 
       const quotaEvent = getQuotaEvent(mockPipelineRun);
 
@@ -210,14 +204,14 @@ describe('pipeline-timeline-utils', () => {
 
   describe('getTerminalEvent', () => {
     it('should return terminal event with SUCCEEDED status and label when pipeline succeeds', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'SUCCEEDED',
           submitted: '2024-01-01T10:00:00Z',
           completed: '2024-01-01T11:30:45Z',
         },
-      });
+      } as PipelineRunResponse;
 
       const terminalEvent = getTerminalEvent(mockPipelineRun);
 
@@ -229,14 +223,14 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return terminal event with FAILED status and label when pipeline fails', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'FAILED',
           submitted: '2024-01-01T10:00:00Z',
           completed: '2024-01-01T10:05:00Z',
         },
-      });
+      } as PipelineRunResponse;
 
       const terminalEvent = getTerminalEvent(mockPipelineRun);
 
@@ -248,14 +242,14 @@ describe('pipeline-timeline-utils', () => {
     });
 
     it('should return terminal event with RUNNING status and label when pipeline is running', () => {
-      const mockPipelineRun = createMockPipelineRunResult({
+      const mockPipelineRun = {
         jobReport: {
           id: 'test-id',
           status: 'RUNNING',
           submitted: '2024-01-01T10:00:00Z',
           completed: undefined,
         },
-      });
+      } as PipelineRunResponse;
 
       const terminalEvent = getTerminalEvent(mockPipelineRun);
 

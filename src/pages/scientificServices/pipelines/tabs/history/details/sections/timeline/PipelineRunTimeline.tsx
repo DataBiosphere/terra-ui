@@ -45,7 +45,7 @@ export const PipelineRunTimeline = ({ pipelineRunResult }: PipelineRunTimelinePr
           }}
         >
           <Icon icon='clock' size={16} style={{ color: colors.dark(0.7) }} />
-          {calculateRunDuration(pipelineRunResult)}
+          {calculatePipelineRunDuration(pipelineRunResult)}
         </div>
       </div>
       {timelineEvents.map((event, index) => (
@@ -55,7 +55,7 @@ export const PipelineRunTimeline = ({ pipelineRunResult }: PipelineRunTimelinePr
   );
 };
 
-const calculateRunDuration = (pipelineRunResult: PipelineRunResponse): string => {
+export const calculatePipelineRunDuration = (pipelineRunResult: PipelineRunResponse): string => {
   if (!pipelineRunResult.jobReport.submitted || !pipelineRunResult.jobReport.completed) {
     return 'N/A';
   }
