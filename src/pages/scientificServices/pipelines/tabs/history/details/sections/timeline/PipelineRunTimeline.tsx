@@ -64,10 +64,6 @@ const calculateRunDuration = (pipelineRunResult: PipelineRunResponse): string =>
     new Date(pipelineRunResult.jobReport.completed).getTime() -
     new Date(pipelineRunResult.jobReport.submitted).getTime();
 
-  if (durationMs === 0) {
-    return 'In progress';
-  }
-
   const totalSeconds = Math.floor(durationMs / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
