@@ -14,27 +14,6 @@ export interface PipelineTimelineEvent {
   timestamp?: string;
 }
 
-// While we don't have precise insight into which steps have actually completed, we can infer some stuff:
-// If an error message indicates 'QC failure', we know QC checks failed.
-// If quota has been charged, we know the pipeline has progressed past QC checks
-export const getQcEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent | undefined => {
-  const qcFailed = pipelineRunResult.errorReport?.message?.includes('failed QC');
-  const pipelineRunning = pipelineRunResult.jobReport.status === 'RUNNING';
-  const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
-
-  const label = 'Quality Checks';
-
-  if (qcFailed) {
-    return { label, status: 'FAILED', moreInfo: 'Input data failed QC checks' };
-  }
-  if (pipelineRunning && !quotaCharged) {
-    return { label, status: 'PENDING', moreInfo: 'Quality checks pending' };
-  }
-  if (quotaCharged || pipelineRunResult.jobReport.completed) {
-    return { label, status: 'SUCCEEDED', moreInfo: 'Input data passed QC checks' };
-  }
-};
-
 export const getQuotaEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent | undefined => {
   const quotaCharged = !!pipelineRunResult.pipelineRunReport.quotaConsumed;
   const pipelineFailed = pipelineRunResult.jobReport.status === 'FAILED';
@@ -84,12 +63,6 @@ export const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse):
     status: 'SUCCEEDED',
     timestamp: pipelineRunResult.jobReport.submitted,
   });
-
-  // Push a QC event, if we have one
-  const qcEvent = getQcEvent(pipelineRunResult);
-  if (qcEvent) {
-    events.push(qcEvent);
-  }
 
   // Push a quota event, if we have one
   const quotaEvent = getQuotaEvent(pipelineRunResult);
