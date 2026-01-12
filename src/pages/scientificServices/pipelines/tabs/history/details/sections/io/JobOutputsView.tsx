@@ -5,6 +5,8 @@ import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/tea
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
+import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
 import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
@@ -61,7 +63,21 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
       ).toLocaleDateString()} and are no longer available.`;
     }
     if (isSucceeded) {
-      return 'This job succeeded, but did not produce any outputs.';
+      return (
+        <PipelineErrorMessage
+          title='There was an error.'
+          message={
+            <>
+              This run does not have any outputs to display. There was either an issue running the pipeline or
+              retrieving the outputs. Please reload the page, or contact{' '}
+              <a style={{ textDecoration: 'underline' }} href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}>
+                {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+              </a>{' '}
+              for further assistance.
+            </>
+          }
+        />
+      );
     }
     if (pipelineRunResult.jobReport.status === 'RUNNING') {
       return 'The job is still in progress. Outputs will be available after the job completes.';

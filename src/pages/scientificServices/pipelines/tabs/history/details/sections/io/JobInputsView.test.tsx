@@ -60,16 +60,16 @@ describe('JobInputsView', () => {
     expect(screen.getByText('unknownInput')).toBeInTheDocument();
   });
 
-  it('renders "There are no inputs to display" when inputs object is empty', () => {
+  it('renders "There was an error." when inputs object is empty', () => {
     render(<JobInputsView inputDefinitions={mockInputDefinitions} inputs={{}} />);
 
-    expect(screen.getByText('There are no inputs to display')).toBeInTheDocument();
+    expect(screen.getByText('There was an error.')).toBeInTheDocument();
   });
 
-  it('renders "There are no inputs to display" when inputs is undefined', () => {
+  it('renders "There was an error." when inputs is undefined', () => {
     render(<JobInputsView inputDefinitions={mockInputDefinitions} inputs={undefined as any} />);
 
-    expect(screen.getByText('There are no inputs to display')).toBeInTheDocument();
+    expect(screen.getByText('There was an error.')).toBeInTheDocument();
   });
 
   it('does not render input items when inputs object is empty', () => {

@@ -2,6 +2,8 @@ import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
 
 const InputItem = ({
@@ -72,7 +74,19 @@ export const JobInputsView = ({ inputDefinitions, inputs }: JobInputsProps) => {
           })}
         </div>
       ) : (
-        <div style={{ color: colors.dark(0.6), fontSize: '0.875rem' }}>There are no inputs to display</div>
+        <PipelineErrorMessage
+          title='There was an error.'
+          message={
+            <>
+              This run does not have any inputs to display. There was either an issue running the pipeline or retrieving
+              the inputs. Please reload the page, or contact{' '}
+              <a style={{ textDecoration: 'underline' }} href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}>
+                {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+              </a>{' '}
+              for further assistance.
+            </>
+          }
+        />
       )}
     </div>
   );
