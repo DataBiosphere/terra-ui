@@ -1,5 +1,5 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
-import { formatBytes, formatDate } from '@terra-ui-packages/core-utils';
+import { formatDate } from '@terra-ui-packages/core-utils';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -7,6 +7,7 @@ import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -15,16 +16,6 @@ interface OutputsModalProps {
   jobId: string;
   onDismiss: () => void;
 }
-
-const getFileSize = async (url: string): Promise<string> => {
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-    const size = response.headers.get('content-length');
-    return size ? formatBytes(Number.parseInt(size)) : 'Unknown size';
-  } catch {
-    return 'Unknown size';
-  }
-};
 
 export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
@@ -46,7 +37,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
 
           for (const [key, url] of outputs) {
             try {
-              const size = await getFileSize(url);
+              const size = await getOutputFileSize(url);
               setFileSizes((prev) => ({ ...prev, [key]: size }));
             } catch {
               setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));

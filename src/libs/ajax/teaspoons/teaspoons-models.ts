@@ -5,9 +5,11 @@ export interface Pipeline {
   description: string;
 }
 
+export type PipelineIOType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN';
+
 export interface PipelineInput {
   name: string;
-  type: 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN';
+  type: PipelineIOType | string; // Prefer a defined type, but allow for future types without breaking
   isRequired: boolean;
   displayName?: string;
   description?: string;
@@ -19,7 +21,7 @@ export interface PipelineInput {
 
 export interface PipelineOutput {
   name: string;
-  type: string;
+  type: PipelineIOType | string; // Prefer a defined type, but allow for future types without breaking
   displayName?: string;
   description?: string;
 }
@@ -124,7 +126,11 @@ export interface PipelineRunReport {
   pipelineVersion: number;
   toolVersion: string;
   outputs?: Record<string, string>;
+  userInputs?: Record<string, string>;
   outputExpirationDate?: string;
+  inputSize?: number;
+  inputSizeUnits?: string;
+  quotaConsumed?: number;
 }
 
 export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';

@@ -27,7 +27,11 @@ export const AoUStylizedString: React.FC<StylizedStringProps> = ({ text }) => {
             </span>
           );
         }
-        return <span key={`span-${key}`}>{part}</span>;
+        return (
+          <span style={{ whiteSpace: 'pre-wrap' }} key={`span-${key}`}>
+            {part}
+          </span>
+        );
       })}
     </>
   );

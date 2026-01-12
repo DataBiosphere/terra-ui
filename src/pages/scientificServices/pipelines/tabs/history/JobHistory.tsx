@@ -1,4 +1,4 @@
-import { ButtonPrimary, Icon, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Spinner, TooltipTrigger, useModalHandler } from '@terra-ui-packages/components';
 import { formatDate, formatDatetime } from '@terra-ui-packages/core-utils';
 import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
@@ -11,6 +11,7 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import {
   pipelinesTopBar,
@@ -21,6 +22,10 @@ import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/u
 import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewOutputsModal';
+import {
+  getPipelineColor,
+  getPipelineStatusColor,
+} from 'src/pages/scientificServices/pipelines/utils/pipeline-style-utils';
 
 // If a job is still in "Preparing" state after this many hours, we consider it a failure.
 export const PREPARING_JOB_CUTOFF_HOURS = 12;
@@ -204,7 +209,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <JobIdCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 140 },
+      size: { basis: 250 },
     },
     {
       field: 'description',
@@ -212,7 +217,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <DescriptionCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 150 },
+      size: { basis: 160 },
     },
     {
       field: 'status',
@@ -220,7 +225,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <StatusCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 40 },
+      size: { basis: 50 },
     },
     {
       field: 'submitted',
@@ -232,7 +237,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <SubmittedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'completed',
@@ -245,7 +250,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <CompletedCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'dataDeletionDate',
@@ -253,7 +258,7 @@ const getColumns = (paginatedRuns: PipelineRun[], sort: SortProperties, onSort: 
       cellRenderer: ({ rowIndex }) => {
         return <DataDeletionDateCell pipelineRun={paginatedRuns[rowIndex]} />;
       },
-      size: { basis: 80 },
+      size: { basis: 60 },
     },
     {
       field: 'quotaUsed',
@@ -285,26 +290,60 @@ interface CellProps {
 }
 
 const JobIdCell = ({ pipelineRun }: CellProps): ReactNode => {
+  // note that you cannot view details for jobs that are in PREPARING status, so we only link to details for other statuses
+  const canViewDetails = ['FAILED', 'RUNNING', 'SUCCEEDED'].includes(pipelineRun.status);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' }}>
       <div style={{ width: '100%', overflow: 'hidden' }}>
-        <TooltipCell
-          tooltip={pipelineRun.jobId}
-          style={{
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            width: '100%',
-          }}
-        >
-          {pipelineRun.jobId}
-        </TooltipCell>
+        {canViewDetails ? (
+          <Link
+            href={Nav.getLink('pipelines-job-detail', { jobId: pipelineRun.jobId })}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              width: '100%',
+              display: 'block',
+            }}
+            aria-label={`View details for job ${pipelineRun.jobId}`}
+          >
+            <TooltipTrigger content={pipelineRun.jobId} side='top'>
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%',
+                  display: 'block',
+                }}
+              >
+                {pipelineRun.jobId}
+              </span>
+            </TooltipTrigger>
+          </Link>
+        ) : (
+          <TooltipTrigger content={pipelineRun.jobId} side='top'>
+            <span
+              style={{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                width: '100%',
+                display: 'block',
+                color: colors.dark(),
+              }}
+            >
+              {pipelineRun.jobId}
+            </span>
+          </TooltipTrigger>
+        )}
       </div>
       <div
         style={{
           width: 'fit-content',
           fontWeight: 600,
-          backgroundColor: pipelineNameToColor(pipelineRun),
+          backgroundColor: getPipelineColor(pipelineRun),
           padding: '0.33rem',
           borderRadius: '4px',
           fontSize: '10px',
@@ -502,7 +541,14 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
   switch (pipelineRun.status) {
     case 'SUCCEEDED':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', color: colors.success(), gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: getPipelineStatusColor(pipelineRun.status),
+            gap: '0.5rem',
+          }}
+        >
           <Icon icon='success-standard' /> Done
         </div>
       );
@@ -520,7 +566,14 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
 
       if (hoursElapsed > PREPARING_JOB_CUTOFF_HOURS) {
         return (
-          <div style={{ display: 'flex', alignItems: 'center', color: colors.danger(), gap: '0.5rem' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              color: getPipelineStatusColor('FAILED'),
+              gap: '0.5rem',
+            }}
+          >
             <Icon icon='warning-standard' /> Failed
           </div>
         );
@@ -538,21 +591,19 @@ const getRunStatusIcon = (pipelineRun: PipelineRun): ReactNode => {
     }
     case 'FAILED':
       return (
-        <div style={{ display: 'flex', alignItems: 'center', color: colors.danger(), gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: getPipelineStatusColor(pipelineRun.status),
+            gap: '0.5rem',
+          }}
+        >
           <Icon icon='warning-standard' /> Failed
         </div>
       );
     default:
       return <div style={{ display: 'flex', alignItems: 'center' }}>{capitalize(pipelineRun.status)}</div>;
-  }
-};
-
-const pipelineNameToColor = (pipelineRun: PipelineRun): string => {
-  switch (pipelineRun.pipelineName) {
-    case 'array_imputation':
-      return '#4D72AA4D';
-    default:
-      return '#AA4D8B4D';
   }
 };
 
