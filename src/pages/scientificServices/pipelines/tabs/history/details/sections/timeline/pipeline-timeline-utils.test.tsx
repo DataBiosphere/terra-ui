@@ -1,0 +1,154 @@
+import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+
+import { getQuotaEvent, getTerminalEvent } from './pipeline-timeline-utils';
+
+describe('pipeline-timeline-utils', () => {
+  describe('getQuotaEvent', () => {
+    it('should return Quota event with SUCCEEDED status and amount when quota is charged', () => {
+      const mockPipelineRun = {
+        pipelineRunReport: {
+          quotaConsumed: 250,
+          inputSizeUnits: 'samples',
+        },
+        jobReport: {
+          status: 'SUCCEEDED',
+        },
+      } as PipelineRunResponse;
+
+      const quotaEvent = getQuotaEvent(mockPipelineRun);
+
+      expect(quotaEvent).toBeDefined();
+      expect(quotaEvent?.status).toBe('SUCCEEDED');
+      expect(quotaEvent?.moreInfo).toBe('250 samples');
+    });
+
+    it('should return Quota event with CANCELLED status when pipeline fails', () => {
+      const mockPipelineRun = {
+        jobReport: {
+          status: 'FAILED',
+        },
+        pipelineRunReport: {
+          quotaConsumed: undefined,
+          inputSizeUnits: undefined,
+        },
+      } as PipelineRunResponse;
+
+      const quotaEvent = getQuotaEvent(mockPipelineRun);
+
+      expect(quotaEvent).toBeDefined();
+      expect(quotaEvent?.status).toBe('CANCELLED');
+      expect(quotaEvent?.moreInfo).toBe('No quota charged');
+    });
+
+    it('should return Quota event with PENDING status when pipeline is running without quota', () => {
+      const mockPipelineRun = {
+        jobReport: {
+          status: 'RUNNING',
+        },
+        pipelineRunReport: {
+          quotaConsumed: undefined,
+          inputSizeUnits: undefined,
+        },
+      } as PipelineRunResponse;
+
+      const quotaEvent = getQuotaEvent(mockPipelineRun);
+
+      expect(quotaEvent).toBeDefined();
+      expect(quotaEvent?.status).toBe('PENDING');
+      expect(quotaEvent?.moreInfo).toBe('Quota charges pending');
+    });
+
+    it('should return undefined when expected quota fields arent present', () => {
+      const mockPipelineRun = {
+        jobReport: {
+          status: 'SUCCEEDED',
+        },
+        pipelineRunReport: {
+          quotaConsumed: undefined,
+          inputSizeUnits: undefined,
+        },
+      } as PipelineRunResponse;
+
+      const quotaEvent = getQuotaEvent(mockPipelineRun);
+
+      expect(quotaEvent).toBeUndefined();
+    });
+
+    it('should handle different quota units correctly', () => {
+      const mockPipelineRun = {
+        pipelineRunReport: {
+          quotaConsumed: 5,
+          inputSizeUnits: 'other things',
+        },
+        jobReport: {
+          status: 'SUCCEEDED',
+        },
+      } as PipelineRunResponse;
+
+      const quotaEvent = getQuotaEvent(mockPipelineRun);
+
+      expect(quotaEvent).toBeDefined();
+      expect(quotaEvent?.status).toBe('SUCCEEDED');
+      expect(quotaEvent?.moreInfo).toBe('5 other things');
+    });
+  });
+
+  describe('getTerminalEvent', () => {
+    it('should return terminal event with SUCCEEDED status and label when pipeline succeeds', () => {
+      const mockPipelineRun = {
+        jobReport: {
+          id: 'test-id',
+          status: 'SUCCEEDED',
+          submitted: '2024-01-01T10:00:00Z',
+          completed: '2024-01-01T11:30:45Z',
+        },
+      } as PipelineRunResponse;
+
+      const terminalEvent = getTerminalEvent(mockPipelineRun);
+
+      expect(terminalEvent).toBeDefined();
+      expect(terminalEvent.label).toBe('Pipeline Succeeded');
+      expect(terminalEvent.status).toBe('SUCCEEDED');
+      expect(terminalEvent.timestamp).toBe('2024-01-01T11:30:45Z');
+      expect(terminalEvent.moreInfo).toBeUndefined();
+    });
+
+    it('should return terminal event with FAILED status and label when pipeline fails', () => {
+      const mockPipelineRun = {
+        jobReport: {
+          id: 'test-id',
+          status: 'FAILED',
+          submitted: '2024-01-01T10:00:00Z',
+          completed: '2024-01-01T10:05:00Z',
+        },
+      } as PipelineRunResponse;
+
+      const terminalEvent = getTerminalEvent(mockPipelineRun);
+
+      expect(terminalEvent).toBeDefined();
+      expect(terminalEvent.label).toBe('Pipeline Failed');
+      expect(terminalEvent.status).toBe('FAILED');
+      expect(terminalEvent.timestamp).toBe('2024-01-01T10:05:00Z');
+      expect(terminalEvent.moreInfo).toBeUndefined();
+    });
+
+    it('should return terminal event with RUNNING status and label when pipeline is running', () => {
+      const mockPipelineRun = {
+        jobReport: {
+          id: 'test-id',
+          status: 'RUNNING',
+          submitted: '2024-01-01T10:00:00Z',
+          completed: undefined,
+        },
+      } as PipelineRunResponse;
+
+      const terminalEvent = getTerminalEvent(mockPipelineRun);
+
+      expect(terminalEvent).toBeDefined();
+      expect(terminalEvent.label).toBe('Pipeline Running');
+      expect(terminalEvent.status).toBe('RUNNING');
+      expect(terminalEvent.timestamp).toBeUndefined();
+      expect(terminalEvent.moreInfo).toBe('This pipeline is currently running');
+    });
+  });
+});

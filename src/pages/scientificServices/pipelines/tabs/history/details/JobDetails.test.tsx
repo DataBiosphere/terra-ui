@@ -42,6 +42,9 @@ describe('JobDetails', () => {
       // JobIOView elements
       expect(screen.getByText('Inputs')).toBeInTheDocument();
       expect(screen.getByText('Outputs')).toBeInTheDocument();
+
+      // Timeline element
+      expect(screen.getByText('Timeline')).toBeInTheDocument();
     });
   });
 
