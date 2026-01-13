@@ -110,7 +110,10 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   },
 
   getPipelineRunOutputSignedUrls: async (jobId: string): Promise<PipelineRunOutputSignedUrlsResponse> => {
-    const res = await fetchTeaspoons(`pipelineruns/v2/result/${jobId}/signed-urls`, _.merge(authOpts(), { signal }));
+    const res = await fetchTeaspoons(
+      `pipelineruns/v2/result/${jobId}/output/signed-urls`,
+      _.merge(authOpts(), { signal })
+    );
     return res.json();
   },
 });

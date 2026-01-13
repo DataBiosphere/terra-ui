@@ -5,9 +5,9 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
+import { notify } from 'src/libs/notifications';
 import { useCancellation } from 'src/libs/react-utils';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -20,7 +20,7 @@ interface OutputsModalProps {
 export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
-  const [fileSizes, setFileSizes] = useState<Record<string, string | null>>({});
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const signal = useCancellation();
 
   useEffect(() => {
@@ -29,21 +29,6 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
         setLoading(true);
         const results = await Teaspoons(signal).getPipelineRunResult(jobId);
         setResult(results);
-
-        if (results?.pipelineRunReport.outputs) {
-          const outputs = Object.entries(results.pipelineRunReport.outputs);
-          const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
-          setFileSizes(initialState);
-
-          for (const [key, url] of outputs) {
-            try {
-              const size = await getOutputFileSize(url);
-              setFileSizes((prev) => ({ ...prev, [key]: size }));
-            } catch {
-              setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
-            }
-          }
-        }
       } finally {
         setLoading(false);
       }
@@ -51,6 +36,44 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
 
     fetchPipelineRunResults();
   }, [jobId, signal]);
+
+  const handleDownload = async (outputKey: string) => {
+    try {
+      setDownloadingKey(outputKey);
+
+      // Fetch signed URLs
+      const response = await Teaspoons(signal).getPipelineRunOutputSignedUrls(jobId);
+
+      if (!response.outputSignedUrls) {
+        notify('error', 'No signed URLs returned from server');
+        return;
+      }
+
+      // Get the signed URL for this specific output
+      const url = response.outputSignedUrls[outputKey];
+      if (!url) {
+        notify('error', 'Signed URL not found for this output');
+        return;
+      }
+
+      // Open the download
+      window.open(url, '_blank');
+
+      // Track metrics
+      if (result) {
+        Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
+          pipelineName: result.pipelineRunReport.pipelineName,
+          pipelineVersion: result.pipelineRunReport.pipelineVersion,
+          outputName: outputKey,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching signed URL:', err);
+      notify('error', 'Failed to retrieve download URL');
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
 
   return (
     <Modal width={800} title={`Pipeline Outputs - ${jobId}`} onDismiss={onDismiss} showButtons={false}>
@@ -73,7 +96,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                   margin: '1rem 0',
                 }}
               >
-                {Object.entries(result.pipelineRunReport.outputs).map(([key, url]) => (
+                {Object.entries(result.pipelineRunReport.outputs).map(([key, fileName]) => (
                   <div
                     key={key}
                     style={{
@@ -86,34 +109,25 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     }}
                   >
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: 'monospace', wordBreak: 'break-all', marginBottom: '0.25rem' }}>
-                        {key}
-                      </div>
-                      <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                        {fileSizes[key] === null ? (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <Spinner size={12} />
-                            Loading size...
-                          </span>
-                        ) : (
-                          fileSizes[key] || 'Unknown size'
-                        )}
+                      <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{key}</div>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#666',
+                          fontFamily: 'monospace',
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {fileName}
                       </div>
                     </div>
                     <ButtonPrimary
-                      onClick={() => {
-                        window.open(url, '_blank');
-                        Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
-                          pipelineName: result.pipelineRunReport.pipelineName,
-                          pipelineVersion: result.pipelineRunReport.pipelineVersion,
-                          outputName: key,
-                          fileSize: fileSizes[key],
-                        });
-                      }}
+                      onClick={() => handleDownload(key)}
+                      disabled={downloadingKey === key}
                       style={{ marginLeft: '1rem' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Icon icon='download' size={16} />
+                        {downloadingKey === key ? <Spinner size={16} /> : <Icon icon='download' size={16} />}
                         Download
                       </div>
                     </ButtonPrimary>
