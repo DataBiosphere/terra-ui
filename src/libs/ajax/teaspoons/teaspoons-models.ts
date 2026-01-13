@@ -135,7 +135,7 @@ export interface PipelineRunReport {
 
 export interface PipelineRunOutputSignedUrlsResponse {
   jobId: string;
-  outputSignedUrls?: Record<string, string>;
+  outputSignedUrls: Record<string, string>;
   outputExpirationDate: string;
 }
 

@@ -1,12 +1,10 @@
-import { ButtonPrimary, ButtonSecondary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
 import React, { useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
-import { notify } from 'src/libs/notifications';
-import { useCancellation } from 'src/libs/react-utils';
 import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
 interface DownloadOutputModalProps {
@@ -15,6 +13,8 @@ interface DownloadOutputModalProps {
   fileName: string;
   pipelineRunResult: PipelineRunResponse;
   onDismiss: () => void;
+  signedUrls?: Record<string, string>;
+  setSignedUrls: (urls: Record<string, string>) => void;
 }
 
 export const DownloadOutputModal = ({
@@ -23,12 +23,13 @@ export const DownloadOutputModal = ({
   fileName,
   pipelineRunResult,
   onDismiss,
+  signedUrls,
+  setSignedUrls,
 }: DownloadOutputModalProps) => {
   const [loading, setLoading] = useState(true);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const signal = useCancellation();
 
   useEffect(() => {
     const fetchSignedUrl = async () => {
@@ -36,24 +37,20 @@ export const DownloadOutputModal = ({
         setLoading(true);
         setError(null);
 
-        // Fetch signed URLs
-        const response = await Teaspoons(signal).getPipelineRunOutputSignedUrls(pipelineRunResult.jobReport.id);
-
-        if (!response.outputSignedUrls) {
-          setError('No signed URLs returned from server');
-          return;
+        // if we haven't already fetched signed urls for this job, do it! otherwise, we'll use the existing ones
+        if (!signedUrls) {
+          const response = await Teaspoons().getPipelineRunOutputSignedUrls(pipelineRunResult.jobReport.id);
+          setSignedUrls(response.outputSignedUrls);
         }
 
-        // Get the signed URL for this specific output
-        const url = response.outputSignedUrls[outputKey];
+        const url = signedUrls?.[outputKey];
         if (!url) {
-          setError('Signed URL not found for this output');
+          setError('Failed to retrieve download. Please try again.');
           return;
         }
 
         setSignedUrl(url);
 
-        // Fetch file size
         try {
           const size = await getOutputFileSize(url);
           setFileSize(size);
@@ -61,16 +58,14 @@ export const DownloadOutputModal = ({
           setFileSize('Unknown size');
         }
       } catch (err) {
-        console.error('Error fetching signed URL:', err);
-        setError('Failed to retrieve download URL. Please try again.');
-        notify('error', 'Failed to retrieve download URL');
+        setError('Failed to retrieve download. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchSignedUrl();
-  }, [outputKey, pipelineRunResult.jobReport.id, signal]);
+  }, [outputKey, pipelineRunResult.jobReport.id, setSignedUrls, signedUrls]);
 
   const handleDownload = () => {
     if (signedUrl) {
@@ -78,51 +73,10 @@ export const DownloadOutputModal = ({
       Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
         pipelineName: pipelineRunResult.pipelineRunReport.pipelineName,
         pipelineVersion: pipelineRunResult.pipelineRunReport.pipelineVersion,
-        outputName: outputDefinition?.displayName || outputKey,
+        outputName: outputKey,
         fileSize,
       });
     }
-  };
-
-  const renderModalContent = () => {
-    if (loading) {
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem' }}>
-          <Spinner />
-          <div style={{ color: colors.dark(0.7) }}>Preparing download...</div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div>
-          <div style={{ color: colors.danger(), marginBottom: '1rem' }}>{error}</div>
-          <ButtonSecondary onClick={onDismiss}>Close</ButtonSecondary>
-        </div>
-      );
-    }
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>File Name</div>
-          <div style={{ color: colors.dark(0.8), wordBreak: 'break-all' }}>{fileName}</div>
-        </div>
-        {fileSize && (
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Size</div>
-            <div style={{ color: colors.dark(0.8) }}>{fileSize}</div>
-          </div>
-        )}
-        {outputDefinition?.description && (
-          <div>
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Description</div>
-            <div style={{ color: colors.dark(0.8) }}>{outputDefinition.description}</div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -138,7 +92,33 @@ export const DownloadOutputModal = ({
         </ButtonPrimary>
       }
     >
-      <div style={{ padding: '1rem 0' }}>{renderModalContent()}</div>
+      <div style={{ padding: '1rem 0' }}>
+        {loading && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem' }}>
+            <Spinner />
+            <div style={{ color: colors.dark(0.7) }}>Preparing download...</div>
+          </div>
+        )}
+
+        {error && <div style={{ color: colors.danger(), marginBottom: '1rem' }}>{error}</div>}
+
+        {!loading && !error && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <OutputInfoField label='File Name' value={fileName} />
+            {fileSize && <OutputInfoField label='Size' value={fileSize} />}
+            {outputDefinition?.description && (
+              <OutputInfoField label='Description' value={outputDefinition.description} />
+            )}
+          </div>
+        )}
+      </div>
     </Modal>
   );
 };
+
+const OutputInfoField = ({ label, value }: { label: string; value: string }) => (
+  <div>
+    <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{label}</div>
+    <div style={{ color: colors.dark(0.8) }}>{value}</div>
+  </div>
+);

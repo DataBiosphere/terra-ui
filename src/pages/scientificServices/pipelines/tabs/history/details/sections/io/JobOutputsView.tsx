@@ -14,6 +14,7 @@ interface JobOutputsViewProps {
 
 export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutputsViewProps) => {
   const [selectedOutput, setSelectedOutput] = useState<{ key: string; fileName: string } | null>(null);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
 
   const isSucceeded = pipelineRunResult.jobReport.status === 'SUCCEEDED';
   const isFailed = pipelineRunResult.jobReport.status === 'FAILED';
@@ -98,6 +99,8 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
           fileName={selectedOutput.fileName}
           pipelineRunResult={pipelineRunResult}
           onDismiss={() => setSelectedOutput(null)}
+          signedUrls={signedUrls}
+          setSignedUrls={setSignedUrls}
         />
       )}
     </div>
@@ -148,6 +151,7 @@ const OutputItem = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
+              padding: 0,
               font: 'inherit',
               display: 'flex',
               alignItems: 'center',
