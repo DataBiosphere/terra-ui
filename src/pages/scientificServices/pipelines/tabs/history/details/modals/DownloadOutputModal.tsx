@@ -133,8 +133,7 @@ export const DownloadOutputModal = ({
     <Modal
       onDismiss={onDismiss}
       title='Download Output'
-      showCancel={false}
-      showX
+      showCancel
       okButton={
         loading || error ? undefined : (
           <ButtonPrimary onClick={handleDownload} disabled={!signedUrl}>

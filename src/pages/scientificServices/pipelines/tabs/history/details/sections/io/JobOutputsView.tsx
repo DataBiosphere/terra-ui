@@ -127,7 +127,15 @@ const OutputItem = ({
         </TooltipTrigger>
         <PipelineIOTypeBadge type={outputType} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '0.25rem', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '0.25rem',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <code>{fileName}</code>
         {!disabled && (
           <button
@@ -138,8 +146,7 @@ const OutputItem = ({
               fontWeight: 700,
               textDecoration: 'underline',
               background: 'none',
-              border: '1px solid #d6d9dc',
-              borderRadius: '4px',
+              border: 'none',
               cursor: 'pointer',
               font: 'inherit',
               display: 'flex',
