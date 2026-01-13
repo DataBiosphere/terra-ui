@@ -77,6 +77,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   label={outputDefinition?.displayName || key}
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
+                  fileName={value}
                   disabled={!isSucceeded}
                   onSelect={() => setSelectedOutput({ key, fileName: value })}
                 />
@@ -105,12 +106,14 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
 
 const OutputItem = ({
   label,
+  fileName,
   tooltip,
   outputType,
   disabled,
   onSelect,
 }: {
   label: string;
+  fileName: string;
   tooltip: string;
   outputType: string;
   disabled?: boolean;
@@ -124,7 +127,8 @@ const OutputItem = ({
         </TooltipTrigger>
         <PipelineIOTypeBadge type={outputType} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '0.25rem', alignItems: 'center' }}>
+        <code>{fileName}</code>
         {!disabled && (
           <button
             type='button'
@@ -134,8 +138,8 @@ const OutputItem = ({
               fontWeight: 700,
               textDecoration: 'underline',
               background: 'none',
-              border: 'none',
-              padding: 0,
+              border: '1px solid #d6d9dc',
+              borderRadius: '4px',
               cursor: 'pointer',
               font: 'inherit',
               display: 'flex',
