@@ -106,22 +106,18 @@ export const DownloadOutputModal = ({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div>
-          <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>File:</div>
-          <div style={{ color: colors.dark(0.8) }}>{outputDefinition?.displayName || outputKey}</div>
-        </div>
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>File Name:</div>
+          <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>File Name</div>
           <div style={{ color: colors.dark(0.8), wordBreak: 'break-all' }}>{fileName}</div>
         </div>
         {fileSize && (
           <div>
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Size:</div>
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Size</div>
             <div style={{ color: colors.dark(0.8) }}>{fileSize}</div>
           </div>
         )}
         {outputDefinition?.description && (
           <div>
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Description:</div>
+            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Description</div>
             <div style={{ color: colors.dark(0.8) }}>{outputDefinition.description}</div>
           </div>
         )}
@@ -131,16 +127,15 @@ export const DownloadOutputModal = ({
 
   return (
     <Modal
+      width={500}
       onDismiss={onDismiss}
       title='Download Output'
       showCancel
       okButton={
-        loading || error ? undefined : (
-          <ButtonPrimary onClick={handleDownload} disabled={!signedUrl}>
-            <Icon icon='download' size={16} style={{ marginRight: '0.5rem' }} />
-            Download
-          </ButtonPrimary>
-        )
+        <ButtonPrimary onClick={handleDownload} disabled={loading || !!error || !signedUrl}>
+          <Icon icon='download' size={16} style={{ marginRight: '0.5rem' }} />
+          Download
+        </ButtonPrimary>
       }
     >
       <div style={{ padding: '1rem 0' }}>{renderModalContent()}</div>
