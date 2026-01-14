@@ -17,7 +17,7 @@ interface DownloadOutputModalProps {
   setSignedUrls: (urls: Record<string, string>) => void;
 }
 
-export const DownloadOutputModal = ({
+export const OutputDetailsModal = ({
   outputKey,
   outputDefinition,
   fileName,

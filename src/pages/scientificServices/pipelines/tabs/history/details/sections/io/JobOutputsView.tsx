@@ -4,7 +4,7 @@ import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/tea
 import colors from 'src/libs/colors';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-import { DownloadOutputModal } from 'src/pages/scientificServices/pipelines/tabs/history/details/modals/DownloadOutputModal';
+import { OutputDetailsModal } from 'src/pages/scientificServices/pipelines/tabs/history/details/modals/OutputDetailsModal';
 import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
 
 interface JobOutputsViewProps {
@@ -54,9 +54,38 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
     }
   };
 
+  const outputExpirationDate = pipelineRunResult.pipelineRunReport.outputExpirationDate
+    ? new Date(pipelineRunResult.pipelineRunReport.outputExpirationDate)
+    : null;
+
+  const outputsExpired = outputExpirationDate && new Date() > outputExpirationDate;
+
+  let outputExpirationText: string | null = null;
+  if (outputsExpired) {
+    outputExpirationText = `Expired on ${outputExpirationDate.toLocaleDateString()}`;
+  } else if (outputExpirationDate) {
+    outputExpirationText = `Available until ${outputExpirationDate.toLocaleDateString()}`;
+  }
+
   return (
     <div style={{ flex: 1 }}>
-      <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: 16, fontWeight: 600 }}>Outputs</h4>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginBottom: '1rem',
+          justifyContent: 'space-between',
+        }}
+      >
+        <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Outputs</h4>
+        {outputExpirationDate && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
+            {outputExpirationText}
+          </div>
+        )}
+      </div>
       {hasOutputs ? (
         <div>
           {Object.entries(outputs).map(([key, value]) => {
@@ -79,7 +108,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
                   fileName={value}
-                  disabled={!isSucceeded}
+                  disabled={!isSucceeded || !!outputsExpired}
                   onSelect={() => setSelectedOutput({ key, fileName: value })}
                 />
               </div>
@@ -93,7 +122,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
       )}
 
       {selectedOutput && (
-        <DownloadOutputModal
+        <OutputDetailsModal
           outputKey={selectedOutput.key}
           outputDefinition={outputDefinitions.find((output) => output.name === selectedOutput.key)}
           fileName={selectedOutput.fileName}
@@ -159,13 +188,11 @@ const OutputItem = ({
               alignSelf: 'flex-start',
             }}
           >
-            <Icon icon='download' size={14} />
-            Download
+            <Icon icon='pop-out' size={14} />
+            View details
           </button>
         )}
-        {disabled && (
-          <span style={{ color: colors.dark(0.5), fontStyle: 'italic', fontSize: '0.9em' }}>Not available</span>
-        )}
+        {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
       </div>
     </div>
   );

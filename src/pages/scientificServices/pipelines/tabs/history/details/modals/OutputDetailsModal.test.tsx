@@ -11,13 +11,13 @@ import {
 } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
-import { DownloadOutputModal } from './DownloadOutputModal';
+import { OutputDetailsModal } from './OutputDetailsModal';
 
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
 
-describe('DownloadOutputModal', () => {
+describe('OutputDetailsModal', () => {
   const mockCaptureEvent = jest.fn();
   const mockWindowOpen = jest.fn();
   const mockGetPipelineRunOutputSignedUrls = jest.fn();
@@ -55,7 +55,7 @@ describe('DownloadOutputModal', () => {
       setSignedUrls: mockSetSignedUrls,
     };
 
-    return render(<DownloadOutputModal {...defaultProps} {...overrides} />);
+    return render(<OutputDetailsModal {...defaultProps} {...overrides} />);
   };
 
   it('displays loading state initially', async () => {

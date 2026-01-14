@@ -109,7 +109,7 @@ describe('JobOutputsView', () => {
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /view details/i })).toBeInTheDocument();
     });
   });
 
@@ -165,10 +165,10 @@ describe('JobOutputsView', () => {
 
     // Wait for Download button to be visible (this will open the Download Output modal)
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /download/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /view details/i })).toBeInTheDocument();
     });
 
-    const openModalButton = screen.getByRole('button', { name: /download/i });
+    const openModalButton = screen.getByRole('button', { name: /view details/i });
     await user.click(openModalButton);
 
     // Wait for the modal to open
