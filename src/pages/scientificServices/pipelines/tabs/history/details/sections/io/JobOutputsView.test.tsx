@@ -232,4 +232,87 @@ describe('JobOutputsView', () => {
       expect(screen.queryByText(/The outputs for this job expired on/)).not.toBeInTheDocument();
     });
   });
+
+  it('displays "Available until" text when outputs have not expired', async () => {
+    const futureDate = new Date('2030-01-01').toISOString();
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+        outputExpirationDate: futureDate,
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Available until/)).toBeInTheDocument();
+      expect(screen.getByText(/1\/1\/2030/)).toBeInTheDocument();
+    });
+  });
+
+  it('displays "Expired on" text when outputs have expired', async () => {
+    const pastDate = new Date('2020-01-01').toISOString();
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+        outputExpirationDate: pastDate,
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Expired on/)).toBeInTheDocument();
+      expect(screen.getByText(/1\/1\/2020/)).toBeInTheDocument();
+    });
+  });
+
+  it('shows view details button when outputs have not expired', async () => {
+    const futureDate = new Date('2030-01-01').toISOString();
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+        outputExpirationDate: futureDate,
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /view details/i })).toBeInTheDocument();
+    });
+  });
+
+  it('hides view details button and shows "Not available" when outputs have expired', async () => {
+    const pastDate = new Date('2020-01-01').toISOString();
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+        },
+        outputExpirationDate: pastDate,
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /view details/i })).not.toBeInTheDocument();
+      expect(screen.getByText('Not available')).toBeInTheDocument();
+    });
+  });
 });
