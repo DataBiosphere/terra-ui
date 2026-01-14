@@ -6,7 +6,6 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
 import { notify } from 'src/libs/notifications';
-import { useCancellation } from 'src/libs/react-utils';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 
 /**
@@ -21,13 +20,13 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
-  const signal = useCancellation();
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
 
   useEffect(() => {
     const fetchPipelineRunResults = async () => {
       try {
         setLoading(true);
-        const results = await Teaspoons(signal).getPipelineRunResult(jobId);
+        const results = await Teaspoons().getPipelineRunResult(jobId);
         setResult(results);
       } finally {
         setLoading(false);
@@ -35,31 +34,29 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
     };
 
     fetchPipelineRunResults();
-  }, [jobId, signal]);
+  }, [jobId]);
 
   const handleDownload = async (outputKey: string) => {
     try {
       setDownloadingKey(outputKey);
 
-      // Fetch signed URLs
-      const response = await Teaspoons(signal).getPipelineRunOutputSignedUrls(jobId);
+      let urls = signedUrls;
 
-      if (!response.outputSignedUrls) {
-        notify('error', 'No signed URLs returned from server');
+      // If we haven't already fetched signed urls for this job, do it! Otherwise, we'll use the existing ones
+      if (!urls) {
+        const response = await Teaspoons().getPipelineRunOutputSignedUrls(jobId);
+        urls = response.outputSignedUrls;
+        setSignedUrls(urls);
+      }
+
+      const signedUrl = urls[outputKey];
+      if (!signedUrl) {
+        notify('error', 'There was an error retrieving the download. Please try again.');
         return;
       }
 
-      // Get the signed URL for this specific output
-      const url = response.outputSignedUrls[outputKey];
-      if (!url) {
-        notify('error', 'Signed URL not found for this output');
-        return;
-      }
+      window.open(signedUrl, '_blank');
 
-      // Open the download
-      window.open(url, '_blank');
-
-      // Track metrics
       if (result) {
         Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
           pipelineName: result.pipelineRunReport.pipelineName,
@@ -68,8 +65,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
         });
       }
     } catch (err) {
-      console.error('Error fetching signed URL:', err);
-      notify('error', 'Failed to retrieve download URL');
+      notify('error', 'There was an error retrieving the download. Please try again.');
     } finally {
       setDownloadingKey(null);
     }
