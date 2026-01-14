@@ -44,17 +44,22 @@ describe('DownloadOutputModal', () => {
     window.open = mockWindowOpen;
   });
 
+  // Helper function to render the modal with default props, and allow overrides
+  const renderModal = (overrides = {}) => {
+    const defaultProps = {
+      outputKey: 'imputedMultiSampleVcf',
+      outputDefinition: mockOutputDefinition,
+      fileName: 'output.vcf',
+      pipelineRunResult: mockPipelineRunResult,
+      onDismiss: mockOnDismiss,
+      setSignedUrls: mockSetSignedUrls,
+    };
+
+    return render(<DownloadOutputModal {...defaultProps} {...overrides} />);
+  };
+
   it('displays loading state initially', async () => {
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     expect(screen.getByText('Preparing download...')).toBeInTheDocument();
 
@@ -64,16 +69,7 @@ describe('DownloadOutputModal', () => {
   });
 
   it('fetches signed URLs when not provided', async () => {
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     await waitFor(() => {
       expect(mockGetPipelineRunOutputSignedUrls).toHaveBeenCalledWith(mockPipelineRunResult.jobReport.id);
@@ -91,17 +87,7 @@ describe('DownloadOutputModal', () => {
       imputedMultiSampleVcf: 'https://cached-url.com/output.vcf',
     };
 
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        signedUrls={cachedUrls}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal({ signedUrls: cachedUrls });
 
     await waitFor(() => {
       expect(mockGetPipelineRunOutputSignedUrls).not.toHaveBeenCalled();
@@ -115,16 +101,7 @@ describe('DownloadOutputModal', () => {
   });
 
   it('displays file name and size after loading', async () => {
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     await waitFor(() => {
       expect(screen.getByText('File Name')).toBeInTheDocument();
@@ -138,16 +115,7 @@ describe('DownloadOutputModal', () => {
   });
 
   it('displays output description when available', async () => {
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     await waitFor(() => {
       expect(screen.getByText('Description')).toBeInTheDocument();
@@ -158,16 +126,7 @@ describe('DownloadOutputModal', () => {
   it('does not display description when not available', async () => {
     const outputDefWithoutDescription = { ...mockOutputDefinition, description: undefined };
 
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={outputDefWithoutDescription}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal({ outputDefinition: outputDefWithoutDescription });
 
     await waitFor(() => {
       expect(screen.getByText('File Name')).toBeInTheDocument();
@@ -179,16 +138,7 @@ describe('DownloadOutputModal', () => {
   it('displays "Unknown size" when file size fetch fails', async () => {
     (getOutputFileSize as jest.Mock).mockRejectedValue(new Error('Failed to fetch size'));
 
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     await waitFor(() => {
       expect(screen.getByText('Unknown size')).toBeInTheDocument();
@@ -198,16 +148,7 @@ describe('DownloadOutputModal', () => {
   it('displays error message when signed URL fetch fails', async () => {
     mockGetPipelineRunOutputSignedUrls.mockRejectedValue(new Error('Failed to fetch'));
 
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     await waitFor(() => {
       expect(screen.getByText('Failed to retrieve download. Please try again.')).toBeInTheDocument();
@@ -223,16 +164,7 @@ describe('DownloadOutputModal', () => {
       },
     });
 
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     await waitFor(() => {
       expect(screen.getByText('Failed to retrieve download. Please try again.')).toBeInTheDocument();
@@ -242,16 +174,7 @@ describe('DownloadOutputModal', () => {
   it('opens URL in new tab when download button is clicked', async () => {
     const user = userEvent.setup();
 
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={mockPipelineRunResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal();
 
     await waitFor(() => {
       expect(screen.getByText('10.5 MB')).toBeInTheDocument();
@@ -274,16 +197,7 @@ describe('DownloadOutputModal', () => {
       },
     };
 
-    render(
-      <DownloadOutputModal
-        outputKey='imputedMultiSampleVcf'
-        outputDefinition={mockOutputDefinition}
-        fileName='output.vcf'
-        pipelineRunResult={pipelineResult}
-        onDismiss={mockOnDismiss}
-        setSignedUrls={mockSetSignedUrls}
-      />
-    );
+    renderModal({ pipelineRunResult: pipelineResult });
 
     await waitFor(() => {
       expect(screen.getByText('10.5 MB')).toBeInTheDocument();
