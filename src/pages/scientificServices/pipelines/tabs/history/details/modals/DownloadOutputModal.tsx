@@ -37,13 +37,16 @@ export const DownloadOutputModal = ({
         setLoading(true);
         setError(null);
 
+        let urls = signedUrls;
+
         // if we haven't already fetched signed urls for this job, do it! otherwise, we'll use the existing ones
-        if (!signedUrls) {
+        if (!urls) {
           const response = await Teaspoons().getPipelineRunOutputSignedUrls(pipelineRunResult.jobReport.id);
-          setSignedUrls(response.outputSignedUrls);
+          urls = response.outputSignedUrls;
+          setSignedUrls(urls);
         }
 
-        const url = signedUrls?.[outputKey];
+        const url = urls?.[outputKey];
         if (!url) {
           setError('Failed to retrieve download. Please try again.');
           return;
