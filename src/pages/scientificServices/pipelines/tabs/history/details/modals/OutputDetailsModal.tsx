@@ -57,8 +57,10 @@ export const OutputDetailsModal = ({
         try {
           const size = await getOutputFileSize(url);
           setFileSize(size);
-        } catch {
-          setFileSize('Unknown size');
+        } catch (err) {
+          // If we can't get the file size, it likely means the signed URL has expired
+          setError('There was an error preparing the download. Please refresh the page and try again.');
+          setSignedUrl(null);
         }
       } catch (err) {
         setError('Failed to retrieve download. Please try again.');

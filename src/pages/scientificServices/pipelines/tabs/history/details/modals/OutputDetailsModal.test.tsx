@@ -135,13 +135,15 @@ describe('OutputDetailsModal', () => {
     expect(screen.queryByText('Description')).not.toBeInTheDocument();
   });
 
-  it('displays "Unknown size" when file size fetch fails', async () => {
+  it('displays an error message when file size fetch fails', async () => {
     (getOutputFileSize as jest.Mock).mockRejectedValue(new Error('Failed to fetch size'));
 
     renderModal();
 
     await waitFor(() => {
-      expect(screen.getByText('Unknown size')).toBeInTheDocument();
+      expect(
+        screen.getByText('There was an error preparing the download. Please refresh the page and try again.')
+      ).toBeInTheDocument();
     });
   });
 
