@@ -14190,7 +14190,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.13.0, qs@npm:^6.10.0":
+"qs@npm:6.13.0":
   version: 6.13.0
   resolution: "qs@npm:6.13.0"
   dependencies:
@@ -14199,7 +14199,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.14.1":
+"qs@npm:^6.10.0, qs@npm:^6.14.1":
   version: 6.14.1
   resolution: "qs@npm:6.14.1"
   dependencies:
@@ -16309,7 +16309,6 @@ __metadata:
     prettier: ^2.8.8
     prismjs: ^1.30.0
     prop-types: ^15.7.2
-    qs: ^6.14.1
     rc-slider: ^10.2.1
     react: 18.2.0
     react-collapse: ^5.1.0
