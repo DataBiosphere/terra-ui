@@ -314,7 +314,6 @@ describe('job history table', () => {
 
     expect(await screen.findByText('Pipeline Outputs', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('output1.txt')).toBeInTheDocument();
-    expect(await screen.findByText('1.21 KiB', { exact: false })).toBeInTheDocument();
   });
 
   it('opens the error modal when View Error button is clicked', async () => {

@@ -1,14 +1,11 @@
 import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
-import React, { useEffect, useState } from 'react';
-import { Metrics } from 'src/libs/ajax/Metrics';
+import React, { useState } from 'react';
 import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import Events from 'src/libs/events';
-import { useCancellation } from 'src/libs/react-utils';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { OutputDetailsModal } from 'src/pages/scientificServices/pipelines/tabs/history/details/modals/OutputDetailsModal';
 import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
 interface JobOutputsViewProps {
   outputDefinitions: PipelineOutput[];
@@ -16,40 +13,13 @@ interface JobOutputsViewProps {
 }
 
 export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutputsViewProps) => {
-  const [loading, setLoading] = useState(true);
-  const [fileSizes, setFileSizes] = useState<Record<string, string | null>>({});
-  const signal = useCancellation();
+  const [selectedOutput, setSelectedOutput] = useState<{ key: string; fileName: string } | null>(null);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
 
   const isSucceeded = pipelineRunResult.jobReport.status === 'SUCCEEDED';
   const isFailed = pipelineRunResult.jobReport.status === 'FAILED';
   const outputs = pipelineRunResult.pipelineRunReport.outputs;
   const hasOutputs = outputs && Object.keys(outputs).length > 0;
-
-  useEffect(() => {
-    const fetchOutputFileSizes = async () => {
-      try {
-        setLoading(true);
-        if (pipelineRunResult.pipelineRunReport.outputs) {
-          const outputs = Object.entries(pipelineRunResult.pipelineRunReport.outputs);
-          const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
-          setFileSizes(initialState);
-
-          for (const [key, url] of outputs) {
-            try {
-              const size = await getOutputFileSize(url);
-              setFileSizes((prev) => ({ ...prev, [key]: size }));
-            } catch {
-              setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
-            }
-          }
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOutputFileSizes();
-  }, [pipelineRunResult.pipelineRunReport.outputs, signal]);
 
   const getEmptyMessage = () => {
     const now = new Date();
@@ -84,13 +54,42 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
     }
   };
 
+  const outputExpirationDate = pipelineRunResult.pipelineRunReport.outputExpirationDate
+    ? new Date(pipelineRunResult.pipelineRunReport.outputExpirationDate)
+    : null;
+
+  const outputsExpired = outputExpirationDate && new Date() > outputExpirationDate;
+
+  let outputExpirationText: string | null = null;
+  if (outputsExpired) {
+    outputExpirationText = `Expired on ${outputExpirationDate.toLocaleDateString()}`;
+  } else if (outputExpirationDate) {
+    outputExpirationText = `Available until ${outputExpirationDate.toLocaleDateString()}`;
+  }
+
   return (
     <div style={{ flex: 1 }}>
-      <h4 style={{ marginTop: 0, marginBottom: '1rem', fontSize: 16, fontWeight: 600 }}>Outputs</h4>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginBottom: '1rem',
+          justifyContent: 'space-between',
+        }}
+      >
+        <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Outputs</h4>
+        {outputExpirationDate && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
+            {outputExpirationText}
+          </div>
+        )}
+      </div>
       {hasOutputs ? (
         <div>
           {Object.entries(outputs).map(([key, value]) => {
-            const outputDefinition = outputDefinitions.find((input) => input.name === key);
+            const outputDefinition = outputDefinitions.find((output) => output.name === key);
 
             return (
               <div
@@ -108,10 +107,9 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   label={outputDefinition?.displayName || key}
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
-                  url={value}
-                  fileSize={loading ? 'Loading file size...' : fileSizes[key] || undefined}
-                  disabled={!isSucceeded}
-                  pipelineRunResult={pipelineRunResult}
+                  fileName={value}
+                  disabled={!isSucceeded || !!outputsExpired}
+                  onSelect={() => setSelectedOutput({ key, fileName: value })}
                 />
               </div>
             );
@@ -122,26 +120,36 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
           {getEmptyMessage()}
         </div>
       )}
+
+      {selectedOutput && (
+        <OutputDetailsModal
+          outputKey={selectedOutput.key}
+          outputDefinition={outputDefinitions.find((output) => output.name === selectedOutput.key)}
+          fileName={selectedOutput.fileName}
+          pipelineRunResult={pipelineRunResult}
+          onDismiss={() => setSelectedOutput(null)}
+          signedUrls={signedUrls}
+          setSignedUrls={setSignedUrls}
+        />
+      )}
     </div>
   );
 };
 
 const OutputItem = ({
   label,
-  url,
+  fileName,
   tooltip,
   outputType,
-  fileSize,
   disabled,
-  pipelineRunResult,
+  onSelect,
 }: {
   label: string;
-  url: string;
+  fileName: string;
   tooltip: string;
   outputType: string;
-  fileSize?: string;
   disabled?: boolean;
-  pipelineRunResult: PipelineRunResponse;
+  onSelect: () => void;
 }) => {
   return (
     <div>
@@ -151,42 +159,40 @@ const OutputItem = ({
         </TooltipTrigger>
         <PipelineIOTypeBadge type={outputType} />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '0.25rem',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <code>{fileName}</code>
         {!disabled && (
           <button
             type='button'
-            onClick={() => {
-              window.open(url, '_blank');
-              Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
-                pipelineName: pipelineRunResult.pipelineRunReport.pipelineName,
-                pipelineVersion: pipelineRunResult.pipelineRunReport.pipelineVersion,
-                outputName: label,
-                fileSize,
-              });
-            }}
+            onClick={onSelect}
             style={{
               color: '#46A3E9',
               fontWeight: 700,
               textDecoration: 'underline',
               background: 'none',
               border: 'none',
-              padding: 0,
               cursor: 'pointer',
+              padding: 0,
               font: 'inherit',
               display: 'flex',
               alignItems: 'center',
               gap: '0.25rem',
+              alignSelf: 'flex-start',
             }}
           >
-            <Icon icon='download' size={14} />
-            Download
+            <Icon icon='pop-out' size={14} />
+            View details
           </button>
         )}
-        {fileSize && (
-          <span style={{ color: disabled ? colors.dark(0.5) : colors.dark(), fontStyle: 'italic' }}>
-            {disabled ? 'Not available' : fileSize}
-          </span>
-        )}
+        {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
       </div>
     </div>
   );

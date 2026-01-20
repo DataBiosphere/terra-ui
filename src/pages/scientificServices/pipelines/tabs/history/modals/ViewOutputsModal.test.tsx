@@ -69,7 +69,6 @@ describe('ViewOutputsModal', () => {
     // Verify outputs are displayed
     expect(screen.getByText('output1')).toBeInTheDocument();
     expect(screen.getByText('output2')).toBeInTheDocument();
-    expect(screen.getAllByText('1.21 KiB')).toHaveLength(2);
 
     // Verify download buttons are present
     const downloadButtons = screen.getAllByText('Download');

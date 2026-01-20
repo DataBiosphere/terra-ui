@@ -133,4 +133,10 @@ export interface PipelineRunReport {
   quotaConsumed?: number;
 }
 
+export interface PipelineRunOutputSignedUrlsResponse {
+  jobId: string;
+  outputSignedUrls: Record<string, string>;
+  outputExpirationDate: string;
+}
+
 export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';

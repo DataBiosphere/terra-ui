@@ -5,9 +5,8 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
-import { useCancellation } from 'src/libs/react-utils';
+import { notify } from 'src/libs/notifications';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -20,37 +19,57 @@ interface OutputsModalProps {
 export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): ReactNode => {
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
-  const [fileSizes, setFileSizes] = useState<Record<string, string | null>>({});
-  const signal = useCancellation();
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
 
   useEffect(() => {
     const fetchPipelineRunResults = async () => {
       try {
         setLoading(true);
-        const results = await Teaspoons(signal).getPipelineRunResult(jobId);
+        const results = await Teaspoons().getPipelineRunResult(jobId);
         setResult(results);
-
-        if (results?.pipelineRunReport.outputs) {
-          const outputs = Object.entries(results.pipelineRunReport.outputs);
-          const initialState = outputs.reduce((acc, [key]) => ({ ...acc, [key]: null }), {});
-          setFileSizes(initialState);
-
-          for (const [key, url] of outputs) {
-            try {
-              const size = await getOutputFileSize(url);
-              setFileSizes((prev) => ({ ...prev, [key]: size }));
-            } catch {
-              setFileSizes((prev) => ({ ...prev, [key]: 'Unknown size' }));
-            }
-          }
-        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchPipelineRunResults();
-  }, [jobId, signal]);
+  }, [jobId]);
+
+  const handleDownload = async (outputKey: string) => {
+    try {
+      setDownloadingKey(outputKey);
+
+      let urls = signedUrls;
+
+      // If we haven't already fetched signed urls for this job, do it! Otherwise, we'll use the existing ones
+      if (!urls) {
+        const response = await Teaspoons().getPipelineRunOutputSignedUrls(jobId);
+        urls = response.outputSignedUrls;
+        setSignedUrls(urls);
+      }
+
+      const signedUrl = urls[outputKey];
+      if (!signedUrl) {
+        notify('error', 'There was an error retrieving the download. Please try again.');
+        return;
+      }
+
+      window.open(signedUrl, '_blank');
+
+      if (result) {
+        Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
+          pipelineName: result.pipelineRunReport.pipelineName,
+          pipelineVersion: result.pipelineRunReport.pipelineVersion,
+          outputName: outputKey,
+        });
+      }
+    } catch (err) {
+      notify('error', 'There was an error retrieving the download. Please try again.');
+    } finally {
+      setDownloadingKey(null);
+    }
+  };
 
   return (
     <Modal width={800} title={`Pipeline Outputs - ${jobId}`} onDismiss={onDismiss} showButtons={false}>
@@ -73,7 +92,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                   margin: '1rem 0',
                 }}
               >
-                {Object.entries(result.pipelineRunReport.outputs).map(([key, url]) => (
+                {Object.entries(result.pipelineRunReport.outputs).map(([key, fileName]) => (
                   <div
                     key={key}
                     style={{
@@ -86,34 +105,25 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     }}
                   >
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: 'monospace', wordBreak: 'break-all', marginBottom: '0.25rem' }}>
-                        {key}
-                      </div>
-                      <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                        {fileSizes[key] === null ? (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <Spinner size={12} />
-                            Loading size...
-                          </span>
-                        ) : (
-                          fileSizes[key] || 'Unknown size'
-                        )}
+                      <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{key}</div>
+                      <div
+                        style={{
+                          fontSize: '0.875rem',
+                          color: '#666',
+                          fontFamily: 'monospace',
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {fileName}
                       </div>
                     </div>
                     <ButtonPrimary
-                      onClick={() => {
-                        window.open(url, '_blank');
-                        Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
-                          pipelineName: result.pipelineRunReport.pipelineName,
-                          pipelineVersion: result.pipelineRunReport.pipelineVersion,
-                          outputName: key,
-                          fileSize: fileSizes[key],
-                        });
-                      }}
+                      onClick={() => handleDownload(key)}
+                      disabled={downloadingKey === key}
                       style={{ marginLeft: '1rem' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Icon icon='download' size={16} />
+                        {downloadingKey === key ? <Spinner size={16} /> : <Icon icon='download' size={16} />}
                         Download
                       </div>
                     </ButtonPrimary>

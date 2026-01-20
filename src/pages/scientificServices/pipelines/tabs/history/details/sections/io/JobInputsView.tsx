@@ -61,11 +61,7 @@ export const JobInputsView = ({ inputDefinitions, inputs }: JobInputsProps) => {
               >
                 <InputItem
                   label={inputDef?.displayName || key}
-                  value={
-                    <div style={{ fontSize: 13 }}>
-                      <code>{value}</code>
-                    </div>
-                  }
+                  value={<code>{value}</code>}
                   tooltip={inputDef?.description || 'No description available for this input'}
                   inputType={inputDef?.type || 'STRING'}
                 />
