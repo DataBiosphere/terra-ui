@@ -35,10 +35,7 @@ export const JobIOView = ({ pipelineRunResult }: PipelineRunIOViewProps) => {
         <div style={{ color: colors.dark(0.6) }}>Loading...</div>
       ) : (
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          <JobInputsView
-            inputDefinitions={inputDefinitions}
-            inputs={pipelineRunResult.pipelineRunReport.userInputs || {}}
-          />
+          <JobInputsView inputDefinitions={inputDefinitions} pipelineRunResult={pipelineRunResult} />
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon icon='arrowRight' size={24} style={{ color: colors.dark(0.8) }} />
