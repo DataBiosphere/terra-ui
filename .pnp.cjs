@@ -4549,7 +4549,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["camelcase", "npm:5.3.1"],\
             ["find-up", "npm:4.1.0"],\
             ["get-package-type", "npm:0.1.0"],\
-            ["js-yaml", "npm:3.14.1"],\
+            ["js-yaml", "npm:3.14.2"],\
             ["resolve-from", "npm:5.0.0"]\
           ],\
           "linkType": "HARD"\
@@ -16400,10 +16400,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["js-yaml", [\
-        ["npm:3.14.1", {\
-          "packageLocation": "./.yarn/cache/js-yaml-npm-3.14.1-b968c6095e-bef146085f.zip/node_modules/js-yaml/",\
+        ["npm:3.14.2", {\
+          "packageLocation": "./.yarn/cache/js-yaml-npm-3.14.2-debd9d20c3-626fc20773.zip/node_modules/js-yaml/",\
           "packageDependencies": [\
-            ["js-yaml", "npm:3.14.1"],\
+            ["js-yaml", "npm:3.14.2"],\
             ["argparse", "npm:1.0.10"],\
             ["esprima", "npm:4.0.1"]\
           ],\
@@ -21871,7 +21871,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["css-select-base-adapter", "npm:0.1.1"],\
             ["css-tree", "npm:1.0.0-alpha.37"],\
             ["csso", "npm:4.2.0"],\
-            ["js-yaml", "npm:3.14.1"],\
+            ["js-yaml", "npm:3.14.2"],\
             ["mkdirp", "npm:0.5.6"],\
             ["object.values", "npm:1.1.6"],\
             ["sax", "npm:1.2.4"],\
