@@ -125,4 +125,40 @@ describe('JobInputsView', () => {
     expect(screen.queryByText('multi-sample VCF file')).not.toBeInTheDocument();
     expect(screen.queryByText('output basename')).not.toBeInTheDocument();
   });
+
+  it('displays inputSize if available', () => {
+    const reportWithInputSize = {
+      ...mockRunResponse,
+      pipelineRunReport: {
+        ...mockRunResponse.pipelineRunReport,
+        inputSize: 400,
+        inputSizeUnits: 'samples',
+      },
+    };
+
+    render(<JobInputsView inputDefinitions={mockInputDefinitions} pipelineRunResult={reportWithInputSize} />);
+
+    expect(screen.getByText('Input Size: 400 samples')).toBeInTheDocument();
+  });
+
+  it('does not display inputSize if not available', () => {
+    render(<JobInputsView inputDefinitions={mockInputDefinitions} pipelineRunResult={mockPipelineRunReport} />);
+
+    expect(screen.queryByText(/Input Size:/)).not.toBeInTheDocument();
+  });
+
+  it('just displays number when inputSizeUnits is not available', () => {
+    const reportWithInputSizeNoUnits = {
+      ...mockRunResponse,
+      pipelineRunReport: {
+        ...mockRunResponse.pipelineRunReport,
+        inputSize: 250,
+        inputSizeUnits: undefined,
+      },
+    };
+
+    render(<JobInputsView inputDefinitions={mockInputDefinitions} pipelineRunResult={reportWithInputSizeNoUnits} />);
+
+    expect(screen.getByText('Input Size: 250')).toBeInTheDocument();
+  });
 });
