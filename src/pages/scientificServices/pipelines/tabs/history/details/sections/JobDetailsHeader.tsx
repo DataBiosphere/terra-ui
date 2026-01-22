@@ -107,7 +107,14 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
             </>
           }
         />
-
+        {/* {pipelineRunResult.pipelineRunReport.inputSize && ( */}
+        {/*   <HeaderItem */}
+        {/*     label='Input Size' */}
+        {/*     value={`${pipelineRunResult.pipelineRunReport.inputSize} ${ */}
+        {/*       pipelineRunResult.pipelineRunReport.inputSizeUnits || '' */}
+        {/*     }`} */}
+        {/*   /> */}
+        {/* )} */}
         <HeaderItem label='Description' value={pipelineRunResult.jobReport.description || 'No description'} />
       </div>
     </div>

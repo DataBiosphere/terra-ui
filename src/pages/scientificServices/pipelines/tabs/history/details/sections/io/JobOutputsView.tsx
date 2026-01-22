@@ -79,12 +79,25 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
         }}
       >
         <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Outputs</h4>
-        {outputExpirationDate && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
-            {outputExpirationText}
-          </div>
-        )}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            backgroundColor: 'white',
+            padding: '0.5rem 0.75rem',
+            border: '1px solid #D8D9DC',
+            borderRadius: '20px',
+            fontWeight: 500,
+          }}
+        >
+          {outputExpirationDate && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
+              {outputExpirationText}
+            </div>
+          )}
+        </div>
       </div>
       {hasOutputs ? (
         <div>
