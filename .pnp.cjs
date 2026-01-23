@@ -6463,7 +6463,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["dequal", "npm:2.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["memoizerific", "npm:1.11.3"],\
-            ["qs", "npm:6.13.0"],\
+            ["qs", "npm:6.14.1"],\
             ["tiny-invariant", "npm:1.3.3"],\
             ["ts-dedent", "npm:2.2.0"],\
             ["util-deprecate", "npm:1.0.2"]\

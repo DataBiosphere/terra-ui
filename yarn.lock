@@ -14190,7 +14190,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.13.0, qs@npm:^6.10.0":
+"qs@npm:6.13.0":
   version: 6.13.0
   resolution: "qs@npm:6.13.0"
   dependencies:
@@ -14199,7 +14199,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.14.1":
+"qs@npm:^6.10.0, qs@npm:^6.14.1":
   version: 6.14.1
   resolution: "qs@npm:6.14.1"
   dependencies:
