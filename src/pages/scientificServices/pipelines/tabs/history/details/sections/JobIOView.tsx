@@ -1,4 +1,4 @@
-import { Icon } from '@terra-ui-packages/components';
+import { Icon, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
@@ -30,11 +30,14 @@ export const JobIOView = ({ pipelineRunResult }: PipelineRunIOViewProps) => {
         margin: '1rem 0',
       }}
     >
-      <h3 style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>Inputs & Outputs</h3>
+      <h3 style={{ marginTop: '1rem', marginBottom: '1rem' }}>Inputs & Outputs</h3>
       {isLoading ? (
-        <div style={{ color: colors.dark(0.6) }}>Loading...</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: colors.dark(0.6) }}>
+          <Spinner size={16} />
+          Loading...
+        </div>
       ) : (
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '2rem' }}>
           <JobInputsView inputDefinitions={inputDefinitions} pipelineRunResult={pipelineRunResult} />
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
