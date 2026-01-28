@@ -70,7 +70,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     id: RAS_PROVIDER,
     title: 'RAS Integration with Terra',
     description: 'Enables the NIH Researcher Authentication Service (RAS) as an external identity provider.',
-    groups: ['preview-ras-provider'],
     feedbackUrl: 'https://support.terra.bio/hc/en-us/articles/32634034451099',
     lastUpdated: '6/26/2025',
   },
