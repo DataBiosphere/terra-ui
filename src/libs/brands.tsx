@@ -198,8 +198,25 @@ export const brands: Record<string, BrandConfiguration> = {
     name: 'NHLBI BioData Catalyst',
     queryName: 'nhlbi biodata catalyst',
     welcomeHeader: 'Welcome to NHLBI BioData Catalyst',
-    description:
-      'NHLBI BioData Catalyst (BDC) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
+    description: (
+      <>
+        NHLBI BioData Catalyst (BDC) is a project powered by Terra for biomedical researchers to access data, run
+        analysis tools, and collaborate.
+        <br />
+        <br />
+        Because of a lapse in government funding, the information on this website may not be up to date, transactions
+        submitted via the website may not be processed, and the agency may not be able to respond to inquiries until
+        appropriations are enacted. The NIH Clinical Center (the research hospital of NIH) is open. For more details
+        about its operating status, please visit{' '}
+        <a href='https://cc.nih.gov/' target='_blank' rel='noopener noreferrer'>
+          cc.nih.gov.
+        </a>{' '}
+        Updates regarding government operating status and resumption of normal operations can be found at{' '}
+        <a href='https://opm.gov/' target='_blank' rel='noopener noreferrer'>
+          opm.gov.
+        </a>
+      </>
+    ),
     hostName: 'terra.biodatacatalyst.nhlbi.nih.gov',
     docLinks: [
       {
