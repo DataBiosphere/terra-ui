@@ -202,6 +202,7 @@ export const brands: Record<string, BrandConfiguration> = {
       <>
         NHLBI BioData Catalyst (BDC) is a project powered by Terra for biomedical researchers to access data, run
         analysis tools, and collaborate.
+        {/** The language below is added during a government shutdown as requested by NIH. Uncomment when needed.
         <br />
         <br />
         Because of a lapse in government funding, the information on this website may not be up to date, transactions
@@ -215,6 +216,7 @@ export const brands: Record<string, BrandConfiguration> = {
         <a href='https://opm.gov/' target='_blank' rel='noopener noreferrer'>
           opm.gov.
         </a>
+        */}
       </>
     ),
     hostName: 'terra.biodatacatalyst.nhlbi.nih.gov',
