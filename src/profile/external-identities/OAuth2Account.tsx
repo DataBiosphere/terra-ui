@@ -95,6 +95,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
       void Metrics().captureEvent(Events.user.externalCredential.link, { provider: provider.key });
       setIsLinking(false);
       if (isRASProvider && !accountInfo.additionalProperties?.era_user_id) {
+        // If eRA Commons ID is not present (this is common), start polling for it
         setPollingStartTime(Date.now());
         setIsPollingForEraId(true);
       }
@@ -124,6 +125,8 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
   const getIsPollingForEraId = useGetter(isPollingForEraId);
   const getPollingStartTime = useGetter(pollingStartTime);
 
+  // eRA Commons ID may not be immediately available after linking, so we poll for it
+  // after linking a RAS account. We poll every 3s for up to 15s.
   usePollingEffect(
     withErrorReporting('Error polling for eRA Commons ID')(async () => {
       if (!getIsPollingForEraId()) {
