@@ -10,7 +10,7 @@ import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
+import { useCancellation, useGetter, useOnMount, usePollingEffect, useStore } from 'src/libs/react-utils';
 import { authStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { LinkOAuth2Account } from 'src/profile/external-identities/LinkOAuth2Account';
@@ -85,6 +85,8 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
   const isRASProvider = provider.key === 'ras';
   const [authorizedDatasets, setAuthorizedDatasets] = useState<NihDatasetPermission[]>([]);
   const [unauthorizedDatasets, setUnauthorizedDatasets] = useState<NihDatasetPermission[]>([]);
+  const [isPollingForEraId, setIsPollingForEraId] = useState(false);
+  const [pollingStartTime, setPollingStartTime] = useState<number | null>(null);
 
   useOnMount(() => {
     const linkAccount = withErrorReporting(`Error linking ${provider.short} account`)(async (code, state) => {
@@ -92,6 +94,10 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
       authStore.update(_.set(['oAuth2AccountStatus', provider.key], accountInfo));
       void Metrics().captureEvent(Events.user.externalCredential.link, { provider: provider.key });
       setIsLinking(false);
+      if (isRASProvider && !accountInfo.additionalProperties?.era_user_id) {
+        setPollingStartTime(Date.now());
+        setIsPollingForEraId(true);
+      }
     });
 
     const getNihResources = withErrorReporting('Error fetching NIH resources')(async () => {
@@ -115,6 +121,28 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
     }
   });
 
+  const getIsPollingForEraId = useGetter(isPollingForEraId);
+  const getPollingStartTime = useGetter(pollingStartTime);
+
+  usePollingEffect(
+    withErrorReporting('Error polling for eRA Commons ID')(async () => {
+      if (!getIsPollingForEraId()) {
+        return;
+      }
+      const startTime = getPollingStartTime();
+      if (startTime && Date.now() - startTime > 15000) {
+        setIsPollingForEraId(false);
+        return;
+      }
+      const status = await ExternalCredentials(signal)(provider).getAccountLinkStatus();
+      if (status?.additionalProperties?.era_user_id) {
+        authStore.update(_.set(['oAuth2AccountStatus', provider.key], status));
+        setIsPollingForEraId(false);
+      }
+    }),
+    { ms: 3000, leading: true }
+  );
+
   return (
     <div style={styles.idLink.container}>
       <div style={styles.idLink.linkContentTop(false)}>
@@ -137,10 +165,16 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
             {isRASProvider && (
               <div>
                 <span style={styles.idLink.linkDetailLabel}>eRA Commons ID:</span>
-                {eraUserId}
-                <span style={{ marginLeft: '0.5rem' }}>
-                  <ExternalLink href={nihSettingsPage}>Manage your linked identities</ExternalLink>
-                </span>
+                {isPollingForEraId && eraUserId === 'none' ? (
+                  <SpacedSpinner>Loading eRA Commons ID...</SpacedSpinner>
+                ) : (
+                  <>
+                    {eraUserId}
+                    <span style={{ marginLeft: '0.5rem' }}>
+                      <ExternalLink href={nihSettingsPage}>Manage your linked identities</ExternalLink>
+                    </span>
+                  </>
+                )}
               </div>
             )}
             <div>
