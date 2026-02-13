@@ -88,27 +88,33 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
   const [isPollingForEraId, setIsPollingForEraId] = useState(false);
   const [pollingStartTime, setPollingStartTime] = useState<number | null>(null);
 
+  const getNihResources = withErrorReporting('Error fetching NIH resources')(async () => {
+    const nihResources = await User().getNihResources();
+    const [authorized, unauthorized]: [NihDatasetPermission[], NihDatasetPermission[]] = _.flow(
+      _.sortBy<NihDatasetPermission>('name'),
+      _.partition<NihDatasetPermission>('authorized')
+    )(nihResources?.datasetPermissions || []);
+    setAuthorizedDatasets(authorized);
+    setUnauthorizedDatasets(unauthorized);
+  });
+
   useOnMount(() => {
     const linkAccount = withErrorReporting(`Error linking ${provider.short} account`)(async (code, state) => {
       const accountInfo = await ExternalCredentials(signal)(provider).linkAccountWithAuthorizationCode(code, state);
       authStore.update(_.set(['oAuth2AccountStatus', provider.key], accountInfo));
       void Metrics().captureEvent(Events.user.externalCredential.link, { provider: provider.key });
       setIsLinking(false);
+
+      // Immediately after linking a RAS account, we may not have the eRA Commons ID or NIH resources. In that case,
+      // we start polling for the eRA Commons ID and fetch NIH resources once we have it. If we do have the eRA
+      // Commons ID immediately, we can load NIH resources right away.
       if (isRASProvider && !accountInfo.additionalProperties?.era_user_id) {
         // If eRA Commons ID is not present (this is common), start polling for it
         setPollingStartTime(Date.now());
         setIsPollingForEraId(true);
+      } else if (isRASProvider) {
+        getNihResources();
       }
-    });
-
-    const getNihResources = withErrorReporting('Error fetching NIH resources')(async () => {
-      const nihResources = await User().getNihResources();
-      const [authorized, unauthorized]: [NihDatasetPermission[], NihDatasetPermission[]] = _.flow(
-        _.sortBy<NihDatasetPermission>('name'),
-        _.partition<NihDatasetPermission>('authorized')
-      )(nihResources?.datasetPermissions || []);
-      setAuthorizedDatasets(authorized);
-      setUnauthorizedDatasets(unauthorized);
     });
 
     if (isLinking) {
@@ -125,8 +131,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
   const getIsPollingForEraId = useGetter(isPollingForEraId);
   const getPollingStartTime = useGetter(pollingStartTime);
 
-  // eRA Commons ID may not be immediately available after linking, so we poll for it
-  // after linking a RAS account. We poll every 3s for up to 15s.
+  // For RAS, poll for data that may not be immediately available after linking
   usePollingEffect(
     withErrorReporting('Error polling for eRA Commons ID')(async () => {
       if (!getIsPollingForEraId()) {
@@ -135,12 +140,14 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
       const startTime = getPollingStartTime();
       if (startTime && Date.now() - startTime > 15000) {
         setIsPollingForEraId(false);
+        getNihResources();
         return;
       }
       const status = await ExternalCredentials(signal)(provider).getAccountLinkStatus();
       if (status?.additionalProperties?.era_user_id) {
         authStore.update(_.set(['oAuth2AccountStatus', provider.key], status));
         setIsPollingForEraId(false);
+        getNihResources();
       }
     }),
     { ms: 3000, leading: true }
