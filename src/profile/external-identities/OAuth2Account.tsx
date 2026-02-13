@@ -1,4 +1,4 @@
-import { ExternalLink, InfoBox } from '@terra-ui-packages/components';
+import { ExternalLink, InfoBox, Spinner } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import React, { useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
@@ -164,11 +164,14 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
             </div>
             {isRASProvider && (
               <div>
-                <span style={styles.idLink.linkDetailLabel}>eRA Commons ID:</span>
                 {isPollingForEraId && eraUserId === 'none' ? (
-                  <SpacedSpinner>Loading eRA Commons ID...</SpacedSpinner>
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <Spinner style={{ marginRight: '0.5rem' }} />
+                    Loading eRA Commons ID...
+                  </span>
                 ) : (
                   <>
+                    <span style={styles.idLink.linkDetailLabel}>eRA Commons ID:</span>
                     {eraUserId}
                     <span style={{ marginLeft: '0.5rem' }}>
                       <ExternalLink href={nihSettingsPage}>Manage your linked identities</ExternalLink>
