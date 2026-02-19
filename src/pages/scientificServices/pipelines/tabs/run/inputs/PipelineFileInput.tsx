@@ -221,7 +221,9 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   flex: 1,
                 }}
               >
-                <Icon icon='upload-cloud' size={64} style={{ color: '#094770' }} />
+                <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon icon='upload-cloud' size={64} style={{ color: '#094770' }} />
+                </div>
                 <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>Upload File</span>
               </button>
               <button
@@ -241,12 +243,10 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
                   flex: 1,
                 }}
               >
-                <CloudProviderIcon
-                  cloudProvider='GCP'
-                  style={{ transform: 'scale(3)', marginTop: '1.5rem', marginBottom: '1.25rem' }}
-                />
+                <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CloudProviderIcon cloudProvider='GCP' style={{ transform: 'scale(3)' }} />
+                </div>
                 <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>Google Cloud Storage</span>
-                {/* <span style={{ fontSize: '12px', color: '#666' }}>Use gs:// path</span> */}
               </button>
             </div>
           </div>
@@ -289,12 +289,6 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
               <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more</ZendeskLink> about providing a valid Google Cloud
               Storage path.
             </div>
-            {/* {cloudPath && !validationError && ( */}
-            {/*   <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}> */}
-            {/*     <Icon icon='success-standard' size={24} style={{ color: colors.success() }} /> */}
-            {/*     <span style={{ color: colors.success(), fontWeight: 600 }}>Valid cloud path</span> */}
-            {/*   </div> */}
-            {/* )} */}
           </div>
         ) : (
           <>
