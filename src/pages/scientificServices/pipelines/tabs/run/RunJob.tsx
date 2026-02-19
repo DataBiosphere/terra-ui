@@ -68,6 +68,10 @@ export const RunJob = () => {
       if (input.isRequired) {
         const value = selectedUserInputs[input.name];
         if (input.type === 'FILE') {
+          // Allow either a File object (local upload) or a string (gs cloud path)
+          if (typeof value === 'string') {
+            return value.startsWith('gs://') && value.endsWith(input.fileSuffix || '');
+          }
           return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
         }
         return value && value.trim() !== '';
@@ -164,19 +168,25 @@ export const RunJob = () => {
       return;
     }
 
-    // Upload pipeline input files
-    try {
-      await uploadPipelineFiles(
-        pipelineName,
-        pipelineVersion,
-        pipelineInputs,
-        filteredUserInputs,
-        fileInputUploadUrls,
-        setUploadState
-      );
-    } catch (error) {
-      handlePipelineSubmissionError(error, 'File upload failed');
-      return;
+    // Upload pipeline input files (only if there are local files to upload)
+    const hasLocalFilesToUpload = pipelineInputs
+      .filter((input) => input.type === 'FILE')
+      .some((input) => filteredUserInputs[input.name] instanceof File);
+
+    if (hasLocalFilesToUpload) {
+      try {
+        await uploadPipelineFiles(
+          pipelineName,
+          pipelineVersion,
+          pipelineInputs,
+          filteredUserInputs,
+          fileInputUploadUrls,
+          setUploadState
+        );
+      } catch (error) {
+        handlePipelineSubmissionError(error, 'File upload failed');
+        return;
+      }
     }
 
     // Submit the pipeline run

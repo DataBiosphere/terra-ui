@@ -12,7 +12,6 @@ import {
   resumeUpload,
   uploadTimeRemainingDisplayText,
 } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
-import { getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
 export interface PipelineInputFileUploadState {
   signedUrl?: string; // The resumable upload session URL
@@ -21,11 +20,378 @@ export interface PipelineInputFileUploadState {
   errorMessage?: string; // Optional error message
 }
 
-interface PipelineInputSelectorProps {
-  input: PipelineInput;
+interface FileSourceSelectorProps {
+  onSourceSelect: (source: 'local' | 'cloud') => void;
+}
+
+const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect }) => {
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ marginBottom: '1rem' }}>Select a file source</div>
+      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+        <button
+          type='button'
+          onClick={() => onSourceSelect('local')}
+          style={{
+            padding: '1.5rem 1rem',
+            border: '1px solid #46A3E9',
+            borderBottomLeftRadius: '8px',
+            borderTopLeftRadius: '8px',
+            background: '#e7f3fb',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.75rem',
+            flex: 1,
+          }}
+        >
+          <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon icon='upload-cloud' size={64} style={{ color: '#094770' }} />
+          </div>
+          <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>Upload File</span>
+        </button>
+        <button
+          type='button'
+          onClick={() => onSourceSelect('cloud')}
+          style={{
+            padding: '1.5rem 1rem',
+            border: '1px solid #46A3E9',
+            borderBottomRightRadius: '8px',
+            borderTopRightRadius: '8px',
+            background: '#e7f3fb',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.75rem',
+            flex: 1,
+          }}
+        >
+          <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CloudProviderIcon cloudProvider='GCP' style={{ transform: 'scale(3)' }} />
+          </div>
+          <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>Google Cloud Storage</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+interface CloudStoragePathInputProps {
+  cloudPath: string;
+  fileSuffix?: string;
+  validationError?: ReactNode;
+  onCloudPathChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBackToSelection: () => void;
+}
+
+const CloudStoragePathInput: React.FC<CloudStoragePathInputProps> = ({
+  cloudPath,
+  fileSuffix,
+  validationError,
+  onCloudPathChange,
+  onBackToSelection,
+}) => {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div style={{ fontWeight: 600 }}>Cloud Storage Path</div>
+        <button
+          type='button'
+          onClick={onBackToSelection}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#46A3E9',
+            cursor: 'pointer',
+            fontSize: '14px',
+            textDecoration: 'underline',
+          }}
+        >
+          Change source
+        </button>
+      </div>
+      <input
+        type='text'
+        value={cloudPath}
+        onChange={onCloudPathChange}
+        placeholder={`gs://bucket/path/to/file${fileSuffix || ''}`}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          border: `1px solid ${validationError ? colors.danger() : '#8f95a0'}`,
+          borderRadius: '4px',
+          fontSize: '14px',
+          boxSizing: 'border-box',
+        }}
+      />
+      <div style={{ marginTop: '0.5rem', color: '#666' }}>
+        <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more</ZendeskLink> about providing a valid Google Cloud Storage
+        path.
+      </div>
+    </div>
+  );
+};
+
+interface LocalFileUploadProps {
   selectedFile: File | null;
   uploadState?: PipelineInputFileUploadState;
-  onFileSelect: (file: File | null) => void;
+  fileSuffix?: string;
+  validationError?: ReactNode;
+  inputName: string;
+  fileInputRef: React.RefObject<HTMLInputElement>;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClearFile: (e: React.MouseEvent) => void;
+  onDrop: (acceptedFiles: File[]) => void;
+  onBrowseClick: () => void;
+  onKeyPress: (e: React.KeyboardEvent) => void;
+  onResumeUpload: () => void;
+  onBackToSelection: () => void;
+}
+
+const LocalFileUpload: React.FC<LocalFileUploadProps> = ({
+  selectedFile,
+  uploadState,
+  fileSuffix,
+  validationError,
+  inputName,
+  fileInputRef,
+  onFileChange,
+  onClearFile,
+  onDrop,
+  onBrowseClick,
+  onKeyPress,
+  onResumeUpload,
+  onBackToSelection,
+}) => {
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <div style={{ fontWeight: 600 }}>Upload File</div>
+        <button
+          type='button'
+          onClick={onBackToSelection}
+          disabled={!!uploadState?.progress}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: uploadState?.progress ? colors.disabled() : '#46A3E9',
+            cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
+            fontSize: '14px',
+            textDecoration: 'underline',
+          }}
+        >
+          Change source
+        </button>
+      </div>
+      {!uploadState?.progress ? (
+        <Dropzone
+          onDrop={onDrop}
+          disabled={!!selectedFile}
+          style={{
+            borderRadius: '8px',
+            border: `1px #46A3E9 ${selectedFile ? 'none' : 'dashed'}`,
+            padding: '2rem 0.5rem',
+            background: 'rgba(128, 198, 236, 0.20)',
+            textAlign: 'center',
+            cursor: selectedFile ? 'default' : 'pointer',
+            height: '120px',
+            outline: 'none',
+          }}
+          activeStyle={{
+            border: '1px dashed #4D72AA',
+            background: 'rgba(77, 114, 170, 0.20)',
+          }}
+        >
+          {({ dragging }) => (
+            <>
+              <input
+                ref={fileInputRef}
+                type='file'
+                onChange={onFileChange}
+                accept={fileSuffix}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  opacity: 0,
+                  pointerEvents: 'none',
+                }}
+              />
+              <div>
+                {selectedFile ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'left',
+                      }}
+                    >
+                      {validationError ? (
+                        <Icon
+                          icon='warning-standard'
+                          size={36}
+                          style={{ color: colors.danger(), marginLeft: '1rem' }}
+                        />
+                      ) : (
+                        <Icon
+                          icon='success-standard'
+                          size={36}
+                          style={{ color: colors.success(), marginLeft: '1rem' }}
+                        />
+                      )}
+                      <div
+                        style={{
+                          color: '#333',
+                          paddingLeft: '0.5rem',
+                          fontWeight: 600,
+                          overflowWrap: 'anywhere',
+                          textAlign: 'left',
+                        }}
+                      >
+                        {selectedFile.name}{' '}
+                        <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
+                          ({formatBytes(selectedFile?.size)})
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type='button'
+                      onClick={onClearFile}
+                      disabled={!!uploadState?.progress}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
+                        color: '#666',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        // UX consideration: the padding is here to make the clickable area larger
+                        padding: '1rem',
+                      }}
+                      aria-label='Remove selected file'
+                    >
+                      <Icon icon='times' size={24} color={uploadState?.progress ? colors.disabled() : '#4D72AA'} />
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
+                    {dragging ? `Drop ${fileSuffix} file here` : `Drop ${fileSuffix} file or`}{' '}
+                    {!dragging && (
+                      <button
+                        type='button'
+                        onClick={onBrowseClick}
+                        onKeyDown={onKeyPress}
+                        style={{
+                          color: '#46A3E9',
+                          textDecoration: 'underline',
+                          cursor: 'pointer',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          font: 'inherit',
+                          fontWeight: 'inherit',
+                        }}
+                      >
+                        browse
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </Dropzone>
+      ) : (
+        <>
+          <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Upload status</div>
+          {uploadState.progress < 100 ? (
+            <>
+              {!uploadState.errorMessage ? (
+                <div>
+                  <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending on your
+                  input file size. <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Icon
+                      icon='warning-standard'
+                      size={24}
+                      style={{ color: colors.danger(), verticalAlign: 'middle' }}
+                    />{' '}
+                    <div>There was an error uploading the file.</div>
+                  </div>
+                  <ButtonPrimary type='button' onClick={onResumeUpload}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}
+                    >
+                      <Icon icon='sync' />
+                      Retry
+                    </div>
+                  </ButtonPrimary>
+                </div>
+              )}
+              <div key={inputName} style={{ marginTop: '1rem' }}>
+                <div
+                  style={{
+                    backgroundColor: '#e4e5e6',
+                    borderRadius: '4px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${uploadState.progress}%`,
+                      height: '21px',
+                      backgroundColor: uploadState.errorMessage ? colors.danger() : '#5CC88D',
+                      transition: 'width 0.3s ease-in-out',
+                    }}
+                  />
+                </div>
+                <div style={{ marginTop: '0.5rem', display: 'flex' }}>
+                  <div style={{ fontWeight: 'bold', marginRight: '0.25rem' }}>Estimated time remaining:</div>
+                  {uploadTimeRemainingDisplayText(uploadState.uploadEtaSeconds)}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Icon icon='success-standard' size={24} style={{ color: colors.success() }} />{' '}
+              <span style={{ fontWeight: 'bold' }}>Upload successful.</span>
+            </div>
+          )}
+        </>
+      )}
+    </>
+  );
+};
+
+interface PipelineInputSelectorProps {
+  input: PipelineInput;
+  selectedFile: File | string | null;
+  uploadState?: PipelineInputFileUploadState;
+  onFileSelect: (file: File | string | null) => void;
   onValidation(error?: ReactNode): void;
   validationError?: ReactNode;
   onUploadComplete?: () => void;
@@ -145,7 +511,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   };
 
   const handleResumeUpload = async () => {
-    if (selectedFile && uploadState?.signedUrl && setUploadState) {
+    if (selectedFile && typeof selectedFile !== 'string' && uploadState?.signedUrl && setUploadState) {
       try {
         await resumeUpload(input.name, selectedFile, uploadState.signedUrl, setUploadState);
         if (onUploadComplete) {
@@ -171,6 +537,12 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     const path = e.target.value;
     setCloudPath(path);
     validateCloudPath(path);
+
+    if (path && path.startsWith('gs://') && (!fileSuffix || path.endsWith(fileSuffix))) {
+      onFileSelect(path);
+    } else {
+      onFileSelect(null);
+    }
   };
 
   const handleBackToSelection = () => {
@@ -200,322 +572,32 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
           flexDirection: 'column',
         }}
       >
-        {sourceType === null ? (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ marginBottom: '1rem' }}>Select a file source</div>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-              <button
-                type='button'
-                onClick={() => handleSourceSelect('local')}
-                style={{
-                  padding: '1.5rem 1rem',
-                  border: '1px solid #46A3E9',
-                  borderBottomLeftRadius: '8px',
-                  borderTopLeftRadius: '8px',
-                  background: '#e7f3fb',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  flex: 1,
-                }}
-              >
-                <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon icon='upload-cloud' size={64} style={{ color: '#094770' }} />
-                </div>
-                <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>Upload File</span>
-              </button>
-              <button
-                type='button'
-                onClick={() => handleSourceSelect('cloud')}
-                style={{
-                  padding: '1.5rem 1rem',
-                  border: '1px solid #46A3E9',
-                  borderBottomRightRadius: '8px',
-                  borderTopRightRadius: '8px',
-                  background: '#e7f3fb',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  flex: 1,
-                }}
-              >
-                <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CloudProviderIcon cloudProvider='GCP' style={{ transform: 'scale(3)' }} />
-                </div>
-                <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>Google Cloud Storage</span>
-              </button>
-            </div>
-          </div>
-        ) : sourceType === 'cloud' ? (
-          <div>
-            <div
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}
-            >
-              <div style={{ fontWeight: 600 }}>Cloud Storage Path</div>
-              <button
-                type='button'
-                onClick={handleBackToSelection}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#46A3E9',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  textDecoration: 'underline',
-                }}
-              >
-                Change source
-              </button>
-            </div>
-            <input
-              type='text'
-              value={cloudPath}
-              onChange={handleCloudPathChange}
-              placeholder={`gs://bucket/path/to/file${fileSuffix || ''}`}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: `1px solid ${validationError ? colors.danger() : '#8f95a0'}`,
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box',
-              }}
-            />
-            <div style={{ marginTop: '0.5rem', color: '#666' }}>
-              <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more</ZendeskLink> about providing a valid Google Cloud
-              Storage path.
-            </div>
-          </div>
-        ) : (
-          <>
-            <div
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}
-            >
-              <div style={{ fontWeight: 600 }}>Upload File</div>
-              <button
-                type='button'
-                onClick={handleBackToSelection}
-                disabled={!!uploadState?.progress}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: uploadState?.progress ? colors.disabled() : '#46A3E9',
-                  cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  textDecoration: 'underline',
-                }}
-              >
-                Change source
-              </button>
-            </div>
-            {!uploadState?.progress ? (
-              <Dropzone
-                onDrop={handleDrop}
-                disabled={!!selectedFile}
-                style={{
-                  borderRadius: '8px',
-                  border: `1px #46A3E9 ${selectedFile ? 'none' : 'dashed'}`,
-                  padding: '2rem 0.5rem',
-                  background: 'rgba(128, 198, 236, 0.20)',
-                  textAlign: 'center',
-                  cursor: selectedFile ? 'default' : 'pointer',
-                  height: '120px',
-                  outline: 'none',
-                }}
-                activeStyle={{
-                  border: '1px dashed #4D72AA',
-                  background: 'rgba(77, 114, 170, 0.20)',
-                }}
-              >
-                {({ dragging }) => (
-                  <>
-                    <input
-                      ref={fileInputRef}
-                      type='file'
-                      onChange={handleFileChange}
-                      accept={fileSuffix}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        opacity: 0,
-                        pointerEvents: 'none',
-                      }}
-                    />
-                    <div>
-                      {selectedFile ? (
-                        <div
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              justifyContent: 'left',
-                            }}
-                          >
-                            {validationError ? (
-                              <Icon
-                                icon='warning-standard'
-                                size={36}
-                                style={{ color: colors.danger(), marginLeft: '1rem' }}
-                              />
-                            ) : (
-                              <Icon
-                                icon='success-standard'
-                                size={36}
-                                style={{ color: colors.success(), marginLeft: '1rem' }}
-                              />
-                            )}
-                            <div
-                              style={{
-                                color: '#333',
-                                paddingLeft: '0.5rem',
-                                fontWeight: 600,
-                                overflowWrap: 'anywhere',
-                                textAlign: 'left',
-                              }}
-                            >
-                              {selectedFile.name}{' '}
-                              <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
-                                ({formatBytes(selectedFile?.size)})
-                              </span>
-                            </div>
-                          </div>
-                          <button
-                            type='button'
-                            onClick={handleClearFile}
-                            disabled={!!uploadState?.progress}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
-                              color: '#666',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              // UX consideration: the padding is here to make the clickable area larger
-                              padding: '1rem',
-                            }}
-                            aria-label='Remove selected file'
-                          >
-                            <Icon
-                              icon='times'
-                              size={24}
-                              color={uploadState?.progress ? colors.disabled() : '#4D72AA'}
-                            />
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
-                          {dragging ? `Drop ${fileSuffix} file here` : `Drop ${fileSuffix} file or`}{' '}
-                          {!dragging && (
-                            <button
-                              type='button'
-                              onClick={handleBrowseClick}
-                              onKeyDown={handleKeyPress}
-                              style={{
-                                color: '#46A3E9',
-                                textDecoration: 'underline',
-                                cursor: 'pointer',
-                                background: 'none',
-                                border: 'none',
-                                padding: 0,
-                                font: 'inherit',
-                                fontWeight: 'inherit',
-                              }}
-                            >
-                              browse
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </Dropzone>
-            ) : (
-              <>
-                <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Upload status</div>
-                {uploadState.progress < 100 ? (
-                  <>
-                    {!uploadState.errorMessage ? (
-                      <div>
-                        <span style={{ fontWeight: 'bold' }}>In progress</span>, this may take a few minutes depending
-                        on your input file size.{' '}
-                        <span style={{ fontWeight: 'bold' }}>Please do not close this browser tab.</span>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <Icon
-                            icon='warning-standard'
-                            size={24}
-                            style={{ color: colors.danger(), verticalAlign: 'middle' }}
-                          />{' '}
-                          <div>There was an error uploading the file.</div>
-                        </div>
-                        <ButtonPrimary type='button' onClick={handleResumeUpload}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                            }}
-                          >
-                            <Icon icon='sync' />
-                            Retry
-                          </div>
-                        </ButtonPrimary>
-                      </div>
-                    )}
-                    <div key={name} style={{ marginTop: '1rem' }}>
-                      <div
-                        style={{
-                          backgroundColor: '#e4e5e6',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${uploadState.progress}%`,
-                            height: '21px',
-                            backgroundColor: uploadState.errorMessage ? colors.danger() : '#5CC88D',
-                            transition: 'width 0.3s ease-in-out',
-                          }}
-                        />
-                      </div>
-                      <div style={{ marginTop: '0.5rem', display: 'flex' }}>
-                        <div style={{ fontWeight: 'bold', marginRight: '0.25rem' }}>Estimated time remaining:</div>
-                        {uploadTimeRemainingDisplayText(uploadState.uploadEtaSeconds)}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Icon icon='success-standard' size={24} style={{ color: colors.success() }} />{' '}
-                    <span style={{ fontWeight: 'bold' }}>Upload successful.</span>
-                  </div>
-                )}
-              </>
-            )}
-          </>
+        {sourceType === null && <FileSourceSelector onSourceSelect={handleSourceSelect} />}
+        {sourceType === 'cloud' && (
+          <CloudStoragePathInput
+            cloudPath={cloudPath}
+            fileSuffix={fileSuffix}
+            validationError={validationError}
+            onCloudPathChange={handleCloudPathChange}
+            onBackToSelection={handleBackToSelection}
+          />
+        )}
+        {sourceType === 'local' && (
+          <LocalFileUpload
+            selectedFile={typeof selectedFile === 'string' ? null : selectedFile}
+            uploadState={uploadState}
+            fileSuffix={fileSuffix}
+            validationError={validationError}
+            inputName={name}
+            fileInputRef={fileInputRef}
+            onFileChange={handleFileChange}
+            onClearFile={handleClearFile}
+            onDrop={handleDrop}
+            onBrowseClick={handleBrowseClick}
+            onKeyPress={handleKeyPress}
+            onResumeUpload={handleResumeUpload}
+            onBackToSelection={handleBackToSelection}
+          />
         )}
         {validationError && <div style={{ color: colors.danger(), paddingTop: '0.5rem' }}>{validationError}</div>}
       </div>
