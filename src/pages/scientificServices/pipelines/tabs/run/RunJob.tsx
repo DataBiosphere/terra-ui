@@ -16,14 +16,14 @@ import {
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
-import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineBooleanInput';
+import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/boolean/PipelineBooleanInput';
 import {
   PipelineFileInput,
   PipelineInputFileUploadState,
-} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
-import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFloatInput';
+} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
+import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/float/PipelineFloatInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineRunDescription';
-import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineStringInput';
+import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/string/PipelineStringInput';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/HelpfulTipsWidget';
 import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
 import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/QuotaDetailsWidget';
