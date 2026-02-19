@@ -45,6 +45,12 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect 
             gap: '0.75rem',
             flex: 1,
           }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#d0e8f7';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#e7f3fb';
+          }}
         >
           <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon icon='upload-cloud' size={64} style={{ color: '#094770' }} />
@@ -66,6 +72,12 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect 
             alignItems: 'center',
             gap: '0.75rem',
             flex: 1,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#d0e8f7';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#e7f3fb';
           }}
         >
           <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -167,151 +179,155 @@ const LocalFileUpload: React.FC<LocalFileUploadProps> = ({
 }) => {
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-        <div style={{ fontWeight: 600 }}>Upload File</div>
-        <button
-          type='button'
-          onClick={onBackToSelection}
-          disabled={!!uploadState?.progress}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: uploadState?.progress ? colors.disabled() : '#46A3E9',
-            cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
-            fontSize: '14px',
-            textDecoration: 'underline',
-          }}
-        >
-          Change source
-        </button>
-      </div>
       {!uploadState?.progress ? (
-        <Dropzone
-          onDrop={onDrop}
-          disabled={!!selectedFile}
-          style={{
-            borderRadius: '8px',
-            border: `1px #46A3E9 ${selectedFile ? 'none' : 'dashed'}`,
-            padding: '2rem 0.5rem',
-            background: 'rgba(128, 198, 236, 0.20)',
-            textAlign: 'center',
-            cursor: selectedFile ? 'default' : 'pointer',
-            height: '120px',
-            outline: 'none',
-          }}
-          activeStyle={{
-            border: '1px dashed #4D72AA',
-            background: 'rgba(77, 114, 170, 0.20)',
-          }}
-        >
-          {({ dragging }) => (
-            <>
-              <input
-                ref={fileInputRef}
-                type='file'
-                onChange={onFileChange}
-                accept={fileSuffix}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  opacity: 0,
-                  pointerEvents: 'none',
-                }}
-              />
-              <div>
-                {selectedFile ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
+        <>
+          <div
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}
+          >
+            <div style={{ fontWeight: 600 }}>Upload File</div>
+            <button
+              type='button'
+              onClick={onBackToSelection}
+              disabled={!!uploadState?.progress}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: uploadState?.progress ? colors.disabled() : '#46A3E9',
+                cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
+                fontSize: '14px',
+                textDecoration: 'underline',
+              }}
+            >
+              Change source
+            </button>
+          </div>
+          <Dropzone
+            onDrop={onDrop}
+            disabled={!!selectedFile}
+            style={{
+              borderRadius: '8px',
+              border: `1px #46A3E9 ${selectedFile ? 'none' : 'dashed'}`,
+              padding: '2rem 0.5rem',
+              background: 'rgba(128, 198, 236, 0.20)',
+              textAlign: 'center',
+              cursor: selectedFile ? 'default' : 'pointer',
+              height: '120px',
+              outline: 'none',
+            }}
+            activeStyle={{
+              border: '1px dashed #4D72AA',
+              background: 'rgba(77, 114, 170, 0.20)',
+            }}
+          >
+            {({ dragging }) => (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type='file'
+                  onChange={onFileChange}
+                  accept={fileSuffix}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    opacity: 0,
+                    pointerEvents: 'none',
+                  }}
+                />
+                <div>
+                  {selectedFile ? (
                     <div
                       style={{
                         display: 'flex',
                         flexDirection: 'row',
                         alignItems: 'center',
-                        justifyContent: 'left',
+                        justifyContent: 'space-between',
                       }}
                     >
-                      {validationError ? (
-                        <Icon
-                          icon='warning-standard'
-                          size={36}
-                          style={{ color: colors.danger(), marginLeft: '1rem' }}
-                        />
-                      ) : (
-                        <Icon
-                          icon='success-standard'
-                          size={36}
-                          style={{ color: colors.success(), marginLeft: '1rem' }}
-                        />
-                      )}
                       <div
                         style={{
-                          color: '#333',
-                          paddingLeft: '0.5rem',
-                          fontWeight: 600,
-                          overflowWrap: 'anywhere',
-                          textAlign: 'left',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'left',
                         }}
                       >
-                        {selectedFile.name}{' '}
-                        <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
-                          ({formatBytes(selectedFile?.size)})
-                        </span>
+                        {validationError ? (
+                          <Icon
+                            icon='warning-standard'
+                            size={36}
+                            style={{ color: colors.danger(), marginLeft: '1rem' }}
+                          />
+                        ) : (
+                          <Icon
+                            icon='success-standard'
+                            size={36}
+                            style={{ color: colors.success(), marginLeft: '1rem' }}
+                          />
+                        )}
+                        <div
+                          style={{
+                            color: '#333',
+                            paddingLeft: '0.5rem',
+                            fontWeight: 600,
+                            overflowWrap: 'anywhere',
+                            textAlign: 'left',
+                          }}
+                        >
+                          {selectedFile.name}{' '}
+                          <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
+                            ({formatBytes(selectedFile?.size)})
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <button
-                      type='button'
-                      onClick={onClearFile}
-                      disabled={!!uploadState?.progress}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
-                        color: '#666',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        // UX consideration: the padding is here to make the clickable area larger
-                        padding: '1rem',
-                      }}
-                      aria-label='Remove selected file'
-                    >
-                      <Icon icon='times' size={24} color={uploadState?.progress ? colors.disabled() : '#4D72AA'} />
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
-                    {dragging ? `Drop ${fileSuffix} file here` : `Drop ${fileSuffix} file or`}{' '}
-                    {!dragging && (
                       <button
                         type='button'
-                        onClick={onBrowseClick}
-                        onKeyDown={onKeyPress}
+                        onClick={onClearFile}
+                        disabled={!!uploadState?.progress}
                         style={{
-                          color: '#46A3E9',
-                          textDecoration: 'underline',
-                          cursor: 'pointer',
                           background: 'none',
                           border: 'none',
-                          padding: 0,
-                          font: 'inherit',
-                          fontWeight: 'inherit',
+                          cursor: uploadState?.progress ? 'not-allowed' : 'pointer',
+                          color: '#666',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          // UX consideration: the padding is here to make the clickable area larger
+                          padding: '1rem',
                         }}
+                        aria-label='Remove selected file'
                       >
-                        browse
+                        <Icon icon='times' size={24} color={uploadState?.progress ? colors.disabled() : '#4D72AA'} />
                       </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </Dropzone>
+                    </div>
+                  ) : (
+                    <div style={{ fontWeight: 600, paddingTop: '1.25rem', textAlign: 'center' }}>
+                      {dragging ? `Drop ${fileSuffix} file here` : `Drop ${fileSuffix} file or`}{' '}
+                      {!dragging && (
+                        <button
+                          type='button'
+                          onClick={onBrowseClick}
+                          onKeyDown={onKeyPress}
+                          style={{
+                            color: '#46A3E9',
+                            textDecoration: 'underline',
+                            cursor: 'pointer',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            font: 'inherit',
+                            fontWeight: 'inherit',
+                          }}
+                        >
+                          browse
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </Dropzone>
+        </>
       ) : (
         <>
           <div style={{ fontWeight: 'bold', marginBottom: '1rem' }}>Upload status</div>
