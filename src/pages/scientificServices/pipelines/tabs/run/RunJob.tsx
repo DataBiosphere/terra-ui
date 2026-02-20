@@ -100,8 +100,21 @@ export const RunJob = () => {
     setIsSubmitting(false);
   }
 
-  const handlePipelineSubmissionError = (error: unknown, fallbackMessage: string) => {
-    const errorMessage = error instanceof Error ? error.message : fallbackMessage;
+  const handlePipelineSubmissionError = async (error: unknown, fallbackMessage: string) => {
+    let errorMessage = fallbackMessage;
+
+    if (error instanceof Response) {
+      try {
+        const errorData = await error.json();
+        errorMessage = errorData.message || fallbackMessage;
+      } catch {
+        // If parsing fails, use the fallback message
+        errorMessage = fallbackMessage;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     notify('error', `Error: ${errorMessage}`);
     setIsSubmitting(false);
   };
@@ -125,12 +138,10 @@ export const RunJob = () => {
         label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
       }));
 
-      setPipelineVersionOptions(options);
+      setPipelineVersionOptions(options.reverse());
 
-      // Automatically select the first pipeline if there's only one available
-      if (pipelinesList.length === 1) {
-        setSelectedPipeline(pipelinesList[0]);
-      }
+      // Automatically select the most recent pipeline
+      setSelectedPipeline(pipelinesList[pipelinesList.length - 1]);
     }
   }, [pipelinesList]);
 
