@@ -1,9 +1,15 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
 import colors from 'src/libs/colors';
+import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
-import { uploadTimeRemainingDisplayText } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import {
+  resumeUpload,
+  uploadTimeRemainingDisplayText,
+} from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 import { PipelineInputFileUploadState } from './PipelineFileInput';
 
@@ -13,13 +19,11 @@ interface LocalFileInputProps {
   fileSuffix?: string;
   validationError?: ReactNode;
   inputName: string;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onClearFile: (e: React.MouseEvent) => void;
-  onDrop: (acceptedFiles: File[]) => void;
-  onBrowseClick: () => void;
-  onKeyPress: (e: React.KeyboardEvent) => void;
-  onResumeUpload: () => void;
+  isRequired: boolean;
+  onFileSelect: (file: File | null) => void;
+  onValidation: (error?: ReactNode) => void;
+  onUploadComplete?: () => void;
+  setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
   onBackToSelection: () => void;
 }
 
@@ -29,15 +33,105 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
   fileSuffix,
   validationError,
   inputName,
-  fileInputRef,
-  onFileChange,
-  onClearFile,
-  onDrop,
-  onBrowseClick,
-  onKeyPress,
-  onResumeUpload,
+  isRequired,
+  onFileSelect,
+  onValidation,
+  onUploadComplete,
+  setUploadState,
   onBackToSelection,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const FILE_NAME_VALIDATION_REGEX = '^[a-zA-Z0-9_.-]+$';
+
+  const validateFile = (file: File | null) => {
+    // Check if a file is selected, if required
+    if (!file) {
+      onValidation(isRequired ? 'This file is required.' : undefined);
+      return;
+    }
+
+    // Validate file size
+    if (file.size > TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES) {
+      onValidation(
+        <>
+          <span>
+            File size exceeds the {formatBytes(TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES)} limit. Please upload a smaller
+            file.{' '}
+          </span>
+          <div style={{ marginTop: '0.5rem' }}>
+            <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
+            <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more about how to reduce your file size.</ZendeskLink>
+          </div>
+        </>
+      );
+      return;
+    }
+
+    // Validate file type based on suffix
+    if (fileSuffix && !file.name.endsWith(fileSuffix)) {
+      onValidation(`Invalid file type. Please upload a ${fileSuffix} file.`);
+      return;
+    }
+
+    // Validate file name against regex
+    if (!new RegExp(FILE_NAME_VALIDATION_REGEX).test(file.name)) {
+      onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
+      return;
+    }
+
+    // All validations have passed
+    onValidation(undefined);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onFileSelect(file);
+      validateFile(file);
+    }
+  };
+
+  const handleClearFile = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onFileSelect(null);
+    onValidation(undefined);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0 && !selectedFile) {
+      onFileSelect(acceptedFiles[0]);
+      validateFile(acceptedFiles[0]);
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleBrowseClick();
+    }
+  };
+
+  const handleResumeUpload = async () => {
+    if (selectedFile && uploadState?.signedUrl && setUploadState) {
+      try {
+        await resumeUpload(inputName, selectedFile, uploadState.signedUrl, setUploadState);
+        if (onUploadComplete) {
+          onUploadComplete();
+        }
+      } catch (error) {
+        notify('error', `Failed to resume upload for ${inputName}: ${error}`);
+      }
+    }
+  };
+
   if (!uploadState?.progress) {
     return (
       <>
@@ -60,7 +154,7 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
           </button>
         </div>
         <Dropzone
-          onDrop={onDrop}
+          onDrop={handleDrop}
           disabled={!!selectedFile}
           style={{
             borderRadius: '8px',
@@ -82,7 +176,7 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
               <input
                 ref={fileInputRef}
                 type='file'
-                onChange={onFileChange}
+                onChange={handleFileChange}
                 accept={fileSuffix}
                 style={{
                   position: 'absolute',
@@ -140,7 +234,7 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
                     </div>
                     <button
                       type='button'
-                      onClick={onClearFile}
+                      onClick={handleClearFile}
                       disabled={!!uploadState?.progress}
                       style={{
                         background: 'none',
@@ -163,8 +257,8 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
                     {!dragging && (
                       <button
                         type='button'
-                        onClick={onBrowseClick}
-                        onKeyDown={onKeyPress}
+                        onClick={handleBrowseClick}
+                        onKeyDown={handleKeyPress}
                         style={{
                           color: '#46A3E9',
                           textDecoration: 'underline',
@@ -211,7 +305,7 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
                 <Icon icon='warning-standard' size={24} style={{ color: colors.danger(), verticalAlign: 'middle' }} />{' '}
                 <div>There was an error uploading the file.</div>
               </div>
-              <ButtonPrimary type='button' onClick={onResumeUpload}>
+              <ButtonPrimary type='button' onClick={handleResumeUpload}>
                 <div
                   style={{
                     display: 'flex',

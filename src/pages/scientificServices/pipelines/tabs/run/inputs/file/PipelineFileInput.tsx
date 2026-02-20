@@ -1,13 +1,8 @@
 import { Icon } from '@terra-ui-packages/components';
-import React, { Dispatch, ReactNode, SetStateAction, useRef, useState } from 'react';
+import React, { Dispatch, ReactNode, SetStateAction, useState } from 'react';
 import { CloudProviderIcon } from 'src/components/CloudProviderIcon';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { notify } from 'src/libs/notifications';
-import { formatBytes } from 'src/libs/utils';
-import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
-import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
-import { resumeUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 import { GcsFileInput } from './GcsFileInput';
 import { LocalFileInput } from './LocalFileInput';
@@ -110,9 +105,7 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   onUploadComplete,
   setUploadState,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { name, displayName, isRequired, fileSuffix } = input;
-  const FILE_NAME_VALIDATION_REGEX = '^[a-zA-Z0-9_.-]+$';
   const [sourceType, setSourceType] = useState<'local' | 'cloud' | null>(null);
   const [cloudPath, setCloudPath] = useState('');
 
@@ -135,104 +128,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     onValidation(undefined);
   };
 
-  const validateFile = (file: File | null) => {
-    // Check if a file is selected, if required
-    if (!file) {
-      onValidation(input.isRequired ? 'This file is required.' : undefined);
-      return;
-    }
-
-    // Validate file size
-    if (file.size > TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES) {
-      onValidation(
-        <>
-          <span>
-            File size exceeds the {formatBytes(TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES)} limit. Please upload a smaller
-            file.{' '}
-          </span>
-          <div style={{ marginTop: '0.5rem' }}>
-            <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
-            <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more about how to reduce your file size.</ZendeskLink>
-          </div>
-        </>
-      );
-      return;
-    }
-
-    // Validate file type based on suffix
-    if (fileSuffix && !file.name.endsWith(fileSuffix)) {
-      onValidation(`Invalid file type. Please upload a ${fileSuffix} file.`);
-      return;
-    }
-
-    // Validate file name against regex
-    if (!new RegExp(FILE_NAME_VALIDATION_REGEX).test(file.name)) {
-      onValidation('File names may only contain alphanumeric characters, dashes, underscores, and periods.');
-      return;
-    }
-
-    // All validations have passed
-    onValidation(undefined);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onFileSelect(file);
-      validateFile(file);
-    }
-  };
-
-  const handleClearFile = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    onFileSelect(null);
-    setCloudPath('');
-    onValidation(undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0 && !selectedFile) {
-      onFileSelect(acceptedFiles[0]);
-      validateFile(acceptedFiles[0]);
-    }
-  };
-
-  const handleBrowseClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleBrowseClick();
-    }
-  };
-
-  const handleResumeUpload = async () => {
-    if (selectedFile && typeof selectedFile !== 'string' && uploadState?.signedUrl && setUploadState) {
-      try {
-        await resumeUpload(input.name, selectedFile, uploadState.signedUrl, setUploadState);
-        if (onUploadComplete) {
-          onUploadComplete();
-        }
-      } catch (error) {
-        notify('error', `Failed to resume upload for ${input.name}: ${error}`);
-      }
-    }
-  };
-
   const handleSourceSelect = (source: 'local' | 'cloud') => {
     setSourceType(source);
     onFileSelect(null);
     setCloudPath('');
     onValidation(undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   const handleCloudPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -252,9 +152,6 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
     onFileSelect(null);
     setCloudPath('');
     onValidation(undefined);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   return (
@@ -291,13 +188,11 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             fileSuffix={fileSuffix}
             validationError={validationError}
             inputName={name}
-            fileInputRef={fileInputRef}
-            onFileChange={handleFileChange}
-            onClearFile={handleClearFile}
-            onDrop={handleDrop}
-            onBrowseClick={handleBrowseClick}
-            onKeyPress={handleKeyPress}
-            onResumeUpload={handleResumeUpload}
+            isRequired={isRequired}
+            onFileSelect={onFileSelect}
+            onValidation={onValidation}
+            onUploadComplete={onUploadComplete}
+            setUploadState={setUploadState}
             onBackToSelection={handleBackToSelection}
           />
         )}
