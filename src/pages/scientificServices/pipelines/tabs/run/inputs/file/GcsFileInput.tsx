@@ -1,22 +1,57 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
+import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 
 interface GcsFileInputProps {
-  cloudPath: string;
-  fileSuffix?: string;
+  input: PipelineInput;
   validationError?: ReactNode;
-  onCloudPathChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileSelect: (file: string | null) => void;
+  onValidation: (error?: ReactNode) => void;
   onBackToSelection: () => void;
 }
 
 export const GcsFileInput: React.FC<GcsFileInputProps> = ({
-  cloudPath,
-  fileSuffix,
+  input,
   validationError,
-  onCloudPathChange,
+  onFileSelect,
+  onValidation,
   onBackToSelection,
 }) => {
+  const [cloudPath, setCloudPath] = useState('');
+  const { isRequired, fileSuffix } = input;
+
+  const validateCloudPath = (path: string) => {
+    if (!path) {
+      onValidation(isRequired ? 'This file is required.' : undefined);
+      return;
+    }
+
+    if (!path.startsWith('gs://')) {
+      onValidation('Cloud path must start with gs://');
+      return;
+    }
+
+    if (fileSuffix && !path.endsWith(fileSuffix)) {
+      onValidation(`Invalid file type. Please provide a path to a ${fileSuffix} file.`);
+      return;
+    }
+
+    onValidation(undefined);
+  };
+
+  const handleCloudPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const path = e.target.value;
+    setCloudPath(path);
+    validateCloudPath(path);
+
+    if (path && path.startsWith('gs://') && (!fileSuffix || path.endsWith(fileSuffix))) {
+      onFileSelect(path);
+    } else {
+      onFileSelect(null);
+    }
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -39,7 +74,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
       <input
         type='text'
         value={cloudPath}
-        onChange={onCloudPathChange}
+        onChange={handleCloudPathChange}
         placeholder={`gs://bucket/path/to/file${fileSuffix || ''}`}
         style={{
           width: '100%',

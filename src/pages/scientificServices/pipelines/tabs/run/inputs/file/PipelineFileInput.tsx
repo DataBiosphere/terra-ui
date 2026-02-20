@@ -105,52 +105,18 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   onUploadComplete,
   setUploadState,
 }) => {
-  const { name, displayName, isRequired, fileSuffix } = input;
+  const { name, displayName, isRequired } = input;
   const [sourceType, setSourceType] = useState<'local' | 'cloud' | null>(null);
-  const [cloudPath, setCloudPath] = useState('');
-
-  const validateCloudPath = (path: string) => {
-    if (!path) {
-      onValidation(isRequired ? 'This file is required.' : undefined);
-      return;
-    }
-
-    if (!path.startsWith('gs://')) {
-      onValidation('Cloud path must start with gs://');
-      return;
-    }
-
-    if (fileSuffix && !path.endsWith(fileSuffix)) {
-      onValidation(`Invalid file type. Please provide a path to a ${fileSuffix} file.`);
-      return;
-    }
-
-    onValidation(undefined);
-  };
 
   const handleSourceSelect = (source: 'local' | 'cloud') => {
     setSourceType(source);
     onFileSelect(null);
-    setCloudPath('');
     onValidation(undefined);
-  };
-
-  const handleCloudPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const path = e.target.value;
-    setCloudPath(path);
-    validateCloudPath(path);
-
-    if (path && path.startsWith('gs://') && (!fileSuffix || path.endsWith(fileSuffix))) {
-      onFileSelect(path);
-    } else {
-      onFileSelect(null);
-    }
   };
 
   const handleBackToSelection = () => {
     setSourceType(null);
     onFileSelect(null);
-    setCloudPath('');
     onValidation(undefined);
   };
 
@@ -174,10 +140,10 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         {sourceType === null && <FileSourceSelector onSourceSelect={handleSourceSelect} />}
         {sourceType === 'cloud' && (
           <GcsFileInput
-            cloudPath={cloudPath}
-            fileSuffix={fileSuffix}
+            input={input}
             validationError={validationError}
-            onCloudPathChange={handleCloudPathChange}
+            onFileSelect={onFileSelect}
+            onValidation={onValidation}
             onBackToSelection={handleBackToSelection}
           />
         )}
