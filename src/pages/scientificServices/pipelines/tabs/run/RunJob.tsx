@@ -133,12 +133,14 @@ export const RunJob = () => {
 
   useEffect(() => {
     if (pipelinesList && pipelinesList.length > 0) {
-      const options = pipelinesList.map((pipeline) => ({
-        value: pipeline,
-        label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
-      }));
+      const options = pipelinesList
+        .map((pipeline) => ({
+          value: pipeline,
+          label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
+        }))
+        .reverse();
 
-      setPipelineVersionOptions(options.toReversed());
+      setPipelineVersionOptions(options);
 
       // Automatically select the most recent pipeline
       setSelectedPipeline(pipelinesList.at(-1));
