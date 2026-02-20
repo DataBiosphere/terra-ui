@@ -1,6 +1,7 @@
 import { ButtonPrimary, Icon } from '@terra-ui-packages/components';
 import React, { ReactNode, useRef } from 'react';
 import Dropzone from 'src/components/Dropzone';
+import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
@@ -14,26 +15,22 @@ import {
 import { PipelineInputFileUploadState } from './PipelineFileInput';
 
 interface LocalFileInputProps {
+  input: PipelineInput;
   selectedFile: File | null;
-  uploadState?: PipelineInputFileUploadState;
-  fileSuffix?: string;
   validationError?: ReactNode;
-  inputName: string;
-  isRequired: boolean;
+  uploadState?: PipelineInputFileUploadState;
+  setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
   onFileSelect: (file: File | null) => void;
   onValidation: (error?: ReactNode) => void;
   onUploadComplete?: () => void;
-  setUploadState?: React.Dispatch<React.SetStateAction<Record<string, PipelineInputFileUploadState>>>;
   onBackToSelection: () => void;
 }
 
 export const LocalFileInput: React.FC<LocalFileInputProps> = ({
+  input,
   selectedFile,
   uploadState,
-  fileSuffix,
   validationError,
-  inputName,
-  isRequired,
   onFileSelect,
   onValidation,
   onUploadComplete,
@@ -42,6 +39,7 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const FILE_NAME_VALIDATION_REGEX = '^[a-zA-Z0-9_.-]+$';
+  const { name, isRequired, fileSuffix } = input;
 
   const validateFile = (file: File | null) => {
     // Check if a file is selected, if required
@@ -122,12 +120,12 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
   const handleResumeUpload = async () => {
     if (selectedFile && uploadState?.signedUrl && setUploadState) {
       try {
-        await resumeUpload(inputName, selectedFile, uploadState.signedUrl, setUploadState);
+        await resumeUpload(name, selectedFile, uploadState.signedUrl, setUploadState);
         if (onUploadComplete) {
           onUploadComplete();
         }
       } catch (error) {
-        notify('error', `Failed to resume upload for ${inputName}: ${error}`);
+        notify('error', `Failed to resume upload for ${name}: ${error}`);
       }
     }
   };
@@ -319,7 +317,7 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
               </ButtonPrimary>
             </div>
           )}
-          <div key={inputName} style={{ marginTop: '1rem' }}>
+          <div key={name} style={{ marginTop: '1rem' }}>
             <div
               style={{
                 backgroundColor: '#e4e5e6',

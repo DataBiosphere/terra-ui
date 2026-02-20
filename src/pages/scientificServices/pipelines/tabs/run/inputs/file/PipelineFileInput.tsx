@@ -183,12 +183,10 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
         )}
         {sourceType === 'local' && (
           <LocalFileInput
+            input={input}
             selectedFile={typeof selectedFile === 'string' ? null : selectedFile}
             uploadState={uploadState}
-            fileSuffix={fileSuffix}
             validationError={validationError}
-            inputName={name}
-            isRequired={isRequired}
             onFileSelect={onFileSelect}
             onValidation={onValidation}
             onUploadComplete={onUploadComplete}
