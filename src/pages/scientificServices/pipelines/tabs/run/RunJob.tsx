@@ -138,10 +138,10 @@ export const RunJob = () => {
         label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
       }));
 
-      setPipelineVersionOptions(options.reverse());
+      setPipelineVersionOptions(options.toReversed());
 
       // Automatically select the most recent pipeline
-      setSelectedPipeline(pipelinesList[pipelinesList.length - 1]);
+      setSelectedPipeline(pipelinesList.at(-1));
     }
   }, [pipelinesList]);
 

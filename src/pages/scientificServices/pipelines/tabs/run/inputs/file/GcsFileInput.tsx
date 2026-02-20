@@ -20,7 +20,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
 }) => {
   const [cloudPath, setCloudPath] = useState('');
   const { isRequired, fileSuffix } = input;
-  const GSC_PATH_VALIDATION_REGEX = /^gs:\/\/[a-z0-9._-]+\/.+/;
+  const GCS_PATH_VALIDATION_REGEX = /^gs:\/\/[a-z0-9._-]+\/.+/;
 
   const validateCloudPath = (path: string) => {
     if (!path) {
@@ -28,7 +28,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
       return;
     }
 
-    if (!GSC_PATH_VALIDATION_REGEX.test(path)) {
+    if (!GCS_PATH_VALIDATION_REGEX.test(path)) {
       onValidation(
         'Invalid Google Cloud Storage path. It should start with gs:// followed by the bucket name and file path.'
       );
@@ -48,7 +48,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
     setCloudPath(path);
     validateCloudPath(path);
 
-    if (path && path.startsWith('gs://') && (!fileSuffix || path.endsWith(fileSuffix))) {
+    if (path && GCS_PATH_VALIDATION_REGEX.test(path) && (!fileSuffix || path.endsWith(fileSuffix))) {
       onFileSelect(path);
     } else {
       onFileSelect(null);
