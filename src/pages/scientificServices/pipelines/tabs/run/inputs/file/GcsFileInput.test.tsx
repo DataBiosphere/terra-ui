@@ -84,7 +84,33 @@ describe('GcsFileInput', () => {
       const input = screen.getByPlaceholderText('gs://bucket/path/to/file.vcf.gz');
       await userEvent.type(input, 's3://bucket/file.vcf.gz');
 
-      expect(onValidation).toHaveBeenCalledWith('Cloud path must start with gs://');
+      expect(onValidation).toHaveBeenCalledWith(
+        'Invalid Google Cloud Storage path. It should start with gs:// followed by the bucket name and file path.'
+      );
+    });
+
+    it('validates that gs path has a bucket after gs://', async () => {
+      const onValidation = jest.fn();
+      render(<GcsFileInput {...defaultProps} onValidation={onValidation} />);
+
+      const input = screen.getByPlaceholderText('gs://bucket/path/to/file.vcf.gz');
+      await userEvent.type(input, 'gs://');
+
+      expect(onValidation).toHaveBeenCalledWith(
+        'Invalid Google Cloud Storage path. It should start with gs:// followed by the bucket name and file path.'
+      );
+    });
+
+    it('validates that gs path has a blob path after gs:// prefix and bucket name', async () => {
+      const onValidation = jest.fn();
+      render(<GcsFileInput {...defaultProps} onValidation={onValidation} />);
+
+      const input = screen.getByPlaceholderText('gs://bucket/path/to/file.vcf.gz');
+      await userEvent.type(input, 'gs://bucketName');
+
+      expect(onValidation).toHaveBeenCalledWith(
+        'Invalid Google Cloud Storage path. It should start with gs:// followed by the bucket name and file path.'
+      );
     });
 
     it('validates file suffix when provided', async () => {

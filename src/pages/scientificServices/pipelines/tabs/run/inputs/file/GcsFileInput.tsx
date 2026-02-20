@@ -30,7 +30,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
 
     if (!GSC_PATH_VALIDATION_REGEX.test(path)) {
       onValidation(
-        'Invalid Google Cloud Storage path. It should start with "gs://" followed by the bucket name and file path.'
+        'Invalid Google Cloud Storage path. It should start with gs:// followed by the bucket name and file path.'
       );
       return;
     }
