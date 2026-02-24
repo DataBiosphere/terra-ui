@@ -16,14 +16,14 @@ import {
 } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
-import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineBooleanInput';
+import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/boolean/PipelineBooleanInput';
 import {
   PipelineFileInput,
   PipelineInputFileUploadState,
-} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFileInput';
-import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineFloatInput';
+} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
+import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/float/PipelineFloatInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineRunDescription';
-import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineStringInput';
+import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/string/PipelineStringInput';
 import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/HelpfulTipsWidget';
 import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
 import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/QuotaDetailsWidget';
@@ -68,6 +68,10 @@ export const RunJob = () => {
       if (input.isRequired) {
         const value = selectedUserInputs[input.name];
         if (input.type === 'FILE') {
+          // Allow either a File object (local upload) or a string (gs cloud path)
+          if (typeof value === 'string') {
+            return value.startsWith('gs://') && value.endsWith(input.fileSuffix || '');
+          }
           return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
         }
         return value && value.trim() !== '';
@@ -96,8 +100,21 @@ export const RunJob = () => {
     setIsSubmitting(false);
   }
 
-  const handlePipelineSubmissionError = (error: unknown, fallbackMessage: string) => {
-    const errorMessage = error instanceof Error ? error.message : fallbackMessage;
+  const handlePipelineSubmissionError = async (error: unknown, fallbackMessage: string) => {
+    let errorMessage = fallbackMessage;
+
+    if (error instanceof Response) {
+      try {
+        const errorData = await error.json();
+        errorMessage = errorData.message || fallbackMessage;
+      } catch {
+        // If parsing fails, use the fallback message
+        errorMessage = fallbackMessage;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     notify('error', `Error: ${errorMessage}`);
     setIsSubmitting(false);
   };
@@ -116,17 +133,17 @@ export const RunJob = () => {
 
   useEffect(() => {
     if (pipelinesList && pipelinesList.length > 0) {
-      const options = pipelinesList.map((pipeline) => ({
-        value: pipeline,
-        label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
-      }));
+      const options = pipelinesList
+        .map((pipeline) => ({
+          value: pipeline,
+          label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
+        }))
+        .reverse();
 
       setPipelineVersionOptions(options);
 
-      // Automatically select the first pipeline if there's only one available
-      if (pipelinesList.length === 1) {
-        setSelectedPipeline(pipelinesList[0]);
-      }
+      // Automatically select the most recent pipeline
+      setSelectedPipeline(pipelinesList.at(-1));
     }
   }, [pipelinesList]);
 
@@ -164,19 +181,25 @@ export const RunJob = () => {
       return;
     }
 
-    // Upload pipeline input files
-    try {
-      await uploadPipelineFiles(
-        pipelineName,
-        pipelineVersion,
-        pipelineInputs,
-        filteredUserInputs,
-        fileInputUploadUrls,
-        setUploadState
-      );
-    } catch (error) {
-      handlePipelineSubmissionError(error, 'File upload failed');
-      return;
+    // Upload pipeline input files (only if there are local files to upload)
+    const hasLocalFilesToUpload = pipelineInputs
+      .filter((input) => input.type === 'FILE')
+      .some((input) => filteredUserInputs[input.name] instanceof File);
+
+    if (hasLocalFilesToUpload) {
+      try {
+        await uploadPipelineFiles(
+          pipelineName,
+          pipelineVersion,
+          pipelineInputs,
+          filteredUserInputs,
+          fileInputUploadUrls,
+          setUploadState
+        );
+      } catch (error) {
+        handlePipelineSubmissionError(error, 'File upload failed');
+        return;
+      }
     }
 
     // Submit the pipeline run

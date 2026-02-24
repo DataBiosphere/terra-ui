@@ -64,6 +64,17 @@ Object.defineProperty(global, 'crypto', {
   },
 });
 
+// Helper function to select local file input and upload a file
+const selectAndUploadLocalFile = async (fileName: string) => {
+  const selectLocalInputButton = screen.getByText('Upload File');
+  await userEvent.click(selectLocalInputButton);
+  const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+  const file = new File(['test'], fileName, { type: 'text/plain' });
+  await waitFor(() => userEvent.upload(fileInput, file));
+  expect(fileInput.files?.[0]).toBe(file);
+  return file;
+};
+
 describe('RunJob Component', () => {
   const mockPipeline: Pipeline = {
     pipelineName: 'array_imputation',
@@ -182,6 +193,10 @@ describe('RunJob Component', () => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
 
+    // clicks the Upload File button for local uploads
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     // Get the file input directly (it should be present even without pipeline selected)
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     expect(fileInput).toBeInTheDocument();
@@ -216,10 +231,7 @@ describe('RunJob Component', () => {
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
 
     // select a valid file
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
-    await waitFor(() => userEvent.upload(fileInput, file));
-    expect(fileInput.files?.[0]).toBe(file);
+    await selectAndUploadLocalFile('test.vcf.gz');
 
     // the submit button should be enabled now that all required fields are filled and valid
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
@@ -245,10 +257,7 @@ describe('RunJob Component', () => {
     expect(outputPrefixInput).toHaveValue('test_output');
 
     // select an invalid text file for vcf input
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const invalidFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-    await waitFor(() => userEvent.upload(fileInput, invalidFile));
-    expect(fileInput.files?.[0]).toBe(invalidFile);
+    await selectAndUploadLocalFile('test.txt');
 
     // The submit button should remain disabled due to invalid file type
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
@@ -279,10 +288,7 @@ describe('RunJob Component', () => {
     await user.type(outputPrefixInput, 'test_output');
     expect(outputPrefixInput).toHaveValue('test_output');
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
-    await waitFor(() => userEvent.upload(fileInput, file));
-    expect(fileInput.files?.[0]).toBe(file);
+    await selectAndUploadLocalFile('test.vcf.gz');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -315,9 +321,7 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
-    await waitFor(() => userEvent.upload(fileInput, file));
+    await selectAndUploadLocalFile('test.vcf.gz');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -352,9 +356,7 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
-    await waitFor(() => userEvent.upload(fileInput, file));
+    await selectAndUploadLocalFile('test.vcf.gz');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -391,9 +393,7 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['test'], 'test.vcf.gz', { type: 'text/plain' });
-    await waitFor(() => userEvent.upload(fileInput, file));
+    await selectAndUploadLocalFile('test.vcf.gz');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
