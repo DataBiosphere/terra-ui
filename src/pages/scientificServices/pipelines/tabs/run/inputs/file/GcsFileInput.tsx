@@ -1,10 +1,11 @@
 import { Icon, Spinner } from '@terra-ui-packages/components';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { User } from 'src/libs/ajax/User';
 import colors from 'src/libs/colors';
+import { getTerraUser } from 'src/libs/state';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
 const SERVICE_ACCOUNT_EMAIL = 'broad-scientific-services@firecloud.org';
 
@@ -151,31 +152,14 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
 }) => {
   const [cloudPath, setCloudPath] = useState('');
   const [showDetails, setShowDetails] = useState(false);
-  const [proxyGroupEmail, setProxyGroupEmail] = useState<string | null>(null);
-  const [isLoadingProxyGroup, setIsLoadingProxyGroup] = useState(true);
   const { isRequired, fileSuffix } = input;
   const GCS_PATH_VALIDATION_REGEX = /^gs:\/\/[a-z0-9._-]+\/.+/;
 
-  // Fetch the proxy group email on component mount
-  useEffect(() => {
-    const fetchProxyGroup = async () => {
-      try {
-        setIsLoadingProxyGroup(true);
-        const userApi = User();
-        const profile = await userApi.profile.get();
-        const email = profile.contactEmail || '';
-        const result = await userApi.getProxyGroup(email);
-        setProxyGroupEmail(result);
-      } catch (error) {
-        console.error('Failed to fetch proxy group email:', error);
-        setProxyGroupEmail(null);
-      } finally {
-        setIsLoadingProxyGroup(false);
-      }
-    };
+  const userEmail = getTerraUser().email;
+  const { proxyGroup } = useProxyGroup(userEmail);
 
-    fetchProxyGroup();
-  }, []);
+  const proxyGroupEmail = proxyGroup.status === 'Ready' ? proxyGroup.state : null;
+  const isLoadingProxyGroup = proxyGroup.status === 'Loading';
 
   const validateCloudPath = (path: string) => {
     if (!path) {
