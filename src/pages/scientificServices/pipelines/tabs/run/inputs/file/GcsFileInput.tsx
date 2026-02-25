@@ -3,11 +3,10 @@ import React, { ReactNode, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
-
-const SERVICE_ACCOUNT_EMAIL = 'broad-scientific-services@firecloud.org';
 
 const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | null) => {
   if (isLoading) {
@@ -62,6 +61,8 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
   proxyGroupEmail,
   isLoadingProxyGroup,
 }) => {
+  const serviceAccountEmail = getTeaspoonsServiceAccountEmail();
+
   return (
     <>
       <div style={{ marginTop: '0.5rem' }}>
@@ -86,12 +87,20 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
         </button>
       </div>
       {isExpanded && (
-        <div style={{ marginTop: '0.5rem', padding: '0.75rem', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+        <div
+          style={{
+            marginTop: '0.5rem',
+            padding: '0.75rem',
+            backgroundColor: '#f5f5f5',
+            borderRadius: '4px',
+            border: '1px solid #e0e0e0',
+          }}
+        >
           <div style={{ fontSize: '14px', color: '#333', marginBottom: '1rem' }}>
             To ensure that your input file can be properly accessed by Broad Scientific Services, please share your
             input file with the following accounts:
           </div>
-          <div style={{ fontSize: '14px', marginBottom: '0.25rem', fontWeight: 600 }}>Service account</div>
+          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '0.5rem' }}>Service account</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <code
               style={{
@@ -105,14 +114,14 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
                 textOverflow: 'ellipsis',
               }}
             >
-              {SERVICE_ACCOUNT_EMAIL}
+              {serviceAccountEmail}
             </code>
-            <ClipboardButton text={SERVICE_ACCOUNT_EMAIL} />
+            <ClipboardButton text={serviceAccountEmail} />
           </div>
           <div
             style={{
               fontSize: '14px',
-              marginBottom: '0.25rem',
+              marginBottom: '0.5rem',
               marginTop: '1rem',
               fontWeight: 600,
             }}
@@ -122,8 +131,24 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             {renderProxyGroupContent(isLoadingProxyGroup, proxyGroupEmail)}
           </div>
-          <div style={{ fontSize: '14px', color: '#666' }}>
-            <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more</ZendeskLink> about file sharing requirements.
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: '0.5rem',
+              gap: '0.5rem',
+            }}
+          >
+            <div style={{ fontSize: '14px', color: '#666' }}>
+              <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more</ZendeskLink> about file sharing requirements.
+            </div>
+            <ClipboardButton
+              text={`${serviceAccountEmail}, ${proxyGroupEmail || ''}`}
+              style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+            >
+              Copy all
+            </ClipboardButton>
           </div>
         </div>
       )}
@@ -254,4 +279,12 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
       </div>
     </div>
   );
+};
+
+const getTeaspoonsServiceAccountEmail = (): string => {
+  if (getConfig().isProd) {
+    return 'broad-scientific-services@firecloud.org';
+  }
+
+  return 'broad-scientific-services@dev.test.firecloud.org';
 };
