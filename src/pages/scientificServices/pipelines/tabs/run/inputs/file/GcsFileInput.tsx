@@ -266,7 +266,8 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
               style={{ marginTop: '0.25rem', cursor: 'pointer' }}
             />
             <span style={{ fontSize: '14px', lineHeight: '1.4', flex: 1 }}>
-              I confirm that I have shared this file with Broad Scientific Services.
+              I confirm that I have shared this file with Broad Scientific Services.{' '}
+              <span style={{ color: colors.danger(), fontWeight: 'bold' }}>*</span>
             </span>
           </label>
           <SharingInstructions
