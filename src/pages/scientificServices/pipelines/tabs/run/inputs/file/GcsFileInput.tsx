@@ -11,9 +11,9 @@ const SERVICE_ACCOUNT_EMAIL = 'broad-scientific-services@firecloud.org';
 const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | null) => {
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
         <Spinner size={16} />
-        <span style={{ fontSize: '12px', color: '#666' }}>Loading proxy group...</span>
+        <span style={{ color: '#666' }}>Loading proxy group...</span>
       </div>
     );
   }
@@ -40,7 +40,12 @@ const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | n
     );
   }
 
-  return <span style={{ fontSize: '12px', color: '#d00' }}>Failed to load proxy group email</span>;
+  return (
+    <div style={{ color: '#d00', display: 'flex', alignItems: 'center' }}>
+      <Icon icon='warning-standard' size={16} style={{ color: '#d00', marginRight: '0.25rem' }} />
+      Failed to load proxy group information
+    </div>
+  );
 };
 
 interface SharingInstructionsProps {
@@ -111,7 +116,7 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
               fontWeight: 600,
             }}
           >
-            Your proxy group:
+            Your proxy group
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
             {renderProxyGroupContent(isLoadingProxyGroup, proxyGroupEmail)}
