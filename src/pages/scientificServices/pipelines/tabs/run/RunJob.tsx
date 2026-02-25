@@ -33,6 +33,7 @@ import {
   startPipelineRun,
   uploadPipelineFiles,
 } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
+import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 export const RunJob = () => {
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
@@ -73,9 +74,9 @@ export const RunJob = () => {
           if (typeof value === 'string') {
             // For GCS paths, require sharing confirmation
             return (
-              value.startsWith('gs://') &&
+              GCS_PATH_VALIDATION_REGEX.test(value) &&
               value.endsWith(input.fileSuffix || '') &&
-              sharingConfirmedFiles[input.name] === true
+              sharingConfirmedFiles[input.name]
             );
           }
           return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');

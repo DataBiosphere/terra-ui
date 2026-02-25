@@ -6,6 +6,7 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
 const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | null) => {
@@ -178,7 +179,6 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
   const [cloudPath, setCloudPath] = useState('');
   const [showDetails, setShowDetails] = useState(false);
   const { isRequired, fileSuffix } = input;
-  const GCS_PATH_VALIDATION_REGEX = /^gs:\/\/[a-z0-9._-]+\/.+/;
 
   const userEmail = getTerraUser().email;
   const { proxyGroup } = useProxyGroup(userEmail);
