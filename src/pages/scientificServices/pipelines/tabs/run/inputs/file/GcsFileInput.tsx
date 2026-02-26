@@ -54,15 +54,24 @@ interface SharingInstructionsProps {
   onToggleExpand: () => void;
   proxyGroupEmail: string | null;
   isLoadingProxyGroup: boolean;
+  cloudPath?: string;
 }
+
+const extractBucketName = (path: string): string | null => {
+  const match = path.match(/^gs:\/\/([a-z0-9._-]+)(\/|$)/);
+  return match ? match[1] : null;
+};
 
 const SharingInstructions: React.FC<SharingInstructionsProps> = ({
   isExpanded,
   onToggleExpand,
   proxyGroupEmail,
   isLoadingProxyGroup,
+  cloudPath,
 }) => {
   const serviceAccountEmail = getTeaspoonsServiceAccountEmail();
+  const bucketName = cloudPath ? extractBucketName(cloudPath) : null;
+  const consoleUrl = bucketName ? `https://console.cloud.google.com/storage/browser/${bucketName}` : null;
 
   return (
     <>
@@ -151,6 +160,24 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
               Copy all
             </ClipboardButton>
           </div>
+          {consoleUrl && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #d0d0d0' }}>
+              <a
+                href={consoleUrl}
+                target='_blank'
+                rel='noreferrer'
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#46A3E9',
+                  textDecoration: 'none',
+                }}
+              >
+                View bucket in Google Cloud Console <Icon icon='pop-out' />
+              </a>
+            </div>
+          )}
         </div>
       )}
     </>
@@ -275,6 +302,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
             onToggleExpand={() => setShowDetails(!showDetails)}
             proxyGroupEmail={proxyGroupEmail}
             isLoadingProxyGroup={isLoadingProxyGroup}
+            cloudPath={cloudPath}
           />
         </div>
       </div>
