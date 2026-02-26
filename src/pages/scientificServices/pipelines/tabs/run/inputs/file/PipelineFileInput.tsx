@@ -93,6 +93,7 @@ interface PipelineInputSelectorProps {
   validationError?: ReactNode;
   onUploadComplete?: () => void;
   setUploadState?: Dispatch<SetStateAction<Record<string, PipelineInputFileUploadState>>>;
+  onSharingConfirmationChange?: (inputName: string, isConfirmed: boolean) => void;
 }
 
 export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
@@ -104,9 +105,16 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
   validationError,
   onUploadComplete,
   setUploadState,
+  onSharingConfirmationChange,
 }) => {
   const { name, displayName, isRequired } = input;
   const [sourceType, setSourceType] = useState<'local' | 'cloud' | null>(null);
+  const [sharingConfirmed, setSharingConfirmed] = useState(false);
+
+  const handleSharingConfirmationChange = (isConfirmed: boolean) => {
+    setSharingConfirmed(isConfirmed);
+    onSharingConfirmationChange?.(name, isConfirmed);
+  };
 
   const handleSourceSelect = (source: 'local' | 'cloud') => {
     setSourceType(source);
@@ -145,6 +153,8 @@ export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
             onFileSelect={onFileSelect}
             onValidation={onValidation}
             onBackToSelection={handleBackToSelection}
+            onSharingConfirmationChange={handleSharingConfirmationChange}
+            sharingConfirmed={sharingConfirmed}
           />
         )}
         {sourceType === 'local' && (

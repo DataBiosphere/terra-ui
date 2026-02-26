@@ -33,6 +33,7 @@ import {
   startPipelineRun,
   uploadPipelineFiles,
 } from 'src/pages/scientificServices/pipelines/utils/submission-utils';
+import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 export const RunJob = () => {
   const [pipelineVersionOptions, setPipelineVersionOptions] = useState<{ value: Pipeline; label: string }[]>([]);
@@ -47,6 +48,7 @@ export const RunJob = () => {
   const [runDescription, setRunDescription] = useState<string>('');
   const [selectedUserInputs, setSelectedUserInputs] = useState<Record<string, any>>({});
   const [validationErrors, setValidationErrors] = useState<Record<string, ReactNode | undefined>>({});
+  const [sharingConfirmedFiles, setSharingConfirmedFiles] = useState<Record<string, boolean>>({});
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -70,7 +72,12 @@ export const RunJob = () => {
         if (input.type === 'FILE') {
           // Allow either a File object (local upload) or a string (gs cloud path)
           if (typeof value === 'string') {
-            return value.startsWith('gs://') && value.endsWith(input.fileSuffix || '');
+            // For GCS paths, require sharing confirmation
+            return (
+              GCS_PATH_VALIDATION_REGEX.test(value) &&
+              value.endsWith(input.fileSuffix || '') &&
+              sharingConfirmedFiles[input.name]
+            );
           }
           return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
         }
@@ -92,6 +99,13 @@ export const RunJob = () => {
         [inputName]: error,
       };
     });
+  };
+
+  const handleSharingConfirmationChange = (inputName: string, isConfirmed: boolean) => {
+    setSharingConfirmedFiles((prev) => ({
+      ...prev,
+      [inputName]: isConfirmed,
+    }));
   };
 
   async function onUploadComplete(jobId: string) {
@@ -343,6 +357,7 @@ export const RunJob = () => {
                           [input.name]: file,
                         }));
                       }}
+                      onSharingConfirmationChange={handleSharingConfirmationChange}
                     />
                   );
                 })}
