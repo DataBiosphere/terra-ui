@@ -208,7 +208,7 @@ describe('RunJob Component', () => {
   it('validates required fields before allowing submission', async () => {
     render(<RunJob />);
 
-    // Wait for submit button to appear, indicating page has loaded
+    // Wait for submit button to appear
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
@@ -234,6 +234,47 @@ describe('RunJob Component', () => {
     await selectAndUploadLocalFile('test.vcf.gz');
 
     // the submit button should be enabled now that all required fields are filled and valid
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the submit button if cloud file is selected without sharing confirmation', async () => {
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    // Wait for submit button to appear
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Fill in the output prefix (required field)
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await user.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // Select cloud storage as the source
+    const selectCloudInputButton = screen.getByText('Google Cloud Storage');
+    await user.click(selectCloudInputButton);
+
+    // Enter a valid GCS path
+    const gcsPathInput = screen.getByPlaceholderText('gs://bucket/path/to/file.vcf.gz');
+    await user.type(gcsPathInput, 'gs://my-bucket/data/multiSampleVcf.vcf.gz');
+
+    // At this point, submit button should still be disabled because sharing confirmation is unchecked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Now check the sharing confirmation checkbox
+    const sharingConfirmationCheckbox = screen.getByRole('checkbox', {
+      name: /I confirm that I have shared this file with Broad Scientific Services/,
+    });
+    await user.click(sharingConfirmationCheckbox);
+
+    // Now the submit button should be enabled
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
   });
 
