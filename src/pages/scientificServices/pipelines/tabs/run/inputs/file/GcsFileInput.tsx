@@ -44,7 +44,7 @@ const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | n
   return (
     <div style={{ color: '#d00', display: 'flex', alignItems: 'center' }}>
       <Icon icon='warning-standard' size={16} style={{ color: '#d00', marginRight: '0.25rem' }} />
-      Failed to load proxy group information
+      Failed to load proxy group information. Please refresh the page.
     </div>
   );
 };
