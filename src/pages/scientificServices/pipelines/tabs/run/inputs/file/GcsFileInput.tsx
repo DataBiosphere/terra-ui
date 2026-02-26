@@ -142,7 +142,7 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
             }}
           >
             <div style={{ fontSize: '14px', color: '#666' }}>
-              <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more</ZendeskLink> about file sharing requirements.
+              <ZendeskLink docsKey={DocsKey.CLOUD_INPUTS}>Learn more</ZendeskLink> about file sharing requirements.
             </div>
             <ClipboardButton
               text={`${serviceAccountEmail}, ${proxyGroupEmail || ''}`}
