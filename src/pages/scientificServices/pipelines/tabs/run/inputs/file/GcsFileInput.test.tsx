@@ -274,7 +274,7 @@ describe('GcsFileInput', () => {
       renderWithAppContexts(<GcsFileInput {...defaultProps} />);
 
       const checkbox = screen.getByRole('checkbox', {
-        name: /I confirm that I have shared this file with Broad Scientific Services/,
+        name: /I have shared this file with Broad Scientific Services/,
       });
       expect(checkbox).toBeInTheDocument();
       expect(checkbox).not.toBeChecked();
@@ -291,7 +291,7 @@ describe('GcsFileInput', () => {
       );
 
       const checkbox = screen.getByRole('checkbox', {
-        name: /I confirm that I have shared this file with Broad Scientific Services/,
+        name: /I have shared this file with Broad Scientific Services/,
       });
 
       await userEvent.click(checkbox);

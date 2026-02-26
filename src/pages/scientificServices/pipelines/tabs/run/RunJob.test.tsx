@@ -270,7 +270,7 @@ describe('RunJob Component', () => {
 
     // Now check the sharing confirmation checkbox
     const sharingConfirmationCheckbox = screen.getByRole('checkbox', {
-      name: /I confirm that I have shared this file with Broad Scientific Services/,
+      name: /I have shared this file with Broad Scientific Services/,
     });
     await user.click(sharingConfirmationCheckbox);
 
