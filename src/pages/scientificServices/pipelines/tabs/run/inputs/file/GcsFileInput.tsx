@@ -6,6 +6,7 @@ import colors from 'src/libs/colors';
 import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
 import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
@@ -57,11 +58,6 @@ interface SharingInstructionsProps {
   cloudPath?: string;
 }
 
-const extractBucketName = (path: string): string | null => {
-  const match = path.match(/^gs:\/\/([a-z0-9._-]+)(\/|$)/);
-  return match ? match[1] : null;
-};
-
 const SharingInstructions: React.FC<SharingInstructionsProps> = ({
   isExpanded,
   onToggleExpand,
@@ -70,8 +66,6 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
   cloudPath,
 }) => {
   const serviceAccountEmail = getTeaspoonsServiceAccountEmail();
-  const bucketName = cloudPath ? extractBucketName(cloudPath) : null;
-  const consoleUrl = bucketName ? `https://console.cloud.google.com/storage/browser/${bucketName}` : null;
 
   return (
     <>
@@ -160,24 +154,7 @@ const SharingInstructions: React.FC<SharingInstructionsProps> = ({
               Copy all
             </ClipboardButton>
           </div>
-          {consoleUrl && (
-            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #d0d0d0' }}>
-              <a
-                href={consoleUrl}
-                target='_blank'
-                rel='noreferrer'
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  color: '#46A3E9',
-                  textDecoration: 'none',
-                }}
-              >
-                View bucket in Google Cloud Console <Icon icon='pop-out' />
-              </a>
-            </div>
-          )}
+          <BucketConsoleLink cloudPath={cloudPath} />
         </div>
       )}
     </>
