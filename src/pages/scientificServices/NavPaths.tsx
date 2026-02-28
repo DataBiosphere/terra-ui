@@ -1,4 +1,5 @@
 import { CliAuth } from 'src/pages/scientificServices/cli-auth/CliAuth';
+import { AccountAndQuotas } from 'src/pages/scientificServices/pipelines/account/AccountAndQuotas';
 import { About } from 'src/pages/scientificServices/pipelines/tabs/about/About';
 import { JobDetails } from 'src/pages/scientificServices/pipelines/tabs/history/details/JobDetails';
 import { JobHistory } from 'src/pages/scientificServices/pipelines/tabs/history/JobHistory';
@@ -42,5 +43,11 @@ export const navPaths = [
     component: CliAuth,
     title: 'Sign in to the terralab CLI',
     public: true,
+  },
+  {
+    name: 'account',
+    path: '/account',
+    component: AccountAndQuotas,
+    title: 'Account & Quotas',
   },
 ];
