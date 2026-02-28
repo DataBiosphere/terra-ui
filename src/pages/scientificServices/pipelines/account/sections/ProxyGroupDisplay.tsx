@@ -2,13 +2,14 @@ import { Spinner } from '@terra-ui-packages/components';
 import React from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import colors from 'src/libs/colors';
-import { UseProxyGroupResult } from 'src/profile/personal-info/useProxyGroup';
+import { getTerraUser } from 'src/libs/state';
+import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
-interface ProxyGroupDisplayProps {
-  proxyGroup: UseProxyGroupResult['proxyGroup'];
-}
+export const ProxyGroupDisplay: React.FC = () => {
+  const terraUser = getTerraUser();
+  const userEmail = terraUser.email;
+  const { proxyGroup } = useProxyGroup(userEmail);
 
-export const ProxyGroupDisplay: React.FC<ProxyGroupDisplayProps> = ({ proxyGroup }) => {
   return (
     <div>
       {proxyGroup.status === 'Loading' && (
