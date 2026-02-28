@@ -24,42 +24,6 @@ export const Teaspoons = (signal?: AbortSignal) => ({
 
   /* Returns information about the given pipeline version, including default quota information */
   getPipelineDetails: async (pipelineName: string, pipelineVersion: number): Promise<PipelineWithDetails> => {
-    // Mock data for testing second pipeline
-    if (pipelineName === 'lowpass_wgs_imputation') {
-      return Promise.resolve({
-        pipelineName: 'lowpass_wgs_imputation',
-        displayName: 'All of Us + AnVIL Lowpass WGS Imputation',
-        pipelineVersion: 1,
-        description: 'Mock pipeline for testing quota display',
-        type: 'imputation',
-        inputs: [],
-        outputs: [],
-        pipelineQuota: {
-          pipelineName: 'lowpass_wgs_imputation',
-          defaultQuota: 100,
-          minQuotaConsumed: 750,
-          quotaUnits: 'samples',
-        },
-      });
-    }
-    // Mock data for SV Imputation pipeline
-    if (pipelineName === 'sv_imputation') {
-      return Promise.resolve({
-        pipelineName: 'sv_imputation',
-        displayName: 'All of Us + AnVIL SV Imputation',
-        pipelineVersion: 1,
-        description: 'Structural variant imputation pipeline',
-        type: 'imputation',
-        inputs: [],
-        outputs: [],
-        pipelineQuota: {
-          pipelineName: 'sv_imputation',
-          defaultQuota: 1000,
-          minQuotaConsumed: 750,
-          quotaUnits: 'samples',
-        },
-      });
-    }
     const res = await fetchTeaspoons(
       `pipelines/v1/${pipelineName}`,
       _.mergeAll([authOpts(), jsonBody({ pipelineVersion }), { signal, method: 'POST' }])
@@ -69,24 +33,6 @@ export const Teaspoons = (signal?: AbortSignal) => ({
 
   /* Returns the amount of quota consumed by the user for the given pipeline */
   getQuotaForPipeline: async (pipelineName: string): Promise<UserPipelineQuotaDetails> => {
-    // Mock data for testing second pipeline
-    if (pipelineName === 'lowpass_wgs_imputation') {
-      return Promise.resolve({
-        pipelineName: 'lowpass_wgs_imputation',
-        quotaLimit: 10000,
-        quotaConsumed: 9651,
-        quotaUnits: 'samples',
-      });
-    }
-    // Mock data for SV Imputation pipeline
-    if (pipelineName === 'sv_imputation') {
-      return Promise.resolve({
-        pipelineName: 'sv_imputation',
-        quotaLimit: 1000,
-        quotaConsumed: 100,
-        quotaUnits: 'samples',
-      });
-    }
     const res = await fetchTeaspoons(`quotas/v1/${pipelineName}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
