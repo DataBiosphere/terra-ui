@@ -1,4 +1,4 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import FooterWrapper from 'src/components/FooterWrapper';
@@ -148,54 +148,49 @@ const PipelineQuotaDisplay = ({ pipeline }: { pipeline: Pipeline }) => {
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '0.5rem' }}>
-            <AoUStylizedString text={pipeline.displayName} />
-          </div>
-          {/* <div style={{ fontSize: '14px', color: colors.dark(0.7), marginBottom: '0.75rem' }}>{quotaStatusMessage}</div> */}
+        <div style={{ fontSize: '16px', fontWeight: 600 }}>
+          <AoUStylizedString text={pipeline.displayName} />
         </div>
-        <button
-          type='button'
-          onClick={() => {
-            // TODO: Open quota increase request modal
-          }}
-          style={{
-            marginLeft: '1rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: colors.accent(),
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Request Quota Increase
-        </button>
       </div>
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
-          <div style={{ fontWeight: 600 }}>Quota Consumed</div>
-          <div style={{ color: '#666' }}>
-            {quota.quotaConsumed} {quota.quotaUnits}
-          </div>
+      <div style={{ display: 'flex', gap: '2rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ flexShrink: 0, paddingTop: '0.25rem' }}>
+          <Icon
+            icon={meetsMinimumQuota ? 'success-standard' : 'warning-standard'}
+            size={32}
+            style={{ color: meetsMinimumQuota ? colors.success() : colors.danger() }}
+          />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
-          <div style={{ fontWeight: 600 }}>Remaining</div>
-          <div style={{ color: '#666' }}>
-            {remaining} {quota.quotaUnits}
-          </div>
-        </div>
-        {pipelineDetails?.pipelineQuota?.minQuotaConsumed && (
+        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', flex: 1 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
-            <div style={{ fontWeight: 600 }}>Minimum Required</div>
+            <div style={{ fontWeight: 600 }}>Quota Consumed</div>
             <div style={{ color: '#666' }}>
-              {pipelineDetails.pipelineQuota.minQuotaConsumed} {quota.quotaUnits}
+              {quota.quotaConsumed} {quota.quotaUnits}
             </div>
           </div>
-        )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
+            <div style={{ fontWeight: 600 }}>Remaining</div>
+            <div style={{ color: '#666', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {remaining} {quota.quotaUnits}
+            </div>
+          </div>
+          {pipelineDetails?.pipelineQuota?.minQuotaConsumed && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
+              <div style={{ fontWeight: 600 }}>Minimum Required</div>
+              <div style={{ color: '#666' }}>
+                {pipelineDetails.pipelineQuota.minQuotaConsumed} {quota.quotaUnits}
+              </div>
+            </div>
+          )}
+        </div>
+        <div style={{ borderLeft: '1px solid #d6d9dc', paddingLeft: '2rem', flexShrink: 0 }}>
+          <ButtonPrimary
+            onClick={() => {
+              // TODO: Open quota increase request modal
+            }}
+          >
+            Request Quota Increase
+          </ButtonPrimary>
+        </div>
       </div>
     </div>
   );
