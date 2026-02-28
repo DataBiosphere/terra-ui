@@ -81,13 +81,14 @@ export const AccountAndQuotas = () => {
                     // TODO: Link to actual user guide
                   }}
                   style={{
-                    color: colors.accent(),
+                    color: '#46A3E9',
                     textDecoration: 'underline',
                     background: 'none',
                     border: 'none',
                     padding: 0,
                     cursor: 'pointer',
                     font: 'inherit',
+                    fontWeight: 'bold',
                   }}
                 >
                   user guide
@@ -135,9 +136,6 @@ const PipelineQuotaDisplay = ({ pipeline }: { pipeline: Pipeline }) => {
 
   const remaining = quota.quotaLimit - quota.quotaConsumed;
   const quotaColor = meetsMinimumQuota ? colors.success() : colors.danger();
-  const quotaStatusMessage = meetsMinimumQuota
-    ? 'You have sufficient quota remaining to run this pipeline.'
-    : 'You do not have enough quota remaining to run this pipeline. Please request a quota increase.';
 
   return (
     <div
@@ -154,7 +152,7 @@ const PipelineQuotaDisplay = ({ pipeline }: { pipeline: Pipeline }) => {
           <div style={{ fontSize: '16px', fontWeight: 600, marginBottom: '0.5rem' }}>
             <AoUStylizedString text={pipeline.displayName} />
           </div>
-          <div style={{ fontSize: '14px', color: colors.dark(0.7), marginBottom: '0.75rem' }}>{quotaStatusMessage}</div>
+          {/* <div style={{ fontSize: '14px', color: colors.dark(0.7), marginBottom: '0.75rem' }}>{quotaStatusMessage}</div> */}
         </div>
         <button
           type='button'
@@ -178,20 +176,20 @@ const PipelineQuotaDisplay = ({ pipeline }: { pipeline: Pipeline }) => {
         </button>
       </div>
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
           <div style={{ fontWeight: 600 }}>Quota Consumed</div>
           <div style={{ color: '#666' }}>
             {quota.quotaConsumed} {quota.quotaUnits}
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
           <div style={{ fontWeight: 600 }}>Remaining</div>
-          <div style={{ color: quotaColor, fontWeight: 600 }}>
+          <div style={{ color: '#666' }}>
             {remaining} {quota.quotaUnits}
           </div>
         </div>
         {pipelineDetails?.pipelineQuota?.minQuotaConsumed && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px' }}>
             <div style={{ fontWeight: 600 }}>Minimum Required</div>
             <div style={{ color: '#666' }}>
               {pipelineDetails.pipelineQuota.minQuotaConsumed} {quota.quotaUnits}
