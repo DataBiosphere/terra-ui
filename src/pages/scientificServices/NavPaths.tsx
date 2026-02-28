@@ -46,7 +46,7 @@ export const navPaths = [
   },
   {
     name: 'account',
-    path: '/account',
+    path: '/pipelines/account',
     component: AccountAndQuotas,
     title: 'Account & Quotas',
   },
