@@ -7,15 +7,7 @@ import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUs
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 
 export const PipelineQuotaDisplay: React.FC = () => {
-  const { pipelines, isLoading } = usePipelinesList();
-
-  // There can be more than one version of a pipeline so we need to de-duplicate based on pipelineName
-  const uniquePipelines = pipelines.reduce((acc: Pipeline[], pipeline) => {
-    if (!acc.some((p) => p.pipelineName === pipeline.pipelineName)) {
-      acc.push(pipeline);
-    }
-    return acc;
-  }, []);
+  const { uniquePipelines, isLoading } = usePipelinesList();
 
   if (isLoading) {
     return <div>Loading pipelines...</div>;
