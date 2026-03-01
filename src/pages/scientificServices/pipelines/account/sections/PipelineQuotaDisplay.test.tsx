@@ -87,7 +87,7 @@ describe('PipelineQuotaDisplay', () => {
 
       render(<PipelineQuotaDisplay />);
 
-      expect(screen.getByText('No pipelines available')).toBeInTheDocument();
+      expect(screen.getByText(/No pipelines are available for your account/)).toBeInTheDocument();
     });
   });
 
