@@ -1,6 +1,6 @@
 import React from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { AccountInfoDisplay } from 'src/pages/scientificServices/pipelines/account/sections/AccountInfoDisplay';
+import { BasicAccountInfoDisplay } from 'src/pages/scientificServices/pipelines/account/sections/BasicAccountInfoDisplay';
 import { PipelineQuotaDisplay } from 'src/pages/scientificServices/pipelines/account/sections/PipelineQuotaDisplay';
 import { ProxyGroupDisplay } from 'src/pages/scientificServices/pipelines/account/sections/ProxyGroupDisplay';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
@@ -15,7 +15,7 @@ export const AccountAndQuotas = () => {
 
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
           <PipelineWidgetContainer title='Account Info' width='50%' marginTop='0' marginBottom='0'>
-            <AccountInfoDisplay />
+            <BasicAccountInfoDisplay />
           </PipelineWidgetContainer>
 
           <PipelineWidgetContainer title='Proxy Group' width='50%' marginTop='0' marginBottom='0'>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { getTerraUser, getTerraUserProfile } from 'src/libs/state';
 
-export const AccountInfoDisplay: React.FC = () => {
+export const BasicAccountInfoDisplay: React.FC = () => {
   const terraUser = getTerraUser();
   const userProfile = getTerraUserProfile();
 
