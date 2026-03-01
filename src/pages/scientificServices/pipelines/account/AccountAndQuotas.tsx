@@ -10,7 +10,7 @@ export const AccountAndQuotas = () => {
   return (
     <FooterWrapper alwaysShow>
       {pipelinesTopBar()}
-      <div style={{ margin: '2rem' }}>
+      <div style={{ margin: '1rem 2rem' }}>
         <h3>Account & Quotas</h3>
 
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
