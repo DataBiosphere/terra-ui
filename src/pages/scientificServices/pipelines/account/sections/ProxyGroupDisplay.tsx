@@ -3,6 +3,7 @@ import React from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import colors from 'src/libs/colors';
 import { getTerraUser } from 'src/libs/state';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
 export const ProxyGroupDisplay: React.FC = () => {
@@ -44,24 +45,14 @@ export const ProxyGroupDisplay: React.FC = () => {
       )}
       <div style={{ marginTop: '1rem', fontSize: '14px', color: colors.dark(0.7) }}>
         For more information about proxy groups, see the{' '}
-        <button
-          type='button'
-          onClick={() => {
-            // TODO: Link to actual zndesk article
-          }}
-          style={{
-            color: '#46A3E9',
-            textDecoration: 'underline',
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            font: 'inherit',
+        <ZendeskLink
+          docsKey={DocsKey.CLOUD_INPUTS}
+          additionalStyle={{
             fontWeight: 'bold',
           }}
         >
           user guide
-        </button>
+        </ZendeskLink>
         .
       </div>
     </div>

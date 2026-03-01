@@ -156,10 +156,23 @@ const PipelineQuotaCard: React.FC<PipelineQuotaCardProps> = ({ pipeline }) => {
           <QuotaMetric label='Quota Consumed' value={getQuotaValueText(quota?.quotaConsumed)} />
           <QuotaMetric label='Minimum Required' value={getMinimumRequiredText()} />
         </div>
-        <div style={{ borderLeft: '1px solid #d6d9dc', paddingLeft: '2rem', flexShrink: 0 }}>
+        <div
+          style={{
+            borderLeft: '1px solid #d6d9dc',
+            paddingLeft: '2rem',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'flex-start',
+          }}
+        >
           <ButtonPrimary
             onClick={() => {
-              // TODO: open whatever quota increase request flow we decide on. Stripe? ZenDesk doc?
+              window.open(
+                `mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=${encodeURIComponent(
+                  `Request a quote for ${pipeline.displayName} quota`
+                )}`,
+                '_blank'
+              );
             }}
           >
             Request Quota Increase
