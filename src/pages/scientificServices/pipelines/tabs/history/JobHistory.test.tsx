@@ -50,6 +50,7 @@ beforeEach(() => {
   } as any);
   mockUsePipelinesList.mockReturnValue({
     pipelines: [mockPipeline('array_imputation')],
+    uniquePipelines: [mockPipeline('array_imputation')],
     isLoading: false,
     error: undefined,
   });
