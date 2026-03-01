@@ -48,7 +48,7 @@ export const JobHistory = () => {
     direction: 'desc',
   });
 
-  const { isLoading: isLoadingPipelines, pipelines: pipelinesList } = usePipelinesList();
+  const { isLoading: isLoadingPipelines, uniquePipelines: pipelinesList } = usePipelinesList();
 
   // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {

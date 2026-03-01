@@ -204,7 +204,7 @@ const PipelineFilterControl = ({
 }) => {
   const pipelineOptions = pipelinesList.map((pipeline) => ({
     value: pipeline.pipelineName,
-    label: pipeline.pipelineName,
+    label: pipeline.displayName,
   }));
 
   return (
