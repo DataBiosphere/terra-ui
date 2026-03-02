@@ -103,6 +103,12 @@ export interface PipelineRunResponse {
   jobReport: PipelineJobReport;
   errorReport?: PipelineRunErrorReport;
   pipelineRunReport: PipelineRunReport;
+  dataDeliveryReport?: DataDeliveryReport;
+}
+
+export interface DataDeliveryReport {
+  status: 'PENDING' | 'DELIVERED' | 'FAILED';
+  destination: string;
 }
 
 export interface PipelineJobReport {
