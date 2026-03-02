@@ -40,6 +40,8 @@ jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
   getLink: jest.fn(() => '/'),
+  useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
+  updateSearch: jest.fn(),
 }));
 
 beforeEach(() => {
