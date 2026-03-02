@@ -11,6 +11,18 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
   array_imputation: [
     { id: 'quota-check', content: 'Ensure your multi-sample file contains no more samples than your remaining quota' },
     {
+      id: 'file-size',
+      content: (
+        <>
+          For multi-sample VCF files files larger than 1GB, we recommend using a{' '}
+          <ZendeskLink docsKey={DocsKey.CLOUD_INPUTS} additionalStyle={{ fontWeight: 'bold' }}>
+            file hosted in the cloud
+          </ZendeskLink>
+          .
+        </>
+      ),
+    },
+    {
       id: 'format-guidelines',
       content: (
         <>
