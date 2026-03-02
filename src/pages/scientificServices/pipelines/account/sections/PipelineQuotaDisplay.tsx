@@ -1,7 +1,8 @@
-import { ButtonPrimary, Icon, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import * as Nav from 'src/libs/nav';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
@@ -138,6 +139,10 @@ const PipelineQuotaCard: React.FC<PipelineQuotaCardProps> = ({ pipeline }) => {
         <div style={{ fontSize: '16px', fontWeight: 600 }}>
           <AoUStylizedString text={pipeline.displayName} />
         </div>
+        <Link href={Nav.getLink('pipelines-history', {}, { pipelineName: pipeline.pipelineName })}>
+          View your pipeline runs
+          <Icon icon='pop-out' size={16} style={{ marginLeft: '0.25rem' }} />
+        </Link>
       </div>
       <div style={{ display: 'flex', gap: '2rem', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ flexShrink: 0, paddingTop: '0.25rem' }}>
