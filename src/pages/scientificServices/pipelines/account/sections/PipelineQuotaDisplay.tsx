@@ -105,7 +105,7 @@ const PipelineQuotaCard: React.FC<PipelineQuotaCardProps> = ({ pipeline }) => {
   const remaining = quota ? quota.quotaLimit - quota.quotaConsumed : 0;
   let quotaColor = '#ccc';
   if (!isLoading) {
-    quotaColor = meetsMinimumQuota ? colors.success() : colors.danger();
+    quotaColor = meetsMinimumQuota ? colors.success() : colors.warning();
   }
 
   const getMinimumRequiredText = () => {
@@ -152,7 +152,7 @@ const PipelineQuotaCard: React.FC<PipelineQuotaCardProps> = ({ pipeline }) => {
             <Icon
               icon={meetsMinimumQuota ? 'success-standard' : 'warning-standard'}
               size={32}
-              style={{ color: meetsMinimumQuota ? colors.success() : colors.danger() }}
+              style={{ color: meetsMinimumQuota ? colors.success() : colors.warning() }}
             />
           )}
         </div>
