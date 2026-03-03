@@ -44,14 +44,14 @@ export const ProxyGroupDisplay: React.FC = () => {
         </div>
       )}
       <div style={{ marginTop: '1rem', fontSize: '14px', color: colors.dark(0.7) }}>
-        For more information about proxy groups, see the{' '}
+        Your personal Terra access group for using data with Broad Data Services. For more information, see the{' '}
         <ZendeskLink
           docsKey={DocsKey.CLOUD_INPUTS}
           additionalStyle={{
             fontWeight: 'bold',
           }}
         >
-          user guide
+          cloud data user guide
         </ZendeskLink>
         .
       </div>
