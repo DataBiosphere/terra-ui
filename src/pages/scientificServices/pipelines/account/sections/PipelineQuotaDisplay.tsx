@@ -140,7 +140,7 @@ const PipelineQuotaCard: React.FC<PipelineQuotaCardProps> = ({ pipeline }) => {
           <AoUStylizedString text={pipeline.displayName} />
         </div>
         <Link href={Nav.getLink('pipelines-history', {}, { pipelineName: pipeline.pipelineName })}>
-          View your pipeline runs
+          View your jobs
           <Icon icon='pop-out' size={16} style={{ marginLeft: '0.25rem' }} />
         </Link>
       </div>
