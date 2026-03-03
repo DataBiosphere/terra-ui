@@ -107,7 +107,7 @@ export interface PipelineRunResponse {
 }
 
 export interface DataDeliveryReport {
-  status: 'PENDING' | 'DELIVERED' | 'FAILED';
+  status: 'RUNNING' | 'SUCCEEDED' | 'FAILED';
   destination: string;
 }
 

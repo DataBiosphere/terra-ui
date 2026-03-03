@@ -116,6 +116,24 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     );
     return res.json();
   },
+
+  deliverData: async (jobId: string, pipelineRunId: string, gcsPath: string): Promise<void> => {
+    await fetchTeaspoons(
+      `pipelineruns/v2/result/${pipelineRunId}/output/deliver-to-cloud`,
+      _.mergeAll([
+        authOpts(),
+        jsonBody({
+          jobControl: {
+            id: jobId,
+          },
+          serviceRequest: {
+            destinationGcsPath: gcsPath,
+          },
+        }),
+        { signal, method: 'POST' },
+      ])
+    );
+  },
 });
 
 export type TeaspoonsContract = ReturnType<typeof Teaspoons>;

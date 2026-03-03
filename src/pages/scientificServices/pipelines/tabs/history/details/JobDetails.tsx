@@ -64,14 +64,15 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
             <JobDetailsHeader pipelineRunResult={pipelineRunResult} />
 
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              <div style={{ flex: '0 0 25%', minWidth: '200px' }}>
+              <div style={{ flex: '0 0 30%', minWidth: '200px' }}>
                 <PipelineRunTimeline pipelineRunResult={pipelineRunResult} />
-                <DataDeliveryView
-                  dataDeliveryReport={{
-                    status: 'PENDING',
-                    destination: 'gs://fooooo/bar',
-                  }}
-                />
+                {/* actually this needs to only show when status is Success, component needs to handle empty report. */}
+                {pipelineRunResult.dataDeliveryReport && (
+                  <DataDeliveryView
+                    dataDeliveryReport={pipelineRunResult.dataDeliveryReport}
+                    pipelineRunResult={pipelineRunResult}
+                  />
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <JobIOView pipelineRunResult={pipelineRunResult} />
