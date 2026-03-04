@@ -56,6 +56,6 @@ describe('ProxyGroupDisplay', () => {
 
     render(<ProxyGroupDisplay />);
 
-    expect(screen.getByText('user guide')).toBeInTheDocument();
+    expect(screen.getByText('cloud data user guide')).toBeInTheDocument();
   });
 });
