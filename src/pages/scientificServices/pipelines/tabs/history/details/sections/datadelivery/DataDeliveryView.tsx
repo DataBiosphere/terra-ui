@@ -40,6 +40,11 @@ const getStatusLabel = (status: DataDeliveryStatus): string | null => {
   }
 };
 
+const gcsPathToConsoleUrl = (gcsPath: string): string => {
+  const withoutPrefix = gcsPath.replace(/^gs:\/\//, '');
+  return `https://console.cloud.google.com/storage/browser/${withoutPrefix}`;
+};
+
 const validateGcsPath = (path: string): string | undefined => {
   if (!path.trim()) {
     return 'A GCS destination path is required.';
@@ -124,80 +129,108 @@ export const DataDeliveryView = ({ dataDeliveryReport, pipelineRunResult }: Data
         )}
       </div>
 
-      {/* GCS Path Input */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <label htmlFor='gcs-delivery-path' style={{ fontWeight: 600, color: colors.dark() }}>
-            Destination Path
-          </label>
-          <TooltipTrigger content='Enter a destination path to move your results.'>
-            <Icon icon='help' size={16} style={{ color: colors.dark(0.55) }} />
-          </TooltipTrigger>
-        </div>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <input
-            id='gcs-delivery-path'
-            type='text'
-            value={path}
-            onChange={handlePathChange}
-            placeholder='gs://bucket/path/to/destination'
-            aria-label='GCS destination path'
-            aria-describedby={validationError ? 'gcs-path-error' : undefined}
-            aria-invalid={!!validationError}
+      {status === 'SUCCEEDED' ? (
+        <p style={{ margin: 0, fontSize: '14px', color: colors.dark(0.8) }}>
+          The outputs for this job were successfully delivered to the destination in Google Cloud Storage.
+          <a
+            href={gcsPathToConsoleUrl(destination)}
+            target='_blank'
+            rel='noopener noreferrer'
             style={{
-              width: '100%',
-              padding: '0.625rem 0.75rem',
-              paddingRight: validationError ? '2.25rem' : '0.75rem',
-              border: `1px solid ${validationError ? colors.danger() : '#8f95a0'}`,
-              borderRadius: '4px',
-              fontSize: '14px',
-              boxSizing: 'border-box',
-              backgroundColor: 'white',
+              color: '#46A3E9',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              marginTop: '1rem',
             }}
-          />
-          {validationError && (
-            <TooltipTrigger content={validationError} side='right'>
-              <span
-                style={{
-                  position: 'absolute',
-                  right: '0.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  cursor: 'help',
-                }}
-              >
-                <Icon icon='error-standard' size={20} style={{ color: colors.danger() }} />
-              </span>
-            </TooltipTrigger>
-          )}
-        </div>
-        {validationError && (
-          <div
-            id='gcs-path-error'
-            role='alert'
-            style={{ marginTop: '0.375rem', color: colors.danger(), fontSize: '13px' }}
           >
-            {validationError}
+            View in Google Cloud Console. <Icon icon='pop-out' size={14} />
+          </a>
+        </p>
+      ) : (
+        <>
+          {/* GCS Path Input */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label htmlFor='gcs-delivery-path' style={{ fontWeight: 600, color: colors.dark() }}>
+                Destination Path
+              </label>
+              <TooltipTrigger content='Enter a destination path to move your results.'>
+                <Icon icon='help' size={16} style={{ color: colors.dark(0.55) }} />
+              </TooltipTrigger>
+            </div>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                id='gcs-delivery-path'
+                type='text'
+                value={path}
+                onChange={handlePathChange}
+                placeholder='gs://bucket/path/to/destination'
+                aria-label='GCS destination path'
+                aria-describedby={validationError ? 'gcs-path-error' : undefined}
+                aria-invalid={!!validationError}
+                style={{
+                  width: '100%',
+                  padding: '0.625rem 0.75rem',
+                  paddingRight: validationError ? '2.25rem' : '0.75rem',
+                  border: `1px solid ${validationError ? colors.danger() : '#8f95a0'}`,
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  backgroundColor: 'white',
+                }}
+              />
+              {validationError && (
+                <TooltipTrigger content={validationError} side='right'>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      right: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'help',
+                    }}
+                  >
+                    <Icon icon='error-standard' size={20} style={{ color: colors.danger() }} />
+                  </span>
+                </TooltipTrigger>
+              )}
+            </div>
+            {validationError && (
+              <div
+                id='gcs-path-error'
+                role='alert'
+                style={{ marginTop: '0.375rem', color: colors.danger(), fontSize: '13px' }}
+              >
+                {validationError}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <div
-        style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.75rem' }}
-      >
-        {fileCount > 0 && (
-          <span style={{ color: colors.dark(0.6), fontSize: '13px' }}>
-            {`This will copy ${fileCount} ${fileCount === 1 ? 'file' : 'files'} to the destination.`}
-          </span>
-        )}
-        <ButtonPrimary
-          disabled={isDelivering || !!validationError || status === 'DELIVERED' || status === 'RUNNING'}
-          onClick={handleDeliver}
-        >
-          {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
-          {status === 'FAILED' ? 'Retry Delivery' : 'Deliver Data'}
-        </ButtonPrimary>
-      </div>
+          <div
+            style={{
+              marginTop: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '0.75rem',
+            }}
+          >
+            {fileCount > 0 && (
+              <span style={{ color: colors.dark(0.6), fontSize: '13px' }}>
+                {`This will copy ${fileCount} ${fileCount === 1 ? 'file' : 'files'} to the destination.`}
+              </span>
+            )}
+            <ButtonPrimary disabled={isDelivering || !!validationError || status === 'RUNNING'} onClick={handleDeliver}>
+              {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
+              {status === 'FAILED' ? 'Retry Delivery' : 'Deliver Data'}
+            </ButtonPrimary>
+          </div>
+        </>
+      )}
     </div>
   );
 };
