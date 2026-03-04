@@ -12,7 +12,7 @@ const TAB_LINKS = {
   about: 'pipelines-about',
 };
 
-export const pipelinesTopBar = (activeTab: string) => {
+export const pipelinesTopBar = (activeTab?: string) => {
   return (
     <>
       <TopBar title='' href={Nav.getLink('root')} />

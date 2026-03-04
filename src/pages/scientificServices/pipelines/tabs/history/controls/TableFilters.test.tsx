@@ -182,7 +182,7 @@ describe('TableFilters', () => {
       const filters: FilterValues = { pipelineName: 'array_imputation' };
       render(<TableFilters {...defaultProps} filters={filters} />);
 
-      expect(screen.getByText('array_imputation')).toBeInTheDocument();
+      expect(screen.getByText('array_imputation display name')).toBeInTheDocument();
     });
 
     it('calls onFilterChange when pipeline is selected', async () => {
@@ -194,7 +194,7 @@ describe('TableFilters', () => {
       const pipelineControl = screen.getByText('All Pipelines');
       await user.click(pipelineControl);
 
-      const arrayImputationOption = screen.getByText('array_imputation');
+      const arrayImputationOption = screen.getByText('array_imputation display name');
       await user.click(arrayImputationOption);
 
       expect(onFilterChange).toHaveBeenCalledWith({
@@ -210,8 +210,8 @@ describe('TableFilters', () => {
       const pipelineControl = screen.getByText('All Pipelines');
       await user.click(pipelineControl);
 
-      expect(screen.getByText('array_imputation')).toBeInTheDocument();
-      expect(screen.getByText('glimpse_imputation')).toBeInTheDocument();
+      expect(screen.getByText('array_imputation display name')).toBeInTheDocument();
+      expect(screen.getByText('glimpse_imputation display name')).toBeInTheDocument();
     });
   });
 
@@ -286,7 +286,7 @@ describe('TableFilters', () => {
       expect(descriptionInput).toHaveValue('test description');
       expect(jobIdInput).toHaveValue('f05e07fe-bd21-4690-8cee-be8cd23c1b60');
       expect(screen.getByText('In Progress')).toBeInTheDocument();
-      expect(screen.getByText('glimpse_imputation')).toBeInTheDocument();
+      expect(screen.getByText('glimpse_imputation display name')).toBeInTheDocument();
     });
   });
 });
