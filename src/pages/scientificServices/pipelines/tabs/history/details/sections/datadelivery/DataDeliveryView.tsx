@@ -1,12 +1,15 @@
-import { ButtonPrimary, Icon, Spinner, TooltipTrigger } from '@terra-ui-packages/components';
-import { formatDate } from '@terra-ui-packages/core-utils';
+import { ButtonPrimary, Icon, Spinner } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
 import { TextArea } from 'src/components/input';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { DataDeliveryReport, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
+import { getTerraUser } from 'src/libs/state';
+import { SharingInstructions } from 'src/pages/scientificServices/pipelines/common/SharingInstructions';
+import { DocsKey } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 import { v4 as uuidv4 } from 'uuid';
 
 type DataDeliveryStatus = DataDeliveryReport['status'];
@@ -64,6 +67,12 @@ export const DataDeliveryView = ({ dataDeliveryReport, pipelineRunResult }: Data
     destination ? validateGcsPath(destination) : undefined
   );
   const [isDelivering, setIsDelivering] = useState(false);
+  const [showSharingInstructions, setShowSharingInstructions] = useState(false);
+
+  const userEmail = getTerraUser().email;
+  const { proxyGroup } = useProxyGroup(userEmail);
+  const proxyGroupEmail = proxyGroup.status === 'Ready' ? proxyGroup.state : null;
+  const isLoadingProxyGroup = proxyGroup.status === 'Loading';
 
   const handlePathChange = (newPath: string) => {
     setPath(newPath);
@@ -175,8 +184,10 @@ export const DataDeliveryView = ({ dataDeliveryReport, pipelineRunResult }: Data
               aria-label='GCS destination path'
               aria-describedby={validationError ? 'gcs-path-error' : undefined}
               aria-invalid={!!validationError}
+              disabled={status === 'RUNNING'}
               style={{
                 border: `1px solid ${validationError ? colors.danger() : colors.dark(0.5)}`,
+                ...(status === 'RUNNING' ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
               }}
             />
             {validationError && (
@@ -188,6 +199,17 @@ export const DataDeliveryView = ({ dataDeliveryReport, pipelineRunResult }: Data
                 {validationError}
               </div>
             )}
+            {status !== 'RUNNING' && (
+              <SharingInstructions
+                isExpanded={showSharingInstructions}
+                onToggleExpand={() => setShowSharingInstructions(!showSharingInstructions)}
+                proxyGroupEmail={proxyGroupEmail}
+                isLoadingProxyGroup={isLoadingProxyGroup}
+                cloudPath={path}
+                instructions='To ensure that Broad Scientific Services can deliver your outputs to the destination, please share the destination bucket with the following accounts:'
+                docsKey={DocsKey.CLOUD_INPUTS}
+              />
+            )}
           </div>
 
           {status === 'FAILED' && (
@@ -196,25 +218,41 @@ export const DataDeliveryView = ({ dataDeliveryReport, pipelineRunResult }: Data
             </p>
           )}
 
-          <div
-            style={{
-              marginTop: '1rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '0.75rem',
-            }}
-          >
-            {fileCount > 0 && (
-              <span style={{ color: colors.dark(0.7), fontSize: '13px' }}>
-                {`${fileCount} ${fileCount === 1 ? 'file' : 'files'} will be moved to the destination.`}
-              </span>
-            )}
-            <ButtonPrimary disabled={isDelivering || !!validationError || status === 'RUNNING'} onClick={handleDeliver}>
-              {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
-              {status === 'FAILED' ? 'Retry' : 'Deliver'}
-            </ButtonPrimary>
-          </div>
+          {status === 'RUNNING' ? (
+            <div
+              style={{
+                marginTop: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '14px',
+                color: colors.dark(0.7),
+              }}
+            >
+              <Spinner size={20} />
+              Data delivery is currently in progress. Please check back shortly.
+            </div>
+          ) : (
+            <div
+              style={{
+                marginTop: '1rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '0.75rem',
+              }}
+            >
+              {fileCount > 0 && (
+                <span style={{ color: colors.dark(0.7), fontSize: '13px' }}>
+                  {`${fileCount} ${fileCount === 1 ? 'file' : 'files'} will be moved to the destination.`}
+                </span>
+              )}
+              <ButtonPrimary disabled={isDelivering || !!validationError} onClick={handleDeliver}>
+                {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
+                {status === 'FAILED' ? 'Retry Delivery' : 'Deliver Data'}
+              </ButtonPrimary>
+            </div>
+          )}
         </>
       )}
     </div>
