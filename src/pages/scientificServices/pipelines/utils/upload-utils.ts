@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from 'react';
 import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
 
 export const GCS_PATH_VALIDATION_REGEX = /^gs:\/\/[a-z0-9._-]+\/.+/;
+export const GCS_BUCKET_VALIDATION_REGEX = /^gs:\/\/([a-z0-9._-]+)\/?.*/;
 
 // Returns a function that handles progress events for file uploads
 // This function updates the upload state with progress percentage and
