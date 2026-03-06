@@ -3,7 +3,7 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileBasedInput';
 import { isFileBasedType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import { initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 

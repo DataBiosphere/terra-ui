@@ -5,7 +5,7 @@ import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 
-import { PipelineFileInput, PipelineInputFileUploadState } from './PipelineFileInput';
+import { PipelineFileBasedInput, PipelineInputFileUploadState } from './PipelineFileBasedInput';
 
 const mockInput: PipelineInput = {
   name: 'multiSampleVcf',
@@ -22,7 +22,7 @@ const optionalInput: PipelineInput = {
   fileSuffix: '.vcf.gz',
 };
 
-describe('PipelineFileInput', () => {
+describe('PipelineFileBasedInput', () => {
   const defaultProps = {
     input: mockInput,
     value: '',
@@ -35,7 +35,7 @@ describe('PipelineFileInput', () => {
 
   it('renders label and required indicator', () => {
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={null}
         onFileSelect={jest.fn()}
@@ -48,19 +48,19 @@ describe('PipelineFileInput', () => {
   });
 
   it('shows required indicator for required inputs', () => {
-    render(<PipelineFileInput {...defaultProps} />);
+    render(<PipelineFileBasedInput {...defaultProps} />);
     expect(screen.getByText('*')).toBeInTheDocument();
   });
 
   it('does not show required indicator for optional inputs', () => {
-    render(<PipelineFileInput {...defaultProps} input={optionalInput} />);
+    render(<PipelineFileBasedInput {...defaultProps} input={optionalInput} />);
     expect(screen.queryByText('*')).not.toBeInTheDocument();
   });
 
   it('calls onFileSelect when local file is selected via input', async () => {
     const onFileSelect = jest.fn();
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={null}
         onFileSelect={onFileSelect}
@@ -82,7 +82,7 @@ describe('PipelineFileInput', () => {
   it('shows valid file icon and info for valid file', async () => {
     const file = new File(['test'], 'test.vcf.gz');
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={file}
         onFileSelect={jest.fn()}
@@ -101,7 +101,7 @@ describe('PipelineFileInput', () => {
   it('shows invalid file icon and error for files with validation errors', async () => {
     const file = new File(['test'], 'test.txt');
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={file}
         onFileSelect={jest.fn()}
@@ -120,7 +120,7 @@ describe('PipelineFileInput', () => {
     const file = new File(['test'], 'test.vcf.gz');
     const onFileSelect = jest.fn();
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={file}
         onFileSelect={onFileSelect}
@@ -139,7 +139,7 @@ describe('PipelineFileInput', () => {
     const uploadState: PipelineInputFileUploadState = { progress: 100 };
 
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
@@ -158,7 +158,7 @@ describe('PipelineFileInput', () => {
     const uploadState: PipelineInputFileUploadState = { progress: 1, signedUrl: 'http://signed.url' };
 
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
@@ -183,7 +183,7 @@ describe('PipelineFileInput', () => {
     };
 
     render(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
@@ -211,7 +211,7 @@ describe('PipelineFileInput', () => {
     const setUploadState = jest.fn();
 
     renderWithAppContexts(
-      <PipelineFileInput
+      <PipelineFileBasedInput
         input={mockInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
@@ -236,7 +236,7 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
+        <PipelineFileBasedInput
           input={mockInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
@@ -269,7 +269,7 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
+        <PipelineFileBasedInput
           input={mockInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
@@ -300,7 +300,7 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
+        <PipelineFileBasedInput
           input={mockInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
@@ -325,7 +325,7 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
+        <PipelineFileBasedInput
           input={mockInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
@@ -351,7 +351,7 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
+        <PipelineFileBasedInput
           input={mockInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
@@ -379,7 +379,7 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
+        <PipelineFileBasedInput
           input={mockInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
@@ -405,7 +405,7 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
+        <PipelineFileBasedInput
           input={mockInput}
           selectedFile={null}
           onFileSelect={onFileSelect}

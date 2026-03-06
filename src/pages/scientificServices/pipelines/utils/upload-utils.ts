@@ -1,6 +1,6 @@
 import pluralize from 'pluralize';
 import { Dispatch, SetStateAction } from 'react';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileBasedInput';
 
 export const GCS_PATH_VALIDATION_REGEX = /^gs:\/\/[a-z0-9._-]+\/.+/;
 

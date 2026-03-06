@@ -18,9 +18,9 @@ import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/u
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/boolean/PipelineBooleanInput';
 import {
-  PipelineFileInput,
+  PipelineFileBasedInput,
   PipelineInputFileUploadState,
-} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
+} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileBasedInput';
 import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/float/PipelineFloatInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/string/PipelineStringInput';
@@ -343,7 +343,7 @@ export const RunJob = () => {
                 .filter((input) => isFileBasedType(input.type))
                 .map((input) => {
                   return (
-                    <PipelineFileInput
+                    <PipelineFileBasedInput
                       key={`${input.name}`}
                       input={input}
                       uploadState={uploadState[input.name]}
