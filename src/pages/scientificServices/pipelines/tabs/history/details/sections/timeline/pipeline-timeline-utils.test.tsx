@@ -107,7 +107,7 @@ describe('pipeline-timeline-utils', () => {
       const terminalEvent = getTerminalEvent(mockPipelineRun);
 
       expect(terminalEvent).toBeDefined();
-      expect(terminalEvent.label).toBe('Pipeline Succeeded');
+      expect(terminalEvent.label).toBe('Job Succeeded');
       expect(terminalEvent.status).toBe('SUCCEEDED');
       expect(terminalEvent.timestamp).toBe('2024-01-01T11:30:45Z');
       expect(terminalEvent.moreInfo).toBeUndefined();
@@ -126,7 +126,7 @@ describe('pipeline-timeline-utils', () => {
       const terminalEvent = getTerminalEvent(mockPipelineRun);
 
       expect(terminalEvent).toBeDefined();
-      expect(terminalEvent.label).toBe('Pipeline Failed');
+      expect(terminalEvent.label).toBe('Job Failed');
       expect(terminalEvent.status).toBe('FAILED');
       expect(terminalEvent.timestamp).toBe('2024-01-01T10:05:00Z');
       expect(terminalEvent.moreInfo).toBeUndefined();
@@ -145,10 +145,10 @@ describe('pipeline-timeline-utils', () => {
       const terminalEvent = getTerminalEvent(mockPipelineRun);
 
       expect(terminalEvent).toBeDefined();
-      expect(terminalEvent.label).toBe('Pipeline Running');
+      expect(terminalEvent.label).toBe('Job Running');
       expect(terminalEvent.status).toBe('RUNNING');
       expect(terminalEvent.timestamp).toBeUndefined();
-      expect(terminalEvent.moreInfo).toBe('This pipeline is currently running');
+      expect(terminalEvent.moreInfo).toBe('This job is currently running');
     });
   });
 });
