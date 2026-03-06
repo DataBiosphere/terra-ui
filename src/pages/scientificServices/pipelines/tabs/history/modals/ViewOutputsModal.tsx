@@ -1,10 +1,11 @@
-import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Modal, Spinner } from '@terra-ui-packages/components';
 import { formatDate } from '@terra-ui-packages/core-utils';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 
@@ -144,7 +145,15 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     <span style={{ fontWeight: 'bold' }}>
                       {formatDate(result.pipelineRunReport.outputExpirationDate)}
                     </span>
-                    . Please download them before this date.
+                    . Please download them before this date, or{' '}
+                    <Link
+                      href={Nav.getLink('pipelines-job-detail', { jobId })}
+                      onClick={onDismiss}
+                      baseColor={() => '#46A3E9'}
+                    >
+                      deliver them to a cloud destination
+                    </Link>{' '}
+                    using the Deliver Outputs feature.
                   </div>
                 )}
               </div>

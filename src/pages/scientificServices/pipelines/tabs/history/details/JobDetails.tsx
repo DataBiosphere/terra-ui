@@ -66,11 +66,12 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div style={{ flex: '0 0 30%', minWidth: '200px' }}>
                 <PipelineRunTimeline pipelineRunResult={pipelineRunResult} />
-                {/* actually this needs to only show when status is Success, component needs to handle empty report. */}
-                <DataDeliveryView
-                  dataDeliveryReport={pipelineRunResult.dataDeliveryReport || null}
-                  pipelineRunResult={pipelineRunResult}
-                />
+                {pipelineRunResult.jobReport.status === 'SUCCEEDED' && (
+                  <DataDeliveryView
+                    dataDeliveryReport={pipelineRunResult.dataDeliveryReport || null}
+                    pipelineRunResult={pipelineRunResult}
+                  />
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <JobIOView pipelineRunResult={pipelineRunResult} />

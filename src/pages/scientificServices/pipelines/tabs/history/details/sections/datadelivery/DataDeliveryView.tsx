@@ -1,10 +1,9 @@
-import { ButtonPrimary, Icon, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Spinner } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
 import { TextArea } from 'src/components/input';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { DataDeliveryReport, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { notify } from 'src/libs/notifications';
 import { SharingInstructions } from 'src/pages/scientificServices/pipelines/common/SharingInstructions';
 import { GCS_BUCKET_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 import { v4 as uuidv4 } from 'uuid';
@@ -52,6 +51,25 @@ const validateGcsPath = (path: string): string | undefined => {
   return undefined;
 };
 
+const ERROR_MESSAGE_MAP: { substring: string; friendly: string }[] = [
+  {
+    substring: 'service does not have necessary permissions',
+    friendly:
+      'Broad Scientific Services does not have permission to write to the destination bucket. Please check the sharing instructions and try again.',
+  },
+  {
+    substring: 'user does not have necessary permissions',
+    friendly:
+      'Your do not have permission to write to the destination bucket. Please check the sharing instructions and try again.',
+  },
+];
+
+const parseDeliveryError = (raw: string): string => {
+  const lower = raw.toLowerCase();
+  const match = ERROR_MESSAGE_MAP.find(({ substring }) => lower.includes(substring.toLowerCase()));
+  return match?.friendly ?? 'An unexpected error occurred. Please try again.';
+};
+
 export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRunResult }: DataDeliveryViewProps) => {
   const jobId = pipelineRunResult.jobReport.id;
 
@@ -61,6 +79,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
     initialReport?.destination ? validateGcsPath(initialReport.destination) : undefined
   );
   const [isDelivering, setIsDelivering] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const status: DataDeliveryStatus = dataDeliveryReport?.status ?? 'NOT_STARTED';
   const destination = dataDeliveryReport?.destination ?? '';
@@ -81,6 +100,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
       return;
     }
     setIsDelivering(true);
+    setErrorMessage(undefined);
     try {
       await Teaspoons().deliverData(uuidv4(), jobId, path);
       const updated = await Teaspoons().getPipelineRunResult(jobId);
@@ -88,7 +108,15 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
         setDataDeliveryReport(updated.dataDeliveryReport);
       }
     } catch (err) {
-      notify('error', 'Failed to initiate data delivery.', { detail: err });
+      let raw: string;
+      if (err instanceof Response) {
+        raw = await err.text();
+      } else if (err instanceof Error) {
+        raw = err.message;
+      } else {
+        raw = String(err);
+      }
+      setErrorMessage(parseDeliveryError(raw));
     } finally {
       setIsDelivering(false);
     }
@@ -109,7 +137,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
             }}
           >
             <span style={{ fontSize: '14px', color: colors.danger() }}>
-              There was an error moving the results to the destination. Please retry the delivery.
+              {errorMessage ?? 'There was an error moving the results to the destination. Please retry the delivery.'}
             </span>
             <ButtonPrimary
               disabled={isDelivering || !!validationError}
@@ -139,52 +167,52 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
         return (
           <div style={{ marginTop: '0.75rem', fontSize: '14px', color: colors.dark(0.8) }}>
             The outputs for this job were successfully delivered to the destination in Google Cloud Storage.{' '}
-            <a
+            <Link
               href={gcsPathToConsoleUrl(destination)}
               target='_blank'
               rel='noopener noreferrer'
-              style={{
-                color: '#46A3E9',
-                fontWeight: 700,
-                textDecoration: 'underline',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-                marginTop: '0.5rem',
-              }}
+              baseColor={() => '#46A3E9'}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.5rem' }}
             >
               View your outputs in the Google Cloud Console
               <Icon icon='pop-out' size={14} />
-            </a>
+            </Link>
           </div>
         );
       default: {
         const outputs = pipelineRunResult.pipelineRunReport?.outputs ?? {};
         const fileCount = Object.keys(outputs).length;
         return (
-          <div
-            style={{
-              marginTop: '1rem',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: '0.75rem',
-            }}
-          >
-            {fileCount > 0 && (
-              <span style={{ fontSize: '13px', color: colors.dark(0.7) }}>
-                {`${fileCount} ${fileCount === 1 ? 'file' : 'files'} will be moved to the destination.`}
-              </span>
+          <>
+            {errorMessage && (
+              <div role='alert' style={{ marginTop: '0.75rem', fontSize: '14px', color: colors.danger() }}>
+                {errorMessage}
+              </div>
             )}
-            <ButtonPrimary
-              disabled={isDelivering || !!validationError}
-              onClick={handleDeliver}
-              style={{ marginLeft: 'auto' }}
+            <div
+              style={{
+                marginTop: '0.75rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '0.75rem',
+              }}
             >
-              {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
-              Deliver
-            </ButtonPrimary>
-          </div>
+              {fileCount > 0 && (
+                <span style={{ fontSize: '13px', color: colors.dark(0.7) }}>
+                  {`${fileCount} ${fileCount === 1 ? 'file' : 'files'} will be moved to the destination.`}
+                </span>
+              )}
+              <ButtonPrimary
+                disabled={isDelivering || !!validationError}
+                onClick={handleDeliver}
+                style={{ marginLeft: 'auto' }}
+              >
+                {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
+                Deliver
+              </ButtonPrimary>
+            </div>
+          </>
         );
       }
     }

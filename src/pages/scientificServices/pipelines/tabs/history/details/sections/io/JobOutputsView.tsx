@@ -92,7 +92,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
               fontWeight: 500,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
               {outputExpirationText}
             </div>
