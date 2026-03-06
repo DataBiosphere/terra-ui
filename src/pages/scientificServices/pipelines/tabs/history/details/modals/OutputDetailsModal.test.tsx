@@ -4,7 +4,7 @@ import React from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import Events from 'src/libs/events';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   mockPipelineRunResponse,
   mockPipelineWithDetails,
@@ -15,7 +15,7 @@ import { OutputDetailsModal } from './OutputDetailsModal';
 
 jest.mock('src/libs/ajax/Metrics');
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
-jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
+jest.mock('src/pages/scientificServices/pipelines/utils/file-utils');
 
 describe('OutputDetailsModal', () => {
   const mockCaptureEvent = jest.fn();

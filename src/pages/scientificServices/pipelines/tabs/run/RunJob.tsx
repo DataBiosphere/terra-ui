@@ -28,6 +28,7 @@ import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/r
 import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
 import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/QuotaDetailsWidget';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
+import { isFileBasedType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   preparePipelineRun,
   startPipelineRun,
@@ -69,7 +70,7 @@ export const RunJob = () => {
     return pipelineInputs.every((input) => {
       if (input.isRequired) {
         const value = selectedUserInputs[input.name];
-        if (input.type === 'FILE') {
+        if (isFileBasedType(input.type)) {
           // Allow either a File object (local upload) or a string (gs cloud path)
           if (typeof value === 'string') {
             // For GCS paths, require sharing confirmation
@@ -197,7 +198,7 @@ export const RunJob = () => {
 
     // Upload pipeline input files (only if there are local files to upload)
     const hasLocalFilesToUpload = pipelineInputs
-      .filter((input) => input.type === 'FILE')
+      .filter((input) => isFileBasedType(input.type))
       .some((input) => filteredUserInputs[input.name] instanceof File);
 
     if (hasLocalFilesToUpload) {
@@ -337,9 +338,9 @@ export const RunJob = () => {
                   );
                 })}
 
-              {/* Displays all FILE inputs, one after another */}
+              {/* Displays all FILE or MANIFEST inputs, one after another */}
               {pipelineInputs
-                .filter((input) => input.type === 'FILE')
+                .filter((input) => isFileBasedType(input.type))
                 .map((input) => {
                   return (
                     <PipelineFileInput

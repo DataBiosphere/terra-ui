@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import * as Nav from 'src/libs/nav';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import { mockPipelineRunResponse } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -12,7 +12,7 @@ import { JobDetails } from './JobDetails';
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 jest.mock('src/libs/nav');
 jest.mock('src/libs/notifications');
-jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
+jest.mock('src/pages/scientificServices/pipelines/utils/file-utils');
 
 describe('JobDetails', () => {
   const mockGetPipelineRunResult = jest.fn();
