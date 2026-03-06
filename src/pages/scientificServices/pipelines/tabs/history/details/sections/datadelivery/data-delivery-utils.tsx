@@ -23,11 +23,6 @@ export const STATUS_CONFIG: Record<DataDeliveryStatus, { label: string; icon: Re
   },
 };
 
-export const gcsPathToConsoleUrl = (gcsPath: string): string => {
-  const withoutPrefix = gcsPath.replace(/^gs:\/\//, '');
-  return `https://console.cloud.google.com/storage/browser/${withoutPrefix}`;
-};
-
 export const validateGcsPath = (path: string): string | undefined => {
   if (!path.trim()) {
     return 'A destination path is required.';

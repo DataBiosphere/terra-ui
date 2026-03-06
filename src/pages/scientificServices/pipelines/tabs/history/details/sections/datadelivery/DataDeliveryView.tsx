@@ -1,4 +1,4 @@
-import { ButtonPrimary, Icon, Link, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Spinner } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
 import { TextArea } from 'src/components/input';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -6,11 +6,11 @@ import { DataDeliveryReport, PipelineRunResponse } from 'src/libs/ajax/teaspoons
 import colors from 'src/libs/colors';
 import { CloudDataAccessInstructions } from 'src/pages/scientificServices/pipelines/common/CloudDataAccessInstructions';
 import {
-  gcsPathToConsoleUrl,
   parseDeliveryError,
   STATUS_CONFIG,
   validateGcsPath,
 } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/datadelivery/data-delivery-utils';
+import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useDeliveryPolling } from './useDeliveryPolling';
@@ -117,17 +117,8 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
       case 'SUCCEEDED':
         return (
           <div style={{ marginTop: '0.75rem', fontSize: '14px', color: colors.dark(0.8) }}>
-            The outputs for this job were successfully delivered to the destination in Google Cloud Storage.{' '}
-            <Link
-              href={gcsPathToConsoleUrl(destination)}
-              target='_blank'
-              rel='noopener noreferrer'
-              baseColor={() => '#46A3E9'}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.5rem' }}
-            >
-              View your outputs in the Google Cloud Console
-              <Icon icon='pop-out' size={14} />
-            </Link>
+            The outputs for this job were successfully delivered to the destination in Google Cloud Storage.
+            <BucketConsoleLink cloudPath={destination} linkText='View your outputs in the Google Cloud Console' />
           </div>
         );
       default: {
