@@ -1,50 +1,40 @@
 import { ButtonPrimary, Icon, Spinner } from '@terra-ui-packages/components';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { TextArea } from 'src/components/input';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { DataDeliveryReport, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { notify } from 'src/libs/notifications';
-import { getTerraUser } from 'src/libs/state';
 import { SharingInstructions } from 'src/pages/scientificServices/pipelines/common/SharingInstructions';
-import { DocsKey } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { GCS_BUCKET_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
-import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 import { v4 as uuidv4 } from 'uuid';
 
-const POLL_INTERVAL_MS = 10000; // 10 seconds - delivery jobs shouldn't really take much longer than that
+import { useDeliveryPolling } from './useDeliveryPolling';
 
-type DataDeliveryStatus = DataDeliveryReport['status'];
+type DataDeliveryStatus = DataDeliveryReport['status'] | 'NOT_STARTED';
 
 interface DataDeliveryViewProps {
-  dataDeliveryReport: DataDeliveryReport;
+  dataDeliveryReport: Partial<DataDeliveryReport> | null;
   pipelineRunResult: PipelineRunResponse;
 }
 
-const getStatusIcon = (status: DataDeliveryStatus) => {
-  switch (status) {
-    case 'SUCCEEDED':
-      return <Icon icon='success-standard' size={16} style={{ color: colors.success() }} aria-label='Delivered' />;
-    case 'FAILED':
-      return <Icon icon='warning-standard' size={16} style={{ color: colors.danger() }} aria-label='Failed' />;
-    case 'RUNNING':
-      return <Icon icon='clock' size={16} style={{ color: colors.dark(0.5) }} aria-label='Pending' />;
-    default:
-      return null;
-  }
-};
-
-const getStatusLabel = (status: DataDeliveryStatus): string | null => {
-  switch (status) {
-    case 'SUCCEEDED':
-      return 'Delivered';
-    case 'FAILED':
-      return 'Failed';
-    case 'RUNNING':
-      return 'Pending';
-    default:
-      return null;
-  }
+const STATUS_CONFIG: Record<DataDeliveryStatus, { label: string; icon: React.ReactElement }> = {
+  NOT_STARTED: {
+    label: 'Not Started',
+    icon: <Icon icon='circle' size={16} style={{ color: colors.dark(0.4) }} aria-label='Not Started' />,
+  },
+  RUNNING: {
+    label: 'In Progress',
+    icon: <Spinner size={16} aria-label='In Progress' />,
+  },
+  SUCCEEDED: {
+    label: 'Delivered',
+    icon: <Icon icon='success-standard' size={16} style={{ color: colors.success() }} aria-label='Delivered' />,
+  },
+  FAILED: {
+    label: 'Failed',
+    icon: <Icon icon='warning-standard' size={16} style={{ color: colors.danger() }} aria-label='Failed' />,
+  },
 };
 
 const gcsPathToConsoleUrl = (gcsPath: string): string => {
@@ -63,48 +53,22 @@ const validateGcsPath = (path: string): string | undefined => {
 };
 
 export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRunResult }: DataDeliveryViewProps) => {
-  const [dataDeliveryReport, setDataDeliveryReport] = useState<DataDeliveryReport>(initialReport);
-  const { status, destination } = dataDeliveryReport;
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const jobId = pipelineRunResult.jobReport.id;
 
-  useEffect(() => {
-    const clearPolling = () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-
-    if (status === 'RUNNING') {
-      intervalRef.current = setInterval(async () => {
-        try {
-          const updated = await Teaspoons().getPipelineRunResult(pipelineRunResult.jobReport.id);
-          if (updated.dataDeliveryReport) {
-            setDataDeliveryReport(updated.dataDeliveryReport);
-            if (updated.dataDeliveryReport.status !== 'RUNNING') {
-              clearPolling();
-            }
-          }
-        } catch {
-          // silently ignore polling errors
-        }
-      }, POLL_INTERVAL_MS);
-    }
-
-    return clearPolling;
-  }, [status, pipelineRunResult.jobReport.id]);
-  const [path, setPath] = useState(destination ?? '');
+  const [dataDeliveryReport, setDataDeliveryReport] = useState<Partial<DataDeliveryReport> | null>(initialReport);
+  const [path, setPath] = useState(initialReport?.destination ?? '');
   const [validationError, setValidationError] = useState<string | undefined>(() =>
-    destination ? validateGcsPath(destination) : undefined
+    initialReport?.destination ? validateGcsPath(initialReport.destination) : undefined
   );
   const [isDelivering, setIsDelivering] = useState(false);
-  const [showSharingInstructions, setShowSharingInstructions] = useState(false);
 
-  const userEmail = getTerraUser().email;
-  const { proxyGroup } = useProxyGroup(userEmail);
-  const proxyGroupEmail = proxyGroup.status === 'Ready' ? proxyGroup.state : null;
-  const isLoadingProxyGroup = proxyGroup.status === 'Loading';
+  const status: DataDeliveryStatus = dataDeliveryReport?.status ?? 'NOT_STARTED';
+  const destination = dataDeliveryReport?.destination ?? '';
 
+  // ── Polling (while RUNNING) ───────────────────────────────────────────────
+  useDeliveryPolling({ jobId, status, onUpdate: setDataDeliveryReport });
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handlePathChange = (newPath: string) => {
     setPath(newPath);
     setValidationError(validateGcsPath(newPath));
@@ -118,8 +82,8 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
     }
     setIsDelivering(true);
     try {
-      await Teaspoons().deliverData(uuidv4(), pipelineRunResult.jobReport.id, path);
-      const updated = await Teaspoons().getPipelineRunResult(pipelineRunResult.jobReport.id);
+      await Teaspoons().deliverData(uuidv4(), jobId, path);
+      const updated = await Teaspoons().getPipelineRunResult(jobId);
       if (updated.dataDeliveryReport) {
         setDataDeliveryReport(updated.dataDeliveryReport);
       }
@@ -130,97 +94,50 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
     }
   };
 
-  const statusLabel = getStatusLabel(status);
-  const outputs = pipelineRunResult.pipelineRunReport?.outputs ?? {};
-  const fileCount = Object.keys(outputs).length;
-
-  return (
-    <div
-      style={{
-        backgroundColor: '#f4f6f9',
-        border: '1px solid #d6d9dc',
-        borderRadius: '4px',
-        padding: '1rem 1rem 1.5rem',
-        margin: '1rem 0',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem',
-        }}
-      >
-        <h3 style={{ margin: 0 }}>Deliver Outputs</h3>
-        {statusLabel && (
+  // ── Per-status content ────────────────────────────────────────────────────
+  const renderStatusContent = () => {
+    switch (status) {
+      case 'FAILED':
+        return (
           <div
             style={{
+              marginTop: '1rem',
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: 'white',
-              padding: '0.5rem 0.75rem',
-              border: '1px solid #D8D9DC',
-              borderRadius: '20px',
-              fontWeight: 500,
+              gap: '0.75rem',
             }}
           >
-            {getStatusIcon(status)}
-            {statusLabel}
+            <span style={{ fontSize: '14px', color: colors.danger() }}>
+              There was an error moving the results to the destination. Please retry the delivery.
+            </span>
+            <ButtonPrimary
+              disabled={isDelivering || !!validationError}
+              onClick={handleDeliver}
+              style={{ marginLeft: 'auto' }}
+            >
+              {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
+              Retry
+            </ButtonPrimary>
           </div>
-        )}
-      </div>
-      {status !== 'SUCCEEDED' && (
-        <p style={{ margin: '0 0 1rem 0', fontSize: '14px', color: colors.dark(0.8) }}>
-          Enter a destination path in Google Cloud Storage to deliver the outputs of this job.
-        </p>
-      )}
-
-      {/* GCS Path Input */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-          <label htmlFor='gcs-delivery-path' style={{ fontWeight: 600, color: colors.dark() }}>
-            Destination Path
-          </label>
-        </div>
-        <TextArea
-          id='gcs-delivery-path'
-          rows={3}
-          value={path}
-          onChange={handlePathChange}
-          placeholder='gs://bucket/path/to/destination'
-          aria-label='GCS destination path'
-          aria-describedby={validationError ? 'gcs-path-error' : undefined}
-          aria-invalid={!!validationError}
-          disabled={status === 'RUNNING' || status === 'SUCCEEDED'}
-          style={{
-            border: `1px solid ${validationError ? colors.danger() : colors.dark(0.5)}`,
-            ...(status === 'RUNNING' || status === 'SUCCEEDED' ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
-          }}
-        />
-        {validationError && (
-          <div id='gcs-path-error' role='alert' style={{ marginTop: '0.5rem', color: colors.danger() }}>
-            {validationError}
+        );
+      case 'RUNNING':
+        return (
+          <div
+            style={{
+              marginTop: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              fontSize: '14px',
+              color: colors.dark(0.7),
+            }}
+          >
+            Data delivery is currently in progress. Please check back shortly.
           </div>
-        )}
-        {status !== 'RUNNING' && status !== 'SUCCEEDED' && (
-          <SharingInstructions
-            isExpanded={showSharingInstructions}
-            onToggleExpand={() => setShowSharingInstructions(!showSharingInstructions)}
-            proxyGroupEmail={proxyGroupEmail}
-            isLoadingProxyGroup={isLoadingProxyGroup}
-            cloudPath={path}
-            instructions='To ensure that Broad Scientific Services can deliver your outputs to the destination, please share the destination bucket with the following accounts:'
-            docsKey={DocsKey.CLOUD_INPUTS}
-          />
-        )}
-      </div>
-
-      {status === 'SUCCEEDED' && (
-        <div style={{ fontSize: '14px', color: colors.dark(0.8) }}>
-          <div style={{ marginTop: '0.75rem' }}>
+        );
+      case 'SUCCEEDED':
+        return (
+          <div style={{ marginTop: '0.75rem', fontSize: '14px', color: colors.dark(0.8) }}>
             The outputs for this job were successfully delivered to the destination in Google Cloud Storage.{' '}
             <a
               href={gcsPathToConsoleUrl(destination)}
@@ -233,59 +150,116 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.25rem',
-                marginTop: '0.75rem',
+                marginTop: '0.5rem',
               }}
             >
               View your outputs in the Google Cloud Console
               <Icon icon='pop-out' size={14} />
             </a>
           </div>
-        </div>
-      )}
+        );
+      default: {
+        const outputs = pipelineRunResult.pipelineRunReport?.outputs ?? {};
+        const fileCount = Object.keys(outputs).length;
+        return (
+          <div
+            style={{
+              marginTop: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '0.75rem',
+            }}
+          >
+            {fileCount > 0 && (
+              <span style={{ fontSize: '13px', color: colors.dark(0.7) }}>
+                {`${fileCount} ${fileCount === 1 ? 'file' : 'files'} will be moved to the destination.`}
+              </span>
+            )}
+            <ButtonPrimary
+              disabled={isDelivering || !!validationError}
+              onClick={handleDeliver}
+              style={{ marginLeft: 'auto' }}
+            >
+              {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
+              Deliver
+            </ButtonPrimary>
+          </div>
+        );
+      }
+    }
+  };
 
-      {status === 'FAILED' && (
-        <p style={{ margin: '1rem 0 0 0', fontSize: '14px', color: colors.danger() }}>
-          There was an error moving the results to the destination. Please retry the delivery.
-        </p>
-      )}
+  const isInputDisabled = status === 'RUNNING' || status === 'SUCCEEDED';
 
-      {status === 'RUNNING' && (
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div
+      style={{
+        backgroundColor: '#f4f6f9',
+        border: '1px solid #d6d9dc',
+        borderRadius: '4px',
+        padding: '1rem 1rem 1.5rem',
+        margin: '1rem 0',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ margin: 0 }}>Deliver Outputs</h3>
         <div
           style={{
-            marginTop: '1rem',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            fontSize: '14px',
-            color: colors.dark(0.7),
+            backgroundColor: 'white',
+            padding: '0.5rem 0.75rem',
+            border: '1px solid #D8D9DC',
+            borderRadius: '20px',
+            fontWeight: 500,
           }}
         >
-          <Spinner size={20} />
-          Data delivery is currently in progress. Please check back shortly.
+          {STATUS_CONFIG[status].icon}
+          {STATUS_CONFIG[status].label}
         </div>
+      </div>
+
+      {status === 'NOT_STARTED' && (
+        <p style={{ margin: '0 0 1rem 0', fontSize: '14px', color: colors.dark(0.8) }}>
+          Enter a destination path in Google Cloud Storage to deliver the outputs of this job.
+        </p>
       )}
 
-      {status !== 'RUNNING' && status !== 'SUCCEEDED' && (
-        <div
-          style={{
-            marginTop: '1rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '0.75rem',
-          }}
+      <div>
+        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+        <label
+          htmlFor='gcs-delivery-path'
+          style={{ display: 'block', fontWeight: 600, color: colors.dark(), marginBottom: '0.5rem' }}
         >
-          {fileCount > 0 && (
-            <span style={{ color: colors.dark(0.7), fontSize: '13px' }}>
-              {`${fileCount} ${fileCount === 1 ? 'file' : 'files'} will be moved to the destination.`}
-            </span>
-          )}
-          <ButtonPrimary disabled={isDelivering || !!validationError} onClick={handleDeliver}>
-            {isDelivering && <Spinner size={16} style={{ marginRight: '0.5rem' }} />}
-            {status === 'FAILED' ? 'Retry' : 'Deliver'}
-          </ButtonPrimary>
-        </div>
-      )}
+          Destination Path
+        </label>
+        <TextArea
+          id='gcs-delivery-path'
+          rows={3}
+          value={path}
+          onChange={handlePathChange}
+          placeholder='gs://bucket/path/to/destination'
+          aria-label='GCS destination path'
+          aria-describedby={validationError ? 'gcs-path-error' : undefined}
+          aria-invalid={!!validationError}
+          disabled={isInputDisabled}
+          style={{
+            border: `1px solid ${validationError ? colors.danger() : colors.dark(0.5)}`,
+            ...(isInputDisabled ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
+          }}
+        />
+        {validationError && (
+          <div id='gcs-path-error' role='alert' style={{ marginTop: '0.5rem', color: colors.danger() }}>
+            {validationError}
+          </div>
+        )}
+        {!isInputDisabled && <SharingInstructions cloudPath={path} cloudAccessType='outputs' />}
+      </div>
+
+      {renderStatusContent()}
     </div>
   );
 };

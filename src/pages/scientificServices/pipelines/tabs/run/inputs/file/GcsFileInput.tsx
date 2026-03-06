@@ -1,10 +1,8 @@
 import React, { ReactNode, useState } from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { getTerraUser } from 'src/libs/state';
 import { SharingInstructions } from 'src/pages/scientificServices/pipelines/common/SharingInstructions';
 import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
-import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
 interface GcsFileInputProps {
   input: PipelineInput;
@@ -26,14 +24,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
   sharingConfirmed,
 }) => {
   const [cloudPath, setCloudPath] = useState('');
-  const [showDetails, setShowDetails] = useState(false);
   const { isRequired, fileSuffix } = input;
-
-  const userEmail = getTerraUser().email;
-  const { proxyGroup } = useProxyGroup(userEmail);
-
-  const proxyGroupEmail = proxyGroup.status === 'Ready' ? proxyGroup.state : null;
-  const isLoadingProxyGroup = proxyGroup.status === 'Loading';
 
   const validateCloudPath = (path: string) => {
     if (!path) {
@@ -119,13 +110,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
               <span style={{ color: colors.danger(), fontWeight: 'bold' }}>*</span>
             </span>
           </label>
-          <SharingInstructions
-            isExpanded={showDetails}
-            onToggleExpand={() => setShowDetails(!showDetails)}
-            proxyGroupEmail={proxyGroupEmail}
-            isLoadingProxyGroup={isLoadingProxyGroup}
-            cloudPath={cloudPath}
-          />
+          <SharingInstructions cloudPath={cloudPath} cloudAccessType='inputs' />
         </div>
       </div>
     </div>

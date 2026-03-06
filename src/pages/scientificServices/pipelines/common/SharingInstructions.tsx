@@ -1,9 +1,11 @@
 import { Icon, Spinner } from '@terra-ui-packages/components';
-import React from 'react';
+import React, { useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { getConfig } from 'src/libs/config';
+import { getTerraUser } from 'src/libs/state';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
+import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
 export const getTeaspoonsServiceAccountEmail = (): string => {
   if (getConfig().isProd) {
@@ -53,36 +55,42 @@ const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | n
   );
 };
 
+const ACCESS_TYPE_CONFIG: Record<'inputs' | 'outputs', { instructions: string; docsKey: DocsKey }> = {
+  inputs: {
+    instructions:
+      'To ensure that your input file can be properly accessed by Broad Scientific Services, please share your input file with the following accounts:',
+    docsKey: DocsKey.CLOUD_INPUTS,
+  },
+  outputs: {
+    instructions:
+      'To ensure that Broad Scientific Services can deliver your outputs to the destination, please share the destination bucket with the following accounts:',
+    docsKey: DocsKey.CLOUD_INPUTS,
+  },
+};
+
 export interface SharingInstructionsProps {
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-  proxyGroupEmail: string | null;
-  isLoadingProxyGroup: boolean;
   /** Optional GCS path used to render a direct link to the bucket in the Cloud Console. */
   cloudPath?: string;
-  /** The body text explaining why sharing is required. Defaults to input-file instructions. */
-  instructions?: string;
-  /** The Zendesk docs key to link to. Defaults to DocsKey.CLOUD_INPUTS. */
-  docsKey?: DocsKey;
+  /** Whether these instructions are for input files or output delivery. Defaults to 'inputs'. */
+  cloudAccessType: 'inputs' | 'outputs';
 }
 
-export const SharingInstructions: React.FC<SharingInstructionsProps> = ({
-  isExpanded,
-  onToggleExpand,
-  proxyGroupEmail,
-  isLoadingProxyGroup,
-  cloudPath,
-  instructions = 'To ensure that your input file can be properly accessed by Broad Scientific Services, please share your input file with the following accounts:',
-  docsKey = DocsKey.CLOUD_INPUTS,
-}) => {
+export const SharingInstructions: React.FC<SharingInstructionsProps> = ({ cloudPath, cloudAccessType }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const serviceAccountEmail = getTeaspoonsServiceAccountEmail();
+  const { instructions, docsKey } = ACCESS_TYPE_CONFIG[cloudAccessType];
+
+  const userEmail = getTerraUser().email;
+  const { proxyGroup } = useProxyGroup(userEmail);
+  const proxyGroupEmail = proxyGroup.status === 'Ready' ? proxyGroup.state : null;
+  const isLoadingProxyGroup = proxyGroup.status === 'Loading';
 
   return (
     <>
       <div style={{ marginTop: '0.5rem' }}>
         <button
           type='button'
-          onClick={onToggleExpand}
+          onClick={() => setIsExpanded(!isExpanded)}
           style={{
             background: 'none',
             border: 'none',
