@@ -10,6 +10,12 @@ import { ViewOutputsModal } from './ViewOutputsModal';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getPath: jest.fn(() => '/test/'),
+  getLink: jest.fn(() => '/'),
+}));
+
 describe('ViewOutputsModal', () => {
   const jobId = 'test-job-id';
   const onDismissMock = jest.fn();

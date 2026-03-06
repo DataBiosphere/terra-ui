@@ -55,12 +55,12 @@ const ERROR_MESSAGE_MAP: { substring: string; friendly: string }[] = [
   {
     substring: 'service does not have necessary permissions',
     friendly:
-      'Broad Scientific Services does not have permission to write to the destination bucket. Please check the sharing instructions and try again.',
+      'Broad Scientific Services does not have permission to write to the destination bucket. Please review the sharing instructions and try again.',
   },
   {
     substring: 'user does not have necessary permissions',
     friendly:
-      'Your do not have permission to write to the destination bucket. Please check the sharing instructions and try again.',
+      'You do not have permission to write to the destination bucket. Please review the sharing instructions and try again.',
   },
 ];
 
@@ -137,7 +137,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
             }}
           >
             <span style={{ fontSize: '14px', color: colors.danger() }}>
-              {errorMessage ?? 'There was an error moving the results to the destination. Please retry the delivery.'}
+              {errorMessage ?? 'There was an error moving the outputs to the destination. Please retry the delivery.'}
             </span>
             <ButtonPrimary
               disabled={isDelivering || !!validationError}
