@@ -177,7 +177,7 @@ export const OAuth2Account = (props: OAuth2AccountProps) => {
                 {isPollingForEraId && eraUserId === 'none' ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <Spinner style={{ marginRight: '0.5rem' }} />
-                    Loading eRA Commons ID...
+                    Loading linked authorizations...
                   </span>
                 ) : (
                   <>

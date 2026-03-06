@@ -368,7 +368,7 @@ describe('OAuth2Account', () => {
         });
 
         // Assert
-        expect(screen.getByText('Loading eRA Commons ID...')).toBeInTheDocument();
+        expect(screen.getByText('Loading linked authorizations...')).toBeInTheDocument();
       });
 
       it('does not show spinner when eRA Commons ID is already available after linking', async () => {
@@ -400,7 +400,7 @@ describe('OAuth2Account', () => {
 
         // Assert
         expect(screen.getByText('existingEraUser789')).toBeInTheDocument();
-        expect(screen.queryByText('Loading eRA Commons ID...')).not.toBeInTheDocument();
+        expect(screen.queryByText('Loading linked authorizations...')).not.toBeInTheDocument();
       });
 
       it('successfully retrieves eRA Commons ID through polling', async () => {
@@ -439,7 +439,7 @@ describe('OAuth2Account', () => {
           render(<OAuth2Account queryParams={queryParams} provider={rasProvider} />);
         });
 
-        expect(screen.getByText('Loading eRA Commons ID...')).toBeInTheDocument();
+        expect(screen.getByText('Loading linked authorizations...')).toBeInTheDocument();
 
         // Assert - wait for polling to complete
         await waitFor(
@@ -450,7 +450,7 @@ describe('OAuth2Account', () => {
         );
 
         expect(getLinkStatusFn).toHaveBeenCalled();
-        expect(screen.queryByText('Loading eRA Commons ID...')).not.toBeInTheDocument();
+        expect(screen.queryByText('Loading linked authorizations...')).not.toBeInTheDocument();
       });
     });
   });
