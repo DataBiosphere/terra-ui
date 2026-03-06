@@ -65,6 +65,21 @@ describe('TopBar', () => {
     expect(screen.queryByText('Documentation')).toBeInTheDocument();
   });
 
+  it('displays scientificServices account menu options when logged in', async () => {
+    configOverridesStore.set({ brand: 'scientificServices' });
+
+    authStore.update((authState) => ({ ...authState, signInStatus: 'authenticated' as SignInStatus }));
+
+    // Act
+    render(h(TopBar));
+    fireEvent.click(screen.getByLabelText('Toggle main menu'));
+    fireEvent.click(screen.getByText('Loading...')); // username is shown as Loading... while user info is being fetched
+
+    // Assert
+    expect(screen.queryByText('Account & Quotas')).toBeInTheDocument();
+    expect(screen.queryByText('Sign Out')).toBeInTheDocument();
+  });
+
   it('renders full options when scientificServices brand option is disabled', async () => {
     configOverridesStore.set({ brand: undefined });
 

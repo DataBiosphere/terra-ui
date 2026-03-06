@@ -57,7 +57,7 @@ describe('PipelineFileInput', () => {
     expect(screen.queryByText('*')).not.toBeInTheDocument();
   });
 
-  it('calls onFileSelect when file is selected via input', async () => {
+  it('calls onFileSelect when local file is selected via input', async () => {
     const onFileSelect = jest.fn();
     render(
       <PipelineFileInput
@@ -68,14 +68,18 @@ describe('PipelineFileInput', () => {
         onValidation={jest.fn()}
       />
     );
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+
     expect(fileInput).toBeInTheDocument();
     const file = new File(['test'], 'test.vcf.gz');
     await waitFor(() => userEvent.upload(fileInput, file));
     expect(onFileSelect).toHaveBeenCalledWith(file);
   });
 
-  it('shows valid file icon and info for valid file', () => {
+  it('shows valid file icon and info for valid file', async () => {
     const file = new File(['test'], 'test.vcf.gz');
     render(
       <PipelineFileInput
@@ -86,12 +90,15 @@ describe('PipelineFileInput', () => {
         onValidation={jest.fn()}
       />
     );
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     expect(screen.getByText(file.name)).toBeInTheDocument();
     expect(screen.getByLabelText('Remove selected file')).toBeInTheDocument();
     expect(screen.queryByText(/Invalid file type/)).not.toBeInTheDocument();
   });
 
-  it('shows invalid file icon and error for files with validation errors', () => {
+  it('shows invalid file icon and error for files with validation errors', async () => {
     const file = new File(['test'], 'test.txt');
     render(
       <PipelineFileInput
@@ -102,11 +109,14 @@ describe('PipelineFileInput', () => {
         onValidation={jest.fn()}
       />
     );
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     expect(screen.getByText(file.name)).toBeInTheDocument();
     expect(screen.getByText(/Invalid file type/)).toBeInTheDocument();
   });
 
-  it('clears file when clear button is clicked', () => {
+  it('clears file when clear button is clicked', async () => {
     const file = new File(['test'], 'test.vcf.gz');
     const onFileSelect = jest.fn();
     render(
@@ -118,11 +128,14 @@ describe('PipelineFileInput', () => {
         onValidation={jest.fn()}
       />
     );
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     fireEvent.click(screen.getByLabelText('Remove selected file'));
     expect(onFileSelect).toHaveBeenCalledWith(null);
   });
 
-  it('shows upload progress and success', () => {
+  it('shows upload progress and success', async () => {
     const uploadState: PipelineInputFileUploadState = { progress: 100 };
 
     render(
@@ -135,11 +148,13 @@ describe('PipelineFileInput', () => {
         onValidation={jest.fn()}
       />
     );
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
 
     expect(screen.getByText(/Upload successful/)).toBeInTheDocument();
   });
 
-  it('shows upload ETA as Calculating when no ETA is ready yet', () => {
+  it('shows upload ETA as Calculating when no ETA is ready yet', async () => {
     const uploadState: PipelineInputFileUploadState = { progress: 1, signedUrl: 'http://signed.url' };
 
     render(
@@ -153,11 +168,14 @@ describe('PipelineFileInput', () => {
       />
     );
 
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     expect(screen.getByText('Estimated time remaining:')).toBeInTheDocument();
     expect(screen.getByText('Calculating...')).toBeInTheDocument();
   });
 
-  it('shows upload progress with ETA', () => {
+  it('shows upload progress with ETA', async () => {
     const uploadState: PipelineInputFileUploadState = {
       progress: 50,
       signedUrl: 'http://signed.url',
@@ -175,11 +193,14 @@ describe('PipelineFileInput', () => {
       />
     );
 
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     expect(screen.getByText('Estimated time remaining:')).toBeInTheDocument();
     expect(screen.getByText('2 minutes')).toBeInTheDocument();
   });
 
-  it('shows upload error and retry button', () => {
+  it('shows upload error and retry button', async () => {
     const uploadState: PipelineInputFileUploadState = {
       progress: 50,
       errorMessage: 'Network error',
@@ -202,6 +223,9 @@ describe('PipelineFileInput', () => {
       />
     );
 
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
     expect(screen.getByText(/There was an error uploading/)).toBeInTheDocument();
     expect(screen.getByText(/Retry/)).toBeInTheDocument();
   });
@@ -220,6 +244,9 @@ describe('PipelineFileInput', () => {
           onValidation={onValidation}
         />
       );
+
+      const selectLocalInputButton = screen.getByText('Upload File');
+      await userEvent.click(selectLocalInputButton);
 
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 
@@ -251,6 +278,9 @@ describe('PipelineFileInput', () => {
         />
       );
 
+      const selectLocalInputButton = screen.getByText('Upload File');
+      await userEvent.click(selectLocalInputButton);
+
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
 
       // Upload a file smaller than the size limit
@@ -279,6 +309,9 @@ describe('PipelineFileInput', () => {
         />
       );
 
+      const selectLocalInputButton = screen.getByText('Upload File');
+      await userEvent.click(selectLocalInputButton);
+
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       const wrongSuffixFile = new File(['test'], 'test.txt');
 
@@ -300,6 +333,9 @@ describe('PipelineFileInput', () => {
           onValidation={onValidation}
         />
       );
+
+      const selectLocalInputButton = screen.getByText('Upload File');
+      await userEvent.click(selectLocalInputButton);
 
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       const correctSuffixFile = new File(['test'], 'test.vcf.gz');
@@ -323,6 +359,9 @@ describe('PipelineFileInput', () => {
           onValidation={onValidation}
         />
       );
+
+      const selectLocalInputButton = screen.getByText('Upload File');
+      await userEvent.click(selectLocalInputButton);
 
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       const invalidNameFile = new File(['test'], 'really bad file name !#$.vcf.gz');
@@ -349,6 +388,9 @@ describe('PipelineFileInput', () => {
         />
       );
 
+      const selectLocalInputButton = screen.getByText('Upload File');
+      await userEvent.click(selectLocalInputButton);
+
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       const validFile = new File(['test'], 'valid_file-name.123.vcf.gz');
 
@@ -371,6 +413,9 @@ describe('PipelineFileInput', () => {
           onValidation={onValidation}
         />
       );
+
+      const selectLocalInputButton = screen.getByText('Upload File');
+      await userEvent.click(selectLocalInputButton);
 
       // First upload an invalid file to trigger a validation error
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;

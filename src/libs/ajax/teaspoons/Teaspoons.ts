@@ -73,7 +73,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     description: string
   ): Promise<PreparePipelineRunResponse> => {
     const res = await fetchTeaspoons(
-      'pipelineruns/v1/prepare',
+      'pipelineruns/v2/prepare',
       _.mergeAll([
         authOpts(),
         jsonBody({

@@ -6,6 +6,7 @@ import { useCancellation } from 'src/libs/react-utils';
 
 export interface UsePipelinesListResult {
   pipelines: Pipeline[];
+  uniquePipelines: Pipeline[]; // Pipelines de-duplicated by pipelineName
   isLoading: boolean;
   error: Error | undefined;
 }
@@ -37,8 +38,16 @@ export const usePipelinesList = (): UsePipelinesListResult => {
     fetchPipelines();
   }, [signal]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const uniquePipelines = pipelines.reduce((acc: Pipeline[], pipeline) => {
+    if (!acc.some((p) => p.pipelineName === pipeline.pipelineName)) {
+      acc.push(pipeline);
+    }
+    return acc;
+  }, []);
+
   return {
     pipelines,
+    uniquePipelines,
     isLoading,
     error,
   };
