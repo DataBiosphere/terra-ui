@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { SharingInstructions } from 'src/pages/scientificServices/pipelines/common/SharingInstructions';
+import { CloudDataAccessInstructions } from 'src/pages/scientificServices/pipelines/common/CloudDataAccessInstructions';
 import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 interface GcsFileInputProps {
@@ -110,7 +110,7 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
               <span style={{ color: colors.danger(), fontWeight: 'bold' }}>*</span>
             </span>
           </label>
-          <SharingInstructions cloudPath={cloudPath} cloudAccessType='inputs' />
+          <CloudDataAccessInstructions cloudPath={cloudPath} cloudAccessType='inputs' />
         </div>
       </div>
     </div>

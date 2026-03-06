@@ -68,14 +68,17 @@ const ACCESS_TYPE_CONFIG: Record<'inputs' | 'outputs', { instructions: string; d
   },
 };
 
-export interface SharingInstructionsProps {
+export interface CloudDataAccessInstructionsProps {
   /** Optional GCS path used to render a direct link to the bucket in the Cloud Console. */
   cloudPath?: string;
-  /** Whether these instructions are for input files or output delivery. Defaults to 'inputs'. */
+  /** Whether these access instructions are for input files or output delivery. */
   cloudAccessType: 'inputs' | 'outputs';
 }
 
-export const SharingInstructions: React.FC<SharingInstructionsProps> = ({ cloudPath, cloudAccessType }) => {
+export const CloudDataAccessInstructions: React.FC<CloudDataAccessInstructionsProps> = ({
+  cloudPath,
+  cloudAccessType,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const serviceAccountEmail = getTeaspoonsServiceAccountEmail();
   const { instructions, docsKey } = ACCESS_TYPE_CONFIG[cloudAccessType];
@@ -101,7 +104,6 @@ export const SharingInstructions: React.FC<SharingInstructionsProps> = ({ cloudP
             padding: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '0.25rem',
           }}
         >
           <Icon icon={isExpanded ? 'angle-down' : 'angle-right'} size={16} style={{ flexShrink: 0 }} />
@@ -119,7 +121,7 @@ export const SharingInstructions: React.FC<SharingInstructionsProps> = ({ cloudP
           }}
         >
           <div style={{ fontSize: '14px', color: '#333', marginBottom: '1rem' }}>{instructions}</div>
-          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '0.5rem' }}>Service account</div>
+          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '0.25rem' }}>Service account</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <code
               style={{
@@ -138,7 +140,7 @@ export const SharingInstructions: React.FC<SharingInstructionsProps> = ({ cloudP
             </code>
             <ClipboardButton text={serviceAccountEmail} />
           </div>
-          <div style={{ fontSize: '14px', marginBottom: '0.5rem', marginTop: '1rem', fontWeight: 600 }}>
+          <div style={{ fontSize: '14px', marginBottom: '0.25rem', marginTop: '1rem', fontWeight: 600 }}>
             Your proxy group
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -149,7 +151,6 @@ export const SharingInstructions: React.FC<SharingInstructionsProps> = ({ cloudP
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingTop: '0.5rem',
               gap: '0.5rem',
             }}
           >

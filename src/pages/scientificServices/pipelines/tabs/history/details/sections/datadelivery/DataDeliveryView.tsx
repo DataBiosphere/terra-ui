@@ -4,71 +4,25 @@ import { TextArea } from 'src/components/input';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { DataDeliveryReport, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { SharingInstructions } from 'src/pages/scientificServices/pipelines/common/SharingInstructions';
-import { GCS_BUCKET_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
+import { CloudDataAccessInstructions } from 'src/pages/scientificServices/pipelines/common/CloudDataAccessInstructions';
+import {
+  gcsPathToConsoleUrl,
+  parseDeliveryError,
+  STATUS_CONFIG,
+  validateGcsPath,
+} from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/datadelivery/data-delivery-utils';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useDeliveryPolling } from './useDeliveryPolling';
 
-type DataDeliveryStatus = DataDeliveryReport['status'] | 'NOT_STARTED';
+// NOT_STARTED isn't a status returned by the backend, instead it's a placeholder status to make
+// dealing with the initial state easier (since before delivery is initiated there is no report/status)
+export type DataDeliveryStatus = DataDeliveryReport['status'] | 'NOT_STARTED';
 
 interface DataDeliveryViewProps {
   dataDeliveryReport: Partial<DataDeliveryReport> | null;
   pipelineRunResult: PipelineRunResponse;
 }
-
-const STATUS_CONFIG: Record<DataDeliveryStatus, { label: string; icon: React.ReactElement }> = {
-  NOT_STARTED: {
-    label: 'Not Started',
-    icon: <Icon icon='circle' size={16} style={{ color: colors.dark(0.4) }} aria-label='Not Started' />,
-  },
-  RUNNING: {
-    label: 'In Progress',
-    icon: <Spinner size={16} aria-label='In Progress' />,
-  },
-  SUCCEEDED: {
-    label: 'Delivered',
-    icon: <Icon icon='success-standard' size={16} style={{ color: colors.success() }} aria-label='Delivered' />,
-  },
-  FAILED: {
-    label: 'Failed',
-    icon: <Icon icon='warning-standard' size={16} style={{ color: colors.danger() }} aria-label='Failed' />,
-  },
-};
-
-const gcsPathToConsoleUrl = (gcsPath: string): string => {
-  const withoutPrefix = gcsPath.replace(/^gs:\/\//, '');
-  return `https://console.cloud.google.com/storage/browser/${withoutPrefix}`;
-};
-
-const validateGcsPath = (path: string): string | undefined => {
-  if (!path.trim()) {
-    return 'A destination path is required.';
-  }
-  if (!GCS_BUCKET_VALIDATION_REGEX.test(path)) {
-    return 'Invalid Google Cloud Storage path. It should start with gs:// followed by the bucket name and path.';
-  }
-  return undefined;
-};
-
-const ERROR_MESSAGE_MAP: { substring: string; friendly: string }[] = [
-  {
-    substring: 'service does not have necessary permissions',
-    friendly:
-      'Broad Scientific Services does not have permission to write to the destination bucket. Please review the sharing instructions and try again.',
-  },
-  {
-    substring: 'user does not have necessary permissions',
-    friendly:
-      'You do not have permission to write to the destination bucket. Please review the sharing instructions and try again.',
-  },
-];
-
-const parseDeliveryError = (raw: string): string => {
-  const lower = raw.toLowerCase();
-  const match = ERROR_MESSAGE_MAP.find(({ substring }) => lower.includes(substring.toLowerCase()));
-  return match?.friendly ?? 'An unexpected error occurred. Please try again.';
-};
 
 export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRunResult }: DataDeliveryViewProps) => {
   const jobId = pipelineRunResult.jobReport.id;
@@ -84,10 +38,8 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
   const status: DataDeliveryStatus = dataDeliveryReport?.status ?? 'NOT_STARTED';
   const destination = dataDeliveryReport?.destination ?? '';
 
-  // ── Polling (while RUNNING) ───────────────────────────────────────────────
   useDeliveryPolling({ jobId, status, onUpdate: setDataDeliveryReport });
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
   const handlePathChange = (newPath: string) => {
     setPath(newPath);
     setValidationError(validateGcsPath(newPath));
@@ -122,7 +74,6 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
     }
   };
 
-  // ── Per-status content ────────────────────────────────────────────────────
   const renderStatusContent = () => {
     switch (status) {
       case 'FAILED':
@@ -220,7 +171,6 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
 
   const isInputDisabled = status === 'RUNNING' || status === 'SUCCEEDED';
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
       style={{
@@ -284,7 +234,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
             {validationError}
           </div>
         )}
-        {!isInputDisabled && <SharingInstructions cloudPath={path} cloudAccessType='outputs' />}
+        {!isInputDisabled && <CloudDataAccessInstructions cloudPath={path} cloudAccessType='outputs' />}
       </div>
 
       {renderStatusContent()}
