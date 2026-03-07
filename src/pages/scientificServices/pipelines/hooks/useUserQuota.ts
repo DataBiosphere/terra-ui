@@ -34,21 +34,7 @@ export const useUserQuota = (selectedPipeline?: Pipeline): UseUserQuotaResult =>
       ]);
 
       setQuota(quotaResponse);
-      // TODO: Saloni - revert this
-      setPipelineDetails({
-        ...pipelineDetailsResponse,
-        inputs: [
-          ...(pipelineDetailsResponse.inputs || []),
-          {
-            name: 'manifestInput',
-            displayName: 'test manifest input',
-            description: 'this is a test manifest input',
-            type: 'MANIFEST',
-            isRequired: false,
-            fileSuffix: '.tsv',
-          },
-        ],
-      });
+      setPipelineDetails(pipelineDetailsResponse);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch quota and pipeline details';
       notify('error', errorMessage);
