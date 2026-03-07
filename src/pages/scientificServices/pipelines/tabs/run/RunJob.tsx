@@ -66,23 +66,28 @@ export const RunJob = () => {
     setSelectedUserInputs(newSelectedUserInputs);
   };
 
-  const areAllRequiredInputsFilled = () => {
+  const areInputsValid = () => {
     return pipelineInputs.every((input) => {
-      if (input.isRequired) {
-        const value = selectedUserInputs[input.name];
-        if (isFileBasedType(input.type)) {
-          // Allow either a File object (local upload) or a string (gs cloud path)
-          if (typeof value === 'string') {
-            // For GCS paths, require sharing confirmation
-            return (
-              GCS_PATH_VALIDATION_REGEX.test(value) &&
-              value.endsWith(input.fileSuffix || '') &&
-              sharingConfirmedFiles[input.name]
-            );
-          }
-          return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
-        }
+      const value = selectedUserInputs[input.name];
+
+      // for non-file inputs, check that a non-empty value is provided if the input is required
+      if (input.isRequired && !isFileBasedType(input.type)) {
         return value && value.trim() !== '';
+      }
+
+      // Required file inputs must include either a File object or a GCS path (with sharing confirmed).
+      // Optional file inputs may be blank, but if provided they follow the same validation rules.
+      if (isFileBasedType(input.type) && (input.isRequired || value)) {
+        // Allow either a File object (local upload) or a string (gs cloud path)
+        if (typeof value === 'string') {
+          // For GCS paths, require sharing confirmation
+          return (
+            GCS_PATH_VALIDATION_REGEX.test(value) &&
+            value.endsWith(input.fileSuffix || '') &&
+            sharingConfirmedFiles[input.name]
+          );
+        }
+        return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
       }
       return true;
     });
@@ -403,7 +408,7 @@ export const RunJob = () => {
                   <ButtonPrimary
                     disabled={
                       isSubmitting ||
-                      !areAllRequiredInputsFilled() ||
+                      !areInputsValid() ||
                       !meetsMinimumQuota ||
                       Object.keys(validationErrors).length > 0
                     }
