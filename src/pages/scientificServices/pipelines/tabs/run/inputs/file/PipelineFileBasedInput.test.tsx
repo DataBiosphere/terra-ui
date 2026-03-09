@@ -448,7 +448,7 @@ describe('PipelineFileBasedInput - MANIFEST input type', () => {
     fileSuffix: '.tsv',
   };
 
-  it('does not show required indicator for optional inputs', () => {
+  it('does not show required indicator for optional manifest inputs', () => {
     render(<PipelineFileBasedInput {...defaultProps(mockOptionalManifestInput)} />);
     expect(screen.queryByText('*')).not.toBeInTheDocument();
   });

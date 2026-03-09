@@ -208,7 +208,7 @@ describe('RunJob Component', () => {
     // Full integration testing would require more complex Select component mocking
   });
 
-  // The test just verifies the file input exists and can be interacted with
+  // The test just verifies the manifest file input exists and can be interacted with
   // Full integration testing would require more complex Select component mocking
   it('handles manifest file selection and triggers upload process', async () => {
     render(<RunJob />);
