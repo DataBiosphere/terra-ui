@@ -12,7 +12,7 @@ export const getOutputFileSize = async (url: string): Promise<string> => {
   return size ? formatBytes(Number.parseInt(size)) : 'Unknown size';
 };
 
-// Checks if a pipeline input/output type is file based.
-export const isFileBasedType = (type: PipelineIOType): boolean => {
+// Checks if a pipeline input/output type is file based
+export const isFileBasedType = (type: PipelineIOType | string): boolean => {
   return type === 'FILE' || type === 'MANIFEST';
 };
