@@ -1,12 +1,12 @@
-import { isFileBasedType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
+import { isFileLikeType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 
 describe('file-utils', () => {
-  describe('isFileBasedType', () => {
+  describe('isFileLikeType', () => {
     const fileBasedTypes = ['FILE', 'MANIFEST'];
 
     fileBasedTypes.forEach((type) => {
       it(`returns true for ${type} type`, () => {
-        expect(isFileBasedType(type)).toBe(true);
+        expect(isFileLikeType(type)).toBe(true);
       });
     });
 
@@ -20,7 +20,7 @@ describe('file-utils', () => {
 
     nonFileBasedTypes.forEach(({ type, description }) => {
       it(`returns false for ${description}`, () => {
-        expect(isFileBasedType(type)).toBe(false);
+        expect(isFileLikeType(type)).toBe(false);
       });
     });
   });

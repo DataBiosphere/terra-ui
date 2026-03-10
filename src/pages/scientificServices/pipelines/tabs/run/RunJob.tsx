@@ -28,7 +28,7 @@ import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/r
 import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
 import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/QuotaDetailsWidget';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
-import { isFileBasedType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
+import { isFileLikeType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   preparePipelineRun,
   startPipelineRun,
@@ -71,13 +71,13 @@ export const RunJob = () => {
       const value = selectedUserInputs[input.name];
 
       // for non-file inputs, check that a non-empty value is provided if the input is required
-      if (input.isRequired && !isFileBasedType(input.type)) {
+      if (input.isRequired && !isFileLikeType(input.type)) {
         return value && value.trim() !== '';
       }
 
       // Required file inputs must include either a File object or a GCS path (with sharing confirmed).
       // Optional file inputs may be blank, but if provided they follow the same validation rules.
-      if (isFileBasedType(input.type) && (input.isRequired || value)) {
+      if (isFileLikeType(input.type) && (input.isRequired || value)) {
         // Allow either a File object (local upload) or a string (gs cloud path)
         if (typeof value === 'string') {
           // For GCS paths, require sharing confirmation
@@ -203,7 +203,7 @@ export const RunJob = () => {
 
     // Upload pipeline input files (only if there are local files to upload)
     const hasLocalFilesToUpload = pipelineInputs
-      .filter((input) => isFileBasedType(input.type))
+      .filter((input) => isFileLikeType(input.type))
       .some((input) => filteredUserInputs[input.name] instanceof File);
 
     if (hasLocalFilesToUpload) {
@@ -345,7 +345,7 @@ export const RunJob = () => {
 
               {/* Displays all FILE or MANIFEST inputs, one after another */}
               {pipelineInputs
-                .filter((input) => isFileBasedType(input.type))
+                .filter((input) => isFileLikeType(input.type))
                 .map((input) => {
                   return (
                     <PipelineFileBasedInput
