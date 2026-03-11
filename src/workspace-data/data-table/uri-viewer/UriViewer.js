@@ -66,15 +66,11 @@ export const UriViewer = _.flow(
           timeUpdated: updated,
           fileName,
           accessUrl,
-        } = await DrsUriResolver(signal).getDataObjectMetadata(uri, [
-          'bucket',
-          'name',
-          'size',
-          'timeCreated',
-          'timeUpdated',
-          'fileName',
-          'accessUrl',
-        ]);
+        } = await DrsUriResolver(signal).getDataObjectMetadata(
+          uri,
+          ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl'],
+          { userProject: googleProject }
+        );
         const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl };
         setMetadata(metadata);
       }
