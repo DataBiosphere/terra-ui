@@ -12,7 +12,7 @@ import {
   uploadTimeRemainingDisplayText,
 } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
-import { PipelineInputFileUploadState } from './PipelineFileInput';
+import { PipelineInputFileUploadState } from './PipelineFileBasedInput';
 
 interface LocalFileInputProps {
   input: PipelineInput;

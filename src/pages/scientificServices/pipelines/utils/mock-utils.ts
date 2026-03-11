@@ -57,6 +57,14 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
         type: 'STRING',
         isRequired: true,
       },
+      {
+        name: 'testManifestInput',
+        displayName: 'manifest file',
+        description: 'A TSV manifest file',
+        type: 'MANIFEST',
+        isRequired: false,
+        fileSuffix: '.tsv',
+      },
     ] as PipelineInput[],
     outputs: [
       {

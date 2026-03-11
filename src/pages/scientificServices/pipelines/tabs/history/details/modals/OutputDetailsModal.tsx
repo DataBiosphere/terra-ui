@@ -5,7 +5,7 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 
 interface DownloadOutputModalProps {
   outputKey: string;

@@ -18,9 +18,9 @@ import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/u
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/boolean/PipelineBooleanInput';
 import {
-  PipelineFileInput,
+  PipelineFileBasedInput,
   PipelineInputFileUploadState,
-} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
+} from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileBasedInput';
 import { PipelineFloatInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/float/PipelineFloatInput';
 import { PipelineRunDescription } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/PipelineRunDescription';
 import { PipelineStringInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/string/PipelineStringInput';
@@ -28,6 +28,7 @@ import { HelpfulTipsWidget } from 'src/pages/scientificServices/pipelines/tabs/r
 import { PipelineOutputsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineOutputsWidget';
 import { QuotaDetailsWidget } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/QuotaDetailsWidget';
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
+import { isFileLikeType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   preparePipelineRun,
   startPipelineRun,
@@ -65,23 +66,28 @@ export const RunJob = () => {
     setSelectedUserInputs(newSelectedUserInputs);
   };
 
-  const areAllRequiredInputsFilled = () => {
+  const areInputsValid = () => {
     return pipelineInputs.every((input) => {
-      if (input.isRequired) {
-        const value = selectedUserInputs[input.name];
-        if (input.type === 'FILE') {
-          // Allow either a File object (local upload) or a string (gs cloud path)
-          if (typeof value === 'string') {
-            // For GCS paths, require sharing confirmation
-            return (
-              GCS_PATH_VALIDATION_REGEX.test(value) &&
-              value.endsWith(input.fileSuffix || '') &&
-              sharingConfirmedFiles[input.name]
-            );
-          }
-          return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
-        }
+      const value = selectedUserInputs[input.name];
+
+      // for non-file inputs, check that a non-empty value is provided if the input is required
+      if (input.isRequired && !isFileLikeType(input.type)) {
         return value && value.trim() !== '';
+      }
+
+      // Required file inputs must include either a File object or a GCS path (with sharing confirmed).
+      // Optional file inputs may be blank, but if provided they follow the same validation rules.
+      if (isFileLikeType(input.type) && (input.isRequired || value)) {
+        // Allow either a File object (local upload) or a string (gs cloud path)
+        if (typeof value === 'string') {
+          // For GCS paths, require sharing confirmation
+          return (
+            GCS_PATH_VALIDATION_REGEX.test(value) &&
+            value.endsWith(input.fileSuffix || '') &&
+            sharingConfirmedFiles[input.name]
+          );
+        }
+        return value instanceof File && value.name && value.name.endsWith(input.fileSuffix || '');
       }
       return true;
     });
@@ -197,7 +203,7 @@ export const RunJob = () => {
 
     // Upload pipeline input files (only if there are local files to upload)
     const hasLocalFilesToUpload = pipelineInputs
-      .filter((input) => input.type === 'FILE')
+      .filter((input) => isFileLikeType(input.type))
       .some((input) => filteredUserInputs[input.name] instanceof File);
 
     if (hasLocalFilesToUpload) {
@@ -337,12 +343,12 @@ export const RunJob = () => {
                   );
                 })}
 
-              {/* Displays all FILE inputs, one after another */}
+              {/* Displays all FILE or MANIFEST inputs, one after another */}
               {pipelineInputs
-                .filter((input) => input.type === 'FILE')
+                .filter((input) => isFileLikeType(input.type))
                 .map((input) => {
                   return (
-                    <PipelineFileInput
+                    <PipelineFileBasedInput
                       key={`${input.name}`}
                       input={input}
                       uploadState={uploadState[input.name]}
@@ -402,7 +408,7 @@ export const RunJob = () => {
                   <ButtonPrimary
                     disabled={
                       isSubmitting ||
-                      !areAllRequiredInputsFilled() ||
+                      !areInputsValid() ||
                       !meetsMinimumQuota ||
                       Object.keys(validationErrors).length > 0
                     }

@@ -5,38 +5,38 @@ import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 
-import { PipelineFileInput, PipelineInputFileUploadState } from './PipelineFileInput';
+import { PipelineFileBasedInput, PipelineInputFileUploadState } from './PipelineFileBasedInput';
 
-const mockInput: PipelineInput = {
-  name: 'multiSampleVcf',
-  displayName: 'multi-sample VCF file',
-  type: 'FILE',
-  isRequired: true,
-  fileSuffix: '.vcf.gz',
-};
+const defaultProps = (mockInput: PipelineInput) => ({
+  input: mockInput,
+  value: '',
+  onChange: jest.fn(),
+  onValidation: jest.fn(),
+  selectedFile: null,
+  onFileSelect: jest.fn(),
+  validationError: undefined,
+});
 
-const optionalInput: PipelineInput = {
-  name: 'favoriteDog',
-  type: 'FILE',
-  isRequired: false,
-  fileSuffix: '.vcf.gz',
-};
+describe('PipelineFileBasedInput - FILE input type', () => {
+  const mockRequiredVCFInput: PipelineInput = {
+    name: 'multiSampleVcf',
+    displayName: 'multi-sample VCF file',
+    type: 'FILE',
+    isRequired: true,
+    fileSuffix: '.vcf.gz',
+  };
 
-describe('PipelineFileInput', () => {
-  const defaultProps = {
-    input: mockInput,
-    value: '',
-    onChange: jest.fn(),
-    onValidation: jest.fn(),
-    selectedFile: null,
-    onFileSelect: jest.fn(),
-    validationError: undefined,
+  const mockOptionalFileInput: PipelineInput = {
+    name: 'favoriteDog',
+    type: 'FILE',
+    isRequired: false,
+    fileSuffix: '.vcf.gz',
   };
 
   it('renders label and required indicator', () => {
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={null}
         onFileSelect={jest.fn()}
         validationError={undefined}
@@ -48,20 +48,20 @@ describe('PipelineFileInput', () => {
   });
 
   it('shows required indicator for required inputs', () => {
-    render(<PipelineFileInput {...defaultProps} />);
+    render(<PipelineFileBasedInput {...defaultProps(mockRequiredVCFInput)} />);
     expect(screen.getByText('*')).toBeInTheDocument();
   });
 
   it('does not show required indicator for optional inputs', () => {
-    render(<PipelineFileInput {...defaultProps} input={optionalInput} />);
+    render(<PipelineFileBasedInput {...defaultProps(mockOptionalFileInput)} />);
     expect(screen.queryByText('*')).not.toBeInTheDocument();
   });
 
   it('calls onFileSelect when local file is selected via input', async () => {
     const onFileSelect = jest.fn();
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={null}
         onFileSelect={onFileSelect}
         validationError={undefined}
@@ -82,8 +82,8 @@ describe('PipelineFileInput', () => {
   it('shows valid file icon and info for valid file', async () => {
     const file = new File(['test'], 'test.vcf.gz');
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={file}
         onFileSelect={jest.fn()}
         validationError={undefined}
@@ -101,8 +101,8 @@ describe('PipelineFileInput', () => {
   it('shows invalid file icon and error for files with validation errors', async () => {
     const file = new File(['test'], 'test.txt');
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={file}
         onFileSelect={jest.fn()}
         validationError={"Invalid file type. Expected '.vcf.gz'"}
@@ -120,8 +120,8 @@ describe('PipelineFileInput', () => {
     const file = new File(['test'], 'test.vcf.gz');
     const onFileSelect = jest.fn();
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={file}
         onFileSelect={onFileSelect}
         validationError={undefined}
@@ -139,8 +139,8 @@ describe('PipelineFileInput', () => {
     const uploadState: PipelineInputFileUploadState = { progress: 100 };
 
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
@@ -158,8 +158,8 @@ describe('PipelineFileInput', () => {
     const uploadState: PipelineInputFileUploadState = { progress: 1, signedUrl: 'http://signed.url' };
 
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
@@ -183,8 +183,8 @@ describe('PipelineFileInput', () => {
     };
 
     render(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={jest.fn()}
@@ -211,8 +211,8 @@ describe('PipelineFileInput', () => {
     const setUploadState = jest.fn();
 
     renderWithAppContexts(
-      <PipelineFileInput
-        input={mockInput}
+      <PipelineFileBasedInput
+        input={mockRequiredVCFInput}
         selectedFile={new File(['test'], 'test.vcf.gz')}
         uploadState={uploadState}
         onFileSelect={onFileSelect}
@@ -236,8 +236,8 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
-          input={mockInput}
+        <PipelineFileBasedInput
+          input={mockRequiredVCFInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
           validationError={undefined}
@@ -269,8 +269,8 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
-          input={mockInput}
+        <PipelineFileBasedInput
+          input={mockRequiredVCFInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
           validationError={undefined}
@@ -300,8 +300,8 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
-          input={mockInput}
+        <PipelineFileBasedInput
+          input={mockRequiredVCFInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
           validationError={undefined}
@@ -317,7 +317,9 @@ describe('PipelineFileInput', () => {
 
       await userEvent.upload(fileInput, wrongSuffixFile);
 
-      expect(onValidation).toHaveBeenCalledWith(`Invalid file type. Please upload a ${mockInput.fileSuffix} file.`);
+      expect(onValidation).toHaveBeenCalledWith(
+        `Invalid file type. Please upload a ${mockRequiredVCFInput.fileSuffix} file.`
+      );
     });
 
     it('does not display a validation error when the input file suffix is correct', async () => {
@@ -325,8 +327,8 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
-          input={mockInput}
+        <PipelineFileBasedInput
+          input={mockRequiredVCFInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
           validationError={undefined}
@@ -351,8 +353,8 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
-          input={mockInput}
+        <PipelineFileBasedInput
+          input={mockRequiredVCFInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
           validationError={undefined}
@@ -379,8 +381,8 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
-          input={mockInput}
+        <PipelineFileBasedInput
+          input={mockRequiredVCFInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
           validationError={undefined}
@@ -405,8 +407,8 @@ describe('PipelineFileInput', () => {
       const onFileSelect = jest.fn();
 
       render(
-        <PipelineFileInput
-          input={mockInput}
+        <PipelineFileBasedInput
+          input={mockRequiredVCFInput}
           selectedFile={null}
           onFileSelect={onFileSelect}
           validationError={undefined}
@@ -423,7 +425,9 @@ describe('PipelineFileInput', () => {
 
       await userEvent.upload(fileInput, invalidFile);
 
-      expect(onValidation).toHaveBeenCalledWith(`Invalid file type. Please upload a ${mockInput.fileSuffix} file.`);
+      expect(onValidation).toHaveBeenCalledWith(
+        `Invalid file type. Please upload a ${mockRequiredVCFInput.fileSuffix} file.`
+      );
       expect(onFileSelect).toHaveBeenCalledWith(invalidFile);
 
       // Now upload a valid file
@@ -433,5 +437,162 @@ describe('PipelineFileInput', () => {
       expect(onValidation).toHaveBeenCalledWith(undefined);
       expect(onFileSelect).toHaveBeenCalledWith(validFile);
     });
+  });
+});
+
+describe('PipelineFileBasedInput - MANIFEST input type', () => {
+  const mockOptionalManifestInput: PipelineInput = {
+    name: 'manifestInput',
+    type: 'MANIFEST',
+    isRequired: false,
+    fileSuffix: '.tsv',
+  };
+
+  it('does not show required indicator for optional manifest inputs', () => {
+    render(<PipelineFileBasedInput {...defaultProps(mockOptionalManifestInput)} />);
+    expect(screen.queryByText('*')).not.toBeInTheDocument();
+  });
+
+  it('displays a validation error when the manifest input file suffix is incorrect', async () => {
+    const onValidation = jest.fn();
+    const onFileSelect = jest.fn();
+
+    render(
+      <PipelineFileBasedInput
+        input={mockOptionalManifestInput}
+        selectedFile={null}
+        onFileSelect={onFileSelect}
+        validationError={undefined}
+        onValidation={onValidation}
+      />
+    );
+
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const wrongSuffixFile = new File(['test'], 'test.txt');
+
+    await userEvent.upload(fileInput, wrongSuffixFile);
+
+    expect(onValidation).toHaveBeenCalledWith(
+      `Invalid file type. Please upload a ${mockOptionalManifestInput.fileSuffix} file.`
+    );
+  });
+
+  it('does not display a validation error when the manifest input file suffix is correct', async () => {
+    const onValidation = jest.fn();
+    const onFileSelect = jest.fn();
+
+    render(
+      <PipelineFileBasedInput
+        input={mockOptionalManifestInput}
+        selectedFile={null}
+        onFileSelect={onFileSelect}
+        validationError={undefined}
+        onValidation={onValidation}
+      />
+    );
+
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const correctSuffixFile = new File(['test'], 'test.tsv');
+
+    await userEvent.upload(fileInput, correctSuffixFile);
+
+    expect(onFileSelect).toHaveBeenCalledWith(correctSuffixFile);
+    expect(onValidation).toHaveBeenCalledWith(undefined);
+  });
+
+  it('displays a validation error when the manifest input file name does not pass validation', async () => {
+    const onValidation = jest.fn();
+    const onFileSelect = jest.fn();
+
+    render(
+      <PipelineFileBasedInput
+        input={mockOptionalManifestInput}
+        selectedFile={null}
+        onFileSelect={onFileSelect}
+        validationError={undefined}
+        onValidation={onValidation}
+      />
+    );
+
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const invalidNameFile = new File(['test'], 'really bad file name !#$.tsv');
+
+    await userEvent.upload(fileInput, invalidNameFile);
+
+    expect(onFileSelect).toHaveBeenCalledWith(invalidNameFile);
+    expect(onValidation).toHaveBeenCalledWith(
+      'File names may only contain alphanumeric characters, dashes, underscores, and periods.'
+    );
+  });
+
+  it('does not display a validation error when manifest input file name passes validation', async () => {
+    const onValidation = jest.fn();
+    const onFileSelect = jest.fn();
+
+    render(
+      <PipelineFileBasedInput
+        input={mockOptionalManifestInput}
+        selectedFile={null}
+        onFileSelect={onFileSelect}
+        validationError={undefined}
+        onValidation={onValidation}
+      />
+    );
+
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const validFile = new File(['test'], 'valid_file-name.123.tsv');
+
+    await userEvent.upload(fileInput, validFile);
+
+    expect(onFileSelect).toHaveBeenCalledWith(validFile);
+    expect(onValidation).toHaveBeenCalledWith(undefined);
+  });
+
+  it('clears existing validation error when a new valid file is selected', async () => {
+    const onValidation = jest.fn();
+    const onFileSelect = jest.fn();
+
+    render(
+      <PipelineFileBasedInput
+        input={mockOptionalManifestInput}
+        selectedFile={null}
+        onFileSelect={onFileSelect}
+        validationError={undefined}
+        onValidation={onValidation}
+      />
+    );
+
+    const selectLocalInputButton = screen.getByText('Upload File');
+    await userEvent.click(selectLocalInputButton);
+
+    // First upload an invalid file to trigger a validation error
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const invalidFile = new File(['test'], 'test.txt');
+
+    await userEvent.upload(fileInput, invalidFile);
+
+    expect(onValidation).toHaveBeenCalledWith(
+      `Invalid file type. Please upload a ${mockOptionalManifestInput.fileSuffix} file.`
+    );
+    expect(onFileSelect).toHaveBeenCalledWith(invalidFile);
+
+    // Now upload a valid file
+    const validFile = new File(['test'], 'valid_file.tsv');
+
+    await userEvent.upload(fileInput, validFile);
+    expect(onValidation).toHaveBeenCalledWith(undefined);
+    expect(onFileSelect).toHaveBeenCalledWith(validFile);
   });
 });
