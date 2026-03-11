@@ -70,6 +70,18 @@ describe('getFileProvenance', () => {
     expect(await getFileProvenance(workspace, 'gs://workspace-bucket/folder/file.txt')).toEqual({ type: fileProvenanceTypes.unknown });
   });
 
+  it('recognizes submission paths under intermediates/final-outputs split', async () => {
+    const submissionId = '8d79470f-7042-4e79-bf67-971adf4e5a4a';
+    expect(await getFileProvenance(workspace, `gs://workspace-bucket/submissions/final-outputs/${submissionId}/file.txt`)).toEqual({
+      type: fileProvenanceTypes.maybeSubmission,
+      submissionId,
+    });
+    expect(await getFileProvenance(workspace, `gs://workspace-bucket/submissions/intermediates/${submissionId}/file.txt`)).toEqual({
+      type: fileProvenanceTypes.maybeSubmission,
+      submissionId,
+    });
+  });
+
   it('returns maybeSubmission for files in a submission directory that are not workflow outputs', async () => {
     expect(await getFileProvenance(workspace, 'gs://workspace-bucket/submissions/8d79470f-7042-4e79-bf67-971adf4e5a4a/file.txt')).toEqual({
       type: fileProvenanceTypes.maybeSubmission,
