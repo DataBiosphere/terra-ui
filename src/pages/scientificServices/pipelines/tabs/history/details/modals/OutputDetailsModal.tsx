@@ -5,6 +5,7 @@ import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
+import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
 import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
 
 interface DownloadOutputModalProps {
@@ -26,12 +27,18 @@ export const OutputDetailsModal = ({
   signedUrls,
   setSignedUrls,
 }: DownloadOutputModalProps) => {
-  const [loading, setLoading] = useState(true);
+  const deliverySucceeded = pipelineRunResult.dataDeliveryReport?.status === 'SUCCEEDED';
+
+  const [loading, setLoading] = useState(!deliverySucceeded);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (deliverySucceeded) {
+      return;
+    }
+
     const fetchSignedUrl = async () => {
       try {
         setLoading(true);
@@ -70,7 +77,7 @@ export const OutputDetailsModal = ({
     };
 
     fetchSignedUrl();
-  }, [outputKey, pipelineRunResult.jobReport.id, setSignedUrls, signedUrls]);
+  }, [deliverySucceeded, outputKey, pipelineRunResult.jobReport.id, setSignedUrls, signedUrls]);
 
   const handleDownload = () => {
     if (signedUrl) {
@@ -105,7 +112,7 @@ export const OutputDetailsModal = ({
           </div>
         )}
 
-        {error && <div style={{ color: colors.danger(), marginBottom: '1rem' }}>{error}</div>}
+        {error && !deliverySucceeded && <div style={{ color: colors.danger(), marginBottom: '1rem' }}>{error}</div>}
 
         {!loading && !error && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -115,6 +122,12 @@ export const OutputDetailsModal = ({
               <OutputInfoField label='Description' value={outputDefinition.description} />
             )}
           </div>
+        )}
+        {pipelineRunResult.dataDeliveryReport?.status === 'SUCCEEDED' && (
+          <BucketConsoleLink
+            cloudPath={pipelineRunResult.dataDeliveryReport.destination}
+            linkText='View your output in the Google Cloud Console'
+          />
         )}
       </div>
     </Modal>
