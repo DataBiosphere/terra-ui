@@ -12,10 +12,12 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import DownloadPrices from 'src/workspace-data/download-prices';
-import { canWrite } from 'src/workspaces/utils';
 
 import els from './uri-viewer-styles';
 import { isAzureUri, isDrsUri } from './uri-viewer-utils';
+
+// IMPORTANT: Currently, this component is only used in the UriViewer. So, it is unreachable to read only workspace users.
+// If the button is ever used outside of the UriViewer, we need to block read only workspace users.
 
 const getMaxDownloadCostNA = (bytes: number) => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos;
@@ -25,12 +27,9 @@ const getMaxDownloadCostNA = (bytes: number) => {
   return Utils.formatUSD(downloadPrice);
 };
 
-const READ_ONLY_MESSAGE = 'Download is not available for read-only workspace users.';
-
 export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, workspace }) => {
   const signal = useCancellation();
   const [url, setUrl] = useState<string | null>();
-  const [blockedReason, setBlockedReason] = useState<string | null>(null);
   const getUrlFromDrsProvider = async (userProject: string) => {
     const { url } = await DrsUriResolver(signal).getSignedUrl({
       bucket,
@@ -57,16 +56,6 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null);
     } else if (isAzureUri(uri)) {
       setUrl(uri);
-    } else if (isDrsUri(uri) && !canWrite(workspace.accessLevel)) {
-      // Currently, this case will never be hit because this button is only used in the UriViewer
-      // which already blocks read-only workspace users.
-      // Leaving this here in case the button is ever used outside of the UriViewer.
-      void Metrics().captureEvent(Events.workspaceDataDrsReadOnlyBlocked, {
-        source: 'downloadButton',
-        ...extractWorkspaceDetails(workspace),
-      });
-      setBlockedReason(READ_ONLY_MESSAGE);
-      setUrl(null);
     } else {
       try {
         const userProject = await getUserProjectForWorkspace(workspace);
@@ -130,11 +119,10 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
 
   // If URL missing, show error. Otherwise, show the Azure/GCP download button.
   return els.cell([
-    blockedReason ||
-      (_.isEmpty(url)
-        ? 'Unable to generate download link.'
-        : div({ style: { display: 'flex', justifyContent: 'center' } }, [
-            isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton(),
-          ])),
+    _.isEmpty(url)
+      ? 'Unable to generate download link.'
+      : div({ style: { display: 'flex', justifyContent: 'center' } }, [
+          isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton(),
+        ]),
   ]);
 };
