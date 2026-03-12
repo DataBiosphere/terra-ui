@@ -12,7 +12,9 @@ import { parseGsUri } from 'src/components/data/data-utils';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
@@ -56,6 +58,10 @@ export const UriViewer = _.flow(
         setLoadingError(false);
       } else {
         if (!canWrite(workspace.accessLevel)) {
+          void Metrics().captureEvent(Events.workspaceDataDrsReadOnlyBlocked, {
+            source: 'filePreviewModal',
+            ...extractWorkspaceDetails(workspace),
+          });
           setLoadingError({ message: 'DRS resolution is not available for read-only workspace users.' });
           return;
         }

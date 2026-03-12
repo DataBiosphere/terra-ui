@@ -6,7 +6,9 @@ import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/igv/IGVReferenceSelector';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
@@ -282,9 +284,15 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
 
       setSelections(selections);
       setIsSearchingFiles(false);
+      if (isReadOnly) {
+        void Metrics().captureEvent(Events.workspaceDataDrsReadOnlyBlocked, {
+          source: 'igv',
+          ...extractWorkspaceDetails(workspace),
+        });
+      }
     }
     fetchData();
-  }, [workspace, entityType, selectedEntities, setSelections, signal]);
+  }, [workspace, entityType, selectedEntities, setSelections, signal, isReadOnly]);
 
   const toggleSelected = (index) => setSelections(_.update([index, 'isSelected'], (v) => !v));
   const numSelected = _.countBy('isSelected', selections).true;

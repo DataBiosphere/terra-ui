@@ -58,6 +58,13 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
     } else if (isAzureUri(uri)) {
       setUrl(uri);
     } else if (isDrsUri(uri) && !canWrite(workspace.accessLevel)) {
+      // Currently, this case will never be hit because this button is only used in the UriViewer
+      // which already blocks read-only workspace users.
+      // Leaving this here in case the button is ever used outside of the UriViewer.
+      void Metrics().captureEvent(Events.workspaceDataDrsReadOnlyBlocked, {
+        source: 'downloadButton',
+        ...extractWorkspaceDetails(workspace),
+      });
       setBlockedReason(READ_ONLY_MESSAGE);
       setUrl(null);
     } else {
