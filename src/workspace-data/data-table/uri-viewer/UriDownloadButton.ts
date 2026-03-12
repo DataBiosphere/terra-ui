@@ -12,6 +12,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils';
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import DownloadPrices from 'src/workspace-data/download-prices';
+import { canWrite } from 'src/workspaces/utils';
 
 import els from './uri-viewer-styles';
 import { isAzureUri, isDrsUri } from './uri-viewer-utils';
@@ -24,9 +25,12 @@ const getMaxDownloadCostNA = (bytes: number) => {
   return Utils.formatUSD(downloadPrice);
 };
 
+const READ_ONLY_MESSAGE = 'Download is not available for read-only workspace users.';
+
 export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl, workspace }) => {
   const signal = useCancellation();
   const [url, setUrl] = useState<string | null>();
+  const [blockedReason, setBlockedReason] = useState<string | null>(null);
   const getUrlFromDrsProvider = async (userProject: string) => {
     const { url } = await DrsUriResolver(signal).getSignedUrl({
       bucket,
@@ -53,6 +57,9 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
       setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null);
     } else if (isAzureUri(uri)) {
       setUrl(uri);
+    } else if (isDrsUri(uri) && !canWrite(workspace.accessLevel)) {
+      setBlockedReason(READ_ONLY_MESSAGE);
+      setUrl(null);
     } else {
       try {
         const userProject = await getUserProjectForWorkspace(workspace);
@@ -116,10 +123,11 @@ export const UriDownloadButton = ({ uri, metadata: { bucket, name, fileName, siz
 
   // If URL missing, show error. Otherwise, show the Azure/GCP download button.
   return els.cell([
-    _.isEmpty(url)
-      ? 'Unable to generate download link.'
-      : div({ style: { display: 'flex', justifyContent: 'center' } }, [
-          isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton(),
-        ]),
+    blockedReason ||
+      (_.isEmpty(url)
+        ? 'Unable to generate download link.'
+        : div({ style: { display: 'flex', justifyContent: 'center' } }, [
+            isAzureUri(uri) ? azureDownloadButton() : googleDownloadButton(),
+          ])),
   ]);
 };

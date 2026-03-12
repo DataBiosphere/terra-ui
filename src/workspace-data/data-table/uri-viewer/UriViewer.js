@@ -16,6 +16,7 @@ import colors from 'src/libs/colors';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
+import { canWrite } from 'src/workspaces/utils';
 
 import { FileProvenance } from '../../provenance/FileProvenance';
 import els from './uri-viewer-styles';
@@ -54,6 +55,10 @@ export const UriViewer = _.flow(
         setMetadata(azureMetadata);
         setLoadingError(false);
       } else {
+        if (!canWrite(workspace.accessLevel)) {
+          setLoadingError({ message: 'DRS resolution is not available for read-only workspace users.' });
+          return;
+        }
         // Fields are mapped from the drshub_v4 fields to those used by google
         // https://github.com/DataBiosphere/terra-drs-hub
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
@@ -160,10 +165,11 @@ export const UriViewer = _.flow(
     const errorMsg = isStdLog
       ? 'Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.'
       : 'Error loading data. This file does not exist or you do not have permission to view it.';
+    const displayError = loadingError?.message || loadingError;
     return loadingError
       ? h(Collapse, { title: 'Details' }, [
           div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-            JSON.stringify(loadingError, null, 2),
+            typeof displayError === 'string' ? displayError : JSON.stringify(loadingError, null, 2),
           ]),
         ])
       : h(Fragment, [div({ style: { paddingBottom: '1rem' } }, [errorMsg])]);

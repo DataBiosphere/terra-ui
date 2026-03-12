@@ -10,6 +10,7 @@ import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { canWrite } from 'src/workspaces/utils';
 
 const getStrings = (v) => {
   return Utils.cond([_.isString(v), () => [v]], [!!v?.items, () => _.flatMap(getStrings, v.items)], () => []);
@@ -223,7 +224,8 @@ export const getValidIgvFiles = async (workspace, entityType, allValues, signal)
   });
 
   const googleProject = workspace.workspace?.googleProject;
-  const accessUrls = await resolveValidIgvDrsUris(values, signal, googleProject);
+  const canResolveDrs = canWrite(workspace.accessLevel);
+  const accessUrls = canResolveDrs ? await resolveValidIgvDrsUris(values, signal, googleProject) : [];
   for (const accessUrl of accessUrls) {
     const url = new URL(accessUrl);
 
@@ -271,6 +273,7 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   const [isSearchingFiles, setIsSearchingFiles] = useState(true);
 
   const signal = useCancellation();
+  const isReadOnly = !canWrite(workspace.accessLevel);
 
   useEffect(() => {
     async function fetchData() {
@@ -287,7 +290,11 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   const numSelected = _.countBy('isSelected', selections).true;
   const isSelectionValid = !!numSelected;
 
-  const noRowsMessage = isSearchingFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
+  const noRowsMessage = Utils.cond(
+    [isSearchingFiles, () => 'Searching for valid files with indices...'],
+    [isReadOnly && selections.length === 0, () => 'No valid files with indices found. DRS URIs are not available for read-only workspace users.'],
+    [() => true, () => 'No valid files with indices found']
+  );
 
   const cache = new CellMeasurerCache({
     fixedWidth: true,
@@ -295,6 +302,22 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   });
 
   return div({ style: Style.modalDrawer.content }, [
+    ...(isReadOnly
+      ? [
+          div(
+            {
+              style: {
+                padding: '0.75rem 1rem',
+                marginBottom: '1rem',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '4px',
+                fontSize: '0.9rem',
+              },
+            },
+            ['You have read-only access. DRS URIs cannot be resolved for IGV; only direct storage links (e.g. gs://) from your selection are shown.']
+          ),
+        ]
+      : []),
     h(IGVReferenceSelector, {
       value: refGenome,
       onChange: setRefGenome,
