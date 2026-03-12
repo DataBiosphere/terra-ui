@@ -173,10 +173,8 @@ export const UriViewer = _.flow(
       : 'Error loading data. This file does not exist or you do not have permission to view it.';
     const displayError = loadingError?.message || loadingError;
     return loadingError
-      ? h(Collapse, { title: 'Details' }, [
-          div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-            typeof displayError === 'string' ? displayError : JSON.stringify(loadingError, null, 2),
-          ]),
+      ? div({ style: { padding: '1rem 0', whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [
+          typeof displayError === 'string' ? displayError : JSON.stringify(loadingError, null, 2),
         ])
       : h(Fragment, [div({ style: { paddingBottom: '1rem' } }, [errorMsg])]);
   };
