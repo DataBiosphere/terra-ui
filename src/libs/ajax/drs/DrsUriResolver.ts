@@ -20,13 +20,10 @@ export const DrsUriResolver = (signal?: AbortSignal) => ({
   },
 
   getDataObjectMetadata: async (url, fields, options?: { userProject?: string }) => {
-    const headers = {
-      ...authOpts().headers,
-      ...(options?.userProject ? { 'x-user-project': options.userProject } : {}),
-    };
+    const body = { url, fields, ...(options?.userProject ? { userProject: options.userProject } : {}) };
     const res = await fetchDrsHub(
       'api/v4/drs/resolve',
-      _.mergeAll([authOpts(), jsonBody({ url, fields }), { headers }, appIdentifier, { signal, method: 'POST' }])
+      _.mergeAll([authOpts(), jsonBody(body), appIdentifier, { signal, method: 'POST' }])
     );
     return res.json();
   },
