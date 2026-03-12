@@ -298,11 +298,7 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   const numSelected = _.countBy('isSelected', selections).true;
   const isSelectionValid = !!numSelected;
 
-  const noRowsMessage = Utils.cond(
-    [isSearchingFiles, () => 'Searching for valid files with indices...'],
-    [isReadOnly && selections.length === 0, () => 'No valid files with indices found. DRS URIs are not available for read-only workspace users.'],
-    [() => true, () => 'No valid files with indices found']
-  );
+  const noRowsMessage = isSearchingFiles ? 'Searching for valid files with indices...' : 'No valid files with indices found';
 
   const cache = new CellMeasurerCache({
     fixedWidth: true,
