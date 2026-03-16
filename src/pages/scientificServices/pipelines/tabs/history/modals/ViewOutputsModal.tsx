@@ -137,51 +137,71 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                 {deliverySucceeded ? (
                   <div
                     style={{
-                      backgroundColor: colors.success(0.1),
-                      // color: '#155724',
                       padding: '1rem',
                       borderRadius: '4px',
+                      border: '1px solid #d6d9dc',
                       marginTop: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem',
                     }}
                   >
-                    Your outputs were successfully delivered
-                    {result.jobReport.completed && (
-                      <>
-                        {' '}
-                        on <span style={{ fontWeight: 'bold' }}>{formatDate(result.jobReport.completed)}</span>
-                      </>
-                    )}
-                    .{' '}
-                    <BucketConsoleLink
-                      cloudPath={result.pipelineRunReport.dataDeliveryReport?.destination}
-                      linkText='View your outputs in the Google Cloud Console'
+                    <Icon
+                      icon='success-standard'
+                      size={36}
+                      style={{ color: colors.success(), flexShrink: 0 }}
+                      aria-label='Delivered'
                     />
+                    <span>
+                      Your outputs were successfully delivered
+                      {result.jobReport.completed && (
+                        <>
+                          {' '}
+                          on <span style={{ fontWeight: 'bold' }}>{formatDate(result.jobReport.completed)}</span>
+                        </>
+                      )}
+                      .{' '}
+                      <BucketConsoleLink
+                        cloudPath={result.pipelineRunReport.dataDeliveryReport?.destination}
+                        linkText='View your outputs in the Google Cloud Console'
+                      />
+                    </span>
                   </div>
                 ) : (
                   result.pipelineRunReport.outputExpirationDate && (
                     <div
                       style={{
                         backgroundColor: colors.danger(0.2),
-                        // color: '#842029',
                         padding: '1rem',
                         borderRadius: '4px',
                         marginBottom: '1rem',
                         marginTop: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
                       }}
                     >
-                      All output files for this job will be automatically deleted on{' '}
-                      <span style={{ fontWeight: 'bold' }}>
-                        {formatDate(result.pipelineRunReport.outputExpirationDate)}
+                      <Icon
+                        icon='warning-standard'
+                        size={24}
+                        style={{ color: colors.danger(), flexShrink: 0 }}
+                        aria-label='Warning'
+                      />
+                      <span>
+                        All output files for this job will be automatically deleted on{' '}
+                        <span style={{ fontWeight: 'bold' }}>
+                          {formatDate(result.pipelineRunReport.outputExpirationDate)}
+                        </span>
+                        . Please download them before this date, or{' '}
+                        <Link
+                          href={Nav.getLink('pipelines-job-detail', { jobId })}
+                          onClick={onDismiss}
+                          baseColor={() => '#46A3E9'}
+                        >
+                          deliver them to a cloud destination
+                        </Link>{' '}
+                        using the Deliver Outputs feature.
                       </span>
-                      . Please download them before this date, or{' '}
-                      <Link
-                        href={Nav.getLink('pipelines-job-detail', { jobId })}
-                        onClick={onDismiss}
-                        baseColor={() => '#46A3E9'}
-                      >
-                        deliver them to a cloud destination
-                      </Link>{' '}
-                      using the Deliver Outputs feature.
                     </div>
                   )
                 )}
