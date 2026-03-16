@@ -103,7 +103,6 @@ export interface PipelineRunResponse {
   jobReport: PipelineJobReport;
   errorReport?: PipelineRunErrorReport;
   pipelineRunReport: PipelineRunReport;
-  dataDeliveryReport?: DataDeliveryReport;
 }
 
 export interface DataDeliveryReport {
@@ -137,6 +136,7 @@ export interface PipelineRunReport {
   inputSize?: number;
   inputSizeUnits?: string;
   quotaConsumed?: number;
+  dataDeliveryReport?: DataDeliveryReport;
 }
 
 export interface PipelineRunOutputSignedUrlsResponse {

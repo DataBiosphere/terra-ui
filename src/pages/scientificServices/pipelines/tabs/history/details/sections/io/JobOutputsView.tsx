@@ -54,7 +54,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
     }
   };
 
-  const dataDeliverySucceeded = pipelineRunResult.dataDeliveryReport?.status === 'SUCCEEDED';
+  const dataDeliverySucceeded = pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
 
   const outputExpirationDate = pipelineRunResult.pipelineRunReport.outputExpirationDate
     ? new Date(pipelineRunResult.pipelineRunReport.outputExpirationDate)

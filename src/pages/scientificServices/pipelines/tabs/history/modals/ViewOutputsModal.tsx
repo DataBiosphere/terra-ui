@@ -25,7 +25,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
 
-  const deliverySucceeded = result?.dataDeliveryReport?.status === 'SUCCEEDED';
+  const deliverySucceeded = result?.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
 
   useEffect(() => {
     const fetchPipelineRunResults = async () => {
@@ -153,7 +153,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     )}
                     .{' '}
                     <BucketConsoleLink
-                      cloudPath={result.dataDeliveryReport?.destination}
+                      cloudPath={result.pipelineRunReport.dataDeliveryReport?.destination}
                       linkText='View your outputs in the Google Cloud Console'
                     />
                   </div>

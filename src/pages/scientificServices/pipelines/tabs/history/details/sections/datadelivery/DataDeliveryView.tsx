@@ -56,8 +56,8 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
     try {
       await Teaspoons().deliverData(uuidv4(), jobId, path);
       const updated = await Teaspoons().getPipelineRunResult(jobId);
-      if (updated.dataDeliveryReport) {
-        setDataDeliveryReport(updated.dataDeliveryReport);
+      if (updated.pipelineRunReport.dataDeliveryReport) {
+        setDataDeliveryReport(updated.pipelineRunReport.dataDeliveryReport);
       }
     } catch (err) {
       let raw: string;

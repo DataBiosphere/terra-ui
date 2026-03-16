@@ -27,7 +27,7 @@ export const OutputDetailsModal = ({
   signedUrls,
   setSignedUrls,
 }: DownloadOutputModalProps) => {
-  const deliverySucceeded = pipelineRunResult.dataDeliveryReport?.status === 'SUCCEEDED';
+  const deliverySucceeded = pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
 
   const [loading, setLoading] = useState(!deliverySucceeded);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
@@ -123,9 +123,9 @@ export const OutputDetailsModal = ({
             )}
           </div>
         )}
-        {pipelineRunResult.dataDeliveryReport?.status === 'SUCCEEDED' && (
+        {pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED' && (
           <BucketConsoleLink
-            cloudPath={pipelineRunResult.dataDeliveryReport.destination}
+            cloudPath={pipelineRunResult.pipelineRunReport.dataDeliveryReport.destination}
             linkText='View your output in the Google Cloud Console'
           />
         )}

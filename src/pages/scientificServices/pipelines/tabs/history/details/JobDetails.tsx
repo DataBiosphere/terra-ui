@@ -68,7 +68,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
                 <PipelineRunTimeline pipelineRunResult={pipelineRunResult} />
                 {pipelineRunResult.jobReport.status === 'SUCCEEDED' && (
                   <DataDeliveryView
-                    dataDeliveryReport={pipelineRunResult.dataDeliveryReport || null}
+                    dataDeliveryReport={pipelineRunResult.pipelineRunReport.dataDeliveryReport || null}
                     pipelineRunResult={pipelineRunResult}
                   />
                 )}

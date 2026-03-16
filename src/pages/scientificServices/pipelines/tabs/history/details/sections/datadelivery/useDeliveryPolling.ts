@@ -30,9 +30,9 @@ export const useDeliveryPolling = ({ jobId, status, onUpdate }: UseDeliveryPolli
     intervalRef.current = setInterval(async () => {
       try {
         const updated = await Teaspoons().getPipelineRunResult(jobId);
-        if (updated.dataDeliveryReport) {
-          onUpdate(updated.dataDeliveryReport);
-          if (updated.dataDeliveryReport.status !== 'RUNNING') stopPolling();
+        if (updated.pipelineRunReport.dataDeliveryReport) {
+          onUpdate(updated.pipelineRunReport.dataDeliveryReport);
+          if (updated.pipelineRunReport.dataDeliveryReport.status !== 'RUNNING') stopPolling();
         }
       } catch {
         // silently ignore polling errors
