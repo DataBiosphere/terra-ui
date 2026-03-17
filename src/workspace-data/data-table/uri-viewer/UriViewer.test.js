@@ -72,7 +72,7 @@ describe('UriViewer', () => {
     DrsUriResolver.mockClear();
     asMockedFn(Metrics).mockReturnValue(partial({ captureEvent: jest.fn() }));
 
-    const { container } = renderWithAppContexts(
+    renderWithAppContexts(
       h(UriViewer, {
         workspace: readOnlyWorkspace,
         uri: drsUri,
@@ -82,7 +82,7 @@ describe('UriViewer', () => {
     );
 
     await waitFor(() => {
-      expect(container.textContent).toContain('DRS resolution is not available for read-only workspace users.');
+      expect(screen.getByText('DRS resolution is not available for read-only workspace users.')).toBeInTheDocument();
     });
 
     expect(DrsUriResolver).not.toHaveBeenCalled();
