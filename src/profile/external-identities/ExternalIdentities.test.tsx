@@ -16,11 +16,6 @@ jest.mock('src/profile/external-identities/OAuth2Account', () => ({
   OAuth2Account: jest.fn((props) => <div>{props.provider.name}</div>),
 }));
 
-jest.mock('src/profile/external-identities/NihAccount', () => ({
-  ...jest.requireActual('src/profile/external-identities/NihAccount'),
-  NihAccount: jest.fn(() => <div>NHGRI AnVIL (eRA Commons)</div>),
-}));
-
 describe('ExternalIdentities', () => {
   describe('when the user has access to GitHub Account Linking', () => {
     it('shows the GitHub Account Linking card', async () => {
@@ -66,7 +61,7 @@ describe('ExternalIdentities', () => {
     asMockedFn(getConfig).mockReturnValue(
       partial<AppConfigSettings>({
         externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['ras', 'era-commons', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
+          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
         }),
       })
     );
@@ -77,7 +72,6 @@ describe('ExternalIdentities', () => {
     const providerElements = Array.from(screen.getByRole('main').querySelectorAll('div')).map((div) => div.textContent);
     expect(providerElements).toStrictEqual([
       'NIH Researcher Auth Service (RAS)',
-      'NHGRI AnVIL (eRA Commons)',
       'NHLBI BioData Catalyst Framework Services',
       'NCI CRDC Framework Services',
       'Kids First DRC Framework Services',
