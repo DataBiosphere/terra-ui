@@ -72,19 +72,6 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
           ' to see what datasets are available.',
         ]),
       };
-    case 'era-commons':
-      return {
-        key: providerKey,
-        name: 'eRA Commons',
-        short: 'eRA Commons',
-        queryParams: {
-          scopes: ['openid', 'email', 'profile'],
-          redirectUri: createRedirectUri('ecm-callback'),
-        },
-        supportsAccessToken: false,
-        supportsIdToken: false, // turning off clipboard copying for now.
-        isFence: false,
-      };
     case 'fence':
       return {
         key: providerKey,
