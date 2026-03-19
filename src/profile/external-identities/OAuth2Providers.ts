@@ -127,18 +127,6 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
           ' to see what datasets are available.',
         ]),
       };
-    case 'anvil':
-      return {
-        key: providerKey,
-        name: 'NHGRI AnVIL Data Commons Framework Services',
-        short: 'AnVIL',
-        queryParams: {
-          redirectUri: createRedirectUri('#fence-callback'),
-        },
-        supportsAccessToken: true,
-        supportsIdToken: false,
-        isFence: true,
-      };
     case 'sage':
       return {
         key: providerKey,

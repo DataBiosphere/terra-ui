@@ -61,7 +61,7 @@ describe('ExternalIdentities', () => {
     asMockedFn(getConfig).mockReturnValue(
       partial<AppConfigSettings>({
         externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
+          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'sage'],
         }),
       })
     );
@@ -75,7 +75,6 @@ describe('ExternalIdentities', () => {
       'NHLBI BioData Catalyst Framework Services',
       'NCI CRDC Framework Services',
       'Kids First DRC Framework Services',
-      'NHGRI AnVIL Data Commons Framework Services',
       'Sage Bionetworks',
     ]);
   });
