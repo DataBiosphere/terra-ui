@@ -72,19 +72,6 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
           ' to see what datasets are available.',
         ]),
       };
-    case 'era-commons':
-      return {
-        key: providerKey,
-        name: 'eRA Commons',
-        short: 'eRA Commons',
-        queryParams: {
-          scopes: ['openid', 'email', 'profile'],
-          redirectUri: createRedirectUri('ecm-callback'),
-        },
-        supportsAccessToken: false,
-        supportsIdToken: false, // turning off clipboard copying for now.
-        isFence: false,
-      };
     case 'fence':
       return {
         key: providerKey,
@@ -139,18 +126,6 @@ export const oauth2Provider = (providerKey: OAuth2ProviderKey): OAuth2Provider =
           h(Link, { href: 'https://data.kidsfirstdrc.org/', ...toolTipLinkProps }, ['Kids First Data Catalog Portal']),
           ' to see what datasets are available.',
         ]),
-      };
-    case 'anvil':
-      return {
-        key: providerKey,
-        name: 'NHGRI AnVIL Data Commons Framework Services',
-        short: 'AnVIL',
-        queryParams: {
-          redirectUri: createRedirectUri('#fence-callback'),
-        },
-        supportsAccessToken: true,
-        supportsIdToken: false,
-        isFence: true,
       };
     case 'sage':
       return {

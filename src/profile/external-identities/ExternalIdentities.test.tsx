@@ -2,7 +2,6 @@ import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { act, screen } from '@testing-library/react';
 import React from 'react';
 import { AppConfigSettings, getConfig } from 'src/libs/config';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
 import { TerraUserState, userStore } from 'src/libs/state';
 import { ExternalIdentities } from 'src/profile/external-identities/ExternalIdentities';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -12,19 +11,9 @@ jest.mock('src/libs/config', () => ({
   getConfig: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('src/libs/feature-previews', () => ({
-  ...jest.requireActual('src/libs/feature-previews'),
-  isFeaturePreviewEnabled: jest.fn(),
-}));
-
 jest.mock('src/profile/external-identities/OAuth2Account', () => ({
   ...jest.requireActual('src/profile/external-identities/OAuth2Account'),
   OAuth2Account: jest.fn((props) => <div>{props.provider.name}</div>),
-}));
-
-jest.mock('src/profile/external-identities/NihAccount', () => ({
-  ...jest.requireActual('src/profile/external-identities/NihAccount'),
-  NihAccount: jest.fn(() => <div>NHGRI AnVIL (eRA Commons)</div>),
 }));
 
 describe('ExternalIdentities', () => {
@@ -72,12 +61,10 @@ describe('ExternalIdentities', () => {
     asMockedFn(getConfig).mockReturnValue(
       partial<AppConfigSettings>({
         externalCreds: partial<AppConfigSettings['externalCreds']>({
-          providers: ['ras', 'era-commons', 'fence', 'dcf-fence', 'kids-first', 'anvil', 'sage'],
+          providers: ['ras', 'fence', 'dcf-fence', 'kids-first', 'sage'],
         }),
       })
     );
-    asMockedFn(isFeaturePreviewEnabled).mockReturnValue(true); // Mock RAS_PROVIDER as enabled
-
     // Act
     render(<ExternalIdentities queryParams={{}} />);
 
@@ -85,11 +72,9 @@ describe('ExternalIdentities', () => {
     const providerElements = Array.from(screen.getByRole('main').querySelectorAll('div')).map((div) => div.textContent);
     expect(providerElements).toStrictEqual([
       'NIH Researcher Auth Service (RAS)',
-      'NHGRI AnVIL (eRA Commons)',
       'NHLBI BioData Catalyst Framework Services',
       'NCI CRDC Framework Services',
       'Kids First DRC Framework Services',
-      'NHGRI AnVIL Data Commons Framework Services',
       'Sage Bionetworks',
     ]);
   });
