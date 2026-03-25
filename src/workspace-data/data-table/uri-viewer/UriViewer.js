@@ -12,10 +12,13 @@ import { parseGsUri } from 'src/components/data/data-utils';
 import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import colors from 'src/libs/colors';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
+import { canWrite } from 'src/workspaces/utils';
 
 import { FileProvenance } from '../../provenance/FileProvenance';
 import els from './uri-viewer-styles';
@@ -54,6 +57,14 @@ export const UriViewer = _.flow(
         setMetadata(azureMetadata);
         setLoadingError(false);
       } else {
+        if (!canWrite(workspace.accessLevel)) {
+          void Metrics().captureEvent(Events.workspaceDataDrsReadOnlyBlocked, {
+            source: 'filePreviewModal',
+            ...extractWorkspaceDetails(workspace),
+          });
+          setLoadingError({ message: 'DRS resolution is not available for read-only workspace users.' });
+          return;
+        }
         // Fields are mapped from the drshub_v4 fields to those used by google
         // https://github.com/DataBiosphere/terra-drs-hub
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
@@ -66,15 +77,11 @@ export const UriViewer = _.flow(
           timeUpdated: updated,
           fileName,
           accessUrl,
-        } = await DrsUriResolver(signal).getDataObjectMetadata(uri, [
-          'bucket',
-          'name',
-          'size',
-          'timeCreated',
-          'timeUpdated',
-          'fileName',
-          'accessUrl',
-        ]);
+        } = await DrsUriResolver(signal).getDataObjectMetadata(
+          uri,
+          ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl'],
+          { userProject: googleProject }
+        );
         const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl };
         setMetadata(metadata);
       }
@@ -164,11 +171,10 @@ export const UriViewer = _.flow(
     const errorMsg = isStdLog
       ? 'Log file not found. This may be the result of a task failing to start. Please check relevant docker images and file paths to ensure valid references.'
       : 'Error loading data. This file does not exist or you do not have permission to view it.';
+    const displayError = loadingError?.message || loadingError;
     return loadingError
-      ? h(Collapse, { title: 'Details' }, [
-          div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-            JSON.stringify(loadingError, null, 2),
-          ]),
+      ? div({ style: { padding: '1rem 0', whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [
+          typeof displayError === 'string' ? displayError : JSON.stringify(loadingError, null, 2),
         ])
       : h(Fragment, [div({ style: { paddingBottom: '1rem' } }, [errorMsg])]);
   };
