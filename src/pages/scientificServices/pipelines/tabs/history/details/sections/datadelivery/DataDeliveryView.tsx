@@ -90,7 +90,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
               {errorMessage ?? 'There was an error moving the outputs to the destination. Please retry the delivery.'}
             </span>
             <ButtonPrimary
-              disabled={isDelivering || !!validationError}
+              disabled={isDelivering || !!validationError || !path}
               onClick={handleDeliver}
               style={{ marginLeft: 'auto' }}
             >
@@ -145,7 +145,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
                 </span>
               )}
               <ButtonPrimary
-                disabled={isDelivering || !!validationError}
+                disabled={isDelivering || !!validationError || !path}
                 onClick={handleDeliver}
                 style={{ marginLeft: 'auto' }}
               >
