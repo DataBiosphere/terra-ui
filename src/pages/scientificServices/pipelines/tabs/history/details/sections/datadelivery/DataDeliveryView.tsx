@@ -11,7 +11,6 @@ import {
   validateGcsPath,
 } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/datadelivery/data-delivery-utils';
 import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
-import { v4 as uuidv4 } from 'uuid';
 
 import { useDeliveryPolling } from './useDeliveryPolling';
 
@@ -54,7 +53,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
     setIsDelivering(true);
     setErrorMessage(undefined);
     try {
-      await Teaspoons().deliverData(uuidv4(), jobId, path);
+      await Teaspoons().deliverData(jobId, path);
       const updated = await Teaspoons().getPipelineRunResult(jobId);
       if (updated.pipelineRunReport.dataDeliveryReport) {
         setDataDeliveryReport(updated.pipelineRunReport.dataDeliveryReport);
