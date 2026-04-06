@@ -180,6 +180,7 @@ const eventsList = {
   workspaceDataEditOne: 'workspace:data:editOne',
   workspaceDataColumnTableSearch: 'workspace:data:columnTableSearch',
   workspaceDataOpenWithIGV: 'workspace:data:igv',
+  workspaceDataDrsReadOnlyBlocked: 'workspace:data:drsReadOnlyBlocked',
   workspaceDataOpenWithWorkflow: 'workspace:data:workflow',
   workspaceDataOpenWithDataExplorer: 'workspace:data:dataexplorer',
   workspaceDataOpenWithNotebook: 'workspace:data:notebook',

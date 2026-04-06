@@ -41,14 +41,18 @@ export const JobHistory = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [pipelineRunsResponse, setPipelineRunsResponse] = useState<GetPipelineRunsResponse>();
   const [isLoading, setIsLoading] = useState(false);
-  const [filters, setFilters] = useState<FilterValues>({});
-  const [showFilters, setShowFilters] = useState(false);
+  const { query } = Nav.useRoute();
+  const pipelineNameQueryParam: string | undefined = query?.pipelineName || undefined;
+  const [filters, setFilters] = useState<FilterValues>(
+    pipelineNameQueryParam ? { pipelineName: pipelineNameQueryParam } : {}
+  );
+  const [showFilters, setShowFilters] = useState(!!pipelineNameQueryParam);
   const [sort, setSort] = useState<SortProperties>({
     field: 'created',
     direction: 'desc',
   });
 
-  const { isLoading: isLoadingPipelines, pipelines: pipelinesList } = usePipelinesList();
+  const { isLoading: isLoadingPipelines, uniquePipelines: pipelinesList } = usePipelinesList();
 
   // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {

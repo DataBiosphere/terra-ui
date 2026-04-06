@@ -5,7 +5,7 @@ export interface Pipeline {
   description: string;
 }
 
-export type PipelineIOType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN';
+export type PipelineIOType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN' | 'MANIFEST';
 
 export interface PipelineInput {
   name: string;

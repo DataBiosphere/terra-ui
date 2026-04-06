@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { DelayedSearchInput } from 'src/components/input';
 import { Pipeline, PipelineRunStatus } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import * as Nav from 'src/libs/nav';
 
 export interface FilterValues {
   description?: string;
@@ -27,6 +28,7 @@ export const TableFilters: React.FC<TableFiltersProps> = ({ filters, onFilterCha
 
   const handleClearFilters = () => {
     onFilterChange({});
+    Nav.updateSearch({}); // clear any filter query params
   };
 
   const hasActiveFilters = Object.values(filters).some((value) => value !== undefined && value !== '');
@@ -204,7 +206,7 @@ const PipelineFilterControl = ({
 }) => {
   const pipelineOptions = pipelinesList.map((pipeline) => ({
     value: pipeline.pipelineName,
-    label: pipeline.pipelineName,
+    label: pipeline.displayName,
   }));
 
   return (

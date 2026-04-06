@@ -7,7 +7,7 @@ import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/u
 import { AoUStylizedString } from 'src/pages/scientificServices/pipelines/utils/AoUStylizedString';
 
 export const About = () => {
-  const { isLoading, error, pipelines } = usePipelinesList();
+  const { isLoading, error, uniquePipelines } = usePipelinesList();
 
   return (
     <FooterWrapper alwaysShow>
@@ -20,7 +20,7 @@ export const About = () => {
 
         {error && <div style={{ color: 'red' }}>{error.message}</div>}
 
-        {pipelines?.map((pipeline) => (
+        {uniquePipelines?.map((pipeline) => (
           <div key={pipeline.pipelineName}>
             <h3>
               <AoUStylizedString text={pipeline.displayName} />

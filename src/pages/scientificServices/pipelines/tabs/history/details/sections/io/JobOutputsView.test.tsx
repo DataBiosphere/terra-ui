@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineOutput } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   mockPipelineRunResponse,
   mockPipelineWithDetails,
@@ -13,7 +13,7 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { JobOutputsView } from './JobOutputsView';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
-jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
+jest.mock('src/pages/scientificServices/pipelines/utils/file-utils');
 
 describe('JobOutputsView', () => {
   const mockWindowOpen = jest.fn();

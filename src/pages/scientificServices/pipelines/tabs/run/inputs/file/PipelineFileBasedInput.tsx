@@ -96,7 +96,7 @@ interface PipelineInputSelectorProps {
   onSharingConfirmationChange?: (inputName: string, isConfirmed: boolean) => void;
 }
 
-export const PipelineFileInput: React.FC<PipelineInputSelectorProps> = ({
+export const PipelineFileBasedInput: React.FC<PipelineInputSelectorProps> = ({
   input,
   selectedFile,
   uploadState,

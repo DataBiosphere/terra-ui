@@ -9,7 +9,7 @@
   "drsHubUrlRoot": "https://drshub.dsde-dev.broadinstitute.org",
   "duosUrlRoot": "https://duos-k8s.dsde-dev.broadinstitute.org",
   "externalCreds": {
-    "providers": ["ras", "era-commons", "fence", "dcf-fence", "kids-first", "github", "sage"],
+    "providers": ["ras", "fence", "dcf-fence", "kids-first", "github", "sage"],
     "urlRoot": "https://externalcreds.dsde-dev.broadinstitute.org"
   },
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",

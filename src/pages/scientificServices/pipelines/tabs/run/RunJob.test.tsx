@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -65,10 +65,11 @@ Object.defineProperty(global, 'crypto', {
 });
 
 // Helper function to select local file input and upload a file
-const selectAndUploadLocalFile = async (fileName: string) => {
-  const selectLocalInputButton = screen.getByText('Upload File');
-  await userEvent.click(selectLocalInputButton);
-  const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+const selectAndUploadLocalFile = async (fileName: string, inputDisplayName: string) => {
+  const fileSection = screen.getByText(`Select a ${inputDisplayName}`).closest('div');
+  const uploadButton = within(fileSection!).getByText('Upload File');
+  await userEvent.click(uploadButton);
+  const fileInput = fileSection!.querySelector('input[type="file"]') as HTMLInputElement;
   const file = new File(['test'], fileName, { type: 'text/plain' });
   await waitFor(() => userEvent.upload(fileInput, file));
   expect(fileInput.files?.[0]).toBe(file);
@@ -128,6 +129,7 @@ describe('RunJob Component', () => {
     expect(screen.getByText(/Enter description/)).toBeInTheDocument();
     expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
     expect(screen.getByText('Allow chunk failures')).toBeInTheDocument();
+    expect(screen.getByText('Select a manifest file')).toBeInTheDocument();
 
     // Wait for pipeline options to load
     await waitFor(() => {
@@ -185,7 +187,7 @@ describe('RunJob Component', () => {
     expect(allowChunkFailuresCheckbox).toBeChecked();
   });
 
-  it('handles file selection and triggers upload process', async () => {
+  it('handles VCF file selection and triggers upload process', async () => {
     render(<RunJob />);
 
     // Wait for submit button to appear, indicating page has loaded
@@ -194,8 +196,9 @@ describe('RunJob Component', () => {
     });
 
     // clicks the Upload File button for local uploads
-    const selectLocalInputButton = screen.getByText('Upload File');
-    await userEvent.click(selectLocalInputButton);
+    const vcfFileSection = screen.getByText('Select a multi-sample VCF file').closest('div');
+    const vcfUploadButton = within(vcfFileSection!).getByText('Upload File');
+    await userEvent.click(vcfUploadButton);
 
     // Get the file input directly (it should be present even without pipeline selected)
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -203,6 +206,26 @@ describe('RunJob Component', () => {
 
     // The test just verifies the file input exists and can be interacted with
     // Full integration testing would require more complex Select component mocking
+  });
+
+  // The test just verifies the manifest file input exists and can be interacted with
+  // Full integration testing would require more complex Select component mocking
+  it('handles manifest file selection and triggers upload process', async () => {
+    render(<RunJob />);
+
+    // Wait for submit button to appear, indicating page has loaded
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // clicks the Upload File button for local uploads
+    const manifestFileSection = screen.getByText('Select a manifest file').closest('div');
+    const manifestUploadButton = within(manifestFileSection!).getByText('Upload File');
+    await userEvent.click(manifestUploadButton);
+
+    // Get the file input directly (it should be present even without pipeline selected)
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(fileInput).toBeInTheDocument();
   });
 
   it('validates required fields before allowing submission', async () => {
@@ -231,13 +254,13 @@ describe('RunJob Component', () => {
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
 
     // select a valid file
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
     // the submit button should be enabled now that all required fields are filled and valid
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
   });
 
-  it('disables the submit button if cloud file is selected without sharing confirmation', async () => {
+  it('disables the submit button if multiSampleVCF cloud file is selected without sharing confirmation', async () => {
     const user = userEvent.setup();
     render(<RunJob />);
 
@@ -257,8 +280,9 @@ describe('RunJob Component', () => {
     await user.type(outputPrefixInput, 'test_output');
     expect(outputPrefixInput).toHaveValue('test_output');
 
-    // Select cloud storage as the source
-    const selectCloudInputButton = screen.getByText('Google Cloud Storage');
+    // Select cloud storage as the source for multi-sample VCF file
+    const vcfFileSection = screen.getByText('Select a multi-sample VCF file').closest('div');
+    const selectCloudInputButton = within(vcfFileSection!).getByText('Google Cloud Storage');
     await user.click(selectCloudInputButton);
 
     // Enter a valid GCS path
@@ -278,7 +302,52 @@ describe('RunJob Component', () => {
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
   });
 
-  it('disables the submit button if an invalid file type is selected', async () => {
+  it('disables the submit button if manifest cloud file is selected without sharing confirmation', async () => {
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    // Wait for submit button to appear
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Fill in the output prefix (required field)
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await user.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // Fill in the required multi-sample VCF file input with a local file (required field)
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Select cloud storage as the source for manifest file
+    const manifestFileSection = screen.getByText('Select a manifest file').closest('div');
+    const selectCloudInputButton = within(manifestFileSection!).getByText('Google Cloud Storage');
+    await user.click(selectCloudInputButton);
+
+    // Enter a valid GCS path
+    const gcsPathInput = screen.getByPlaceholderText('gs://bucket/path/to/file.tsv');
+    await user.type(gcsPathInput, 'gs://my-bucket/data/manifest.tsv');
+
+    // At this point, submit button should still be disabled because sharing confirmation is unchecked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Now check the sharing confirmation checkbox
+    const sharingConfirmationCheckbox = screen.getByRole('checkbox', {
+      name: /I have shared this file with Broad Scientific Services/,
+    });
+    await user.click(sharingConfirmationCheckbox);
+
+    // Now the submit button should be enabled
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the submit button if an invalid file type is selected for multi-sample VCF', async () => {
     render(<RunJob />);
 
     // Wait for submit button to appear, indicating page has loaded
@@ -298,7 +367,37 @@ describe('RunJob Component', () => {
     expect(outputPrefixInput).toHaveValue('test_output');
 
     // select an invalid text file for vcf input
-    await selectAndUploadLocalFile('test.txt');
+    await selectAndUploadLocalFile('test.txt', 'multi-sample VCF file');
+
+    // The submit button should remain disabled due to invalid file type
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText(/Invalid file type/)).toBeInTheDocument();
+  });
+
+  it('disables the submit button if an invalid file type is selected for manifest file', async () => {
+    render(<RunJob />);
+
+    // Wait for submit button to appear, indicating page has loaded
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Fill in the output prefix, since it's required
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await userEvent.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // Fill in the required multi-sample VCF file input with a local file (required field)
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // select an invalid text file for manifest input
+    await selectAndUploadLocalFile('test.txt', 'manifest file');
 
     // The submit button should remain disabled due to invalid file type
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
@@ -329,7 +428,7 @@ describe('RunJob Component', () => {
     await user.type(outputPrefixInput, 'test_output');
     expect(outputPrefixInput).toHaveValue('test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -362,7 +461,7 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -397,7 +496,7 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -434,7 +533,7 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -448,7 +547,7 @@ describe('RunJob Component', () => {
   });
 });
 
-describe('uploadPipelineFiles function', () => {
+describe('uploadPipelineFiles function with multi-sample VCF', () => {
   const mockFile = new File(['test content'], 'test.vcf', { type: 'text/plain' });
   const mockPipelineInputs: PipelineInput[] = [
     {
@@ -545,6 +644,105 @@ describe('uploadPipelineFiles function', () => {
         mockUserPipelineInputs,
         {
           multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+        },
+        jest.fn()
+      )
+    ).rejects.toThrow('Network error');
+  });
+});
+
+describe('uploadPipelineFiles function with manifest file', () => {
+  const mockFile = new File(['test content'], 'test.tsv', { type: 'text/plain' });
+  const mockPipelineInputs: PipelineInput[] = [
+    {
+      name: 'testManifestInput',
+      type: 'MANIFEST',
+      isRequired: true,
+      fileSuffix: '.tsv',
+    },
+  ];
+  const mockUserPipelineInputs = { testManifestInput: mockFile };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    const mockLocationUrl = 'https://mock-session-url.com/upload';
+    (global.fetch as jest.Mock).mockResolvedValue({
+      headers: {
+        get: (header: string) => (header === 'Location' ? mockLocationUrl : null),
+      },
+      ok: true,
+      status: 200,
+    } as Response);
+    // Reset the crypto mock
+    (global.crypto.randomUUID as jest.Mock).mockReturnValue('mock-uuid-1234');
+  });
+
+  it('successfully initiates a resumable upload session for file inputs', async () => {
+    const mockXHR = new MockXMLHttpRequest();
+
+    // Simulate successful upload
+    mockXHR.addEventListener = jest.fn((event, callback) => {
+      if (event === 'load') {
+        setTimeout(() => callback({ status: 200 }), 0);
+      }
+    });
+
+    Object.defineProperty(mockXHR, 'status', {
+      value: 200,
+      writable: true,
+    });
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    // this test needs the actual implementation of uploadPipelineFiles
+    const { uploadPipelineFiles } = jest.requireActual('src/pages/scientificServices/pipelines/utils/submission-utils');
+
+    await uploadPipelineFiles(
+      'array_imputation',
+      1,
+      mockPipelineInputs,
+      mockUserPipelineInputs,
+      {
+        testManifestInput: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+      jest.fn()
+    );
+
+    // Verify that the file upload was initiated
+    expect(global.fetch).toHaveBeenCalledWith('https://mock-signed-url.com/upload', {
+      method: 'POST',
+      headers: { 'x-goog-resumable': 'start', 'Content-Type': 'application/octet-stream' },
+    });
+
+    // Verify that XMLHttpRequest was used for file upload
+    expect(global.XMLHttpRequest).toHaveBeenCalled();
+    expect(mockXHR.open).toHaveBeenCalledWith('PUT', 'https://mock-session-url.com/upload');
+    expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(mockXHR.send).toHaveBeenCalledWith(mockFile);
+  });
+
+  it('handles errors during file upload', async () => {
+    const mockSend = jest.fn(() => {
+      throw new Error('Network error');
+    });
+
+    const mockXHR = new MockXMLHttpRequest();
+    mockXHR.send = mockSend;
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    // this test needs the actual implementation of uploadPipelineFiles
+    const { uploadPipelineFiles } = jest.requireActual('src/pages/scientificServices/pipelines/utils/submission-utils');
+
+    await expect(
+      uploadPipelineFiles(
+        'array_imputation',
+        1,
+        mockPipelineInputs,
+        mockUserPipelineInputs,
+        {
+          testManifestInput: { signedUrl: 'https://mock-signed-url.com/upload' },
         },
         jest.fn()
       )
