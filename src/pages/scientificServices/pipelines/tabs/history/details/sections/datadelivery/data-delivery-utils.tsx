@@ -53,5 +53,5 @@ const ERROR_MESSAGE_MAP: { substring: string; friendly: string }[] = [
 export const parseDeliveryError = (raw: string): string => {
   const lower = raw.toLowerCase();
   const match = ERROR_MESSAGE_MAP.find(({ substring }) => lower.includes(substring.toLowerCase()));
-  return match?.friendly ?? 'An unexpected error occurred. Please try again.';
+  return match?.friendly ?? `${raw}. Please review the sharing instructions and try again.`;
 };

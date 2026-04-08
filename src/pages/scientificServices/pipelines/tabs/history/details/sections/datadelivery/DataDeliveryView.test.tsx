@@ -292,7 +292,9 @@ describe('DataDeliveryView', () => {
       await userEvent.type(input, validGcsPath);
       await userEvent.click(screen.getByRole('button', { name: 'Deliver' }));
       await waitFor(() =>
-        expect(screen.getByText('An unexpected error occurred. Please try again.')).toBeInTheDocument()
+        expect(
+          screen.getByText('some unexpected error. Please review the sharing instructions and try again.')
+        ).toBeInTheDocument()
       );
     });
   });
