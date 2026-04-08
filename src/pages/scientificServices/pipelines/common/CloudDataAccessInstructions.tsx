@@ -64,7 +64,7 @@ const ACCESS_TYPE_CONFIG: Record<'inputs' | 'outputs', { instructions: string; d
   outputs: {
     instructions:
       'To ensure that Broad Scientific Services can deliver your outputs to the destination, please share the destination bucket with the following accounts:',
-    docsKey: DocsKey.CLOUD_INPUTS,
+    docsKey: DocsKey.CLOUD_OUTPUTS,
   },
 };
 
