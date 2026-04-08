@@ -3,15 +3,19 @@ import React, { useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { getConfig } from 'src/libs/config';
 import { getTerraUser } from 'src/libs/state';
+import {
+  TEASPOONS_SHARE_GROUP_DEV,
+  TEASPOONS_SHARE_GROUP_PROD,
+} from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
 import { useProxyGroup } from 'src/profile/personal-info/useProxyGroup';
 
 export const getTeaspoonsServiceAccountEmail = (): string => {
   if (getConfig().isProd) {
-    return 'broad-scientific-services@firecloud.org';
+    return TEASPOONS_SHARE_GROUP_PROD;
   }
-  return 'broad-scientific-services@dev.test.firecloud.org';
+  return TEASPOONS_SHARE_GROUP_DEV;
 };
 
 const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | null) => {
