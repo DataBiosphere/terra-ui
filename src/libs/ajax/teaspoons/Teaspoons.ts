@@ -4,6 +4,7 @@ import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
 import {
+  DataDeliveryJobReport,
   GetPipelineRunsResponse,
   PipelineList,
   PipelineRunOutputSignedUrlsResponse,
@@ -117,8 +118,8 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  deliverData: async (pipelineRunId: string, gcsPath: string): Promise<void> => {
-    await fetchTeaspoons(
+  deliverData: async (pipelineRunId: string, gcsPath: string): Promise<DataDeliveryJobReport> => {
+    const res = await fetchTeaspoons(
       `pipelineruns/v1/result/${pipelineRunId}/output/deliver-to-cloud`,
       _.mergeAll([
         authOpts(),
@@ -128,6 +129,8 @@ export const Teaspoons = (signal?: AbortSignal) => ({
         { signal, method: 'POST' },
       ])
     );
+
+    return res.json();
   },
 });
 

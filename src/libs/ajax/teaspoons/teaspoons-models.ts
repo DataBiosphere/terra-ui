@@ -105,8 +105,10 @@ export interface PipelineRunResponse {
   pipelineRunReport: PipelineRunReport;
 }
 
+export type DataDeliveryJobStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+
 export interface DataDeliveryReport {
-  status: 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+  status: DataDeliveryJobStatus;
   destination: string;
 }
 
@@ -118,6 +120,16 @@ export interface PipelineJobReport {
   submitted: string;
   completed?: string;
   resultURL?: string;
+}
+
+export interface DataDeliveryJobReport {
+  id: string;
+  description?: string;
+  status: DataDeliveryJobStatus;
+  statusCode: number;
+  submitted: string;
+  completed: string;
+  resultURL: string;
 }
 
 export interface PipelineRunErrorReport {
