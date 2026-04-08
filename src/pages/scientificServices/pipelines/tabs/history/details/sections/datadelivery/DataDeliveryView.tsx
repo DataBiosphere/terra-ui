@@ -1,4 +1,5 @@
 import { ButtonPrimary, Spinner } from '@terra-ui-packages/components';
+import { formatDate } from '@terra-ui-packages/core-utils';
 import React, { useState } from 'react';
 import { TextArea } from 'src/components/input';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -16,7 +17,8 @@ import { useDeliveryPolling } from './useDeliveryPolling';
 
 // NOT_STARTED isn't a status returned by the backend, instead it's a placeholder status to make
 // dealing with the initial state easier (since before delivery is initiated there is no report/status)
-export type DataDeliveryStatus = DataDeliveryReport['status'] | 'NOT_STARTED';
+// EXPIRED is used when the outputExpirationDate has passed and a delivery hasn't been made
+export type DataDeliveryStatus = DataDeliveryReport['status'] | 'NOT_STARTED' | 'EXPIRED';
 
 interface DataDeliveryViewProps {
   dataDeliveryReport: Partial<DataDeliveryReport> | null;
@@ -34,8 +36,16 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
   const [isDelivering, setIsDelivering] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  const status: DataDeliveryStatus = dataDeliveryReport?.status ?? 'NOT_STARTED';
+  const rawStatus: DataDeliveryStatus = dataDeliveryReport?.status ?? 'NOT_STARTED';
   const destination = dataDeliveryReport?.destination ?? '';
+
+  const outputExpirationDate = pipelineRunResult.pipelineRunReport?.outputExpirationDate;
+  const isExpired =
+    (rawStatus === 'NOT_STARTED' || rawStatus === 'FAILED') &&
+    !!outputExpirationDate &&
+    new Date(outputExpirationDate) < new Date();
+
+  const status: DataDeliveryStatus = isExpired ? 'EXPIRED' : rawStatus;
 
   useDeliveryPolling({ jobId, status, onUpdate: setDataDeliveryReport });
 
@@ -120,6 +130,15 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
             <BucketConsoleLink cloudPath={destination} linkText='View your outputs in the Google Cloud Console' />
           </div>
         );
+      case 'EXPIRED': {
+        return (
+          <div style={{ marginTop: '0.75rem', fontSize: '14px', color: colors.dark(0.7) }}>
+            {`The outputs for this job expired${
+              outputExpirationDate ? ` on ${formatDate(outputExpirationDate)}` : ''
+            } and can no longer be delivered.`}
+          </div>
+        );
+      }
       default: {
         const outputs = pipelineRunResult.pipelineRunReport?.outputs ?? {};
         const fileCount = Object.keys(outputs).length;
@@ -159,7 +178,7 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
     }
   };
 
-  const isInputDisabled = status === 'RUNNING' || status === 'SUCCEEDED';
+  const isInputDisabled = status === 'RUNNING' || status === 'SUCCEEDED' || status === 'EXPIRED';
 
   return (
     <div
@@ -196,36 +215,38 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
         </p>
       )}
 
-      <div>
-        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-        <label
-          htmlFor='gcs-delivery-path'
-          style={{ display: 'block', fontWeight: 600, color: colors.dark(), marginBottom: '0.5rem' }}
-        >
-          Destination Path
-        </label>
-        <TextArea
-          id='gcs-delivery-path'
-          rows={3}
-          value={path}
-          onChange={handlePathChange}
-          placeholder='gs://bucket/path/to/destination/'
-          aria-label='GCS destination path'
-          aria-describedby={validationError ? 'gcs-path-error' : undefined}
-          aria-invalid={!!validationError}
-          disabled={isInputDisabled}
-          style={{
-            border: `1px solid ${validationError ? colors.danger() : colors.dark(0.5)}`,
-            ...(isInputDisabled ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
-          }}
-        />
-        {validationError && (
-          <div id='gcs-path-error' role='alert' style={{ marginTop: '0.5rem', color: colors.danger() }}>
-            {validationError}
-          </div>
-        )}
-        {!isInputDisabled && <CloudDataAccessInstructions cloudPath={path} cloudAccessType='outputs' />}
-      </div>
+      {status !== 'EXPIRED' && (
+        <div>
+          {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+          <label
+            htmlFor='gcs-delivery-path'
+            style={{ display: 'block', fontWeight: 600, color: colors.dark(), marginBottom: '0.5rem' }}
+          >
+            Destination Path
+          </label>
+          <TextArea
+            id='gcs-delivery-path'
+            rows={3}
+            value={path}
+            onChange={handlePathChange}
+            placeholder='gs://bucket/path/to/destination/'
+            aria-label='GCS destination path'
+            aria-describedby={validationError ? 'gcs-path-error' : undefined}
+            aria-invalid={!!validationError}
+            disabled={isInputDisabled}
+            style={{
+              border: `1px solid ${validationError ? colors.danger() : colors.dark(0.5)}`,
+              ...(isInputDisabled ? { opacity: 0.6, cursor: 'not-allowed' } : {}),
+            }}
+          />
+          {validationError && (
+            <div id='gcs-path-error' role='alert' style={{ marginTop: '0.5rem', color: colors.danger() }}>
+              {validationError}
+            </div>
+          )}
+          {!isInputDisabled && <CloudDataAccessInstructions cloudPath={path} cloudAccessType='outputs' />}
+        </div>
+      )}
 
       {renderStatusContent()}
     </div>

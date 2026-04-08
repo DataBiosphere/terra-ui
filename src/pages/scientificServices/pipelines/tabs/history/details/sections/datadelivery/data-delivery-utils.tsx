@@ -21,6 +21,10 @@ export const STATUS_CONFIG: Record<DataDeliveryStatus, { label: string; icon: Re
     label: 'Failed',
     icon: <Icon icon='warning-standard' size={16} style={{ color: colors.danger() }} aria-label='Failed' />,
   },
+  EXPIRED: {
+    label: 'Expired',
+    icon: <Icon icon='warning-standard' size={16} style={{ color: colors.dark(0.5) }} aria-label='Expired' />,
+  },
 };
 
 export const validateGcsPath = (path: string): string | undefined => {

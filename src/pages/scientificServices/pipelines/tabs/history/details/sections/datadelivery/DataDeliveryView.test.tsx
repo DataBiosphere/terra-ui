@@ -1,3 +1,4 @@
+import { formatDate } from '@terra-ui-packages/core-utils';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -13,10 +14,13 @@ jest.mock('./useDeliveryPolling');
 
 const mockJobId = 'test-job-id';
 const validGcsPath = 'gs://my-bucket/output/path';
+const pastExpirationDate = '2026-03-01T12:00:00.000Z';
+const futureExpirationDate = '2026-12-01T12:00:00.000Z';
 
 const makePipelineRunResponse = (
   outputs: Record<string, string> = {},
-  dataDeliveryReport?: DataDeliveryReport
+  dataDeliveryReport?: DataDeliveryReport,
+  outputExpirationDate?: string
 ): PipelineRunResponse => ({
   jobReport: {
     id: mockJobId,
@@ -29,6 +33,7 @@ const makePipelineRunResponse = (
     toolVersion: '1.0',
     outputs,
     ...(dataDeliveryReport ? { dataDeliveryReport } : {}),
+    ...(outputExpirationDate ? { outputExpirationDate } : {}),
   },
 });
 
@@ -308,6 +313,89 @@ describe('DataDeliveryView', () => {
       render(<DataDeliveryView dataDeliveryReport={failedReport} pipelineRunResult={makePipelineRunResponse()} />);
       await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
       await waitFor(() => expect(screen.getByText('Delivered')).toBeInTheDocument());
+    });
+  });
+
+  describe('EXPIRED status', () => {
+    it('renders the "Expired" status badge when outputExpirationDate is in the past', () => {
+      render(
+        <DataDeliveryView
+          dataDeliveryReport={null}
+          pipelineRunResult={makePipelineRunResponse({}, undefined, pastExpirationDate)}
+        />
+      );
+      expect(screen.getByText('Expired')).toBeInTheDocument();
+    });
+
+    it('renders the expiration message with the formatted date', () => {
+      render(
+        <DataDeliveryView
+          dataDeliveryReport={null}
+          pipelineRunResult={makePipelineRunResponse({}, undefined, pastExpirationDate)}
+        />
+      );
+      expect(
+        screen.getByText(
+          `The outputs for this job expired on ${formatDate(pastExpirationDate)} and can no longer be delivered.`
+        )
+      ).toBeInTheDocument();
+    });
+
+    it('hides the destination path input', () => {
+      render(
+        <DataDeliveryView
+          dataDeliveryReport={null}
+          pipelineRunResult={makePipelineRunResponse({}, undefined, pastExpirationDate)}
+        />
+      );
+      expect(screen.queryByLabelText('GCS destination path')).not.toBeInTheDocument();
+    });
+
+    it('does not render a Deliver or Retry button', () => {
+      render(
+        <DataDeliveryView
+          dataDeliveryReport={null}
+          pipelineRunResult={makePipelineRunResponse({}, undefined, pastExpirationDate)}
+        />
+      );
+      expect(screen.queryByRole('button', { name: /Deliver|Retry/ })).not.toBeInTheDocument();
+    });
+
+    it('shows EXPIRED instead of FAILED when a previous delivery attempt failed and outputs have since expired', () => {
+      const failedReport: DataDeliveryReport = { status: 'FAILED', destination: validGcsPath };
+      render(
+        <DataDeliveryView
+          dataDeliveryReport={failedReport}
+          pipelineRunResult={makePipelineRunResponse({}, failedReport, pastExpirationDate)}
+        />
+      );
+      expect(screen.getByText('Expired')).toBeInTheDocument();
+      expect(screen.queryByText('Failed')).not.toBeInTheDocument();
+    });
+
+    it('does not show EXPIRED when outputExpirationDate is in the future', () => {
+      render(
+        <DataDeliveryView
+          dataDeliveryReport={null}
+          pipelineRunResult={makePipelineRunResponse({}, undefined, futureExpirationDate)}
+        />
+      );
+      expect(screen.getByText('Not Started')).toBeInTheDocument();
+      expect(screen.queryByText('Expired')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('expiration after delivery', () => {
+    it('shows SUCCEEDED when delivery completed but outputExpirationDate has since passed', () => {
+      const succeededReport: DataDeliveryReport = { status: 'SUCCEEDED', destination: validGcsPath };
+      render(
+        <DataDeliveryView
+          dataDeliveryReport={succeededReport}
+          pipelineRunResult={makePipelineRunResponse({}, succeededReport, pastExpirationDate)}
+        />
+      );
+      expect(screen.getByText('Delivered')).toBeInTheDocument();
+      expect(screen.queryByText('Expired')).not.toBeInTheDocument();
     });
   });
 

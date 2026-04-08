@@ -6,7 +6,7 @@ const POLL_INTERVAL_MS = 10_000; // 10 seconds
 
 interface UseDeliveryPollingOptions {
   jobId: string;
-  status: DataDeliveryReport['status'] | 'NOT_STARTED';
+  status: DataDeliveryReport['status'] | 'NOT_STARTED' | 'EXPIRED';
   onUpdate: (report: DataDeliveryReport) => void;
 }
 
