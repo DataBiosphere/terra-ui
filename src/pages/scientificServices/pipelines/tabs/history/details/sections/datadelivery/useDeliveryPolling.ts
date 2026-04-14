@@ -26,7 +26,10 @@ export const useDeliveryPolling = ({ jobId, status, onUpdate }: UseDeliveryPolli
       }
     };
 
-    if (status !== 'RUNNING') return stopPolling;
+    if (status !== 'RUNNING') {
+      stopPolling();
+      return;
+    }
 
     const schedulePoll = (index: number) => {
       const delay = POLL_INTERVALS_MS[Math.min(index, POLL_INTERVALS_MS.length - 1)];
