@@ -7,3 +7,9 @@ export const TEASPOONS_MAX_FILE_UPLOAD_SIZE_BYTES = 50 * 1024 * 1024 * 1024; // 
 
 /* the default TTL for file outputs in days */
 export const TEASPOONS_FILE_OUTPUT_TTL_DAYS = 14;
+
+/* the share-group for cloud integration features in production */
+export const TEASPOONS_SHARE_GROUP_PROD = 'broad-scientific-services@firecloud.org';
+
+/* the share-group for cloud integration features in dev */
+export const TEASPOONS_SHARE_GROUP_DEV = 'broad-scientific-services@dev.test.firecloud.org';

@@ -75,4 +75,27 @@ describe('JobDetails', () => {
 
     expect(Nav.goToPath).toHaveBeenCalledWith('pipelines-history');
   });
+
+  describe('DataDeliveryView section', () => {
+    it('shows the DataDeliveryView section when job status is SUCCEEDED', async () => {
+      mockGetPipelineRunResult.mockResolvedValue(mockPipelineRunResponse('SUCCEEDED'));
+      render(<JobDetails jobId='job-123' />);
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Deliver Outputs' })).toBeInTheDocument();
+      });
+    });
+
+    it.each(['PREPARING', 'RUNNING', 'FAILED'] as const)(
+      'does not show the DataDeliveryView section when job status is %s',
+      async (status) => {
+        mockGetPipelineRunResult.mockResolvedValue(mockPipelineRunResponse(status));
+        render(<JobDetails jobId='job-123' />);
+        // Wait for loading to complete using a known element that renders for all statuses
+        await waitFor(() => {
+          expect(screen.getByText('Job ID')).toBeInTheDocument();
+        });
+        expect(screen.queryByRole('heading', { name: 'Deliver Outputs' })).not.toBeInTheDocument();
+      }
+    );
+  });
 });
