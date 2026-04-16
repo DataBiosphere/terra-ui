@@ -4,21 +4,17 @@ import _, { capitalize } from 'lodash';
 import pluralize from 'pluralize';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { AutoSizer } from 'react-virtualized';
-import FooterWrapper from 'src/components/FooterWrapper';
 import { FlexTable, HeaderCell, Paginator, Sortable, TooltipCell } from 'src/components/table';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { GetPipelineRunsResponse, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { GetPipelineRunsResponse, Pipeline, PipelineRun } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
-import {
-  pipelinesTopBar,
-  SCIENTIFIC_SERVICES_SUPPORT_EMAIL,
-} from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { PipelinesLayout } from 'src/pages/scientificServices/pipelines/common/PipelinesLayout';
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
-import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { FilterValues, TableFilters } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
 import { ViewErrorModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewErrorModal';
 import { ViewOutputsModal } from 'src/pages/scientificServices/pipelines/tabs/history/modals/ViewOutputsModal';
@@ -35,7 +31,11 @@ interface SortProperties {
   direction: 'asc' | 'desc';
 }
 
-export const JobHistory = () => {
+interface JobHistoryContentProps {
+  pipelines: Pipeline[];
+}
+
+const JobHistoryContent = ({ pipelines: pipelinesList }: JobHistoryContentProps) => {
   const signal = useCancellation();
   const [pageNumber, setPageNumber] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -51,8 +51,6 @@ export const JobHistory = () => {
     field: 'created',
     direction: 'desc',
   });
-
-  const { isLoading: isLoadingPipelines, uniquePipelines: pipelinesList } = usePipelinesList();
 
   // Fetch pipeline runs when the component mounts or when pagination/sorting/filtering controls change
   useEffect(() => {
@@ -80,128 +78,131 @@ export const JobHistory = () => {
   };
 
   return (
-    <FooterWrapper alwaysShow>
-      {pipelinesTopBar('job history')}
-      <main
-        style={{
-          paddingLeft: '2rem',
-          paddingRight: '2rem',
-          paddingTop: '1rem',
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          rowGap: '1rem',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <h3>Job History</h3>
+    <main
+      style={{
+        paddingLeft: '2rem',
+        paddingRight: '2rem',
+        paddingTop: '1rem',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        rowGap: '1rem',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <h3>Job History</h3>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <div style={{ marginBottom: '0.25rem' }}>
-                All files associated with jobs will be automatically deleted after {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days
-                from completion.
-              </div>
-              <div>
-                For support, email{' '}
-                <a
-                  style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
-                  href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
-                >
-                  {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
-                </a>
-              </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <div style={{ marginBottom: '0.25rem' }}>
+              All files associated with jobs will be automatically deleted after {TEASPOONS_FILE_OUTPUT_TTL_DAYS} days
+              from completion.
             </div>
-            <div style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
-              {isLoadingPipelines && <Spinner size={20} />}
-              <ButtonPrimary
-                type='button'
-                disabled={isLoadingPipelines}
-                onClick={() => setShowFilters(!showFilters)}
-                aria-label={showFilters ? 'Hide filters' : 'Show filters'}
-                style={{ minWidth: '140px' }}
+            <div>
+              For support, email{' '}
+              <a
+                style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+                href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
               >
-                <Icon icon='search' size={16} style={{ marginRight: '0.5rem' }} />
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </ButtonPrimary>
+                {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+              </a>
             </div>
           </div>
-        </div>
-
-        {showFilters && (
-          <TableFilters filters={filters} onFilterChange={handleFilterChange} pipelinesList={pipelinesList} />
-        )}
-
-        <div style={{ flex: 1, marginTop: '0.75rem' }}>
-          {pipelineRunsResponse && !isLoading ? (
-            <AutoSizer>
-              {({ width, height }) => (
-                <FlexTable
-                  aria-label='job history table'
-                  width={width}
-                  height={height}
-                  rowHeight={55}
-                  rowCount={pipelineRunsResponse.results.length}
-                  columns={getColumns(pipelineRunsResponse.results, sort, (sort) => {
-                    setSort(sort);
-                    setPageNumber(1);
-                  })}
-                  noContentMessage={
-                    filters ? (
-                      <div>
-                        No results match the selected filters.{' '}
-                        <button
-                          type='button'
-                          style={{
-                            color: '#46A3E9',
-                            fontWeight: 700,
-                            textDecoration: 'underline',
-                            cursor: 'pointer',
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            fontStyle: 'italic',
-                          }}
-                          onClick={() => setFilters({})}
-                        >
-                          Clear filters
-                        </button>{' '}
-                        to see all jobs.
-                      </div>
-                    ) : (
-                      'Nothing to display'
-                    )
-                  }
-                  tabIndex={-1}
-                  variant={undefined}
-                  styleHeader={() => ({ backgroundColor: '#eff0f1' })}
-                />
-              )}
-            </AutoSizer>
-          ) : (
-            <Spinner />
-          )}
-        </div>
-        {!_.isEmpty(pipelineRunsResponse?.results) && (
-          <div style={{ marginBottom: '0.5rem' }}>
-            {/* @ts-ignore */}
-            <Paginator
-              filteredDataLength={pipelineRunsResponse?.totalFilteredResults ?? 0}
-              unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
-              pageNumber={pageNumber}
-              setPageNumber={(v) => {
-                setPageNumber(v);
-              }}
-              itemsPerPage={itemsPerPage}
-              setItemsPerPage={(v) => {
-                setPageNumber(1);
-                setItemsPerPage(v);
-              }}
-            />
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
+            {isLoading && <Spinner size={20} />}
+            <ButtonPrimary
+              type='button'
+              disabled={isLoading}
+              onClick={() => setShowFilters(!showFilters)}
+              aria-label={showFilters ? 'Hide filters' : 'Show filters'}
+              style={{ minWidth: '140px' }}
+            >
+              <Icon icon='search' size={16} style={{ marginRight: '0.5rem' }} />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </ButtonPrimary>
           </div>
+        </div>
+      </div>
+
+      {showFilters && (
+        <TableFilters filters={filters} onFilterChange={handleFilterChange} pipelinesList={pipelinesList} />
+      )}
+
+      <div style={{ flex: 1, marginTop: '0.75rem' }}>
+        {pipelineRunsResponse && !isLoading ? (
+          <AutoSizer>
+            {({ width, height }) => (
+              <FlexTable
+                aria-label='job history table'
+                width={width}
+                height={height}
+                rowHeight={55}
+                rowCount={pipelineRunsResponse.results.length}
+                columns={getColumns(pipelineRunsResponse.results, sort, (sort) => {
+                  setSort(sort);
+                  setPageNumber(1);
+                })}
+                noContentMessage={
+                  filters ? (
+                    <div>
+                      No results match the selected filters.{' '}
+                      <button
+                        type='button'
+                        style={{
+                          color: '#46A3E9',
+                          fontWeight: 700,
+                          textDecoration: 'underline',
+                          cursor: 'pointer',
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          fontStyle: 'italic',
+                        }}
+                        onClick={() => setFilters({})}
+                      >
+                        Clear filters
+                      </button>{' '}
+                      to see all jobs.
+                    </div>
+                  ) : (
+                    'Nothing to display'
+                  )
+                }
+                tabIndex={-1}
+                variant={undefined}
+                styleHeader={() => ({ backgroundColor: '#eff0f1' })}
+              />
+            )}
+          </AutoSizer>
+        ) : (
+          <Spinner />
         )}
-      </main>
-    </FooterWrapper>
+      </div>
+      {!_.isEmpty(pipelineRunsResponse?.results) && (
+        <div style={{ marginBottom: '0.5rem' }}>
+          {/* @ts-ignore */}
+          <Paginator
+            filteredDataLength={pipelineRunsResponse?.totalFilteredResults ?? 0}
+            unfilteredDataLength={pipelineRunsResponse?.totalResults ?? 0}
+            pageNumber={pageNumber}
+            setPageNumber={(v) => {
+              setPageNumber(v);
+            }}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={(v) => {
+              setPageNumber(1);
+              setItemsPerPage(v);
+            }}
+          />
+        </div>
+      )}
+    </main>
+  );
+};
+
+export const JobHistory = () => {
+  return (
+    <PipelinesLayout activeTab='job history' render={({ pipelines }) => <JobHistoryContent pipelines={pipelines} />} />
   );
 };
 
