@@ -4,7 +4,6 @@ import FooterWrapper from 'src/components/FooterWrapper';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { ServiceUnavailableView } from 'src/pages/scientificServices/pipelines/common/ServiceUnavailableView';
 import {
-  PipelinesListContext,
   usePipelinesList,
   UsePipelinesListResult,
 } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
@@ -28,11 +27,7 @@ export const PipelinesLayout = ({ activeTab, children, render }: PipelinesLayout
         </div>
       )}
       {!isLoading && error && <ServiceUnavailableView />}
-      {!isLoading && !error && (
-        <PipelinesListContext.Provider value={pipelinesResult}>
-          {render ? render(pipelinesResult) : children}
-        </PipelinesListContext.Provider>
-      )}
+      {!isLoading && !error && (render ? render(pipelinesResult) : children)}
     </FooterWrapper>
   );
 };

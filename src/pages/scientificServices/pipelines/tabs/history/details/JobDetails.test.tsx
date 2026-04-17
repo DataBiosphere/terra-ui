@@ -13,6 +13,14 @@ jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 jest.mock('src/libs/nav');
 jest.mock('src/libs/notifications');
 jest.mock('src/pages/scientificServices/pipelines/utils/file-utils');
+jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList', () => ({
+  usePipelinesList: jest.fn(() => ({
+    pipelines: [],
+    uniquePipelines: [],
+    isLoading: false,
+    error: undefined,
+  })),
+}));
 
 describe('JobDetails', () => {
   const mockGetPipelineRunResult = jest.fn();
