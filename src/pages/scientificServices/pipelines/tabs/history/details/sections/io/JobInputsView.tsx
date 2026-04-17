@@ -68,7 +68,7 @@ export const JobInputsView = ({ inputDefinitions, pipelineRunResult }: JobInputs
               fontWeight: 500,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Icon icon='tachometer' size={16} style={{ color: colors.dark(0.55) }} />
               Input Size: {inputSize} {pipelineRunResult.pipelineRunReport.inputSizeUnits || ''}
             </div>

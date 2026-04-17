@@ -39,18 +39,18 @@ export const getQuotaEvent = (pipelineRunResult: PipelineRunResponse): PipelineT
 export const getTerminalEvent = (pipelineRunResult: PipelineRunResponse): PipelineTimelineEvent => {
   const pipelineStatus = pipelineRunResult.jobReport.status;
 
-  let label = 'Pipeline Running';
+  let label = 'Job Running';
   if (pipelineStatus === 'SUCCEEDED') {
-    label = 'Pipeline Succeeded';
+    label = 'Job Succeeded';
   } else if (pipelineStatus === 'FAILED') {
-    label = 'Pipeline Failed';
+    label = 'Job Failed';
   }
 
   return {
     label,
     timestamp: pipelineRunResult.jobReport.completed,
     status: pipelineRunResult.jobReport.status,
-    moreInfo: pipelineStatus === 'RUNNING' ? 'This pipeline is currently running' : undefined,
+    moreInfo: pipelineStatus === 'RUNNING' ? 'This job is currently running' : undefined,
   };
 };
 
@@ -59,7 +59,7 @@ export const calculateTimelineEvents = (pipelineRunResult: PipelineRunResponse):
 
   // Always push a Submitted event
   events.push({
-    label: 'Submitted',
+    label: 'Job Submitted',
     status: 'SUCCEEDED',
     timestamp: pipelineRunResult.jobReport.submitted,
   });

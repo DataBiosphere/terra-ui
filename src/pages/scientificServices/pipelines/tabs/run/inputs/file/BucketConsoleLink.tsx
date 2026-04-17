@@ -3,6 +3,7 @@ import React from 'react';
 
 interface RenderBucketConsoleLinkProps {
   cloudPath?: string;
+  linkText?: string;
 }
 
 const extractBucketName = (path: string): string | null => {
@@ -10,7 +11,10 @@ const extractBucketName = (path: string): string | null => {
   return match ? match[1] : null;
 };
 
-export const BucketConsoleLink: React.FC<RenderBucketConsoleLinkProps> = ({ cloudPath }) => {
+export const BucketConsoleLink: React.FC<RenderBucketConsoleLinkProps> = ({
+  cloudPath,
+  linkText = 'View bucket in Google Cloud Console',
+}) => {
   const bucketName = cloudPath ? extractBucketName(cloudPath) : null;
   const consoleUrl = bucketName ? `https://console.cloud.google.com/storage/browser/${bucketName}` : null;
 
@@ -32,7 +36,7 @@ export const BucketConsoleLink: React.FC<RenderBucketConsoleLinkProps> = ({ clou
           textDecoration: 'none',
         }}
       >
-        View bucket in Google Cloud Console <Icon icon='pop-out' />
+        {linkText} <Icon icon='pop-out' />
       </a>
     </div>
   );
