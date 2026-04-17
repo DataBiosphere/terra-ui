@@ -105,7 +105,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   },
 
   getPipelineRunResult: async (jobId: string): Promise<PipelineRunResponse> => {
-    const res = await fetchTeaspoons(`pipelineruns/v2/result/${jobId}`, _.merge(authOpts(), { signal }));
+    const res = await fetchTeaspoons(`pipelineruns/v3/result/${jobId}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 

@@ -101,8 +101,9 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
       </div>
       {hasOutputs ? (
         <div>
-          {Object.entries(outputs).map(([key, value]) => {
+          {Object.entries(outputs).map(([key, outputValue]) => {
             const outputDefinition = outputDefinitions.find((output) => output.name === key);
+            const fileName = outputValue.value;
 
             return (
               <div
@@ -120,9 +121,9 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   label={outputDefinition?.displayName || key}
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
-                  fileName={value}
+                  fileName={fileName}
                   disabled={!isSucceeded || !!outputsExpired}
-                  onSelect={() => setSelectedOutput({ key, fileName: value })}
+                  onSelect={() => setSelectedOutput({ key, fileName })}
                 />
               </div>
             );

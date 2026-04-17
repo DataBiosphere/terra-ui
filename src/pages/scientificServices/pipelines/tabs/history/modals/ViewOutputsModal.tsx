@@ -92,7 +92,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                   margin: '1rem 0',
                 }}
               >
-                {Object.entries(result.pipelineRunReport.outputs).map(([key, fileName]) => (
+                {Object.entries(result.pipelineRunReport.outputs).map(([key, outputValue]) => (
                   <div
                     key={key}
                     style={{
@@ -114,7 +114,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                           wordBreak: 'break-all',
                         }}
                       >
-                        {fileName}
+                        {outputValue.value}
                       </div>
                     </div>
                     <ButtonPrimary

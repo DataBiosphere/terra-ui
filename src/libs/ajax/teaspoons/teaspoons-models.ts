@@ -121,11 +121,20 @@ export interface PipelineRunErrorReport {
   causes: string[];
 }
 
+export interface PipelineOutputFileMetadata {
+  sizeInBytes?: number;
+}
+
+export interface PipelineOutputValue {
+  value: string;
+  metadata?: PipelineOutputFileMetadata;
+}
+
 export interface PipelineRunReport {
   pipelineName: string;
   pipelineVersion: number;
   toolVersion: string;
-  outputs?: Record<string, string>;
+  outputs?: Record<string, PipelineOutputValue>;
   userInputs?: Record<string, string>;
   outputExpirationDate?: string;
   inputSize?: number;
