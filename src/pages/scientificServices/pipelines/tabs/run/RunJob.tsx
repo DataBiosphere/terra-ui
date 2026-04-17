@@ -152,17 +152,15 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
 
   useEffect(() => {
     if (pipelinesList && pipelinesList.length > 0) {
-      const options = pipelinesList
-        .map((pipeline) => ({
-          value: pipeline,
-          label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
-        }))
-        .reverse();
+      const options = pipelinesList.map((pipeline) => ({
+        value: pipeline,
+        label: `${pipeline.displayName} - v${pipeline.pipelineVersion}`,
+      }));
 
       setPipelineVersionOptions(options);
 
       // Automatically select the most recent pipeline
-      setSelectedPipeline(pipelinesList.at(-1));
+      setSelectedPipeline(pipelinesList[0]);
     }
   }, [pipelinesList]);
 
