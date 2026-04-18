@@ -78,7 +78,7 @@ describe('ViewOutputsModal', () => {
 
     // Verify download buttons are present
     const downloadButtons = screen.getAllByText('Download');
-    expect(downloadButtons).toHaveLength(2);
+    expect(downloadButtons).toHaveLength(3);
 
     // Verify expiration notice is displayed
     expect(screen.getByText(/All output files for this job will be automatically deleted on/)).toBeInTheDocument();
