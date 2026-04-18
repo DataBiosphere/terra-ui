@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
-import { DataDeliveryReport, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { DataDeliveryReport, PipelineOutputValue, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { DataDeliveryView } from './DataDeliveryView';
@@ -18,7 +18,7 @@ const pastExpirationDate = '2026-03-01T12:00:00.000Z';
 const futureExpirationDate = '2026-12-01T12:00:00.000Z';
 
 const makePipelineRunResponse = (
-  outputs: Record<string, string> = {},
+  outputs: Record<string, PipelineOutputValue> = {},
   dataDeliveryReport?: DataDeliveryReport,
   outputExpirationDate?: string
 ): PipelineRunResponse => ({
@@ -76,13 +76,18 @@ describe('DataDeliveryView', () => {
     });
 
     it('shows file count when outputs are present', () => {
-      const outputs = { file1: 'gs://bucket/file1.txt', file2: 'gs://bucket/file2.txt' };
+      const outputs = {
+        file1: { value: 'gs://bucket/file1.txt', metadata: { sizeInBytes: 1048576 } },
+        file2: { value: 'gs://bucket/file2.txt' },
+      };
       render(<DataDeliveryView dataDeliveryReport={null} pipelineRunResult={makePipelineRunResponse(outputs)} />);
       expect(screen.getByText('2 files will be moved to the destination.')).toBeInTheDocument();
     });
 
     it('shows singular "file" label when there is exactly 1 output', () => {
-      const outputs = { file1: 'gs://bucket/file1.txt' };
+      const outputs = {
+        file1: { value: 'gs://bucket/file1.txt', metadata: { sizeInBytes: 1048576 } },
+      };
       render(<DataDeliveryView dataDeliveryReport={null} pipelineRunResult={makePipelineRunResponse(outputs)} />);
       expect(screen.getByText('1 file will be moved to the destination.')).toBeInTheDocument();
     });
