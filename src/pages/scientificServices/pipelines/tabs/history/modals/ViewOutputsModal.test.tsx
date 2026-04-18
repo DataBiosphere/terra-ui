@@ -44,8 +44,9 @@ describe('ViewOutputsModal', () => {
 
   it('fetches and displays pipeline outputs', async () => {
     const mockOutputs = {
-      output1: 'https://example.com/output1.vcf',
-      output2: 'https://example.com/output2.bam',
+      output1: { value: 'https://example.com/output1.vcf', metadata: { sizeInBytes: 1048576 } },
+      output2: { value: 'https://example.com/output2.vcf', metadata: { sizeInBytes: 5242880 } },
+      output3: { value: 'https://example.com/output3.bam' },
     };
 
     const mockPipelineRunResponse: Partial<PipelineRunResponse> = {
@@ -146,8 +147,8 @@ describe('ViewOutputsModal', () => {
 
   describe('data delivery', () => {
     const mockOutputs = {
-      output1: 'gs://bucket/output1.vcf',
-      output2: 'gs://bucket/output2.bam',
+      output1: { value: 'gs://bucket/output1.vcf', metadata: { sizeInBytes: 1048576 } },
+      output2: { value: 'gs://bucket/output2.bam', metadata: { sizeInBytes: 1048576 } },
     };
 
     const makeDeliveredResponse = (destination = 'gs://my-bucket/delivered-outputs'): Partial<PipelineRunResponse> => ({

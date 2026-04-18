@@ -215,4 +215,46 @@ describe('OutputDetailsModal', () => {
       fileSize: '10.5 MB',
     });
   });
+
+  it('uses size information available in outputs metadata when available', async () => {
+    const pipelineResultWithSizeMetadata = {
+      ...mockPipelineRunResult,
+      pipelineRunReport: {
+        ...mockPipelineRunResult.pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: { value: 'output.vcf', metadata: { sizeInBytes: 1048576 } },
+        },
+      },
+    };
+
+    renderModal({ pipelineRunResult: pipelineResultWithSizeMetadata });
+
+    await waitFor(() => {
+      expect(screen.getByText('Size')).toBeInTheDocument();
+      expect(screen.getByText('1.00 MiB')).toBeInTheDocument();
+    });
+
+    // should not call getOutputFileSize when size metadata is available
+    expect(getOutputFileSize).not.toHaveBeenCalled();
+  });
+
+  it('falls back to getOutputFileSize when size information in outputs metadata is not available', async () => {
+    const pipelineResultWithoutMetadata = {
+      ...mockPipelineRunResult,
+      pipelineRunReport: {
+        ...mockPipelineRunResult.pipelineRunReport,
+        outputs: { imputedMultiSampleVcf: { value: 'output.vcf' } },
+      },
+    };
+
+    renderModal({ pipelineRunResult: pipelineResultWithoutMetadata });
+
+    await waitFor(() => {
+      expect(screen.getByText('Size')).toBeInTheDocument();
+      expect(screen.getByText('10.5 MB')).toBeInTheDocument(); // from getOutputFileSize mock
+    });
+
+    // should call getOutputFileSize when size metadata is not available
+    expect(getOutputFileSize).toHaveBeenCalledWith('https://signed-url.com/output.vcf');
+  });
 });
