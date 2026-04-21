@@ -4,6 +4,7 @@ import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { notify } from 'src/libs/notifications';
+import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import {
   mockPipelineWithDetails,
   mockUserPipelineQuotaDetails,
@@ -19,6 +20,10 @@ import { RunJob } from './RunJob';
 
 // Mock dependencies
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
+
+jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList', () => ({
+  usePipelinesList: jest.fn(),
+}));
 
 // Mock page navigation functions
 jest.mock('src/libs/nav', () => ({
@@ -106,6 +111,12 @@ describe('RunJob Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     asMockedFn(Teaspoons).mockReturnValue(mockTeaspoonsContract);
+    asMockedFn(usePipelinesList).mockReturnValue({
+      pipelines: [mockPipeline],
+      uniquePipelines: [mockPipeline],
+      isLoading: false,
+      error: undefined,
+    });
     asMockedFn(fetch).mockResolvedValue({
       ok: true,
       status: 200,
@@ -130,18 +141,13 @@ describe('RunJob Component', () => {
     expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
     expect(screen.getByText('Allow chunk failures')).toBeInTheDocument();
     expect(screen.getByText('Select a manifest file')).toBeInTheDocument();
-
-    // Wait for pipeline options to load
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
-    });
   });
 
   it('loads and displays pipeline options', async () => {
     render(<RunJob />);
 
     await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
+      expect(screen.getByText('Array Imputation - v1')).toBeInTheDocument();
     });
 
     // Check that pipeline details are fetched for each pipeline
