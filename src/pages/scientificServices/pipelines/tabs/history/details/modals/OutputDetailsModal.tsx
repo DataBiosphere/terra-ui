@@ -1,4 +1,5 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
+import { formatBytes } from '@terra-ui-packages/core-utils';
 import React, { useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
@@ -61,13 +62,22 @@ export const OutputDetailsModal = ({
 
         setSignedUrl(url);
 
-        try {
-          const size = await getOutputFileSize(url);
-          setFileSize(size);
-        } catch (err) {
-          // If we can't get the file size, it likely means the signed URL has expired
-          setError('There was an error preparing the download. Please refresh the page and try again.');
-          setSignedUrl(null);
+        // if available, use the file size from the output metadata returned by the API
+        const outputMetadata = pipelineRunResult.pipelineRunReport.outputs?.[outputKey]?.metadata;
+        if (outputMetadata?.sizeInBytes !== undefined) {
+          setFileSize(formatBytes(outputMetadata.sizeInBytes));
+        }
+
+        // if we don't have metadata.sizeInBytes, fallback to fetching file size via HEAD request
+        if (!outputMetadata?.sizeInBytes) {
+          try {
+            const size = await getOutputFileSize(url);
+            setFileSize(size);
+          } catch (err) {
+            // If we can't get the file size, it likely means the signed URL has expired
+            setError('There was an error preparing the download. Please refresh the page and try again.');
+            setSignedUrl(null);
+          }
         }
       } catch (err) {
         setError('Failed to retrieve download. Please try again.');
@@ -77,7 +87,14 @@ export const OutputDetailsModal = ({
     };
 
     fetchSignedUrl();
-  }, [deliverySucceeded, outputKey, pipelineRunResult.jobReport.id, setSignedUrls, signedUrls]);
+  }, [
+    deliverySucceeded,
+    outputKey,
+    pipelineRunResult.jobReport.id,
+    pipelineRunResult.pipelineRunReport.outputs,
+    setSignedUrls,
+    signedUrls,
+  ]);
 
   const handleDownload = () => {
     if (signedUrl) {
