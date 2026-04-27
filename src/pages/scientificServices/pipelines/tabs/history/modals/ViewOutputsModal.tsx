@@ -1,12 +1,15 @@
-import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
+import { ButtonPrimary, Icon, Link, Modal, Spinner } from '@terra-ui-packages/components';
 import { formatDate } from '@terra-ui-packages/core-utils';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -21,6 +24,8 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
   const [loading, setLoading] = useState(true);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
+
+  const deliverySucceeded = result?.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
 
   useEffect(() => {
     const fetchPipelineRunResults = async () => {
@@ -92,7 +97,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                   margin: '1rem 0',
                 }}
               >
-                {Object.entries(result.pipelineRunReport.outputs).map(([key, fileName]) => (
+                {Object.entries(result.pipelineRunReport.outputs).map(([key, outputValue]) => (
                   <div
                     key={key}
                     style={{
@@ -114,12 +119,12 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                           wordBreak: 'break-all',
                         }}
                       >
-                        {fileName}
+                        {outputValue.value}
                       </div>
                     </div>
                     <ButtonPrimary
                       onClick={() => handleDownload(key)}
-                      disabled={downloadingKey === key}
+                      disabled={downloadingKey === key || deliverySucceeded}
                       style={{ marginLeft: '1rem' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -129,23 +134,76 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                     </ButtonPrimary>
                   </div>
                 ))}
-                {result.pipelineRunReport.outputExpirationDate && (
+                {deliverySucceeded ? (
                   <div
                     style={{
-                      backgroundColor: '#f8d7da',
-                      color: '#842029',
                       padding: '1rem',
                       borderRadius: '4px',
-                      marginBottom: '1rem',
+                      border: '1px solid #d6d9dc',
                       marginTop: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem',
                     }}
                   >
-                    All output files for this job will be automatically deleted on{' '}
-                    <span style={{ fontWeight: 'bold' }}>
-                      {formatDate(result.pipelineRunReport.outputExpirationDate)}
+                    <Icon
+                      icon='success-standard'
+                      size={36}
+                      style={{ color: colors.success(), flexShrink: 0 }}
+                      aria-label='Delivered'
+                    />
+                    <span>
+                      Your outputs were successfully delivered
+                      {result.jobReport.completed && (
+                        <>
+                          {' '}
+                          on <span style={{ fontWeight: 'bold' }}>{formatDate(result.jobReport.completed)}</span>
+                        </>
+                      )}
+                      .{' '}
+                      <BucketConsoleLink
+                        cloudPath={result.pipelineRunReport.dataDeliveryReport?.destination}
+                        linkText='View your outputs in the Google Cloud Console'
+                      />
                     </span>
-                    . Please download them before this date.
                   </div>
+                ) : (
+                  result.pipelineRunReport.outputExpirationDate && (
+                    <div
+                      style={{
+                        backgroundColor: colors.danger(0.2),
+                        padding: '1rem',
+                        borderRadius: '4px',
+                        marginBottom: '1rem',
+                        marginTop: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                      }}
+                    >
+                      <Icon
+                        icon='warning-standard'
+                        size={24}
+                        style={{ color: colors.danger(), flexShrink: 0 }}
+                        aria-label='Warning'
+                      />
+                      <span>
+                        All output files for this job will be automatically deleted on{' '}
+                        <span style={{ fontWeight: 'bold' }}>
+                          {formatDate(result.pipelineRunReport.outputExpirationDate)}
+                        </span>
+                        . Please download them before this date, or{' '}
+                        <Link
+                          href={Nav.getLink('pipelines-job-detail', { jobId })}
+                          onClick={onDismiss}
+                          baseColor={() => '#46A3E9'}
+                        >
+                          deliver them to a cloud destination
+                        </Link>{' '}
+                        using the Deliver Outputs feature.
+                      </span>
+                    </div>
+                  )
                 )}
               </div>
             ) : (

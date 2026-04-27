@@ -22,7 +22,11 @@ jest.mock('src/libs/ajax/workspaces/Workspaces', () => ({
   })),
 }));
 
-const mockWorkspace = { workspace: { namespace: 'ns', name: 'ws' } };
+const mockWorkspace = {
+  workspace: { namespace: 'ns', name: 'ws', googleProject: 'test-project' },
+  accessLevel: 'WRITER',
+};
+const readOnlyWorkspace = { ...mockWorkspace, accessLevel: 'READER' };
 const mockEntityType = 'entityType';
 const mockSignal = undefined;
 
@@ -153,6 +157,29 @@ describe('getValidIgvFiles', () => {
         isSignedUrl: false,
       },
     ]);
+  });
+
+  it('when workspace is read-only, does not resolve DRS URIs and returns only gs:// files', async () => {
+    DrsUriResolver.mockClear();
+    const result = await getValidIgvFiles(
+      readOnlyWorkspace,
+      mockEntityType,
+      [
+        'gs://bucket/test1.bam',
+        'gs://bucket/test1.bam.bai',
+        'drs://dg.4503:2802a94d-f540-499f-950a-db3c2a9f2dc4',
+        'drs://dg.4503:2802a94d-f540-499f-950a-11111111111',
+      ],
+      mockSignal
+    );
+    expect(result).toEqual([
+      {
+        filePath: 'gs://bucket/test1.bam',
+        indexFilePath: 'gs://bucket/test1.bam.bai',
+        isSignedUrl: false,
+      },
+    ]);
+    expect(DrsUriResolver).not.toHaveBeenCalled();
   });
 
   it('condenses duplicate inputs', async () => {
@@ -327,6 +354,51 @@ describe('getValidIgvFilesFromAttributeValues', () => {
     expect(isDrsUri(undefined)).toEqual(false);
   });
 
+  it('when workspace is read-only, does not resolve DRS URIs', async () => {
+    DrsUriResolver.mockClear();
+    const fileDrsUri = 'drs://dg.4503:2802a94d-f540-499f-950a-db3c2a9f2dc4';
+    const indexFileDrsUri = 'drs://dg.4503:2802a94d-f540-499f-950a-11111111111';
+
+    const result = await getValidIgvFilesFromAttributeValues(
+      readOnlyWorkspace,
+      mockEntityType,
+      [
+        {
+          itemsType: 'AttributeValue',
+          items: [fileDrsUri, indexFileDrsUri],
+        },
+      ],
+      mockSignal
+    );
+
+    expect(result).toEqual([]);
+    expect(DrsUriResolver).not.toHaveBeenCalled();
+  });
+
+  it('when workspace is read-only, returns only gs:// files when selection has both gs:// and DRS URIs', async () => {
+    DrsUriResolver.mockClear();
+    const result = await getValidIgvFilesFromAttributeValues(
+      readOnlyWorkspace,
+      mockEntityType,
+      [
+        {
+          itemsType: 'AttributeValue',
+          items: ['gs://bucket/test.bed', 'drs://dg.4503:2802a94d-f540-499f-950a-db3c2a9f2dc4'],
+        },
+      ],
+      mockSignal
+    );
+
+    expect(result).toEqual([
+      {
+        filePath: 'gs://bucket/test.bed',
+        indexFilePath: false,
+        isSignedUrl: false,
+      },
+    ]);
+    expect(DrsUriResolver).not.toHaveBeenCalled();
+  });
+
   it('calls to resolve access URLs when two DRS URIs are found', async () => {
     // An IGV selection generally must have a file (e.g. VCF) and an index file (TBI)
     const fileDrsUri = 'drs://dg.4503:2802a94d-f540-499f-950a-db3c2a9f2dc4';
@@ -377,6 +449,47 @@ describe('getValidIgvFilesFromAttributeValues', () => {
         isSignedUrl: true,
       },
     ]);
+  });
+
+  it('passes workspace googleProject as userProject when resolving DRS URIs', async () => {
+    const fileDrsUri = 'drs://dg.4503:2802a94d-f540-499f-950a-db3c2a9f2dc4';
+    const indexFileDrsUri = 'drs://dg.4503:2802a94d-f540-499f-950a-11111111111';
+    const fileAccessUrl = 'https://bucket/foo.vcf.gz';
+    const indexAccessUrl = 'https://bucket/foo.vcf.gz.tbi';
+
+    const getDataObjectMetadataMock = jest.fn((value, fields, _options) => {
+      if (fields.includes('fileName')) {
+        const fileName = value === fileDrsUri ? 'foo.vcf.gz' : 'foo.vcf.gz.tbi';
+        return Promise.resolve({ fileName });
+      }
+      if (fields.includes('accessUrl')) {
+        const url = value === fileDrsUri ? fileAccessUrl : indexAccessUrl;
+        return Promise.resolve({ accessUrl: { url } });
+      }
+      return Promise.resolve({});
+    });
+
+    DrsUriResolver.mockImplementation(() => ({
+      getDataObjectMetadata: getDataObjectMetadataMock,
+    }));
+
+    await getValidIgvFilesFromAttributeValues(
+      mockWorkspace,
+      mockEntityType,
+      [
+        {
+          itemsType: 'AttributeValue',
+          items: [fileDrsUri, indexFileDrsUri],
+        },
+      ],
+      mockSignal
+    );
+
+    expect(getDataObjectMetadataMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(Array),
+      expect.objectContaining({ userProject: 'test-project' })
+    );
   });
 
   it('provides relevant component-specific logging metrics', async () => {

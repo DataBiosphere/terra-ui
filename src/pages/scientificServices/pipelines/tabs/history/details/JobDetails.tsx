@@ -1,11 +1,11 @@
 import { ButtonSecondary, Icon, Spinner } from '@terra-ui-packages/components';
 import React, { useEffect, useState } from 'react';
-import FooterWrapper from 'src/components/FooterWrapper';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
-import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { PipelinesLayout } from 'src/pages/scientificServices/pipelines/common/PipelinesLayout';
+import { DataDeliveryView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/datadelivery/DataDeliveryView';
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
 import { JobIOView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobIOView';
 import { PipelineRunTimeline } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/timeline/PipelineRunTimeline';
@@ -35,8 +35,7 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
   }, [jobId]);
 
   return (
-    <FooterWrapper alwaysShow>
-      {pipelinesTopBar('job history')}
+    <PipelinesLayout>
       <main
         style={{
           padding: '1rem 2rem 2rem',
@@ -63,8 +62,14 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
             <JobDetailsHeader pipelineRunResult={pipelineRunResult} />
 
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-              <div style={{ flex: '0 0 25%', minWidth: '200px' }}>
+              <div style={{ flex: '0 0 30%', minWidth: '200px' }}>
                 <PipelineRunTimeline pipelineRunResult={pipelineRunResult} />
+                {pipelineRunResult.jobReport.status === 'SUCCEEDED' && (
+                  <DataDeliveryView
+                    dataDeliveryReport={pipelineRunResult.pipelineRunReport.dataDeliveryReport || null}
+                    pipelineRunResult={pipelineRunResult}
+                  />
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <JobIOView pipelineRunResult={pipelineRunResult} />
@@ -73,6 +78,6 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
           </div>
         )}
       </main>
-    </FooterWrapper>
+    </PipelinesLayout>
   );
 };

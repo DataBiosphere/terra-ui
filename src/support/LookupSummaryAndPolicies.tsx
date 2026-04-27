@@ -49,11 +49,8 @@ export const LookupSummaryAndPolicies = (props: ResourceTypeSummaryProps) => {
       };
     }
     // Default behavior for workspace ID lookup
-    return {
-      ...props,
-      fqResourceId: { resourceId, resourceTypeName: props.fqResourceId.resourceTypeName },
-    };
-  }, [props, resourceId, googleProjectId, isGoogleProjectLookup, currentResourceType]);
+    return props;
+  }, [props, googleProjectId, isGoogleProjectLookup, currentResourceType]);
 
   // event hook to clear the resourceId when resourceType changes
   React.useEffect(() => {

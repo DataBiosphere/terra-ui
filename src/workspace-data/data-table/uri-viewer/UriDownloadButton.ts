@@ -16,6 +16,9 @@ import DownloadPrices from 'src/workspace-data/download-prices';
 import els from './uri-viewer-styles';
 import { isAzureUri, isDrsUri } from './uri-viewer-utils';
 
+// IMPORTANT: Currently, this component is only used in the UriViewer. So, it is unreachable to read only workspace users.
+// If the button is ever used outside of the UriViewer, we need to block read only workspace users.
+
 const getMaxDownloadCostNA = (bytes: number) => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos;
   const downloadPrice =

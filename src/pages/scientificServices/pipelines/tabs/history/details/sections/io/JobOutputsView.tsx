@@ -54,6 +54,8 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
     }
   };
 
+  const dataDeliverySucceeded = pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
+
   const outputExpirationDate = pipelineRunResult.pipelineRunReport.outputExpirationDate
     ? new Date(pipelineRunResult.pipelineRunReport.outputExpirationDate)
     : null;
@@ -79,30 +81,51 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
         }}
       >
         <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Outputs</h4>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: 'white',
-            padding: '0.5rem 0.75rem',
-            border: '1px solid #D8D9DC',
-            borderRadius: '20px',
-            fontWeight: 500,
-          }}
-        >
-          {outputExpirationDate && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        {dataDeliverySucceeded ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: 'white',
+              padding: '0.5rem 0.75rem',
+              border: '1px solid #D8D9DC',
+              borderRadius: '20px',
+              fontWeight: 500,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
-              {outputExpirationText}
+              Data Delivered
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          outputExpirationDate && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: 'white',
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #D8D9DC',
+                borderRadius: '20px',
+                fontWeight: 500,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
+                {outputExpirationText}
+              </div>
+            </div>
+          )
+        )}
       </div>
       {hasOutputs ? (
         <div>
-          {Object.entries(outputs).map(([key, value]) => {
+          {Object.entries(outputs).map(([key, outputValue]) => {
             const outputDefinition = outputDefinitions.find((output) => output.name === key);
+            const fileName = outputValue.value;
 
             return (
               <div
@@ -120,9 +143,9 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   label={outputDefinition?.displayName || key}
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
-                  fileName={value}
+                  fileName={fileName}
                   disabled={!isSucceeded || !!outputsExpired}
-                  onSelect={() => setSelectedOutput({ key, fileName: value })}
+                  onSelect={() => setSelectedOutput({ key, fileName })}
                 />
               </div>
             );

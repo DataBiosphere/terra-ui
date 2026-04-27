@@ -129,7 +129,12 @@ export const getFileProvenance = async (workspace, fileUrl, { signal } = {}) => 
 
   // Previously, submission roots were `gs://<workspace bucket>/<submission ID>`.
   // Now, they are `gs://<workspace bucket>/submissions/<submission ID>`.
-  if (!(validateUUID(pathParts[0]) || (pathParts[0] === 'submissions' && validateUUID(pathParts[1])))) {
+  // With intermediates/final-outputs split: `gs://<workspace bucket>/submissions/final-outputs/<submission ID>/...` or `.../submissions/intermediates/<submission ID>/...`.
+  const isLegacySubmissionPath = validateUUID(pathParts[0]);
+  const isSubmissionsUuidPath = pathParts[0] === 'submissions' && validateUUID(pathParts[1]);
+  const isSubmissionsSplitPath =
+    pathParts[0] === 'submissions' && (pathParts[1] === 'final-outputs' || pathParts[1] === 'intermediates') && validateUUID(pathParts[2]);
+  if (!(isLegacySubmissionPath || isSubmissionsUuidPath || isSubmissionsSplitPath)) {
     return { type: fileProvenanceTypes.unknown };
   }
 

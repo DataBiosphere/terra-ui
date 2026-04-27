@@ -4,6 +4,7 @@ import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
 import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
 import {
+  DataDeliveryJobReport,
   GetPipelineRunsResponse,
   PipelineList,
   PipelineRunOutputSignedUrlsResponse,
@@ -73,7 +74,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     description: string
   ): Promise<PreparePipelineRunResponse> => {
     const res = await fetchTeaspoons(
-      'pipelineruns/v1/prepare',
+      'pipelineruns/v2/prepare',
       _.mergeAll([
         authOpts(),
         jsonBody({
@@ -105,7 +106,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   },
 
   getPipelineRunResult: async (jobId: string): Promise<PipelineRunResponse> => {
-    const res = await fetchTeaspoons(`pipelineruns/v2/result/${jobId}`, _.merge(authOpts(), { signal }));
+    const res = await fetchTeaspoons(`pipelineruns/v3/result/${jobId}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 
@@ -114,6 +115,21 @@ export const Teaspoons = (signal?: AbortSignal) => ({
       `pipelineruns/v2/result/${jobId}/output/signed-urls`,
       _.merge(authOpts(), { signal })
     );
+    return res.json();
+  },
+
+  deliverData: async (pipelineRunId: string, gcsPath: string): Promise<DataDeliveryJobReport> => {
+    const res = await fetchTeaspoons(
+      `pipelineruns/v1/result/${pipelineRunId}/output/deliver-to-cloud`,
+      _.mergeAll([
+        authOpts(),
+        jsonBody({
+          destinationGcsPath: gcsPath,
+        }),
+        { signal, method: 'POST' },
+      ])
+    );
+
     return res.json();
   },
 });

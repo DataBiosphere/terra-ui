@@ -1,5 +1,6 @@
 import { asMockedFn, partial } from '@terra-ui-packages/test-utils';
 import { FirecloudBucket, FirecloudBucketAjaxContract } from 'src/libs/ajax/firecloud/FirecloudBucket';
+import * as brandUtils from 'src/libs/brand-utils';
 
 import { getServiceAlerts } from './service-alerts';
 
@@ -98,5 +99,57 @@ describe('getServiceAlerts', () => {
 
     // Assert
     expect(serviceAlerts.map((alert) => alert.severity)).toEqual(['error', 'warn', 'warn', 'info']);
+  });
+});
+
+describe('getServiceAlerts with brand variations', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls getTeaspoonsServiceAlerts when isScientificServices is true', async () => {
+    // Arrange
+    const mockGetTeaspoonsServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
+    const mockGetServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
+
+    asMockedFn(FirecloudBucket).mockReturnValue(
+      partial<FirecloudBucketAjaxContract>({
+        getTeaspoonsServiceAlerts: mockGetTeaspoonsServiceAlerts,
+        getServiceAlerts: mockGetServiceAlerts,
+      })
+    );
+
+    // Mock isScientificServices to return true
+    jest.spyOn(brandUtils, 'isScientificServices').mockReturnValue(true);
+
+    // Act
+    await getServiceAlerts();
+
+    // Assert
+    expect(mockGetTeaspoonsServiceAlerts).toHaveBeenCalled();
+    expect(mockGetServiceAlerts).not.toHaveBeenCalled();
+  });
+
+  it('calls getServiceAlerts when isScientificServices is false', async () => {
+    // Arrange
+    const mockGetTeaspoonsServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
+    const mockGetServiceAlerts = jest.fn().mockReturnValue(Promise.resolve([]));
+
+    asMockedFn(FirecloudBucket).mockReturnValue(
+      partial<FirecloudBucketAjaxContract>({
+        getTeaspoonsServiceAlerts: mockGetTeaspoonsServiceAlerts,
+        getServiceAlerts: mockGetServiceAlerts,
+      })
+    );
+
+    // Mock isScientificServices to return false
+    jest.spyOn(brandUtils, 'isScientificServices').mockReturnValue(false);
+
+    // Act
+    await getServiceAlerts();
+
+    // Assert
+    expect(mockGetServiceAlerts).toHaveBeenCalled();
+    expect(mockGetTeaspoonsServiceAlerts).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'jest-axe';
 import React from 'react';
@@ -328,6 +328,130 @@ describe('OAuth2Account', () => {
       // Assert
       expect(screen.queryByText('Manage your linked identities')).not.toBeInTheDocument();
       expect(screen.queryByText('eRA Commons ID:')).not.toBeInTheDocument();
+    });
+
+    describe('polling for eRA Commons ID', () => {
+      it('shows spinner while polling for eRA Commons ID after linking', async () => {
+        // Arrange
+        asMockedFn(getCurrentRoute).mockImplementation(() => ({ name: 'ecm-callback' }));
+        const queryParams = {
+          oauthcode: 'abcde12345',
+          state: btoa(JSON.stringify({ provider: rasProvider.key, nonce: 'abcxyz' })),
+        };
+
+        const linkAccountFn: MockedFn<ExternalCredentialsContract['linkAccountWithAuthorizationCode']> = jest.fn();
+        linkAccountFn.mockResolvedValue({
+          externalUserId: 'testUser',
+          expirationTimestamp: new Date(),
+          authenticated: true,
+          additionalProperties: {},
+        });
+
+        const getLinkStatusFn: MockedFn<ExternalCredentialsContract['getAccountLinkStatus']> = jest.fn();
+        getLinkStatusFn.mockResolvedValue({
+          externalUserId: 'testUser',
+          expirationTimestamp: new Date(),
+          authenticated: true,
+          additionalProperties: {},
+        });
+
+        asMockedFn(ExternalCredentials).mockReturnValue(() =>
+          partial<ExternalCredentialsContract>({
+            linkAccountWithAuthorizationCode: linkAccountFn,
+            getAccountLinkStatus: getLinkStatusFn,
+          })
+        );
+
+        // Act
+        await act(async () => {
+          render(<OAuth2Account queryParams={queryParams} provider={rasProvider} />);
+        });
+
+        // Assert
+        expect(screen.getByText('Loading linked authorizations...')).toBeInTheDocument();
+      });
+
+      it('does not show spinner when eRA Commons ID is already available after linking', async () => {
+        // Arrange
+        asMockedFn(getCurrentRoute).mockImplementation(() => ({ name: 'ecm-callback' }));
+        const queryParams = {
+          oauthcode: 'abcde12345',
+          state: btoa(JSON.stringify({ provider: rasProvider.key, nonce: 'abcxyz' })),
+        };
+
+        const linkAccountFn: MockedFn<ExternalCredentialsContract['linkAccountWithAuthorizationCode']> = jest.fn();
+        linkAccountFn.mockResolvedValue({
+          externalUserId: 'testUser',
+          expirationTimestamp: new Date(),
+          authenticated: true,
+          additionalProperties: { era_user_id: 'existingEraUser789' },
+        });
+
+        asMockedFn(ExternalCredentials).mockReturnValue(() =>
+          partial<ExternalCredentialsContract>({
+            linkAccountWithAuthorizationCode: linkAccountFn,
+          })
+        );
+
+        // Act
+        await act(async () => {
+          render(<OAuth2Account queryParams={queryParams} provider={rasProvider} />);
+        });
+
+        // Assert
+        expect(screen.getByText('existingEraUser789')).toBeInTheDocument();
+        expect(screen.queryByText('Loading linked authorizations...')).not.toBeInTheDocument();
+      });
+
+      it('successfully retrieves eRA Commons ID through polling', async () => {
+        // Arrange
+        asMockedFn(getCurrentRoute).mockImplementation(() => ({ name: 'ecm-callback' }));
+        const queryParams = {
+          oauthcode: 'abcde12345',
+          state: btoa(JSON.stringify({ provider: rasProvider.key, nonce: 'abcxyz' })),
+        };
+
+        const linkAccountFn: MockedFn<ExternalCredentialsContract['linkAccountWithAuthorizationCode']> = jest.fn();
+        linkAccountFn.mockResolvedValue({
+          externalUserId: 'testUser',
+          expirationTimestamp: new Date(),
+          authenticated: true,
+          additionalProperties: {},
+        });
+
+        const getLinkStatusFn: MockedFn<ExternalCredentialsContract['getAccountLinkStatus']> = jest.fn();
+        getLinkStatusFn.mockResolvedValue({
+          externalUserId: 'testUser',
+          expirationTimestamp: new Date(),
+          authenticated: true,
+          additionalProperties: { era_user_id: 'polledEraUser456' },
+        });
+
+        asMockedFn(ExternalCredentials).mockReturnValue(() =>
+          partial<ExternalCredentialsContract>({
+            linkAccountWithAuthorizationCode: linkAccountFn,
+            getAccountLinkStatus: getLinkStatusFn,
+          })
+        );
+
+        // Act
+        await act(async () => {
+          render(<OAuth2Account queryParams={queryParams} provider={rasProvider} />);
+        });
+
+        expect(screen.getByText('Loading linked authorizations...')).toBeInTheDocument();
+
+        // Assert - wait for polling to complete
+        await waitFor(
+          () => {
+            expect(screen.getByText('polledEraUser456')).toBeInTheDocument();
+          },
+          { timeout: 5000 }
+        );
+
+        expect(getLinkStatusFn).toHaveBeenCalled();
+        expect(screen.queryByText('Loading linked authorizations...')).not.toBeInTheDocument();
+      });
     });
   });
 });

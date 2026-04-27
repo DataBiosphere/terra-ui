@@ -1,11 +1,13 @@
 import { ButtonPrimary, Icon, Modal, Spinner } from '@terra-ui-packages/components';
+import { formatBytes } from '@terra-ui-packages/core-utils';
 import React, { useEffect, useState } from 'react';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 
 interface DownloadOutputModalProps {
   outputKey: string;
@@ -26,12 +28,18 @@ export const OutputDetailsModal = ({
   signedUrls,
   setSignedUrls,
 }: DownloadOutputModalProps) => {
-  const [loading, setLoading] = useState(true);
+  const deliverySucceeded = pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
+
+  const [loading, setLoading] = useState(!deliverySucceeded);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (deliverySucceeded) {
+      return;
+    }
+
     const fetchSignedUrl = async () => {
       try {
         setLoading(true);
@@ -54,13 +62,22 @@ export const OutputDetailsModal = ({
 
         setSignedUrl(url);
 
-        try {
-          const size = await getOutputFileSize(url);
-          setFileSize(size);
-        } catch (err) {
-          // If we can't get the file size, it likely means the signed URL has expired
-          setError('There was an error preparing the download. Please refresh the page and try again.');
-          setSignedUrl(null);
+        // if available, use the file size from the output metadata returned by the API
+        const outputMetadata = pipelineRunResult.pipelineRunReport.outputs?.[outputKey]?.metadata;
+        if (outputMetadata?.sizeInBytes !== undefined) {
+          setFileSize(formatBytes(outputMetadata.sizeInBytes));
+        }
+
+        // if we don't have metadata.sizeInBytes, fallback to fetching file size via HEAD request
+        if (!outputMetadata?.sizeInBytes) {
+          try {
+            const size = await getOutputFileSize(url);
+            setFileSize(size);
+          } catch (err) {
+            // If we can't get the file size, it likely means the signed URL has expired
+            setError('There was an error preparing the download. Please refresh the page and try again.');
+            setSignedUrl(null);
+          }
         }
       } catch (err) {
         setError('Failed to retrieve download. Please try again.');
@@ -70,7 +87,14 @@ export const OutputDetailsModal = ({
     };
 
     fetchSignedUrl();
-  }, [outputKey, pipelineRunResult.jobReport.id, setSignedUrls, signedUrls]);
+  }, [
+    deliverySucceeded,
+    outputKey,
+    pipelineRunResult.jobReport.id,
+    pipelineRunResult.pipelineRunReport.outputs,
+    setSignedUrls,
+    signedUrls,
+  ]);
 
   const handleDownload = () => {
     if (signedUrl) {
@@ -105,7 +129,7 @@ export const OutputDetailsModal = ({
           </div>
         )}
 
-        {error && <div style={{ color: colors.danger(), marginBottom: '1rem' }}>{error}</div>}
+        {error && !deliverySucceeded && <div style={{ color: colors.danger(), marginBottom: '1rem' }}>{error}</div>}
 
         {!loading && !error && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -115,6 +139,12 @@ export const OutputDetailsModal = ({
               <OutputInfoField label='Description' value={outputDefinition.description} />
             )}
           </div>
+        )}
+        {pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED' && (
+          <BucketConsoleLink
+            cloudPath={pipelineRunResult.pipelineRunReport.dataDeliveryReport.destination}
+            linkText='View your output in the Google Cloud Console'
+          />
         )}
       </div>
     </Modal>
