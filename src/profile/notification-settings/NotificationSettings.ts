@@ -73,7 +73,7 @@ export const NotificationSettings = () => {
         notificationType: 'PlatformOperations',
         disabled: true,
       } as UserAttributesCardProps),
-      div({ style: { padding: '1rem', margin: '0.25rem 0.5rem 0.5rem 0', fontSize: 13 } }, [
+      div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, display: 'block', padding: '1rem' } }, [
         'Sign up for marketing communications, including upcoming workshops and new flagship dataset additions: ',
         h(ExternalLink, { href: 'https://mailchi.mp/terra.bio/terra-subscriber-preferences' }, [
           'manage your preferences',
