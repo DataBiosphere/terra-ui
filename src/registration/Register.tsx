@@ -1,4 +1,4 @@
-import { Modal } from '@terra-ui-packages/components';
+import { ExternalLink, Modal } from '@terra-ui-packages/components';
 import React, { ReactNode, useState } from 'react';
 import { signOut } from 'src/auth/signout/sign-out';
 import { loadTerraUser } from 'src/auth/user-profile/user';
@@ -52,8 +52,6 @@ export const Register = (): ReactNode => {
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('');
   const [interestInTerra, setInterestInTerra] = useState('');
-  const [marketingConsent, setMarketingConsent] = useState(true);
-
   const [showTermsOfService, setShowTermsOfService] = useState(false);
   const [termsOfServiceSeen, setTermsOfServiceSeen] = useState(false);
   const [termsOfServiceAccepted, setTermsOfServiceAccepted] = useState(false);
@@ -78,7 +76,6 @@ export const Register = (): ReactNode => {
         interestInTerra,
         ...orgFields,
       });
-      await User().setUserAttributes({ marketingConsent });
       await loadTerraUser();
       const rootElement = document.getElementById('root');
       if (rootElement) {
@@ -207,11 +204,12 @@ export const Register = (): ReactNode => {
       )}
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
       <RegistrationPageCheckbox title='Necessary communications related to platform operations' checked />
-      <RegistrationPageCheckbox
-        title='Marketing communications including notifications for upcoming workshops and new flagship dataset additions'
-        checked={marketingConsent}
-        onChange={setMarketingConsent}
-      />
+      <div style={{ marginTop: '0.5rem' }}>
+        Sign up for marketing communications, including upcoming workshops and new flagship dataset additions:{' '}
+        <ExternalLink href='https://mailchi.mp/terra.bio/terra-subscriber-preferences'>
+          manage your preferences
+        </ExternalLink>
+      </div>
       <hr style={{ marginTop: '2rem', marginBottom: '2rem', color: colors.dark(0.2) }} />
       <h1 style={headerStyle('1rem')}>Terra Terms of Service</h1>
       <h2 style={{ fontSize: '14px' }}>Please accept the Terms of Service to Continue</h2>

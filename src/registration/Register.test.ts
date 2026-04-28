@@ -102,14 +102,11 @@ describe('Register', () => {
     });
   });
 
-  describe('Marketing Communications checkbox', () => {
-    it('defaults the marketing communications checkbox to true', async () => {
-      // Arrange
-      // Act
+  describe('Marketing Communications', () => {
+    it('renders a link to manage marketing preferences', () => {
       render(h(Register));
-      // Assert
-      const commsCheckbox = screen.getByLabelText(/Marketing communications.*/);
-      expect(commsCheckbox.getAttribute('aria-checked')).toBe('true');
+      const link = screen.getByRole('link', { name: 'manage your preferences' });
+      expect(link).toHaveAttribute('href', 'https://mailchi.mp/terra.bio/terra-subscriber-preferences');
     });
   });
 
@@ -184,10 +181,8 @@ describe('Register', () => {
       // Arrange
       const registerWithProfile: MockedFn<UserContract['registerWithProfile']> = jest.fn();
       registerWithProfile.mockResolvedValue(partial<SamUserResponse>({}));
-      const setUserAttributes: MockedFn<UserContract['setUserAttributes']> = jest.fn();
-      setUserAttributes.mockResolvedValue({ marketingConsent: false });
       const getUserAttributes: MockedFn<UserContract['getUserAttributes']> = jest.fn();
-      getUserAttributes.mockResolvedValue({ marketingConsent: false });
+      getUserAttributes.mockResolvedValue({});
       const userProfileGet: MockedFn<UserProfileContract['get']> = jest.fn();
       userProfileGet.mockResolvedValue(partial<TerraUserProfile>({}));
 
@@ -196,13 +191,11 @@ describe('Register', () => {
 
       fillInPersonalInfo();
       fillInOrgInfo();
-      fireEvent.click(screen.getByLabelText(/Marketing communications.*/));
       acceptTermsOfService();
 
       asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
       asMockedFn(User).mockReturnValue(
         partial<UserContract>({
-          setUserAttributes,
           getUserAttributes,
           registerWithProfile,
           profile: partial<UserProfileContract>({ get: userProfileGet }),
@@ -227,7 +220,6 @@ describe('Register', () => {
         interestInTerra: '',
       });
 
-      expect(setUserAttributes).toHaveBeenCalledWith({ marketingConsent: false });
       expect(loadTerraUserFn).toHaveBeenCalled();
     });
     it('logs the user out if they cancel registration', async () => {
