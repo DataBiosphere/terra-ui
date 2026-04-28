@@ -181,8 +181,6 @@ describe('Register', () => {
       // Arrange
       const registerWithProfile: MockedFn<UserContract['registerWithProfile']> = jest.fn();
       registerWithProfile.mockResolvedValue(partial<SamUserResponse>({}));
-      const getUserAttributes: MockedFn<UserContract['getUserAttributes']> = jest.fn();
-      getUserAttributes.mockResolvedValue({});
       const userProfileGet: MockedFn<UserProfileContract['get']> = jest.fn();
       userProfileGet.mockResolvedValue(partial<TerraUserProfile>({}));
 
@@ -196,7 +194,6 @@ describe('Register', () => {
       asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
       asMockedFn(User).mockReturnValue(
         partial<UserContract>({
-          getUserAttributes,
           registerWithProfile,
           profile: partial<UserProfileContract>({ get: userProfileGet }),
         })
