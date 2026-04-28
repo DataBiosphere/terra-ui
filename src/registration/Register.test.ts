@@ -105,7 +105,7 @@ describe('Register', () => {
   describe('Marketing Communications', () => {
     it('renders a link to manage marketing preferences', () => {
       render(h(Register));
-      const link = screen.getByRole('link', { name: 'manage your preferences' });
+      const link = screen.getByRole('link', { name: 'Manage preferences' });
       expect(link).toHaveAttribute('href', 'https://mailchi.mp/terra.bio/terra-subscriber-preferences');
     });
   });
