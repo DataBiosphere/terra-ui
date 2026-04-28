@@ -205,10 +205,8 @@ export const Register = (): ReactNode => {
       <FormLabel style={{ marginTop: '2rem' }}>Communication Preferences</FormLabel>
       <RegistrationPageCheckbox title='Necessary communications related to platform operations' checked />
       <div style={{ marginTop: '0.5rem' }}>
-        Sign up for marketing communications, including upcoming workshops and new flagship dataset additions:{' '}
-        <ExternalLink href='https://mailchi.mp/terra.bio/terra-subscriber-preferences'>
-          manage your preferences
-        </ExternalLink>
+        <ExternalLink href='https://mailchi.mp/terra.bio/terra-subscriber-preferences'>Manage preferences</ExternalLink>{' '}
+        for marketing communications, including upcoming workshops and new flagship dataset additions.
       </div>
       <hr style={{ marginTop: '2rem', marginBottom: '2rem', color: colors.dark(0.2) }} />
       <h1 style={headerStyle('1rem')}>Terra Terms of Service</h1>
