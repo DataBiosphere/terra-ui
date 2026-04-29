@@ -12,6 +12,7 @@ import {
   PipelineWithDetails,
   PreparePipelineRunResponse,
   StartPipelineResponse,
+  TeaspoonsDocType,
   UserPipelineQuotaDetails,
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { FilterValues } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
@@ -130,6 +131,11 @@ export const Teaspoons = (signal?: AbortSignal) => ({
       ])
     );
 
+    return res.json();
+  },
+
+  getDocs: async (docKey: TeaspoonsDocType): Promise<{ content: string }> => {
+    const res = await fetchTeaspoons(`docs/v1/${docKey}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 });
