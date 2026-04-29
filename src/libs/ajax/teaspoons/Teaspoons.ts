@@ -2,7 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
-import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
+import { fetchTeaspoons, fetchTeaspoonsPublic } from 'src/libs/ajax/ajax-common';
 import {
   DataDeliveryJobReport,
   GetPipelineRunsResponse,
@@ -134,9 +134,9 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     return res.json();
   },
 
-  getDocs: async (docKey: TeaspoonsDocType): Promise<{ content: string }> => {
-    const res = await fetchTeaspoons(`docs/v1/${docKey}`, _.merge(authOpts(), { signal }));
-    return res.json();
+  getDocs: async (docKey: TeaspoonsDocType): Promise<string> => {
+    const res = await fetchTeaspoonsPublic(`docs?docType=${docKey}`, { signal });
+    return res.text();
   },
 });
 
