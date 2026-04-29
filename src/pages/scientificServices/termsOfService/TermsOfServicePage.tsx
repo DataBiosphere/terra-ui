@@ -1,24 +1,41 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { spinnerOverlay } from 'src/components/common';
 import FooterWrapper from 'src/components/FooterWrapper';
+import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { TopBar } from 'src/components/TopBar';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { TeaspoonsDocType } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
-import { RemoteMarkdown } from 'src/libs/util/RemoteMarkdown';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
-type DocTab = 'termsOfService' | 'acceptableUsePolicy';
-
-const TABS: { key: DocTab; title: string; docKey: TeaspoonsDocType }[] = [
-  { key: 'termsOfService', title: 'Terms of Service', docKey: 'termsOfService' },
-  { key: 'acceptableUsePolicy', title: 'Acceptable Use Policy', docKey: 'acceptableUsePolicy2' },
+const TABS: { key: TeaspoonsDocType; title: string }[] = [
+  { key: 'termsOfService', title: 'Terms of Service' },
+  { key: 'acceptableUsePolicy', title: 'Acceptable Use Policy' },
 ];
 
+type LoadState = { status: 'loading' } | { status: 'ready'; content: string } | { status: 'error' };
+
 export const ScientificServicesTermsOfServicePage = () => {
-  const [activeTab, setActiveTab] = useState<DocTab>('termsOfService');
+  const [activeTab, setActiveTab] = useState<TeaspoonsDocType>('termsOfService');
+  const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
 
   const currentTab = TABS.find((t) => t.key === activeTab)!;
+
+  const loadDoc = useCallback(async () => {
+    setLoadState({ status: 'loading' });
+    try {
+      const content = await Teaspoons().getDocs(activeTab);
+      setLoadState({ status: 'ready', content });
+    } catch {
+      setLoadState({ status: 'error' });
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    loadDoc();
+  }, [loadDoc]);
 
   return (
     <FooterWrapper alwaysShow>
@@ -28,34 +45,47 @@ export const ScientificServicesTermsOfServicePage = () => {
         <SimpleTabBar
           aria-label='legal documents'
           value={activeTab}
-          onChange={(key) => setActiveTab(key as DocTab)}
+          onChange={(key) => setActiveTab(key as TeaspoonsDocType)}
           tabs={TABS.map(({ key, title }) => ({ key, title }))}
         >
           {null}
         </SimpleTabBar>
         <div style={{ marginTop: '1.5rem' }}>
-          <RemoteMarkdown
-            key={activeTab}
-            style={{ lineHeight: 1.6 }}
-            getRemoteText={() =>
-              Teaspoons()
-                .getDocs(currentTab.docKey)
-                .then((r) => r)
-            }
-            failureMessage={`Could not load ${currentTab.title}. Please refresh the page or contact ${SCIENTIFIC_SERVICES_SUPPORT_EMAIL} for assistance.`}
-          />
+          {loadState.status === 'loading' && spinnerOverlay}
+          {loadState.status === 'error' && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4rem 2rem',
+                textAlign: 'center',
+              }}
+            >
+              <h2 style={{ marginBottom: '0.75rem', color: colors.dark() }}>Could not load {currentTab.title}</h2>
+              <p style={{ color: colors.dark(0.7) }}>
+                Please try refreshing the page. If the problem persists, contact us at{' '}
+                <a href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`} style={{ color: '#46A3E9' }}>
+                  {SCIENTIFIC_SERVICES_SUPPORT_EMAIL}
+                </a>
+                .
+              </p>
+            </div>
+          )}
+          {loadState.status === 'ready' && (
+            <MarkdownViewer
+              renderers={{
+                link: newWindowLinkRenderer,
+                heading: (text: string, level: number) => `<h${level} style="margin-bottom: 0">${text}</h${level}>`,
+              }}
+              style={{ lineHeight: 1.6, marginBottom: '3rem' }}
+            >
+              {loadState.content}
+            </MarkdownViewer>
+          )}
         </div>
       </div>
     </FooterWrapper>
   );
 };
-
-export const navPaths = [
-  {
-    name: 'scientific-services-terms-of-service',
-    path: '/pipelines/terms-of-service',
-    component: ScientificServicesTermsOfServicePage,
-    public: true,
-    title: 'Terms of Service',
-  },
-];
