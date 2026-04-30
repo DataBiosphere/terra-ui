@@ -17,8 +17,16 @@ const TABS: { key: TeaspoonsDocType; title: string }[] = [
 
 type LoadState = { status: 'loading' } | { status: 'ready'; content: string } | { status: 'error' };
 
-export const ScientificServicesTermsOfServicePage = () => {
-  const [activeTab, setActiveTab] = useState<TeaspoonsDocType>('termsOfService');
+const isValidDocType = (key: unknown): key is TeaspoonsDocType => TABS.some((t) => t.key === key);
+
+interface ScientificServicesTermsOfServicePageProps {
+  queryParams?: { document?: string };
+}
+
+export const ScientificServicesTermsOfServicePage = ({ queryParams }: ScientificServicesTermsOfServicePageProps) => {
+  const initialTab =
+    isValidDocType(queryParams?.document) && queryParams?.document ? queryParams.document : 'termsOfService';
+  const [activeTab, setActiveTab] = useState<TeaspoonsDocType>(initialTab);
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' });
 
   const currentTab = TABS.find((t) => t.key === activeTab)!;
@@ -37,6 +45,12 @@ export const ScientificServicesTermsOfServicePage = () => {
     loadDoc();
   }, [loadDoc]);
 
+  const handleTabChange = (key: string) => {
+    const docType = key as TeaspoonsDocType;
+    setActiveTab(docType);
+    Nav.goToPath('scientific-services-terms-of-service', {}, { document: docType });
+  };
+
   return (
     <FooterWrapper alwaysShow>
       <TopBar title='' href={Nav.getLink('root')} />
@@ -45,7 +59,7 @@ export const ScientificServicesTermsOfServicePage = () => {
         <SimpleTabBar
           aria-label='legal documents'
           value={activeTab}
-          onChange={(key) => setActiveTab(key as TeaspoonsDocType)}
+          onChange={handleTabChange}
           tabs={TABS.map(({ key, title }) => ({ key, title }))}
         >
           {null}

@@ -77,10 +77,13 @@ const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) =>
     div({ style: styles.item }, '|'),
     ...(isScientificServices()
       ? [
-          a({ href: Nav.getLink('scientific-services-terms-of-service', { docType: 'termsOfService' }), style: styles.item }, 'Terms of Service'),
+          a(
+            { href: Nav.getLink('scientific-services-terms-of-service', {}, { document: 'termsOfService' }), style: styles.item },
+            'Terms of Service'
+          ),
           div({ style: styles.item }, '|'),
           a(
-            { href: Nav.getLink('scientific-services-terms-of-service', { docType: 'acceptableUsePolicy' }), style: styles.item },
+            { href: Nav.getLink('scientific-services-terms-of-service', {}, { document: 'acceptableUsePolicy' }), style: styles.item },
             'Acceptable Use Policy'
           ),
         ]
