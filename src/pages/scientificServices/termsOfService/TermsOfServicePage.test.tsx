@@ -38,13 +38,13 @@ describe('ScientificServicesTermsOfServicePage', () => {
     it('renders the view with expected elements', async () => {
       render(<ScientificServicesTermsOfServicePage />);
       expect(screen.getByText('Scientific Services Legal Documents')).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: 'Terms of Service' })).toBeInTheDocument();
+      expect(await screen.findByRole('tab', { name: 'Terms of Service' })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: 'Acceptable Use Policy' })).toBeInTheDocument();
     });
 
     it('defaults to the Terms of Service tab when no query param is provided', async () => {
       render(<ScientificServicesTermsOfServicePage />);
-      const tosTab = screen.getByRole('tab', { name: 'Terms of Service' });
+      const tosTab = await screen.findByRole('tab', { name: 'Terms of Service' });
       expect(tosTab).toHaveAttribute('aria-selected', 'true');
     });
 
@@ -58,21 +58,21 @@ describe('ScientificServicesTermsOfServicePage', () => {
   describe('query param routing', () => {
     it('selects the Terms of Service tab when queryParams.document is termsOfService', async () => {
       render(<ScientificServicesTermsOfServicePage queryParams={{ document: 'termsOfService' }} />);
-      const tosTab = screen.getByRole('tab', { name: 'Terms of Service' });
+      const tosTab = await screen.findByRole('tab', { name: 'Terms of Service' });
       expect(tosTab).toHaveAttribute('aria-selected', 'true');
       expect(mockGetDocs).toHaveBeenCalledWith('termsOfService');
     });
 
     it('selects the Acceptable Use Policy tab when queryParams.document is acceptableUsePolicy', async () => {
       render(<ScientificServicesTermsOfServicePage queryParams={{ document: 'acceptableUsePolicy' }} />);
-      const aupTab = screen.getByRole('tab', { name: 'Acceptable Use Policy' });
+      const aupTab = await screen.findByRole('tab', { name: 'Acceptable Use Policy' });
       expect(aupTab).toHaveAttribute('aria-selected', 'true');
       expect(mockGetDocs).toHaveBeenCalledWith('acceptableUsePolicy');
     });
 
     it('falls back to Terms of Service for an invalid queryParams.document value', async () => {
       render(<ScientificServicesTermsOfServicePage queryParams={{ document: 'notAValidDoc' }} />);
-      const tosTab = screen.getByRole('tab', { name: 'Terms of Service' });
+      const tosTab = await screen.findByRole('tab', { name: 'Terms of Service' });
       expect(tosTab).toHaveAttribute('aria-selected', 'true');
       expect(mockGetDocs).toHaveBeenCalledWith('termsOfService');
     });
