@@ -4,6 +4,7 @@ import { About } from 'src/pages/scientificServices/pipelines/tabs/about/About';
 import { JobDetails } from 'src/pages/scientificServices/pipelines/tabs/history/details/JobDetails';
 import { JobHistory } from 'src/pages/scientificServices/pipelines/tabs/history/JobHistory';
 import { RunJob } from 'src/pages/scientificServices/pipelines/tabs/run/RunJob';
+import { ScientificServicesTermsOfServicePage } from 'src/pages/scientificServices/termsOfService/TermsOfServicePage';
 
 export const navPaths = [
   // For now, redirect /pipelines to the Imputation home page
@@ -49,5 +50,12 @@ export const navPaths = [
     path: '/pipelines/account',
     component: AccountAndQuotas,
     title: 'Account & Quotas',
+  },
+  {
+    name: 'scientific-services-terms-of-service',
+    path: '/pipelines/terms-of-service',
+    component: ScientificServicesTermsOfServicePage,
+    public: true,
+    title: 'Terms of Service',
   },
 ];
