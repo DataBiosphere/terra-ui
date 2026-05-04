@@ -2,7 +2,7 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
-import { fetchTeaspoons, fetchTeaspoonsPublic } from 'src/libs/ajax/ajax-common';
+import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
 import {
   DataDeliveryJobReport,
   GetPipelineRunsResponse,
@@ -12,7 +12,6 @@ import {
   PipelineWithDetails,
   PreparePipelineRunResponse,
   StartPipelineResponse,
-  TeaspoonsDocType,
   UserPipelineQuotaDetails,
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { FilterValues } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
@@ -132,11 +131,6 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     );
 
     return res.json();
-  },
-
-  getDocs: async (docKey: TeaspoonsDocType): Promise<string> => {
-    const res = await fetchTeaspoonsPublic(`docs?docType=${docKey}`, { signal });
-    return res.text();
   },
 });
 

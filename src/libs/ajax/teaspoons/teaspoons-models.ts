@@ -167,5 +167,3 @@ export interface PipelineRunOutputSignedUrlsResponse {
 }
 
 export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
-
-export type TeaspoonsDocType = 'termsOfService' | 'acceptableUsePolicy';
