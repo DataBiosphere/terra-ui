@@ -75,19 +75,7 @@ const FooterWrapper = ({ children, alwaysShow = false, fixedHeight = false }) =>
     h(Link, { href: Nav.getLink('root') }, [footerLogo()]),
     a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
     div({ style: styles.item }, '|'),
-    ...(isScientificServices()
-      ? [
-          a(
-            { href: Nav.getLink('scientific-services-terms-of-service', {}, { document: 'termsOfService' }), style: styles.item },
-            'Terms of Service'
-          ),
-          div({ style: styles.item }, '|'),
-          a(
-            { href: Nav.getLink('scientific-services-terms-of-service', {}, { document: 'acceptableUsePolicy' }), style: styles.item },
-            'Acceptable Use Policy'
-          ),
-        ]
-      : [a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service')]),
+    a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
     popoutItem({
       link: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture',
       displayName: 'Security',
