@@ -41,6 +41,12 @@ export const statusType = {
     moreInfoLabel: 'Learn more about cloud quota',
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.',
   },
+  waiting: {
+    id: 'waiting', // Must match variable name for collection unpacking.
+    label: () => 'Waiting',
+    icon: (style) => icon('users', { size: iconSize, style: { color: colors.warning(), ...style } }),
+    tooltip: 'Waiting for other users on the shared cluster.',
+  },
   unknown: {
     id: 'unknown', // Must match variable name for collection unpacking.
     label: (executionStatus) => `Unexpected status (${executionStatus})`,
@@ -49,7 +55,7 @@ export const statusType = {
 };
 
 /**
- * Collapses submission or workflow status.
+ * Collapses Rawls submission or Cromwell workflow status.
  *
  * @param {string} rawStatus
  * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, or `statusType.submitted`
@@ -70,7 +76,7 @@ export const collapseStatus = (rawStatus) => {
 };
 
 /**
- * Collapses Cromwell status, taking into account both execution and backend status values.
+ * Collapses Cromwell task status, taking into account both execution and backend status values.
  *
  * @param {string} executionStatus from metadata
  * @param {string} backendStatus from metadata
@@ -83,8 +89,16 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Aborting':
     case 'Aborted':
     case 'Failed':
+    case 'Unstartable':
+    case 'RetryableFailure':
       return statusType.failed;
+    case 'NotStarted':
+    case 'WaitingForQueueSpace':
+    case 'QueuedInCromwell':
+    case 'Starting':
+        return statusType.waiting;
     case 'Running':
+    case 'Bypassed':
       return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running;
     default:
       return statusType.unknown;
