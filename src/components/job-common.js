@@ -49,8 +49,8 @@ export const statusType = {
   },
   unknown: {
     id: 'unknown', // Must match variable name for collection unpacking.
-    label: (executionStatus) => `Unexpected status (${executionStatus})`,
-    icon: (style) => icon('question', { size: iconSize, style: { color: colors.dark(), ...style } }),
+    label: (executionStatus) => executionStatus,
+    icon: (style) => icon('info-circle', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
 };
 
