@@ -98,7 +98,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'WaitingForQueueSpace':
     case 'QueuedInCromwell':
     case 'Starting':
-        return statusType.waiting;
+      return statusType.waiting;
     case 'Running':
     case 'Bypassed':
       return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running;
