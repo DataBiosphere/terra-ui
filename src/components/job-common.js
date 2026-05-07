@@ -78,6 +78,8 @@ export const collapseStatus = (rawStatus) => {
 /**
  * Collapses Cromwell task status, taking into account both execution and backend status values.
  *
+ * WARNING: at some point, deduplicate from `src/workflows-app/components/job-common.js`
+ *
  * @param {string} executionStatus from metadata
  * @param {string} backendStatus from metadata
  * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForQuota`, or `statusType.unknown`
