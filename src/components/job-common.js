@@ -21,7 +21,7 @@ export const statusType = {
   failed: {
     id: 'failed', // Must match variable name for collection unpacking.
     label: () => 'Failed',
-    icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } }),
+    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.danger(), ...style } }),
   },
   running: {
     id: 'running', // Must match variable name for collection unpacking.
@@ -36,7 +36,7 @@ export const statusType = {
   waitingForQuota: {
     id: 'waitingForQuota', // Must match variable name for collection unpacking.
     label: () => 'Submitted, Awaiting Cloud Quota',
-    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
+    icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
     moreInfoLabel: 'Learn more about cloud quota',
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.',
@@ -44,12 +44,12 @@ export const statusType = {
   aborted: {
     id: 'aborted', // Must match variable name for collection unpacking.
     label: () => 'Aborted',
-    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
+    icon: (style) => icon('times-circle', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
   retryableFailure: {
     id: 'retryableFailure', // Must match variable name for collection unpacking.
     label: () => 'Retryable Failure',
-    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
+    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
   waiting: {
     id: 'waiting', // Must match variable name for collection unpacking.
