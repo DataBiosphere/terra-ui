@@ -51,11 +51,11 @@ export const statusType = {
     label: () => 'Retryable Failure',
     icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
-  waiting: {
-    id: 'waiting', // Must match variable name for collection unpacking.
-    label: () => 'Waiting',
-    icon: (style) => icon('users', { size: iconSize, style: { color: colors.warning(), ...style } }),
-    tooltip: 'Waiting for other users on the shared cluster.',
+  queued: {
+    id: 'queued', // Must match variable name for collection unpacking.
+    label: () => 'Queued',
+    icon: (style) => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } }),
+    tooltip: "Waiting for other users' tasks on the shared cluster.",
   },
   unknown: {
     id: 'unknown', // Must match variable name for collection unpacking.
@@ -98,7 +98,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'WaitingForQueueSpace':
     case 'QueuedInCromwell':
     case 'Starting':
-      return statusType.waiting;
+      return statusType.queued;
     case 'Running':
     case 'Bypassed':
       return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running;
