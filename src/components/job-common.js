@@ -88,22 +88,12 @@ export const collapseStatus = (rawStatus) => {
 /**
  * Collapses Cromwell task status, taking into account both execution and backend status values.
  *
- * WARNING: at some point, deduplicate from `src/workflows-app/components/job-common.js`
- *
- * @param {string} executionStatus from metadata
- * @param {string} backendStatus from metadata
- * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForQuota`, or `statusType.unknown`
+ * @param {string} executionStatus one of the 12 universal Cromwell execution statuses
+ * @param {string} backendStatus additional backend job info specific to GCP Batch
+ * @returns {Object} a simplified user-facing status
  */
 export const collapseCromwellStatus = (executionStatus, backendStatus) => {
   switch (executionStatus) {
-    case 'Done':
-      return statusType.succeeded;
-    case 'Aborting':
-    case 'Aborted':
-    case 'Failed':
-    case 'Unstartable':
-    case 'RetryableFailure':
-      return statusType.failed;
     case 'NotStarted':
     case 'WaitingForQueueSpace':
     case 'QueuedInCromwell':
@@ -112,6 +102,16 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Running':
     case 'Bypassed':
       return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running;
+    case 'Aborting':
+    case 'Aborted':
+      return statusType.aborted;
+    case 'RetryableFailure':
+      return statusType.retryableFailure;
+    case 'Failed':
+    case 'Unstartable':
+      return statusType.failed;
+    case 'Done':
+      return statusType.succeeded;
     default:
       return statusType.unknown;
   }
