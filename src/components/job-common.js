@@ -35,7 +35,7 @@ export const statusType = {
   },
   waitingForQuota: {
     id: 'waitingForQuota', // Must match variable name for collection unpacking.
-    label: () => 'Submitted, Awaiting Cloud Quota',
+    label: () => 'Waiting for Quota',
     icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
     moreInfoLabel: 'Learn more about cloud quota',
