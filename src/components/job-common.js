@@ -41,6 +41,16 @@ export const statusType = {
     moreInfoLabel: 'Learn more about cloud quota',
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.',
   },
+  aborted: {
+    id: 'aborted', // Must match variable name for collection unpacking.
+    label: () => 'Aborted',
+    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
+  },
+  retryableFailure: {
+    id: 'retryableFailure', // Must match variable name for collection unpacking.
+    label: () => 'Retryable Failure',
+    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
+  },
   waiting: {
     id: 'waiting', // Must match variable name for collection unpacking.
     label: () => 'Waiting',
