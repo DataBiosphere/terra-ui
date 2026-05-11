@@ -76,6 +76,7 @@ export const collapseStatus = (rawStatus) => {
       return statusType.succeeded;
     case 'Aborting': // only on submissions not workflows
     case 'Aborted':
+      return statusType.aborted;
     case 'Failed':
       return statusType.failed;
     case 'Running':
