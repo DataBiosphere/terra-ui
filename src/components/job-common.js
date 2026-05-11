@@ -46,9 +46,9 @@ export const statusType = {
     label: () => 'Aborted',
     icon: (style) => icon('times-circle', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
-  retryableFailure: {
-    id: 'retryableFailure', // Must match variable name for collection unpacking.
-    label: () => 'Retryable Failure',
+  retried: {
+    id: 'retried', // Must match variable name for collection unpacking.
+    label: () => 'Retried',
     icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
   queued: {
@@ -76,7 +76,6 @@ export const collapseStatus = (rawStatus) => {
       return statusType.succeeded;
     case 'Aborting': // only on submissions not workflows
     case 'Aborted':
-      return statusType.aborted;
     case 'Failed':
       return statusType.failed;
     case 'Running':
@@ -107,7 +106,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Aborted':
       return statusType.aborted;
     case 'RetryableFailure':
-      return statusType.retryableFailure;
+      return statusType.retried;
     case 'Failed':
     case 'Unstartable':
       return statusType.failed;
