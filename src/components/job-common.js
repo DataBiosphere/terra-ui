@@ -46,10 +46,11 @@ export const statusType = {
     label: () => 'Aborted',
     icon: (style) => icon('times-circle', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
-  retried: {
-    id: 'retried', // Must match variable name for collection unpacking.
-    label: () => 'Retried',
+  retryable: {
+    id: 'retryable', // Must match variable name for collection unpacking.
+    label: () => 'Retryable',
     icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.dark(), ...style } }),
+    tooltip: 'This attempt failed. It will retry if the overall workflow is in a non-failed state.',
   },
   queued: {
     id: 'queued', // Must match variable name for collection unpacking.
@@ -105,8 +106,8 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Aborting':
     case 'Aborted':
       return statusType.aborted;
-    case 'RetryableFailure':
-      return statusType.retried;
+    case 'Retryable':
+      return statusType.retryable;
     case 'Failed':
     case 'Unstartable':
       return statusType.failed;
