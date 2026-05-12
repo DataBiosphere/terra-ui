@@ -25,8 +25,7 @@ export const taskNameFilter = (searchText) => {
 
 export const statusFilter = (statuses) => {
   return _.filter(({ statusObj }) => {
-    const { id } = statusObj;
-    return _.isEmpty(statuses) ? true : statuses.includes(_.startCase(id));
+    return _.isEmpty(statuses) ? true : statuses.includes(statusObj.label());
   });
 };
 
@@ -156,13 +155,13 @@ const CallTable = ({
     const statusSet = {};
     tableData.forEach(({ statusObj }) => {
       if (!_.isEmpty(statusObj)) {
-        const { icon, id } = statusObj;
-        const startCasedId = _.startCase(id);
-        if (!statusSet[startCasedId]) {
-          statusSet[startCasedId] = { count: 0 };
+        const { icon, label } = statusObj;
+        const labelText = label();
+        if (!statusSet[labelText]) {
+          statusSet[labelText] = { count: 0 };
         }
-        statusSet[startCasedId].count += 1;
-        statusSet[startCasedId].icon = icon;
+        statusSet[labelText].count += 1;
+        statusSet[labelText].icon = icon;
       } else {
         return {};
       }
