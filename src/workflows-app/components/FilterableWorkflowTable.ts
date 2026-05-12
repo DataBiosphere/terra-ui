@@ -153,6 +153,7 @@ const FilterableWorkflowTable = ({
   const rowWidth = 100;
   const rowHeight = 50;
 
+  // Intentionally incomplete: ripped out TES-specific statuses in CTM-494
   const state = (state: string): { id: string; label: (state: string) => string; icon: (style: any) => any } => {
     switch (state) {
       case 'SYSTEM_ERROR':
