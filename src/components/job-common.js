@@ -21,7 +21,7 @@ export const statusType = {
   failed: {
     id: 'failed', // Must match variable name for collection unpacking.
     label: () => 'Failed',
-    icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } }),
+    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.danger(), ...style } }),
   },
   running: {
     id: 'running', // Must match variable name for collection unpacking.
@@ -35,21 +35,38 @@ export const statusType = {
   },
   waitingForQuota: {
     id: 'waitingForQuota', // Must match variable name for collection unpacking.
-    label: () => 'Submitted, Awaiting Cloud Quota',
-    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
+    label: () => 'Quota Delay',
+    icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
     moreInfoLabel: 'Learn more about cloud quota',
-    tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.',
+    tooltip: 'Delayed by Google Cloud Platform (GCP) quota. Request a quota increase in your GCP project.',
+  },
+  aborted: {
+    id: 'aborted', // Must match variable name for collection unpacking.
+    label: () => 'Aborted',
+    icon: (style) => icon('times-circle', { size: iconSize, style: { color: colors.dark(), ...style } }),
+  },
+  retryableFailure: {
+    id: 'retryableFailure', // Must match variable name for collection unpacking.
+    label: () => 'Retryable',
+    icon: (style) => icon('error-standard', { size: iconSize, style: { color: colors.dark(), ...style } }),
+    tooltip: 'This attempt failed. It will retry if the overall workflow is in a non-failed state.',
+  },
+  queued: {
+    id: 'queued', // Must match variable name for collection unpacking.
+    label: () => 'Queued',
+    icon: (style) => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } }),
+    tooltip: "Waiting for other users' tasks on the shared cluster.",
   },
   unknown: {
     id: 'unknown', // Must match variable name for collection unpacking.
-    label: (executionStatus) => `Unexpected status (${executionStatus})`,
-    icon: (style) => icon('question', { size: iconSize, style: { color: colors.dark(), ...style } }),
+    label: (executionStatus) => executionStatus,
+    icon: (style) => icon('info-circle', { size: iconSize, style: { color: colors.dark(), ...style } }),
   },
 };
 
 /**
- * Collapses submission or workflow status.
+ * Collapses Rawls submission or Cromwell workflow status.
  *
  * @param {string} rawStatus
  * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, or `statusType.submitted`
@@ -70,22 +87,32 @@ export const collapseStatus = (rawStatus) => {
 };
 
 /**
- * Collapses Cromwell status, taking into account both execution and backend status values.
+ * Collapses Cromwell task status, taking into account both execution and backend status values.
  *
- * @param {string} executionStatus from metadata
- * @param {string} backendStatus from metadata
- * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForQuota`, or `statusType.unknown`
+ * @param {string} executionStatus one of the 12 universal Cromwell execution statuses
+ * @param {string} backendStatus additional backend job info specific to GCP Batch
+ * @returns {Object} a simplified user-facing status
  */
 export const collapseCromwellStatus = (executionStatus, backendStatus) => {
   switch (executionStatus) {
-    case 'Done':
-      return statusType.succeeded;
+    case 'NotStarted':
+    case 'WaitingForQueueSpace':
+    case 'QueuedInCromwell':
+    case 'Starting':
+      return statusType.queued;
+    case 'Running':
+    case 'Bypassed':
+      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running;
     case 'Aborting':
     case 'Aborted':
+      return statusType.aborted;
+    case 'RetryableFailure':
+      return statusType.retryableFailure;
     case 'Failed':
+    case 'Unstartable':
       return statusType.failed;
-    case 'Running':
-      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running;
+    case 'Done':
+      return statusType.succeeded;
     default:
       return statusType.unknown;
   }

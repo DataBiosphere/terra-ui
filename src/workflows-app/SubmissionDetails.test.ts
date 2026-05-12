@@ -598,7 +598,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(5);
     within(cellsFromDataRow1[0]).getByText('FOO2');
-    within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
+    within(cellsFromDataRow1[1]).getByText('UNKNOWN');
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
     within(cellsFromDataRow1[3]).getByText('b29e84b1-ad1b-4462-a9a0-7ec849bf30a8');
   });
@@ -656,7 +656,7 @@ describe('Submission Details page', () => {
     const cellsFromDataRow1 = within(rows[1]).getAllByRole('cell');
     expect(cellsFromDataRow1.length).toBe(5);
     within(cellsFromDataRow1[0]).getByText('FOO2');
-    within(cellsFromDataRow1[1]).getByText('Initializing'); // Note: not UNKNOWN!
+    within(cellsFromDataRow1[1]).getByText('UNKNOWN');
     // << Don't validate duration here since it depends on the test rendering time and is not particularly relevant >>
     within(cellsFromDataRow1[3]).getByText('');
   });
