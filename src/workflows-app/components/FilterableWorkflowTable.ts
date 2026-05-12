@@ -13,7 +13,7 @@ import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { useCancellation } from 'src/libs/react-utils';
 import { AppProxyUrlStatus } from 'src/libs/state';
-import { customFormatDuration, differenceFromNowInSeconds } from 'src/libs/utils';
+import { customFormatDuration } from 'src/libs/utils';
 import { statusType } from 'src/workflows-app/components/job-common';
 import { fetchMetadata, WorkflowMetadata } from 'src/workflows-app/utils/cromwell-metadata-utils';
 import { makeStatusLine, parseMethodString } from 'src/workflows-app/utils/submission-utils';
@@ -153,32 +153,19 @@ const FilterableWorkflowTable = ({
   const rowWidth = 100;
   const rowHeight = 50;
 
-  const state = (
-    state: string,
-    submissionDate: Date
-  ): { id: string; label: (state: string) => string; icon: (style: any) => any } => {
+  const state = (state: string): { id: string; label: (state: string) => string; icon: (style: any) => any } => {
     switch (state) {
       case 'SYSTEM_ERROR':
       case 'EXECUTOR_ERROR':
         return statusType.failed;
       case 'COMPLETE':
         return statusType.succeeded;
-      case 'INITIALIZING':
-        return statusType.initializing;
       case 'QUEUED':
         return statusType.queued;
       case 'RUNNING':
         return statusType.running;
-      case 'PAUSED':
-        return statusType.paused;
-      case 'CANCELED':
-        return statusType.canceled;
-      case 'CANCELING':
-        return statusType.canceling;
       default:
-        // 10 seconds should be enough for Cromwell to summarize the new workflow and get a status other
-        // than UNKNOWN. In the meantime, handle this as an edge case in the UI:
-        return differenceFromNowInSeconds(submissionDate) < 10 ? statusType.initializing : statusType.unknown;
+        return statusType.unknown;
     }
   };
 
@@ -363,10 +350,7 @@ const FilterableWorkflowTable = ({
                         field: 'state',
                         headerRenderer: () => h(Sortable, { sort, field: 'state', onSort: setSort }, ['Status']),
                         cellRenderer: ({ rowIndex }) => {
-                          const status = state(
-                            paginatedPreviousRuns[rowIndex].state,
-                            paginatedPreviousRuns[rowIndex].submission_date
-                          );
+                          const status = state(paginatedPreviousRuns[rowIndex].state);
                           if (errorStates.includes(paginatedPreviousRuns[rowIndex].state)) {
                             return div({ style: { width: '100%', textAlign: 'center' } }, [
                               h(
