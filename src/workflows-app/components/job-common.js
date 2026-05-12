@@ -1,10 +1,11 @@
 import _ from 'lodash/fp';
 import { div, h, h1, span } from 'react-hyperscript-helpers';
 import { ButtonOutline, Link } from 'src/components/common';
-import { breadcrumbHistoryCaret, collapseCromwellStatus as collapseCromwellStatusImpl, statusType as gcpStatusType } from 'src/components/job-common';
+import { breadcrumbHistoryCaret, collapseCromwellStatus as collapseCromwellStatusImpl } from 'src/components/job-common';
 import { getLink, goToPath } from 'src/libs/nav';
 
-export const statusType = gcpStatusType;
+// The following two exports switch `workflows-app` to use the standard statuses instead of rolling their own (CTM-495)
+export { statusType } from 'src/components/job-common';
 
 export const collapseCromwellStatus = (executionStatus, backendStatus) => collapseCromwellStatusImpl(executionStatus, backendStatus);
 
