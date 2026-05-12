@@ -35,11 +35,11 @@ export const statusType = {
   },
   waitingForQuota: {
     id: 'waitingForQuota', // Must match variable name for collection unpacking.
-    label: () => 'Waiting for Quota',
+    label: () => 'Quota Delay',
     icon: (style) => icon('warning-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
     moreInfoLabel: 'Learn more about cloud quota',
-    tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.',
+    tooltip: 'Delayed by Google Cloud Platform (GCP) quota. Contact Terra Support to request a quota increase.',
   },
   aborted: {
     id: 'aborted', // Must match variable name for collection unpacking.
@@ -106,7 +106,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Aborting':
     case 'Aborted':
       return statusType.aborted;
-    case 'Retryable':
+    case 'RetryableFailure':
       return statusType.retryable;
     case 'Failed':
     case 'Unstartable':
