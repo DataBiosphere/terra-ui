@@ -46,7 +46,7 @@ const groupCallStatuses = _.flow(
 const statusCell = ({ calls }) => {
   const statusGroups = groupCallStatuses(calls);
   // Note: these variable names match the id values of statusType (except for unknownStatuses, which will be their labels).
-  const { queued, waitingForQuota, running, aborted, retryable, failed, succeeded, ...unknownStatuses } = statusGroups;
+  const { queued, waitingForQuota, running, aborted, retryableFailure, failed, succeeded, ...unknownStatuses } = statusGroups;
 
   const makeRow = (count, status, labelOverride) => {
     const seeMore = status.moreInfoLink
@@ -67,7 +67,7 @@ const statusCell = ({ calls }) => {
   return h(
     Fragment,
     _.concat(
-      ['queued', 'waitingForQuota', 'running', 'aborted', 'retryable', 'failed', 'succeeded']
+      ['queued', 'waitingForQuota', 'running', 'aborted', 'retryableFailure', 'failed', 'succeeded']
         .filter((s) => statusGroups[s])
         .map((s) => makeRow(statusGroups[s], statusType[s])),
       _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(unknownStatuses))
