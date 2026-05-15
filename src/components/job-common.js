@@ -16,7 +16,7 @@ export const statusType = {
   succeeded: {
     id: 'succeeded', // Must match variable name for collection unpacking.
     label: () => 'Succeeded',
-    icon: (style) => icon('check', { size: iconSize, style: { color: colors.success(), ...style } }),
+    icon: (style) => icon('success-standard', { size: iconSize, style: { color: colors.success(), ...style } }),
   },
   failed: {
     id: 'failed', // Must match variable name for collection unpacking.
