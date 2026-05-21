@@ -42,7 +42,7 @@ describe('submission-utils', () => {
         floatInput: '23.5',
       };
 
-      const result = await preparePipelineRun('array_imputation', 1, useInputs, 'Test description');
+      const result = await preparePipelineRun('array_imputation', 1, useInputs, 'Test description', true);
 
       expect(crypto.randomUUID).toHaveBeenCalled();
       expect(mockTeaspoons.preparePipelineRun).toHaveBeenCalledWith(

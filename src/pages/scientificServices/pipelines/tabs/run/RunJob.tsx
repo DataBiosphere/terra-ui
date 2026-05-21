@@ -2,6 +2,7 @@ import { ButtonPrimary, Icon, Link, Select, Spinner } from '@terra-ui-packages/c
 import { isEmpty } from 'lodash';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
+import { LabeledCheckbox } from 'src/components/common';
 import { getPopupRoot } from 'src/components/popup-utils';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -54,6 +55,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedJobId, setSubmittedJobId] = useState<string>();
+  const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false);
 
   const { quota, pipelineDetails, meetsMinimumQuota, isLoading: isLoadingQuota } = useUserQuota(selectedPipeline);
 
@@ -172,6 +174,16 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
       return;
     }
 
+    // This should not happen as the submit button is disabled when the checkbox is unselected,
+    // but it's helpful as a type-guard here
+    if (!agreeToTerms) {
+      notify(
+        'error',
+        'You must agree to the Scientific Services Terms of Service and Acceptable Use Policy before submitting a job.'
+      );
+      return;
+    }
+
     const pipelineName = selectedPipeline.pipelineName;
     const pipelineVersion = selectedPipeline.pipelineVersion;
 
@@ -189,7 +201,13 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
 
     // Prepare pipeline run
     try {
-      const result = await preparePipelineRun(pipelineName, pipelineVersion, filteredUserInputs, runDescription);
+      const result = await preparePipelineRun(
+        pipelineName,
+        pipelineVersion,
+        filteredUserInputs,
+        runDescription,
+        agreeToTerms
+      );
       preparedJobId = result.jobId;
       fileInputUploadUrls = result.fileInputUploadUrls;
       setPreparedJobId(preparedJobId);
@@ -396,9 +414,30 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                     </div>
                   </div>
                 )}
+                <div style={{ marginTop: '2rem' }}>
+                  <LabeledCheckbox checked={agreeToTerms} onChange={setAgreeToTerms}>
+                    <span>
+                      {' '}
+                      I have read and agree to the{' '}
+                      <Link
+                        href={Nav.getLink('scientific-services-terms-of-service', {}, { document: 'termsOfService' })}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        style={{ color: '#46A3E9' }}
+                      >
+                        Scientific Services Terms of Service and Acceptable Use Policy
+                      </Link>
+                      <span style={{ color: colors.danger(), fontWeight: 'bold' }}> *</span>
+                    </span>
+                  </LabeledCheckbox>
+                </div>
                 <ButtonPrimary
                   disabled={
-                    isSubmitting || !areInputsValid() || !meetsMinimumQuota || Object.keys(validationErrors).length > 0
+                    isSubmitting ||
+                    !areInputsValid() ||
+                    !meetsMinimumQuota ||
+                    Object.keys(validationErrors).length > 0 ||
+                    !agreeToTerms
                   }
                   style={{ margin: '1rem 0', padding: '1rem', fontSize: '1rem', width: 500 }}
                   onClick={handleSubmit}
@@ -455,6 +494,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                     setRunDescription('');
                     setSubmittedJobId(undefined);
                     setUploadState({});
+                    setAgreeToTerms(false);
                   }}
                 >
                   Run another job
