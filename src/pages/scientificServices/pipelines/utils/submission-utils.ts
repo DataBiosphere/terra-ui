@@ -13,7 +13,8 @@ export async function preparePipelineRun(
   pipelineName: string,
   pipelineVersion: number,
   selectedUserInputs: Record<string, any>,
-  description: string
+  description: string,
+  agreeToTerms: boolean
 ): Promise<{ jobId: string; fileInputUploadUrls: Record<string, { signedUrl: string }> }> {
   const jobId = crypto.randomUUID();
 
@@ -33,7 +34,8 @@ export async function preparePipelineRun(
     pipelineName,
     pipelineVersion,
     finalUserInputs,
-    description
+    description,
+    agreeToTerms
   );
 
   return { jobId, fileInputUploadUrls };

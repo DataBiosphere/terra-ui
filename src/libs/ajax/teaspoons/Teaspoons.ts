@@ -72,10 +72,11 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     pipelineName: string,
     pipelineVersion: number,
     pipelineInputs: Record<string, any>,
-    description: string
+    description: string,
+    agreeToTerms: boolean
   ): Promise<PreparePipelineRunResponse> => {
     const res = await fetchTeaspoons(
-      'pipelineruns/v2/prepare',
+      'pipelineruns/v3/prepare',
       _.mergeAll([
         authOpts(),
         jsonBody({
@@ -85,6 +86,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
           pipelineInputs,
           description,
           useResumableUploads: true,
+          agreeToTerms,
         }),
         { signal, method: 'POST' },
       ])

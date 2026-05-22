@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import {
@@ -29,7 +30,7 @@ jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList', () =>
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
-  getLink: jest.fn(() => '/'),
+  getLink: jest.fn(() => '/#pipelines/terms-of-service?document=termsOfService'),
 }));
 
 jest.mock('src/libs/notifications', () => ({
@@ -141,6 +142,7 @@ describe('RunJob Component', () => {
     expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
     expect(screen.getByText('Allow chunk failures')).toBeInTheDocument();
     expect(screen.getByText('Select a manifest file')).toBeInTheDocument();
+    expect(screen.getByText(/I have read and agree to /)).toBeInTheDocument();
   });
 
   it('loads and displays pipeline options', async () => {
@@ -262,6 +264,15 @@ describe('RunJob Component', () => {
     // select a valid file
     await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
+    // Still disabled because Terms of Service checkbox is not checked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await userEvent.click(tosCheckbox);
+
     // the submit button should be enabled now that all required fields are filled and valid
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
   });
@@ -303,6 +314,15 @@ describe('RunJob Component', () => {
       name: /I have shared this file with Broad Scientific Services/,
     });
     await user.click(sharingConfirmationCheckbox);
+
+    // Still disabled because Terms of Service checkbox is not checked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     // Now the submit button should be enabled
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
@@ -348,6 +368,12 @@ describe('RunJob Component', () => {
       name: /I have shared this file with Broad Scientific Services/,
     });
     await user.click(sharingConfirmationCheckbox);
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     // Now the submit button should be enabled
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
@@ -436,6 +462,12 @@ describe('RunJob Component', () => {
 
     await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
+
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
 
@@ -448,7 +480,8 @@ describe('RunJob Component', () => {
         outputBasename: 'test_output',
         // minDr2ForInclusion not present
       },
-      expect.any(String)
+      expect.any(String),
+      true
     );
   });
 
@@ -468,6 +501,12 @@ describe('RunJob Component', () => {
     await user.type(outputPrefixInput, 'test_output');
 
     await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -503,6 +542,12 @@ describe('RunJob Component', () => {
     await user.type(outputPrefixInput, 'test_output');
 
     await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -541,6 +586,12 @@ describe('RunJob Component', () => {
 
     await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
 
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
+
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
 
@@ -550,6 +601,86 @@ describe('RunJob Component', () => {
 
     // Verify submit button is re-enabled after error
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('resets Terms of Service checkbox when "Run another job" is clicked', async () => {
+    asMockedFn(preparePipelineRun).mockResolvedValue({
+      jobId: 'mock-job-id',
+      fileInputUploadUrls: {
+        multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+    });
+    asMockedFn(uploadPipelineFiles).mockResolvedValue(undefined);
+    asMockedFn(startPipelineRun).mockResolvedValue('mock-job-id');
+
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Fill in required fields
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await user.type(outputPrefixInput, 'test_output');
+
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
+    expect(tosCheckbox).toBeChecked();
+
+    // Submit the form
+    const submitButton = screen.getByText('Submit');
+    await user.click(submitButton);
+
+    // Wait for job submission to complete
+    await waitFor(() => {
+      expect(screen.getByText('Run another job')).toBeInTheDocument();
+    });
+
+    // Click "Run another job" button
+    const runAnotherJobButton = screen.getByText('Run another job');
+    await user.click(runAnotherJobButton);
+
+    // Verify that ToS checkbox is unchecked after reset
+    await waitFor(() => {
+      const resetTosCheckbox = screen.getByRole('checkbox', {
+        name: /I have read and agree to the/,
+      });
+      expect(resetTosCheckbox).not.toBeChecked();
+    });
+
+    // Verify submit button is disabled again
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toHaveAttribute('aria-disabled', 'true');
+    });
+  });
+
+  it('displays Terms of Service link that opens in a new tab', async () => {
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Find the ToS link
+    const tosLink = screen.getByText('Scientific Services Terms of Service and Acceptable Use Policy');
+    expect(tosLink).toBeInTheDocument();
+    expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');
+    expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');
+    expect(tosLink.closest('a')).toHaveAttribute('target', '_blank');
+    expect(tosLink.closest('a')).toHaveAttribute('rel', 'noopener noreferrer');
+
+    // Verify Nav.getLink was called with correct parameters
+    expect(Nav.getLink).toHaveBeenCalledWith(
+      'scientific-services-terms-of-service',
+      {},
+      { document: 'termsOfService' }
+    );
   });
 });
 
