@@ -125,7 +125,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\
             ["debounce-promise", "npm:3.1.2"],\
-            ["dompurify", "npm:3.2.4"],\
+            ["dompurify", "npm:3.4.5"],\
             ["downshift", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.1.7"],\
             ["easymde", "npm:2.16.1"],\
             ["eslint", "npm:8.11.0"],\
@@ -157,7 +157,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jwt-decode", "npm:3.1.2"],\
             ["keycode-js", "npm:3.1.0"],\
             ["lint-staged", "npm:13.0.3"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["marked", "npm:4.0.10"],\
             ["monaco-editor", "npm:0.51.0"],\
             ["oidc-client-ts", "npm:2.4.0"],\
@@ -7048,7 +7048,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/react-dom", "npm:18.3.0"],\
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
@@ -7077,7 +7077,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/react", "npm:18.3.1"],\
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
@@ -7162,7 +7162,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["color", "npm:4.0.1"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["react-focus-lock", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:2.9.5"],\
@@ -7206,7 +7206,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["color", "npm:4.0.1"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["react-focus-lock", "virtual:3cbce82a859ed6a4d5bf57a6b809aea2976beb02c6e1078f18e5e40f750e781222e51bcef76699e2500e623832ea4e45e9647ae7b14a57290a182e58c3827fe8#npm:2.9.5"],\
@@ -7232,7 +7232,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/lodash", "npm:4.14.202"],\
             ["check-dts", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:0.7.2"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
             ["vite", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:5.4.21"]\
           ],\
@@ -7290,7 +7290,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/react-dom", "npm:18.3.0"],\
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
@@ -7320,7 +7320,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/react", "npm:18.3.1"],\
             ["@types/testing-library__jest-dom", "npm:5.14.9"],\
             ["jest", "virtual:6fecf1af4cab542f4a06b7ce7d9f710277dce92700e0011a9519e41948eed6d8f54c9d0aa109ead6cf4295edce81cb49620f9e823313e99632229bf20d133cdb#npm:27.5.1"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:18.2.0"],\
             ["typescript", "patch:typescript@npm%3A5.1.6#~builtin<compat/typescript>::version=5.1.6&hash=5da071"],\
@@ -11471,10 +11471,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["dompurify", [\
-        ["npm:3.2.4", {\
-          "packageLocation": "./.yarn/cache/dompurify-npm-3.2.4-d8ea6c7c6a-7a299cbbfe.zip/node_modules/dompurify/",\
+        ["npm:3.4.5", {\
+          "packageLocation": "./.yarn/cache/dompurify-npm-3.4.5-04ed693109-b9a00d27e8.zip/node_modules/dompurify/",\
           "packageDependencies": [\
-            ["dompurify", "npm:3.2.4"],\
+            ["dompurify", "npm:3.4.5"],\
             ["@types/trusted-types", "npm:2.0.7"]\
           ],\
           "linkType": "HARD"\
@@ -16871,6 +16871,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lodash", "npm:4.17.21"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:4.18.1", {\
+          "packageLocation": "./.yarn/cache/lodash-npm-4.18.1-a64c3070ac-bb5f5b49aa.zip/node_modules/lodash/",\
+          "packageDependencies": [\
+            ["lodash", "npm:4.18.1"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["lodash.curry", [\
@@ -22061,7 +22068,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["color", "npm:4.0.1"],\
             ["date-fns", "npm:2.24.0"],\
             ["debounce-promise", "npm:3.1.2"],\
-            ["dompurify", "npm:3.2.4"],\
+            ["dompurify", "npm:3.4.5"],\
             ["downshift", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.1.7"],\
             ["easymde", "npm:2.16.1"],\
             ["eslint", "npm:8.11.0"],\
@@ -22093,7 +22100,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jwt-decode", "npm:3.1.2"],\
             ["keycode-js", "npm:3.1.0"],\
             ["lint-staged", "npm:13.0.3"],\
-            ["lodash", "npm:4.17.21"],\
+            ["lodash", "npm:4.18.1"],\
             ["marked", "npm:4.0.10"],\
             ["monaco-editor", "npm:0.51.0"],\
             ["oidc-client-ts", "npm:2.4.0"],\
