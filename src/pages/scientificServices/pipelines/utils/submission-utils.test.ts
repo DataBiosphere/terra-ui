@@ -55,7 +55,8 @@ describe('submission-utils', () => {
           anotherStringInput: 'thisInputShouldBeTrimmedBeforeSendingToTheBackend',
           floatInput: '23.5',
         },
-        'Test description'
+        'Test description',
+        true
       );
       expect(result).toEqual({
         jobId: 'test-job-id-123',

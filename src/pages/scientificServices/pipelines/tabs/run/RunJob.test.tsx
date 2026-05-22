@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import {
@@ -29,7 +30,7 @@ jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList', () =>
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
-  getLink: jest.fn(() => '/'),
+  getLink: jest.fn(() => '/#pipelines/terms-of-service?document=termsOfService'),
 }));
 
 jest.mock('src/libs/notifications', () => ({
@@ -669,9 +670,17 @@ describe('RunJob Component', () => {
     // Find the ToS link
     const tosLink = screen.getByText('Scientific Services Terms of Service and Acceptable Use Policy');
     expect(tosLink).toBeInTheDocument();
-    expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service');
+    expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');
+    expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');
     expect(tosLink.closest('a')).toHaveAttribute('target', '_blank');
     expect(tosLink.closest('a')).toHaveAttribute('rel', 'noopener noreferrer');
+
+    // Verify Nav.getLink was called with correct parameters
+    expect(Nav.getLink).toHaveBeenCalledWith(
+      'scientific-services-terms-of-service',
+      {},
+      { document: 'termsOfService' }
+    );
   });
 });
 
