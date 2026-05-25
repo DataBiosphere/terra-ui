@@ -13,7 +13,7 @@ export enum DocsKey {
 // Mapping of documentation keys to their respective Zendesk URLs
 const ZENDESK_PAGES: Record<DocsKey, string> = {
   GETTING_STARTED: 'https://broadscientificservices.zendesk.com/hc/en-us/sections/39901025462171',
-  ABOUT_SERVICE: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/39901941351323',
+  ABOUT_SERVICE: 'https://broadscientificservices.zendesk.com/hc/en-us/categories/39900993442459',
   INPUT_REQ: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859',
   QUOTA_DETAILS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/39903092619035',
   CLOUD_INPUTS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/47099858889243',
