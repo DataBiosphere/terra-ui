@@ -304,30 +304,6 @@ export const User = (signal?: AbortSignal) => {
       }
     },
 
-    getNihStatus: async (): Promise<OrchestrationNihStatusResponse | undefined> => {
-      try {
-        const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }));
-        return res.json();
-      } catch (error: unknown) {
-        if (error instanceof Response && error.status === 404) {
-          return;
-        }
-        throw error;
-      }
-    },
-
-    linkNihAccount: async (token: string): Promise<OrchestrationNihStatusResponse> => {
-      const res = await fetchOrchestration(
-        'api/nih/callback',
-        _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }])
-      );
-      return res.json();
-    },
-
-    unlinkNihAccount: async (): Promise<void> => {
-      await fetchOrchestration('api/nih/account', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]));
-    },
-
     isUserRegistered: async (email: string): Promise<boolean> => {
       try {
         await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }));

@@ -200,7 +200,7 @@ describe('AuthContainer', () => {
 
       asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent: jest.fn() }));
       asMockedFn(Groups).mockReturnValue(partial<GroupsContract>({ list: jest.fn() }));
-      asMockedFn(User).mockReturnValue(partial<UserContract>({ getNihStatus: jest.fn() }));
+      asMockedFn(User).mockReturnValue(partial<UserContract>({}));
       asMockedFn(TermsOfService).mockReturnValue(
         partial<TermsOfServiceContract>({ getUserTermsOfServiceDetails: jest.fn() })
       );
