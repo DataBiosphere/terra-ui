@@ -87,8 +87,6 @@ const setupMockAjax = async (
   acceptTermsOfService.mockResolvedValue(undefined);
   const rejectTermsOfService: MockedFn<TermsOfServiceContract['rejectTermsOfService']> = jest.fn();
   rejectTermsOfService.mockResolvedValue(undefined);
-  const getNihStatus: MockedFn<UserContract['getNihStatus']> = jest.fn();
-
   asMockedFn(TermsOfService).mockReturnValue(
     partial<TermsOfServiceContract>({
       acceptTermsOfService,
@@ -108,7 +106,6 @@ const setupMockAjax = async (
         update: jest.fn(async () => undefined),
         setPreferences: jest.fn(async () => undefined),
       },
-      getNihStatus,
     })
   );
 

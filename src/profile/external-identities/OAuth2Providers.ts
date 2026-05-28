@@ -3,15 +3,7 @@ import React, { Fragment } from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { getConfig } from 'src/libs/config';
 
-export type OAuth2ProviderKey =
-  | 'github'
-  | 'ras'
-  | 'era-commons'
-  | 'fence'
-  | 'dcf-fence'
-  | 'kids-first'
-  | 'anvil'
-  | 'sage';
+export type OAuth2ProviderKey = 'github' | 'ras' | 'fence' | 'dcf-fence' | 'kids-first' | 'sage';
 export type OAuth2Callback =
   | { name: 'oauth-callback'; link: 'oauth_callback' }
   | { name: 'ecm-callback'; link: 'ecm-callback' }

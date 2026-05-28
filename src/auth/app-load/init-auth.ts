@@ -5,7 +5,6 @@ import { getCurrentOidcUser, initializeOidcUserManager, OidcUser } from 'src/aut
 import { loadTerraUser } from 'src/auth/user-profile/user';
 import { ExternalCredentials } from 'src/libs/ajax/ExternalCredentials';
 import { Groups } from 'src/libs/ajax/Groups';
-import { User } from 'src/libs/ajax/User';
 import { withErrorReporting } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
@@ -75,15 +74,6 @@ export const initializeAuthListeners = () => {
           doSignInEvents(loadedState);
           authStore.update((state: AuthState) => ({ ...state, userJustSignedIn: false }));
         }
-      }
-    })
-  );
-
-  authStore.subscribe(
-    withErrorReporting('Error loading NIH account link status')(async (state: AuthState, oldState: AuthState) => {
-      if (userCanNowUseTerra(oldState, state)) {
-        const nihStatus = await User().getNihStatus();
-        authStore.update((state: AuthState) => ({ ...state, nihStatus, nihStatusLoaded: true }));
       }
     })
   );
