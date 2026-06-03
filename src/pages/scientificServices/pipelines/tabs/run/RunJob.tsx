@@ -170,7 +170,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
         const matchingPipelines = pipelinesList.filter((p) => p.pipelineName === pipelineName);
         if (matchingPipelines.length > 0) {
           if (version) {
-            const versionNumber = parseInt(version);
+            const versionNumber = Number.parseInt(version);
             const exactMatch = matchingPipelines.find((p) => p.pipelineVersion === versionNumber);
             setSelectedPipeline(exactMatch ?? matchingPipelines[0]);
           } else {
