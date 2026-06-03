@@ -46,15 +46,16 @@ export const navPaths = [
     title: 'Sign in to the terralab CLI',
     public: true,
   },
-  // DEPRECATED: this is here to avoid breaking any existing links. The pipelines-profile route is preferred.
   {
-    name: 'pipelines-account',
+    name: 'pipelines-profile',
     path: '/pipelines/profile',
     component: ProfileView,
     title: 'Profile',
   },
+  // DEPRECATED: this path is here to avoid breaking any existing links to /account.
+  // The pipelines-profile path should be used going forward.
   {
-    name: 'pipelines-profile',
+    name: 'pipelines-profile-deprecated',
     path: '/pipelines/account',
     component: ProfileView,
     title: 'Profile',
