@@ -775,6 +775,25 @@ describe('RunJob Component', () => {
         expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
       });
     });
+
+    it('updates the URL when the user manually selects a pipeline from the dropdown', async () => {
+      const user = userEvent.setup();
+      asMockedFn(Nav.useRoute).mockReturnValue({ query: {} } as any);
+
+      render(<RunJob />);
+
+      // Wait for the dropdown to be populated
+      await waitFor(() => {
+        expect(screen.getByText('Array Imputation - v1')).toBeInTheDocument();
+      });
+
+      // Open the pipeline selector dropdown and pick Low Pass Imputation
+      const select = screen.getByRole('combobox');
+      await user.click(select);
+      await user.click(screen.getByText('Low Pass Imputation - v1'));
+
+      expect(Nav.updateSearch).toHaveBeenCalledWith({ pipelineName: 'low_pass_imputation', version: 1 });
+    });
   });
 });
 
