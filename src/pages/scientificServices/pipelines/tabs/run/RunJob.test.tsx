@@ -699,7 +699,7 @@ describe('RunJob Component', () => {
       description: 'Test pipeline for low pass imputation v2',
     };
 
-    const multiplePipelines = [mockPipeline, lowPassPipeline, lowPassPipelineV2];
+    const multiplePipelines = [mockPipeline, lowPassPipelineV2, lowPassPipeline];
 
     beforeEach(() => {
       asMockedFn(usePipelinesList).mockReturnValue({
@@ -735,7 +735,7 @@ describe('RunJob Component', () => {
       render(<RunJob />);
 
       await waitFor(() => {
-        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 1);
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 2);
       });
     });
 
@@ -758,9 +758,9 @@ describe('RunJob Component', () => {
 
       render(<RunJob />);
 
-      // Should fall back to v1 (first match) since v99 doesn't exist
+      // Should fall back to v2 (first match) since v99 doesn't exist
       await waitFor(() => {
-        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 1);
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 2);
       });
     });
 
