@@ -31,6 +31,7 @@ jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
   getLink: jest.fn(() => '/#pipelines/terms-of-service?document=termsOfService'),
+  useRoute: jest.fn(() => ({ query: {} })),
 }));
 
 jest.mock('src/libs/notifications', () => ({
@@ -681,6 +682,99 @@ describe('RunJob Component', () => {
       {},
       { document: 'termsOfService' }
     );
+  });
+
+  describe('Query parameter pre-selection', () => {
+    const lowPassPipeline: Pipeline = {
+      pipelineName: 'low_pass_imputation',
+      displayName: 'Low Pass Imputation',
+      pipelineVersion: 1,
+      description: 'Test pipeline for low pass imputation',
+    };
+
+    const lowPassPipelineV2: Pipeline = {
+      pipelineName: 'low_pass_imputation',
+      displayName: 'Low Pass Imputation',
+      pipelineVersion: 2,
+      description: 'Test pipeline for low pass imputation v2',
+    };
+
+    const multiplePipelines = [mockPipeline, lowPassPipeline, lowPassPipelineV2];
+
+    beforeEach(() => {
+      asMockedFn(usePipelinesList).mockReturnValue({
+        pipelines: multiplePipelines,
+        uniquePipelines: [mockPipeline, lowPassPipeline],
+        isLoading: false,
+        error: undefined,
+      });
+      asMockedFn(mockTeaspoonsContract.getPipelineDetails).mockResolvedValue(
+        mockPipelineWithDetails('low_pass_imputation')
+      );
+    });
+
+    it('defaults to the first pipeline when no query params are provided', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({ query: {} } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Array Imputation - v1')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+      });
+    });
+
+    it('pre-selects a pipeline by pipelineName query param', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'low_pass_imputation' },
+      } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 1);
+      });
+    });
+
+    it('pre-selects the correct version when both pipelineName and version query params are provided', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'low_pass_imputation', version: '2' },
+      } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 2);
+      });
+    });
+
+    it('falls back to the first matching pipeline when the specified version is not found', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'low_pass_imputation', version: '99' },
+      } as any);
+
+      render(<RunJob />);
+
+      // Should fall back to v1 (first match) since v99 doesn't exist
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 1);
+      });
+    });
+
+    it('defaults to the first pipeline when pipelineName query param does not match any pipeline', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'nonexistent_pipeline' },
+      } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+      });
+    });
   });
 });
 

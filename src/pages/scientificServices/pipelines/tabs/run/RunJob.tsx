@@ -9,6 +9,7 @@ import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-model
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
+import { useRoute } from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { PipelinesLayout } from 'src/pages/scientificServices/pipelines/common/PipelinesLayout';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
@@ -152,6 +153,8 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
     }
   }, [pipelineDetails]);
 
+  const { query } = useRoute();
+
   useEffect(() => {
     if (pipelinesList && pipelinesList.length > 0) {
       const options = pipelinesList.map((pipeline) => ({
@@ -161,10 +164,27 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
 
       setPipelineVersionOptions(options);
 
-      // Automatically select the most recent pipeline
+      // If query params are provided, try to find the matching pipeline
+      const { pipelineName, version } = query as { pipelineName?: string; version?: string };
+      if (pipelineName) {
+        const matchingPipelines = pipelinesList.filter((p) => p.pipelineName === pipelineName);
+        if (matchingPipelines.length > 0) {
+          if (version) {
+            const versionNumber = parseInt(version);
+            const exactMatch = matchingPipelines.find((p) => p.pipelineVersion === versionNumber);
+            setSelectedPipeline(exactMatch ?? matchingPipelines[0]);
+          } else {
+            // Default to the first match (assumed to be the latest version)
+            setSelectedPipeline(matchingPipelines[0]);
+          }
+          return;
+        }
+      }
+
+      // Automatically select the most recent pipeline (default behavior)
       setSelectedPipeline(pipelinesList[0]);
     }
-  }, [pipelinesList]);
+  }, [pipelinesList, query]);
 
   const handleSubmit = async () => {
     if (!selectedPipeline) {
