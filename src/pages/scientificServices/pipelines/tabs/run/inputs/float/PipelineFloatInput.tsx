@@ -7,6 +7,7 @@ interface PipelineFloatInputProps {
   input: PipelineInput;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
   validationError?: ReactNode;
   onValidation(error?: ReactNode): void;
 }
@@ -15,6 +16,7 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
   input,
   value,
   onChange,
+  disabled,
   validationError,
   onValidation,
 }) => {
@@ -29,9 +31,13 @@ export const PipelineFloatInput: React.FC<PipelineFloatInputProps> = ({
         width={400}
         error={validationError}
         inputProps={{
+          style: {
+            backgroundColor: disabled ? colors.dark(0.04) : undefined,
+          },
           'aria-label': `${displayName || name} float input`,
           type: 'text',
           value: value || '',
+          disabled,
           placeholder: defaultValue || `Enter ${displayName || name}`,
           onChange: (e) => {
             onChange(e);
