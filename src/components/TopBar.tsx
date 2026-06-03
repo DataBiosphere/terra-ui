@@ -214,9 +214,14 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   </>
                 )}
                 {isScientificServices() && (
-                  <DropDownSubItem href={Nav.getLink('account')} onClick={hideNav}>
-                    Account & Quotas
-                  </DropDownSubItem>
+                  <>
+                    <DropDownSubItem href={Nav.getLink('pipelines-profile')} onClick={hideNav}>
+                      Profile
+                    </DropDownSubItem>
+                    <DropDownSubItem href={Nav.getLink('pipelines-quotas')} onClick={hideNav}>
+                      Quotas
+                    </DropDownSubItem>
+                  </>
                 )}
                 <DropDownSubItem onClick={() => signOut('requested')}>Sign Out</DropDownSubItem>
               </DropDownSection>

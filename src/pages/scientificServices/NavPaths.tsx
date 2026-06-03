@@ -1,5 +1,6 @@
 import { CliAuth } from 'src/pages/scientificServices/cli-auth/CliAuth';
-import { AccountAndQuotas } from 'src/pages/scientificServices/pipelines/account/AccountAndQuotas';
+import { ProfileView } from 'src/pages/scientificServices/pipelines/account/ProfileView';
+import { QuotasView } from 'src/pages/scientificServices/pipelines/account/QuotasView';
 import { About } from 'src/pages/scientificServices/pipelines/tabs/about/About';
 import { JobDetails } from 'src/pages/scientificServices/pipelines/tabs/history/details/JobDetails';
 import { JobHistory } from 'src/pages/scientificServices/pipelines/tabs/history/JobHistory';
@@ -45,11 +46,24 @@ export const navPaths = [
     title: 'Sign in to the terralab CLI',
     public: true,
   },
+  // DEPRECATED: this is here to avoid breaking any existing links. The pipelines-profile route is preferred.
   {
-    name: 'account',
+    name: 'pipelines-account',
+    path: '/pipelines/profile',
+    component: ProfileView,
+    title: 'Profile',
+  },
+  {
+    name: 'pipelines-profile',
     path: '/pipelines/account',
-    component: AccountAndQuotas,
-    title: 'Account & Quotas',
+    component: ProfileView,
+    title: 'Profile',
+  },
+  {
+    name: 'pipelines-quotas',
+    path: '/pipelines/quotas',
+    component: QuotasView,
+    title: 'Quotas',
   },
   {
     name: 'scientific-services-terms-of-service',
