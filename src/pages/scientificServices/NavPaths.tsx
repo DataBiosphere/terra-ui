@@ -1,3 +1,5 @@
+import React from 'react';
+import * as Nav from 'src/libs/nav';
 import { CliAuth } from 'src/pages/scientificServices/cli-auth/CliAuth';
 import { ProfileView } from 'src/pages/scientificServices/pipelines/account/ProfileView';
 import { QuotasView } from 'src/pages/scientificServices/pipelines/account/QuotasView';
@@ -52,13 +54,13 @@ export const navPaths = [
     component: ProfileView,
     title: 'Profile',
   },
-  // DEPRECATED: this path is here to avoid breaking any existing links to /account.
+  // DEPRECATED: this redirect is here to avoid breaking any existing links to /pipelines/account.
   // The pipelines-profile path should be used going forward.
   {
-    name: 'pipelines-profile-deprecated',
+    name: 'pipelines-account',
     path: '/pipelines/account',
-    component: ProfileView,
-    title: 'Profile',
+    component: (props) => <Nav.Redirector pathname={Nav.getPath('pipelines-profile', props)} search='' />,
+    title: 'Account',
   },
   {
     name: 'pipelines-quotas',
