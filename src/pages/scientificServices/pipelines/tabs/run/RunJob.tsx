@@ -9,7 +9,7 @@ import { Pipeline, PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-model
 import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
-import { updateSearch, useRoute } from 'src/libs/nav';
+import { useRoute } from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { PipelinesLayout } from 'src/pages/scientificServices/pipelines/common/PipelinesLayout';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
@@ -292,7 +292,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                     return;
                   }
                   setSelectedPipeline(r.value);
-                  updateSearch({ pipelineName: r.value.pipelineName, version: r.value.pipelineVersion });
+                  Nav.updateSearch({ pipelineName: r.value.pipelineName, version: r.value.pipelineVersion });
                 }}
                 menuPortalTarget={getPopupRoot()}
               />

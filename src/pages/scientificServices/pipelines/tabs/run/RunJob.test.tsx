@@ -32,6 +32,7 @@ jest.mock('src/libs/nav', () => ({
   getPath: jest.fn(() => '/test/'),
   getLink: jest.fn(() => '/#pipelines/terms-of-service?document=termsOfService'),
   useRoute: jest.fn(() => ({ query: {} })),
+  updateSearch: jest.fn(),
 }));
 
 jest.mock('src/libs/notifications', () => ({
@@ -792,7 +793,7 @@ describe('RunJob Component', () => {
       await user.click(select);
       await user.click(screen.getByText('Low Pass Imputation - v1'));
 
-      expect(Nav.updateSearch).toHaveBeenCalledWith({ pipelineName: 'low_pass_imputation', version: 1 });
+      expect(asMockedFn(Nav.updateSearch)).toHaveBeenCalledWith({ pipelineName: 'low_pass_imputation', version: 1 });
     });
   });
 });
