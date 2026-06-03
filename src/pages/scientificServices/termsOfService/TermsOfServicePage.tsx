@@ -19,7 +19,7 @@ type LoadState = { status: 'loading' } | { status: 'ready'; content: string } | 
 
 const isValidDocType = (key: unknown): key is TeaspoonsDocType => TABS.some((t) => t.key === key);
 
-interface ScientificServicesTermsOfServicePageProps {
+export interface ScientificServicesTermsOfServicePageProps {
   queryParams?: { document?: string };
 }
 

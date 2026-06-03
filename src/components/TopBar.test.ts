@@ -76,7 +76,8 @@ describe('TopBar', () => {
     fireEvent.click(screen.getByText('Loading...')); // username is shown as Loading... while user info is being fetched
 
     // Assert
-    expect(screen.queryByText('Account & Quotas')).toBeInTheDocument();
+    expect(screen.queryByText('Profile')).toBeInTheDocument();
+    expect(screen.queryByText('Quotas')).toBeInTheDocument();
     expect(screen.queryByText('Sign Out')).toBeInTheDocument();
   });
 
