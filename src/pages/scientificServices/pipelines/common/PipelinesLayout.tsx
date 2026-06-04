@@ -22,8 +22,18 @@ export const PipelinesLayout = ({ activeTab, children, render }: PipelinesLayout
     <FooterWrapper alwaysShow>
       {pipelinesTopBar(activeTab)}
       {isLoading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-          <Spinner />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '75vh',
+            padding: '3rem',
+            gap: '1rem',
+            fontSize: 32,
+          }}
+        >
+          <Spinner size={32} /> <span>Loading Data Science Services...</span>
         </div>
       )}
       {!isLoading && error && <ServiceUnavailableView />}
