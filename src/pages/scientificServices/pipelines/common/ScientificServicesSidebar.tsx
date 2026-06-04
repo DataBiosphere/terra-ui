@@ -17,7 +17,7 @@ import {
   NavSection,
   pageTitleStyles,
   topBarStyle,
-} from 'src/components/TopBar';
+} from 'src/components/top-bar-common';
 import colors from 'src/libs/colors';
 import { topBarLogo } from 'src/libs/logos';
 import * as Nav from 'src/libs/nav';
