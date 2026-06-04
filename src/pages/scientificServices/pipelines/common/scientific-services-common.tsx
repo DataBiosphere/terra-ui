@@ -1,8 +1,8 @@
 import _ from 'lodash/fp';
 import React from 'react';
 import { TabBar } from 'src/components/tabBars';
-import { TopBar } from 'src/components/TopBar';
 import * as Nav from 'src/libs/nav';
+import { ScientificServicesSidebar } from 'src/pages/scientificServices/pipelines/common/ScientificServicesSidebar';
 
 export const SCIENTIFIC_SERVICES_SUPPORT_EMAIL = 'scientific-services-support@broadinstitute.org';
 
@@ -15,7 +15,7 @@ const TAB_LINKS = {
 export const pipelinesTopBar = (activeTab?: string) => {
   return (
     <>
-      <TopBar title='' href={Nav.getLink('root')} />
+      <ScientificServicesSidebar title='' href={Nav.getLink('root')} />
       <TabBar
         aria-label='pipelines menu'
         styleOverrides={{

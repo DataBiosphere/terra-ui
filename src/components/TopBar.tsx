@@ -27,8 +27,9 @@ import { useStore } from 'src/libs/react-utils';
 import { authStore, contactUsActive, userStore } from 'src/libs/state';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { ScientificServicesSidebar } from 'src/pages/scientificServices/pipelines/common/ScientificServicesSidebar';
 
-const topBarStyle: CSSProperties = {
+export const topBarStyle: CSSProperties = {
   flex: 'none',
   height: Style.topBarHeight,
   display: 'flex',
@@ -38,23 +39,23 @@ const topBarStyle: CSSProperties = {
   boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
 };
 
-const pageTitleStyles: CSSProperties = {
+export const pageTitleStyles: CSSProperties = {
   color: isTerra() ? 'white' : colors.dark(),
   fontSize: 22,
   fontWeight: 500,
   textTransform: 'uppercase',
 };
 
-const navSectionStyles: CSSProperties = {
+export const navSectionStyles: CSSProperties = {
   flex: 'none',
-  height: 70,
+  height: isScientificServices() ? 55 : 70,
   padding: '0 28px',
   fontWeight: 600,
   borderTop: `1px solid ${colors.dark(0.55)}`,
   color: 'white',
 };
 
-const navBackgroundStyles: CSSProperties = {
+export const navBackgroundStyles: CSSProperties = {
   position: 'absolute',
   left: 0,
   right: 0,
@@ -65,12 +66,12 @@ const navBackgroundStyles: CSSProperties = {
   zIndex: 2,
 };
 
-const navIconStyles: CSSProperties = {
+export const navIconStyles: CSSProperties = {
   marginRight: 12,
   flex: 'none',
 };
 
-const navContainerStyles = (state: string): CSSProperties => ({
+export const navContainerStyles = (state: string): CSSProperties => ({
   ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
   transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
   paddingTop: Style.topBarHeight,
@@ -86,7 +87,7 @@ const navContainerStyles = (state: string): CSSProperties => ({
   flexDirection: 'column',
 });
 
-const NavItem = ({ children, ...props }): ReactNode => (
+export const NavItem = ({ children, ...props }): ReactNode => (
   <Clickable
     {..._.merge(
       {
@@ -100,26 +101,26 @@ const NavItem = ({ children, ...props }): ReactNode => (
   </Clickable>
 );
 
-const NavSection = ({ children, ...props }): ReactNode => (
+export const NavSection = ({ children, ...props }): ReactNode => (
   <div role='listitem'>
     <NavItem {..._.merge({ style: navSectionStyles }, props)}>{children}</NavItem>
   </div>
 );
 
-const DropDownSubItem = ({ children, ...props }): ReactNode => (
+export const DropDownSubItem = ({ children, ...props }): ReactNode => (
   <div role='listitem'>
     <NavItem {..._.merge({ style: { padding: '0 3rem', height: 40, fontWeight: 500 } }, props)}>{children}</NavItem>
   </div>
 );
 
-interface DropDownSectionProps extends PropsWithChildren {
+export interface DropDownSectionProps extends PropsWithChildren {
   titleIcon?: IconId;
   title: ReactNode;
   isOpened: boolean;
   onClick: () => void;
 }
 
-const DropDownSection = (props: DropDownSectionProps): ReactNode => {
+export const DropDownSection = (props: DropDownSectionProps): ReactNode => {
   const { titleIcon, title, isOpened, onClick, children } = props;
   return (
     <div role='group'>
@@ -197,32 +198,18 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                 onClick={() => setOpenUserMenu(!openUserMenu)}
                 isOpened={openUserMenu}
               >
-                {!isScientificServices() && (
-                  <>
-                    <DropDownSubItem href={Nav.getLink('profile')} onClick={hideNav}>
-                      Profile
-                    </DropDownSubItem>
-                    <DropDownSubItem href={Nav.getLink('groups')} onClick={hideNav}>
-                      Groups
-                    </DropDownSubItem>
-                    <DropDownSubItem href={Nav.getLink('billing')} onClick={hideNav}>
-                      Billing
-                    </DropDownSubItem>
-                    <DropDownSubItem href={Nav.getLink('environments')} onClick={hideNav}>
-                      Cloud Environments
-                    </DropDownSubItem>
-                  </>
-                )}
-                {isScientificServices() && (
-                  <>
-                    <DropDownSubItem href={Nav.getLink('pipelines-profile')} onClick={hideNav}>
-                      Profile
-                    </DropDownSubItem>
-                    <DropDownSubItem href={Nav.getLink('pipelines-quotas')} onClick={hideNav}>
-                      Quotas
-                    </DropDownSubItem>
-                  </>
-                )}
+                <DropDownSubItem href={Nav.getLink('profile')} onClick={hideNav}>
+                  Profile
+                </DropDownSubItem>
+                <DropDownSubItem href={Nav.getLink('groups')} onClick={hideNav}>
+                  Groups
+                </DropDownSubItem>
+                <DropDownSubItem href={Nav.getLink('billing')} onClick={hideNav}>
+                  Billing
+                </DropDownSubItem>
+                <DropDownSubItem href={Nav.getLink('environments')} onClick={hideNav}>
+                  Cloud Environments
+                </DropDownSubItem>
                 <DropDownSubItem onClick={() => signOut('requested')}>Sign Out</DropDownSubItem>
               </DropDownSection>
             ) : (
@@ -259,175 +246,151 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                 </Clickable>
               </div>
             )}
-            {isScientificServices() && (
-              <>
-                <NavSection
-                  href='https://broadscientificservices.zendesk.com/hc/en-us/categories/39899029682331'
-                  onClick={hideNav}
-                  {...Utils.newTabLinkProps}
-                >
-                  <Icon icon='newspaper' size={24} style={navIconStyles} />
-                  Service News
-                </NavSection>
-                <NavSection
-                  href='https://broadscientificservices.zendesk.com/hc/en-us'
-                  onClick={hideNav}
-                  {...Utils.newTabLinkProps}
-                >
-                  <Icon icon='help' size={24} style={navIconStyles} />
-                  Documentation
-                </NavSection>
-              </>
-            )}
 
-            {!isScientificServices() && (
-              <>
-                <NavSection href={Nav.getLink('workspaces')} onClick={hideNav}>
-                  <Icon icon='view-cards' size={24} style={navIconStyles} />
-                  Workspaces
-                </NavSection>
-                <DropDownSection
-                  titleIcon='library'
-                  title='Library'
-                  onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
-                  isOpened={openLibraryMenu}
+            <NavSection href={Nav.getLink('workspaces')} onClick={hideNav}>
+              <Icon icon='view-cards' size={24} style={navIconStyles} />
+              Workspaces
+            </NavSection>
+            <DropDownSection
+              titleIcon='library'
+              title='Library'
+              onClick={() => setOpenLibraryMenu(!openLibraryMenu)}
+              isOpened={openLibraryMenu}
+            >
+              <DropDownSubItem href={Nav.getLink('library-datasets')} onClick={hideNav}>
+                Datasets
+              </DropDownSubItem>
+              <DropDownSubItem href={Nav.getLink('library-showcase')} onClick={hideNav}>
+                Featured Workspaces
+              </DropDownSubItem>
+              <DropDownSubItem href={Nav.getLink('library-workflows')} onClick={hideNav}>
+                Workflows
+              </DropDownSubItem>
+            </DropDownSection>
+            <DropDownSection
+              titleIcon='newspaper'
+              title='Platform News'
+              onClick={() => setOpenPlatformNewsMenu(!openPlatformNewsMenu)}
+              isOpened={openPlatformNewsMenu}
+            >
+              <DropDownSubItem
+                href='https://support.terra.bio/hc/en-us/sections/30968105851931-Terra-Roadmap'
+                onClick={hideNav}
+                {...Utils.newTabLinkProps}
+              >
+                Terra Roadmap
+              </DropDownSubItem>
+              <DropDownSubItem href='#feature-preview' onClick={hideNav}>
+                Feature Preview
+              </DropDownSubItem>
+              <DropDownSubItem
+                href='https://support.terra.bio/hc/en-us/community/topics/360000500452'
+                onClick={hideNav}
+                {...Utils.newTabLinkProps}
+              >
+                Request a Feature
+              </DropDownSubItem>
+              <DropDownSubItem
+                href='https://support.terra.bio/hc/en-us/sections/4414878945819'
+                onClick={hideNav}
+                {...Utils.newTabLinkProps}
+              >
+                Release Notes
+              </DropDownSubItem>
+            </DropDownSection>
+            <DropDownSection
+              titleIcon='help'
+              title='Support'
+              onClick={() => setOpenSupportMenu(!openSupportMenu)}
+              isOpened={openSupportMenu}
+            >
+              <DropDownSubItem
+                href={window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/categories/360005881492'}
+                onClick={() => {
+                  hideNav();
+                  window.Appcues?.show('-M3lNP6ncNr-42_78TOX');
+                }}
+                {...Utils.newTabLinkProps}
+              >
+                Quickstart Guide
+              </DropDownSubItem>
+              <DropDownSubItem href='https://support.terra.bio/' onClick={hideNav} {...Utils.newTabLinkProps}>
+                Terra Support Home
+              </DropDownSubItem>
+              {isBaseline() && (
+                <DropDownSubItem
+                  href='https://support.terra.bio/hc/en-us/sections/360010495892-Baseline'
+                  onClick={hideNav}
+                  {...Utils.newTabLinkProps}
                 >
-                  <DropDownSubItem href={Nav.getLink('library-datasets')} onClick={hideNav}>
-                    Datasets
-                  </DropDownSubItem>
-                  <DropDownSubItem href={Nav.getLink('library-showcase')} onClick={hideNav}>
-                    Featured Workspaces
-                  </DropDownSubItem>
-                  <DropDownSubItem href={Nav.getLink('library-workflows')} onClick={hideNav}>
-                    Workflows
-                  </DropDownSubItem>
-                </DropDownSection>
-                <DropDownSection
-                  titleIcon='newspaper'
-                  title='Platform News'
-                  onClick={() => setOpenPlatformNewsMenu(!openPlatformNewsMenu)}
-                  isOpened={openPlatformNewsMenu}
+                  Baseline Documentation
+                </DropDownSubItem>
+              )}
+              <DropDownSubItem
+                href='https://support.terra.bio/hc/en-us/community/topics'
+                onClick={hideNav}
+                {...Utils.newTabLinkProps}
+              >
+                Community Forum
+              </DropDownSubItem>
+              {isFirecloud() && (
+                <DropDownSubItem
+                  href='https://support.terra.bio/hc/en-us/articles/360022694271'
+                  onClick={hideNav}
+                  {...Utils.newTabLinkProps}
                 >
-                  <DropDownSubItem
-                    href='https://support.terra.bio/hc/en-us/sections/30968105851931-Terra-Roadmap'
+                  What&apos;s different in Terra
+                </DropDownSubItem>
+              )}
+              <DropDownSubItem
+                onClick={() => {
+                  hideNav();
+                  contactUsActive.set(true);
+                }}
+              >
+                Contact Us
+              </DropDownSubItem>
+              <DropDownSubItem
+                href='https://support.terra.bio/hc/en-us/sections/4415104213787'
+                onClick={hideNav}
+                {...Utils.newTabLinkProps}
+              >
+                Service Notifications
+              </DropDownSubItem>
+            </DropDownSection>
+            <div style={{ borderTop: `1px solid ${colors.dark(0.55)}` }} />
+            <div style={{ flex: 'none', padding: 28, marginTop: 'auto' }}>
+              {isBioDataCatalyst() && (
+                <>
+                  <Link
+                    variant='light'
+                    style={{ display: 'block', textDecoration: 'underline', color: colors.light() }}
+                    href={Nav.getLink('privacy')}
                     onClick={hideNav}
-                    {...Utils.newTabLinkProps}
                   >
-                    Terra Roadmap
-                  </DropDownSubItem>
-                  <DropDownSubItem href='#feature-preview' onClick={hideNav}>
-                    Feature Preview
-                  </DropDownSubItem>
-                  <DropDownSubItem
-                    href='https://support.terra.bio/hc/en-us/community/topics/360000500452'
+                    Terra Privacy Policy
+                  </Link>
+                  <Link
+                    variant='light'
+                    href={Nav.getLink('terms-of-service')}
+                    style={{ display: 'block', textDecoration: 'underline', color: colors.light() }}
                     onClick={hideNav}
-                    {...Utils.newTabLinkProps}
                   >
-                    Request a Feature
-                  </DropDownSubItem>
-                  <DropDownSubItem
-                    href='https://support.terra.bio/hc/en-us/sections/4414878945819'
-                    onClick={hideNav}
-                    {...Utils.newTabLinkProps}
-                  >
-                    Release Notes
-                  </DropDownSubItem>
-                </DropDownSection>
-                <DropDownSection
-                  titleIcon='help'
-                  title='Support'
-                  onClick={() => setOpenSupportMenu(!openSupportMenu)}
-                  isOpened={openSupportMenu}
+                    Terra Terms of Service
+                  </Link>
+                </>
+              )}
+              <div style={{ color: 'white', fontSize: 10, fontWeight: 600, marginTop: '0.5rem' }}>
+                Built on:
+                <Clickable
+                  href={`https://github.com/DataBiosphere/terra-ui/commits/${getConfig().gitRevision}`}
+                  {...Utils.newTabLinkProps}
+                  style={{ textDecoration: 'underline', marginLeft: '0.25rem' }}
                 >
-                  <DropDownSubItem
-                    href={window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/categories/360005881492'}
-                    onClick={() => {
-                      hideNav();
-                      window.Appcues?.show('-M3lNP6ncNr-42_78TOX');
-                    }}
-                    {...Utils.newTabLinkProps}
-                  >
-                    Quickstart Guide
-                  </DropDownSubItem>
-                  <DropDownSubItem href='https://support.terra.bio/' onClick={hideNav} {...Utils.newTabLinkProps}>
-                    Terra Support Home
-                  </DropDownSubItem>
-                  {isBaseline() && (
-                    <DropDownSubItem
-                      href='https://support.terra.bio/hc/en-us/sections/360010495892-Baseline'
-                      onClick={hideNav}
-                      {...Utils.newTabLinkProps}
-                    >
-                      Baseline Documentation
-                    </DropDownSubItem>
-                  )}
-                  <DropDownSubItem
-                    href='https://support.terra.bio/hc/en-us/community/topics'
-                    onClick={hideNav}
-                    {...Utils.newTabLinkProps}
-                  >
-                    Community Forum
-                  </DropDownSubItem>
-                  {isFirecloud() && (
-                    <DropDownSubItem
-                      href='https://support.terra.bio/hc/en-us/articles/360022694271'
-                      onClick={hideNav}
-                      {...Utils.newTabLinkProps}
-                    >
-                      What&apos;s different in Terra
-                    </DropDownSubItem>
-                  )}
-                  <DropDownSubItem
-                    onClick={() => {
-                      hideNav();
-                      contactUsActive.set(true);
-                    }}
-                  >
-                    Contact Us
-                  </DropDownSubItem>
-                  <DropDownSubItem
-                    href='https://support.terra.bio/hc/en-us/sections/4415104213787'
-                    onClick={hideNav}
-                    {...Utils.newTabLinkProps}
-                  >
-                    Service Notifications
-                  </DropDownSubItem>
-                </DropDownSection>
-                <div style={{ borderTop: `1px solid ${colors.dark(0.55)}` }} />
-                <div style={{ flex: 'none', padding: 28, marginTop: 'auto' }}>
-                  {isBioDataCatalyst() && (
-                    <>
-                      <Link
-                        variant='light'
-                        style={{ display: 'block', textDecoration: 'underline', color: colors.light() }}
-                        href={Nav.getLink('privacy')}
-                        onClick={hideNav}
-                      >
-                        Terra Privacy Policy
-                      </Link>
-                      <Link
-                        variant='light'
-                        href={Nav.getLink('terms-of-service')}
-                        style={{ display: 'block', textDecoration: 'underline', color: colors.light() }}
-                        onClick={hideNav}
-                      >
-                        Terra Terms of Service
-                      </Link>
-                    </>
-                  )}
-                  <div style={{ color: 'white', fontSize: 10, fontWeight: 600, marginTop: '0.5rem' }}>
-                    Built on:
-                    <Clickable
-                      href={`https://github.com/DataBiosphere/terra-ui/commits/${getConfig().gitRevision}`}
-                      {...Utils.newTabLinkProps}
-                      style={{ textDecoration: 'underline', marginLeft: '0.25rem' }}
-                    >
-                      {new Date(getBuildTimestamp()).toLocaleString()}
-                    </Clickable>
-                  </div>
-                </div>
-              </>
-            )}
+                  {new Date(getBuildTimestamp()).toLocaleString()}
+                </Clickable>
+              </div>
+            </div>
           </div>
         </div>
       </FocusTrap>
@@ -435,6 +398,12 @@ export const TopBar = (props: TopBarProps): ReactNode => {
   };
 
   const mainRef = useRef();
+
+  // Scientific Services' sidebar is significantly different from the sidebar used by every other
+  // brand, so we'll just return an entirely different component here to keep this component clean
+  if (isScientificServices()) {
+    return ScientificServicesSidebar({ title, href });
+  }
 
   return (
     <div role='banner' style={{ flex: 'none', display: 'flex', flexFlow: 'column nowrap' }}>
@@ -479,7 +448,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   icon='bars'
                   size={36}
                   style={{
-                    color: isTerra() || isScientificServices() ? 'white' : colors.accent(),
+                    color: isTerra() ? 'white' : colors.accent(),
                     flex: 'none',
                     transform: navShown ? 'rotate(90deg)' : undefined,
                     transition: 'transform 0.1s ease-out',
