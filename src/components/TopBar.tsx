@@ -401,6 +401,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
 
   // Scientific Services' sidebar is significantly different from the sidebar used by every other
   // brand, so we'll just return an entirely different component here to keep this component clean
+  // without adding tons of conditionals
   if (isScientificServices()) {
     return ScientificServicesSidebar({ title, href });
   }

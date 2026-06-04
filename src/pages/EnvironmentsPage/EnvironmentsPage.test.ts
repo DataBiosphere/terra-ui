@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { h } from 'react-hyperscript-helpers';
 import { DataRefreshInfo, Environments, EnvironmentsProps } from 'src/analysis/Environments/Environments';
@@ -8,7 +8,7 @@ import { leoRuntimeProvider } from 'src/libs/ajax/leonardo/providers/LeoRuntimeP
 import { MetricsProvider, useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics';
 import Events from 'src/libs/events';
 import { terraNavKey, TerraNavLinkProvider } from 'src/libs/nav';
-import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
+import { asMockedFn } from 'src/testing/test-utils';
 import { useWorkspaces } from 'src/workspaces/common/state/useWorkspaces';
 import { UseWorkspaces } from 'src/workspaces/common/state/useWorkspaces.models';
 
@@ -30,12 +30,15 @@ jest.mock(
   })
 );
 
-type NavExports = typeof import('src/libs/nav');
+type TopBarExports = typeof import('src/components/TopBar') & { __esModule: true };
 jest.mock(
-  'src/libs/nav',
-  (): NavExports => ({
-    ...jest.requireActual<NavExports>('src/libs/nav'),
-    getLink: jest.fn(),
+  'src/components/TopBar',
+  (): TopBarExports => ({
+    __esModule: true,
+    TopBar: (props) => {
+      const { div } = jest.requireActual('react-hyperscript-helpers');
+      return div([props.title]);
+    },
   })
 );
 
@@ -46,7 +49,7 @@ describe('Environments Page', () => {
        are composing the expected arguments to it, we can get away with not needing to mock most
        of the providers, since they will not be called upon.
      */
-    renderWithAppContexts(h(EnvironmentsPage));
+    render(h(EnvironmentsPage));
 
     // Assert
     screen.getByText('Cloud Environments');
@@ -82,7 +85,7 @@ describe('Environments Page', () => {
       return 'Mock Environments';
     });
     // Act
-    renderWithAppContexts(h(EnvironmentsPage));
+    render(h(EnvironmentsPage));
 
     // Assert
     expect(mockMetricsProvider.captureEvent).toBeCalledTimes(1);
