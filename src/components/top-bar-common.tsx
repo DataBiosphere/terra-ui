@@ -1,7 +1,6 @@
 import { Clickable, Icon, IconId } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import React, { CSSProperties } from 'react';
-import { PropsWithChildren, ReactNode } from 'react';
+import React, { CSSProperties, PropsWithChildren, ReactNode } from 'react';
 import { UnmountClosed as RCollapse } from 'react-collapse';
 import { isScientificServices, isTerra } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
