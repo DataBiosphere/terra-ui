@@ -6,7 +6,7 @@ import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/
 
 export const ProfileView = () => {
   return (
-    <PipelinesLayout activeTab='pipelines-profile'>
+    <PipelinesLayout activeTab='profile'>
       <div style={{ margin: '1rem 2rem' }}>
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexDirection: 'column' }}>
           <PipelineWidgetContainer title='Account Information' width='50%' marginTop='0' marginBottom='0'>

@@ -5,7 +5,7 @@ import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/
 
 export const QuotasView = () => {
   return (
-    <PipelinesLayout activeTab='pipelines-quotas'>
+    <PipelinesLayout activeTab='quotas'>
       <div style={{ margin: '1rem 2rem' }}>
         <PipelineWidgetContainer title='Pipeline Quotas' width='100%'>
           <PipelineQuotaDisplay />
