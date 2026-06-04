@@ -6,13 +6,22 @@ import { ScientificServicesSidebar } from 'src/pages/scientificServices/pipeline
 
 export const SCIENTIFIC_SERVICES_SUPPORT_EMAIL = 'scientific-services-support@broadinstitute.org';
 
-const TAB_LINKS = {
+const JOBS_TAB_LINKS = {
   'run job': 'pipelines-run',
   'job history': 'pipelines-history',
   about: 'pipelines-about',
 };
 
+const ACCOUNT_TAB_LINKS = {
+  profile: 'pipelines-profile',
+  quotas: 'pipelines-quotas',
+};
+
 export const pipelinesTopBar = (activeTab?: string) => {
+  const isAccountTab = activeTab && Object.values(ACCOUNT_TAB_LINKS).includes(activeTab);
+
+  const tabLinks = isAccountTab ? ACCOUNT_TAB_LINKS : JOBS_TAB_LINKS;
+
   return (
     <>
       <ScientificServicesSidebar title='' href={Nav.getLink('root')} />
@@ -35,9 +44,9 @@ export const pipelinesTopBar = (activeTab?: string) => {
           },
         }}
         activeTab={activeTab}
-        tabNames={_.keys(TAB_LINKS)}
+        tabNames={_.keys(tabLinks)}
         getHref={(currentTab) => {
-          return Nav.getLink(TAB_LINKS[currentTab]);
+          return Nav.getLink(tabLinks[currentTab]);
         }}
       >
         {/* TabBar doesn't need any children */}
