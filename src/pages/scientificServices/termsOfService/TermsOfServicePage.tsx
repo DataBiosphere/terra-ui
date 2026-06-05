@@ -55,7 +55,7 @@ export const ScientificServicesTermsOfServicePage = ({ queryParams }: Scientific
     <FooterWrapper alwaysShow>
       <TopBar title='' href={Nav.getLink('root')} />
       <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 500, marginBottom: '2.5rem' }}>Scientific Services Legal Documents</h1>
+        <h1 style={{ fontSize: 28, fontWeight: 500, marginBottom: '2.5rem' }}>Data Science Services Legal Documents</h1>
         <SimpleTabBar
           aria-label='legal documents'
           value={activeTab}

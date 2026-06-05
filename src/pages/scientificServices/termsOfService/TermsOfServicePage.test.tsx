@@ -37,7 +37,7 @@ describe('ScientificServicesTermsOfServicePage', () => {
   describe('initial render', () => {
     it('renders the view with expected elements', async () => {
       render(<ScientificServicesTermsOfServicePage />);
-      expect(screen.getByText('Scientific Services Legal Documents')).toBeInTheDocument();
+      expect(screen.getByText('Data Science Services Legal Documents')).toBeInTheDocument();
       expect(await screen.findByRole('tab', { name: 'Terms of Service' })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: 'Acceptable Use Policy' })).toBeInTheDocument();
     });

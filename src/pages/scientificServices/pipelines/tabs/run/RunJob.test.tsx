@@ -313,7 +313,7 @@ describe('RunJob Component', () => {
 
     // Now check the sharing confirmation checkbox
     const sharingConfirmationCheckbox = screen.getByRole('checkbox', {
-      name: /I have shared this file with Broad Scientific Services/,
+      name: /I have shared this file with Broad Data Science Services/,
     });
     await user.click(sharingConfirmationCheckbox);
 
@@ -367,7 +367,7 @@ describe('RunJob Component', () => {
 
     // Now check the sharing confirmation checkbox
     const sharingConfirmationCheckbox = screen.getByRole('checkbox', {
-      name: /I have shared this file with Broad Scientific Services/,
+      name: /I have shared this file with Broad Data Science Services/,
     });
     await user.click(sharingConfirmationCheckbox);
 
@@ -670,7 +670,7 @@ describe('RunJob Component', () => {
     });
 
     // Find the ToS link
-    const tosLink = screen.getByText('Scientific Services Terms of Service and Acceptable Use Policy');
+    const tosLink = screen.getByText('Data Science Services Terms of Service and Acceptable Use Policy');
     expect(tosLink).toBeInTheDocument();
     expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');
     expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');

@@ -14,7 +14,7 @@ export const ScientificServicesDescription = () => {
   return (
     <>
       <div>
-        Our scientific services provide the community with fast, scalable, and secure analysis capabilities that
+        Our data science services provide the community with fast, scalable, and secure analysis capabilities that
         leverage valuable data resources.
       </div>
       <div style={{ fontWeight: 'bold', marginTop: '2rem' }}>Learn more about our current offerings:</div>

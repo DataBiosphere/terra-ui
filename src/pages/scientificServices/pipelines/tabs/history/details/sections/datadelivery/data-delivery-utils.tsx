@@ -41,7 +41,7 @@ const ERROR_MESSAGE_MAP: { substring: string; friendly: string }[] = [
   {
     substring: 'service does not have necessary permissions',
     friendly:
-      'Broad Scientific Services does not have permission to write to the destination bucket. Please review the sharing instructions and try again.',
+      'Broad Data Science Services does not have permission to write to the destination bucket. Please review the sharing instructions and try again.',
   },
   {
     substring: 'user does not have necessary permissions',

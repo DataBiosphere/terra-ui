@@ -1,13 +1,13 @@
 import React from 'react';
-import dspLogo from 'src/images/brands/scientificServices/dspLogo.svg';
+import bclLogo from 'src/images/brands/scientificServices/bcl-logo-primary.svg';
 
 export const ScientificServicesWelcomeHeader = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '0rem' }}>
       <span style={{ fontSize: '24px', marginBottom: '1rem', fontWeight: 700 }}>
-        Welcome to Scientific Services from the
+        Welcome to Data Science Services from
       </span>
-      <img src={dspLogo} alt='Broad Institute Data Sciences Platform' style={{ width: '200px' }} />
+      <img src={bclLogo} alt='Broad Clinical Laboratories' style={{ width: '200px' }} />
     </div>
   );
 };

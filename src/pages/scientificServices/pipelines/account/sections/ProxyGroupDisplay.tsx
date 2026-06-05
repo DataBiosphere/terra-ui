@@ -44,8 +44,8 @@ export const ProxyGroupDisplay: React.FC = () => {
         </div>
       )}
       <div style={{ marginTop: '1rem', fontSize: '14px', color: colors.dark(0.7) }}>
-        Your personal Terra access group to enable Broad Scientific Services to use your data. For more information, see
-        the{' '}
+        Your personal Terra access group to enable Broad Data Science Services to use your data. For more information,
+        see the{' '}
         <ZendeskLink
           docsKey={DocsKey.CLOUD_INPUTS}
           additionalStyle={{

@@ -199,7 +199,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
     if (!agreeToTerms) {
       notify(
         'error',
-        'You must agree to the Scientific Services Terms of Service and Acceptable Use Policy before submitting a job.'
+        'You must agree to the Data Science Services Terms of Service and Acceptable Use Policy before submitting a job.'
       );
       return;
     }
@@ -446,7 +446,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                         rel='noopener noreferrer'
                         style={{ color: '#46A3E9' }}
                       >
-                        Scientific Services Terms of Service and Acceptable Use Policy
+                        Data Science Services Terms of Service and Acceptable Use Policy
                       </Link>
                       <span style={{ color: colors.danger(), fontWeight: 'bold' }}> *</span>
                     </span>
