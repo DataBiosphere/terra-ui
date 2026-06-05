@@ -14,7 +14,7 @@ describe('CliAuth', () => {
     expect(screen.getByText('terralab login')).toBeInTheDocument();
     expect(screen.getByText(/similar to your password/)).toBeInTheDocument();
     expect(screen.getByText(/You can close this tab when you're done/)).toBeInTheDocument();
-    expect(screen.getByAltText('Broad Institute Data Sciences Platform')).toBeInTheDocument();
+    expect(screen.getByAltText('Broad Clinical Laboratories')).toBeInTheDocument();
   });
 
   it('displays the auth code with a copy button', () => {
