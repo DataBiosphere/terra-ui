@@ -235,7 +235,7 @@ describe('GcsFileInput', () => {
 
       expect(
         screen.getByText(
-          'To ensure that your input file can be properly accessed by Broad Scientific Services, please share your input file with the following accounts:'
+          'To ensure that your input file can be properly accessed by Broad Data Science Services, please share your input file with the following accounts:'
         )
       ).toBeInTheDocument();
       expect(screen.getByText('Service account')).toBeInTheDocument();
@@ -274,7 +274,7 @@ describe('GcsFileInput', () => {
       renderWithAppContexts(<GcsFileInput {...defaultProps} />);
 
       const checkbox = screen.getByRole('checkbox', {
-        name: /I have shared this file with Broad Scientific Services/,
+        name: /I have shared this file with Broad Data Science Services/,
       });
       expect(checkbox).toBeInTheDocument();
       expect(checkbox).not.toBeChecked();
@@ -291,7 +291,7 @@ describe('GcsFileInput', () => {
       );
 
       const checkbox = screen.getByRole('checkbox', {
-        name: /I have shared this file with Broad Scientific Services/,
+        name: /I have shared this file with Broad Data Science Services/,
       });
 
       await userEvent.click(checkbox);

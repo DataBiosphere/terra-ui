@@ -270,7 +270,7 @@ describe('DataDeliveryView', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Deliver' }));
       await waitFor(() =>
         expect(
-          screen.getByText(/Broad Scientific Services does not have permission to write to the destination bucket/)
+          screen.getByText(/Broad Data Science Services does not have permission to write to the destination bucket/)
         ).toBeInTheDocument()
       );
     });

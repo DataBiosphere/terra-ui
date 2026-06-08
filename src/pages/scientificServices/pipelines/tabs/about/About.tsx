@@ -9,7 +9,7 @@ export const About = () => {
       activeTab='about'
       render={({ uniquePipelines }) => (
         <div style={{ marginLeft: '2rem', marginTop: '1rem' }}>
-          <h1>Scientific Services from the Broad Data Sciences Platform</h1>
+          <h1>Data Science Services from Broad Clinical Laboratories</h1>
           <h2 style={{ marginTop: '2rem' }}>Pipelines</h2>
 
           {uniquePipelines?.map((pipeline) => (

@@ -17,8 +17,8 @@ import publicHealthLogo from 'src/images/brands/publicHealth/Terra-PHG-Color.svg
 import publicHealthLogoWhite from 'src/images/brands/publicHealth/Terra-PHG-White.svg';
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg';
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg';
-import dspLogo from 'src/images/brands/scientificServices/dspLogo.svg';
-import dspLogoLight from 'src/images/brands/scientificServices/dspLogoLight.svg';
+import bclLogoPrimary from 'src/images/brands/scientificServices/bcl-logo-primary.svg';
+import bclLogoLight from 'src/images/brands/scientificServices/bcl-logo-primary-white.svg';
 import scientificServicesBackground from 'src/images/brands/scientificServices/scientificServicesBackground.jpg';
 import scientificServicesHeaderLogo from 'src/images/brands/scientificServices/scientificServicesLogo.svg';
 import terraLogo from 'src/images/brands/terra/logo.svg';
@@ -414,7 +414,7 @@ export const brands: Record<string, BrandConfiguration> = {
     },
   },
   scientificServices: {
-    name: 'Scientific Services',
+    name: 'Data Science Services',
     queryName: 'scientificServices',
     landingPageBackground: scientificServicesBackground,
     landingPageBackgroundSize: 'cover',
@@ -425,8 +425,8 @@ export const brands: Record<string, BrandConfiguration> = {
     landingPageCards: [],
     logos: {
       color: scientificServicesHeaderLogo,
-      white: dspLogoLight,
-      dspLogo,
+      white: bclLogoLight,
+      bclLogoPrimary,
     },
     theme: {
       colorPalette: {

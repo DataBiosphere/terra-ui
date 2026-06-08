@@ -62,12 +62,12 @@ const renderProxyGroupContent = (isLoading: boolean, proxyGroupEmail: string | n
 const ACCESS_TYPE_CONFIG: Record<'inputs' | 'outputs', { instructions: string; docsKey: DocsKey }> = {
   inputs: {
     instructions:
-      'To ensure that your input file can be properly accessed by Broad Scientific Services, please share your input file with the following accounts:',
+      'To ensure that your input file can be properly accessed by Broad Data Science Services, please share your input file with the following accounts:',
     docsKey: DocsKey.CLOUD_INPUTS,
   },
   outputs: {
     instructions:
-      'To ensure that Broad Scientific Services can deliver your outputs to the destination, please share the destination bucket with the following accounts:',
+      'To ensure that Broad Data Science Services can deliver your outputs to the destination, please share the destination bucket with the following accounts:',
     docsKey: DocsKey.CLOUD_OUTPUTS,
   },
 };
