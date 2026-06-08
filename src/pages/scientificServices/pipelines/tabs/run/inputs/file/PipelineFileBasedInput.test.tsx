@@ -595,4 +595,222 @@ describe('PipelineFileBasedInput - MANIFEST input type', () => {
     expect(onValidation).toHaveBeenCalledWith(undefined);
     expect(onFileSelect).toHaveBeenCalledWith(validFile);
   });
+
+  describe('FileSourceSelector disabled prop behavior', () => {
+    const mockRequiredFileInput: PipelineInput = {
+      name: 'testFile',
+      displayName: 'test file',
+      type: 'FILE',
+      isRequired: true,
+      fileSuffix: '.txt',
+    };
+
+    it('disables both source buttons when disabled prop is true', () => {
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled
+        />
+      );
+
+      const uploadFileButton = screen.getByText('Upload File').closest('button') as HTMLButtonElement;
+      const gcpButton = screen.getByText('Google Cloud Storage').closest('button') as HTMLButtonElement;
+
+      expect(uploadFileButton).toHaveAttribute('disabled');
+      expect(gcpButton).toHaveAttribute('disabled');
+    });
+
+    it('enables both source buttons when disabled prop is false', () => {
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled={false}
+        />
+      );
+
+      const uploadFileButton = screen.getByText('Upload File').closest('button') as HTMLButtonElement;
+      const gcpButton = screen.getByText('Google Cloud Storage').closest('button') as HTMLButtonElement;
+
+      expect(uploadFileButton).not.toHaveAttribute('disabled');
+      expect(gcpButton).not.toHaveAttribute('disabled');
+    });
+
+    it('enables both source buttons when disabled prop is not provided', () => {
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+        />
+      );
+
+      const uploadFileButton = screen.getByText('Upload File').closest('button') as HTMLButtonElement;
+      const gcpButton = screen.getByText('Google Cloud Storage').closest('button') as HTMLButtonElement;
+
+      expect(uploadFileButton).not.toHaveAttribute('disabled');
+      expect(gcpButton).not.toHaveAttribute('disabled');
+    });
+
+    it('applies disabled styling to Upload File button when disabled', () => {
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled
+        />
+      );
+
+      const uploadFileButton = screen.getByText('Upload File').closest('button') as HTMLButtonElement;
+      const gcpButton = screen.getByText('Google Cloud Storage').closest('button') as HTMLButtonElement;
+
+      expect(uploadFileButton).toHaveAttribute('disabled');
+      expect(gcpButton).toHaveAttribute('disabled');
+
+      // Verify disabled styling via computed styles
+      const uploadFileStyles = window.getComputedStyle(uploadFileButton);
+      const gcpStyles = window.getComputedStyle(gcpButton);
+      expect(uploadFileStyles.cursor).toBe('not-allowed');
+      expect(gcpStyles.cursor).toBe('not-allowed');
+    });
+
+    it('applies disabled styling to Google Cloud Storage button when disabled', () => {
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled
+        />
+      );
+
+      const gcpButton = screen.getByText('Google Cloud Storage').closest('button') as HTMLButtonElement;
+      expect(gcpButton).toHaveAttribute('disabled');
+
+      // Verify disabled styling via computed styles
+      const gcpStyles = window.getComputedStyle(gcpButton);
+      expect(gcpStyles.cursor).toBe('not-allowed');
+    });
+
+    it('applies enabled styling to Upload File button when enabled', () => {
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled={false}
+        />
+      );
+
+      const uploadFileButton = screen.getByText('Upload File').closest('button') as HTMLButtonElement;
+      expect(uploadFileButton).not.toHaveAttribute('disabled');
+
+      // Verify enabled styling via computed styles
+      const uploadFileStyles = window.getComputedStyle(uploadFileButton);
+      expect(uploadFileStyles.cursor).toBe('pointer');
+    });
+
+    it('applies enabled styling to Google Cloud Storage button when enabled', () => {
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled={false}
+        />
+      );
+
+      const gcpButton = screen.getByText('Google Cloud Storage').closest('button') as HTMLButtonElement;
+      expect(gcpButton).not.toHaveAttribute('disabled');
+
+      // Verify enabled styling via computed styles
+      const gcpStyles = window.getComputedStyle(gcpButton);
+      expect(gcpStyles.cursor).toBe('pointer');
+    });
+
+    it('prevents clicking Upload File button when disabled', async () => {
+      const onFileSelect = jest.fn();
+      const user = userEvent.setup();
+
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={onFileSelect}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled
+        />
+      );
+
+      const uploadFileButton = screen.getByText('Upload File').closest('button') as HTMLButtonElement;
+      await user.click(uploadFileButton);
+
+      // The file input should not appear when the button is disabled
+      const fileInput = document.querySelector('input[type="file"]');
+      expect(fileInput).not.toBeInTheDocument();
+    });
+
+    it('prevents clicking Google Cloud Storage button when disabled', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled
+        />
+      );
+
+      const gcpButton = screen.getByText('Google Cloud Storage').closest('button') as HTMLButtonElement;
+      await user.click(gcpButton);
+
+      // The GCS input should not appear when the button is disabled
+      const gcpInput = screen.queryByText(/Enter a GCS path/i);
+      expect(gcpInput).not.toBeInTheDocument();
+    });
+
+    it('allows clicking Upload File button when enabled', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <PipelineFileBasedInput
+          input={mockRequiredFileInput}
+          selectedFile={null}
+          onFileSelect={jest.fn()}
+          validationError={undefined}
+          onValidation={jest.fn()}
+          disabled={false}
+        />
+      );
+
+      const uploadFileButton = screen.getByText('Upload File').closest('button') as HTMLButtonElement;
+      await user.click(uploadFileButton);
+
+      // The file input should appear when the button is enabled and clicked
+      const fileInput = document.querySelector('input[type="file"]');
+      expect(fileInput).toBeInTheDocument();
+    });
+  });
 });
