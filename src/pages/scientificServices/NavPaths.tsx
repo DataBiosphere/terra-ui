@@ -1,5 +1,8 @@
+import React from 'react';
+import * as Nav from 'src/libs/nav';
 import { CliAuth } from 'src/pages/scientificServices/cli-auth/CliAuth';
-import { AccountAndQuotas } from 'src/pages/scientificServices/pipelines/account/AccountAndQuotas';
+import { ProfileView } from 'src/pages/scientificServices/pipelines/account/ProfileView';
+import { QuotasView } from 'src/pages/scientificServices/pipelines/account/QuotasView';
 import { About } from 'src/pages/scientificServices/pipelines/tabs/about/About';
 import { JobDetails } from 'src/pages/scientificServices/pipelines/tabs/history/details/JobDetails';
 import { JobHistory } from 'src/pages/scientificServices/pipelines/tabs/history/JobHistory';
@@ -46,10 +49,24 @@ export const navPaths = [
     public: true,
   },
   {
-    name: 'account',
+    name: 'pipelines-profile',
+    path: '/pipelines/profile',
+    component: ProfileView,
+    title: 'Profile',
+  },
+  // DEPRECATED: this redirect is here to avoid breaking any existing links to /pipelines/account.
+  // The pipelines-profile path should be used going forward.
+  {
+    name: 'pipelines-account',
     path: '/pipelines/account',
-    component: AccountAndQuotas,
-    title: 'Account & Quotas',
+    component: (props) => <Nav.Redirector pathname={Nav.getPath('pipelines-profile', props)} search='' />,
+    title: 'Account',
+  },
+  {
+    name: 'pipelines-quotas',
+    path: '/pipelines/quotas',
+    component: QuotasView,
+    title: 'Quotas',
   },
   {
     name: 'scientific-services-terms-of-service',
