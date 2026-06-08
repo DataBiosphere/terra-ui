@@ -690,7 +690,7 @@ describe('RunJob Component', () => {
     const insufficientQuotaDetails = {
       pipelineName: 'array_imputation',
       quotaLimit: 2000,
-      quotaConsumed: 2000, // Only 50 units remaining, but min required is 175
+      quotaConsumed: 2000,
       quotaUnits: 'units',
     };
 
@@ -698,21 +698,20 @@ describe('RunJob Component', () => {
 
     render(<RunJob />);
 
-    // Wait for the component to load and fetch quota
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
 
-    // Verify the insufficient quota warning message is displayed
-    expect(
-      screen.getByText(
-        'You do not have enough quota remaining to run this pipeline. Please request a quote for additional quota.'
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText('Submit')).toHaveAttribute('aria-disabled', 'true');
 
-    // Verify input fields are disabled
+    expect(screen.getByText(/You do not have enough quota remaining to run this pipeline/)).toBeInTheDocument();
+
     const outputPrefixInput = screen.getByLabelText('output basename text input');
-    expect(outputPrefixInput).toHaveAttribute('aria-disabled', 'true');
+    expect(outputPrefixInput).toBeDisabled();
 
     const minDr2Input = screen.getByLabelText('minimum imputation quality for inclusion float input');
     expect(minDr2Input).toBeDisabled();
@@ -721,18 +720,15 @@ describe('RunJob Component', () => {
     expect(descriptionTextArea).toBeDisabled();
 
     const allowChunkFailuresCheckbox = screen.getByLabelText('Allow chunk failures');
-    expect(allowChunkFailuresCheckbox).toBeDisabled();
+    expect(allowChunkFailuresCheckbox).toHaveAttribute('disabled');
 
     const fileInputs = screen.getAllByText(/Select a/);
     expect(fileInputs.length).toBeGreaterThan(0);
 
-    const submitButton = screen.getByText('Submit');
-    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
-
     const tosCheckbox = screen.getByRole('checkbox', {
       name: /I have read and agree to the/,
     });
-    expect(tosCheckbox).toBeDisabled();
+    expect(tosCheckbox).toHaveAttribute('disabled');
   });
 
   describe('Query parameter pre-selection', () => {

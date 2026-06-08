@@ -26,7 +26,7 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect,
       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
         <button
           type='button'
-          disabled
+          disabled={disabled}
           onClick={() => onSourceSelect('local')}
           style={{
             padding: '1.5rem 1rem',
@@ -55,7 +55,7 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect,
         </button>
         <button
           type='button'
-          disabled
+          disabled={disabled}
           onClick={() => onSourceSelect('cloud')}
           style={{
             padding: '1.5rem 1rem',

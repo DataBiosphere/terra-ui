@@ -320,7 +320,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                 return (
                   <PipelineStringInput
                     input={input}
-                    disabled={!meetsMinimumQuota}
+                    disabled={meetsMinimumQuota === false}
                     onChange={(value) =>
                       setSelectedUserInputs((prev) => ({
                         ...prev,
@@ -342,7 +342,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                 return (
                   <PipelineFloatInput
                     input={input}
-                    disabled={!meetsMinimumQuota}
+                    disabled={meetsMinimumQuota === false}
                     onChange={(value) =>
                       setSelectedUserInputs((prev) => ({
                         ...prev,
@@ -362,7 +362,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
               <PipelineRunDescription
                 value={runDescription}
                 onChange={setRunDescription}
-                disabled={!meetsMinimumQuota}
+                disabled={meetsMinimumQuota === false}
               />
             )}
 
@@ -374,7 +374,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                   <PipelineBooleanInput
                     value={selectedUserInputs[input.name]}
                     input={input}
-                    disabled={!meetsMinimumQuota}
+                    disabled={meetsMinimumQuota === false}
                     key={`${input.name}`}
                     onChange={(value) => {
                       setSelectedUserInputs((prev) => ({
@@ -394,7 +394,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                   <PipelineFileBasedInput
                     key={`${input.name}`}
                     input={input}
-                    disabled={!meetsMinimumQuota}
+                    disabled={meetsMinimumQuota === false}
                     uploadState={uploadState[input.name]}
                     selectedFile={selectedUserInputs[input.name] || null}
                     setUploadState={setUploadState}
