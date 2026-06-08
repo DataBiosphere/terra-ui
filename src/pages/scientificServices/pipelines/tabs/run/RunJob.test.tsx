@@ -685,6 +685,56 @@ describe('RunJob Component', () => {
     );
   });
 
+  it('displays insufficient quota warning and disables all input fields when user lacks quota', async () => {
+    // Mock insufficient quota: user has consumed most of their quota
+    const insufficientQuotaDetails = {
+      pipelineName: 'array_imputation',
+      quotaLimit: 2000,
+      quotaConsumed: 2000, // Only 50 units remaining, but min required is 175
+      quotaUnits: 'units',
+    };
+
+    asMockedFn(mockTeaspoonsContract.getQuotaForPipeline).mockResolvedValue(insufficientQuotaDetails);
+
+    render(<RunJob />);
+
+    // Wait for the component to load and fetch quota
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Verify the insufficient quota warning message is displayed
+    expect(
+      screen.getByText(
+        'You do not have enough quota remaining to run this pipeline. Please request a quote for additional quota.'
+      )
+    ).toBeInTheDocument();
+
+    // Verify input fields are disabled
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    expect(outputPrefixInput).toHaveAttribute('aria-disabled', 'true');
+
+    const minDr2Input = screen.getByLabelText('minimum imputation quality for inclusion float input');
+    expect(minDr2Input).toBeDisabled();
+
+    const descriptionTextArea = screen.getByLabelText('description');
+    expect(descriptionTextArea).toBeDisabled();
+
+    const allowChunkFailuresCheckbox = screen.getByLabelText('Allow chunk failures');
+    expect(allowChunkFailuresCheckbox).toBeDisabled();
+
+    const fileInputs = screen.getAllByText(/Select a/);
+    expect(fileInputs.length).toBeGreaterThan(0);
+
+    const submitButton = screen.getByText('Submit');
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    expect(tosCheckbox).toBeDisabled();
+  });
+
   describe('Query parameter pre-selection', () => {
     const lowPassPipeline: Pipeline = {
       pipelineName: 'low_pass_imputation',
