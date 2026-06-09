@@ -37,6 +37,8 @@ export const getPipelineColor = (pipelineRun: PipelineRun): string => {
       return '#4D72AA4D';
     case 'low_pass_imputation':
       return '#AA4D8B4D';
+    case 'sv_imputation':
+      return '#C1683A4D';
     default:
       return '#8FBC8A4D';
   }
