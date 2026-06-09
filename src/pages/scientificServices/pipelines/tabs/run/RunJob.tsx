@@ -313,7 +313,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
 
         {!isEmpty(pipelineInputs) && !isLoadingQuota && (
           <>
-            {/* Displays all STRING inputs, one after another */}
+            {/* Displays all STRING inputs, one after another. */}
             {pipelineInputs
               .filter((input) => input.type === 'STRING')
               .map((input) => {
