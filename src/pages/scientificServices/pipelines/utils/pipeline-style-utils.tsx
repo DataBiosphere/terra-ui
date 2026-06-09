@@ -35,7 +35,11 @@ export const getPipelineColor = (pipelineRun: PipelineRun): string => {
   switch (pipelineRun.pipelineName) {
     case 'array_imputation':
       return '#4D72AA4D';
-    default:
+    case 'low_pass_imputation':
       return '#AA4D8B4D';
+    case 'sv_imputation':
+      return '#C1683A4D';
+    default:
+      return '#8FBC8A4D';
   }
 };
