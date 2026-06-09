@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { TEASPOONS_SHARE_GROUP_DEV } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
 import { renderWithAppContexts } from 'src/testing/test-utils';
 
 import { GcsFileInput } from './GcsFileInput';
@@ -248,7 +249,7 @@ describe('GcsFileInput', () => {
 
       await userEvent.click(button);
 
-      expect(screen.getByText('broad-scientific-services@dev.test.firecloud.org')).toBeInTheDocument();
+      expect(screen.getByText(TEASPOONS_SHARE_GROUP_DEV)).toBeInTheDocument();
     });
 
     it('displays proxy group email', async () => {
