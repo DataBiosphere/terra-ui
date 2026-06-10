@@ -685,6 +685,52 @@ describe('RunJob Component', () => {
     );
   });
 
+  it('displays insufficient quota warning and disables all input fields when user lacks quota', async () => {
+    // Mock insufficient quota: user has consumed most of their quota
+    const insufficientQuotaDetails = {
+      pipelineName: 'array_imputation',
+      quotaLimit: 2000,
+      quotaConsumed: 2000,
+      quotaUnits: 'units',
+    };
+
+    asMockedFn(mockTeaspoonsContract.getQuotaForPipeline).mockResolvedValue(insufficientQuotaDetails);
+
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Submit')).toHaveAttribute('aria-disabled', 'true');
+
+    expect(screen.getByText(/You do not have enough quota remaining to run this pipeline/)).toBeInTheDocument();
+
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    expect(outputPrefixInput).toBeDisabled();
+
+    const minDr2Input = screen.getByLabelText('minimum imputation quality for inclusion float input');
+    expect(minDr2Input).toBeDisabled();
+
+    const descriptionTextArea = screen.getByLabelText('description');
+    expect(descriptionTextArea).toBeDisabled();
+
+    const allowChunkFailuresCheckbox = screen.getByLabelText('Allow chunk failures');
+    expect(allowChunkFailuresCheckbox).toHaveAttribute('disabled');
+
+    const fileInputs = screen.getAllByText(/Select a/);
+    expect(fileInputs.length).toBeGreaterThan(0);
+
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    expect(tosCheckbox).toHaveAttribute('disabled');
+  });
+
   describe('Query parameter pre-selection', () => {
     const lowPassPipeline: Pipeline = {
       pipelineName: 'low_pass_imputation',

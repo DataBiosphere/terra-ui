@@ -16,23 +16,25 @@ export interface PipelineInputFileUploadState {
 
 interface FileSourceSelectorProps {
   onSourceSelect: (source: 'local' | 'cloud') => void;
+  disabled?: boolean;
 }
 
-const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect }) => {
+const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect, disabled }) => {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ marginBottom: '1rem' }}>Select a file source</div>
       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
         <button
           type='button'
+          disabled={disabled}
           onClick={() => onSourceSelect('local')}
           style={{
             padding: '1.5rem 1rem',
-            border: '1px solid #46A3E9',
+            border: `1px solid ${disabled ? colors.dark(1) : '#46A3E9'}`,
             borderBottomLeftRadius: '8px',
             borderTopLeftRadius: '8px',
-            background: '#e7f3fb',
-            cursor: 'pointer',
+            background: disabled ? colors.dark(0.04) : '#e7f3fb',
+            cursor: disabled ? 'not-allowed' : 'pointer',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -43,7 +45,7 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect 
             e.currentTarget.style.background = '#d0e8f7';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#e7f3fb';
+            e.currentTarget.style.background = disabled ? colors.dark(0.04) : '#e7f3fb';
           }}
         >
           <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -53,14 +55,15 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect 
         </button>
         <button
           type='button'
+          disabled={disabled}
           onClick={() => onSourceSelect('cloud')}
           style={{
             padding: '1.5rem 1rem',
-            border: '1px solid #46A3E9',
+            border: `1px solid ${disabled ? colors.dark(1) : '#46A3E9'}`,
             borderBottomRightRadius: '8px',
             borderTopRightRadius: '8px',
-            background: '#e7f3fb',
-            cursor: 'pointer',
+            background: disabled ? colors.dark(0.04) : '#e7f3fb',
+            cursor: disabled ? 'not-allowed' : 'pointer',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -71,7 +74,7 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect 
             e.currentTarget.style.background = '#d0e8f7';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#e7f3fb';
+            e.currentTarget.style.background = disabled ? colors.dark(0.04) : '#e7f3fb';
           }}
         >
           <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -86,6 +89,7 @@ const FileSourceSelector: React.FC<FileSourceSelectorProps> = ({ onSourceSelect 
 
 interface PipelineInputSelectorProps {
   input: PipelineInput;
+  disabled?: boolean;
   selectedFile: File | string | null;
   uploadState?: PipelineInputFileUploadState;
   onFileSelect: (file: File | string | null) => void;
@@ -98,6 +102,7 @@ interface PipelineInputSelectorProps {
 
 export const PipelineFileBasedInput: React.FC<PipelineInputSelectorProps> = ({
   input,
+  disabled,
   selectedFile,
   uploadState,
   onFileSelect,
@@ -145,7 +150,7 @@ export const PipelineFileBasedInput: React.FC<PipelineInputSelectorProps> = ({
           flexDirection: 'column',
         }}
       >
-        {sourceType === null && <FileSourceSelector onSourceSelect={handleSourceSelect} />}
+        {sourceType === null && <FileSourceSelector onSourceSelect={handleSourceSelect} disabled={disabled} />}
         {sourceType === 'cloud' && (
           <GcsFileInput
             input={input}

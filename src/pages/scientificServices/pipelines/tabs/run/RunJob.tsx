@@ -309,6 +309,37 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
               />
             </div>
           )}
+          {meetsMinimumQuota === false && (
+            <div
+              style={{
+                marginTop: '1rem',
+                width: '400px',
+                border: '1px solid #8f95a0',
+                backgroundColor: colors.danger(0.05),
+                borderRadius: '4px',
+                padding: '1rem',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <Icon icon='warning-standard' size={36} style={{ color: colors.danger(), marginRight: '1rem' }} />
+                <div>
+                  You do not have enough quota remaining to run this pipeline. Please{' '}
+                  <Link
+                    href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Request%20a%20quote%20for%20quota`}
+                    style={{ color: '#46A3E9', fontWeight: 'bold' }}
+                  >
+                    request a quote
+                  </Link>{' '}
+                  for additional quota.
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {!isEmpty(pipelineInputs) && !isLoadingQuota && (
@@ -320,6 +351,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                 return (
                   <PipelineStringInput
                     input={input}
+                    disabled={meetsMinimumQuota === false}
                     onChange={(value) =>
                       setSelectedUserInputs((prev) => ({
                         ...prev,
@@ -341,6 +373,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                 return (
                   <PipelineFloatInput
                     input={input}
+                    disabled={meetsMinimumQuota === false}
                     onChange={(value) =>
                       setSelectedUserInputs((prev) => ({
                         ...prev,
@@ -356,7 +389,13 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
               })}
 
             {/* Displays optional run description */}
-            {selectedPipeline && <PipelineRunDescription value={runDescription} onChange={setRunDescription} />}
+            {selectedPipeline && (
+              <PipelineRunDescription
+                value={runDescription}
+                onChange={setRunDescription}
+                disabled={meetsMinimumQuota === false}
+              />
+            )}
 
             {/* Displays all BOOLEAN inputs, one after another */}
             {pipelineInputs
@@ -366,6 +405,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                   <PipelineBooleanInput
                     value={selectedUserInputs[input.name]}
                     input={input}
+                    disabled={meetsMinimumQuota === false}
                     key={`${input.name}`}
                     onChange={(value) => {
                       setSelectedUserInputs((prev) => ({
@@ -385,6 +425,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                   <PipelineFileBasedInput
                     key={`${input.name}`}
                     input={input}
+                    disabled={meetsMinimumQuota === false}
                     uploadState={uploadState[input.name]}
                     selectedFile={selectedUserInputs[input.name] || null}
                     setUploadState={setUploadState}
@@ -405,38 +446,8 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
             {/* Submit button */}
             {!submittedJobId && quota && (
               <>
-                {!meetsMinimumQuota && (
-                  <div
-                    style={{
-                      marginTop: '1rem',
-                      width: '500px',
-                      border: '1px solid #8f95a0',
-                      borderRadius: '4px',
-                      padding: '1rem',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Icon icon='warning-standard' size={36} style={{ color: colors.danger(), marginRight: '1rem' }} />
-                      <div>
-                        You do not have enough quota remaining to run this pipeline. Please{' '}
-                        <Link
-                          href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Request%20a%20quote%20for%20quota`}
-                          style={{ color: '#46A3E9', fontWeight: 'bold' }}
-                        >
-                          request a quote
-                        </Link>{' '}
-                        for additional quota.
-                      </div>
-                    </div>
-                  </div>
-                )}
                 <div style={{ marginTop: '2rem' }}>
-                  <LabeledCheckbox checked={agreeToTerms} onChange={setAgreeToTerms}>
+                  <LabeledCheckbox checked={agreeToTerms} onChange={setAgreeToTerms} disabled={!meetsMinimumQuota}>
                     <span>
                       {' '}
                       I have read and agree to the{' '}

@@ -6,6 +6,7 @@ import colors from 'src/libs/colors';
 interface PipelineStringInputProps {
   input: PipelineInput;
   value: string;
+  disabled?: boolean;
   onChange: (value: string) => void;
   validationError?: ReactNode;
   onValidation(error?: ReactNode): void;
@@ -15,6 +16,7 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
   input,
   value,
   onChange,
+  disabled,
   validationError,
   onValidation,
 }) => {
@@ -29,9 +31,13 @@ export const PipelineStringInput: React.FC<PipelineStringInputProps> = ({
         width={400}
         error={validationError}
         inputProps={{
+          style: {
+            backgroundColor: disabled ? colors.dark(0.04) : undefined,
+          },
           'aria-label': `${displayName || name} text input`,
           type: 'text',
           value: value || '',
+          disabled,
           placeholder: defaultValue || `Enter ${displayName || name}`,
           onChange: (e) => {
             onChange(e);

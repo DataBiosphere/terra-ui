@@ -7,9 +7,10 @@ interface PipelineBooleanInputProps {
   input: PipelineInput;
   value: boolean;
   onChange: (value: boolean) => void;
+  disabled?: boolean;
 }
 
-export const PipelineBooleanInput: React.FC<PipelineBooleanInputProps> = ({ input, value, onChange }) => {
+export const PipelineBooleanInput: React.FC<PipelineBooleanInputProps> = ({ input, value, onChange, disabled }) => {
   const { name, displayName, description, defaultValue, isRequired } = input;
 
   return (
@@ -18,6 +19,7 @@ export const PipelineBooleanInput: React.FC<PipelineBooleanInputProps> = ({ inpu
         <LabeledCheckbox
           checked={value ?? defaultValue ?? false}
           width={400}
+          disabled={disabled}
           onChange={(e) => {
             onChange(e);
           }}

@@ -142,6 +142,27 @@ describe('PipelineFloatInput', () => {
     expect(onValidation).not.toHaveBeenCalled();
   });
 
+  it('renders input as disabled when disabled prop is true', () => {
+    render(<PipelineFloatInput {...defaultProps} disabled />);
+
+    const input = screen.getByRole('textbox');
+    expect(input).toBeDisabled();
+  });
+
+  it('renders input as enabled when disabled prop is false', () => {
+    render(<PipelineFloatInput {...defaultProps} disabled={false} />);
+
+    const input = screen.getByRole('textbox');
+    expect(input).not.toBeDisabled();
+  });
+
+  it('renders input as enabled when disabled prop is not provided', () => {
+    render(<PipelineFloatInput {...defaultProps} />);
+
+    const input = screen.getByRole('textbox');
+    expect(input).not.toBeDisabled();
+  });
+
   describe('validatePipelineFloatInput', () => {
     it('returns undefined for empty input', () => {
       expect(validatePipelineFloatInput('', 0, 1)).toBeUndefined();
