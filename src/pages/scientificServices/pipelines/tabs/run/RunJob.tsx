@@ -309,7 +309,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
               />
             </div>
           )}
-          {!meetsMinimumQuota && (
+          {meetsMinimumQuota === false && (
             <div
               style={{
                 marginTop: '1rem',
