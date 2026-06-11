@@ -21,86 +21,6 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
   const outputs = pipelineRunResult.pipelineRunReport.outputs;
   const hasOutputs = outputs && Object.keys(outputs).length > 0;
 
-  console.log(outputs);
-
-  const outputDefinitionsModified = [
-    {
-      name: 'imputedMultiSampleVcf',
-      displayName: 'imputed multi-sample VCF',
-      description: 'A multi-sample VCF file containing imputed variant genotypes for all samples',
-      type: 'FILE',
-    },
-    {
-      name: 'imputedMultiSampleVcfIndex',
-      displayName: 'imputed multi-sample VCF index',
-      description: 'An index file for the imputed multi-sample VCF file',
-      type: 'FILE',
-    },
-    {
-      name: 'chunksInfo',
-      displayName: 'imputation chunks QC TSV',
-      description: 'A TSV file containing QC information about the chunks used during imputation',
-      type: 'FILE',
-    },
-    {
-      name: 'contigsInfo',
-      displayName: 'contigs metrics TSV',
-      description: 'A TSV file containing metrics information about the input contigs (chromosomes)',
-      type: 'FILE',
-    },
-    {
-      name: 'imputedHomRefSitesOnlyVcf',
-      displayName: 'imputed hom ref sites only VCF',
-      description: 'A sites only VCF file containing information about homozygous reference sites',
-      type: 'FILE',
-    },
-    {
-      name: 'imputedHomRefSitesOnlyVcfIndex',
-      displayName: 'imputed hom ref sites only VCF index',
-      description: 'An index file for the imputed homozygous reference sites only VCF file',
-      type: 'FILE',
-    },
-  ];
-
-  const outputsModified = {
-    imputedMultiSampleVcfIndex: {
-      metadata: {
-        sizeInBytes: 2128803,
-      },
-      value: 'gnomad.genomes.v3.1.2.hgdp_tgp.500samples.chr20.imputed.vcf.gz.tbi',
-    },
-    imputedMultiSampleVcf: {
-      metadata: {
-        sizeInBytes: 847756918,
-      },
-      value: 'gnomad.genomes.v3.1.2.hgdp_tgp.500samples.chr20.imputed.vcf.gz',
-    },
-    imputedHomRefSitesOnlyVcf: {
-      metadata: {
-        sizeInBytes: 847756918,
-      },
-      value: 'gnomad.genomes.v3.1.2.hgdp_tgp.500samples.chr20.imputed.hom_ref_sites_only.vcf.gz',
-    },
-    imputedHomRefSitesOnlyVcfIndex: {
-      metadata: {
-        sizeInBytes: 847756918,
-      },
-      value: 'gnomad.genomes.v3.1.2.hgdp_tgp.500samples.chr20.imputed.hom_ref_sites_only.vcf.gz.tbi',
-    },
-    contigsInfo: {
-      metadata: {
-        sizeInBytes: 901,
-      },
-      value: 'gnomad.genomes.v3.1.2.hgdp_tgp.500samples.chr20_contig_info.tsv',
-    },
-    chunksInfo: {
-      metadata: {
-        sizeInBytes: 5051,
-      },
-      value: 'gnomad.genomes.v3.1.2.hgdp_tgp.500samples.chr20_chunk_info.tsv',
-    },
-  };
-
   const getEmptyMessage = () => {
     const now = new Date();
     if (
@@ -203,8 +123,8 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
       </div>
       {hasOutputs ? (
         <div>
-          {Object.entries(outputsModified).map(([key, outputValue]) => {
-            const outputDefinition = outputDefinitionsModified.find((output) => output.name === key);
+          {Object.entries(outputs).map(([key, outputValue]) => {
+            const outputDefinition = outputDefinitions.find((output) => output.name === key);
             const fileName = outputValue.value;
 
             return (
@@ -240,7 +160,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
       {selectedOutput && (
         <OutputDetailsModal
           outputKey={selectedOutput.key}
-          outputDefinition={outputDefinitionsModified.find((output) => output.name === selectedOutput.key)}
+          outputDefinition={outputDefinitions.find((output) => output.name === selectedOutput.key)}
           fileName={selectedOutput.fileName}
           pipelineRunResult={pipelineRunResult}
           onDismiss={() => setSelectedOutput(null)}
@@ -267,17 +187,6 @@ const OutputItem = ({
   disabled?: boolean;
   onSelect: () => void;
 }) => {
-  const truncateFileName = (fileName: string, maxLength = 30): string => {
-    if (fileName.length <= maxLength) {
-      return fileName;
-    }
-    const ellipsis = '...';
-    const availableLength = maxLength - ellipsis.length;
-    const startLength = Math.ceil(availableLength / 2);
-    const endLength = Math.floor(availableLength / 2);
-    return fileName.slice(0, startLength) + ellipsis + fileName.slice(-endLength);
-  };
-
   return (
     <div>
       <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

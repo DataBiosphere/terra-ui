@@ -38,12 +38,6 @@ export const JobInputsView = ({ inputDefinitions, pipelineRunResult }: JobInputs
   const hasInputs = inputs && Object.keys(inputs).length > 0;
   const inputSize = pipelineRunResult.pipelineRunReport.inputSize;
 
-  const inputsModified = {
-    multiSampleVcf: '/Users/marymorg/Desk top/gnomad.genomes.v 3.1.2.hgdp_tgp.500samples.chr20.vcf.gz',
-    outputBasename: 'gnomad.genomes.v3.1.2.hgdp_tgp.500samples.chr20',
-    minDr2ForInclusion: '0.8',
-  };
-
   return (
     <div style={{ flex: 1 }}>
       <div
@@ -83,7 +77,7 @@ export const JobInputsView = ({ inputDefinitions, pipelineRunResult }: JobInputs
       </div>
       {hasInputs ? (
         <div>
-          {Object.entries(inputsModified).map(([key, value]) => {
+          {Object.entries(inputs).map(([key, value]) => {
             const inputDef = inputDefinitions.find((input) => input.name === key);
             return (
               <div
