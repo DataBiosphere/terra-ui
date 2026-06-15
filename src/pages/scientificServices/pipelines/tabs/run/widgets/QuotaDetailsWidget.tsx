@@ -83,11 +83,13 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
                         {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota?.minQuotaConsumed} ${quota.quotaUnits} from your quota.`}
                       </span>
                     </div>
-                    <div style={{ marginTop: '1rem' }}>
-                      <span style={{ fontWeight: 600 }}>
-                        {`There is a maximum of ${pipelineDetails.pipelineQuota?.maxQuotaConsumed} ${quota.quotaUnits} allowed per job.`}
-                      </span>
-                    </div>
+                    {pipelineDetails.pipelineQuota?.maxQuotaConsumed && (
+                      <div style={{ marginTop: '1rem' }}>
+                        <span style={{ fontWeight: 600 }}>
+                          {`There is a maximum of ${pipelineDetails.pipelineQuota.maxQuotaConsumed} ${quota.quotaUnits} allowed per job.`}
+                        </span>
+                      </div>
+                    )}
                   </>
                 )}
                 <div style={{ marginTop: '1rem' }}>

@@ -90,6 +90,7 @@ export function mockPipelineWithDetails(name: string): PipelineWithDetails {
       pipelineName: name,
       defaultQuota: 2500,
       minQuotaConsumed: 175,
+      maxQuotaConsumed: 5250,
       quotaUnits: 'units',
     },
   };
