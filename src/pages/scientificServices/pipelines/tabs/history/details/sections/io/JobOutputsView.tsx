@@ -202,31 +202,35 @@ const OutputItem = ({
           gap: '0.25rem',
           alignItems: 'center',
           justifyContent: 'space-between',
+          wordBreak: 'break-all',
         }}
       >
-        <code>{fileName}</code>
+        <code style={{ maxWidth: '70%' }} title={fileName}>
+          {fileName}
+        </code>
         {!disabled && (
-          <button
-            type='button'
-            onClick={onSelect}
-            style={{
-              color: '#46A3E9',
-              fontWeight: 700,
-              textDecoration: 'underline',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              font: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              alignSelf: 'flex-start',
-            }}
-          >
-            <Icon icon='pop-out' size={14} />
-            View details
-          </button>
+          <div style={{ minWidth: '120px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <button
+              type='button'
+              onClick={onSelect}
+              style={{
+                color: '#46A3E9',
+                fontWeight: 700,
+                textDecoration: 'underline',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                font: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}
+            >
+              <Icon icon='pop-out' size={14} />
+              View details
+            </button>
+          </div>
         )}
         {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
       </div>
