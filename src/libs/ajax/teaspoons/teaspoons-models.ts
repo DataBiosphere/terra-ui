@@ -31,7 +31,7 @@ export interface PipelineQuota {
   pipelineName: string;
   defaultQuota: number;
   minQuotaConsumed: number;
-  maxQuotaConsumed: number;
+  maxQuotaConsumed?: number;
   quotaUnits: string;
 }
 
