@@ -56,7 +56,9 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
                         alignItems: 'flex-start',
                       }}
                     >
-                      <div style={{ fontWeight: 'bold', fontSize: 16 }}>{quota.quotaLimit - quota.quotaConsumed}</div>
+                      <div style={{ fontWeight: 'bold', fontSize: 16 }}>
+                        {(quota.quotaLimit - quota.quotaConsumed).toLocaleString()}
+                      </div>
                       <div style={{ color: '#6B6C6E', marginTop: '0.125rem', fontSize: 13 }}>
                         {quota.quotaUnits} remaining
                       </div>
@@ -69,7 +71,7 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
                         alignItems: 'flex-start',
                       }}
                     >
-                      <div style={{ fontWeight: 'bold', fontSize: 16 }}>{quota.quotaConsumed}</div>
+                      <div style={{ fontWeight: 'bold', fontSize: 16 }}>{quota.quotaConsumed.toLocaleString()}</div>
                       <div style={{ color: '#6B6C6E', marginTop: '0.125rem', fontSize: 13 }}>
                         {quota.quotaUnits} used
                       </div>
@@ -80,13 +82,17 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
                   <>
                     <div style={{ marginTop: '1rem' }}>
                       <span style={{ fontWeight: 600 }}>
-                        {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota?.minQuotaConsumed} ${quota.quotaUnits} from your quota.`}
+                        {`Every submitted job will consume at least ${pipelineDetails.pipelineQuota?.minQuotaConsumed.toLocaleString()} ${
+                          quota.quotaUnits
+                        } from your quota.`}
                       </span>
                     </div>
                     {pipelineDetails.pipelineQuota?.maxQuotaConsumed && (
                       <div style={{ marginTop: '1rem' }}>
                         <span style={{ fontWeight: 600 }}>
-                          {`There is a maximum of ${pipelineDetails.pipelineQuota.maxQuotaConsumed} ${quota.quotaUnits} allowed per job.`}
+                          {`There is a maximum of ${pipelineDetails.pipelineQuota.maxQuotaConsumed.toLocaleString()} ${
+                            quota.quotaUnits
+                          } allowed per job.`}
                         </span>
                       </div>
                     )}

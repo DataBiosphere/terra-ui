@@ -21,7 +21,7 @@ describe('QuotaDetailsWidget', () => {
   it('displays the correct remaining and used quota', async () => {
     renderWithAppContexts(<QuotaDetailsWidget selectedPipeline={mockPipeline('test_pipeline')} />);
 
-    await waitFor(() => expect(screen.getByText('1250', { exact: false })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('1,250', { exact: false })).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText('750', { exact: false })).toBeInTheDocument());
   });
 
@@ -39,7 +39,7 @@ describe('QuotaDetailsWidget', () => {
     renderWithAppContexts(<QuotaDetailsWidget selectedPipeline={mockPipeline('test_pipeline')} />);
 
     await waitFor(() =>
-      expect(screen.getByText('There is a maximum of 5250 things allowed per job.')).toBeInTheDocument()
+      expect(screen.getByText('There is a maximum of 5,250 things allowed per job.')).toBeInTheDocument()
     );
   });
 
