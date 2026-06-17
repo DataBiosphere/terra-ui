@@ -160,6 +160,47 @@ describe('RunJob Component', () => {
     });
   });
 
+  it('updates the pipeline description when selected pipeline changes', async () => {
+    const user = userEvent.setup();
+
+    const pipeline1: Pipeline = {
+      pipelineName: 'array_imputation',
+      displayName: 'Array Imputation',
+      pipelineVersion: 1,
+      description: 'First pipeline description',
+    };
+
+    const pipeline2: Pipeline = {
+      pipelineName: 'array_imputation',
+      displayName: 'Array Imputation',
+      pipelineVersion: 2,
+      description: 'Second pipeline description',
+    };
+
+    asMockedFn(usePipelinesList).mockReturnValue({
+      pipelines: [pipeline1, pipeline2],
+      uniquePipelines: [pipeline1, pipeline2],
+      isLoading: false,
+      error: undefined,
+    });
+
+    render(<RunJob />);
+
+    expect(screen.getByText('First pipeline description')).toBeInTheDocument();
+
+    const selectInput = screen.getByLabelText(/selected pipeline/i);
+    await user.click(selectInput);
+
+    const secondPipelineOption = screen.getByText('Array Imputation - v2');
+    await user.click(secondPipelineOption);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second pipeline description')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('First pipeline description')).not.toBeInTheDocument();
+  });
+
   it('allows user to select a pipeline and enter form data', async () => {
     const user = userEvent.setup();
     render(<RunJob />);
