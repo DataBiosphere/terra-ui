@@ -29,10 +29,6 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline | undefined>(
     uniquePipelines?.find((p) => p.pipelineName === pipelineName)
   );
-  const [partOfAcademicOrNonProfitOrg, setPartOfAcademicOrNonProfitOrg] = useState(false);
-  const [doingNonProfitWork, setDoingNonProfitWork] = useState(false);
-  const [qualifiesForAcademicRate, setQualifiesForAcademicRate] = useState<boolean>(false);
-  const [termsAcknowledged, setTermsAcknowledged] = useState(false);
 
   // track previous pipeline to detect external URL changes
   const prevPipelineNameRef = useRef<string | undefined>(undefined);
@@ -44,7 +40,6 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
       prevPipelineNameRef.current !== pipelineName &&
       selectedPipeline?.pipelineName !== pipelineName
     ) {
-      resetSelections();
       setPurchasePathOption(null);
     }
     prevPipelineNameRef.current = pipelineName;
@@ -60,27 +55,9 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
     }
   }, [pipelineName, uniquePipelines]);
 
-  // determine if user qualifies for academic rate based on their selections
-  useEffect(() => {
-    if (partOfAcademicOrNonProfitOrg && doingNonProfitWork) {
-      setQualifiesForAcademicRate(true);
-    } else {
-      setQualifiesForAcademicRate(false);
-    }
-  }, [partOfAcademicOrNonProfitOrg, doingNonProfitWork]);
-
-  // helper function to reset all user selections related to Stripe payment
-  const resetSelections = () => {
-    setPartOfAcademicOrNonProfitOrg(false);
-    setDoingNonProfitWork(false);
-    setTermsAcknowledged(false);
-    setQualifiesForAcademicRate(false);
-  };
-
   // when user changes purchase path method, reset Stripe selections to ensure they actively
   // select the relevant options for the new method they choose
   const handlePurchasePathChange = (method: PurchasePathOption) => {
-    resetSelections();
     setPurchasePathOption(method);
   };
 
@@ -139,182 +116,14 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
         {purchasePathOption === 'get-quote' && <HubSpotFormSection />}
         {/* user selected Get Quote Now & Pay with Credit Card option */}
         {purchasePathOption === 'self-service' && stripeUrlsAvailableForPipeline && (
-          <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '2px solid #e0e0e0', width: '80%' }}>
-            <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '1rem' }}>Complete Payment</div>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div
-                style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  marginBottom: '0.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
-              >
-                <Icon icon='info-circle' size={16} style={{ color: '#5CC88D' }} />
-                What to expect:
-              </div>
-              <ul style={{ margin: 0, paddingLeft: '2rem', fontSize: '14px', width: '80%' }}>
-                <li style={{ marginBottom: '0.5rem' }}>Select your pipeline and organization type</li>
-                <li style={{ marginBottom: '0.5rem' }}>
-                  You will be redirected to Stripe for secure payment processing
-                </li>
-                <li style={{ marginBottom: '0.5rem' }}>
-                  Select the quantity of quota you want to purchase in Stripe form
-                </li>
-                <li style={{ marginBottom: '0.5rem' }}>Complete payment securely through Stripe using Credit Card</li>
-                <li style={{ marginBottom: '0.5rem' }}>
-                  Once your payment is successful, your quota will be added to your account within 1 business day, and
-                  you will receive an email confirmation as soon as it&apos;s available
-                </li>
-              </ul>
-            </div>
-            {/* Stripe form and logic for payment links */}
-            <div style={{ width: '80%' }}>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>
-                  Select Pipeline <span style={{ color: '#d13212' }}>*</span>
-                </div>
-                <Select
-                  id='pipeline-select'
-                  aria-label={`selected pipeline ${selectedPipeline?.displayName}`}
-                  value={selectedPipeline}
-                  options={
-                    uniquePipelines?.map((p) => ({
-                      value: p,
-                      label: p.displayName,
-                    })) || []
-                  }
-                  onChange={(selectedOption) => {
-                    // only update selected pipeline and URL if user selects a different pipeline than currently selected
-                    if (selectedOption?.value && selectedOption.value.pipelineName !== selectedPipeline?.pipelineName) {
-                      resetSelections();
-                      setSelectedPipeline(selectedOption.value);
-                      Nav.updateSearch({ pipeline: selectedOption.value.pipelineName });
-                    }
-                  }}
-                  isClearable={false}
-                />
-              </div>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <div
-                  style={{
-                    fontWeight: 600,
-                    marginBottom: '0.75rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}
-                >
-                  <span>
-                    Check all of the following that apply to your organization and the work you are doing for your
-                    organization with this quota?
-                    <InfoBox size={16} side='right' style={{ marginLeft: '0.5rem', marginTop: '0.25rem' }}>
-                      <div>
-                        <strong>Academic organizations include:</strong>
-                        <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
-                          <li>Universities and colleges</li>
-                          <li>Research institutions</li>
-                          <li>Educational institutions</li>
-                        </ul>
-                        <strong>Non-profit organizations include:</strong>
-                        <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
-                          <li>Organizations with 501(c)(3) status or equivalent</li>
-                          <li>Charitable organizations</li>
-                          <li>Research foundations</li>
-                        </ul>
-                        <strong>Non-profit work</strong> means the research or activities are not conducted for
-                        commercial purposes or financial gain.
-                      </div>
-                    </InfoBox>
-                  </span>
-                </div>
-                <div>
-                  <LabeledCheckbox
-                    aria-label='checkbox for I am part of an academic or nonprofit organization'
-                    checked={partOfAcademicOrNonProfitOrg}
-                    onChange={setPartOfAcademicOrNonProfitOrg}
-                    disabled={false}
-                  >
-                    <span style={{ marginLeft: '0.25rem' }}>I am part of an academic or nonprofit organization</span>
-                  </LabeledCheckbox>
-                </div>
-                <div>
-                  <LabeledCheckbox
-                    aria-label='checkbox for The work I am doing is for non-profit activities'
-                    checked={doingNonProfitWork}
-                    onChange={setDoingNonProfitWork}
-                    disabled={false}
-                  >
-                    <span style={{ marginLeft: '0.25rem' }}>The work I am doing is for non-profit activities</span>
-                  </LabeledCheckbox>
-                </div>
-                <div
-                  style={{
-                    backgroundColor: '#E8F4FF',
-                    padding: '1rem',
-                    borderRadius: '6px',
-                    marginBottom: '1.5rem',
-                    marginTop: '1.5rem',
-                    border: '1px solid #B3D9FF',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <Icon icon='lock' size={16} style={{ color: '#46A3E9', flexShrink: 0, marginTop: '0.1rem' }} />
-                    <div style={{ fontSize: '13px', color: colors.dark(0.8) }}>
-                      <strong>Secure Payment:</strong> All payments are processed securely through Stripe
-                    </div>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    backgroundColor: '#FFF9E6',
-                    padding: '1rem',
-                    borderRadius: '6px',
-                    marginBottom: '1.5rem',
-                    border: '1px solid #FFE89E',
-                  }}
-                >
-                  <LabeledCheckbox checked={termsAcknowledged} onChange={setTermsAcknowledged} disabled={false}>
-                    <span style={{ fontSize: '14px', marginLeft: '0.5rem' }}>
-                      I confirm that the information I have submitted is accurate and I am authorized to make this
-                      request on behalf of my organization
-                    </span>
-                  </LabeledCheckbox>
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
-                <ButtonPrimary
-                  disabled={!selectedPipeline || !termsAcknowledged || !stripeUrlsAvailableForPipeline}
-                  style={{
-                    backgroundColor: !selectedPipeline || !termsAcknowledged ? colors.dark(0.25) : '#5CC88D',
-                    borderColor: !selectedPipeline || !termsAcknowledged ? colors.dark(0.4) : '#5CC88D',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}
-                  onClick={() => {
-                    const stripePaymentUrlsForPipeline = getStripePaymentUrls(selectedPipeline?.pipelineName);
-
-                    // safety check to ensure we have the payment URLs for the selected pipeline
-                    // this should never happen because we disable the button if the URLs are not available
-                    if (!stripePaymentUrlsForPipeline) {
-                      return;
-                    }
-
-                    const paymentUrl = qualifiesForAcademicRate
-                      ? stripePaymentUrlsForPipeline.academicRate
-                      : stripePaymentUrlsForPipeline.forProfitRate;
-                    window.open(paymentUrl, '_blank');
-                  }}
-                >
-                  <Icon icon='creditCard' size={16} />
-                  Pay with Card ({!qualifiesForAcademicRate ? 'For-Profit Rate' : 'Academic Rate'})
-                </ButtonPrimary>
-              </div>
-            </div>
-          </div>
+          <StripePaymentFormSection
+            selectedPipeline={selectedPipeline}
+            uniquePipelines={uniquePipelines}
+            onPipelineChange={(newPipeline) => {
+              setSelectedPipeline(newPipeline);
+              Nav.updateSearch({ pipeline: newPipeline.pipelineName });
+            }}
+          />
         )}
       </div>
     </div>
@@ -346,7 +155,7 @@ const PurchaseOptionCard: React.FC<PurchaseOptionCardProps> = ({
   }
 
   const getBackgroundColor = () => {
-    if (disabled) return '#f9f9f9';
+    if (disabled) return '#f0f0f0';
     if (isSelected) return '#e3f1fc';
     return '#f4f6f9';
   };
@@ -460,6 +269,204 @@ const HubSpotFormSection = (): React.ReactElement => {
             borderRadius: '4px',
           }}
         />
+      </div>
+    </div>
+  );
+};
+
+interface StripePaymentFormSectionProps {
+  selectedPipeline: Pipeline | undefined;
+  uniquePipelines: Pipeline[] | undefined;
+  onPipelineChange: (pipeline: Pipeline) => void;
+}
+
+const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> = ({
+  selectedPipeline,
+  uniquePipelines,
+  onPipelineChange,
+}) => {
+  const [partOfAcademicOrNonProfitOrg, setPartOfAcademicOrNonProfitOrg] = useState(false);
+  const [doingNonProfitWork, setDoingNonProfitWork] = useState(false);
+  const [termsAcknowledged, setTermsAcknowledged] = useState(false);
+
+  const qualifiesForAcademicRate = partOfAcademicOrNonProfitOrg && doingNonProfitWork;
+  const stripeUrlsAvailableForPipeline = !!getStripePaymentUrls(selectedPipeline?.pipelineName);
+
+  const resetSelections = () => {
+    setPartOfAcademicOrNonProfitOrg(false);
+    setDoingNonProfitWork(false);
+    setTermsAcknowledged(false);
+  };
+
+  const handlePayWithCardClick = () => {
+    const stripePaymentUrlsForPipeline = getStripePaymentUrls(selectedPipeline?.pipelineName);
+    if (!stripePaymentUrlsForPipeline) return;
+
+    const paymentUrl = qualifiesForAcademicRate
+      ? stripePaymentUrlsForPipeline.academicRate
+      : stripePaymentUrlsForPipeline.forProfitRate;
+    window.open(paymentUrl, '_blank');
+  };
+
+  useEffect(() => {
+    resetSelections();
+  }, [selectedPipeline?.pipelineName]);
+
+  return (
+    <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '2px solid #e0e0e0', width: '80%' }}>
+      <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '1rem' }}>Complete Payment</div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div
+          style={{
+            fontSize: '14px',
+            fontWeight: 600,
+            marginBottom: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <Icon icon='info-circle' size={16} style={{ color: '#5CC88D' }} />
+          What to expect:
+        </div>
+        <ul style={{ margin: 0, paddingLeft: '2rem', fontSize: '14px', width: '80%' }}>
+          <li style={{ marginBottom: '0.5rem' }}>Select your pipeline and organization type</li>
+          <li style={{ marginBottom: '0.5rem' }}>You will be redirected to Stripe for secure payment processing</li>
+          <li style={{ marginBottom: '0.5rem' }}>Select the quantity of quota you want to purchase in Stripe form</li>
+          <li style={{ marginBottom: '0.5rem' }}>Complete payment securely through Stripe using Credit Card</li>
+          <li style={{ marginBottom: '0.5rem' }}>
+            Once your payment is successful, your quota will be added to your account within 1 business day, and you
+            will receive an email confirmation as soon as it&apos;s available
+          </li>
+        </ul>
+      </div>
+      {/* Stripe form selection */}
+      <div style={{ width: '80%' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem' }}>
+            Select Pipeline <span style={{ color: '#d13212' }}>*</span>
+          </div>
+          <Select
+            id='pipeline-select'
+            aria-label={`selected pipeline ${selectedPipeline?.displayName}`}
+            value={selectedPipeline}
+            options={
+              uniquePipelines?.map((p) => ({
+                value: p,
+                label: p.displayName,
+              })) || []
+            }
+            onChange={(selectedOption) => {
+              if (selectedOption?.value && selectedOption.value.pipelineName !== selectedPipeline?.pipelineName) {
+                onPipelineChange(selectedOption.value);
+              }
+            }}
+            isClearable={false}
+          />
+        </div>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div
+            style={{
+              fontWeight: 600,
+              marginBottom: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <span>
+              Check all of the following that apply to your organization and the work you are doing for your
+              organization with this quota?
+              <InfoBox size={16} side='right' style={{ marginLeft: '0.5rem', marginTop: '0.25rem' }}>
+                <div>
+                  <strong>Academic organizations include:</strong>
+                  <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+                    <li>Universities and colleges</li>
+                    <li>Research institutions</li>
+                    <li>Educational institutions</li>
+                  </ul>
+                  <strong>Non-profit organizations include:</strong>
+                  <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+                    <li>Organizations with 501(c)(3) status or equivalent</li>
+                    <li>Charitable organizations</li>
+                    <li>Research foundations</li>
+                  </ul>
+                  <strong>Non-profit work</strong> means the research or activities are not conducted for commercial
+                  purposes or financial gain.
+                </div>
+              </InfoBox>
+            </span>
+          </div>
+          <div>
+            <LabeledCheckbox
+              aria-label='checkbox for I am part of an academic or nonprofit organization'
+              checked={partOfAcademicOrNonProfitOrg}
+              onChange={setPartOfAcademicOrNonProfitOrg}
+              disabled={false}
+            >
+              <span style={{ marginLeft: '0.25rem' }}>I am part of an academic or nonprofit organization</span>
+            </LabeledCheckbox>
+          </div>
+          <div>
+            <LabeledCheckbox
+              aria-label='checkbox for The work I am doing is for non-profit activities'
+              checked={doingNonProfitWork}
+              onChange={setDoingNonProfitWork}
+              disabled={false}
+            >
+              <span style={{ marginLeft: '0.25rem' }}>The work I am doing is for non-profit activities</span>
+            </LabeledCheckbox>
+          </div>
+          <div
+            style={{
+              backgroundColor: '#E8F4FF',
+              padding: '1rem',
+              borderRadius: '6px',
+              marginBottom: '1.5rem',
+              marginTop: '1.5rem',
+              border: '1px solid #B3D9FF',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <Icon icon='lock' size={16} style={{ color: '#46A3E9', flexShrink: 0, marginTop: '0.1rem' }} />
+              <div style={{ fontSize: '13px', color: colors.dark(0.8) }}>
+                <strong>Secure Payment:</strong> All payments are processed securely through Stripe
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              backgroundColor: '#FFF9E6',
+              padding: '1rem',
+              borderRadius: '6px',
+              marginBottom: '1.5rem',
+              border: '1px solid #FFE89E',
+            }}
+          >
+            <LabeledCheckbox checked={termsAcknowledged} onChange={setTermsAcknowledged} disabled={false}>
+              <span style={{ fontSize: '14px', marginLeft: '0.5rem' }}>
+                I confirm that the information I have submitted is accurate and I am authorized to make this request on
+                behalf of my organization
+              </span>
+            </LabeledCheckbox>
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
+          <ButtonPrimary
+            disabled={!selectedPipeline || !termsAcknowledged || !stripeUrlsAvailableForPipeline}
+            style={{
+              backgroundColor: !selectedPipeline || !termsAcknowledged ? colors.dark(0.25) : '#5CC88D',
+              borderColor: !selectedPipeline || !termsAcknowledged ? colors.dark(0.4) : '#5CC88D',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+            onClick={() => handlePayWithCardClick()}
+          >
+            <Icon icon='creditCard' size={16} />
+            Pay with Card ({!qualifiesForAcademicRate ? 'For-Profit Rate' : 'Academic Rate'})
+          </ButtonPrimary>
+        </div>
       </div>
     </div>
   );

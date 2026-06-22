@@ -14,10 +14,7 @@ const TEASPOONS_STRIPE_PAYMENT_URLS: Record<Environment, Partial<Record<Pipeline
       academicRate: 'https://buy.stripe.com/test_cNi14o8OqfpwdIT8z55wI01',
       forProfitRate: 'https://buy.stripe.com/test_eVq6oI1lYels6gr4iP5wI02',
     },
-    low_pass_imputation: {
-      academicRate: 'https://buy.stripe.com/1',
-      forProfitRate: 'https://buy.stripe.com/2',
-    },
+    // add other pipelines here as needed
   },
   prod: {},
 };
