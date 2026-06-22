@@ -1,10 +1,22 @@
-import { ButtonPrimary, ButtonSecondary, Icon, InfoBox, Select, Spinner } from '@terra-ui-packages/components';
+import {
+  ButtonPrimary,
+  ButtonSecondary,
+  Icon,
+  InfoBox,
+  Select,
+  Spinner,
+  TooltipTrigger,
+} from '@terra-ui-packages/components';
 import React, { useEffect, useRef, useState } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { PipelineQuotaCard } from 'src/pages/scientificServices/pipelines/common/PipelineQuotaCard';
+import {
+  getStripePaymentUrls,
+  TEASPOONS_HUBSPOT_URL,
+} from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineWidgetContainer';
 
@@ -72,18 +84,7 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
     setPurchasePathOption(method);
   };
 
-  // TODO - Saloni this should be extracted to different file and stored as constants. They should also be env specific
-  // TODO - this should also be pipeline specific
-  const stripePaymentUrls = {
-    academicRate: {
-      url: 'https://buy.stripe.com/test_cNi14o8OqfpwdIT8z55wI01',
-      description: 'Academic or non-profit organizations',
-    },
-    forProfitRate: {
-      url: 'https://buy.stripe.com/test_eVq6oI1lYels6gr4iP5wI02',
-      description: 'For-profit organizations',
-    },
-  };
+  const stripeUrlsAvailableForPipeline = !!getStripePaymentUrls(selectedPipeline?.pipelineName);
 
   if (isLoading) {
     return (
@@ -131,37 +132,13 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
             buttonText='View Quote & Pay Now'
             onClick={() => handlePurchasePathChange('self-service')}
             isSelected={purchasePathOption === 'self-service'}
+            disabled={!stripeUrlsAvailableForPipeline}
           />
         </div>
         {/* user selected Get Quote First & Pay Later option */}
-        {/* TODO - Saloni should this section be its own component */}
-        {purchasePathOption === 'get-quote' && (
-          <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '2px solid #e0e0e0', width: '80%' }}>
-            <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '1rem' }}>Complete the Form</div>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <p>
-                Please fill and submit the below form. Our team will send you an email with a custom quote within 1-2
-                business. days.
-              </p>
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <iframe
-                src='https://2q9nc.share.hsforms.com/2lq7UlFtvSbiu-hoHEYXykQ' // TODO - Saloni store this as a constant somewhere
-                title='Request Quote Form'
-                style={{
-                  width: '60%',
-                  height: '1525px',
-                  border: '1px solid #d6d9dc',
-                  borderRadius: '4px',
-                }}
-              />
-            </div>
-          </div>
-        )}
+        {purchasePathOption === 'get-quote' && <HubSpotFormSection />}
         {/* user selected Get Quote Now & Pay with Credit Card option */}
-        {/* TODO - Saloni should this section be its own component */}
-        {purchasePathOption === 'self-service' && (
+        {purchasePathOption === 'self-service' && stripeUrlsAvailableForPipeline && (
           <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '2px solid #e0e0e0', width: '80%' }}>
             <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '1rem' }}>Complete Payment</div>
             <div style={{ marginBottom: '1.5rem' }}>
@@ -309,7 +286,7 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
                 <ButtonPrimary
-                  disabled={!selectedPipeline || !termsAcknowledged}
+                  disabled={!selectedPipeline || !termsAcknowledged || !stripeUrlsAvailableForPipeline}
                   style={{
                     backgroundColor: !selectedPipeline || !termsAcknowledged ? colors.dark(0.25) : '#5CC88D',
                     borderColor: !selectedPipeline || !termsAcknowledged ? colors.dark(0.4) : '#5CC88D',
@@ -318,9 +295,17 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
                     gap: '0.5rem',
                   }}
                   onClick={() => {
+                    const stripePaymentUrlsForPipeline = getStripePaymentUrls(selectedPipeline?.pipelineName);
+
+                    // safety check to ensure we have the payment URLs for the selected pipeline
+                    // this should never happen because we disable the button if the URLs are not available
+                    if (!stripePaymentUrlsForPipeline) {
+                      return;
+                    }
+
                     const paymentUrl = qualifiesForAcademicRate
-                      ? stripePaymentUrls.academicRate.url
-                      : stripePaymentUrls.forProfitRate.url;
+                      ? stripePaymentUrlsForPipeline.academicRate
+                      : stripePaymentUrlsForPipeline.forProfitRate;
                     window.open(paymentUrl, '_blank');
                   }}
                 >
@@ -342,6 +327,7 @@ interface PurchaseOptionCardProps {
   buttonText: string;
   onClick: () => void;
   isSelected: boolean;
+  disabled?: boolean;
 }
 
 const PurchaseOptionCard: React.FC<PurchaseOptionCardProps> = ({
@@ -350,55 +336,85 @@ const PurchaseOptionCard: React.FC<PurchaseOptionCardProps> = ({
   buttonText,
   onClick,
   isSelected,
+  disabled = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   let borderColor = 'transparent';
-  if (isSelected || isHovered) {
+  if (!disabled && (isSelected || isHovered)) {
     borderColor = '#074770';
   }
 
-  return (
+  const getBackgroundColor = () => {
+    if (disabled) return '#f9f9f9';
+    if (isSelected) return '#e3f1fc';
+    return '#f4f6f9';
+  };
+
+  const getBoxShadow = () => {
+    if (disabled) return 'none';
+    if (isSelected || isHovered) return '0 4px 12px rgba(0,0,0,0.1)';
+    return '0 2px 4px rgba(0,0,0,0.05)';
+  };
+
+  const getButtonBackgroundColor = () => {
+    if (disabled) return colors.dark(0.25);
+    if (isSelected) return '#5CC88D';
+    return '#074770';
+  };
+
+  const cardContent = (
     <button
       type='button'
+      disabled={disabled}
       style={{
         flex: 1,
-        backgroundColor: isSelected ? '#e3f1fc' : '#f4f6f9',
+        backgroundColor: getBackgroundColor(),
         borderRadius: '8px',
         padding: '1.5rem',
         border: `2px solid ${borderColor}`,
         transition: 'border-color 0.2s, box-shadow 0.2s, background-color 0.2s',
-        boxShadow: isSelected || isHovered ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)',
-        cursor: 'pointer',
+        boxShadow: getBoxShadow(),
+        cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex',
         flexDirection: 'column',
         textAlign: 'left',
+        opacity: disabled ? 0.9 : 1,
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={onClick}
+      onMouseEnter={() => !disabled && setIsHovered(true)}
+      onMouseLeave={() => !disabled && setIsHovered(false)}
+      onClick={disabled ? undefined : onClick}
     >
       <div
         style={{
           fontSize: '18px',
           fontWeight: 600,
           marginBottom: '0.75rem',
-          color: '#333F52',
+          color: disabled ? colors.dark(0.5) : '#333F52',
           display: 'flex',
           alignItems: 'center',
         }}
       >
-        {isSelected && <Icon icon='check' size={20} style={{ color: '#5CC88D', marginRight: '0.5rem' }} />}
+        {isSelected && !disabled && <Icon icon='check' size={20} style={{ color: '#5CC88D', marginRight: '0.5rem' }} />}
         {title}
       </div>
-      <div style={{ fontSize: '14px', color: colors.dark(0.7), marginBottom: '1.5rem', flex: 1 }}>{description}</div>
+      <div
+        style={{
+          fontSize: '14px',
+          color: disabled ? colors.dark(0.5) : colors.dark(0.7),
+          marginBottom: '1.5rem',
+          flex: 1,
+        }}
+      >
+        {description}
+      </div>
       <div
         style={{
           width: '100%',
           padding: '0.5rem 1rem',
-          backgroundColor: isSelected ? '#5CC88D' : '#074770',
+          backgroundColor: getButtonBackgroundColor(),
           borderRadius: '4px',
-          color: 'white',
+          color: disabled ? colors.dark(0.5) : 'white',
           fontWeight: 500,
           textAlign: 'center',
           fontSize: '14px',
@@ -407,5 +423,44 @@ const PurchaseOptionCard: React.FC<PurchaseOptionCardProps> = ({
         {buttonText}
       </div>
     </button>
+  );
+
+  if (disabled) {
+    return (
+      <div style={{ flex: 1 }}>
+        <TooltipTrigger content='This option is currently unavailable for this pipeline' side='bottom'>
+          <div style={{ width: '100%' }}>{cardContent}</div>
+        </TooltipTrigger>
+      </div>
+    );
+  }
+
+  return cardContent;
+};
+
+const HubSpotFormSection = (): React.ReactElement => {
+  return (
+    <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '2px solid #e0e0e0', width: '80%' }}>
+      <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '1rem' }}>Complete the Form</div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <p>
+          Please fill and submit the below form. Our team will send you an email with a custom quote within 1-2
+          business. days.
+        </p>
+      </div>
+
+      <div style={{ marginBottom: '1.5rem' }}>
+        <iframe
+          src={TEASPOONS_HUBSPOT_URL}
+          title='Request Quote Form'
+          style={{
+            width: '60%',
+            height: '1525px',
+            border: '1px solid #d6d9dc',
+            borderRadius: '4px',
+          }}
+        />
+      </div>
+    </div>
   );
 };
