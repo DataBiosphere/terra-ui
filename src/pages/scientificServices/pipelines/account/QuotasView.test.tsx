@@ -13,6 +13,15 @@ jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList', () =>
   })),
 }));
 
+jest.mock('src/pages/scientificServices/pipelines/hooks/useUserQuota', () => ({
+  useUserQuota: jest.fn(() => ({
+    quota: undefined,
+    pipelineDetails: undefined,
+    meetsMinimumQuota: undefined,
+    isLoading: false,
+  })),
+}));
+
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   useRoute: jest.fn(() => ({
