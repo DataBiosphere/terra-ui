@@ -10,6 +10,11 @@ import { renderWithAppContexts } from 'src/testing/test-utils';
 
 import { QuotaDetailsWidget } from './QuotaDetailsWidget';
 
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getLink: jest.fn(() => '/pipelines/quotas'),
+}));
+
 jest.mock('src/libs/ajax/teaspoons/Teaspoons', () => ({
   Teaspoons: () => ({
     getQuotaForPipeline: jest.fn().mockResolvedValue(mockUserPipelineQuotaDetails('test_pipeline')),
@@ -47,5 +52,15 @@ describe('QuotaDetailsWidget', () => {
     render(<QuotaDetailsWidget selectedPipeline={undefined} />);
 
     expect(screen.getByText('Select a pipeline to see quota')).toBeInTheDocument();
+  });
+
+  it('displays "Purchase quota" link with correct href', async () => {
+    renderWithAppContexts(<QuotaDetailsWidget selectedPipeline={mockPipeline('test_pipeline')} />);
+
+    await waitFor(() => {
+      const purchaseLink = screen.getByText('Purchase quota');
+      expect(purchaseLink).toBeInTheDocument();
+      expect(purchaseLink).toHaveAttribute('href', '/pipelines/quotas');
+    });
   });
 });
