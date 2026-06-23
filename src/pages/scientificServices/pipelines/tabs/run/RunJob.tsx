@@ -300,12 +300,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
           </div>
           {selectedPipeline && (
             <div style={{ width: '400px', marginTop: '0.5rem' }}>
-              <AoUStylizedString
-                text={
-                  pipelinesList.find((pipeline) => pipeline.pipelineVersion === selectedPipeline.pipelineVersion)
-                    ?.description
-                }
-              />
+              <AoUStylizedString text={selectedPipeline.description} />
             </div>
           )}
           {meetsMinimumQuota === false && (
