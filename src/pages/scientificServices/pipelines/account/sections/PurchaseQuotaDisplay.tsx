@@ -461,10 +461,10 @@ const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> = ({
               alignItems: 'center',
               gap: '0.5rem',
             }}
-            onClick={() => handlePayWithCardClick()}
+            onClick={handlePayWithCardClick}
           >
             <Icon icon='creditCard' size={16} />
-            Pay with Card ({!qualifiesForAcademicRate ? 'For-Profit Rate' : 'Academic Rate'})
+            Pay with Card ({qualifiesForAcademicRate ? 'Academic Rate' : 'For-Profit Rate'})
           </ButtonPrimary>
         </div>
       </div>
