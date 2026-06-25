@@ -103,8 +103,9 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
                     href={Nav.getLink('pipelines-quotas')}
                     style={{ color: '#46A3E9', fontWeight: 'bold', textDecoration: 'underline' }}
                   >
-                    Purchase quota
+                    Purchase
                   </Link>{' '}
+                  quota.
                 </div>
                 <div style={{ marginTop: '1rem' }}>
                   <ZendeskLink docsKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'bold' }}>

@@ -85,7 +85,7 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <Icon icon='arrowLeft' size={16} />
-          Back to all quotas
+          All quotas
         </ButtonSecondary>
       </div>
       {/* display quota information for selected pipeline */}
@@ -160,12 +160,6 @@ const PurchaseOptionCard: React.FC<PurchaseOptionCardProps> = ({
     return '#f4f6f9';
   };
 
-  const getBoxShadow = () => {
-    if (disabled) return 'none';
-    if (isSelected || isHovered) return '0 4px 12px rgba(0,0,0,0.1)';
-    return '0 2px 4px rgba(0,0,0,0.05)';
-  };
-
   const getButtonBackgroundColor = () => {
     if (disabled) return colors.dark(0.25);
     if (isSelected) return '#5CC88D';
@@ -183,7 +177,6 @@ const PurchaseOptionCard: React.FC<PurchaseOptionCardProps> = ({
         padding: '1.5rem',
         border: `2px solid ${borderColor}`,
         transition: 'border-color 0.2s, box-shadow 0.2s, background-color 0.2s',
-        boxShadow: getBoxShadow(),
         cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex',
         flexDirection: 'column',
@@ -376,7 +369,7 @@ const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> = ({
           >
             <span>
               Check all of the following that apply to your organization and the work you are doing for your
-              organization with this quota?
+              organization with this quota
               <InfoBox size={16} side='right' style={{ marginLeft: '0.5rem', marginTop: '0.25rem' }}>
                 <div>
                   <strong>Academic organizations include:</strong>
@@ -397,25 +390,27 @@ const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> = ({
               </InfoBox>
             </span>
           </div>
-          <div>
-            <LabeledCheckbox
-              aria-label='checkbox for I am part of an academic or nonprofit organization'
-              checked={partOfAcademicOrNonProfitOrg}
-              onChange={setPartOfAcademicOrNonProfitOrg}
-              disabled={false}
-            >
-              <span style={{ marginLeft: '0.25rem' }}>I am part of an academic or nonprofit organization</span>
-            </LabeledCheckbox>
-          </div>
-          <div>
-            <LabeledCheckbox
-              aria-label='checkbox for The work I am doing is for non-profit activities'
-              checked={doingNonProfitWork}
-              onChange={setDoingNonProfitWork}
-              disabled={false}
-            >
-              <span style={{ marginLeft: '0.25rem' }}>The work I am doing is for non-profit activities</span>
-            </LabeledCheckbox>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div>
+              <LabeledCheckbox
+                aria-label='checkbox for I am part of an academic or nonprofit organization'
+                checked={partOfAcademicOrNonProfitOrg}
+                onChange={setPartOfAcademicOrNonProfitOrg}
+                disabled={false}
+              >
+                <span style={{ marginLeft: '0.25rem' }}>I am part of an academic or non-profit organization</span>
+              </LabeledCheckbox>
+            </div>
+            <div>
+              <LabeledCheckbox
+                aria-label='checkbox for The work I am doing is for non-profit activities'
+                checked={doingNonProfitWork}
+                onChange={setDoingNonProfitWork}
+                disabled={false}
+              >
+                <span style={{ marginLeft: '0.25rem' }}>The work I am doing is for non-profit activities</span>
+              </LabeledCheckbox>
+            </div>
           </div>
           <div
             style={{
@@ -427,8 +422,8 @@ const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> = ({
               border: '1px solid #B3D9FF',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-              <Icon icon='lock' size={16} style={{ color: '#46A3E9', flexShrink: 0, marginTop: '0.1rem' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Icon icon='lock' size={16} style={{ color: '#46A3E9', flexShrink: 0 }} />
               <div style={{ fontSize: '13px', color: colors.dark(0.8) }}>
                 <strong>Secure Payment:</strong> All payments are processed securely through Stripe
               </div>
