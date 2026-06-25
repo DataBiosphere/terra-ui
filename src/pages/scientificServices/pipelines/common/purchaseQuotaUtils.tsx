@@ -16,7 +16,13 @@ const TEASPOONS_STRIPE_PAYMENT_URLS: Record<Environment, Partial<Record<Pipeline
     },
     // add other pipelines here as needed
   },
-  prod: {},
+  prod: {
+    array_imputation: {
+      academicRate: 'https://pay.broadclinicallabs.org/b/dRm4gBdrIfTu44j7iD8k801',
+      forProfitRate: 'https://pay.broadclinicallabs.org/b/4gM14pevMePqasHeL58k800',
+    },
+    // add other pipelines here as needed
+  },
 };
 
 export const getStripePaymentUrls = (pipelineName: string | undefined): PipelineStripeUrls | undefined => {

@@ -798,7 +798,7 @@ describe('RunJob Component', () => {
     expect(purchaseQuotaLink.closest('a')).toHaveAttribute('href');
 
     // Verify Nav.getLink was called with the correct pipeline name parameter
-    expect(Nav.getLink).toHaveBeenCalledWith('pipelines-quotas', { pipelineName: 'array_imputation' });
+    expect(Nav.getLink).toHaveBeenCalledWith('pipelines-quotas');
   });
 
   describe('Query parameter pre-selection', () => {

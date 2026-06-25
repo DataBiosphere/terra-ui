@@ -323,14 +323,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                 <Icon icon='warning-standard' size={36} style={{ color: colors.danger(), marginRight: '1rem' }} />
                 <div>
                   You do not have enough quota remaining to run this pipeline. Please{' '}
-                  <Link
-                    href={
-                      selectedPipeline
-                        ? Nav.getLink('pipelines-quotas', { pipelineName: selectedPipeline.pipelineName })
-                        : Nav.getLink('pipelines-quotas')
-                    }
-                    style={{ color: '#46A3E9', fontWeight: 'bold' }}
-                  >
+                  <Link href={Nav.getLink('pipelines-quotas')} style={{ color: '#46A3E9', fontWeight: 'bold' }}>
                     purchase quota
                   </Link>{' '}
                   to run pipelines.

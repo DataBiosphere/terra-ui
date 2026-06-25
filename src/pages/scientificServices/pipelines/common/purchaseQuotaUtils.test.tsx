@@ -52,8 +52,13 @@ describe('purchaseQuotaUtils', () => {
         expect(getStripePaymentUrls(undefined)).toBeUndefined();
       });
 
-      it('returns undefined for array_imputation (not configured in prod)', () => {
-        expect(getStripePaymentUrls('array_imputation')).toBeUndefined();
+      it('returns correct Stripe URLs for array_imputation', () => {
+        const result = getStripePaymentUrls('array_imputation');
+
+        expect(result).toEqual({
+          academicRate: 'https://pay.broadclinicallabs.org/b/dRm4gBdrIfTu44j7iD8k801',
+          forProfitRate: 'https://pay.broadclinicallabs.org/b/4gM14pevMePqasHeL58k800',
+        });
       });
 
       it('returns undefined for low_pass_imputation (not configured in prod)', () => {
