@@ -104,14 +104,14 @@ describe('PurchaseQuotaDisplay', () => {
   it('renders back to all quotas button', () => {
     render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
 
-    expect(screen.getByText('Back to all quotas')).toBeInTheDocument();
+    expect(screen.getByText('All quotas')).toBeInTheDocument();
   });
 
   it('navigates back to quotas page when back button is clicked', async () => {
     const user = userEvent.setup();
     render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
 
-    await user.click(screen.getByText('Back to all quotas'));
+    await user.click(screen.getByText('All quotas'));
 
     expect(Nav.goToPath).toHaveBeenCalledWith('pipelines-quotas');
   });
@@ -256,7 +256,7 @@ describe('PurchaseQuotaDisplay', () => {
 
       // Verify that the organization type checkboxes are present
       expect(
-        screen.getByRole('checkbox', { name: /I am part of an academic or nonprofit organization/ })
+        screen.getByRole('checkbox', { name: /I am part of an academic or non-profit organization/ })
       ).toBeInTheDocument();
       expect(
         screen.getByRole('checkbox', { name: /The work I am doing is for non-profit activities/ })
@@ -300,7 +300,7 @@ describe('PurchaseQuotaDisplay', () => {
 
       // Check both organization checkboxes and terms
       const academicCheckbox = screen.getByRole('checkbox', {
-        name: /I am part of an academic or nonprofit organization/,
+        name: /I am part of an academic or non-profit organization/,
       });
       const nonprofitWorkCheckbox = screen.getByRole('checkbox', { name: /The work I am doing is for non-profit/ });
       const termsCheckbox = screen.getByRole('checkbox', { name: /I confirm that the information/ });
@@ -326,7 +326,7 @@ describe('PurchaseQuotaDisplay', () => {
 
       // Verify all checkboxes are now unchecked (reset)
       const academicCheckboxAfter = screen.getByRole('checkbox', {
-        name: /I am part of an academic or nonprofit organization/,
+        name: /I am part of an academic or non-profit organization/,
       });
       const nonprofitWorkCheckboxAfter = screen.getByRole('checkbox', {
         name: /The work I am doing is for non-profit/,
@@ -359,7 +359,7 @@ describe('PurchaseQuotaDisplay', () => {
 
       await user.click(screen.getByText('View Quote & Pay Now'));
 
-      await user.click(screen.getByRole('checkbox', { name: /I am part of an academic or nonprofit organization/ }));
+      await user.click(screen.getByRole('checkbox', { name: /I am part of an academic or non-profit organization/ }));
       await user.click(screen.getByRole('checkbox', { name: /The work I am doing is for non-profit activities/ }));
 
       expect(screen.getByRole('button', { name: /Pay with Card \(Academic Rate\)/ })).toBeInTheDocument();

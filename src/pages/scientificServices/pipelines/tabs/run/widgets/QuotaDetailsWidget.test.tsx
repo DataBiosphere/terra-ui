@@ -58,7 +58,7 @@ describe('QuotaDetailsWidget', () => {
     renderWithAppContexts(<QuotaDetailsWidget selectedPipeline={mockPipeline('test_pipeline')} />);
 
     await waitFor(() => {
-      const purchaseLink = screen.getByText('Purchase quota');
+      const purchaseLink = screen.getByText('Purchase');
       expect(purchaseLink).toBeInTheDocument();
       expect(purchaseLink).toHaveAttribute('href', '/pipelines/quotas');
     });
