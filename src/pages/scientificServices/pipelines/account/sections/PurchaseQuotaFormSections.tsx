@@ -14,8 +14,8 @@ export const HubSpotFormSection = (): React.ReactElement => {
       <div style={{ fontSize: '18px', fontWeight: 600, marginBottom: '1rem' }}>Complete the Form</div>
       <div style={{ marginBottom: '1.5rem' }}>
         <p>
-          Please fill and submit the below form. Our team will send you an email with a custom quote within 1-2
-          business. days.
+          Please fill and submit the below form. Our team will send you an email with a custom quote within 1-2 business
+          days.
         </p>
       </div>
 
@@ -135,7 +135,7 @@ export const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> =
               gap: '0.5rem',
             }}
           >
-            <span>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
               Check all of the following that apply to your organization and the work you are doing for your
               organization with this quota
               <InfoBox size={16} side='right' style={{ marginLeft: '0.5rem', marginTop: '0.25rem' }}>

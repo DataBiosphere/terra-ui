@@ -11,7 +11,7 @@ export const QuotasView = () => {
 
   return (
     <PipelinesLayout activeTab='quotas'>
-      <div style={{ margin: '1rem 2rem' }}>
+      <div style={{ margin: '1rem 2rem 2rem' }}>
         {selectedPipelineName ? (
           <PurchaseQuotaDisplay pipelineName={selectedPipelineName} />
         ) : (
