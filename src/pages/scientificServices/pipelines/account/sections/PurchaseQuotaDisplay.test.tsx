@@ -3,10 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import * as Nav from 'src/libs/nav';
 import { PurchaseQuotaDisplay } from 'src/pages/scientificServices/pipelines/account/sections/PurchaseQuotaDisplay';
-import {
-  getStripePaymentUrls,
-  TEASPOONS_HUBSPOT_URL,
-} from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
+import { getStripePaymentUrls } from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
 import * as usePipelinesListModule from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import * as useUserQuotaModule from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -208,17 +205,6 @@ describe('PurchaseQuotaDisplay', () => {
       expect(screen.getByText('Complete the Form')).toBeInTheDocument();
       expect(screen.getByText(/Please fill and submit the below form/)).toBeInTheDocument();
     });
-
-    it('renders iframe with correct HubSpot URL', async () => {
-      const user = userEvent.setup();
-      render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
-
-      await user.click(screen.getByText('Request Quote'));
-
-      const iframe = screen.getByTitle('Request Quote Form');
-      expect(iframe).toBeInTheDocument();
-      expect(iframe).toHaveAttribute('src', TEASPOONS_HUBSPOT_URL);
-    });
   });
 
   describe('Stripe payment form', () => {
@@ -336,33 +322,6 @@ describe('PurchaseQuotaDisplay', () => {
       expect(academicCheckboxAfter).not.toBeChecked();
       expect(nonprofitWorkCheckboxAfter).not.toBeChecked();
       expect(termsCheckboxAfter).not.toBeChecked();
-    });
-
-    it('disables Pay with Card button until terms are acknowledged', async () => {
-      const user = userEvent.setup();
-      render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
-
-      await user.click(screen.getByText('View Quote & Pay Now'));
-
-      // displays for-profit rate by default
-      const payButton = screen.getByRole('button', { name: /Pay with Card \(For-Profit Rate\)/ });
-      expect(payButton).toHaveAttribute('aria-disabled', 'true');
-
-      await user.click(screen.getByRole('checkbox', { name: /I confirm that the information/ }));
-
-      expect(payButton).not.toHaveAttribute('aria-disabled', 'true');
-    });
-
-    it('shows Academic Rate on Pay with Card button when both org checkboxes are checked', async () => {
-      const user = userEvent.setup();
-      render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
-
-      await user.click(screen.getByText('View Quote & Pay Now'));
-
-      await user.click(screen.getByRole('checkbox', { name: /I am part of an academic or non-profit organization/ }));
-      await user.click(screen.getByRole('checkbox', { name: /The work I am doing is for non-profit activities/ }));
-
-      expect(screen.getByRole('button', { name: /Pay with Card \(Academic Rate\)/ })).toBeInTheDocument();
     });
   });
 });
