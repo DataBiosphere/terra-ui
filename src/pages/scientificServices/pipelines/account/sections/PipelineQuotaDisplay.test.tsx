@@ -135,10 +135,10 @@ describe('PipelineQuotaDisplay', () => {
       expect(screen.getByText('No minimum')).toBeInTheDocument();
     });
 
-    it('renders a "Request Quota Increase" button', () => {
+    it('renders a "Purchase Quota" button', () => {
       render(<PipelineQuotaDisplay />);
 
-      expect(screen.getByRole('button', { name: 'Request Quota Increase' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Purchase Quota' })).toBeInTheDocument();
     });
 
     it('renders one card per unique pipeline', () => {

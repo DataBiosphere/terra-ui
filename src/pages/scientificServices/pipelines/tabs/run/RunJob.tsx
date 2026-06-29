@@ -12,7 +12,6 @@ import * as Nav from 'src/libs/nav';
 import { useRoute } from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { PipelinesLayout } from 'src/pages/scientificServices/pipelines/common/PipelinesLayout';
-import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { PipelineBooleanInput } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/boolean/PipelineBooleanInput';
 import {
@@ -324,13 +323,10 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
                 <Icon icon='warning-standard' size={36} style={{ color: colors.danger(), marginRight: '1rem' }} />
                 <div>
                   You do not have enough quota remaining to run this pipeline. Please{' '}
-                  <Link
-                    href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Request%20a%20quote%20for%20quota`}
-                    style={{ color: '#46A3E9', fontWeight: 'bold' }}
-                  >
-                    request a quote
+                  <Link href={Nav.getLink('pipelines-quotas')} style={{ color: '#46A3E9', fontWeight: 'bold' }}>
+                    purchase quota
                   </Link>{' '}
-                  for additional quota.
+                  to run pipelines.
                 </div>
               </div>
             </div>

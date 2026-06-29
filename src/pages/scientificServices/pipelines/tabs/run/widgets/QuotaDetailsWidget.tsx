@@ -1,9 +1,9 @@
-import { Spinner } from '@terra-ui-packages/components';
+import { Link, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import * as Nav from 'src/libs/nav';
 import { cond, DEFAULT } from 'src/libs/utils';
-import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 
@@ -99,13 +99,13 @@ export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pi
                   </>
                 )}
                 <div style={{ marginTop: '1rem' }}>
-                  <a
-                    href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}?subject=Request%20a%20quote%20for%20quota`}
-                    style={{ color: '#46A3E9', textDecoration: 'underline', fontWeight: 'bold' }}
+                  <Link
+                    href={Nav.getLink('pipelines-quotas')}
+                    style={{ color: '#46A3E9', fontWeight: 'bold', textDecoration: 'underline' }}
                   >
-                    Request a quote
-                  </a>
-                  &nbsp;for quota.
+                    Purchase
+                  </Link>{' '}
+                  quota.
                 </div>
                 <div style={{ marginTop: '1rem' }}>
                   <ZendeskLink docsKey={DocsKey.QUOTA_DETAILS} additionalStyle={{ fontWeight: 'bold' }}>

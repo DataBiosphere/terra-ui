@@ -772,6 +772,35 @@ describe('RunJob Component', () => {
     expect(tosCheckbox).toHaveAttribute('disabled');
   });
 
+  it('displays "purchase quota" link in insufficient quota warning with pipeline-specific URL', async () => {
+    // Mock insufficient quota
+    const insufficientQuotaDetails = {
+      pipelineName: 'array_imputation',
+      quotaLimit: 2000,
+      quotaConsumed: 2000,
+      quotaUnits: 'units',
+    };
+
+    asMockedFn(mockTeaspoonsContract.getQuotaForPipeline).mockResolvedValue(insufficientQuotaDetails);
+
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Verify the warning message is displayed
+    expect(screen.getByText(/You do not have enough quota remaining to run this pipeline/)).toBeInTheDocument();
+
+    // Find the "purchase quota" link
+    const purchaseQuotaLink = screen.getByText('purchase quota');
+    expect(purchaseQuotaLink).toBeInTheDocument();
+    expect(purchaseQuotaLink.closest('a')).toHaveAttribute('href');
+
+    // Verify Nav.getLink was called with the correct pipeline name parameter
+    expect(Nav.getLink).toHaveBeenCalledWith('pipelines-quotas');
+  });
+
   describe('Query parameter pre-selection', () => {
     const lowPassPipeline: Pipeline = {
       pipelineName: 'low_pass_imputation',
