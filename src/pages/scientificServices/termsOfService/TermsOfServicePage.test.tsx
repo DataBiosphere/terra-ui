@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import * as Nav from 'src/libs/nav';
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { ScientificServicesTermsOfServicePage } from './TermsOfServicePage';
@@ -119,8 +120,8 @@ describe('ScientificServicesTermsOfServicePage', () => {
     it('displays an inline error message when the doc fails to load', async () => {
       render(<ScientificServicesTermsOfServicePage />);
       await screen.findByText('Could not load Terms of Service');
-      const emailLink = screen.getByRole('link', { name: /scientific-services-support@broadinstitute\.org/ });
-      expect(emailLink).toHaveAttribute('href', 'mailto:scientific-services-support@broadinstitute.org');
+      const emailLink = screen.getByRole('link', { name: new RegExp(SCIENTIFIC_SERVICES_SUPPORT_EMAIL) });
+      expect(emailLink).toHaveAttribute('href', `mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`);
     });
   });
 });

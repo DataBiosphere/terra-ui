@@ -2,6 +2,7 @@ import React from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import bclLogoPrimary from 'src/images/brands/scientificServices/bcl-logo-primary.svg';
 import colors from 'src/libs/colors';
+import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 
 export const CliAuth = () => {
   const hash = window.location.hash;
@@ -73,7 +74,7 @@ export const CliAuth = () => {
         <div style={{ color: colors.danger(), fontWeight: 'bold' }}>
           Error: no verification code found. Please try again and{' '}
           <a
-            href='mailto:scientific-services-support@broadinstitute.org'
+            href={`mailto:${SCIENTIFIC_SERVICES_SUPPORT_EMAIL}`}
             style={{ color: colors.danger(), textDecoration: 'underline' }}
           >
             contact support

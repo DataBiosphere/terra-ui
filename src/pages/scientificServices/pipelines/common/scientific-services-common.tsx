@@ -4,7 +4,7 @@ import { TabBar } from 'src/components/tabBars';
 import * as Nav from 'src/libs/nav';
 import { ScientificServicesSidebar } from 'src/pages/scientificServices/pipelines/common/ScientificServicesSidebar';
 
-export const SCIENTIFIC_SERVICES_SUPPORT_EMAIL = 'scientific-services-support@broadinstitute.org';
+export const SCIENTIFIC_SERVICES_SUPPORT_EMAIL = 'data-science-services-support@broadinstitute.org';
 
 const JOBS_TAB_LINKS = {
   'run job': 'pipelines-run',
