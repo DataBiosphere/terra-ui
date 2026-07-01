@@ -2,6 +2,7 @@ import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
 import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import { formatBytes } from 'src/libs/utils';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { OutputDetailsModal } from 'src/pages/scientificServices/pipelines/tabs/history/details/modals/OutputDetailsModal';
@@ -126,6 +127,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
           {Object.entries(outputs).map(([key, outputValue]) => {
             const outputDefinition = outputDefinitions.find((output) => output.name === key);
             const fileName = outputValue.value;
+            const sizeInBytes = outputValue.metadata?.sizeInBytes;
 
             return (
               <div
@@ -144,6 +146,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
                   fileName={fileName}
+                  sizeInBytes={sizeInBytes}
                   disabled={!isSucceeded || !!outputsExpired}
                   onSelect={() => setSelectedOutput({ key, fileName })}
                 />
@@ -177,6 +180,7 @@ const OutputItem = ({
   fileName,
   tooltip,
   outputType,
+  sizeInBytes,
   disabled,
   onSelect,
 }: {
@@ -184,6 +188,7 @@ const OutputItem = ({
   fileName: string;
   tooltip: string;
   outputType: string;
+  sizeInBytes?: number;
   disabled?: boolean;
   onSelect: () => void;
 }) => {
@@ -206,7 +211,10 @@ const OutputItem = ({
         }}
       >
         <code style={{ maxWidth: '70%' }} title={fileName}>
-          {fileName}
+          {fileName}{' '}
+          {sizeInBytes !== undefined && (
+            <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>({formatBytes(sizeInBytes)})</span>
+          )}
         </code>
         {!disabled && (
           <div style={{ minWidth: '120px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>

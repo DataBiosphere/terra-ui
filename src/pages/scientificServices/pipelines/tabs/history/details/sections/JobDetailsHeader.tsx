@@ -70,7 +70,9 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
               )}
             </h2>
             {!isLoadingPipelineDetails && pipelineDetails?.description && (
-              <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
+              <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>
+                <AoUStylizedString text={pipelineDetails.description} />
+              </div>
             )}
           </div>
 

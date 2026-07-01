@@ -345,4 +345,43 @@ describe('JobOutputsView', () => {
       expect(modal).toHaveTextContent('gs://bucket/my-output.vcf');
     });
   });
+
+  it('displays file size next to filename when sizeInBytes is available', async () => {
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } }, // 1 MiB
+        },
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('1.00 MiB', { exact: false })).toBeInTheDocument();
+    });
+  });
+
+  it('does not display file size when sizeInBytes is not available', async () => {
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf' }, // No metadata
+        },
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('gs://bucket/output.vcf')).toBeInTheDocument();
+      expect(screen.queryByText(/MiB/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/KiB/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/GiB/)).not.toBeInTheDocument();
+    });
+  });
 });
