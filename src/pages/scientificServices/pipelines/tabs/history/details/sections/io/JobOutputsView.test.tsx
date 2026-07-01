@@ -360,7 +360,6 @@ describe('JobOutputsView', () => {
     render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
 
     await waitFor(() => {
-      // File size should be displayed in parentheses next to the filename
       expect(screen.queryByText('1.00 MiB', { exact: false })).toBeInTheDocument();
     });
   });
@@ -380,7 +379,6 @@ describe('JobOutputsView', () => {
 
     await waitFor(() => {
       expect(screen.getByText('gs://bucket/output.vcf')).toBeInTheDocument();
-      // Should not display any file size information
       expect(screen.queryByText(/MiB/)).not.toBeInTheDocument();
       expect(screen.queryByText(/KiB/)).not.toBeInTheDocument();
       expect(screen.queryByText(/GiB/)).not.toBeInTheDocument();
