@@ -106,4 +106,45 @@ describe('JobDetails', () => {
       }
     );
   });
+
+  describe('CitationView section', () => {
+    it('shows the CitationView section when citation is available', async () => {
+      const mockResultWithCitation = {
+        ...mockPipelineRunResponse('SUCCEEDED'),
+        pipelineRunReport: {
+          ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+          citation:
+            'Data Science Services at Broad Clinical Laboratories. (2026, Jul 9). *All of Us + AnVIL Array Imputation* (v1). https://services.terra.bio/',
+        },
+      };
+      mockGetPipelineRunResult.mockResolvedValue(mockResultWithCitation);
+
+      render(<JobDetails jobId='job-123' />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Citation')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /copy citation/i })).toBeInTheDocument();
+      });
+    });
+
+    it('does not show the CitationView section when citation is not available', async () => {
+      const mockResultWithoutCitation = {
+        ...mockPipelineRunResponse('SUCCEEDED'),
+        pipelineRunReport: {
+          ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+          citation: undefined,
+        },
+      };
+      mockGetPipelineRunResult.mockResolvedValue(mockResultWithoutCitation);
+
+      render(<JobDetails jobId='job-123' />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Job ID')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('Citation')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /copy citation/i })).not.toBeInTheDocument();
+    });
+  });
 });
