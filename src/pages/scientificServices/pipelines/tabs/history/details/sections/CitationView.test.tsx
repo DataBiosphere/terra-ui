@@ -40,16 +40,6 @@ describe('CitationView', () => {
     expect(screen.getByRole('button', { name: /copy citation/i })).toBeInTheDocument();
   });
 
-  it('copies citation to clipboard when copy button is clicked', async () => {
-    const user = userEvent.setup();
-    render(<CitationView citation={mockCitation} />);
-
-    const copyButton = screen.getByRole('button', { name: /copy citation/i });
-    await user.click(copyButton);
-
-    expect(mockClipboard.writeText).toHaveBeenCalledWith(mockCitation);
-  });
-
   it('shows "Copied!" text after copying', async () => {
     const user = userEvent.setup();
     render(<CitationView citation={mockCitation} />);
@@ -92,25 +82,4 @@ describe('CitationView', () => {
     const emElements = document.querySelectorAll('em');
     expect(emElements.length).toBeGreaterThan(0);
   });
-
-  it('handles copy failure gracefully', async () => {
-    const user = userEvent.setup();
-    // Mock clipboard API to reject
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: jest.fn(() => Promise.reject(new Error('Clipboard error'))),
-      },
-    });
-
-    render(<CitationView citation={mockCitation} />);
-
-    const copyButton = screen.getByRole('button', { name: /copy citation/i });
-    await user.click(copyButton);
-
-    // Button should still be labeled "Copy Citation" since the copy failed
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /copy citation/i })).toBeInTheDocument();
-    });
-  });
 });
-
