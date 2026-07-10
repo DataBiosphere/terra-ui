@@ -107,8 +107,8 @@ describe('JobDetails', () => {
     );
   });
 
-  describe('CitationView section', () => {
-    it('shows the CitationView section when citation is available', async () => {
+  describe('Citation button and modal', () => {
+    it('shows the Cite the service button when citation is available', async () => {
       const mockResultWithCitation = {
         ...mockPipelineRunResponse('SUCCEEDED'),
         pipelineRunReport: {
@@ -122,12 +122,11 @@ describe('JobDetails', () => {
       render(<JobDetails jobId='job-123' />);
 
       await waitFor(() => {
-        expect(screen.getByText('Citation')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /copy citation/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /cite the service/i })).toBeInTheDocument();
       });
     });
 
-    it('does not show the CitationView section when citation is not available', async () => {
+    it('does not show the Cite the service button when citation is not available', async () => {
       const mockResultWithoutCitation = {
         ...mockPipelineRunResponse('SUCCEEDED'),
         pipelineRunReport: {
@@ -143,8 +142,34 @@ describe('JobDetails', () => {
         expect(screen.getByText('Job ID')).toBeInTheDocument();
       });
 
-      expect(screen.queryByText('Citation')).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /copy citation/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /cite the service/i })).not.toBeInTheDocument();
+    });
+
+    it('opens citation modal when Cite the service button is clicked', async () => {
+      const user = userEvent.setup();
+      const mockResultWithCitation = {
+        ...mockPipelineRunResponse('SUCCEEDED'),
+        pipelineRunReport: {
+          ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+          citation:
+            'Data Science Services at Broad Clinical Laboratories. (2026, Jul 9). *All of Us + AnVIL Array Imputation* (v1). https://services.terra.bio/',
+        },
+      };
+      mockGetPipelineRunResult.mockResolvedValue(mockResultWithCitation);
+
+      render(<JobDetails jobId='job-123' />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /cite the service/i })).toBeInTheDocument();
+      });
+
+      const citeButton = screen.getByRole('button', { name: /cite the service/i });
+      await user.click(citeButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Cite the Service')).toBeInTheDocument();
+        expect(screen.getByText(/Data Science Services at Broad Clinical Laboratories/)).toBeInTheDocument();
+      });
     });
   });
 });

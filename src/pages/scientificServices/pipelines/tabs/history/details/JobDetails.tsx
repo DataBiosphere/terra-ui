@@ -5,7 +5,7 @@ import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { PipelinesLayout } from 'src/pages/scientificServices/pipelines/common/PipelinesLayout';
-import { CitationView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/CitationView';
+import { CitationModal } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/CitationModal';
 import { DataDeliveryView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/datadelivery/DataDeliveryView';
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
 import { JobIOView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobIOView';
@@ -18,6 +18,7 @@ export interface JobDetailsProps {
 export const JobDetails = ({ jobId }: JobDetailsProps) => {
   const [pipelineRunResult, setPipelineRunResult] = useState<PipelineRunResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showCitationModal, setShowCitationModal] = useState(false);
 
   useEffect(() => {
     async function fetchJobDetails() {
@@ -50,6 +51,15 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
             <Icon icon='arrowLeft' size={16} />
             View All
           </ButtonSecondary>
+          {pipelineRunResult?.pipelineRunReport.citation && (
+            <ButtonSecondary
+              onClick={() => setShowCitationModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <Icon icon='edit' size={14} />
+              Cite the service
+            </ButtonSecondary>
+          )}
         </div>
 
         {isLoading && (
@@ -74,12 +84,15 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
               </div>
               <div style={{ flex: 1 }}>
                 <JobIOView pipelineRunResult={pipelineRunResult} />
-                {pipelineRunResult.pipelineRunReport.citation && (
-                  <CitationView citation={pipelineRunResult.pipelineRunReport.citation} />
-                )}
               </div>
             </div>
           </div>
+        )}
+        {showCitationModal && pipelineRunResult?.pipelineRunReport.citation && (
+          <CitationModal
+            citation={pipelineRunResult.pipelineRunReport.citation}
+            onDismiss={() => setShowCitationModal(false)}
+          />
         )}
       </main>
     </PipelinesLayout>

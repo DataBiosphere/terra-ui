@@ -1,6 +1,7 @@
 import { Spinner } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
+import { MarkdownViewer } from 'src/components/markdown';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
@@ -115,6 +116,24 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
         />
 
         <HeaderItem label='Description' value={pipelineRunResult.jobReport.description || 'No description'} />
+        <HeaderItem
+          label='Citation'
+          value={
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <MarkdownViewer
+                renderers={{
+                  link: (href: string, title: string, text: string) => text,
+                  heading: (text: string, level: number) => `<h${level} style="margin-bottom: 0">${text}</h${level}>`,
+                }}
+                style={{ color: colors.dark(0.7), fontSize: 14 }}
+              >
+                Data Science Services at Broad Clinical Laboratories. (2026, Jul 1). *All of Us + AnVIL Array
+                Imputation* (v2). https://services.terra.bio/
+              </MarkdownViewer>
+              <ClipboardButton style={{ marginLeft: '0.5rem' }} text={pipelineRunResult.jobReport.id} />
+            </div>
+          }
+        />
       </div>
     </div>
   );

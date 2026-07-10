@@ -46,6 +46,7 @@ export interface PipelineWithDetails extends Pipeline {
   inputs: PipelineInput[];
   outputs: PipelineOutput[];
   pipelineQuota?: PipelineQuota;
+  citation?: string;
 }
 
 export interface PipelineList {
