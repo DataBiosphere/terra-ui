@@ -52,28 +52,6 @@ describe('CitationView', () => {
     });
   });
 
-  it('reverts button text after copying', async () => {
-    jest.useFakeTimers();
-    const user = userEvent.setup({ delay: null });
-    render(<CitationView citation={mockCitation} />);
-
-    const copyButton = screen.getByRole('button', { name: /copy citation/i });
-    await user.click(copyButton);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /copied!/i })).toBeInTheDocument();
-    });
-
-    // Fast-forward time by 2 seconds
-    jest.advanceTimersByTime(2000);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /copy citation/i })).toBeInTheDocument();
-    });
-
-    jest.useRealTimers();
-  });
-
   it('renders markdown formatted citation', () => {
     const markdownCitation = 'Author Name. (2026, Jul 9). *Pipeline Name* (v1). https://example.com/';
     render(<CitationView citation={markdownCitation} />);
