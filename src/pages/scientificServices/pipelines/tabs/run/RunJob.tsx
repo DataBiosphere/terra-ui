@@ -533,7 +533,13 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
         )}
       </div>
       <div>
-        <QuotaDetailsWidget selectedPipeline={selectedPipeline} />
+        <QuotaDetailsWidget
+          selectedPipeline={selectedPipeline}
+          quota={quota}
+          pipelineDetails={pipelineDetails}
+          meetsMinimumQuota={meetsMinimumQuota}
+          isLoading={isLoadingQuota}
+        />
         <PipelineOutputsWidget selectedPipelineDetails={pipelineDetails} />
         <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
       </div>
