@@ -5,7 +5,6 @@ import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { PipelinesLayout } from 'src/pages/scientificServices/pipelines/common/PipelinesLayout';
-import { CitationView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/CitationView';
 import { DataDeliveryView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/datadelivery/DataDeliveryView';
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
 import { JobIOView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobIOView';
@@ -74,9 +73,6 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
               </div>
               <div style={{ flex: 1 }}>
                 <JobIOView pipelineRunResult={pipelineRunResult} />
-                {pipelineRunResult.pipelineRunReport.citation && (
-                  <CitationView citation={pipelineRunResult.pipelineRunReport.citation} />
-                )}
               </div>
             </div>
           </div>
