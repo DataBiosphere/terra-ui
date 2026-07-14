@@ -159,6 +159,7 @@ export interface PipelineRunReport {
   inputSizeUnits?: string;
   quotaConsumed?: number;
   dataDeliveryReport?: DataDeliveryReport;
+  citation?: string;
 }
 
 export interface PipelineRunOutputSignedUrlsResponse {

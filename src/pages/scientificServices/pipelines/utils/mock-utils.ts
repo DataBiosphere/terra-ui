@@ -120,7 +120,11 @@ export function mockPipelineRun(status: PipelineRunStatus): PipelineRun {
   };
 }
 
-export const mockPipelineRunResponse = (status: PipelineRunStatus, description?: string): PipelineRunResponse => ({
+export const mockPipelineRunResponse = (
+  status: PipelineRunStatus,
+  description?: string,
+  citation?: string | null
+): PipelineRunResponse => ({
   jobReport: {
     id: 'job-123-456-789',
     status,
@@ -133,5 +137,10 @@ export const mockPipelineRunResponse = (status: PipelineRunStatus, description?:
     pipelineVersion: 1,
     toolVersion: '1.0.0',
     outputs: {},
+    ...(citation !== null && {
+      citation:
+        citation ||
+        'Data Science Services at Broad Clinical Laboratories. (2026, Jul 1). *All of Us + AnVIL Array Imputation* (v2). https://services.terra.bio/',
+    }),
   },
 });

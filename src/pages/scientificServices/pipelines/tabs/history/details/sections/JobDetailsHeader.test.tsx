@@ -75,8 +75,8 @@ describe('JobDetailsHeader', () => {
     render(<JobDetailsHeader pipelineRunResult={mockResult} />);
 
     await waitFor(() => {
-      const copyButton = screen.getByRole('button');
-      expect(copyButton).toBeInTheDocument();
+      const copyButtons = screen.getAllByRole('button');
+      expect(copyButtons.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -97,6 +97,47 @@ describe('JobDetailsHeader', () => {
     await waitFor(() => {
       expect(screen.getByText('Description')).toBeInTheDocument();
       expect(screen.getByText('No description')).toBeInTheDocument();
+    });
+  });
+
+  it('renders citation label', async () => {
+    const mockResult = mockPipelineRunResponse('SUCCEEDED');
+    render(<JobDetailsHeader pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Citation')).toBeInTheDocument();
+    });
+  });
+
+  it('renders citation text content from mock data', async () => {
+    const mockResult = mockPipelineRunResponse('SUCCEEDED');
+    render(<JobDetailsHeader pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      // Verify the citation content from the mock
+      expect(screen.getByText(/Data Science Services at Broad Clinical Laboratories/)).toBeInTheDocument();
+      expect(screen.getByText(/All of Us \+ AnVIL Array Imputation/)).toBeInTheDocument();
+      expect(screen.getByText(/https:\/\/services\.terra\.bio\//)).toBeInTheDocument();
+    });
+  });
+
+  it('renders copy button for citation', async () => {
+    const mockResult = mockPipelineRunResponse('SUCCEEDED');
+    render(<JobDetailsHeader pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      const copyButtons = screen.getAllByRole('button');
+      // There should be at least 2 copy buttons: one for job ID and one for citation
+      expect(copyButtons.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it('does not render citation section when citation is not provided', async () => {
+    const mockResult = mockPipelineRunResponse('SUCCEEDED', undefined, null);
+    render(<JobDetailsHeader pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Citation')).not.toBeInTheDocument();
     });
   });
 });
