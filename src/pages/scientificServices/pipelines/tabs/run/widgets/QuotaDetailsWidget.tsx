@@ -1,17 +1,28 @@
 import { Link, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
-import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { Pipeline, PipelineWithDetails, UserPipelineQuotaDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import { cond, DEFAULT } from 'src/libs/utils';
 import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
-import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 
 import { PipelineWidgetContainer } from './PipelineWidgetContainer';
 
-export const QuotaDetailsWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
-  const { quota, pipelineDetails, meetsMinimumQuota, isLoading } = useUserQuota(selectedPipeline);
+interface QuotaDetailsWidgetProps {
+  selectedPipeline?: Pipeline;
+  quota?: UserPipelineQuotaDetails;
+  pipelineDetails?: PipelineWithDetails;
+  meetsMinimumQuota?: boolean;
+  isLoading: boolean;
+}
 
+export const QuotaDetailsWidget = ({
+  selectedPipeline,
+  quota,
+  pipelineDetails,
+  meetsMinimumQuota,
+  isLoading,
+}: QuotaDetailsWidgetProps) => {
   return (
     <PipelineWidgetContainer title='Quota Details' marginBottom='1rem'>
       {cond(
