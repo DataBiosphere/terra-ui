@@ -22,12 +22,9 @@ import {
 } from 'src/components/job-common';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table';
-import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import colors from 'src/libs/colors';
-import { getConfig } from 'src/libs/config';
 import { withErrorReporting } from 'src/libs/error';
-import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
@@ -47,6 +44,7 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
   return h(
     InfoBox,
     {
+      key: name,
       style: { color: colors.secondary(), margin: '0.5rem' },
       tooltip: `${name} unavailable. Click to learn more.`,
       icon: iconName,
@@ -220,39 +218,18 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                     workflowId &&
                     h(Fragment, [
                       isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate)
-                        ? [
-                            deletedInfoIcon({ name: 'Job Manager', icon: 'tasks' }),
-                            deletedInfoIcon({ name: 'Workflow Dashboard', icon: 'tachometer' }),
-                          ]
+                        ? [deletedInfoIcon({ name: 'Workflow Details', icon: 'tasks' })]
                         : [
-                            h(
-                              Link,
-                              {
-                                key: 'manager',
-                                ...Utils.newTabLinkProps,
-                                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                                onClick: () =>
-                                  void Metrics().captureEvent(Events.jobManagerOpenExternal, {
-                                    workflowId,
-                                    from: 'workspace-submission-details',
-                                    ...extractWorkspaceDetails(workspace.workspace),
-                                  }),
-                                style: { margin: '0.5rem', display: 'flex' },
-                                tooltip: 'Job Manager',
-                                'aria-label': `Job Manager (for workflow ID ${workflowId})`,
-                              },
-                              [icon('tasks', { size: 18 })]
-                            ),
                             h(
                               Link,
                               {
                                 key: 'dashboard',
                                 href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
                                 style: { margin: '0.5rem', display: 'flex' },
-                                tooltip: 'Workflow Dashboard',
-                                'aria-label': `Workflow Dashboard (for workflow ID ${workflowId}}`,
+                                tooltip: 'Workflow Details',
+                                'aria-label': `Workflow Details (for workflow ID ${workflowId})`,
                               },
-                              [icon('tachometer', { size: 18 })]
+                              [icon('tasks', { size: 18 })]
                             ),
                           ],
                       inputName &&
