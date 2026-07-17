@@ -74,14 +74,15 @@ const InputOutputModal = ({ title, jsonData, sections = undefined, onDismiss, sa
                     cellRenderer: ({ rowIndex }) => {
                       let output = [];
                       const targetData = dataArray[rowIndex][1];
+                      const displayValue = (value) => (_.isObject(value) ? JSON.stringify(value) : value);
                       if (Array.isArray(targetData)) {
                         output = targetData.map((item, index) => {
                           const key = `output-${rowIndex}-item-${index}`;
-                          return isAzureUri(item) ? renderBlobLink(item, key) : span({ key }, item);
+                          return isAzureUri(item) ? renderBlobLink(item, key) : span({ key }, displayValue(item));
                         });
                       } else {
                         const key = `output-${rowIndex}-item`;
-                        output.push(isAzureUri(targetData) ? renderBlobLink(targetData, key) : div({ key }, targetData));
+                        output.push(isAzureUri(targetData) ? renderBlobLink(targetData, key) : div({ key }, displayValue(targetData)));
                       }
                       return div(
                         {
