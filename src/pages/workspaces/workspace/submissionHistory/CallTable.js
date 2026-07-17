@@ -288,6 +288,7 @@ const CallTable = ({
                     h(
                       Link,
                       {
+                        key: 'batch',
                         ...Utils.newTabLinkProps,
                         href: batchJobUrl,
                         style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
@@ -299,12 +300,13 @@ const CallTable = ({
                     h(
                       Link,
                       {
+                        key: 'execDir',
                         ...Utils.newTabLinkProps,
                         href: executionDirUrl,
                         style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
                         tooltip: 'Execution Directory',
                       },
-                      [icon('folder', { size: 18, 'aria-label': 'Execution directory' })]
+                      [icon('folder-open', { size: 18, 'aria-label': 'Execution directory' })]
                     ),
                   showInputsOutputs &&
                     h(
@@ -315,7 +317,7 @@ const CallTable = ({
                         tooltip: 'Inputs & Outputs',
                         onClick: () => showInputOutputModal('Inputs & Outputs', inputs, outputs),
                       },
-                      [icon('view-list', { size: 18, 'aria-label': 'View task inputs and outputs' })]
+                      [icon('listAlt', { size: 18, 'aria-label': 'View task inputs and outputs' })]
                     ),
                 ]);
               },
