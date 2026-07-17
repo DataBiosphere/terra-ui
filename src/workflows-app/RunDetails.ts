@@ -397,7 +397,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
             loadCallCacheDiff,
             loadCallCacheMetadata,
             defaultFailedFilter: workflowMetadata?.status?.toLocaleLowerCase().includes('failed'),
-            isRendered: !_.isEmpty(callObjects),
             showLogModal,
             showTaskDataModal,
             callObjects,

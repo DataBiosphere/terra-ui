@@ -23,7 +23,7 @@ export const getFilenameFromAzureBlobPath = (blobPath) => {
   return _.isString(blobPath) ? blobPath.substring(blobPath.lastIndexOf('/') + 1) : '';
 };
 
-const InputOutputModal = ({ title, jsonData, sections, onDismiss, sasToken, workspaceId }) => {
+const InputOutputModal = ({ title, jsonData, sections = undefined, onDismiss, sasToken, workspaceId }) => {
   // Link to download the blob file
   const renderBlobLink = (blobPath, key = undefined) => {
     const downloadUrl = appendSASTokenIfNecessary(blobPath, sasToken, workspaceId);

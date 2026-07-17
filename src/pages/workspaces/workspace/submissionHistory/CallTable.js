@@ -132,7 +132,7 @@ const CallTable = ({
   defaultFailedFilter = false,
   showLogModal,
   showTaskDataModal,
-  showInputOutputModal,
+  showInputOutputModal = undefined,
   loadWorkflow,
   loadCallCacheDiff,
   loadCallCacheMetadata,
