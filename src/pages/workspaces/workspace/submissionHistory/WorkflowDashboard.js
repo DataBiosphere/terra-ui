@@ -26,6 +26,7 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import CallTable from 'src/pages/workspaces/workspace/submissionHistory/CallTable';
+import InputOutputModal from 'src/workflows-app/components/InputOutputModal';
 import { UriViewer } from 'src/workspace-data/data-table/uri-viewer/UriViewer';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
@@ -89,6 +90,7 @@ const WorkflowDashboard = _.flow(
   const [workflow, setWorkflow] = useState();
   const [fetchTime, setFetchTime] = useState();
   const [showLog, setShowLog] = useState(false);
+  const [taskDataModal, setTaskDataModal] = useState(undefined);
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -118,6 +120,8 @@ const WorkflowDashboard = _.flow(
         'backendStatus',
         'jobId',
         'callRoot',
+        'inputs',
+        'outputs',
       ];
       const excludeKey = [];
 
@@ -307,7 +311,18 @@ const WorkflowDashboard = _.flow(
                 !_.isEmpty(callObjects) &&
                   makeSection(
                     'Call Lists',
-                    [h(CallTable, { namespace, name, submissionId, workflowId, callObjects, loadCallCacheDiff, loadCallCacheMetadata })],
+                    [
+                      h(CallTable, {
+                        namespace,
+                        name,
+                        submissionId,
+                        workflowId,
+                        callObjects,
+                        loadCallCacheDiff,
+                        loadCallCacheMetadata,
+                        showInputOutputModal: (title, inputs, outputs) => setTaskDataModal({ title, inputs, outputs }),
+                      }),
+                    ],
                     {
                       style: { overflow: 'visible' },
                     }
@@ -324,6 +339,15 @@ const WorkflowDashboard = _.flow(
               [h(WDLViewer, { wdl })]
             ),
           showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) }),
+          taskDataModal &&
+            h(InputOutputModal, {
+              title: taskDataModal.title,
+              sections: [
+                { title: 'Inputs', jsonData: taskDataModal.inputs },
+                { title: 'Outputs', jsonData: taskDataModal.outputs },
+              ],
+              onDismiss: () => setTaskDataModal(undefined),
+            }),
         ])
     ),
   ]);

@@ -132,6 +132,7 @@ const CallTable = ({
   defaultFailedFilter = false,
   showLogModal,
   showTaskDataModal,
+  showInputOutputModal,
   loadWorkflow,
   loadCallCacheDiff,
   loadCallCacheMetadata,
@@ -273,13 +274,14 @@ const CallTable = ({
               },
             },
             {
-              size: { basis: 100, grow: 1 },
+              size: { basis: 110, grow: 1 },
               field: 'attempt',
               headerRenderer: () => h(Sortable, { sort, field: 'attempt', onSort: setSort }, ['Attempt']),
               cellRenderer: ({ rowIndex }) => {
-                const { attempt, jobId, callRoot } = filteredCallObjects[rowIndex];
+                const { attempt, jobId, callRoot, subWorkflowId, inputs, outputs } = filteredCallObjects[rowIndex];
                 const batchJobUrl = makeBatchJobUrl(jobId);
                 const executionDirUrl = callRoot?.startsWith('gs://') ? bucketBrowserUrl(callRoot.replace('gs://', '')) : undefined;
+                const showInputsOutputs = !!showInputOutputModal && _.isEmpty(subWorkflowId);
                 return div({ style: { ...basicCellTextStyle, display: 'flex', alignItems: 'center' } }, [
                   attempt,
                   batchJobUrl &&
@@ -304,11 +306,22 @@ const CallTable = ({
                       },
                       [icon('folder', { size: 18, 'aria-label': 'Execution directory' })]
                     ),
+                  showInputsOutputs &&
+                    h(
+                      Link,
+                      {
+                        key: 'io',
+                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                        tooltip: 'Inputs & Outputs',
+                        onClick: () => showInputOutputModal('Inputs & Outputs', inputs, outputs),
+                      },
+                      [icon('view-list', { size: 18, 'aria-label': 'View task inputs and outputs' })]
+                    ),
                 ]);
               },
             },
             {
-              size: { basis: 150, grow: 2 },
+              size: { basis: 140, grow: 2 },
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
