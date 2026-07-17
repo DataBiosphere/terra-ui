@@ -53,7 +53,7 @@ const InputOutputModal = ({ title, jsonData, sections = undefined, onDismiss, sa
             h(
               FlexTable,
               {
-                'aria-label': `${tableTitle} table`,
+                'aria-label': 'inputs outputs table',
                 height: tableHeight({ actualRows: dataArray.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
                 width,
                 rowCount: dataArray.length,
