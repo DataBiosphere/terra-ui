@@ -289,7 +289,7 @@ const CallTable = ({
                         ...Utils.newTabLinkProps,
                         href: batchJobUrl,
                         style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
-                        tooltip: 'GCP Batch job details',
+                        tooltip: 'GCP Batch Job',
                       },
                       [icon('cloud', { size: 18, 'aria-label': 'GCP Batch job details' })]
                     ),
@@ -300,7 +300,7 @@ const CallTable = ({
                         ...Utils.newTabLinkProps,
                         href: executionDirUrl,
                         style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
-                        tooltip: 'Execution directory',
+                        tooltip: 'Execution Directory',
                       },
                       [icon('folder', { size: 18, 'aria-label': 'Execution directory' })]
                     ),
