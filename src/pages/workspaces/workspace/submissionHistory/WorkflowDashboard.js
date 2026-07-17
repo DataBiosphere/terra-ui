@@ -116,6 +116,8 @@ const WorkflowDashboard = _.flow(
         'callCaching:result',
         'callCaching:effectiveCallCachingMode',
         'backendStatus',
+        'jobId',
+        'callRoot',
       ];
       const excludeKey = [];
 

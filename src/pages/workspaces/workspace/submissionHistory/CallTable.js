@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { bucketBrowserUrl } from 'src/auth/auth';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
@@ -31,6 +32,15 @@ export const statusFilter = (statuses) => {
 
 export const filterCallObjectsFn = (searchText, sort, statuses) =>
   _.flow(taskNameFilter(searchText), statusFilter(statuses), _.sortBy(sort.field), sort.direction === 'asc' ? _.identity : _.reverse);
+
+// Cromwell reports jobId as the full Batch resource name, e.g.
+// `projects/terra-bb519a4d/locations/us-central1/jobs/job-fe6d19c1-helloworldecho-1-0f9d2497`.
+export const makeBatchJobUrl = (jobId) => {
+  const match = /^projects\/([^/]+)\/locations\/([^/]+)\/jobs\/(.+)$/.exec(jobId || '');
+  if (!match) return undefined;
+  const [, project, region, jobName] = match;
+  return `https://console.cloud.google.com/batch/jobsDetail/regions/${region}/jobs/${jobName}/details?project=${project}`;
+};
 
 // Helper method to generate data for the call table
 const generateCallTableData = (calls) => {
@@ -267,8 +277,34 @@ const CallTable = ({
               field: 'attempt',
               headerRenderer: () => h(Sortable, { sort, field: 'attempt', onSort: setSort }, ['Attempt']),
               cellRenderer: ({ rowIndex }) => {
-                const { attempt } = filteredCallObjects[rowIndex];
-                return div({ style: basicCellTextStyle }, [attempt]);
+                const { attempt, jobId, callRoot } = filteredCallObjects[rowIndex];
+                const batchJobUrl = makeBatchJobUrl(jobId);
+                const executionDirUrl = callRoot?.startsWith('gs://') ? bucketBrowserUrl(callRoot.replace('gs://', '')) : undefined;
+                return div({ style: { ...basicCellTextStyle, display: 'flex', alignItems: 'center' } }, [
+                  attempt,
+                  batchJobUrl &&
+                    h(
+                      Link,
+                      {
+                        ...Utils.newTabLinkProps,
+                        href: batchJobUrl,
+                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                        tooltip: 'GCP Batch job details',
+                      },
+                      [icon('cloud', { size: 18, 'aria-label': 'GCP Batch job details' })]
+                    ),
+                  executionDirUrl &&
+                    h(
+                      Link,
+                      {
+                        ...Utils.newTabLinkProps,
+                        href: executionDirUrl,
+                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                        tooltip: 'Execution directory',
+                      },
+                      [icon('folder', { size: 18, 'aria-label': 'Execution directory' })]
+                    ),
+                ]);
               },
             },
             {
