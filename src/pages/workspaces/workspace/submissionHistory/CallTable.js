@@ -269,7 +269,7 @@ const CallTable = ({
               headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => {
                 const { subWorkflowId } = filteredCallObjects[rowIndex];
-                return div({ style: basicCellTextStyle }, [_.isEmpty(subWorkflowId) ? 'Task' : 'Sub-workflow']);
+                return div({ style: basicCellTextStyle }, [_.isEmpty(subWorkflowId) ? 'Task' : 'Subworkflow']);
               },
             },
             {
@@ -447,7 +447,7 @@ const CallTable = ({
                                     loadWorkflow(subWorkflowId, updateWorkflowPath);
                                   },
                                 },
-                                ['View sub-workflow']
+                                ['View subworkflow']
                               ),
                             ]
                           : _.isEmpty(subWorkflowId) && [
