@@ -98,14 +98,14 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
             title='Get Quote First & Pay Later'
             description='Fill out a form and we will contact you with the quote. Once you receive that, you can choose to pay via Purchase Order or Credit Card.'
             buttonText='Request Quote'
-            onClick={() => handlePurchasePathChange('get-quote', Events.teaspoons.getQuoteCardClick)}
+            onClick={() => handlePurchasePathChange('get-quote', Events.teaspoons.hubspotFormOptionSelect)}
             isSelected={purchasePathOption === 'get-quote'}
           />
           <PurchaseOptionCard
             title='Get Quote Now & Pay with Credit Card'
             description='Before you complete the purchase you will have the opportunity to see the quote and then pay with Credit Card.'
             buttonText='View Quote & Pay Now'
-            onClick={() => handlePurchasePathChange('self-service', Events.teaspoons.selfServiceCardClick)}
+            onClick={() => handlePurchasePathChange('self-service', Events.teaspoons.stripeOptionSelect)}
             isSelected={purchasePathOption === 'self-service'}
             disabled={!stripeUrlsAvailableForPipeline}
           />

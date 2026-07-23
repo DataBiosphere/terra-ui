@@ -142,7 +142,7 @@ export const PipelineQuotaCard: React.FC<PipelineQuotaCardProps> = ({ pipeline, 
           >
             <ButtonPrimary
               onClick={() => {
-                Metrics().captureEvent(Events.teaspoons.purchaseQuotaClick, {
+                Metrics().captureEvent(Events.teaspoons.viewPurchaseQuotaOptionsClick, {
                   pipelineName: pipeline.pipelineName,
                   pipelineVersion: pipeline.pipelineVersion,
                 });

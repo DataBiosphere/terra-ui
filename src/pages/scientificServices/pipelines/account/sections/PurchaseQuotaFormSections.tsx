@@ -69,7 +69,7 @@ export const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> =
       ? stripePaymentUrlsForPipeline.academicRate
       : stripePaymentUrlsForPipeline.forProfitRate;
 
-    Metrics().captureEvent(Events.teaspoons.payWithCardClick, {
+    Metrics().captureEvent(Events.teaspoons.payWithCardButtonClick, {
       pipelineName: selectedPipeline?.pipelineName,
       pipelineVersion: selectedPipeline?.pipelineVersion,
       rateType: qualifiesForAcademicRate ? 'academic' : 'for-profit',
