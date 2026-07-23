@@ -1,7 +1,9 @@
 import { ButtonPrimary, Icon, Link, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { useUserQuota } from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
@@ -140,6 +142,11 @@ export const PipelineQuotaCard: React.FC<PipelineQuotaCardProps> = ({ pipeline, 
           >
             <ButtonPrimary
               onClick={() => {
+                Metrics().captureEvent(Events.teaspoons.purchaseQuotaClick, {
+                  pipelineName: pipeline.pipelineName,
+                  pipelineVersion: pipeline.pipelineVersion,
+                });
+
                 Nav.goToPath('pipelines-quotas', {}, { pipeline: pipeline.pipelineName });
               }}
             >

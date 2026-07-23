@@ -1,8 +1,10 @@
 import { ButtonPrimary, Icon, InfoBox, Select } from '@terra-ui-packages/components';
 import React, { useEffect, useState } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
 import {
   getStripePaymentUrls,
   TEASPOONS_HUBSPOT_URL,
@@ -66,6 +68,13 @@ export const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> =
     const paymentUrl = qualifiesForAcademicRate
       ? stripePaymentUrlsForPipeline.academicRate
       : stripePaymentUrlsForPipeline.forProfitRate;
+
+    Metrics().captureEvent(Events.teaspoons.payWithCardClick, {
+      pipelineName: selectedPipeline?.pipelineName,
+      pipelineVersion: selectedPipeline?.pipelineVersion,
+      rateType: qualifiesForAcademicRate ? 'academic' : 'for-profit',
+    });
+
     window.open(paymentUrl, '_blank');
   };
 
