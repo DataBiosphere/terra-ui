@@ -1,6 +1,8 @@
 import { ButtonSecondary, Icon, Spinner } from '@terra-ui-packages/components';
 import React, { useEffect, useRef, useState } from 'react';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import Events, { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { PurchaseOptionCard } from 'src/pages/scientificServices/pipelines/account/sections/PurchaseOptionCard';
 import {
@@ -49,7 +51,11 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
 
   // when user changes purchase path method, reset Stripe selections to ensure they actively
   // select the relevant options for the new method they choose
-  const handlePurchasePathChange = (method: PurchasePathOption) => {
+  const handlePurchasePathChange = (method: PurchasePathOption, metricEventName: MetricsEventName) => {
+    Metrics().captureEvent(metricEventName, {
+      pipelineName: selectedPipeline?.pipelineName,
+      pipelineVersion: selectedPipeline?.pipelineVersion,
+    });
     setPurchasePathOption(method);
   };
 
@@ -92,14 +98,14 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
             title='Get Quote First & Pay Later'
             description='Fill out a form and we will contact you with the quote. Once you receive that, you can choose to pay via Purchase Order or Credit Card.'
             buttonText='Request Quote'
-            onClick={() => handlePurchasePathChange('get-quote')}
+            onClick={() => handlePurchasePathChange('get-quote', Events.teaspoons.hubspotFormOptionSelect)}
             isSelected={purchasePathOption === 'get-quote'}
           />
           <PurchaseOptionCard
             title='Get Quote Now & Pay with Credit Card'
             description='Before you complete the purchase you will have the opportunity to see the quote and then pay with Credit Card.'
             buttonText='View Quote & Pay Now'
-            onClick={() => handlePurchasePathChange('self-service')}
+            onClick={() => handlePurchasePathChange('self-service', Events.teaspoons.stripeOptionSelect)}
             isSelected={purchasePathOption === 'self-service'}
             disabled={!stripeUrlsAvailableForPipeline}
           />
