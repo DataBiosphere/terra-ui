@@ -1,8 +1,12 @@
 import { Spinner } from '@terra-ui-packages/components';
 import React, { ReactNode, useEffect } from 'react';
 import FooterWrapper from 'src/components/FooterWrapper';
-import { getLocalStorage, setStatic } from 'src/libs/browser-storage';
 import * as Nav from 'src/libs/nav';
+import {
+  getInProgressPurchase,
+  InProgressPurchase,
+  storeInProgressPurchase,
+} from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
 import { pipelinesTopBar } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { ServiceUnavailableView } from 'src/pages/scientificServices/pipelines/common/ServiceUnavailableView';
 import {
@@ -14,13 +18,6 @@ interface PipelinesLayoutProps {
   activeTab?: string;
   children?: ReactNode;
   render?: (result: UsePipelinesListResult) => ReactNode;
-}
-
-interface InProgressPurchase {
-  nonProfitActivities: boolean;
-  nonProfitOrganization: boolean;
-  numSamples: number;
-  pipeline: string;
 }
 
 export const PipelinesLayout = ({ activeTab, children, render }: PipelinesLayoutProps) => {
@@ -37,19 +34,28 @@ export const PipelinesLayout = ({ activeTab, children, render }: PipelinesLayout
       [key: string]: any;
     };
 
-    // Only store if at least one relevant query param exists
+    // Only store if all relevant query params exist
     if (nonProfitActivities && nonProfitOrganization && numSamples && pipeline) {
       const inProgressPurchase: InProgressPurchase = {
         nonProfitActivities: nonProfitActivities === 'true',
         nonProfitOrganization: nonProfitOrganization === 'true',
-        numSamples: Number.parseInt(numSamples),
+        numSamples: Number.parseInt(numSamples, 10),
         pipeline,
       };
 
-      setStatic(getLocalStorage(), 'inProgressPurchase', inProgressPurchase);
+      storeInProgressPurchase(inProgressPurchase);
 
       // Clear these params from the URL bar, keeping any other query params
       Nav.updateSearch(remainingQuery);
+    }
+  }, [query]);
+
+  // If a purchase is still in progress (stored in local storage), navigate to the quota purchase
+  // page for that pipeline so its values can be pre-filled.
+  useEffect(() => {
+    const inProgressPurchase = getInProgressPurchase();
+    if (inProgressPurchase && query.pipeline !== inProgressPurchase.pipeline) {
+      Nav.goToPath('pipelines-quotas', {}, { pipeline: inProgressPurchase.pipeline });
     }
   }, [query]);
 

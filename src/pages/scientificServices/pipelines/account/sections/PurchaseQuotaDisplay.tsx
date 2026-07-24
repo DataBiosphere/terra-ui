@@ -10,7 +10,11 @@ import {
   StripePaymentFormSection,
 } from 'src/pages/scientificServices/pipelines/account/sections/PurchaseQuotaFormSections';
 import { PipelineQuotaCard } from 'src/pages/scientificServices/pipelines/common/PipelineQuotaCard';
-import { getStripePaymentUrls } from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
+import {
+  clearInProgressPurchase,
+  getInProgressPurchase,
+  getStripePaymentUrls,
+} from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineWidgetContainer';
 
@@ -26,6 +30,25 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
 
   // track previous pipeline to detect external URL changes
   const prevPipelineNameRef = useRef<string | undefined>(undefined);
+
+  const [nonProfitPrefill, setNonProfitPrefill] = useState<
+    { nonProfitOrganization: boolean; nonProfitActivities: boolean } | undefined
+  >(undefined);
+
+  // if a purchase was in progress for this pipeline (persisted through e.g. a login redirect),
+  // pre-fill its selections and clear it from local storage now that it's been consumed
+  useEffect(() => {
+    const inProgressPurchase = getInProgressPurchase();
+    if (inProgressPurchase && inProgressPurchase.pipeline === pipelineName) {
+      setPurchasePathOption('self-service');
+      setNonProfitPrefill({
+        nonProfitOrganization: inProgressPurchase.nonProfitOrganization,
+        nonProfitActivities: inProgressPurchase.nonProfitActivities,
+      });
+      clearInProgressPurchase();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // reset everything if pipelineName changed externally through URL (not from our dropdown)
   useEffect(() => {
@@ -117,6 +140,8 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
           <StripePaymentFormSection
             selectedPipeline={selectedPipeline}
             uniquePipelines={uniquePipelines}
+            initialPartOfAcademicOrNonProfitOrg={nonProfitPrefill?.nonProfitOrganization}
+            initialDoingNonProfitWork={nonProfitPrefill?.nonProfitActivities}
             onPipelineChange={(newPipeline) => {
               setSelectedPipeline(newPipeline);
               Nav.updateSearch({ pipeline: newPipeline.pipelineName });

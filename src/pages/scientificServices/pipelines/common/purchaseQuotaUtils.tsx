@@ -1,4 +1,22 @@
+import { getLocalStorage, getStatic, setStatic } from 'src/libs/browser-storage';
 import { getConfig } from 'src/libs/config';
+
+export interface InProgressPurchase {
+  nonProfitActivities: boolean;
+  nonProfitOrganization: boolean;
+  numSamples: number;
+  pipeline: string;
+}
+
+const IN_PROGRESS_PURCHASE_KEY = 'inProgressPurchase';
+
+export const getInProgressPurchase = (): InProgressPurchase | undefined =>
+  getStatic(getLocalStorage(), IN_PROGRESS_PURCHASE_KEY) as InProgressPurchase | undefined;
+
+export const storeInProgressPurchase = (inProgressPurchase: InProgressPurchase): void =>
+  setStatic(getLocalStorage(), IN_PROGRESS_PURCHASE_KEY, inProgressPurchase);
+
+export const clearInProgressPurchase = (): void => setStatic(getLocalStorage(), IN_PROGRESS_PURCHASE_KEY, undefined);
 
 type Environment = 'dev' | 'prod';
 type PipelineName = 'array_imputation' | 'low_pass_imputation';
