@@ -340,7 +340,6 @@ describe('PurchaseQuotaDisplay', () => {
       mockGetInProgressPurchase.mockReturnValue({
         nonProfitActivities: true,
         nonProfitOrganization: true,
-        numSamples: 42,
         pipeline: 'array_imputation',
       });
 
@@ -359,7 +358,6 @@ describe('PurchaseQuotaDisplay', () => {
       mockGetInProgressPurchase.mockReturnValue({
         nonProfitActivities: true,
         nonProfitOrganization: true,
-        numSamples: 42,
         pipeline: 'low_pass_imputation',
       });
 

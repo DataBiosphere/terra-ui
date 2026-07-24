@@ -168,7 +168,6 @@ describe('PipelinesLayout', () => {
         query: {
           nonProfitActivities: 'true',
           nonProfitOrganization: 'true',
-          numSamples: '100',
           pipeline: 'array_imputation',
         },
       });
@@ -178,7 +177,6 @@ describe('PipelinesLayout', () => {
       expect(mockStoreInProgressPurchase).toHaveBeenCalledWith({
         nonProfitActivities: true,
         nonProfitOrganization: true,
-        numSamples: 100,
         pipeline: 'array_imputation',
       });
       expect(mockUpdateSearch).toHaveBeenCalledWith({});
@@ -190,7 +188,6 @@ describe('PipelinesLayout', () => {
         query: {
           nonProfitActivities: 'false',
           nonProfitOrganization: 'false',
-          numSamples: '50',
           pipeline: 'low_pass_imputation',
         },
       });
@@ -200,7 +197,6 @@ describe('PipelinesLayout', () => {
       expect(mockStoreInProgressPurchase).toHaveBeenCalledWith({
         nonProfitActivities: false,
         nonProfitOrganization: false,
-        numSamples: 50,
         pipeline: 'low_pass_imputation',
       });
       expect(mockUpdateSearch).toHaveBeenCalledWith({});
@@ -211,7 +207,7 @@ describe('PipelinesLayout', () => {
         params: {},
         query: {
           pipeline: 'array_imputation',
-          numSamples: '25',
+          nonProfitActivities: 'true',
         },
       });
 
@@ -253,7 +249,6 @@ describe('PipelinesLayout', () => {
         query: {
           nonProfitActivities: 'true',
           nonProfitOrganization: 'true',
-          numSamples: '25',
           pipeline: 'array_imputation',
           someOtherParam: 'value',
           anotherParam: 'data',
@@ -265,7 +260,6 @@ describe('PipelinesLayout', () => {
       expect(mockStoreInProgressPurchase).toHaveBeenCalledWith({
         nonProfitActivities: true,
         nonProfitOrganization: true,
-        numSamples: 25,
         pipeline: 'array_imputation',
       });
       expect(mockUpdateSearch).toHaveBeenCalledWith({
@@ -290,7 +284,6 @@ describe('PipelinesLayout', () => {
       mockGetInProgressPurchase.mockReturnValue({
         nonProfitActivities: true,
         nonProfitOrganization: false,
-        numSamples: 10,
         pipeline: 'array_imputation',
       });
       mockUseRoute.mockReturnValue({ params: {}, query: {} });
@@ -304,7 +297,6 @@ describe('PipelinesLayout', () => {
       mockGetInProgressPurchase.mockReturnValue({
         nonProfitActivities: true,
         nonProfitOrganization: false,
-        numSamples: 10,
         pipeline: 'array_imputation',
       });
       mockUseRoute.mockReturnValue({ params: {}, query: { pipeline: 'array_imputation' } });

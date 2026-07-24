@@ -4,7 +4,6 @@ import { getConfig } from 'src/libs/config';
 export interface InProgressPurchase {
   nonProfitActivities: boolean;
   nonProfitOrganization: boolean;
-  numSamples: number;
   pipeline: string;
 }
 

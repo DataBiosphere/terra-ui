@@ -26,20 +26,18 @@ export const PipelinesLayout = ({ activeTab, children, render }: PipelinesLayout
   const { query } = Nav.useRoute();
 
   useEffect(() => {
-    const { nonProfitActivities, nonProfitOrganization, numSamples, pipeline, ...remainingQuery } = query as {
+    const { nonProfitActivities, nonProfitOrganization, pipeline, ...remainingQuery } = query as {
       nonProfitActivities?: string;
       nonProfitOrganization?: string;
-      numSamples?: string;
       pipeline?: string;
       [key: string]: any;
     };
 
     // Only store if all relevant query params exist
-    if (nonProfitActivities && nonProfitOrganization && numSamples && pipeline) {
+    if (nonProfitActivities && nonProfitOrganization && pipeline) {
       const inProgressPurchase: InProgressPurchase = {
         nonProfitActivities: nonProfitActivities === 'true',
         nonProfitOrganization: nonProfitOrganization === 'true',
-        numSamples: Number.parseInt(numSamples, 10),
         pipeline,
       };
 
