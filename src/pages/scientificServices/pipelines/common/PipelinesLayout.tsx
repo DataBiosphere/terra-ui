@@ -43,6 +43,8 @@ export const PipelinesLayout = ({ activeTab, children, render }: PipelinesLayout
 
       storeInProgressPurchase(inProgressPurchase);
 
+      console.log('removing');
+
       // Clear these params from the URL bar, keeping any other query params
       Nav.updateSearch(remainingQuery);
     }
