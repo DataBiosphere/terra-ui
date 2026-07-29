@@ -45,6 +45,11 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
         nonProfitOrganization: inProgressPurchase.nonProfitOrganization,
         nonProfitActivities: inProgressPurchase.nonProfitActivities,
       });
+
+      // capture that this was an interaction that began in the marketing page
+      Metrics().captureEvent(Events.teaspoons.continuePurchaseFromMarketingPage, {
+        pipelineName: selectedPipeline?.pipelineName,
+      });
       clearInProgressPurchase();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
