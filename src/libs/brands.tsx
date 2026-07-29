@@ -469,4 +469,4 @@ export const brands: Record<string, BrandConfiguration> = {
   },
 };
 
-export const defaultBrand = brands.scientificServices;
+export const defaultBrand = brands.terra;
