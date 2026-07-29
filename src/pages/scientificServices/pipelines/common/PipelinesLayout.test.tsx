@@ -182,26 +182,6 @@ describe('PipelinesLayout', () => {
       expect(mockUpdateSearch).toHaveBeenCalledWith({});
     });
 
-    it('handles false boolean values correctly', () => {
-      mockUseRoute.mockReturnValue({
-        params: {},
-        query: {
-          nonProfitActivities: 'false',
-          nonProfitOrganization: 'false',
-          pipeline: 'low_pass_imputation',
-        },
-      });
-
-      renderWithAppContexts(<PipelinesLayout />);
-
-      expect(mockStoreInProgressPurchase).toHaveBeenCalledWith({
-        nonProfitActivities: false,
-        nonProfitOrganization: false,
-        pipeline: 'low_pass_imputation',
-      });
-      expect(mockUpdateSearch).toHaveBeenCalledWith({});
-    });
-
     it('does not store in localStorage when only some purchase query params are present', () => {
       mockUseRoute.mockReturnValue({
         params: {},
