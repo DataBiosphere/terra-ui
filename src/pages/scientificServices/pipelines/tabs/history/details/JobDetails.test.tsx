@@ -10,7 +10,13 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { JobDetails } from './JobDetails';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
-jest.mock('src/libs/nav');
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getLink: jest.fn(() => '/'),
+  getPath: jest.fn(() => '/test/'),
+  useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
+  goToPath: jest.fn(),
+}));
 jest.mock('src/libs/notifications');
 jest.mock('src/pages/scientificServices/pipelines/utils/file-utils');
 jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList', () => ({

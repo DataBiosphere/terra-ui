@@ -6,8 +6,10 @@ import { renderWithAppContexts } from 'src/testing/test-utils';
 // Mock page navigation functions
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
-  getPath: jest.fn(() => '/test/'),
   getLink: jest.fn(() => '/'),
+  getPath: jest.fn(() => '/test/'),
+  useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
+  goToPath: jest.fn(),
 }));
 
 jest.mock('src/libs/state', () => ({
