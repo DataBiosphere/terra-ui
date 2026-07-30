@@ -46,9 +46,13 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
         nonProfitActivities: inProgressPurchase.nonProfitActivities,
       });
 
+      const qualifiesForAcademicRate =
+        inProgressPurchase.nonProfitOrganization && inProgressPurchase.nonProfitActivities;
+
       // capture that this was an interaction that began in the marketing page
       Metrics().captureEvent(Events.teaspoons.continuePurchaseFromMarketingPage, {
         pipelineName: selectedPipeline?.pipelineName,
+        rateType: qualifiesForAcademicRate ? 'academic' : 'for-profit',
       });
       clearInProgressPurchase();
     }
