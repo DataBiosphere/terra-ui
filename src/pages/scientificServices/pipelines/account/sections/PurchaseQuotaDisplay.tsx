@@ -39,7 +39,7 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
   // pre-fill its selections and clear it from local storage now that it's been consumed
   useEffect(() => {
     const inProgressPurchase = getInProgressPurchase();
-    if (inProgressPurchase && inProgressPurchase.pipeline === pipelineName) {
+    if (inProgressPurchase?.pipeline === pipelineName) {
       setPurchasePathOption('self-service');
       setNonProfitPrefill({
         nonProfitOrganization: inProgressPurchase.nonProfitOrganization,
