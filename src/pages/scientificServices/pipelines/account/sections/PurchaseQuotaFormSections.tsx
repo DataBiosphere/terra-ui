@@ -1,5 +1,5 @@
 import { ButtonPrimary, Icon, InfoBox, Select } from '@terra-ui-packages/components';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { LabeledCheckbox } from 'src/components/common';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
@@ -40,16 +40,20 @@ export const HubSpotFormSection = (): React.ReactElement => {
 interface StripePaymentFormSectionProps {
   selectedPipeline: Pipeline | undefined;
   uniquePipelines: Pipeline[] | undefined;
+  initialPartOfAcademicOrNonProfitOrg?: boolean;
+  initialDoingNonProfitWork?: boolean;
   onPipelineChange: (pipeline: Pipeline) => void;
 }
 
 export const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> = ({
   selectedPipeline,
   uniquePipelines,
+  initialPartOfAcademicOrNonProfitOrg = false,
+  initialDoingNonProfitWork = false,
   onPipelineChange,
 }) => {
-  const [partOfAcademicOrNonProfitOrg, setPartOfAcademicOrNonProfitOrg] = useState(false);
-  const [doingNonProfitWork, setDoingNonProfitWork] = useState(false);
+  const [partOfAcademicOrNonProfitOrg, setPartOfAcademicOrNonProfitOrg] = useState(initialPartOfAcademicOrNonProfitOrg);
+  const [doingNonProfitWork, setDoingNonProfitWork] = useState(initialDoingNonProfitWork);
   const [termsAcknowledged, setTermsAcknowledged] = useState(false);
 
   const qualifiesForAcademicRate = partOfAcademicOrNonProfitOrg && doingNonProfitWork;
@@ -78,8 +82,13 @@ export const StripePaymentFormSection: React.FC<StripePaymentFormSectionProps> =
     window.open(paymentUrl, '_blank');
   };
 
+  // Skip resetting on mount so any pre-filled selections aren't immediately cleared
+  const prevPipelineNameRef = useRef(selectedPipeline?.pipelineName);
   useEffect(() => {
-    resetSelections();
+    if (prevPipelineNameRef.current !== selectedPipeline?.pipelineName) {
+      resetSelections();
+    }
+    prevPipelineNameRef.current = selectedPipeline?.pipelineName;
   }, [selectedPipeline?.pipelineName]);
 
   return (

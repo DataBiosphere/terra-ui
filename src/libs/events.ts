@@ -98,6 +98,7 @@ const eventsList = {
     hubspotFormOptionSelect: 'teaspoons:quotas:hubspotFormOptionSelect',
     stripeOptionSelect: 'teaspoons:quotas:stripeOptionSelect',
     payWithCardButtonClick: 'teaspoons:quotas:payWithCardButtonClick',
+    continuePurchaseFromMarketingPage: 'teaspoons:quotas:continuePurchaseFromMarketingPage',
   },
   uploaderCreateCollection: 'uploader:collection:create',
   uploaderUploadMetadata: 'uploader:metadata:upload',

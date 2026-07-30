@@ -1,5 +1,7 @@
 import { screen } from '@testing-library/react';
 import React from 'react';
+import * as Nav from 'src/libs/nav';
+import * as purchaseQuotaUtils from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { mockPipeline } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { asMockedFn, renderWithAppContexts } from 'src/testing/test-utils';
@@ -11,12 +13,30 @@ jest.mock('src/libs/nav', () => ({
   getLink: jest.fn(() => '/'),
   getPath: jest.fn(() => '/test/'),
   useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
+  updateSearch: jest.fn(),
+  goToPath: jest.fn(),
+}));
+
+jest.mock('src/pages/scientificServices/pipelines/common/purchaseQuotaUtils', () => ({
+  ...jest.requireActual('src/pages/scientificServices/pipelines/common/purchaseQuotaUtils'),
+  getInProgressPurchase: jest.fn(),
+  storeInProgressPurchase: jest.fn(),
+  clearInProgressPurchase: jest.fn(),
 }));
 
 jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList');
 const mockUsePipelinesList = asMockedFn(usePipelinesList);
+const mockUseRoute = asMockedFn(Nav.useRoute);
+const mockUpdateSearch = asMockedFn(Nav.updateSearch);
+const mockGoToPath = asMockedFn(Nav.goToPath);
+const mockStoreInProgressPurchase = asMockedFn(purchaseQuotaUtils.storeInProgressPurchase);
+const mockGetInProgressPurchase = asMockedFn(purchaseQuotaUtils.getInProgressPurchase);
 
 describe('PipelinesLayout', () => {
+  beforeEach(() => {
+    mockGetInProgressPurchase.mockReturnValue(undefined);
+  });
+
   it('does not render content while loading', () => {
     mockUsePipelinesList.mockReturnValue({
       pipelines: [],
@@ -128,5 +148,151 @@ describe('PipelinesLayout', () => {
     renderWithAppContexts(<PipelinesLayout render={renderProp} />);
 
     expect(renderProp).not.toHaveBeenCalled();
+  });
+
+  describe('Query params to localStorage', () => {
+    beforeEach(() => {
+      mockStoreInProgressPurchase.mockClear();
+      mockUpdateSearch.mockClear();
+      mockUsePipelinesList.mockReturnValue({
+        pipelines: [],
+        uniquePipelines: [],
+        isLoading: false,
+        error: undefined,
+      });
+    });
+
+    it('stores query params in localStorage as inProgressPurchase object and clears them from URL', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+        query: {
+          nonProfitActivities: 'true',
+          nonProfitOrganization: 'true',
+          pipeline: 'array_imputation',
+        },
+      });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockStoreInProgressPurchase).toHaveBeenCalledWith({
+        nonProfitActivities: true,
+        nonProfitOrganization: true,
+        pipeline: 'array_imputation',
+      });
+      expect(mockUpdateSearch).toHaveBeenCalledWith({});
+    });
+
+    it('does not store in localStorage when only some purchase query params are present', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+        query: {
+          pipeline: 'array_imputation',
+          nonProfitActivities: 'true',
+        },
+      });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockStoreInProgressPurchase).not.toHaveBeenCalled();
+      expect(mockUpdateSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not store in localStorage when no relevant query params exist', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+        query: {},
+      });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockStoreInProgressPurchase).not.toHaveBeenCalled();
+      expect(mockUpdateSearch).not.toHaveBeenCalled();
+    });
+
+    it('does not store in localStorage when query params are unrelated', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+        query: {
+          someOtherParam: 'value',
+        },
+      });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockStoreInProgressPurchase).not.toHaveBeenCalled();
+      expect(mockUpdateSearch).not.toHaveBeenCalled();
+    });
+
+    it('preserves other query params when clearing purchase params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+        query: {
+          nonProfitActivities: 'true',
+          nonProfitOrganization: 'true',
+          pipeline: 'array_imputation',
+          someOtherParam: 'value',
+          anotherParam: 'data',
+        },
+      });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockStoreInProgressPurchase).toHaveBeenCalledWith({
+        nonProfitActivities: true,
+        nonProfitOrganization: true,
+        pipeline: 'array_imputation',
+      });
+      expect(mockUpdateSearch).toHaveBeenCalledWith({
+        someOtherParam: 'value',
+        anotherParam: 'data',
+      });
+    });
+  });
+
+  describe('Navigating to an in-progress purchase', () => {
+    beforeEach(() => {
+      mockGoToPath.mockClear();
+      mockUsePipelinesList.mockReturnValue({
+        pipelines: [],
+        uniquePipelines: [],
+        isLoading: false,
+        error: undefined,
+      });
+    });
+
+    it('navigates to the quota purchase page when a purchase is in progress for a different pipeline', () => {
+      mockGetInProgressPurchase.mockReturnValue({
+        nonProfitActivities: true,
+        nonProfitOrganization: false,
+        pipeline: 'array_imputation',
+      });
+      mockUseRoute.mockReturnValue({ params: {}, query: {} });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockGoToPath).toHaveBeenCalledWith('pipelines-quotas', {}, { pipeline: 'array_imputation' });
+    });
+
+    it('does not navigate when already on the in-progress purchase pipeline', () => {
+      mockGetInProgressPurchase.mockReturnValue({
+        nonProfitActivities: true,
+        nonProfitOrganization: false,
+        pipeline: 'array_imputation',
+      });
+      mockUseRoute.mockReturnValue({ params: {}, query: { pipeline: 'array_imputation' } });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockGoToPath).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when there is no purchase in progress', () => {
+      mockGetInProgressPurchase.mockReturnValue(undefined);
+      mockUseRoute.mockReturnValue({ params: {}, query: {} });
+
+      renderWithAppContexts(<PipelinesLayout />);
+
+      expect(mockGoToPath).not.toHaveBeenCalled();
+    });
   });
 });
