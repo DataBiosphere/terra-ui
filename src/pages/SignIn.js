@@ -23,7 +23,7 @@ const styles = {
 const SignIn = () => {
   return h(HeroWrapper, { showMenu: true, showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
-      div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
+      div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem', fontWeight: isScientificServices() ? 'bold' : 'normal' } }, [
         'If you are a new user or returning user, click sign in to continue.',
       ]),
       h(SignInButton),
