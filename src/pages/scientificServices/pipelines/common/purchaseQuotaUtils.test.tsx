@@ -34,8 +34,13 @@ describe('purchaseQuotaUtils', () => {
         });
       });
 
-      it('returns undefined for low_pass_imputation (not configured in dev)', () => {
-        expect(getStripePaymentUrls('low_pass_imputation')).toBeUndefined();
+      it('returns correct Stripe URLs for low_pass_imputation', () => {
+        const result = getStripePaymentUrls('low_pass_imputation');
+
+        expect(result).toEqual({
+          academicRate: 'https://buy.stripe.com/test_6oU3cw6Gia5c5cn2aH5wI03',
+          forProfitRate: 'https://buy.stripe.com/test_9B6dRa1lY4KS34f9D95wI04',
+        });
       });
 
       it('returns undefined for unknown pipeline', () => {
@@ -61,8 +66,13 @@ describe('purchaseQuotaUtils', () => {
         });
       });
 
-      it('returns undefined for low_pass_imputation (not configured in prod)', () => {
-        expect(getStripePaymentUrls('low_pass_imputation')).toBeUndefined();
+      it('returns correct Stripe URLs for array_imputation', () => {
+        const result = getStripePaymentUrls('low_pass_imputation');
+
+        expect(result).toEqual({
+          academicRate: 'https://pay.broadclinicallabs.org/b/6oUfZjafw36IasHbyT8k802',
+          forProfitRate: 'https://pay.broadclinicallabs.org/b/7sYbJ3evMePqeIX6ez8k803',
+        });
       });
 
       it('returns undefined for unknown pipeline', () => {
