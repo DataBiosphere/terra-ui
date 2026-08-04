@@ -2,8 +2,26 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { TEASPOONS_SHARE_GROUP_DEV } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { renderWithAppContexts } from 'src/testing/test-utils';
 
 import { GcsFileInput } from './GcsFileInput';
+
+jest.mock('src/profile/personal-info/useProxyGroup', () => ({
+  useProxyGroup: () => ({
+    proxyGroup: {
+      status: 'Ready' as const,
+      state: 'PROXY_1234567890@example.com',
+    },
+  }),
+}));
+
+jest.mock('src/libs/state', () => ({
+  ...jest.requireActual('src/libs/state'),
+  getTerraUser: () => ({
+    email: 'test@example.com',
+  }),
+}));
 
 const mockInput: PipelineInput = {
   name: 'multiSampleVcf',
@@ -201,6 +219,91 @@ describe('GcsFileInput', () => {
       await userEvent.type(input, testPath);
 
       expect(input.value).toBe(testPath);
+    });
+  });
+
+  describe('sharing instructions', () => {
+    it('renders the sharing instructions button', () => {
+      render(<GcsFileInput {...defaultProps} />);
+      expect(screen.getByText('View sharing instructions')).toBeInTheDocument();
+    });
+
+    it('expands sharing instructions when button is clicked', async () => {
+      renderWithAppContexts(<GcsFileInput {...defaultProps} />);
+      const button = screen.getByText('View sharing instructions');
+
+      await userEvent.click(button);
+
+      expect(
+        screen.getByText(
+          'To ensure that your input file can be properly accessed by Broad Data Science Services, please share your input file with the following accounts:'
+        )
+      ).toBeInTheDocument();
+      expect(screen.getByText('Service account')).toBeInTheDocument();
+      expect(screen.getByText('Your proxy group')).toBeInTheDocument();
+    });
+
+    it('displays service account email', async () => {
+      renderWithAppContexts(<GcsFileInput {...defaultProps} />);
+      const button = screen.getByText('View sharing instructions');
+
+      await userEvent.click(button);
+
+      expect(screen.getByText(TEASPOONS_SHARE_GROUP_DEV)).toBeInTheDocument();
+    });
+
+    it('displays proxy group email', async () => {
+      renderWithAppContexts(<GcsFileInput {...defaultProps} />);
+      const button = screen.getByText('View sharing instructions');
+
+      await userEvent.click(button);
+
+      expect(screen.getByText('PROXY_1234567890@example.com')).toBeInTheDocument();
+    });
+
+    it('renders the "Learn more" link', async () => {
+      renderWithAppContexts(<GcsFileInput {...defaultProps} />);
+      const button = screen.getByText('View sharing instructions');
+
+      await userEvent.click(button);
+
+      expect(screen.getByText('Learn more')).toBeInTheDocument();
+      expect(screen.getByText(/about file sharing requirements/)).toBeInTheDocument();
+    });
+
+    it('renders checkbox for sharing confirmation', () => {
+      renderWithAppContexts(<GcsFileInput {...defaultProps} />);
+
+      const checkbox = screen.getByRole('checkbox', {
+        name: /I have shared this file with Broad Data Science Services/,
+      });
+      expect(checkbox).toBeInTheDocument();
+      expect(checkbox).not.toBeChecked();
+    });
+
+    it('calls onSharingConfirmationChange when checkbox is toggled', async () => {
+      const onSharingConfirmationChange = jest.fn();
+      const { rerender } = renderWithAppContexts(
+        <GcsFileInput
+          {...defaultProps}
+          onSharingConfirmationChange={onSharingConfirmationChange}
+          sharingConfirmed={false}
+        />
+      );
+
+      const checkbox = screen.getByRole('checkbox', {
+        name: /I have shared this file with Broad Data Science Services/,
+      });
+
+      await userEvent.click(checkbox);
+      expect(onSharingConfirmationChange).toHaveBeenLastCalledWith(true);
+
+      rerender(
+        <GcsFileInput {...defaultProps} onSharingConfirmationChange={onSharingConfirmationChange} sharingConfirmed />
+      );
+
+      await userEvent.click(checkbox);
+      expect(onSharingConfirmationChange).toHaveBeenLastCalledWith(false);
     });
   });
 });

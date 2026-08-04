@@ -40,6 +40,8 @@ jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
   getLink: jest.fn(() => '/'),
+  useRoute: jest.fn().mockImplementation(() => ({ params: {}, query: {} })),
+  updateSearch: jest.fn(),
 }));
 
 beforeEach(() => {
@@ -50,6 +52,7 @@ beforeEach(() => {
   } as any);
   mockUsePipelinesList.mockReturnValue({
     pipelines: [mockPipeline('array_imputation')],
+    uniquePipelines: [mockPipeline('array_imputation')],
     isLoading: false,
     error: undefined,
   });

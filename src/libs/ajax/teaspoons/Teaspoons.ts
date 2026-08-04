@@ -2,8 +2,9 @@ import { jsonBody } from '@terra-ui-packages/data-client-core';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
 import { authOpts } from 'src/auth/auth-session';
-import { fetchTeaspoons } from 'src/libs/ajax/ajax-common';
+import { fetchTeaspoons, fetchTeaspoonsPublic } from 'src/libs/ajax/ajax-common';
 import {
+  DataDeliveryJobReport,
   GetPipelineRunsResponse,
   PipelineList,
   PipelineRunOutputSignedUrlsResponse,
@@ -11,6 +12,7 @@ import {
   PipelineWithDetails,
   PreparePipelineRunResponse,
   StartPipelineResponse,
+  TeaspoonsDocType,
   UserPipelineQuotaDetails,
 } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { FilterValues } from 'src/pages/scientificServices/pipelines/tabs/history/controls/TableFilters';
@@ -70,10 +72,11 @@ export const Teaspoons = (signal?: AbortSignal) => ({
     pipelineName: string,
     pipelineVersion: number,
     pipelineInputs: Record<string, any>,
-    description: string
+    description: string,
+    agreeToTerms: boolean
   ): Promise<PreparePipelineRunResponse> => {
     const res = await fetchTeaspoons(
-      'pipelineruns/v2/prepare',
+      'pipelineruns/v3/prepare',
       _.mergeAll([
         authOpts(),
         jsonBody({
@@ -83,6 +86,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
           pipelineInputs,
           description,
           useResumableUploads: true,
+          agreeToTerms,
         }),
         { signal, method: 'POST' },
       ])
@@ -105,7 +109,7 @@ export const Teaspoons = (signal?: AbortSignal) => ({
   },
 
   getPipelineRunResult: async (jobId: string): Promise<PipelineRunResponse> => {
-    const res = await fetchTeaspoons(`pipelineruns/v2/result/${jobId}`, _.merge(authOpts(), { signal }));
+    const res = await fetchTeaspoons(`pipelineruns/v3/result/${jobId}`, _.merge(authOpts(), { signal }));
     return res.json();
   },
 
@@ -115,6 +119,26 @@ export const Teaspoons = (signal?: AbortSignal) => ({
       _.merge(authOpts(), { signal })
     );
     return res.json();
+  },
+
+  deliverData: async (pipelineRunId: string, gcsPath: string): Promise<DataDeliveryJobReport> => {
+    const res = await fetchTeaspoons(
+      `pipelineruns/v1/result/${pipelineRunId}/output/deliver-to-cloud`,
+      _.mergeAll([
+        authOpts(),
+        jsonBody({
+          destinationGcsPath: gcsPath,
+        }),
+        { signal, method: 'POST' },
+      ])
+    );
+
+    return res.json();
+  },
+
+  getDocs: async (docKey: TeaspoonsDocType): Promise<string> => {
+    const res = await fetchTeaspoonsPublic(`docs?docType=${docKey}`, { signal });
+    return res.text();
   },
 });
 

@@ -1,6 +1,7 @@
 import { Spinner } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 import { ClipboardButton } from 'src/components/ClipboardButton';
+import { MarkdownViewer } from 'src/components/markdown';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
@@ -27,9 +28,7 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
     pipelineRunResult.pipelineRunReport.pipelineVersion
   );
 
-  return isLoadingPipelineDetails ? (
-    <Spinner />
-  ) : (
+  return (
     <div
       style={{
         width: '100%',
@@ -46,27 +45,35 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ flex: 1 }}>
             <h2>
-              {pipelineDetails && (
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <AoUStylizedString text={pipelineDetails.displayName} />
-                  <span
-                    style={{
-                      backgroundColor: 'white',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '20px',
-                      fontSize: 12,
-                      marginLeft: '0.5rem',
-                      fontWeight: 500,
-                      border: '1px solid #d6d9dc',
-                    }}
-                  >
-                    Version {pipelineRunResult.pipelineRunReport.pipelineVersion}
-                  </span>
+              {isLoadingPipelineDetails ? (
+                <div style={{ display: 'flex', flexDirection: 'row', gap: '0.5rem', alignItems: 'center' }}>
+                  <Spinner size={20} /> Loading pipeline details...
                 </div>
+              ) : (
+                pipelineDetails && (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <AoUStylizedString text={pipelineDetails.displayName} />
+                    <span
+                      style={{
+                        backgroundColor: 'white',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '20px',
+                        fontSize: 12,
+                        marginLeft: '0.5rem',
+                        fontWeight: 500,
+                        border: '1px solid #d6d9dc',
+                      }}
+                    >
+                      Version {pipelineRunResult.pipelineRunReport.pipelineVersion}
+                    </span>
+                  </div>
+                )
               )}
             </h2>
-            {pipelineDetails && pipelineDetails.description && (
-              <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>{pipelineDetails.description}</div>
+            {!isLoadingPipelineDetails && pipelineDetails?.description && (
+              <div style={{ margin: '1rem 0rem', color: colors.dark(0.8) }}>
+                <AoUStylizedString text={pipelineDetails.description} />
+              </div>
             )}
           </div>
 
@@ -109,6 +116,25 @@ export const JobDetailsHeader = ({ pipelineRunResult }: JobDetailsHeaderProps) =
         />
 
         <HeaderItem label='Description' value={pipelineRunResult.jobReport.description || 'No description'} />
+        {pipelineRunResult.pipelineRunReport.citation && (
+          <HeaderItem
+            label='Citation'
+            value={
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <MarkdownViewer
+                  renderers={{
+                    link: (_href: string, _title: string, text: string) => text, // renders links as plaintext
+                    heading: (text: string, level: number) => `<h${level} style="margin-bottom: 0">${text}</h${level}>`,
+                  }}
+                  style={{ color: colors.dark(0.7), fontSize: 14 }}
+                >
+                  {pipelineRunResult.pipelineRunReport.citation}
+                </MarkdownViewer>
+                <ClipboardButton style={{ marginLeft: '0.5rem' }} text={pipelineRunResult.pipelineRunReport.citation} />
+              </div>
+            }
+          />
+        )}
       </div>
     </div>
   );

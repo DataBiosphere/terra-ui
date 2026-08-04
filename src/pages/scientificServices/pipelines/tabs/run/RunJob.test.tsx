@@ -1,9 +1,11 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons, TeaspoonsContract } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { Pipeline, PipelineInput, PipelineList } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
+import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import {
   mockPipelineWithDetails,
   mockUserPipelineQuotaDetails,
@@ -20,11 +22,17 @@ import { RunJob } from './RunJob';
 // Mock dependencies
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
 
+jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelinesList', () => ({
+  usePipelinesList: jest.fn(),
+}));
+
 // Mock page navigation functions
 jest.mock('src/libs/nav', () => ({
   ...jest.requireActual('src/libs/nav'),
   getPath: jest.fn(() => '/test/'),
-  getLink: jest.fn(() => '/'),
+  getLink: jest.fn(() => '/#pipelines/terms-of-service?document=termsOfService'),
+  useRoute: jest.fn(() => ({ query: {} })),
+  updateSearch: jest.fn(),
 }));
 
 jest.mock('src/libs/notifications', () => ({
@@ -65,10 +73,11 @@ Object.defineProperty(global, 'crypto', {
 });
 
 // Helper function to select local file input and upload a file
-const selectAndUploadLocalFile = async (fileName: string) => {
-  const selectLocalInputButton = screen.getByText('Upload File');
-  await userEvent.click(selectLocalInputButton);
-  const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+const selectAndUploadLocalFile = async (fileName: string, inputDisplayName: string) => {
+  const fileSection = screen.getByText(`Select a ${inputDisplayName}`).closest('div');
+  const uploadButton = within(fileSection!).getByText('Upload File');
+  await userEvent.click(uploadButton);
+  const fileInput = fileSection!.querySelector('input[type="file"]') as HTMLInputElement;
   const file = new File(['test'], fileName, { type: 'text/plain' });
   await waitFor(() => userEvent.upload(fileInput, file));
   expect(fileInput.files?.[0]).toBe(file);
@@ -105,6 +114,12 @@ describe('RunJob Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     asMockedFn(Teaspoons).mockReturnValue(mockTeaspoonsContract);
+    asMockedFn(usePipelinesList).mockReturnValue({
+      pipelines: [mockPipeline],
+      uniquePipelines: [mockPipeline],
+      isLoading: false,
+      error: undefined,
+    });
     asMockedFn(fetch).mockResolvedValue({
       ok: true,
       status: 200,
@@ -128,24 +143,62 @@ describe('RunJob Component', () => {
     expect(screen.getByText(/Enter description/)).toBeInTheDocument();
     expect(screen.getByText('Select a multi-sample VCF file')).toBeInTheDocument();
     expect(screen.getByText('Allow chunk failures')).toBeInTheDocument();
-
-    // Wait for pipeline options to load
-    await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
-    });
+    expect(screen.getByText('Select a manifest file')).toBeInTheDocument();
+    expect(screen.getByText(/I have read and agree to /)).toBeInTheDocument();
   });
 
   it('loads and displays pipeline options', async () => {
     render(<RunJob />);
 
     await waitFor(() => {
-      expect(mockTeaspoonsContract.getPipelines).toHaveBeenCalled();
+      expect(screen.getByText('Array Imputation - v1')).toBeInTheDocument();
     });
 
     // Check that pipeline details are fetched for each pipeline
     await waitFor(() => {
       expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
     });
+  });
+
+  it('updates the pipeline description when selected pipeline changes', async () => {
+    const user = userEvent.setup();
+
+    const pipeline1: Pipeline = {
+      pipelineName: 'array_imputation',
+      displayName: 'Array Imputation',
+      pipelineVersion: 1,
+      description: 'First pipeline description',
+    };
+
+    const pipeline2: Pipeline = {
+      pipelineName: 'array_imputation',
+      displayName: 'Array Imputation',
+      pipelineVersion: 2,
+      description: 'Second pipeline description',
+    };
+
+    asMockedFn(usePipelinesList).mockReturnValue({
+      pipelines: [pipeline1, pipeline2],
+      uniquePipelines: [pipeline1, pipeline2],
+      isLoading: false,
+      error: undefined,
+    });
+
+    render(<RunJob />);
+
+    expect(screen.getByText('First pipeline description')).toBeInTheDocument();
+
+    const selectInput = screen.getByLabelText(/selected pipeline/i);
+    await user.click(selectInput);
+
+    const secondPipelineOption = screen.getByText('Array Imputation - v2');
+    await user.click(secondPipelineOption);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second pipeline description')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('First pipeline description')).not.toBeInTheDocument();
   });
 
   it('allows user to select a pipeline and enter form data', async () => {
@@ -185,7 +238,7 @@ describe('RunJob Component', () => {
     expect(allowChunkFailuresCheckbox).toBeChecked();
   });
 
-  it('handles file selection and triggers upload process', async () => {
+  it('handles VCF file selection and triggers upload process', async () => {
     render(<RunJob />);
 
     // Wait for submit button to appear, indicating page has loaded
@@ -194,8 +247,9 @@ describe('RunJob Component', () => {
     });
 
     // clicks the Upload File button for local uploads
-    const selectLocalInputButton = screen.getByText('Upload File');
-    await userEvent.click(selectLocalInputButton);
+    const vcfFileSection = screen.getByText('Select a multi-sample VCF file').closest('div');
+    const vcfUploadButton = within(vcfFileSection!).getByText('Upload File');
+    await userEvent.click(vcfUploadButton);
 
     // Get the file input directly (it should be present even without pipeline selected)
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -205,10 +259,30 @@ describe('RunJob Component', () => {
     // Full integration testing would require more complex Select component mocking
   });
 
-  it('validates required fields before allowing submission', async () => {
+  // The test just verifies the manifest file input exists and can be interacted with
+  // Full integration testing would require more complex Select component mocking
+  it('handles manifest file selection and triggers upload process', async () => {
     render(<RunJob />);
 
     // Wait for submit button to appear, indicating page has loaded
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // clicks the Upload File button for local uploads
+    const manifestFileSection = screen.getByText('Select a manifest file').closest('div');
+    const manifestUploadButton = within(manifestFileSection!).getByText('Upload File');
+    await userEvent.click(manifestUploadButton);
+
+    // Get the file input directly (it should be present even without pipeline selected)
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    expect(fileInput).toBeInTheDocument();
+  });
+
+  it('validates required fields before allowing submission', async () => {
+    render(<RunJob />);
+
+    // Wait for submit button to appear
     await waitFor(() => {
       expect(screen.getByText('Submit')).toBeInTheDocument();
     });
@@ -231,13 +305,124 @@ describe('RunJob Component', () => {
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
 
     // select a valid file
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Still disabled because Terms of Service checkbox is not checked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await userEvent.click(tosCheckbox);
 
     // the submit button should be enabled now that all required fields are filled and valid
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
   });
 
-  it('disables the submit button if an invalid file type is selected', async () => {
+  it('disables the submit button if multiSampleVCF cloud file is selected without sharing confirmation', async () => {
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    // Wait for submit button to appear
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Fill in the output prefix (required field)
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await user.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // Select cloud storage as the source for multi-sample VCF file
+    const vcfFileSection = screen.getByText('Select a multi-sample VCF file').closest('div');
+    const selectCloudInputButton = within(vcfFileSection!).getByText('Google Cloud Storage');
+    await user.click(selectCloudInputButton);
+
+    // Enter a valid GCS path
+    const gcsPathInput = screen.getByPlaceholderText('gs://bucket/path/to/file.vcf.gz');
+    await user.type(gcsPathInput, 'gs://my-bucket/data/multiSampleVcf.vcf.gz');
+
+    // At this point, submit button should still be disabled because sharing confirmation is unchecked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Now check the sharing confirmation checkbox
+    const sharingConfirmationCheckbox = screen.getByRole('checkbox', {
+      name: /I have shared this file with Broad Data Science Services/,
+    });
+    await user.click(sharingConfirmationCheckbox);
+
+    // Still disabled because Terms of Service checkbox is not checked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
+
+    // Now the submit button should be enabled
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the submit button if manifest cloud file is selected without sharing confirmation', async () => {
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    // Wait for submit button to appear
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Fill in the output prefix (required field)
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await user.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // Fill in the required multi-sample VCF file input with a local file (required field)
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Select cloud storage as the source for manifest file
+    const manifestFileSection = screen.getByText('Select a manifest file').closest('div');
+    const selectCloudInputButton = within(manifestFileSection!).getByText('Google Cloud Storage');
+    await user.click(selectCloudInputButton);
+
+    // Enter a valid GCS path
+    const gcsPathInput = screen.getByPlaceholderText('gs://bucket/path/to/file.tsv');
+    await user.type(gcsPathInput, 'gs://my-bucket/data/manifest.tsv');
+
+    // At this point, submit button should still be disabled because sharing confirmation is unchecked
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+
+    // Now check the sharing confirmation checkbox
+    const sharingConfirmationCheckbox = screen.getByRole('checkbox', {
+      name: /I have shared this file with Broad Data Science Services/,
+    });
+    await user.click(sharingConfirmationCheckbox);
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
+
+    // Now the submit button should be enabled
+    expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('disables the submit button if an invalid file type is selected for multi-sample VCF', async () => {
     render(<RunJob />);
 
     // Wait for submit button to appear, indicating page has loaded
@@ -257,7 +442,37 @@ describe('RunJob Component', () => {
     expect(outputPrefixInput).toHaveValue('test_output');
 
     // select an invalid text file for vcf input
-    await selectAndUploadLocalFile('test.txt');
+    await selectAndUploadLocalFile('test.txt', 'multi-sample VCF file');
+
+    // The submit button should remain disabled due to invalid file type
+    expect(submitButton).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText(/Invalid file type/)).toBeInTheDocument();
+  });
+
+  it('disables the submit button if an invalid file type is selected for manifest file', async () => {
+    render(<RunJob />);
+
+    // Wait for submit button to appear, indicating page has loaded
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    const submitButton = screen.getByText('Submit');
+
+    // Fill in the output prefix, since it's required
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await userEvent.type(outputPrefixInput, 'test_output');
+    expect(outputPrefixInput).toHaveValue('test_output');
+
+    // Fill in the required multi-sample VCF file input with a local file (required field)
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // select an invalid text file for manifest input
+    await selectAndUploadLocalFile('test.txt', 'manifest file');
 
     // The submit button should remain disabled due to invalid file type
     expect(submitButton).toHaveAttribute('aria-disabled', 'true');
@@ -288,7 +503,13 @@ describe('RunJob Component', () => {
     await user.type(outputPrefixInput, 'test_output');
     expect(outputPrefixInput).toHaveValue('test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -302,7 +523,8 @@ describe('RunJob Component', () => {
         outputBasename: 'test_output',
         // minDr2ForInclusion not present
       },
-      expect.any(String)
+      expect.any(String),
+      true
     );
   });
 
@@ -321,7 +543,13 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -356,7 +584,13 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -393,7 +627,13 @@ describe('RunJob Component', () => {
     const outputPrefixInput = screen.getByLabelText('output basename text input');
     await user.type(outputPrefixInput, 'test_output');
 
-    await selectAndUploadLocalFile('test.vcf.gz');
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
 
     const submitButton = screen.getByText('Submit');
     await waitFor(() => user.click(submitButton));
@@ -405,9 +645,276 @@ describe('RunJob Component', () => {
     // Verify submit button is re-enabled after error
     expect(submitButton).not.toHaveAttribute('aria-disabled', 'true');
   });
+
+  it('resets Terms of Service checkbox when "Run another job" is clicked', async () => {
+    asMockedFn(preparePipelineRun).mockResolvedValue({
+      jobId: 'mock-job-id',
+      fileInputUploadUrls: {
+        multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+    });
+    asMockedFn(uploadPipelineFiles).mockResolvedValue(undefined);
+    asMockedFn(startPipelineRun).mockResolvedValue('mock-job-id');
+
+    const user = userEvent.setup();
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Fill in required fields
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    await user.type(outputPrefixInput, 'test_output');
+
+    await selectAndUploadLocalFile('test.vcf.gz', 'multi-sample VCF file');
+
+    // Check the Terms of Service checkbox
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    await user.click(tosCheckbox);
+    expect(tosCheckbox).toBeChecked();
+
+    // Submit the form
+    const submitButton = screen.getByText('Submit');
+    await user.click(submitButton);
+
+    // Wait for job submission to complete
+    await waitFor(() => {
+      expect(screen.getByText('Run another job')).toBeInTheDocument();
+    });
+
+    // Click "Run another job" button
+    const runAnotherJobButton = screen.getByText('Run another job');
+    await user.click(runAnotherJobButton);
+
+    // Verify that ToS checkbox is unchecked after reset
+    await waitFor(() => {
+      const resetTosCheckbox = screen.getByRole('checkbox', {
+        name: /I have read and agree to the/,
+      });
+      expect(resetTosCheckbox).not.toBeChecked();
+    });
+
+    // Verify submit button is disabled again
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toHaveAttribute('aria-disabled', 'true');
+    });
+  });
+
+  it('displays Terms of Service link that opens in a new tab', async () => {
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Find the ToS link
+    const tosLink = screen.getByText('Data Science Services Terms of Service and Acceptable Use Policy');
+    expect(tosLink).toBeInTheDocument();
+    expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');
+    expect(tosLink.closest('a')).toHaveAttribute('href', '/#pipelines/terms-of-service?document=termsOfService');
+    expect(tosLink.closest('a')).toHaveAttribute('target', '_blank');
+    expect(tosLink.closest('a')).toHaveAttribute('rel', 'noopener noreferrer');
+
+    // Verify Nav.getLink was called with correct parameters
+    expect(Nav.getLink).toHaveBeenCalledWith(
+      'scientific-services-terms-of-service',
+      {},
+      { document: 'termsOfService' }
+    );
+  });
+
+  it('displays insufficient quota warning and disables all input fields when user lacks quota', async () => {
+    // Mock insufficient quota: user has consumed most of their quota
+    const insufficientQuotaDetails = {
+      pipelineName: 'array_imputation',
+      quotaLimit: 2000,
+      quotaConsumed: 2000,
+      quotaUnits: 'units',
+    };
+
+    asMockedFn(mockTeaspoonsContract.getQuotaForPipeline).mockResolvedValue(insufficientQuotaDetails);
+
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Submit')).toHaveAttribute('aria-disabled', 'true');
+
+    expect(screen.getByText(/You do not have enough quota remaining to run this pipeline/)).toBeInTheDocument();
+
+    const outputPrefixInput = screen.getByLabelText('output basename text input');
+    expect(outputPrefixInput).toBeDisabled();
+
+    const minDr2Input = screen.getByLabelText('minimum imputation quality for inclusion float input');
+    expect(minDr2Input).toBeDisabled();
+
+    const descriptionTextArea = screen.getByLabelText('description');
+    expect(descriptionTextArea).toBeDisabled();
+
+    const allowChunkFailuresCheckbox = screen.getByLabelText('Allow chunk failures');
+    expect(allowChunkFailuresCheckbox).toHaveAttribute('disabled');
+
+    const fileInputs = screen.getAllByText(/Select a/);
+    expect(fileInputs.length).toBeGreaterThan(0);
+
+    const tosCheckbox = screen.getByRole('checkbox', {
+      name: /I have read and agree to the/,
+    });
+    expect(tosCheckbox).toHaveAttribute('disabled');
+  });
+
+  it('displays "purchase quota" link in insufficient quota warning with pipeline-specific URL', async () => {
+    // Mock insufficient quota
+    const insufficientQuotaDetails = {
+      pipelineName: 'array_imputation',
+      quotaLimit: 2000,
+      quotaConsumed: 2000,
+      quotaUnits: 'units',
+    };
+
+    asMockedFn(mockTeaspoonsContract.getQuotaForPipeline).mockResolvedValue(insufficientQuotaDetails);
+
+    render(<RunJob />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Submit')).toBeInTheDocument();
+    });
+
+    // Verify the warning message is displayed
+    expect(screen.getByText(/You do not have enough quota remaining to run this pipeline/)).toBeInTheDocument();
+
+    // Find the "purchase quota" link
+    const purchaseQuotaLink = screen.getByText('purchase quota');
+    expect(purchaseQuotaLink).toBeInTheDocument();
+    expect(purchaseQuotaLink.closest('a')).toHaveAttribute('href');
+
+    // Verify Nav.getLink was called with the correct pipeline name parameter
+    expect(Nav.getLink).toHaveBeenCalledWith('pipelines-quotas');
+  });
+
+  describe('Query parameter pre-selection', () => {
+    const lowPassPipeline: Pipeline = {
+      pipelineName: 'low_pass_imputation',
+      displayName: 'Low Pass Imputation',
+      pipelineVersion: 1,
+      description: 'Test pipeline for low pass imputation',
+    };
+
+    const lowPassPipelineV2: Pipeline = {
+      pipelineName: 'low_pass_imputation',
+      displayName: 'Low Pass Imputation',
+      pipelineVersion: 2,
+      description: 'Test pipeline for low pass imputation v2',
+    };
+
+    const multiplePipelines = [mockPipeline, lowPassPipelineV2, lowPassPipeline];
+
+    beforeEach(() => {
+      asMockedFn(usePipelinesList).mockReturnValue({
+        pipelines: multiplePipelines,
+        uniquePipelines: [mockPipeline, lowPassPipeline],
+        isLoading: false,
+        error: undefined,
+      });
+      asMockedFn(mockTeaspoonsContract.getPipelineDetails).mockResolvedValue(
+        mockPipelineWithDetails('low_pass_imputation')
+      );
+    });
+
+    it('defaults to the first pipeline when no query params are provided', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({ query: {} } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Array Imputation - v1')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+      });
+    });
+
+    it('pre-selects a pipeline by pipelineName query param', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'low_pass_imputation' },
+      } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 2);
+      });
+    });
+
+    it('pre-selects the correct version when both pipelineName and version query params are provided', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'low_pass_imputation', version: '2' },
+      } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 2);
+      });
+    });
+
+    it('falls back to the first matching pipeline when the specified version is not found', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'low_pass_imputation', version: '99' },
+      } as any);
+
+      render(<RunJob />);
+
+      // Should fall back to v2 (first match) since v99 doesn't exist
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('low_pass_imputation', 2);
+      });
+    });
+
+    it('defaults to the first pipeline when pipelineName query param does not match any pipeline', async () => {
+      asMockedFn(Nav.useRoute).mockReturnValue({
+        query: { pipelineName: 'nonexistent_pipeline' },
+      } as any);
+
+      render(<RunJob />);
+
+      await waitFor(() => {
+        expect(mockTeaspoonsContract.getPipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
+      });
+    });
+
+    it('updates the URL when the user manually selects a pipeline from the dropdown', async () => {
+      const user = userEvent.setup();
+      asMockedFn(Nav.useRoute).mockReturnValue({ query: {} } as any);
+
+      render(<RunJob />);
+
+      // Wait for the dropdown to be populated
+      await waitFor(() => {
+        expect(screen.getByText('Array Imputation - v1')).toBeInTheDocument();
+      });
+
+      // Open the pipeline selector dropdown and pick Low Pass Imputation
+      const select = screen.getByRole('combobox');
+      await user.click(select);
+      await user.click(screen.getByText('Low Pass Imputation - v1'));
+
+      expect(asMockedFn(Nav.updateSearch)).toHaveBeenCalledWith({ pipelineName: 'low_pass_imputation', version: 1 });
+    });
+  });
 });
 
-describe('uploadPipelineFiles function', () => {
+describe('uploadPipelineFiles function with multi-sample VCF', () => {
   const mockFile = new File(['test content'], 'test.vcf', { type: 'text/plain' });
   const mockPipelineInputs: PipelineInput[] = [
     {
@@ -504,6 +1011,105 @@ describe('uploadPipelineFiles function', () => {
         mockUserPipelineInputs,
         {
           multiSampleVcf: { signedUrl: 'https://mock-signed-url.com/upload' },
+        },
+        jest.fn()
+      )
+    ).rejects.toThrow('Network error');
+  });
+});
+
+describe('uploadPipelineFiles function with manifest file', () => {
+  const mockFile = new File(['test content'], 'test.tsv', { type: 'text/plain' });
+  const mockPipelineInputs: PipelineInput[] = [
+    {
+      name: 'testManifestInput',
+      type: 'MANIFEST',
+      isRequired: true,
+      fileSuffix: '.tsv',
+    },
+  ];
+  const mockUserPipelineInputs = { testManifestInput: mockFile };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    const mockLocationUrl = 'https://mock-session-url.com/upload';
+    (global.fetch as jest.Mock).mockResolvedValue({
+      headers: {
+        get: (header: string) => (header === 'Location' ? mockLocationUrl : null),
+      },
+      ok: true,
+      status: 200,
+    } as Response);
+    // Reset the crypto mock
+    (global.crypto.randomUUID as jest.Mock).mockReturnValue('mock-uuid-1234');
+  });
+
+  it('successfully initiates a resumable upload session for file inputs', async () => {
+    const mockXHR = new MockXMLHttpRequest();
+
+    // Simulate successful upload
+    mockXHR.addEventListener = jest.fn((event, callback) => {
+      if (event === 'load') {
+        setTimeout(() => callback({ status: 200 }), 0);
+      }
+    });
+
+    Object.defineProperty(mockXHR, 'status', {
+      value: 200,
+      writable: true,
+    });
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    // this test needs the actual implementation of uploadPipelineFiles
+    const { uploadPipelineFiles } = jest.requireActual('src/pages/scientificServices/pipelines/utils/submission-utils');
+
+    await uploadPipelineFiles(
+      'array_imputation',
+      1,
+      mockPipelineInputs,
+      mockUserPipelineInputs,
+      {
+        testManifestInput: { signedUrl: 'https://mock-signed-url.com/upload' },
+      },
+      jest.fn()
+    );
+
+    // Verify that the file upload was initiated
+    expect(global.fetch).toHaveBeenCalledWith('https://mock-signed-url.com/upload', {
+      method: 'POST',
+      headers: { 'x-goog-resumable': 'start', 'Content-Type': 'application/octet-stream' },
+    });
+
+    // Verify that XMLHttpRequest was used for file upload
+    expect(global.XMLHttpRequest).toHaveBeenCalled();
+    expect(mockXHR.open).toHaveBeenCalledWith('PUT', 'https://mock-session-url.com/upload');
+    expect(mockXHR.setRequestHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(mockXHR.send).toHaveBeenCalledWith(mockFile);
+  });
+
+  it('handles errors during file upload', async () => {
+    const mockSend = jest.fn(() => {
+      throw new Error('Network error');
+    });
+
+    const mockXHR = new MockXMLHttpRequest();
+    mockXHR.send = mockSend;
+
+    global.XMLHttpRequest = jest.fn(() => mockXHR) as any;
+
+    // this test needs the actual implementation of uploadPipelineFiles
+    const { uploadPipelineFiles } = jest.requireActual('src/pages/scientificServices/pipelines/utils/submission-utils');
+
+    await expect(
+      uploadPipelineFiles(
+        'array_imputation',
+        1,
+        mockPipelineInputs,
+        mockUserPipelineInputs,
+        {
+          testManifestInput: { signedUrl: 'https://mock-signed-url.com/upload' },
         },
         jest.fn()
       )

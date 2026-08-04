@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   mockPipelineRunResponse,
   mockPipelineWithDetails,
@@ -12,7 +12,7 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { JobIOView } from './JobIOView';
 
 jest.mock('src/pages/scientificServices/pipelines/hooks/usePipelineDetails');
-jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
+jest.mock('src/pages/scientificServices/pipelines/utils/file-utils');
 
 describe('JobIOView', () => {
   const mockUsePipelineDetails = usePipelineDetails as jest.MockedFunction<typeof usePipelineDetails>;

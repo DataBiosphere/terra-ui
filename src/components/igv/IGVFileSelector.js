@@ -6,10 +6,13 @@ import ButtonBar from 'src/components/ButtonBar';
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common';
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/igv/IGVReferenceSelector';
 import { DrsUriResolver } from 'src/libs/ajax/drs/DrsUriResolver';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
+import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { canWrite } from 'src/workspaces/utils';
 
 const getStrings = (v) => {
   return Utils.cond([_.isString(v), () => [v]], [!!v?.items, () => _.flatMap(getStrings, v.items)], () => []);
@@ -82,6 +85,7 @@ const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, sig
 
   const URL_REGEX = /^(gs:\/\/|drs:\/\/|https?:\/\/|ftp:\/\/)/;
 
+  const googleProject = workspace.workspace?.googleProject;
   for (const result of searchResponse.results) {
     const attributeValues = Object.values(result.attributes);
     const match = attributeValues.find((val) => {
@@ -95,7 +99,7 @@ const searchDBForIndexFiles = async (workspace, entityType, indexCandidates, sig
         urlCandidate = attributeValues.find((val) => typeof val === 'string' && URL_REGEX.test(val));
       }
       if (urlCandidate && URL_REGEX.test(urlCandidate)) {
-        return await validateUrl(urlCandidate);
+        return await validateUrl(urlCandidate, signal, googleProject);
       }
     }
   }
@@ -136,9 +140,11 @@ const hasValidIgvExtension = (filename) => {
   return !!base && allFiles.has(extension);
 };
 
-export const getDrsDataObjectMetadata = async (value, fields, signal = undefined) => {
+export const getDrsDataObjectMetadata = async (value, fields, signal = undefined, userProject = undefined) => {
   try {
-    return await DrsUriResolver(signal).getDataObjectMetadata(value, fields);
+    return await DrsUriResolver(signal).getDataObjectMetadata(value, fields, {
+      ...(userProject && { userProject }),
+    });
   } catch {
     return {
       fileName: '',
@@ -147,13 +153,13 @@ export const getDrsDataObjectMetadata = async (value, fields, signal = undefined
   }
 };
 
-export const resolveValidIgvDrsUris = async (values, signal) => {
+export const resolveValidIgvDrsUris = async (values, signal, userProject = undefined) => {
   const igvDrsUris = [];
 
   await Promise.all(
     values.map(async (value) => {
       if (isDrsUri(value)) {
-        const { fileName } = await getDrsDataObjectMetadata(value, ['fileName'], signal);
+        const { fileName } = await getDrsDataObjectMetadata(value, ['fileName'], signal, userProject);
         const isValid = hasValidIgvExtension(fileName);
         if (isValid) {
           igvDrsUris.push(value);
@@ -165,7 +171,7 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   const igvAccessUrls = [];
   await Promise.all(
     igvDrsUris.map(async (value) => {
-      const { accessUrl } = await getDrsDataObjectMetadata(value, ['accessUrl'], signal);
+      const { accessUrl } = await getDrsDataObjectMetadata(value, ['accessUrl'], signal, userProject);
       igvAccessUrls.push(accessUrl.url);
     })
   );
@@ -173,12 +179,12 @@ export const resolveValidIgvDrsUris = async (values, signal) => {
   return igvAccessUrls;
 };
 
-const validateUrl = async (fileRef) => {
+const validateUrl = async (fileRef, signal = undefined, userProject = undefined) => {
   const isDrs = isDrsUri(fileRef);
   let accessUrl;
 
   if (isDrs) {
-    const result = await getDrsDataObjectMetadata(fileRef, ['accessUrl']);
+    const result = await getDrsDataObjectMetadata(fileRef, ['accessUrl'], signal, userProject);
     accessUrl = result.accessUrl.url;
   } else {
     accessUrl = fileRef;
@@ -219,7 +225,9 @@ export const getValidIgvFiles = async (workspace, entityType, allValues, signal)
     return url;
   });
 
-  const accessUrls = await resolveValidIgvDrsUris(values, signal);
+  const googleProject = workspace.workspace?.googleProject;
+  const canResolveDrs = canWrite(workspace.accessLevel);
+  const accessUrls = canResolveDrs ? await resolveValidIgvDrsUris(values, signal, googleProject) : [];
   for (const accessUrl of accessUrls) {
     const url = new URL(accessUrl);
 
@@ -267,6 +275,7 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   const [isSearchingFiles, setIsSearchingFiles] = useState(true);
 
   const signal = useCancellation();
+  const isReadOnly = !canWrite(workspace.accessLevel);
 
   useEffect(() => {
     async function fetchData() {
@@ -275,9 +284,15 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
 
       setSelections(selections);
       setIsSearchingFiles(false);
+      if (isReadOnly) {
+        void Metrics().captureEvent(Events.workspaceDataDrsReadOnlyBlocked, {
+          source: 'igv',
+          ...extractWorkspaceDetails(workspace),
+        });
+      }
     }
     fetchData();
-  }, [workspace, entityType, selectedEntities, setSelections, signal]);
+  }, [workspace, entityType, selectedEntities, setSelections, signal, isReadOnly]);
 
   const toggleSelected = (index) => setSelections(_.update([index, 'isSelected'], (v) => !v));
   const numSelected = _.countBy('isSelected', selections).true;
@@ -291,6 +306,22 @@ const IGVFileSelector = ({ workspace, entityType, selectedEntities, onSuccess })
   });
 
   return div({ style: Style.modalDrawer.content }, [
+    ...(isReadOnly
+      ? [
+          div(
+            {
+              style: {
+                padding: '0.75rem 1rem',
+                marginBottom: '1rem',
+                backgroundColor: '#f5f5f5',
+                borderRadius: '4px',
+                fontSize: '0.9rem',
+              },
+            },
+            ['You have read-only access. DRS URIs cannot be resolved for IGV; only direct storage links (e.g. gs://) from your selection are shown.']
+          ),
+        ]
+      : []),
     h(IGVReferenceSelector, {
       value: refGenome,
       onChange: setRefGenome,

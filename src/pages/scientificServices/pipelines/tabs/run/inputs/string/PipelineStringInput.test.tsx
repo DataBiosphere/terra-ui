@@ -112,5 +112,26 @@ describe('PipelineStringInput', () => {
       expect(defaultProps.onChange).toHaveBeenCalledWith(' validInput ');
       expect(defaultProps.onValidation).toHaveBeenCalledWith(undefined);
     });
+
+    it('renders input as disabled when disabled prop is true', () => {
+      render(<PipelineStringInput {...defaultProps} disabled />);
+
+      const input = screen.getByRole('textbox');
+      expect(input).toBeDisabled();
+    });
+
+    it('renders input as enabled when disabled prop is false', () => {
+      render(<PipelineStringInput {...defaultProps} disabled={false} />);
+
+      const input = screen.getByRole('textbox');
+      expect(input).not.toBeDisabled();
+    });
+
+    it('renders input as enabled when disabled prop is not provided', () => {
+      render(<PipelineStringInput {...defaultProps} />);
+
+      const input = screen.getByRole('textbox');
+      expect(input).not.toBeDisabled();
+    });
   });
 });

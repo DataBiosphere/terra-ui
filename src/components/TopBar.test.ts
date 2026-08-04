@@ -48,7 +48,7 @@ describe('TopBar', () => {
     }
   });
 
-  it('renders limited options when scientificServices brand option is enabled', async () => {
+  it('renders ScientificServicesSidebar when brand option is enabled', async () => {
     configOverridesStore.set({ brand: 'scientificServices' });
 
     authStore.update((authState) => ({ ...authState, signInStatus: 'uninitialized' as SignInStatus }));
@@ -63,6 +63,25 @@ describe('TopBar', () => {
     expect(screen.queryByText('Support')).not.toBeInTheDocument();
     expect(screen.queryByText('Service News')).toBeInTheDocument();
     expect(screen.queryByText('Documentation')).toBeInTheDocument();
+  });
+
+  it('displays ScientificServicesSidebar when brand option is enabled and user logged in', async () => {
+    configOverridesStore.set({ brand: 'scientificServices' });
+
+    authStore.update((authState) => ({ ...authState, signInStatus: 'authenticated' as SignInStatus }));
+
+    // Act
+    render(h(TopBar));
+    fireEvent.click(screen.getByLabelText('Toggle main menu'));
+    fireEvent.click(screen.getByText('Loading...')); // username is shown as Loading... while user info is being fetched
+
+    // Assert
+    expect(screen.queryByText('Run Job')).toBeInTheDocument();
+    expect(screen.queryByText('Job History')).toBeInTheDocument();
+    expect(screen.queryByText('About')).toBeInTheDocument();
+    expect(screen.queryByText('Profile')).toBeInTheDocument();
+    expect(screen.queryByText('Quotas')).toBeInTheDocument();
+    expect(screen.queryByText('Sign Out')).toBeInTheDocument();
   });
 
   it('renders full options when scientificServices brand option is disabled', async () => {

@@ -41,6 +41,12 @@ export const fetchTeaspoons = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk);
 
+export const fetchTeaspoonsPublic = _.flow(
+  withUrlPrefix(`${getConfig().teaspoonsUrlRoot}/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk);
+
 export const fetchDataRepo = _.flow(
   withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`),
   withRetryAfterReloadingExpiredAuthToken

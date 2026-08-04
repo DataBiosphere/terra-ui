@@ -3,7 +3,8 @@ import { Metrics } from 'src/libs/ajax/Metrics';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import Events from 'src/libs/events';
-import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileInput';
+import { PipelineInputFileUploadState } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/PipelineFileBasedInput';
+import { isFileLikeType } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import { initiateResumableUpload } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 // Helper functions for orchestrating the pipeline run submission process
@@ -12,7 +13,8 @@ export async function preparePipelineRun(
   pipelineName: string,
   pipelineVersion: number,
   selectedUserInputs: Record<string, any>,
-  description: string
+  description: string,
+  agreeToTerms: boolean
 ): Promise<{ jobId: string; fileInputUploadUrls: Record<string, { signedUrl: string }> }> {
   const jobId = crypto.randomUUID();
 
@@ -32,7 +34,8 @@ export async function preparePipelineRun(
     pipelineName,
     pipelineVersion,
     finalUserInputs,
-    description
+    description,
+    agreeToTerms
   );
 
   return { jobId, fileInputUploadUrls };
@@ -48,7 +51,7 @@ export async function uploadPipelineFiles(
 ): Promise<void> {
   await Promise.all(
     pipelineInputs
-      .filter((input) => input.type === 'FILE')
+      .filter((input) => isFileLikeType(input.type))
       .map(async (input) => {
         const file = selectedUserInputs[input.name];
         const signedUrl = fileInputUploadUrls[input.name]?.signedUrl;

@@ -1,5 +1,6 @@
+import { ExternalLink } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { spinnerOverlay } from 'src/components/common';
 import { InfoBox } from 'src/components/InfoBox';
@@ -53,13 +54,6 @@ export const NotificationSettings = () => {
   const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), userStore.get().profile);
   const [saving, setSaving] = useState(false);
 
-  const userAttributes = userStore.get().terraUserAttributes;
-  const [marketingConsent, setMarketingConsent] = useState(userAttributes.marketingConsent);
-
-  useEffect(() => {
-    setMarketingConsent(userAttributes.marketingConsent);
-  }, [userAttributes.marketingConsent]);
-
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: Style.cardList.toolbarContainer }, [
       h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
@@ -79,13 +73,13 @@ export const NotificationSettings = () => {
         notificationType: 'PlatformOperations',
         disabled: true,
       } as UserAttributesCardProps),
-      h(UserAttributesCard, {
-        value: marketingConsent,
-        label: 'Marketing communications, including upcoming workshops and new flagship dataset additions',
-        setSaving,
-        notificationKeys: ['notifications/MarketingConsent'],
-        notificationType: 'Marketing',
-      } as UserAttributesCardProps),
+      div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, display: 'block', padding: '1rem' } }, [
+        'Sign up for marketing communications, including upcoming workshops and new flagship dataset additions: ',
+        h(ExternalLink, { href: 'https://mailchi.mp/terra.bio/terra-subscriber-preferences' }, [
+          'manage your preferences',
+        ]),
+        '.',
+      ]),
     ]),
     div({ style: Style.cardList.toolbarContainer }, [
       h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [

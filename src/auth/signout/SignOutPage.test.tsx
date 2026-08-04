@@ -34,7 +34,7 @@ describe('SignOutPage', () => {
     // Arrange
     cookieReadyStore.update(() => true);
     azureCookieReadyStore.update((state) => ({ ...state, readyForRuntime: true }));
-    authStore.update((state) => ({ ...state, cookiesAccepted: true, nihStatusLoaded: true }));
+    authStore.update((state) => ({ ...state, cookiesAccepted: true }));
     oidcStore.update((state) => ({ ...state, user: {} as OidcUser }));
     metricStore.update((state) => ({ ...state, anonymousId: '12345', sessionId: '67890' }));
     userStore.update((state) => ({ ...state, enterpriseFeatures: ['github-account-linking'] }));
@@ -45,7 +45,6 @@ describe('SignOutPage', () => {
     expect(azureCookieReadyStore.get().readyForRuntime).toBe(false);
     // logout preserves cookiesAccepted
     expect(authStore.get().cookiesAccepted).toBe(true);
-    expect(authStore.get().nihStatusLoaded).toBe(false);
     expect(oidcStore.get().user).toBeUndefined();
     // logout preserves the anonymousId
     expect(metricStore.get().anonymousId).toBe('12345');

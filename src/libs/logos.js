@@ -21,8 +21,8 @@ export const RegistrationLogo = () => {
       isScientificServices(),
       () =>
         div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start' } }, [
-          div({ style: { fontWeight: 700, fontSize: 14, marginBottom: 8 } }, ['Scientific Services from the']),
-          terraLogoMaker(brands.scientificServices.logos.dspLogo, { height: 86, marginRight: 20 }),
+          div({ style: { fontWeight: 700, fontSize: 16, marginBottom: 16 } }, ['Data Science Services from']),
+          terraLogoMaker(brands.scientificServices.logos.bclLogoPrimary, { height: 86, marginRight: 20 }),
         ]),
     ],
     [

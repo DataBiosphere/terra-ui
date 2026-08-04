@@ -1,13 +1,16 @@
 import { atom } from '@terra-ui-packages/core-utils';
 import _ from 'lodash/fp';
 import { FirecloudBucket } from 'src/libs/ajax/firecloud/FirecloudBucket';
+import { isScientificServices } from 'src/libs/brand-utils';
 import { useStore } from 'src/libs/react-utils';
 import * as Utils from 'src/libs/utils';
 
 import { Alert } from './Alert';
 
 export const getServiceAlerts = async (): Promise<Alert[]> => {
-  const serviceAlerts = await FirecloudBucket().getServiceAlerts();
+  const serviceAlerts = isScientificServices()
+    ? await FirecloudBucket().getTeaspoonsServiceAlerts()
+    : await FirecloudBucket().getServiceAlerts();
   const hashes = await Promise.all(_.map(_.flow(JSON.stringify, Utils.sha256), serviceAlerts));
   const severityMap = {
     blocker: 'error',

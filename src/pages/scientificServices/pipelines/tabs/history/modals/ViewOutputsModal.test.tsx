@@ -1,4 +1,3 @@
-import { expect } from '@storybook/test';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -9,6 +8,12 @@ import { asMockedFn, partial, renderWithAppContexts } from 'src/testing/test-uti
 import { ViewOutputsModal } from './ViewOutputsModal';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
+
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getPath: jest.fn(() => '/test/'),
+  getLink: jest.fn(() => '/'),
+}));
 
 describe('ViewOutputsModal', () => {
   const jobId = 'test-job-id';
@@ -39,8 +44,9 @@ describe('ViewOutputsModal', () => {
 
   it('fetches and displays pipeline outputs', async () => {
     const mockOutputs = {
-      output1: 'https://example.com/output1.vcf',
-      output2: 'https://example.com/output2.bam',
+      output1: { value: 'https://example.com/output1.vcf', metadata: { sizeInBytes: 1048576 } },
+      output2: { value: 'https://example.com/output2.vcf', metadata: { sizeInBytes: 5242880 } },
+      output3: { value: 'https://example.com/output3.bam' },
     };
 
     const mockPipelineRunResponse: Partial<PipelineRunResponse> = {
@@ -72,7 +78,7 @@ describe('ViewOutputsModal', () => {
 
     // Verify download buttons are present
     const downloadButtons = screen.getAllByText('Download');
-    expect(downloadButtons).toHaveLength(2);
+    expect(downloadButtons).toHaveLength(3);
 
     // Verify expiration notice is displayed
     expect(screen.getByText(/All output files for this job will be automatically deleted on/)).toBeInTheDocument();
@@ -137,5 +143,88 @@ describe('ViewOutputsModal', () => {
 
     // Verify onDismiss was called
     expect(onDismissMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('data delivery', () => {
+    const mockOutputs = {
+      output1: { value: 'gs://bucket/output1.vcf', metadata: { sizeInBytes: 1048576 } },
+      output2: { value: 'gs://bucket/output2.bam', metadata: { sizeInBytes: 1048576 } },
+    };
+
+    const makeDeliveredResponse = (destination = 'gs://my-bucket/delivered-outputs'): Partial<PipelineRunResponse> => ({
+      jobReport: {
+        id: jobId,
+        status: 'SUCCEEDED',
+        submitted: '2025-01-01T00:00:00Z',
+        completed: '2025-03-15T00:00:00Z',
+      },
+      pipelineRunReport: {
+        pipelineName: 'test-pipeline',
+        pipelineVersion: 1,
+        toolVersion: '1.0.0',
+        outputExpirationDate: '2025-07-09T00:00:00Z',
+        outputs: mockOutputs,
+        dataDeliveryReport: { status: 'SUCCEEDED', destination },
+      },
+    });
+
+    it('shows the delivery success banner with completion date and GCS console link', async () => {
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getPipelineRunResult: jest.fn().mockResolvedValue(makeDeliveredResponse()),
+        })
+      );
+
+      renderWithAppContexts(<ViewOutputsModal jobId={jobId} onDismiss={onDismissMock} />);
+
+      await waitFor(() => expect(screen.queryByText('Loading outputs...')).not.toBeInTheDocument());
+
+      expect(screen.getByText(/Your outputs were successfully delivered/)).toBeInTheDocument();
+      expect(screen.getByText('Mar 15, 2025')).toBeInTheDocument();
+      expect(screen.getByText(/View your outputs in the Google Cloud Console/)).toBeInTheDocument();
+    });
+
+    it('disables download buttons and hides the expiration warning when delivery has succeeded', async () => {
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getPipelineRunResult: jest.fn().mockResolvedValue(makeDeliveredResponse()),
+        })
+      );
+
+      renderWithAppContexts(<ViewOutputsModal jobId={jobId} onDismiss={onDismissMock} />);
+
+      await waitFor(() => expect(screen.queryByText('Loading outputs...')).not.toBeInTheDocument());
+
+      screen
+        .getAllByRole('button', { name: /download/i })
+        .forEach((btn) => expect(btn).toHaveAttribute('aria-disabled', 'true'));
+      expect(
+        screen.queryByText(/All output files for this job will be automatically deleted on/)
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows a "deliver to cloud destination" link in the expiration warning before delivery', async () => {
+      const mockResponse: Partial<PipelineRunResponse> = {
+        pipelineRunReport: {
+          pipelineName: 'test-pipeline',
+          pipelineVersion: 1,
+          toolVersion: '1.0.0',
+          outputExpirationDate: '2025-07-09T00:00:00Z',
+          outputs: mockOutputs,
+        },
+      };
+
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getPipelineRunResult: jest.fn().mockResolvedValue(mockResponse),
+        })
+      );
+
+      renderWithAppContexts(<ViewOutputsModal jobId={jobId} onDismiss={onDismissMock} />);
+
+      await waitFor(() => expect(screen.queryByText('Loading outputs...')).not.toBeInTheDocument());
+
+      expect(screen.getByText('deliver them to a cloud destination')).toBeInTheDocument();
+    });
   });
 });

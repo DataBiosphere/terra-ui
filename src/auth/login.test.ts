@@ -81,22 +81,10 @@ const mockSamUserCombinedState: SamUserCombinedStateResponse = {
   enterpriseFeatures: [],
 };
 
-const mockNihDatasetPermission = {
-  name: 'testNihDatasetPermissionName',
-  authorized: true,
-};
-
-const mockOrchestrationNihStatusResponse = {
-  linkedNihUsername: 'testLinkedNihUsername',
-  datasetPermissions: mockNihDatasetPermission,
-  linkExpireTime: 1234,
-};
-
 // TODO centralize Ajax mock setup so it can be reused across tests
 describe('a request to load a terra user', () => {
   // Arrange (shared between tests for the success case)
   const getSamUserCombinedStateFunction = jest.fn().mockResolvedValue(mockSamUserCombinedState);
-  const getNihStatusFunction = jest.fn().mockResolvedValue(mockOrchestrationNihStatusResponse);
   const getFenceStatusFunction = jest.fn().mockResolvedValue({});
 
   beforeEach(() => {
@@ -110,7 +98,6 @@ describe('a request to load a terra user', () => {
     } as Partial<MetricsContract> as MetricsContract);
     asMockedFn(User).mockReturnValue({
       getSamUserCombinedState: getSamUserCombinedStateFunction,
-      getNihStatus: getNihStatusFunction,
       getFenceStatus: getFenceStatusFunction,
       profile: {
         get: jest.fn().mockReturnValue(mockTerraUserProfile),
@@ -152,7 +139,6 @@ describe('a request to load a terra user', () => {
           profile: {
             get: jest.fn().mockReturnValue(mockTerraUserProfile),
           },
-          getNihStatus: getNihStatusFunction,
         } as DeepPartial<UserContract> as UserContract);
 
         // Act, Assert

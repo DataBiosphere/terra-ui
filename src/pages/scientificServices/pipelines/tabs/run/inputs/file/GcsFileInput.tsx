@@ -1,7 +1,8 @@
 import React, { ReactNode, useState } from 'react';
 import { PipelineInput } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
-import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
+import { CloudDataAccessInstructions } from 'src/pages/scientificServices/pipelines/common/CloudDataAccessInstructions';
+import { GCS_PATH_VALIDATION_REGEX } from 'src/pages/scientificServices/pipelines/utils/upload-utils';
 
 interface GcsFileInputProps {
   input: PipelineInput;
@@ -9,6 +10,8 @@ interface GcsFileInputProps {
   onFileSelect: (file: string | null) => void;
   onValidation: (error?: ReactNode) => void;
   onBackToSelection: () => void;
+  onSharingConfirmationChange?: (isConfirmed: boolean) => void;
+  sharingConfirmed?: boolean;
 }
 
 export const GcsFileInput: React.FC<GcsFileInputProps> = ({
@@ -17,10 +20,11 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
   onFileSelect,
   onValidation,
   onBackToSelection,
+  onSharingConfirmationChange,
+  sharingConfirmed,
 }) => {
   const [cloudPath, setCloudPath] = useState('');
   const { isRequired, fileSuffix } = input;
-  const GCS_PATH_VALIDATION_REGEX = /^gs:\/\/[a-z0-9._-]+\/.+/;
 
   const validateCloudPath = (path: string) => {
     if (!path) {
@@ -88,9 +92,26 @@ export const GcsFileInput: React.FC<GcsFileInputProps> = ({
           boxSizing: 'border-box',
         }}
       />
-      <div style={{ marginTop: '0.5rem', color: '#666' }}>
-        <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more</ZendeskLink> about providing a valid Google Cloud Storage
-        path.
+      <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+        <div style={{ flex: 1 }}>
+          <label
+            htmlFor='sharing-confirmation'
+            style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer' }}
+          >
+            <input
+              type='checkbox'
+              id='sharing-confirmation'
+              checked={sharingConfirmed || false}
+              onChange={(e) => onSharingConfirmationChange?.(e.target.checked)}
+              style={{ marginTop: '0.25rem', cursor: 'pointer' }}
+            />
+            <span style={{ fontSize: '14px', flex: 1, marginBottom: '0.25rem' }}>
+              I have shared this file with Broad Data Science Services.{' '}
+              <span style={{ color: colors.danger(), fontWeight: 'bold' }}>*</span>
+            </span>
+          </label>
+          <CloudDataAccessInstructions cloudPath={cloudPath} cloudAccessType='inputs' />
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ export interface Pipeline {
   description: string;
 }
 
-export type PipelineIOType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN';
+export type PipelineIOType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN' | 'MANIFEST';
 
 export interface PipelineInput {
   name: string;
@@ -31,6 +31,7 @@ export interface PipelineQuota {
   pipelineName: string;
   defaultQuota: number;
   minQuotaConsumed: number;
+  maxQuotaConsumed?: number;
   quotaUnits: string;
 }
 
@@ -105,6 +106,13 @@ export interface PipelineRunResponse {
   pipelineRunReport: PipelineRunReport;
 }
 
+export type DataDeliveryJobStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+
+export interface DataDeliveryReport {
+  status: DataDeliveryJobStatus;
+  destination: string;
+}
+
 export interface PipelineJobReport {
   id: string;
   description?: string;
@@ -115,22 +123,43 @@ export interface PipelineJobReport {
   resultURL?: string;
 }
 
+export interface DataDeliveryJobReport {
+  id: string;
+  description?: string;
+  status: DataDeliveryJobStatus;
+  statusCode: number;
+  submitted: string;
+  completed: string;
+  resultURL: string;
+}
+
 export interface PipelineRunErrorReport {
   message: string;
   errorCode: number;
   causes: string[];
 }
 
+export interface PipelineOutputFileMetadata {
+  sizeInBytes?: number;
+}
+
+export interface PipelineOutputValue {
+  value: string;
+  metadata?: PipelineOutputFileMetadata;
+}
+
 export interface PipelineRunReport {
   pipelineName: string;
   pipelineVersion: number;
   toolVersion: string;
-  outputs?: Record<string, string>;
+  outputs?: Record<string, PipelineOutputValue>;
   userInputs?: Record<string, string>;
   outputExpirationDate?: string;
   inputSize?: number;
   inputSizeUnits?: string;
   quotaConsumed?: number;
+  dataDeliveryReport?: DataDeliveryReport;
+  citation?: string;
 }
 
 export interface PipelineRunOutputSignedUrlsResponse {
@@ -140,3 +169,5 @@ export interface PipelineRunOutputSignedUrlsResponse {
 }
 
 export type PipelineRunStatus = 'PREPARING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+
+export type TeaspoonsDocType = 'termsOfService' | 'acceptableUsePolicy';

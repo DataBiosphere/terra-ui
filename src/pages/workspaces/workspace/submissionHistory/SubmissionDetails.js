@@ -249,7 +249,7 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                                 key: 'dashboard',
                                 href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
                                 style: { margin: '0.5rem', display: 'flex' },
-                                tooltip: 'Workflow Dashboard [alpha]',
+                                tooltip: 'Workflow Dashboard',
                                 'aria-label': `Workflow Dashboard (for workflow ID ${workflowId}}`,
                               },
                               [icon('tachometer', { size: 18 })]

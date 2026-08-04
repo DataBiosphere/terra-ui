@@ -2,6 +2,7 @@ import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
 import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import { formatBytes } from 'src/libs/utils';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
 import { OutputDetailsModal } from 'src/pages/scientificServices/pipelines/tabs/history/details/modals/OutputDetailsModal';
@@ -54,6 +55,8 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
     }
   };
 
+  const dataDeliverySucceeded = pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
+
   const outputExpirationDate = pipelineRunResult.pipelineRunReport.outputExpirationDate
     ? new Date(pipelineRunResult.pipelineRunReport.outputExpirationDate)
     : null;
@@ -79,7 +82,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
         }}
       >
         <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Outputs</h4>
-        {outputExpirationDate && (
+        {dataDeliverySucceeded ? (
           <div
             style={{
               display: 'flex',
@@ -92,17 +95,39 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
               fontWeight: 500,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
-              {outputExpirationText}
+              Data Delivered
             </div>
           </div>
+        ) : (
+          outputExpirationDate && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: 'white',
+                padding: '0.5rem 0.75rem',
+                border: '1px solid #D8D9DC',
+                borderRadius: '20px',
+                fontWeight: 500,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icon icon='clock' size={16} style={{ color: colors.dark(0.55) }} />
+                {outputExpirationText}
+              </div>
+            </div>
+          )
         )}
       </div>
       {hasOutputs ? (
         <div>
-          {Object.entries(outputs).map(([key, value]) => {
+          {Object.entries(outputs).map(([key, outputValue]) => {
             const outputDefinition = outputDefinitions.find((output) => output.name === key);
+            const fileName = outputValue.value;
+            const sizeInBytes = outputValue.metadata?.sizeInBytes;
 
             return (
               <div
@@ -120,9 +145,10 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   label={outputDefinition?.displayName || key}
                   outputType={outputDefinition?.type || 'Unknown'}
                   tooltip={outputDefinition?.description || 'No description available for this output'}
-                  fileName={value}
+                  fileName={fileName}
+                  sizeInBytes={sizeInBytes}
                   disabled={!isSucceeded || !!outputsExpired}
-                  onSelect={() => setSelectedOutput({ key, fileName: value })}
+                  onSelect={() => setSelectedOutput({ key, fileName })}
                 />
               </div>
             );
@@ -154,6 +180,7 @@ const OutputItem = ({
   fileName,
   tooltip,
   outputType,
+  sizeInBytes,
   disabled,
   onSelect,
 }: {
@@ -161,6 +188,7 @@ const OutputItem = ({
   fileName: string;
   tooltip: string;
   outputType: string;
+  sizeInBytes?: number;
   disabled?: boolean;
   onSelect: () => void;
 }) => {
@@ -179,31 +207,38 @@ const OutputItem = ({
           gap: '0.25rem',
           alignItems: 'center',
           justifyContent: 'space-between',
+          wordBreak: 'break-all',
         }}
       >
-        <code>{fileName}</code>
+        <code style={{ maxWidth: '70%' }} title={fileName}>
+          {fileName}{' '}
+          {sizeInBytes !== undefined && (
+            <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>({formatBytes(sizeInBytes)})</span>
+          )}
+        </code>
         {!disabled && (
-          <button
-            type='button'
-            onClick={onSelect}
-            style={{
-              color: '#46A3E9',
-              fontWeight: 700,
-              textDecoration: 'underline',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: 0,
-              font: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              alignSelf: 'flex-start',
-            }}
-          >
-            <Icon icon='pop-out' size={14} />
-            View details
-          </button>
+          <div style={{ minWidth: '120px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <button
+              type='button'
+              onClick={onSelect}
+              style={{
+                color: '#46A3E9',
+                fontWeight: 700,
+                textDecoration: 'underline',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                font: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}
+            >
+              <Icon icon='pop-out' size={14} />
+              View details
+            </button>
+          </div>
         )}
         {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
       </div>

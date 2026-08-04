@@ -96,4 +96,25 @@ describe('PipelineBooleanInput', () => {
 
     expect(mockOnChange).toHaveBeenCalledWith(false);
   });
+
+  it('renders checkbox as disabled when disabled prop is true', () => {
+    render(<PipelineBooleanInput input={basePipelineInput} value={false} onChange={mockOnChange} disabled />);
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toHaveAttribute('disabled');
+  });
+
+  it('renders checkbox as enabled when disabled prop is false', () => {
+    render(<PipelineBooleanInput input={basePipelineInput} value={false} onChange={mockOnChange} disabled={false} />);
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).not.toHaveAttribute('disabled');
+  });
+
+  it('renders checkbox as enabled when disabled prop is not provided', () => {
+    render(<PipelineBooleanInput input={basePipelineInput} value={false} onChange={mockOnChange} />);
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).not.toHaveAttribute('disabled');
+  });
 });

@@ -7,7 +7,7 @@ import { EcmLinkAccountResponse } from 'src/libs/ajax/ExternalCredentials';
 import { Snapshot } from 'src/libs/ajax/methods/methods-models';
 import { OidcConfig } from 'src/libs/ajax/OAuth2';
 import { SamTermsOfServiceConfig } from 'src/libs/ajax/TermsOfService';
-import { NihDatasetPermission, SamUserAllowances, SamUserAttributes, SamUserResponse } from 'src/libs/ajax/User';
+import { SamUserAllowances, SamUserAttributes, SamUserResponse } from 'src/libs/ajax/User';
 import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage';
 import type { GoogleWorkspaceInfo, WorkspaceInfo, WorkspaceWrapper } from 'src/workspaces/utils';
 
@@ -32,12 +32,6 @@ export const systemStore: Atom<SystemState> = atom<SystemState>({
 export interface TermsOfServiceStatus {
   permitsSystemUsage: boolean | undefined;
   isCurrentVersion: boolean | undefined;
-}
-
-export interface NihStatus {
-  linkedNihUsername: string;
-  linkExpireTime: number;
-  datasetPermissions: NihDatasetPermission[];
 }
 
 export type Initializable<T> = T | 'uninitialized';
@@ -65,8 +59,6 @@ export interface AuthState {
   signInStatus: SignInStatus;
   userJustSignedIn: boolean;
   isTimeoutEnabled?: boolean | undefined;
-  nihStatus?: NihStatus;
-  nihStatusLoaded: boolean;
   termsOfService: TermsOfServiceStatus;
   terraUserAllowances: SamUserAllowances;
 }
@@ -80,7 +72,6 @@ export const authStore: Atom<AuthState> = atom<AuthState>({
   hasGcpBillingScopeThroughB2C: false,
   signInStatus: 'uninitialized',
   userJustSignedIn: false,
-  nihStatusLoaded: false,
   termsOfService: {
     permitsSystemUsage: undefined,
     isCurrentVersion: undefined,

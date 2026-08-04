@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { PipelineOutput } from 'src/libs/ajax/teaspoons/teaspoons-models';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/download-utils';
+import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   mockPipelineRunResponse,
   mockPipelineWithDetails,
@@ -13,7 +13,7 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 import { JobOutputsView } from './JobOutputsView';
 
 jest.mock('src/libs/ajax/teaspoons/Teaspoons');
-jest.mock('src/pages/scientificServices/pipelines/utils/download-utils');
+jest.mock('src/pages/scientificServices/pipelines/utils/file-utils');
 
 describe('JobOutputsView', () => {
   const mockWindowOpen = jest.fn();
@@ -43,9 +43,11 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/imputedMultiSampleVcf.vcf',
-          imputedMultiSampleVcfIndex: 'gs://bucket/imputedMultiSampleVcfIndex.vcf',
-          chunksInfo: 'gs://bucket/chunksInfo.tsv',
+          imputedMultiSampleVcf: { value: 'gs://bucket/imputedMultiSampleVcf.vcf', metadata: { sizeInBytes: 1048576 } },
+          imputedMultiSampleVcfIndex: {
+            value: 'gs://bucket/imputedMultiSampleVcfIndex.vcf',
+          }, // purposeful lack of metadata to test mixed output structure handling
+          chunksInfo: { value: 'gs://bucket/chunksInfo.tsv', metadata: { sizeInBytes: 1048576 } },
         },
       },
     };
@@ -65,7 +67,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
       },
     };
@@ -83,7 +85,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          unknownOutput: 'gs://bucket/unknown.txt',
+          unknownOutput: { value: 'gs://bucket/unknown.txt', metadata: { sizeInBytes: 1048576 } },
         },
       },
     };
@@ -101,7 +103,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
       },
     };
@@ -119,7 +121,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('FAILED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
       },
     };
@@ -137,7 +139,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('RUNNING').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
       },
     };
@@ -156,7 +158,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
       },
     };
@@ -220,7 +222,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
         outputExpirationDate: futureDate,
       },
@@ -240,7 +242,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
         outputExpirationDate: futureDate,
       },
@@ -261,7 +263,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
         outputExpirationDate: pastDate,
       },
@@ -282,7 +284,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
         outputExpirationDate: futureDate,
       },
@@ -302,7 +304,7 @@ describe('JobOutputsView', () => {
       pipelineRunReport: {
         ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
         outputs: {
-          imputedMultiSampleVcf: 'gs://bucket/output.vcf',
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } },
         },
         outputExpirationDate: pastDate,
       },
@@ -313,6 +315,73 @@ describe('JobOutputsView', () => {
     await waitFor(() => {
       expect(screen.queryByRole('button', { name: /view details/i })).not.toBeInTheDocument();
       expect(screen.getByText('Not available')).toBeInTheDocument();
+    });
+  });
+
+  it('correctly extracts file name from new outputs structure for modal', async () => {
+    const user = userEvent.setup();
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: { value: 'gs://bucket/my-output.vcf', metadata: { sizeInBytes: 5242880 } },
+        },
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /view details/i })).toBeInTheDocument();
+    });
+
+    const viewDetailsButton = screen.getByRole('button', { name: /view details/i });
+    await user.click(viewDetailsButton);
+
+    // modal should open with the correct filename extracted from value field
+    await waitFor(() => {
+      const modal = screen.getByRole('dialog');
+      expect(modal).toHaveTextContent('gs://bucket/my-output.vcf');
+    });
+  });
+
+  it('displays file size next to filename when sizeInBytes is available', async () => {
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf', metadata: { sizeInBytes: 1048576 } }, // 1 MiB
+        },
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('1.00 MiB', { exact: false })).toBeInTheDocument();
+    });
+  });
+
+  it('does not display file size when sizeInBytes is not available', async () => {
+    const mockResult = {
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: { value: 'gs://bucket/output.vcf' }, // No metadata
+        },
+      },
+    };
+
+    render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('gs://bucket/output.vcf')).toBeInTheDocument();
+      expect(screen.queryByText(/MiB/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/KiB/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/GiB/)).not.toBeInTheDocument();
     });
   });
 });
