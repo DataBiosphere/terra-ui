@@ -29,7 +29,7 @@ import { canEditWorkspace } from 'src/workspaces/utils';
 import { computeStyles } from './modalStyles';
 
 const defaultDataDisk = { size: 500, diskType: googlePdTypes.standard };
-const defaultKubernetesRuntimeConfig = { machineType: 'e2-standard-4', numNodes: 1, autoscalingEnabled: false };
+const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-4', numNodes: 1, autoscalingEnabled: false };
 const titleId = 'galaxy-modal-title';
 
 export const GalaxyModalBase = withDisplayName('GalaxyModal')(
