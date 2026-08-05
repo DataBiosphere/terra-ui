@@ -284,6 +284,17 @@ const CallTable = ({
                 const showInputsOutputs = !!showInputOutputModal && _.isEmpty(subWorkflowId);
                 return div({ style: { ...basicCellTextStyle, display: 'flex', alignItems: 'center' } }, [
                   attempt,
+                  showInputsOutputs &&
+                    h(
+                      Link,
+                      {
+                        key: 'io',
+                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                        tooltip: 'Inputs & Outputs',
+                        onClick: () => showInputOutputModal('Inputs & Outputs', inputs, outputs),
+                      },
+                      [icon('listAlt', { size: 18, 'aria-label': 'View task inputs and outputs' })]
+                    ),
                   batchJobUrl &&
                     h(
                       Link,
@@ -307,17 +318,6 @@ const CallTable = ({
                         tooltip: 'Execution Directory',
                       },
                       [icon('folder-open', { size: 18, 'aria-label': 'Execution directory' })]
-                    ),
-                  showInputsOutputs &&
-                    h(
-                      Link,
-                      {
-                        key: 'io',
-                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
-                        tooltip: 'Inputs & Outputs',
-                        onClick: () => showInputOutputModal('Inputs & Outputs', inputs, outputs),
-                      },
-                      [icon('listAlt', { size: 18, 'aria-label': 'View task inputs and outputs' })]
                     ),
                 ]);
               },
