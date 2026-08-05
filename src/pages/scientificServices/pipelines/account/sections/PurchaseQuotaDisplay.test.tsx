@@ -3,7 +3,11 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import * as Nav from 'src/libs/nav';
 import { PurchaseQuotaDisplay } from 'src/pages/scientificServices/pipelines/account/sections/PurchaseQuotaDisplay';
-import { getStripePaymentUrls } from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
+import {
+  clearInProgressPurchase,
+  getInProgressPurchase,
+  getStripePaymentUrls,
+} from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
 import * as usePipelinesListModule from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import * as useUserQuotaModule from 'src/pages/scientificServices/pipelines/hooks/useUserQuota';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -49,9 +53,13 @@ jest.mock('src/libs/nav', () => ({
 jest.mock('src/pages/scientificServices/pipelines/common/purchaseQuotaUtils', () => ({
   ...jest.requireActual('src/pages/scientificServices/pipelines/common/purchaseQuotaUtils'),
   getStripePaymentUrls: jest.fn(),
+  getInProgressPurchase: jest.fn(),
+  clearInProgressPurchase: jest.fn(),
 }));
 
 const mockGetStripePaymentUrls = jest.mocked(getStripePaymentUrls);
+const mockGetInProgressPurchase = jest.mocked(getInProgressPurchase);
+const mockClearInProgressPurchase = jest.mocked(clearInProgressPurchase);
 
 beforeEach(() => {
   mockUsePipelinesList.mockReturnValue({
@@ -72,6 +80,8 @@ beforeEach(() => {
     academicRate: 'https://buy.stripe.com/test_academic',
     forProfitRate: 'https://buy.stripe.com/test_forprofit',
   });
+
+  mockGetInProgressPurchase.mockReturnValue(undefined);
 });
 
 afterEach(() => {
@@ -322,6 +332,46 @@ describe('PurchaseQuotaDisplay', () => {
       expect(academicCheckboxAfter).not.toBeChecked();
       expect(nonprofitWorkCheckboxAfter).not.toBeChecked();
       expect(termsCheckboxAfter).not.toBeChecked();
+    });
+  });
+
+  describe('Pre-filling from an in-progress purchase', () => {
+    it('opens the Stripe form and pre-checks the boxes, then clears the stored purchase', () => {
+      mockGetInProgressPurchase.mockReturnValue({
+        nonProfitActivities: true,
+        nonProfitOrganization: true,
+        pipeline: 'array_imputation',
+      });
+
+      render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
+
+      expect(screen.getByText('Complete Payment')).toBeInTheDocument();
+      expect(
+        screen.getByRole('checkbox', { name: /I am part of an academic or non-profit organization/ })
+      ).toBeChecked();
+      expect(screen.getByRole('checkbox', { name: /The work I am doing is for non-profit activities/ })).toBeChecked();
+
+      expect(mockClearInProgressPurchase).toHaveBeenCalled();
+    });
+
+    it('does not pre-fill when the in-progress purchase is for a different pipeline', () => {
+      mockGetInProgressPurchase.mockReturnValue({
+        nonProfitActivities: true,
+        nonProfitOrganization: true,
+        pipeline: 'low_pass_imputation',
+      });
+
+      render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
+
+      expect(screen.queryByText('Complete Payment')).not.toBeInTheDocument();
+      expect(mockClearInProgressPurchase).not.toHaveBeenCalled();
+    });
+
+    it('does nothing when there is no purchase in progress', () => {
+      render(<PurchaseQuotaDisplay pipelineName='array_imputation' />);
+
+      expect(screen.queryByText('Complete Payment')).not.toBeInTheDocument();
+      expect(mockClearInProgressPurchase).not.toHaveBeenCalled();
     });
   });
 });

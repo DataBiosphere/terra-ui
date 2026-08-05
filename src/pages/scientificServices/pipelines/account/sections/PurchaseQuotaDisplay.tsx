@@ -1,6 +1,8 @@
 import { ButtonSecondary, Icon, Spinner } from '@terra-ui-packages/components';
 import React, { useEffect, useRef, useState } from 'react';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { Pipeline } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import Events, { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { PurchaseOptionCard } from 'src/pages/scientificServices/pipelines/account/sections/PurchaseOptionCard';
 import {
@@ -8,7 +10,11 @@ import {
   StripePaymentFormSection,
 } from 'src/pages/scientificServices/pipelines/account/sections/PurchaseQuotaFormSections';
 import { PipelineQuotaCard } from 'src/pages/scientificServices/pipelines/common/PipelineQuotaCard';
-import { getStripePaymentUrls } from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
+import {
+  clearInProgressPurchase,
+  getInProgressPurchase,
+  getStripePaymentUrls,
+} from 'src/pages/scientificServices/pipelines/common/purchaseQuotaUtils';
 import { usePipelinesList } from 'src/pages/scientificServices/pipelines/hooks/usePipelinesList';
 import { PipelineWidgetContainer } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineWidgetContainer';
 
@@ -24,6 +30,34 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
 
   // track previous pipeline to detect external URL changes
   const prevPipelineNameRef = useRef<string | undefined>(undefined);
+
+  const [nonProfitPrefill, setNonProfitPrefill] = useState<
+    { nonProfitOrganization: boolean; nonProfitActivities: boolean } | undefined
+  >(undefined);
+
+  // if a purchase was in progress for this pipeline (persisted through e.g. a login redirect),
+  // pre-fill its selections and clear it from local storage now that it's been consumed
+  useEffect(() => {
+    const inProgressPurchase = getInProgressPurchase();
+    if (inProgressPurchase?.pipeline === pipelineName) {
+      setPurchasePathOption('self-service');
+      setNonProfitPrefill({
+        nonProfitOrganization: inProgressPurchase.nonProfitOrganization,
+        nonProfitActivities: inProgressPurchase.nonProfitActivities,
+      });
+
+      const qualifiesForAcademicRate =
+        inProgressPurchase.nonProfitOrganization && inProgressPurchase.nonProfitActivities;
+
+      // capture that this was an interaction that began in the marketing page
+      Metrics().captureEvent(Events.teaspoons.continuePurchaseFromMarketingPage, {
+        pipelineName: selectedPipeline?.pipelineName,
+        rateType: qualifiesForAcademicRate ? 'academic' : 'for-profit',
+      });
+      clearInProgressPurchase();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // reset everything if pipelineName changed externally through URL (not from our dropdown)
   useEffect(() => {
@@ -49,7 +83,11 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
 
   // when user changes purchase path method, reset Stripe selections to ensure they actively
   // select the relevant options for the new method they choose
-  const handlePurchasePathChange = (method: PurchasePathOption) => {
+  const handlePurchasePathChange = (method: PurchasePathOption, metricEventName: MetricsEventName) => {
+    Metrics().captureEvent(metricEventName, {
+      pipelineName: selectedPipeline?.pipelineName,
+      pipelineVersion: selectedPipeline?.pipelineVersion,
+    });
     setPurchasePathOption(method);
   };
 
@@ -92,14 +130,14 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
             title='Get Quote First & Pay Later'
             description='Fill out a form and we will contact you with the quote. Once you receive that, you can choose to pay via Purchase Order or Credit Card.'
             buttonText='Request Quote'
-            onClick={() => handlePurchasePathChange('get-quote')}
+            onClick={() => handlePurchasePathChange('get-quote', Events.teaspoons.hubspotFormOptionSelect)}
             isSelected={purchasePathOption === 'get-quote'}
           />
           <PurchaseOptionCard
             title='Get Quote Now & Pay with Credit Card'
             description='Before you complete the purchase you will have the opportunity to see the quote and then pay with Credit Card.'
             buttonText='View Quote & Pay Now'
-            onClick={() => handlePurchasePathChange('self-service')}
+            onClick={() => handlePurchasePathChange('self-service', Events.teaspoons.stripeOptionSelect)}
             isSelected={purchasePathOption === 'self-service'}
             disabled={!stripeUrlsAvailableForPipeline}
           />
@@ -111,6 +149,8 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
           <StripePaymentFormSection
             selectedPipeline={selectedPipeline}
             uniquePipelines={uniquePipelines}
+            initialPartOfAcademicOrNonProfitOrg={nonProfitPrefill?.nonProfitOrganization}
+            initialDoingNonProfitWork={nonProfitPrefill?.nonProfitActivities}
             onPipelineChange={(newPipeline) => {
               setSelectedPipeline(newPipeline);
               Nav.updateSearch({ pipeline: newPipeline.pipelineName });

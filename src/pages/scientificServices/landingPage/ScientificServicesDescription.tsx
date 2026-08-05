@@ -9,6 +9,7 @@ export const ScientificServicesDescription = () => {
   //    users to click through to an authed paged (pipelines-run in our case) before seeing the Sign In button
   Nav.history.replace({
     pathname: Nav.getPath('pipelines-run'),
+    search: Nav.history.location.search,
   });
 
   return (
