@@ -409,7 +409,7 @@ const PreviewHeader = ({
   return h(
     ApplicationHeader,
     {
-      // The "PREVIEW (READ-ONLY)" banner was removed; keeping this argument expanded avoids reindenting the controls below.
+      // Placeholder to avoid massive re-indent
     },
     [
       // App-specific controls
