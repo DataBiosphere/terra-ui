@@ -11,7 +11,7 @@ import ExportAnalysisModal from 'src/analysis/modals/ExportAnalysisModal/ExportA
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/analysis/runtime-common-components';
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName, appLauncherWithAnalysisTabName } from 'src/analysis/runtime-common-text';
 import { getCurrentPersistentDisk } from 'src/analysis/utils/disk-utils';
-import { getExtension, getFileName, notebookLockHash } from 'src/analysis/utils/file-utils';
+import { getFileName, notebookLockHash } from 'src/analysis/utils/file-utils';
 import { dataSyncingDocUrl } from 'src/analysis/utils/gce-machines';
 import { findPotentialNotebookLockers } from 'src/analysis/utils/notebook-lockers';
 import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/analysis/utils/runtime-utils';
@@ -21,7 +21,6 @@ import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinn
 import { icon } from 'src/components/icons';
 import { MenuButton } from 'src/components/MenuButton';
 import { makeMenuIcon, MenuTrigger } from 'src/components/PopupTrigger';
-import { AzureStorage } from 'src/libs/ajax/AzureStorage';
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage';
 import { Runtimes } from 'src/libs/ajax/leonardo/Runtimes';
 import { Metrics } from 'src/libs/ajax/Metrics';
@@ -35,9 +34,9 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/workspaces/common/requester-pays/bucket-utils';
+import { requesterPaysWrapper } from 'src/workspaces/common/requester-pays/bucket-utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
-import { canWrite, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
+import { canWrite, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
 import { AzureComputeModal } from './modals/ComputeModal/AzureComputeModal/AzureComputeModal';
 
@@ -114,7 +113,7 @@ const AnalysisLauncher = _.flow(
                   isLoadingCloudEnvironments,
                   readOnlyAccess: !(canWrite(accessLevel) && canCompute),
                 }),
-                h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel: currentFileToolLabel, workspace }),
+                h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName }),
               ]),
         ]),
         mode && h(RuntimeKicker, { runtime: currentRuntime, refreshRuntimes }),
@@ -631,57 +630,20 @@ const PreviewHeader = ({
   ]);
 };
 
-// This component is responsible for rendering the html preview of the analysis file
-const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace, onRequesterPaysError, styles }) => {
-  const signal = useCancellation();
-  const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState();
-  const frame = useRef();
-  const cloudPlatform = getCloudProviderFromWorkspace(workspace);
-  const {
-    workspace: { workspaceId, googleProject, bucketName },
-  } = workspace;
-
-  const loadPreview = _.flow(
-    Utils.withBusyState(setBusy),
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error previewing analysis')
-  )(async () => {
-    // TODO: Tracked in IA-4015. This implementation is not ideal. Introduce Error typing to better resolve the response.
-    const response =
-      cloudPlatform === cloudProviderTypes.GCP
-        ? await GoogleStorage(signal).analysis(googleProject, bucketName, analysisName, toolLabel).preview()
-        : await AzureStorage(signal).blob(workspaceId, analysisName).preview();
-
-    if (response.status === 200) {
-      Metrics().captureEvent(Events.analysisPreviewSuccess, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform });
-    } else {
-      Metrics().captureEvent(Events.analysisPreviewFail, { fileName: analysisName, fileType: getExtension(analysisName), cloudPlatform });
-    }
-    const previewHtml = await response.text();
-    setPreview(previewHtml);
-  });
-  useOnMount(() => {
-    loadPreview();
-  });
-
-  return h(Fragment, [
-    preview &&
-      h(Fragment, [
-        iframe({
-          ref: frame,
-          onLoad: () => {
-            const doc = frame.current.contentWindow.document;
-            doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps));
-            doc.addEventListener('mousedown', () => window.document.dispatchEvent(new MouseEvent('mousedown')));
-          },
-          style: { border: 'none', flex: 1, ...styles },
-          srcDoc: preview,
-          title: 'Preview for analysis',
-        }),
-      ]),
-    busy && div({ style: { margin: '0.5rem 2rem' } }, ['Generating preview...']),
-  ]);
+// Direct the user to open the analysis instead of showing a preview.
+const AnalysisPreviewFrame = ({ analysisName, styles }) => {
+  return div(
+    {
+      style: {
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...styles,
+      },
+    },
+    [div({ style: { color: colors.dark(0.7), fontSize: 16 } }, ['Select ', b(['Open']), ` to view ${getFileName(analysisName)}`])]
+  );
 };
 
 // This is the purely functional component
