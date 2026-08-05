@@ -406,228 +406,234 @@ const PreviewHeader = ({
 
   const isJupyterLabGCP = currentFileToolLabel === runtimeToolLabels.Jupyter && enableJupyterLabGCP;
 
-  return h(ApplicationHeader, {}, [
-    // App-specific controls
-    Utils.cond(
-      [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingAnalysis(true) }, [makeMenuIcon('export'), 'Copy to another workspace'])],
-      [!runtime, () => createNewRuntimeOpenButton],
-      [
-        runtimeStatus === 'Stopped',
-        () =>
-          h(
-            HeaderButton,
-            {
-              onClick: () => startAndRefresh(refreshRuntimes, runtime),
-            },
-            openMenuIcon
-          ),
-      ],
-      // This is a special case for JupyterLab on GCP. Under the hood, the app running on the runtime is Jupyter, but
-      // we instead proxy to JupyterLab. For JupyterLab GCP, it's important to disable playground mode and not lock
-      // any notebooks. We also need to keep the edit mode directory in line with what Jupyter uses, because users
-      // can easily switch back and forth. This prevents users from having notebooks scattered across multiple directories.
-      [
-        isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
-        () =>
-          h(
-            HeaderButton,
-            {
-              onClick: () => {
-                Nav.goToPath(appLauncherWithAnalysisTabName, {
-                  namespace,
-                  name,
-                  application: runtimeToolLabels.JupyterLab,
-                  cloudPlatform,
-                  analysisName,
-                });
-              },
-            },
-            openMenuIcon
-          ),
-      ],
-      [
-        isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
-        () =>
-          h(
-            HeaderButton,
-            {
-              onClick: () => {
-                Nav.goToPath(appLauncherWithAnalysisTabName, {
-                  namespace,
-                  name,
-                  application: runtimeToolLabels.JupyterLab,
-                  cloudPlatform,
-                  analysisName,
-                });
-              },
-            },
-            openMenuIcon
-          ),
-      ],
-      [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
-      // Azure logic must come before this branch, as currentRuntimeToolLabel !== currentFileToolLabel for azure.
-
-      [currentRuntimeToolLabel !== currentFileToolLabel, () => createNewRuntimeOpenButton],
-      // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
-      // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the AnalysisNotificationManager to prompt user the app is ready to launch
-      // Then open can be clicked again
-      [
-        currentFileToolLabel === runtimeToolLabels.RStudio && _.includes(runtimeStatus, ['Running', null]),
-        () =>
-          h(
-            HeaderButton,
-            {
-              onClick: () => {
-                if (runtimeStatus === 'Running') {
-                  Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform });
-                  Metrics().captureEvent(Events.analysisLaunch, {
-                    origin: 'analysisLauncher',
-                    tool: runtimeToolLabels.RStudio,
-                    workspaceName: name,
-                    namespace,
-                    cloudPlatform,
-                  });
-                }
-              },
-            },
-            openMenuIcon
-          ),
-      ],
-      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to JupyterLab in either cloud
-      [
-        (currentRuntimeToolLabel === runtimeToolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus),
-        () =>
-          h(Fragment, [
-            Utils.cond(
-              [
-                runtime && !welderEnabled,
-                () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [makeMenuIcon('warning-standard'), 'Open (Disabled)']),
-              ],
-              [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [makeMenuIcon('lock'), 'Open (In use)'])],
-              () => editModeButton
-            ),
+  return h(
+    ApplicationHeader,
+    {
+      // The "PREVIEW (READ-ONLY)" banner was removed; keeping this argument expanded avoids reindenting the controls below.
+    },
+    [
+      // App-specific controls
+      Utils.cond(
+        [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingAnalysis(true) }, [makeMenuIcon('export'), 'Copy to another workspace'])],
+        [!runtime, () => createNewRuntimeOpenButton],
+        [
+          runtimeStatus === 'Stopped',
+          () =>
             h(
               HeaderButton,
               {
-                onClick: () => (getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)),
+                onClick: () => startAndRefresh(refreshRuntimes, runtime),
               },
-              [makeMenuIcon('chalkboard'), 'Playground mode']
+              openMenuIcon
+            ),
+        ],
+        // This is a special case for JupyterLab on GCP. Under the hood, the app running on the runtime is Jupyter, but
+        // we instead proxy to JupyterLab. For JupyterLab GCP, it's important to disable playground mode and not lock
+        // any notebooks. We also need to keep the edit mode directory in line with what Jupyter uses, because users
+        // can easily switch back and forth. This prevents users from having notebooks scattered across multiple directories.
+        [
+          isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
+          () =>
+            h(
+              HeaderButton,
+              {
+                onClick: () => {
+                  Nav.goToPath(appLauncherWithAnalysisTabName, {
+                    namespace,
+                    name,
+                    application: runtimeToolLabels.JupyterLab,
+                    cloudPlatform,
+                    analysisName,
+                  });
+                },
+              },
+              openMenuIcon
+            ),
+        ],
+        [
+          isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === runtimeToolLabels.Jupyter,
+          () =>
+            h(
+              HeaderButton,
+              {
+                onClick: () => {
+                  Nav.goToPath(appLauncherWithAnalysisTabName, {
+                    namespace,
+                    name,
+                    application: runtimeToolLabels.JupyterLab,
+                    cloudPlatform,
+                    analysisName,
+                  });
+                },
+              },
+              openMenuIcon
+            ),
+        ],
+        [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
+        // Azure logic must come before this branch, as currentRuntimeToolLabel !== currentFileToolLabel for azure.
+
+        [currentRuntimeToolLabel !== currentFileToolLabel, () => createNewRuntimeOpenButton],
+        // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
+        // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the AnalysisNotificationManager to prompt user the app is ready to launch
+        // Then open can be clicked again
+        [
+          currentFileToolLabel === runtimeToolLabels.RStudio && _.includes(runtimeStatus, ['Running', null]),
+          () =>
+            h(
+              HeaderButton,
+              {
+                onClick: () => {
+                  if (runtimeStatus === 'Running') {
+                    Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio', cloudPlatform });
+                    Metrics().captureEvent(Events.analysisLaunch, {
+                      origin: 'analysisLauncher',
+                      tool: runtimeToolLabels.RStudio,
+                      workspaceName: name,
+                      namespace,
+                      cloudPlatform,
+                    });
+                  }
+                },
+              },
+              openMenuIcon
+            ),
+        ],
+        // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to JupyterLab in either cloud
+        [
+          (currentRuntimeToolLabel === runtimeToolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus),
+          () =>
+            h(Fragment, [
+              Utils.cond(
+                [
+                  runtime && !welderEnabled,
+                  () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [makeMenuIcon('warning-standard'), 'Open (Disabled)']),
+                ],
+                [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [makeMenuIcon('lock'), 'Open (In use)'])],
+                () => editModeButton
+              ),
+              h(
+                HeaderButton,
+                {
+                  onClick: () => (getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)),
+                },
+                [makeMenuIcon('chalkboard'), 'Playground mode']
+              ),
+            ]),
+        ]
+      ),
+      // Workspace-level options
+      h(
+        MenuTrigger,
+        {
+          closeOnClick: true,
+          content: h(Fragment, [
+            h(MenuButton, { 'aria-label': 'Copy analysis', onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
+            h(MenuButton, { onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
+            h(
+              MenuButton,
+              {
+                onClick: withErrorReporting('Error copying to clipboard')(async () => {
+                  await clipboard.writeText(`${window.location.host}/${analysisLink}`);
+                  notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 });
+                }),
+              },
+              ['Copy URL to clipboard']
             ),
           ]),
-      ]
-    ),
-    // Workspace-level options
-    h(
-      MenuTrigger,
-      {
-        closeOnClick: true,
-        content: h(Fragment, [
-          h(MenuButton, { 'aria-label': 'Copy analysis', onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
-          h(MenuButton, { onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
-          h(
-            MenuButton,
-            {
-              onClick: withErrorReporting('Error copying to clipboard')(async () => {
-                await clipboard.writeText(`${window.location.host}/${analysisLink}`);
-                notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 });
-              }),
-            },
-            ['Copy URL to clipboard']
-          ),
-        ]),
-        side: 'bottom',
-      },
-      [h(HeaderButton, {}, [icon('ellipsis-v')])]
-    ),
-    // Status specific messaging which is not specific to an app
-    Utils.cond(
-      [_.includes(runtimeStatus, usableStatuses), () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment is ready.'])],
-      [
-        runtimeStatus === 'Creating' && isAzureWorkspace,
-        () => h(StatusMessage, ['Creating cloud environment. You can navigate away, this may take up to 10 minutes.']),
-      ],
-      [
-        runtimeStatus === 'Creating' && isGcpWorkspace,
-        () => h(StatusMessage, ['Creating cloud environment. You can navigate away and return in 3-5 minutes.']),
-      ],
-      [runtimeStatus === 'Starting', () => h(StatusMessage, ['Starting cloud environment, this may take up to 2 minutes.'])],
-      [
-        runtimeStatus === 'Stopping',
-        () => h(StatusMessage, ['Cloud environment is stopping, which takes ~4 minutes. It will restart after this finishes.']),
-      ],
-      [runtimeStatus === 'LeoReconfiguring', () => h(StatusMessage, ['Cloud environment is updating, please wait.'])],
-      [runtimeStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment error.'])]
-    ),
-    div({ style: { flexGrow: 1 } }),
-    div({ style: { position: 'relative' } }, [
-      h(
-        Clickable,
-        {
-          'aria-label': 'Exit preview mode',
-          style: { opacity: 0.65, marginRight: '1.5rem' },
-          hover: { opacity: 1 },
-          focus: 'hover',
-          onClick: () => Nav.goToPath(analysisTabName, { namespace, name }),
+          side: 'bottom',
         },
-        [icon('times-circle', { size: 30 })]
+        [h(HeaderButton, {}, [icon('ellipsis-v')])]
       ),
-    ]),
-    editModeDisabledOpen &&
-      h(EditModeDisabledModal, {
-        onDismiss: () => setEditModeDisabledOpen(false),
-        onRecreateRuntime: () => {
-          setEditModeDisabledOpen(false);
-          onCreateRuntime();
-        },
-        onPlayground: () => {
-          setEditModeDisabledOpen(false);
-          chooseMode('playground');
-        },
-      }),
-    fileInUseOpen &&
-      h(FileInUseModal, {
-        namespace,
-        name,
-        lockedBy,
-        canShare,
-        bucketName,
-        onDismiss: () => setFileInUseOpen(false),
-        onCopy: () => {
-          setFileInUseOpen(false);
-          setCopyingAnalysis(true);
-        },
-        onPlayground: () => {
-          setFileInUseOpen(false);
-          chooseMode('playground');
-        },
-      }),
-    copyingAnalysis &&
-      h(AnalysisDuplicator, {
-        printName: getFileName(analysisName),
-        toolLabel: getToolLabelFromFileExtension(analysisName),
-        fromLauncher: true,
-        workspaceInfo: { cloudPlatform, name, googleProject, workspaceId, namespace, bucketName },
-        destroyOld: false,
-        onDismiss: () => setCopyingAnalysis(false),
-        onSuccess: () => setCopyingAnalysis(false),
-      }),
-    exportingAnalysis &&
-      h(ExportAnalysisModal, {
-        printName: getFileName(analysisName),
-        toolLabel: getToolLabelFromFileExtension(analysisName),
-        workspace,
-        fromLauncher: true,
-        onDismiss: () => setExportingAnalysis(false),
-      }),
-    playgroundModalOpen &&
-      h(PlaygroundModal, {
-        onDismiss: () => setPlaygroundModalOpen(false),
-        onPlayground: () => {
-          setPlaygroundModalOpen(false);
-          chooseMode('playground');
-        },
-      }),
-  ]);
+      // Status specific messaging which is not specific to an app
+      Utils.cond(
+        [_.includes(runtimeStatus, usableStatuses), () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment is ready.'])],
+        [
+          runtimeStatus === 'Creating' && isAzureWorkspace,
+          () => h(StatusMessage, ['Creating cloud environment. You can navigate away, this may take up to 10 minutes.']),
+        ],
+        [
+          runtimeStatus === 'Creating' && isGcpWorkspace,
+          () => h(StatusMessage, ['Creating cloud environment. You can navigate away and return in 3-5 minutes.']),
+        ],
+        [runtimeStatus === 'Starting', () => h(StatusMessage, ['Starting cloud environment, this may take up to 2 minutes.'])],
+        [
+          runtimeStatus === 'Stopping',
+          () => h(StatusMessage, ['Cloud environment is stopping, which takes ~4 minutes. It will restart after this finishes.']),
+        ],
+        [runtimeStatus === 'LeoReconfiguring', () => h(StatusMessage, ['Cloud environment is updating, please wait.'])],
+        [runtimeStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment error.'])]
+      ),
+      div({ style: { flexGrow: 1 } }),
+      div({ style: { position: 'relative' } }, [
+        h(
+          Clickable,
+          {
+            'aria-label': 'Exit preview mode',
+            style: { opacity: 0.65, marginRight: '1.5rem' },
+            hover: { opacity: 1 },
+            focus: 'hover',
+            onClick: () => Nav.goToPath(analysisTabName, { namespace, name }),
+          },
+          [icon('times-circle', { size: 30 })]
+        ),
+      ]),
+      editModeDisabledOpen &&
+        h(EditModeDisabledModal, {
+          onDismiss: () => setEditModeDisabledOpen(false),
+          onRecreateRuntime: () => {
+            setEditModeDisabledOpen(false);
+            onCreateRuntime();
+          },
+          onPlayground: () => {
+            setEditModeDisabledOpen(false);
+            chooseMode('playground');
+          },
+        }),
+      fileInUseOpen &&
+        h(FileInUseModal, {
+          namespace,
+          name,
+          lockedBy,
+          canShare,
+          bucketName,
+          onDismiss: () => setFileInUseOpen(false),
+          onCopy: () => {
+            setFileInUseOpen(false);
+            setCopyingAnalysis(true);
+          },
+          onPlayground: () => {
+            setFileInUseOpen(false);
+            chooseMode('playground');
+          },
+        }),
+      copyingAnalysis &&
+        h(AnalysisDuplicator, {
+          printName: getFileName(analysisName),
+          toolLabel: getToolLabelFromFileExtension(analysisName),
+          fromLauncher: true,
+          workspaceInfo: { cloudPlatform, name, googleProject, workspaceId, namespace, bucketName },
+          destroyOld: false,
+          onDismiss: () => setCopyingAnalysis(false),
+          onSuccess: () => setCopyingAnalysis(false),
+        }),
+      exportingAnalysis &&
+        h(ExportAnalysisModal, {
+          printName: getFileName(analysisName),
+          toolLabel: getToolLabelFromFileExtension(analysisName),
+          workspace,
+          fromLauncher: true,
+          onDismiss: () => setExportingAnalysis(false),
+        }),
+      playgroundModalOpen &&
+        h(PlaygroundModal, {
+          onDismiss: () => setPlaygroundModalOpen(false),
+          onPlayground: () => {
+            setPlaygroundModalOpen(false);
+            chooseMode('playground');
+          },
+        }),
+    ]
+  );
 };
 
 // Direct the user to open the analysis instead of showing a preview.
