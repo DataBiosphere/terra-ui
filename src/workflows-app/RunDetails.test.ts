@@ -603,7 +603,7 @@ describe('BaseRunDetails - render smoke test', () => {
     within(workflowPath).getByText(runDetailsMetadata.workflowName);
   });
 
-  it('shows the "View sub-workflow" button for sub-workflows', async () => {
+  it('shows the "View subworkflow" button for sub-workflows', async () => {
     // Arrange
     asMockedFn(CromwellApp).mockReturnValue(subworkflowCromwellAjaxMock({ status: 'Succeeded' }));
 
@@ -614,10 +614,10 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // Assert
     const table = screen.getByRole('table');
-    within(table).getByText('View sub-workflow');
+    within(table).getByText('View subworkflow');
   });
 
-  it('updates the workflow path when the "View sub-workflow" button is clicked', async () => {
+  it('updates the workflow path when the "View subworkflow" button is clicked', async () => {
     // Arrange
     asMockedFn(CromwellApp).mockReturnValue(subworkflowCromwellAjaxMock({ status: 'Succeeded' }));
 
@@ -629,13 +629,13 @@ describe('BaseRunDetails - render smoke test', () => {
 
     // Assert
     const table = screen.getByRole('table');
-    const subworkflowButton = within(table).getByText('View sub-workflow');
+    const subworkflowButton = within(table).getByText('View subworkflow');
     await user.click(subworkflowButton);
     const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
     within(workflowPath).getByText(childMetadata.workflowName);
   });
 
-  it('updates the table to show the sub-workflow calls when the "View sub-workflow" button is clicked', async () => {
+  it('updates the table to show the sub-workflow calls when the "View subworkflow" button is clicked', async () => {
     // Arrange
     asMockedFn(CromwellApp).mockReturnValue(subworkflowCromwellAjaxMock({ status: 'Succeeded' }));
 
@@ -644,7 +644,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
     await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
     const table = screen.getByRole('table');
-    const subworkflowButton = within(table).getByText('View sub-workflow');
+    const subworkflowButton = within(table).getByText('View subworkflow');
 
     // Act
     await user.click(subworkflowButton);
@@ -667,7 +667,7 @@ describe('BaseRunDetails - render smoke test', () => {
     await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
 
     const table = screen.getByRole('table');
-    const subworkflowButton = within(table).getByText('View sub-workflow');
+    const subworkflowButton = within(table).getByText('View subworkflow');
     await user.click(subworkflowButton);
     const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
     const targetIdPath = within(workflowPath).getByText(parentMetadata.workflowName);
