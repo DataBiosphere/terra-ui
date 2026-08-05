@@ -55,7 +55,7 @@ const testRunRStudioFn = _.flowRight(
   // Navigate to analysis launcher
   await click(page, clickable({ textContains: `${rFileName}.Rmd` }));
   await dismissInfoNotifications(page);
-  await findText(page, 'PREVIEW (READ-ONLY)');
+  await findText(page, 'Select Open to view');
   await waitForNoSpinners(page);
 
   // Attempt to open analysis; create a cloud env
