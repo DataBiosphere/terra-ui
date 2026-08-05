@@ -295,30 +295,30 @@ const CallTable = ({
                       },
                       [icon('listAlt', { size: 18, 'aria-label': 'View task inputs and outputs' })]
                     ),
-                  batchJobUrl &&
-                    h(
-                      Link,
-                      {
-                        key: 'batch',
-                        ...Utils.newTabLinkProps,
-                        href: batchJobUrl,
-                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
-                        tooltip: 'GCP Batch Job',
-                      },
-                      [icon('cloud', { size: 18, 'aria-label': 'GCP Batch job details' })]
-                    ),
-                  executionDirUrl &&
-                    h(
-                      Link,
-                      {
-                        key: 'execDir',
-                        ...Utils.newTabLinkProps,
-                        href: executionDirUrl,
-                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
-                        tooltip: 'Execution Directory',
-                      },
-                      [icon('folder-open', { size: 18, 'aria-label': 'Execution directory' })]
-                    ),
+                  h(
+                    Link,
+                    {
+                      key: 'batch',
+                      ...(batchJobUrl ? Utils.newTabLinkProps : {}),
+                      href: batchJobUrl,
+                      disabled: !batchJobUrl,
+                      style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                      tooltip: batchJobUrl ? 'GCP Batch Job' : 'No job found',
+                    },
+                    [icon('cloud', { size: 18, 'aria-label': 'GCP Batch job details' })]
+                  ),
+                  h(
+                    Link,
+                    {
+                      key: 'execDir',
+                      ...(executionDirUrl ? Utils.newTabLinkProps : {}),
+                      href: executionDirUrl,
+                      disabled: !executionDirUrl,
+                      style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                      tooltip: executionDirUrl ? 'Execution Directory' : 'No directory found',
+                    },
+                    [icon('folder-open', { size: 18, 'aria-label': 'Execution directory' })]
+                  ),
                 ]);
               },
             },
