@@ -98,7 +98,10 @@ export const ApplicationHeader = ({ label, labelBgColor, bgColor, children }) =>
       },
     },
     [
-      b({ style: { backgroundColor: labelBgColor, padding: '0.75rem 2rem', alignSelf: 'stretch', display: 'flex', alignItems: 'center' } }, [label]),
+      label &&
+        b({ style: { backgroundColor: labelBgColor, padding: '0.75rem 2rem', alignSelf: 'stretch', display: 'flex', alignItems: 'center' } }, [
+          label,
+        ]),
       children,
     ]
   );
