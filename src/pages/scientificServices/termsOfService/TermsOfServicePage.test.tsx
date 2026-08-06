@@ -119,8 +119,8 @@ describe('ScientificServicesTermsOfServicePage', () => {
     it('displays an inline error message when the doc fails to load', async () => {
       render(<ScientificServicesTermsOfServicePage />);
       await screen.findByText('Could not load Terms of Service');
-      const emailLink = screen.getByRole('link', { name: /scientific-services-support@broadinstitute\.org/ });
-      expect(emailLink).toHaveAttribute('href', 'mailto:scientific-services-support@broadinstitute.org');
+      const emailLink = screen.getByRole('link', { name: /data-science-services-support@broadinstitute\.org/ });
+      expect(emailLink).toHaveAttribute('href', 'mailto:data-science-services-support@broadinstitute.org');
     });
   });
 });
