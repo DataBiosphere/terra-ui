@@ -132,17 +132,13 @@ export const FeaturedWorkflows = ({
               cbasProxyUrlState: { state },
             } = await loadAppUrls(workspaceId, 'cbasProxyUrlState');
             const importMethod = (state, method) => {
-              captureEvent(
-                Events.workflowsAppImport,
-                {
-                  ...extractWorkspaceDetails(workspace),
-                  workflowSource: method.source,
-                  workflowName: method.name,
-                  workflowUrl: method.method_versions[0].url,
-                  importPage: 'FeaturedWorkflows',
-                },
-                false
-              );
+              captureEvent(Events.workflowsAppImport, {
+                ...extractWorkspaceDetails(workspace),
+                workflowSource: method.source,
+                workflowName: method.name,
+                workflowUrl: method.method_versions[0].url,
+                importPage: 'FeaturedWorkflows',
+              });
 
               return Cbas().methods.post(state, {
                 method_name: method.name,
@@ -261,7 +257,6 @@ export const FeaturedWorkflows = ({
         methodName,
         onDismiss: () => {
           setImportWorkflowModal(false);
-          window.Appcues?.page();
         },
         workspace,
         namespace,
