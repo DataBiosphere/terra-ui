@@ -2,7 +2,7 @@ import { atom } from '@terra-ui-packages/core-utils';
 import { createHashHistory as createHistory } from 'history';
 import _ from 'lodash/fp';
 import * as qs from 'qs';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { div, h } from 'react-hyperscript-helpers';
 import { useOnMount, useStore } from 'src/libs/react-utils';
 import { routeHandlersStore } from 'src/libs/state';
@@ -139,9 +139,6 @@ export const useRoute = () => {
 
 export const Router = () => {
   const { component, params, query } = useRoute();
-  useEffect(() => {
-    window.Appcues?.page();
-  }, [component]);
   return div({ style: { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' } }, [
     h(component, { key: history.location.pathname, ...params, queryParams: query }),
   ]);

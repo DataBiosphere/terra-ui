@@ -277,26 +277,6 @@ const dismissInfoNotifications = async (page) => {
   return !!notificationCloseButtons.length && delay(1000); // delayed for alerts to animate off
 };
 
-// the NPS survey is handled by AppCues
-const dismissNPSSurvey = async (page) => {
-  let element;
-  try {
-    element = await page.waitForSelector('xpath///iframe[@aria-label="NPS Survey"]', { timeout: 1000 });
-  } catch (e) {
-    return; // NPS survey was not found
-  }
-  try {
-    console.log('dismissing NPS survey');
-    const iframe = await element.contentFrame();
-    const [closeButton] = await iframe.$$('xpath/.//*[normalize-space(.)="Ask Me Later"]');
-    await closeButton.evaluate((button) => button.click());
-    await delay(500); // delayed for survey to animate off
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
-};
-
 // Test workaround: Retry loading of Terra UI if fails first time. This issue often happens after new deploy to Staging/Alpha.
 const signIntoTerra = async (page, { token, testUrl }) => {
   console.log('signIntoTerra ...');
@@ -312,7 +292,6 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   await page.evaluate((token) => window.forceSignIn(token), token);
 
   await dismissInfoNotifications(page);
-  await dismissNPSSurvey(page);
   await waitForNoSpinners(page);
 };
 

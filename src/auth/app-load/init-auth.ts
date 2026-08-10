@@ -98,7 +98,6 @@ export const initializeAuthListeners = () => {
       workspaceStore.reset();
       workspacesStore.reset();
       asyncImportJobStore.reset();
-      window.Appcues?.reset();
     }
   });
 
