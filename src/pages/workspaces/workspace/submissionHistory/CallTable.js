@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
+import { bucketBrowserUrl } from 'src/auth/auth';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
@@ -31,6 +32,15 @@ export const statusFilter = (statuses) => {
 
 export const filterCallObjectsFn = (searchText, sort, statuses) =>
   _.flow(taskNameFilter(searchText), statusFilter(statuses), _.sortBy(sort.field), sort.direction === 'asc' ? _.identity : _.reverse);
+
+// Cromwell reports jobId as the full Batch resource name, e.g.
+// `projects/terra-bb519a4d/locations/us-central1/jobs/job-fe6d19c1-helloworldecho-1-0f9d2497`.
+export const makeBatchJobUrl = (jobId) => {
+  const match = /^projects\/([^/]+)\/locations\/([^/]+)\/jobs\/(.+)$/.exec(jobId || '');
+  if (!match) return undefined;
+  const [, project, region, jobName] = match;
+  return `https://console.cloud.google.com/batch/jobsDetail/regions/${region}/jobs/${jobName}/details?project=${project}`;
+};
 
 // Helper method to generate data for the call table
 const generateCallTableData = (calls) => {
@@ -122,6 +132,7 @@ const CallTable = ({
   defaultFailedFilter = false,
   showLogModal,
   showTaskDataModal,
+  showInputOutputModal = undefined,
   loadWorkflow,
   loadCallCacheDiff,
   loadCallCacheMetadata,
@@ -259,20 +270,60 @@ const CallTable = ({
               headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => {
                 const { subWorkflowId } = filteredCallObjects[rowIndex];
-                return div({ style: basicCellTextStyle }, [_.isEmpty(subWorkflowId) ? 'Task' : 'Sub-workflow']);
+                return div({ style: basicCellTextStyle }, [_.isEmpty(subWorkflowId) ? 'Task' : 'Subworkflow']);
               },
             },
             {
-              size: { basis: 100, grow: 1 },
+              size: { basis: 110, grow: 1 },
               field: 'attempt',
               headerRenderer: () => h(Sortable, { sort, field: 'attempt', onSort: setSort }, ['Attempt']),
               cellRenderer: ({ rowIndex }) => {
-                const { attempt } = filteredCallObjects[rowIndex];
-                return div({ style: basicCellTextStyle }, [attempt]);
+                const { attempt, jobId, callRoot, subWorkflowId, inputs, outputs } = filteredCallObjects[rowIndex];
+                const batchJobUrl = makeBatchJobUrl(jobId);
+                const executionDirUrl = callRoot?.startsWith('gs://') ? bucketBrowserUrl(callRoot.replace('gs://', '')) : undefined;
+                const showInputsOutputs = !!showInputOutputModal && _.isEmpty(subWorkflowId);
+                return div({ style: { ...basicCellTextStyle, display: 'flex', alignItems: 'center' } }, [
+                  attempt,
+                  showInputsOutputs &&
+                    h(
+                      Link,
+                      {
+                        key: 'io',
+                        style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                        tooltip: 'Inputs & Outputs',
+                        onClick: () => showInputOutputModal('Inputs & Outputs', inputs, outputs),
+                      },
+                      [icon('listAlt', { size: 18, 'aria-label': 'View task inputs and outputs' })]
+                    ),
+                  h(
+                    Link,
+                    {
+                      key: 'batch',
+                      ...(batchJobUrl ? Utils.newTabLinkProps : {}),
+                      href: batchJobUrl,
+                      disabled: !batchJobUrl,
+                      style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                      tooltip: batchJobUrl ? 'GCP Batch Job' : 'No job found',
+                    },
+                    [icon('cloud', { size: 18, 'aria-label': 'GCP Batch job details' })]
+                  ),
+                  h(
+                    Link,
+                    {
+                      key: 'execDir',
+                      ...(executionDirUrl ? Utils.newTabLinkProps : {}),
+                      href: executionDirUrl,
+                      disabled: !executionDirUrl,
+                      style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
+                      tooltip: executionDirUrl ? 'Execution Directory' : 'No directory found',
+                    },
+                    [icon('folder-open', { size: 18, 'aria-label': 'Execution directory' })]
+                  ),
+                ]);
               },
             },
             {
-              size: { basis: 150, grow: 2 },
+              size: { basis: 140, grow: 2 },
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
@@ -411,7 +462,7 @@ const CallTable = ({
                                     loadWorkflow(subWorkflowId, updateWorkflowPath);
                                   },
                                 },
-                                ['View sub-workflow']
+                                ['View subworkflow']
                               ),
                             ]
                           : _.isEmpty(subWorkflowId) && [

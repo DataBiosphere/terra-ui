@@ -26,6 +26,7 @@ import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import CallTable from 'src/pages/workspaces/workspace/submissionHistory/CallTable';
+import InputOutputModal from 'src/workflows-app/components/InputOutputModal';
 import { UriViewer } from 'src/workspace-data/data-table/uri-viewer/UriViewer';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 
@@ -89,6 +90,7 @@ const WorkflowDashboard = _.flow(
   const [workflow, setWorkflow] = useState();
   const [fetchTime, setFetchTime] = useState();
   const [showLog, setShowLog] = useState(false);
+  const [taskDataModal, setTaskDataModal] = useState(undefined);
 
   const signal = useCancellation();
   const stateRefreshTimer = useRef();
@@ -116,6 +118,10 @@ const WorkflowDashboard = _.flow(
         'callCaching:result',
         'callCaching:effectiveCallCachingMode',
         'backendStatus',
+        'jobId',
+        'callRoot',
+        'inputs',
+        'outputs',
       ];
       const excludeKey = [];
 
@@ -223,7 +229,29 @@ const WorkflowDashboard = _.flow(
               ]),
             ]),
             makeSection('Links', [
-              div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
+              div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: '0.5rem', lineHeight: '2rem' } }, [
+                workflowRoot &&
+                  h(
+                    Link,
+                    {
+                      ...Utils.newTabLinkProps,
+                      href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
+                      style: { display: 'flex', alignItems: 'center' },
+                      tooltip: 'Execution directory',
+                    },
+                    [icon('folder-open', { size: 18 }), ' Execution Directory']
+                  ),
+                h(
+                  Link,
+                  {
+                    onClick: () => setShowLog(true),
+                    style: { display: 'flex', alignItems: 'center' },
+                    tooltip: 'View Cromwell log for this worklfow',
+                  },
+                  [icon('fileAlt', { size: 18 }), ' View execution log']
+                ),
+                // Escape hatch to Job Manager while the dashboard is being built out to parity.
+                // The click metric lets us track how often users still fall back to JM.
                 h(
                   Link,
                   {
@@ -236,28 +264,9 @@ const WorkflowDashboard = _.flow(
                         ...extractWorkspaceDetails(workspace.workspace),
                       }),
                     style: { display: 'flex', alignItems: 'center' },
-                    tooltip: 'Job Manager',
+                    tooltip: 'Open this workflow in the legacy Job Manager',
                   },
-                  [icon('tasks', { size: 18 }), ' Job Manager']
-                ),
-                workflowRoot &&
-                  h(
-                    Link,
-                    {
-                      ...Utils.newTabLinkProps,
-                      href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
-                      style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
-                      tooltip: 'Execution directory',
-                    },
-                    [icon('folder-open', { size: 18 }), ' Execution Directory']
-                  ),
-                h(
-                  Link,
-                  {
-                    onClick: () => setShowLog(true),
-                    style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
-                  },
-                  [icon('fileAlt', { size: 18 }), ' View execution log']
+                  [icon('tasks', { size: 18 }), ' Job Manager (legacy)']
                 ),
               ]),
             ]),
@@ -305,7 +314,18 @@ const WorkflowDashboard = _.flow(
                 !_.isEmpty(callObjects) &&
                   makeSection(
                     'Call Lists',
-                    [h(CallTable, { namespace, name, submissionId, workflowId, callObjects, loadCallCacheDiff, loadCallCacheMetadata })],
+                    [
+                      h(CallTable, {
+                        namespace,
+                        name,
+                        submissionId,
+                        workflowId,
+                        callObjects,
+                        loadCallCacheDiff,
+                        loadCallCacheMetadata,
+                        showInputOutputModal: (title, inputs, outputs) => setTaskDataModal({ title, inputs, outputs }),
+                      }),
+                    ],
                     {
                       style: { overflow: 'visible' },
                     }
@@ -322,6 +342,15 @@ const WorkflowDashboard = _.flow(
               [h(WDLViewer, { wdl })]
             ),
           showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) }),
+          taskDataModal &&
+            h(InputOutputModal, {
+              title: taskDataModal.title,
+              sections: [
+                { title: 'Inputs', jsonData: taskDataModal.inputs },
+                { title: 'Outputs', jsonData: taskDataModal.outputs },
+              ],
+              onDismiss: () => setTaskDataModal(undefined),
+            }),
         ])
     ),
   ]);
@@ -330,7 +359,7 @@ const WorkflowDashboard = _.flow(
 const workflowDashboardRoute = {
   name: 'workspace-workflow-dashboard',
   component: WorkflowDashboard,
-  title: ({ name }) => `${name} - Workflow Dashboard`,
+  title: ({ name }) => `${name} - Workflow Details`,
 };
 
 export const navPaths = [
