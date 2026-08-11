@@ -328,7 +328,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const closeButton = screen.getByLabelText('Close modal'); // close button works
     expect(captureEvent).not.toHaveBeenCalled();
     await user.click(closeButton);
-    expect(captureEvent).toHaveBeenCalledWith(Events.workflowsAppCloseLogViewer, undefined, undefined);
+    expect(captureEvent).toHaveBeenCalledWith(Events.workflowsAppCloseLogViewer, undefined);
   });
 
   it('opens the log viewer modal when Logs is clicked from the call table', async () => {

@@ -145,9 +145,7 @@ const ImportGithub: React.FC<ImportGithubProps> = (props): React.ReactNode => {
       h(ImportWorkflowModal, {
         importLoading,
         methodName,
-        onDismiss: () => {
-          setImportWorkflowModal(false);
-        },
+        onDismiss: () => setImportWorkflowModal(false),
         workspace,
         namespace,
         name,

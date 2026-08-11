@@ -255,9 +255,7 @@ export const FeaturedWorkflows = ({
       h(ImportWorkflowModal, {
         importLoading,
         methodName,
-        onDismiss: () => {
-          setImportWorkflowModal(false);
-        },
+        onDismiss: () => setImportWorkflowModal(false),
         workspace,
         namespace,
         name,
