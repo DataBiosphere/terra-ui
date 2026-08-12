@@ -205,7 +205,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
               isOpened={openSupportMenu}
             >
               <DropDownSubItem
-                href='https://support.terra.bio/hc/en-us/categories/360005881492'
+                href='https://support.terra.bio/hc/en-us/sections/4408259082139-Quickstart-tutorials'
                 onClick={hideNav}
                 {...Utils.newTabLinkProps}
               >
