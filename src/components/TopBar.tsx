@@ -205,11 +205,8 @@ export const TopBar = (props: TopBarProps): ReactNode => {
               isOpened={openSupportMenu}
             >
               <DropDownSubItem
-                href={window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/categories/360005881492'}
-                onClick={() => {
-                  hideNav();
-                  window.Appcues?.show('-M3lNP6ncNr-42_78TOX');
-                }}
+                href='https://support.terra.bio/hc/en-us/sections/4408259082139-Quickstart-tutorials'
+                onClick={hideNav}
                 {...Utils.newTabLinkProps}
               >
                 Quickstart Guide

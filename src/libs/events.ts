@@ -18,7 +18,6 @@ import { Metrics } from './ajax/Metrics';
  */
 const eventsList = {
   aboutPersistentDiskView: 'about:persistentDisk:view',
-  appcuesEvent: 'appcues:event',
   applicationLaunch: 'application:launch',
   applicationCreate: 'application:create',
   applicationDelete: 'application:delete',
@@ -335,80 +334,6 @@ export const PageViewReporter = (): ReactNode => {
   }, [name, params]);
 
   return null;
-};
-
-export const captureAppcuesEvent = (eventName: string, event: any) => {
-  // record different event properties for "public-facing events" and NPS events
-  // Appcues event properties are listed here: https://docs.appcues.com/article/301-client-side-events-reference
-  const publicEvents = [
-    'flow_started',
-    'flow_completed',
-    'flow_skipped',
-    'flow_aborted',
-    'step_started',
-    'step_completed',
-    'step_skipped',
-    'step_aborted',
-    'step_interacted',
-    'form_submitted',
-    'form_field_submitted',
-  ];
-  const npsEvents = [
-    'nps_survey_started',
-    'nps_score',
-    'nps_feedback',
-    'nps_ask_me_later_selected_at',
-    'nps_clicked_update_nps_score',
-  ];
-  if (_.includes(eventName, publicEvents)) {
-    const eventProps = {
-      // Building the props manually to make sure we're resilient to any changes in Appcues
-      'appcues.flowId': event.flowId,
-      'appcues.flowName': event.flowName,
-      'appcues.flowType': event.flowType,
-      'appcues.flowVersion': event.flowVersion,
-      'appcues.id': event.id,
-      'appcues.interaction.category': event.interaction?.category,
-      'appcues.interaction.destination': event.interaction?.destination,
-      'appcues.interaction.element': event.interaction?.element,
-      'appcues.interaction.fields': JSON.stringify(event.interaction?.fields),
-      'appcues.interaction.formId': event.interaction?.formId,
-      'appcues.interaction.text': event.interaction?.text, // not documented by Appcues, but observed and useful
-      'appcues.interaction.label': event.interaction?.label,
-      'appcues.interaction.response': event.interaction?.response,
-      'appcues.interaction.value': event.interaction?.value,
-      'appcues.interactionType': event.interactionType,
-      'appcues.localeId': event.localeId,
-      'appcues.localeName': event.localeName,
-      'appcues.name': event.name,
-      'appcues.sessionId': event.sessionId,
-      'appcues.stepChildId': event.stepChildId,
-      'appcues.stepChildNumber': event.stepChildNumber,
-      'appcues.stepId': event.stepId,
-      'appcues.stepNumber': event.stepNumber,
-      'appcues.stepType': event.stepType,
-      'appcues.timestamp': event.timestamp,
-    };
-    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
-  }
-  if (_.includes(eventName, npsEvents)) {
-    const eventProps = {
-      // the NPS survey related events have additional special properties
-      'appcues.flowId': event.flowId,
-      'appcues.flowName': event.flowName,
-      'appcues.flowType': event.flowType,
-      'appcues.flowVersion': event.flowVersion,
-      'appcues.id': event.id,
-      'appcues.name': event.name,
-      'appcues.sessionId': event.sessionId,
-      'appcues.timestamp': event.timestamp,
-      'appcues.npsScore': event.score,
-      'appcues.npsFeedback': event.feedback,
-      'appcues.npsAskMeLaterSelectedAt': event.askMeLaterSelectedAt,
-      'appcues.npsClickedUpdateNpsScore': event.score,
-    };
-    return Metrics().captureEvent(eventsList.appcuesEvent, eventProps);
-  }
 };
 
 export default eventsList;

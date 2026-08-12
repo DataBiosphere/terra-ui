@@ -127,17 +127,13 @@ const ImportGithub: React.FC<ImportGithubProps> = (props): React.ReactNode => {
                 method_url: methodUrl,
                 method_source: 'GitHub',
               };
-              captureEvent(
-                Events.workflowsAppImport,
-                {
-                  ...extractWorkspaceDetails(workspace),
-                  workflowSource: 'GitHub',
-                  workflowName: methodName,
-                  workflowUrl: methodUrl,
-                  importPage: 'ImportGithub',
-                },
-                false
-              );
+              captureEvent(Events.workflowsAppImport, {
+                ...extractWorkspaceDetails(workspace),
+                workflowSource: 'GitHub',
+                workflowName: methodName,
+                workflowUrl: methodUrl,
+                importPage: 'ImportGithub',
+              });
               withBusyState(setLoading, () => submitMethod(signal, method, workspace, onSuccess, onError))();
             },
           },
@@ -149,10 +145,7 @@ const ImportGithub: React.FC<ImportGithubProps> = (props): React.ReactNode => {
       h(ImportWorkflowModal, {
         importLoading,
         methodName,
-        onDismiss: () => {
-          setImportWorkflowModal(false);
-          window.Appcues?.page();
-        },
+        onDismiss: () => setImportWorkflowModal(false),
         workspace,
         namespace,
         name,
