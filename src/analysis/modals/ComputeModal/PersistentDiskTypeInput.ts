@@ -30,7 +30,7 @@ export const PersistentDiskTypeInput = <T extends DiskType, Option extends { val
         isDisabled,
         options,
         id: persistentDiskId,
-        menuPlacement: 'auto',
+        menuPlacement: 'top',
       }),
     ]),
   ]);
