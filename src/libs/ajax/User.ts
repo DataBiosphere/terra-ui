@@ -223,7 +223,7 @@ export const User = (signal?: AbortSignal) => {
         isCurrentVersion: responseJson.termsOfServiceDetails.isCurrentVersion,
       };
 
-      const enterpriseFeatures = responseJson.additionalDetails?.enterpriseFeatures
+      const enterpriseFeatures = responseJson.additionalDetails.enterpriseFeatures
         ? responseJson.additionalDetails.enterpriseFeatures.resources.map((resource) => resource.resourceId)
         : [];
 
