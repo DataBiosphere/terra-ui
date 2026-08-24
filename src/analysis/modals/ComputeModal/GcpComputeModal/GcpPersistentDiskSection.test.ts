@@ -73,7 +73,7 @@ describe('GcpPersistentDiskSection', () => {
 
     // Assert
     expect(screen.getByLabelText('Disk Type')).toBeDisabled();
-    expect(screen.getByText('Standard')).toBeTruthy();
+    expect(screen.getByText('Hard Disk')).toBeTruthy();
     expect(screen.getByLabelText('Disk Size (GB)')).toBeEnabled();
   });
 });

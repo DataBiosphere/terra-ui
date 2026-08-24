@@ -9,7 +9,7 @@ import { defaultPersistentDiskType } from 'src/analysis/utils/disk-utils';
 import { GooglePdType, googlePdTypes } from 'src/libs/ajax/leonardo/providers/LeoDiskProvider';
 import { CloudProvider } from 'src/workspaces/utils';
 
-export const GcpPersistentDiskOptions = [googlePdTypes.standard, googlePdTypes.balanced, googlePdTypes.ssd];
+export const GcpPersistentDiskOptions = [googlePdTypes.ssd, googlePdTypes.balanced, googlePdTypes.standard];
 
 export interface GcpPersistentDiskSectionProps {
   persistentDiskExists: boolean;

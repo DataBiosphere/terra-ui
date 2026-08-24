@@ -65,7 +65,7 @@ export type PDLabels = 'standard' | 'balanced' | 'ssd';
 export const googlePdTypes: Record<PDLabels, GooglePdType> = {
   standard: {
     value: 'pd-standard',
-    label: 'Standard',
+    label: 'Hard Disk',
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   balanced: {
@@ -75,7 +75,7 @@ export const googlePdTypes: Record<PDLabels, GooglePdType> = {
   },
   ssd: {
     value: 'pd-ssd',
-    label: 'Solid state drive (SSD)',
+    label: 'Solid State Drive (default)',
     regionToPricesName: 'monthlySSDDiskPrice',
   },
 };

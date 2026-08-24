@@ -763,7 +763,7 @@ export const generateTestDisk = (overrides: Partial<PersistentDisk> = {}): Persi
   blockSize: 4096,
   diskType: {
     value: 'pd-standard',
-    label: 'Standard',
+    label: 'Hard Disk',
     regionToPricesName: 'monthlyStandardDiskPrice',
   },
   cloudContext: {

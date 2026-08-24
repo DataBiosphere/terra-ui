@@ -16,7 +16,7 @@ export const defaultDataprocWorkerDiskSize = 150;
 // with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
 export const defaultGceBootDiskSize = 250;
 export const defaultGcePersistentDiskSize = 50;
-export const defaultPersistentDiskType = googlePdTypes.standard;
+export const defaultPersistentDiskType = googlePdTypes.ssd;
 export const getCurrentAttachedDataDisk = (
   app: App | undefined,
   appDataDisks: PersistentDisk[]
