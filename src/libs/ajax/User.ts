@@ -210,7 +210,9 @@ export const User = (signal?: AbortSignal) => {
 
       const terraUserAllowances: SamUserAllowances = responseJson.allowances;
 
-      const terraUserAttributes: SamUserAttributes = { marketingConsent: responseJson.attributes.marketingConsent };
+      const terraUserAttributes: SamUserAttributes = {
+        marketingConsent: responseJson.attributes?.marketingConsent ?? false,
+      };
 
       const termsOfService: SamUserTermsOfServiceDetails = {
         latestAcceptedVersion: responseJson.termsOfServiceDetails.latestAcceptedVersion,
