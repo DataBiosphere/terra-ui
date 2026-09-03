@@ -18,7 +18,7 @@ const pastExpirationDate = '2026-03-01T12:00:00.000Z';
 const futureExpirationDate = '2026-12-01T12:00:00.000Z';
 
 const makePipelineRunResponse = (
-  outputs: Record<string, PipelineOutputValue> = {},
+  outputs: Record<string, PipelineOutputValue | PipelineOutputValue[]> = {},
   dataDeliveryReport?: DataDeliveryReport,
   outputExpirationDate?: string
 ): PipelineRunResponse => ({
@@ -90,6 +90,19 @@ describe('DataDeliveryView', () => {
       };
       render(<DataDeliveryView dataDeliveryReport={null} pipelineRunResult={makePipelineRunResponse(outputs)} />);
       expect(screen.getByText('1 file will be moved to the destination.')).toBeInTheDocument();
+    });
+
+    it('counts each file within a FILE_ARRAY output', () => {
+      const outputs = {
+        singleFile: { value: 'gs://bucket/file1.txt', metadata: { sizeInBytes: 1048576 } },
+        fileArray: [
+          { value: 'gs://bucket/chr1.vcf.gz', metadata: { sizeInBytes: 100 } },
+          { value: 'gs://bucket/chr2.vcf.gz', metadata: { sizeInBytes: 200 } },
+          { value: 'gs://bucket/chr3.vcf.gz', metadata: { sizeInBytes: 300 } },
+        ],
+      };
+      render(<DataDeliveryView dataDeliveryReport={null} pipelineRunResult={makePipelineRunResponse(outputs)} />);
+      expect(screen.getByText('4 files will be moved to the destination.')).toBeInTheDocument();
     });
 
     it('does not show file count when there are no outputs', () => {
