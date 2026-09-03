@@ -8,21 +8,36 @@ import colors from 'src/libs/colors';
 import Events from 'src/libs/events';
 import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
 import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
+import {
+  MOCK_FILE_ARRAY_JOB_ID,
+  mockFileArrayOutputSignedUrls,
+} from 'src/pages/scientificServices/pipelines/utils/mock-file-array-example';
 
 interface DownloadOutputModalProps {
   outputKey: string;
   outputDefinition?: PipelineOutput;
   fileName: string;
+  // Index into the output's value/signed-url arrays, for FILE_ARRAY outputs
+  index?: number;
   pipelineRunResult: PipelineRunResponse;
   onDismiss: () => void;
-  signedUrls?: Record<string, string>;
-  setSignedUrls: (urls: Record<string, string>) => void;
+  signedUrls?: Record<string, string | string[]>;
+  setSignedUrls: (urls: Record<string, string | string[]>) => void;
+}
+
+// Resolves a possibly-array value (FILE_ARRAY outputs/signed urls) at the given index, or returns it as-is otherwise
+function resolveAtIndex<T>(valueOrArray: T | T[] | undefined, index?: number): T | undefined {
+  if (!Array.isArray(valueOrArray)) {
+    return valueOrArray;
+  }
+  return index !== undefined ? valueOrArray[index] : undefined;
 }
 
 export const OutputDetailsModal = ({
   outputKey,
   outputDefinition,
   fileName,
+  index,
   pipelineRunResult,
   onDismiss,
   signedUrls,
@@ -49,12 +64,14 @@ export const OutputDetailsModal = ({
 
         // if we haven't already fetched signed urls for this job, do it! otherwise, we'll use the existing ones
         if (!urls) {
-          const response = await Teaspoons().getPipelineRunOutputSignedUrls(pipelineRunResult.jobReport.id);
-          urls = response.outputSignedUrls;
+          urls =
+            pipelineRunResult.jobReport.id === MOCK_FILE_ARRAY_JOB_ID
+              ? mockFileArrayOutputSignedUrls.outputSignedUrls
+              : (await Teaspoons().getPipelineRunOutputSignedUrls(pipelineRunResult.jobReport.id)).outputSignedUrls;
           setSignedUrls(urls);
         }
 
-        const url = urls?.[outputKey];
+        const url = resolveAtIndex(urls?.[outputKey], index);
         if (!url) {
           setError('Failed to retrieve download. Please try again.');
           return;
@@ -63,7 +80,10 @@ export const OutputDetailsModal = ({
         setSignedUrl(url);
 
         // if available, use the file size from the output metadata returned by the API
-        const outputMetadata = pipelineRunResult.pipelineRunReport.outputs?.[outputKey]?.metadata;
+        const outputMetadata = resolveAtIndex(
+          pipelineRunResult.pipelineRunReport.outputs?.[outputKey],
+          index
+        )?.metadata;
         if (outputMetadata?.sizeInBytes !== undefined) {
           setFileSize(formatBytes(outputMetadata.sizeInBytes));
         }
@@ -90,6 +110,7 @@ export const OutputDetailsModal = ({
   }, [
     deliverySucceeded,
     outputKey,
+    index,
     pipelineRunResult.jobReport.id,
     pipelineRunResult.pipelineRunReport.outputs,
     setSignedUrls,

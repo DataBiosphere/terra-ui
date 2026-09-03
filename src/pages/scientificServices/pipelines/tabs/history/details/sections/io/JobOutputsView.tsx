@@ -1,6 +1,6 @@
 import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
-import { PipelineOutput, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineOutput, PipelineOutputValue, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { formatBytes } from 'src/libs/utils';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
@@ -14,8 +14,8 @@ interface JobOutputsViewProps {
 }
 
 export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutputsViewProps) => {
-  const [selectedOutput, setSelectedOutput] = useState<{ key: string; fileName: string } | null>(null);
-  const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
+  const [selectedOutput, setSelectedOutput] = useState<{ key: string; fileName: string; index?: number } | null>(null);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string | string[]>>();
 
   const isSucceeded = pipelineRunResult.jobReport.status === 'SUCCEEDED';
   const isFailed = pipelineRunResult.jobReport.status === 'FAILED';
@@ -126,8 +126,6 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
         <div>
           {Object.entries(outputs).map(([key, outputValue]) => {
             const outputDefinition = outputDefinitions.find((output) => output.name === key);
-            const fileName = outputValue.value;
-            const sizeInBytes = outputValue.metadata?.sizeInBytes;
 
             return (
               <div
@@ -141,15 +139,26 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                   borderRadius: '4px',
                 }}
               >
-                <OutputItem
-                  label={outputDefinition?.displayName || key}
-                  outputType={outputDefinition?.type || 'Unknown'}
-                  tooltip={outputDefinition?.description || 'No description available for this output'}
-                  fileName={fileName}
-                  sizeInBytes={sizeInBytes}
-                  disabled={!isSucceeded || !!outputsExpired}
-                  onSelect={() => setSelectedOutput({ key, fileName })}
-                />
+                {Array.isArray(outputValue) ? (
+                  <OutputArrayItem
+                    label={outputDefinition?.displayName || key}
+                    outputType={outputDefinition?.type || 'FILE_ARRAY'}
+                    tooltip={outputDefinition?.description || 'No description available for this output'}
+                    files={outputValue}
+                    disabled={!isSucceeded || !!outputsExpired}
+                    onSelectFile={(index, fileName) => setSelectedOutput({ key, fileName, index })}
+                  />
+                ) : (
+                  <OutputItem
+                    label={outputDefinition?.displayName || key}
+                    outputType={outputDefinition?.type || 'Unknown'}
+                    tooltip={outputDefinition?.description || 'No description available for this output'}
+                    fileName={outputValue.value}
+                    sizeInBytes={outputValue.metadata?.sizeInBytes}
+                    disabled={!isSucceeded || !!outputsExpired}
+                    onSelect={() => setSelectedOutput({ key, fileName: outputValue.value })}
+                  />
+                )}
               </div>
             );
           })}
@@ -165,6 +174,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
           outputKey={selectedOutput.key}
           outputDefinition={outputDefinitions.find((output) => output.name === selectedOutput.key)}
           fileName={selectedOutput.fileName}
+          index={selectedOutput.index}
           pipelineRunResult={pipelineRunResult}
           onDismiss={() => setSelectedOutput(null)}
           signedUrls={signedUrls}
@@ -242,6 +252,113 @@ const OutputItem = ({
         )}
         {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
       </div>
+    </div>
+  );
+};
+
+const COLLAPSED_FILE_COUNT = 3;
+
+const OutputArrayItem = ({
+  label,
+  tooltip,
+  outputType,
+  files,
+  disabled,
+  onSelectFile,
+}: {
+  label: string;
+  tooltip: string;
+  outputType: string;
+  files: PipelineOutputValue[];
+  disabled?: boolean;
+  onSelectFile: (index: number, fileName: string) => void;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const visibleFiles = expanded ? files : files.slice(0, COLLAPSED_FILE_COUNT);
+  const totalSizeInBytes = files.reduce((sum, file) => sum + (file.metadata?.sizeInBytes || 0), 0);
+  const hasSizes = files.some((file) => file.metadata?.sizeInBytes !== undefined);
+
+  return (
+    <div>
+      <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <TooltipTrigger content={tooltip}>
+          <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
+        </TooltipTrigger>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: 12, color: colors.dark(0.6) }}>
+            {files.length} files{hasSizes && ` · ${formatBytes(totalSizeInBytes)} total`}
+          </span>
+          <PipelineIOTypeBadge type={outputType} />
+        </div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        {visibleFiles.map((file, index) => (
+          <div
+            key={file.value}
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '0.25rem',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              wordBreak: 'break-all',
+            }}
+          >
+            <code style={{ maxWidth: '70%' }} title={file.value}>
+              {file.value}{' '}
+              {file.metadata?.sizeInBytes !== undefined && (
+                <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>
+                  ({formatBytes(file.metadata.sizeInBytes)})
+                </span>
+              )}
+            </code>
+            {!disabled && (
+              <div style={{ minWidth: '120px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <button
+                  type='button'
+                  onClick={() => onSelectFile(index, file.value)}
+                  style={{
+                    color: '#46A3E9',
+                    fontWeight: 700,
+                    textDecoration: 'underline',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    font: 'inherit',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                >
+                  <Icon icon='pop-out' size={14} />
+                  View details
+                </button>
+              </div>
+            )}
+            {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
+          </div>
+        ))}
+      </div>
+      {files.length > COLLAPSED_FILE_COUNT && (
+        <button
+          type='button'
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            color: colors.dark(0.6),
+            fontWeight: 500,
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            font: 'inherit',
+            marginTop: '0.5rem',
+            textDecoration: 'underline',
+          }}
+        >
+          {expanded ? 'Show fewer files' : `Show all ${files.length} files`}
+        </button>
+      )}
     </div>
   );
 };

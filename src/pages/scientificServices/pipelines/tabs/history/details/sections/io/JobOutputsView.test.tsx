@@ -364,6 +364,99 @@ describe('JobOutputsView', () => {
     });
   });
 
+  describe('FILE_ARRAY outputs', () => {
+    beforeEach(() => {
+      mockGetPipelineRunOutputSignedUrls.mockResolvedValue({
+        outputSignedUrls: {
+          imputedMultiSampleVcfArray: [
+            'gs://bucket/test.chr1.vcf.gz',
+            'gs://bucket/test.chr2.vcf.gz',
+            'gs://bucket/test.chr3.vcf.gz',
+            'gs://bucket/test.chr4.vcf.gz',
+            'gs://bucket/test.chr5.vcf.gz',
+          ],
+        },
+      });
+    });
+
+    const fileArrayOutputDefinitions: PipelineOutput[] = [
+      ...mockOutputDefinitions,
+      {
+        name: 'imputedMultiSampleVcfArray',
+        displayName: 'imputed VCFs',
+        type: 'FILE_ARRAY',
+        description: 'per-chr VCFs',
+      },
+    ];
+
+    const buildResultWithFileArray = (files: { value: string; metadata?: { sizeInBytes: number } }[]) => ({
+      ...mockPipelineRunResponse('SUCCEEDED'),
+      pipelineRunReport: {
+        ...mockPipelineRunResponse('SUCCEEDED').pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcfArray: files,
+        },
+      },
+    });
+
+    it('renders a FILE_ARRAY output with a file count and total size', async () => {
+      const mockResult = buildResultWithFileArray([
+        { value: 'test.chr1.vcf.gz', metadata: { sizeInBytes: 1048576 } },
+        { value: 'test.chr2.vcf.gz', metadata: { sizeInBytes: 1048576 } },
+      ]);
+
+      render(<JobOutputsView outputDefinitions={fileArrayOutputDefinitions} pipelineRunResult={mockResult} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('imputed VCFs')).toBeInTheDocument();
+        expect(screen.getByText('file array')).toBeInTheDocument();
+        expect(screen.getByText(/2 files/)).toBeInTheDocument();
+        expect(screen.getByText(/2\.00 MiB total/)).toBeInTheDocument();
+      });
+    });
+
+    it('collapses long file lists by default and expands on click', async () => {
+      const user = userEvent.setup();
+      const files = [1, 2, 3, 4, 5].map((n) => ({ value: `test.chr${n}.vcf.gz`, metadata: { sizeInBytes: 100 } }));
+      const mockResult = buildResultWithFileArray(files);
+
+      render(<JobOutputsView outputDefinitions={fileArrayOutputDefinitions} pipelineRunResult={mockResult} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('test.chr1.vcf.gz')).toBeInTheDocument();
+        expect(screen.queryByText('test.chr5.vcf.gz')).not.toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /show all 5 files/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('test.chr5.vcf.gz')).toBeInTheDocument();
+      });
+    });
+
+    it('opens the details modal for the file that was clicked', async () => {
+      const user = userEvent.setup();
+      const mockResult = buildResultWithFileArray([
+        { value: 'test.chr1.vcf.gz', metadata: { sizeInBytes: 100 } },
+        { value: 'test.chr2.vcf.gz', metadata: { sizeInBytes: 200 } },
+      ]);
+
+      render(<JobOutputsView outputDefinitions={fileArrayOutputDefinitions} pipelineRunResult={mockResult} />);
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('button', { name: /view details/i })).toHaveLength(2);
+      });
+
+      const viewDetailsButtons = screen.getAllByRole('button', { name: /view details/i });
+      await user.click(viewDetailsButtons[1]);
+
+      await waitFor(() => {
+        const modal = screen.getByRole('dialog');
+        expect(modal).toHaveTextContent('test.chr2.vcf.gz');
+      });
+    });
+  });
+
   it('does not display file size when sizeInBytes is not available', async () => {
     const mockResult = {
       ...mockPipelineRunResponse('SUCCEEDED'),

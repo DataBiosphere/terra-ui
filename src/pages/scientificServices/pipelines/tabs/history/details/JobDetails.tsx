@@ -9,6 +9,11 @@ import { DataDeliveryView } from 'src/pages/scientificServices/pipelines/tabs/hi
 import { JobDetailsHeader } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobDetailsHeader';
 import { JobIOView } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/JobIOView';
 import { PipelineRunTimeline } from 'src/pages/scientificServices/pipelines/tabs/history/details/sections/timeline/PipelineRunTimeline';
+import {
+  MOCK_FILE_ARRAY_JOB_ID,
+  mockFileArrayPipelineDetails,
+  mockFileArrayPipelineRunResponse,
+} from 'src/pages/scientificServices/pipelines/utils/mock-file-array-example';
 
 export interface JobDetailsProps {
   jobId: string;
@@ -22,7 +27,10 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
     async function fetchJobDetails() {
       setIsLoading(true);
       try {
-        const response = await Teaspoons().getPipelineRunResult(jobId);
+        const response =
+          jobId === MOCK_FILE_ARRAY_JOB_ID
+            ? mockFileArrayPipelineRunResponse
+            : await Teaspoons().getPipelineRunResult(jobId);
 
         setPipelineRunResult(response);
       } catch (err) {
@@ -72,7 +80,10 @@ export const JobDetails = ({ jobId }: JobDetailsProps) => {
                 )}
               </div>
               <div style={{ flex: 1 }}>
-                <JobIOView pipelineRunResult={pipelineRunResult} />
+                <JobIOView
+                  pipelineRunResult={pipelineRunResult}
+                  pipelineDetailsOverride={jobId === MOCK_FILE_ARRAY_JOB_ID ? mockFileArrayPipelineDetails : undefined}
+                />
               </div>
             </div>
           </div>

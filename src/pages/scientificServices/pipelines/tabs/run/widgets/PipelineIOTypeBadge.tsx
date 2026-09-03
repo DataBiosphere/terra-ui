@@ -9,6 +9,8 @@ const getTypeColor = (type: PipelineIOType | string): string => {
   switch (type.toUpperCase()) {
     case 'FILE':
       return '#e7f3fb';
+    case 'FILE_ARRAY':
+      return '#d1ecf1';
     case 'STRING':
       return '#f0e7fb';
     case 'FLOAT':
@@ -39,7 +41,7 @@ export const PipelineIOTypeBadge = ({ type }: PipelineIOTypeBadgeProps) => {
           fontSize: 12,
         }}
       >
-        {type.toLowerCase()}
+        {type.toLowerCase().replace(/_/g, ' ')}
       </span>
     </div>
   );

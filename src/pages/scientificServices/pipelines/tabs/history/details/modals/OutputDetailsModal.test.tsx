@@ -257,4 +257,59 @@ describe('OutputDetailsModal', () => {
     // should call getOutputFileSize when size metadata is not available
     expect(getOutputFileSize).toHaveBeenCalledWith('https://signed-url.com/output.vcf');
   });
+
+  describe('FILE_ARRAY outputs', () => {
+    const pipelineResultWithFileArray = {
+      ...mockPipelineRunResult,
+      pipelineRunReport: {
+        ...mockPipelineRunResult.pipelineRunReport,
+        outputs: {
+          imputedMultiSampleVcf: [
+            { value: 'test.chr1.vcf.gz', metadata: { sizeInBytes: 100 } },
+            { value: 'test.chr2.vcf.gz', metadata: { sizeInBytes: 200 } },
+          ],
+        },
+      },
+    };
+
+    beforeEach(() => {
+      mockGetPipelineRunOutputSignedUrls.mockResolvedValue({
+        outputSignedUrls: {
+          imputedMultiSampleVcf: ['https://signed-url.com/test.chr1.vcf.gz', 'https://signed-url.com/test.chr2.vcf.gz'],
+        },
+      });
+    });
+
+    it('resolves the signed URL and size metadata at the given index', async () => {
+      renderModal({
+        pipelineRunResult: pipelineResultWithFileArray,
+        fileName: 'test.chr2.vcf.gz',
+        index: 1,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('test.chr2.vcf.gz')).toBeInTheDocument();
+        expect(screen.getByText('200 B')).toBeInTheDocument();
+      });
+
+      expect(getOutputFileSize).not.toHaveBeenCalled();
+
+      const user = userEvent.setup();
+      const downloadButton = screen.getByRole('button', { name: /download/i });
+      await user.click(downloadButton);
+
+      expect(mockWindowOpen).toHaveBeenCalledWith('https://signed-url.com/test.chr2.vcf.gz', '_blank');
+    });
+
+    it('shows an error when no index is provided for an array output', async () => {
+      renderModal({
+        pipelineRunResult: pipelineResultWithFileArray,
+        fileName: 'test.chr1.vcf.gz',
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Failed to retrieve download. Please try again.')).toBeInTheDocument();
+      });
+    });
+  });
 });

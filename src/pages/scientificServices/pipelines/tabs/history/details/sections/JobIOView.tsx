@@ -1,6 +1,6 @@
 import { Icon, Spinner } from '@terra-ui-packages/components';
 import React from 'react';
-import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
+import { PipelineRunResponse, PipelineWithDetails } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
@@ -9,16 +9,20 @@ import { JobOutputsView } from 'src/pages/scientificServices/pipelines/tabs/hist
 
 interface PipelineRunIOViewProps {
   pipelineRunResult: PipelineRunResponse;
+  // Bypasses the pipeline details fetch, e.g. to preview outputs types the backend doesn't return yet
+  pipelineDetailsOverride?: PipelineWithDetails;
 }
 
-export const JobIOView = ({ pipelineRunResult }: PipelineRunIOViewProps) => {
+export const JobIOView = ({ pipelineRunResult, pipelineDetailsOverride }: PipelineRunIOViewProps) => {
   const { pipelineDetails, isLoading } = usePipelineDetails(
     pipelineRunResult.pipelineRunReport.pipelineName,
-    pipelineRunResult.pipelineRunReport.pipelineVersion
+    pipelineRunResult.pipelineRunReport.pipelineVersion,
+    !pipelineDetailsOverride
   );
 
-  const inputDefinitions = pipelineDetails?.inputs || [];
-  const outputDefinitions = pipelineDetails?.outputs || [];
+  const effectivePipelineDetails = pipelineDetailsOverride || pipelineDetails;
+  const inputDefinitions = effectivePipelineDetails?.inputs || [];
+  const outputDefinitions = effectivePipelineDetails?.outputs || [];
 
   return (
     <div

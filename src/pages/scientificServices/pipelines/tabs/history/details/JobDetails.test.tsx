@@ -4,6 +4,7 @@ import React from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import * as Nav from 'src/libs/nav';
 import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
+import { MOCK_FILE_ARRAY_JOB_ID } from 'src/pages/scientificServices/pipelines/utils/mock-file-array-example';
 import { mockPipelineRunResponse } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -88,6 +89,17 @@ describe('JobDetails', () => {
     await user.click(backButton);
 
     expect(Nav.goToPath).toHaveBeenCalledWith('pipelines-history');
+  });
+
+  it('renders the FILE_ARRAY preview fixture without calling the API when jobId is the mock sentinel', async () => {
+    render(<JobDetails jobId={MOCK_FILE_ARRAY_JOB_ID} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('imputed multi-sample VCFs')).toBeInTheDocument();
+      expect(screen.getAllByText('file array').length).toBeGreaterThan(0);
+    });
+
+    expect(mockGetPipelineRunResult).not.toHaveBeenCalled();
   });
 
   describe('DataDeliveryView section', () => {
