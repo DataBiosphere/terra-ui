@@ -63,7 +63,7 @@ export const HelpfulTipsWidget = ({ selectedPipeline }: { selectedPipeline?: Pip
   const pipelineTips = PIPELINE_TIPS[selectedPipeline.pipelineName] ?? [];
 
   return (
-    <PipelineWidgetContainer title='Getting Started + Helpful Hints' padding='1rem' backgroundColor='#eef7f2'>
+    <PipelineWidgetContainer title='Getting Started + Helpful Hints' padding='1rem' backgroundColor='#eaf3fb'>
       <ul style={{ paddingInlineStart: '1.5rem' }}>
         {pipelineTips.length > 0 && (
           <li style={{ marginTop: '1rem' }}>
