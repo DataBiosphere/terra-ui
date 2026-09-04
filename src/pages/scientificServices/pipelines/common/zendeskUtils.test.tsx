@@ -4,8 +4,8 @@ import { DocsKey, ZendeskLink, zendeskUrl } from 'src/pages/scientificServices/p
 
 describe('zendeskUtils', () => {
   describe('zendeskUrl', () => {
-    it('returns the correct URL for INPUT_REQ', () => {
-      expect(zendeskUrl(DocsKey.INPUT_REQ)).toBe(
+    it('returns the correct URL for ARRAY_IMPUTATION_INPUT_REQ', () => {
+      expect(zendeskUrl(DocsKey.ARRAY_IMPUTATION_INPUT_REQ)).toBe(
         'https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859'
       );
     });

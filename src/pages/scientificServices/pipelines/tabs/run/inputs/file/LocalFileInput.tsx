@@ -58,7 +58,9 @@ export const LocalFileInput: React.FC<LocalFileInputProps> = ({
           </span>
           <div style={{ marginTop: '0.5rem' }}>
             <Icon icon='info-circle' size={16} style={{ color: colors.primary(), verticalAlign: 'middle' }} />{' '}
-            <ZendeskLink docsKey={DocsKey.INPUT_REQ}>Learn more about how to reduce your file size.</ZendeskLink>
+            <ZendeskLink docsKey={DocsKey.ARRAY_IMPUTATION_INPUT_REQ}>
+              Learn more about how to reduce your file size.
+            </ZendeskLink>
           </div>
         </>
       );
