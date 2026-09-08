@@ -14,8 +14,11 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
       id: 'format-guidelines',
       content: (
         <>
-          View <ZendeskLink docsKey={DocsKey.ARRAY_IMPUTATION_INPUT_REQ}>formatting guidelines</ZendeskLink> for input
-          VCF files
+          View{' '}
+          <ZendeskLink docsKey={DocsKey.ARRAY_IMPUTATION_INPUT_REQ} additionalStyle={{ color: '#0b5394' }}>
+            formatting guidelines
+          </ZendeskLink>{' '}
+          for input VCF files
         </>
       ),
     },
@@ -29,7 +32,11 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
       id: 'format-guidelines',
       content: (
         <>
-          View <ZendeskLink docsKey={DocsKey.LOW_PASS_IMPUTATION_INPUT_REQ}>guidelines</ZendeskLink> for manifest file
+          View{' '}
+          <ZendeskLink docsKey={DocsKey.LOW_PASS_IMPUTATION_INPUT_REQ} additionalStyle={{ color: '#0b5394' }}>
+            guidelines
+          </ZendeskLink>{' '}
+          for the manifest file
         </>
       ),
     },
@@ -42,7 +49,10 @@ const COMMON_TIPS: { id: string; content: ReactNode }[] = [
     id: 'cloud-inputs',
     content: (
       <>
-        Learn how to <ZendeskLink docsKey={DocsKey.CLOUD_INPUTS}>provide inputs from Google Cloud</ZendeskLink>
+        Learn how{' '}
+        <ZendeskLink docsKey={DocsKey.CLOUD_INPUTS} additionalStyle={{ color: '#0b5394' }}>
+          provide inputs from Google Cloud
+        </ZendeskLink>
       </>
     ),
   },
@@ -51,7 +61,9 @@ const COMMON_TIPS: { id: string; content: ReactNode }[] = [
     content: (
       <>
         Learn how{' '}
-        <ZendeskLink docsKey={DocsKey.CLOUD_OUTPUTS}>outputs can be delivered to the Google Cloud</ZendeskLink>
+        <ZendeskLink docsKey={DocsKey.CLOUD_OUTPUTS} additionalStyle={{ color: '#0b5394' }}>
+          outputs can be delivered to the Google Cloud
+        </ZendeskLink>
       </>
     ),
   },
