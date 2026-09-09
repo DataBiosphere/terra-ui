@@ -4,7 +4,8 @@ import React from 'react';
 export enum DocsKey {
   GETTING_STARTED = 'GETTING_STARTED',
   ABOUT_SERVICE = 'ABOUT_SERVICE',
-  INPUT_REQ = 'INPUT_REQ',
+  ARRAY_IMPUTATION_INPUT_REQ = 'ARRAY_IMPUTATION_INPUT_REQ',
+  LOW_PASS_IMPUTATION_INPUT_REQ = 'LOW_PASS_IMPUTATION_INPUT_REQ',
   QUOTA_DETAILS = 'QUOTA_DETAILS',
   CLOUD_INPUTS = 'CLOUD_INPUTS',
   CLOUD_OUTPUTS = 'CLOUD_OUTPUTS',
@@ -14,7 +15,9 @@ export enum DocsKey {
 const ZENDESK_PAGES: Record<DocsKey, string> = {
   GETTING_STARTED: 'https://broadscientificservices.zendesk.com/hc/en-us/sections/39901025462171',
   ABOUT_SERVICE: 'https://broadscientificservices.zendesk.com/hc/en-us/categories/39900993442459',
-  INPUT_REQ: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859',
+  ARRAY_IMPUTATION_INPUT_REQ: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/40161675448859',
+  LOW_PASS_IMPUTATION_INPUT_REQ:
+    'https://broadscientificservices.zendesk.com/hc/en-us/articles/50837430347675-Input-Requirements',
   QUOTA_DETAILS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/39903092619035',
   CLOUD_INPUTS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/47099858889243',
   CLOUD_OUTPUTS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/48878810499483',

@@ -15,7 +15,7 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
       content: (
         <>
           View{' '}
-          <ZendeskLink docsKey={DocsKey.INPUT_REQ} additionalStyle={{ fontWeight: 'bold' }}>
+          <ZendeskLink docsKey={DocsKey.ARRAY_IMPUTATION_INPUT_REQ} additionalStyle={{ color: '#0b5394' }}>
             formatting guidelines
           </ZendeskLink>{' '}
           for input VCF files
@@ -23,16 +23,73 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
       ),
     },
   ],
+  low_pass_imputation: [
+    {
+      id: 'quota-check',
+      content: 'Ensure your manifest file contains no more cram file paths than your remaining quota',
+    },
+    {
+      id: 'format-guidelines',
+      content: (
+        <>
+          View{' '}
+          <ZendeskLink docsKey={DocsKey.LOW_PASS_IMPUTATION_INPUT_REQ} additionalStyle={{ color: '#0b5394' }}>
+            guidelines
+          </ZendeskLink>{' '}
+          for the manifest file
+        </>
+      ),
+    },
+  ],
 };
 
+// Tips shown for every pipeline
+const COMMON_TIPS: { id: string; content: ReactNode }[] = [
+  {
+    id: 'cloud-inputs',
+    content: (
+      <>
+        Learn how{' '}
+        <ZendeskLink docsKey={DocsKey.CLOUD_INPUTS} additionalStyle={{ color: '#0b5394' }}>
+          provide inputs from Google Cloud
+        </ZendeskLink>
+      </>
+    ),
+  },
+  {
+    id: 'cloud-outputs',
+    content: (
+      <>
+        Learn how{' '}
+        <ZendeskLink docsKey={DocsKey.CLOUD_OUTPUTS} additionalStyle={{ color: '#0b5394' }}>
+          outputs can be delivered to the Google Cloud
+        </ZendeskLink>
+      </>
+    ),
+  },
+];
+
 export const HelpfulTipsWidget = ({ selectedPipeline }: { selectedPipeline?: Pipeline }) => {
-  const pipelineTips = selectedPipeline && PIPELINE_TIPS[selectedPipeline.pipelineName];
-  if (!pipelineTips || pipelineTips.length === 0) return null;
+  if (!selectedPipeline) return null;
+
+  const pipelineTips = PIPELINE_TIPS[selectedPipeline.pipelineName] ?? [];
 
   return (
-    <PipelineWidgetContainer title='Helpful Tips' padding='1rem'>
+    <PipelineWidgetContainer title='Getting Started + Helpful Hints' padding='1rem' backgroundColor='#eaf3fb'>
       <ul style={{ paddingInlineStart: '1.5rem' }}>
-        {pipelineTips.map((tip) => (
+        {pipelineTips.length > 0 && (
+          <li style={{ marginTop: '1rem' }}>
+            Input requirements:
+            <ul style={{ paddingInlineStart: '1.5rem' }}>
+              {pipelineTips.map((tip) => (
+                <li key={tip.id} data-testid={`tip-${tip.id}`} style={{ marginTop: '0.5rem' }}>
+                  {tip.content}
+                </li>
+              ))}
+            </ul>
+          </li>
+        )}
+        {COMMON_TIPS.map((tip) => (
           <li key={tip.id} data-testid={`tip-${tip.id}`} style={{ marginTop: '1rem' }}>
             {tip.content}
           </li>
