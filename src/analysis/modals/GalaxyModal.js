@@ -9,8 +9,6 @@ import { GalaxyWarning, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-
 import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/analysis/utils/cost-utils';
 import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
-import { machineTypes } from 'src/analysis/utils/gce-machines';
-import { findMachineType } from 'src/analysis/utils/runtime-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
 import { icon } from 'src/components/icons';
@@ -31,11 +29,7 @@ import { canEditWorkspace } from 'src/workspaces/utils';
 import { computeStyles } from './modalStyles';
 
 const defaultDataDisk = { size: 500, diskType: googlePdTypes.standard };
-const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false };
-const maxNodepoolSize = 1000; // per zone according to https://cloud.google.com/kubernetes-engine/quotas
-
-// Removing low cpu/memory options based on the Galaxy team's suggestions
-const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes);
+const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-4', numNodes: 1, autoscalingEnabled: false };
 const titleId = 'galaxy-modal-title';
 
 export const GalaxyModalBase = withDisplayName('GalaxyModal')(
@@ -56,7 +50,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks);
 
     const [dataDisk, setDataDisk] = useState(attachedDataDisk || defaultDataDisk);
-    const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig);
+    const [kubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig);
     const [viewMode, setViewMode] = useState(undefined);
     const [loading, setLoading] = useState(false);
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false);
@@ -391,22 +385,6 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       );
     };
 
-    const renderComputeProfileSection = () => {
-      const gridStyle = {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(6, auto)',
-        gridGap: '0.75rem',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-      };
-      return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
-        div({ style: computeStyles.headerText }, ['Cloud compute profile']),
-        div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-          h(MachineSelector, { value: kubernetesRuntimeConfig, onChange: (v) => setKubernetesRuntimeConfig(v) }),
-        ]),
-      ]);
-    };
-
     const renderPersistentDiskSection = () => {
       return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: computeStyles.headerText }, ['Persistent disk']),
@@ -598,7 +576,6 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
             ]),
           ]),
         ]),
-        renderComputeProfileSection(),
         renderPersistentDiskSection(),
         div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [renderActionButton()]),
       ]);
@@ -607,81 +584,5 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     return h(Fragment, [renderMessaging(), loading && spinnerOverlay]);
   }
 );
-
-const MachineSelector = ({ value, onChange }) => {
-  const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType);
-
-  const gridItemInputStyle = { minWidth: '6rem' };
-
-  return h(Fragment, [
-    h(IdContainer, [
-      (id) =>
-        h(Fragment, [
-          label({ htmlFor: id, style: computeStyles.label }, ['Nodes']),
-          div({ style: gridItemInputStyle }, [
-            h(NumberInput, {
-              id,
-              min: 1,
-              max: maxNodepoolSize,
-              isClearable: false,
-              onlyInteger: true,
-              value: value.numNodes,
-              onChange: (n) =>
-                onChange((prevState) => {
-                  return { ...prevState, numNodes: n };
-                }),
-            }),
-          ]),
-        ]),
-    ]),
-    h(IdContainer, [
-      (id) =>
-        h(Fragment, [
-          label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
-          div({ style: gridItemInputStyle }, [
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentCpu,
-              onChange: (option) => {
-                const validMachineType = _.find({ cpu: option.value }, validMachineTypes)?.name || value.machineType;
-                onChange((prevState) => {
-                  return { ...prevState, machineType: validMachineType };
-                });
-              },
-              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes),
-            }),
-          ]),
-        ]),
-    ]),
-    h(IdContainer, [
-      (id) =>
-        h(Fragment, [
-          label({ htmlFor: id, style: computeStyles.label }, ['Memory (GB)']),
-          div({ style: gridItemInputStyle }, [
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentMemory,
-              onChange: (option) => {
-                const validMachineType =
-                  _.find(
-                    {
-                      cpu: currentCpu,
-                      memory: option.value,
-                    },
-                    validMachineTypes
-                  )?.name || value.machineType;
-                onChange((prevState) => {
-                  return { ...prevState, machineType: validMachineType };
-                });
-              },
-              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes),
-            }),
-          ]),
-        ]),
-    ]),
-  ]);
-};
 
 export const GalaxyModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(GalaxyModalBase);
