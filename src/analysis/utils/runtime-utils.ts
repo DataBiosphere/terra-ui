@@ -53,7 +53,15 @@ export const getDefaultMachineType = (isDataproc: boolean, tool: ToolLabel): str
   );
 
 export const findMachineType = (name: string) => {
-  return _.find({ name }, [...machineTypes, ...t2dMachineTypes]) || { name, cpu: 0, memory: 0, price: 0, preemptiblePrice: 0 };
+  return (
+    _.find({ name }, [...machineTypes, ...t2dMachineTypes]) || {
+      name,
+      cpu: 0,
+      memory: 0,
+      price: 0,
+      preemptiblePrice: 0,
+    }
+  );
 };
 
 export const getValidGpuTypesForZone = (zone: string) => {

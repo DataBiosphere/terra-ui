@@ -662,8 +662,7 @@ const MachineSelector = ({ value, onChange }) => {
               isSearchable: false,
               value: currentMemory,
               onChange: (option) => {
-                const validMachineType =
-                  _.find({ cpu: currentCpu, memory: option.value }, validGalaxyMachineTypes)?.name || value.machineType;
+                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validGalaxyMachineTypes)?.name || value.machineType;
                 onChange((prevState) => ({ ...prevState, machineType: validMachineType }));
               },
               options: _.flow(
