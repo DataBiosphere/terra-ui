@@ -589,7 +589,7 @@ export const galaxyRunning: ListAppItem = {
   },
   diskName: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   errors: [],
-  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 't2d-standard-4', autoscalingEnabled: false },
   labels: {},
   proxyUrls: {
     galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy',

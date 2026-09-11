@@ -8,6 +8,23 @@ export interface MachineType {
   memory: number;
 }
 
+// t2d-standard machines available for Galaxy (GCE). Flat on-demand prices are in us-central1.
+export const t2dMachineTypes: MachineType[] = [
+  { name: 't2d-standard-4', cpu: 4, memory: 16 },
+  { name: 't2d-standard-8', cpu: 8, memory: 32 },
+  { name: 't2d-standard-16', cpu: 16, memory: 64 },
+  { name: 't2d-standard-32', cpu: 32, memory: 128 },
+];
+
+// On-demand hourly prices for t2d-standard machines in us-central1 (Galaxy's default region).
+// Source: https://cloud.google.com/products/compute/pricing/general-purpose#tau-t2d-machine-types
+export const t2dStandardUsHourlyPrices: Partial<Record<string, number>> = {
+  't2d-standard-4': 0.168984,
+  't2d-standard-8': 0.337968,
+  't2d-standard-16': 0.675936,
+  't2d-standard-32': 1.351872,
+};
+
 export const machineTypes: MachineType[] = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
   { name: 'n1-standard-2', cpu: 2, memory: 7.5 },
