@@ -31,11 +31,11 @@ import { canEditWorkspace } from 'src/workspaces/utils';
 import { computeStyles } from './modalStyles';
 
 const defaultDataDisk = { size: 500, diskType: googlePdTypes.standard };
-const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-4', numNodes: 1, autoscalingEnabled: false };
+const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-2', numNodes: 1, autoscalingEnabled: false };
 const maxNodepoolSize = 1000;
 
-// Galaxy runs on t2d-standard VMs. Exclude the smallest size (< 4 vCPU) as Galaxy requires at least 4.
-const validGalaxyMachineTypes = _.filter(({ cpu }) => cpu >= 4, t2dMachineTypes);
+// t2d vCPUs are dedicated physical cores, so t2d-standard-2 is a reasonable minimum for Galaxy.
+const validGalaxyMachineTypes = _.filter(({ cpu }) => cpu >= 2, t2dMachineTypes);
 
 const titleId = 'galaxy-modal-title';
 
