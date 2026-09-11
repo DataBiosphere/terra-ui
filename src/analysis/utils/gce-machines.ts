@@ -9,9 +9,7 @@ export interface MachineType {
 }
 
 // t2d-standard machines available for Galaxy (GCE). Flat on-demand prices are in us-central1.
-// Each t2d vCPU is a dedicated physical core, so t2d-standard-2 is comparable to n1-standard-4.
 export const t2dMachineTypes: MachineType[] = [
-  { name: 't2d-standard-2', cpu: 2, memory: 8 },
   { name: 't2d-standard-4', cpu: 4, memory: 16 },
   { name: 't2d-standard-8', cpu: 8, memory: 32 },
   { name: 't2d-standard-16', cpu: 16, memory: 64 },
@@ -21,7 +19,6 @@ export const t2dMachineTypes: MachineType[] = [
 // On-demand hourly prices for t2d-standard machines in us-central1 (Galaxy's default region).
 // Source: https://cloud.google.com/products/compute/pricing/general-purpose#tau-t2d-machine-types
 export const t2dStandardUsHourlyPrices: Partial<Record<string, number>> = {
-  't2d-standard-2': 0.084492,
   't2d-standard-4': 0.168984,
   't2d-standard-8': 0.337968,
   't2d-standard-16': 0.675936,
