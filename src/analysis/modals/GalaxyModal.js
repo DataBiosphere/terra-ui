@@ -31,7 +31,7 @@ import { canEditWorkspace } from 'src/workspaces/utils';
 import { computeStyles } from './modalStyles';
 
 const defaultDataDisk = { size: 500, diskType: googlePdTypes.standard };
-const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-2', numNodes: 1, autoscalingEnabled: false };
+const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-4', numNodes: 1, autoscalingEnabled: false };
 const maxNodepoolSize = 1000;
 
 // t2d vCPUs are dedicated physical cores, so t2d-standard-2 is a reasonable minimum for Galaxy.

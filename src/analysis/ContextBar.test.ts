@@ -499,7 +499,7 @@ describe('ContextBar - buttons', () => {
     expect(getByLabelText(new RegExp(/RStudio Environment/i)));
     expect(getByLabelText(new RegExp(/Galaxy Environment/i)));
     expect(queryByTestId('terminal-button-id')).not.toBeInTheDocument();
-    expect(getByText('Running $0.08/hr'));
+    expect(getByText('Running $0.17/hr'));
     expect(getByText('Creating $0.20/hr'));
     expect(getByText('Disk $0.04/hr'));
   });

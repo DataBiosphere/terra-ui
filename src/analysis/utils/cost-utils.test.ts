@@ -244,16 +244,16 @@ describe('getCostDisplayForDisk', () => {
 
 describe('getGalaxyComputeCost', () => {
   it('uses flat t2d pricing for t2d machine types', () => {
-    // t2dStandardUsHourlyPrices['t2d-standard-2'] = 0.084492; ephemeralExternalIpAddressCost(1,0) = 0
-    expect(getGalaxyComputeCost(galaxyRunning)).toBeCloseTo(0.084492);
+    // t2dStandardUsHourlyPrices['t2d-standard-4'] = 0.168984; ephemeralExternalIpAddressCost(1,0) = 0
+    expect(getGalaxyComputeCost(galaxyRunning)).toBeCloseTo(0.168984);
   });
 });
 
 describe('GCP getCostDisplayForTool', () => {
   it('Will get compute cost and compute status for Galaxy app', () => {
     // Arrange
-    // galaxyRunning uses t2d-standard-2 at $0.084492/hr → rounds to $0.08
-    const expectedResult = 'Running $0.08/hr';
+    // galaxyRunning uses t2d-standard-4 at $0.168984/hr → rounds to $0.17
+    const expectedResult = 'Running $0.17/hr';
     const app = galaxyRunning;
     const currentRuntime = undefined;
     const currentRuntimeToolLabel = undefined;
