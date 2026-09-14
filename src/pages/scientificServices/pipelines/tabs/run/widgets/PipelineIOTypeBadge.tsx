@@ -29,9 +29,12 @@ export const PipelineIOTypeBadge = ({ type }: PipelineIOTypeBadgeProps) => {
         backgroundColor: getTypeColor(type),
         borderRadius: 8,
         border: '1px solid #e4e5e6',
-        display: 'flex',
+        display: 'inline-flex',
         alignItems: 'center',
         padding: '0.25rem 0.5rem',
+        flexShrink: 0,
+        whiteSpace: 'nowrap',
+        alignSelf: 'center',
       }}
     >
       <span
@@ -39,6 +42,7 @@ export const PipelineIOTypeBadge = ({ type }: PipelineIOTypeBadgeProps) => {
           textTransform: 'capitalize',
           fontWeight: 500,
           fontSize: 12,
+          lineHeight: 1.25,
         }}
       >
         {type.toLowerCase().replace(/_/g, ' ')}
