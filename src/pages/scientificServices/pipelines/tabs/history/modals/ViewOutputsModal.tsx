@@ -9,7 +9,9 @@ import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { useOutputSignedUrls } from 'src/pages/scientificServices/pipelines/hooks/useOutputSignedUrls';
 import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
+import { downloadSignedUrl } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -23,7 +25,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
-  const [signedUrls, setSignedUrls] = useState<Record<string, string | string[]>>();
+  const { getSignedUrl } = useOutputSignedUrls(jobId);
 
   const deliverySucceeded = result?.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
 
@@ -41,32 +43,25 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
     fetchPipelineRunResults();
   }, [jobId]);
 
-  const handleDownload = async (outputKey: string) => {
+  const handleDownload = async (outputKey: string, fileName: string, sizeInBytes?: number) => {
     try {
       setDownloadingKey(outputKey);
 
-      let urls = signedUrls;
-
-      // If we haven't already fetched signed urls for this job, do it! Otherwise, we'll use the existing ones
-      if (!urls) {
-        const response = await Teaspoons().getPipelineRunOutputSignedUrls(jobId);
-        urls = response.outputSignedUrls;
-        setSignedUrls(urls);
-      }
-
-      const signedUrl = urls?.[outputKey];
-      if (!signedUrl || Array.isArray(signedUrl)) {
+      const signedUrl = await getSignedUrl(outputKey);
+      if (!signedUrl) {
         notify('error', 'There was an error retrieving the download. Please try again.');
         return;
       }
 
-      window.open(signedUrl, '_blank');
+      downloadSignedUrl(signedUrl, fileName);
 
       if (result) {
         Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
           pipelineName: result.pipelineRunReport.pipelineName,
           pipelineVersion: result.pipelineRunReport.pipelineVersion,
           outputName: outputKey,
+          fileName,
+          fileSize: sizeInBytes,
         });
       }
     } catch (err) {
@@ -136,7 +131,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                         </Link>
                       ) : (
                         <ButtonPrimary
-                          onClick={() => handleDownload(key)}
+                          onClick={() => handleDownload(key, outputValue.value, outputValue.metadata?.sizeInBytes)}
                           disabled={downloadingKey === key || deliverySucceeded}
                           style={{ marginLeft: '1rem' }}
                         >

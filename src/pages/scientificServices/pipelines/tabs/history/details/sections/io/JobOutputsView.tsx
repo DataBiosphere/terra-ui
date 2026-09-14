@@ -1,21 +1,31 @@
-import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
+import { Icon, Spinner, TooltipTrigger } from '@terra-ui-packages/components';
 import React, { useState } from 'react';
+import { Metrics } from 'src/libs/ajax/Metrics';
 import { PipelineOutput, PipelineOutputValue, PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import colors from 'src/libs/colors';
+import Events from 'src/libs/events';
+import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
-import { OutputDetailsModal } from 'src/pages/scientificServices/pipelines/tabs/history/details/modals/OutputDetailsModal';
+import { useOutputSignedUrls } from 'src/pages/scientificServices/pipelines/hooks/useOutputSignedUrls';
 import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
+import { downloadSignedUrl } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 
 interface JobOutputsViewProps {
   outputDefinitions: PipelineOutput[];
   pipelineRunResult: PipelineRunResponse;
 }
 
+// Identifies the file a download is in flight for; index is only set for files within a FILE_ARRAY output
+interface DownloadingFile {
+  key: string;
+  index?: number;
+}
+
 export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutputsViewProps) => {
-  const [selectedOutput, setSelectedOutput] = useState<{ key: string; fileName: string; index?: number } | null>(null);
-  const [signedUrls, setSignedUrls] = useState<Record<string, string | string[]>>();
+  const [downloadingFile, setDownloadingFile] = useState<DownloadingFile | null>(null);
+  const { getSignedUrl } = useOutputSignedUrls(pipelineRunResult.jobReport.id);
 
   const isSucceeded = pipelineRunResult.jobReport.status === 'SUCCEEDED';
   const isFailed = pipelineRunResult.jobReport.status === 'FAILED';
@@ -56,6 +66,33 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
   };
 
   const dataDeliverySucceeded = pipelineRunResult.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
+
+  const handleDownload = async (key: string, fileName: string, sizeInBytes?: number, index?: number) => {
+    try {
+      setDownloadingFile({ key, index });
+
+      const signedUrl = await getSignedUrl(key, index);
+      if (!signedUrl) {
+        notify('error', 'There was an error retrieving the download. Please try again.');
+        return;
+      }
+
+      downloadSignedUrl(signedUrl, fileName);
+
+      Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
+        pipelineName: pipelineRunResult.pipelineRunReport.pipelineName,
+        pipelineVersion: pipelineRunResult.pipelineRunReport.pipelineVersion,
+        outputName: key,
+        fileName,
+        fileIndex: index,
+        fileSize: sizeInBytes,
+      });
+    } catch (err) {
+      notify('error', 'There was an error retrieving the download. Please try again.');
+    } finally {
+      setDownloadingFile(null);
+    }
+  };
 
   const outputExpirationDate = pipelineRunResult.pipelineRunReport.outputExpirationDate
     ? new Date(pipelineRunResult.pipelineRunReport.outputExpirationDate)
@@ -146,7 +183,9 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                     tooltip={outputDefinition?.description || 'No description available for this output'}
                     files={outputValue}
                     disabled={!isSucceeded || !!outputsExpired}
-                    onSelectFile={(index, fileName) => setSelectedOutput({ key, fileName, index })}
+                    delivered={dataDeliverySucceeded}
+                    downloadingIndex={downloadingFile?.key === key ? downloadingFile.index : undefined}
+                    onDownloadFile={(index, file) => handleDownload(key, file.value, file.metadata?.sizeInBytes, index)}
                   />
                 ) : (
                   <OutputItem
@@ -156,7 +195,9 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
                     fileName={outputValue.value}
                     sizeInBytes={outputValue.metadata?.sizeInBytes}
                     disabled={!isSucceeded || !!outputsExpired}
-                    onSelect={() => setSelectedOutput({ key, fileName: outputValue.value })}
+                    delivered={dataDeliverySucceeded}
+                    downloading={downloadingFile?.key === key}
+                    onDownload={() => handleDownload(key, outputValue.value, outputValue.metadata?.sizeInBytes)}
                   />
                 )}
               </div>
@@ -168,22 +209,37 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
           {getEmptyMessage()}
         </div>
       )}
-
-      {selectedOutput && (
-        <OutputDetailsModal
-          outputKey={selectedOutput.key}
-          outputDefinition={outputDefinitions.find((output) => output.name === selectedOutput.key)}
-          fileName={selectedOutput.fileName}
-          index={selectedOutput.index}
-          pipelineRunResult={pipelineRunResult}
-          onDismiss={() => setSelectedOutput(null)}
-          signedUrls={signedUrls}
-          setSignedUrls={setSignedUrls}
-        />
-      )}
     </div>
   );
 };
+
+const downloadButtonStyle: React.CSSProperties = {
+  color: '#46A3E9',
+  fontWeight: 700,
+  textDecoration: 'underline',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 0,
+  font: 'inherit',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.25rem',
+};
+
+const DownloadFileButton = ({ downloading, onDownload }: { downloading?: boolean; onDownload: () => void }) => (
+  <div style={{ minWidth: '120px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+    <button
+      type='button'
+      onClick={onDownload}
+      disabled={downloading}
+      style={{ ...downloadButtonStyle, cursor: downloading ? 'default' : 'pointer' }}
+    >
+      {downloading ? <Spinner size={14} /> : <Icon icon='download' size={14} />}
+      Download
+    </button>
+  </div>
+);
 
 const OutputItem = ({
   label,
@@ -192,7 +248,9 @@ const OutputItem = ({
   outputType,
   sizeInBytes,
   disabled,
-  onSelect,
+  delivered,
+  downloading,
+  onDownload,
 }: {
   label: string;
   fileName: string;
@@ -200,7 +258,9 @@ const OutputItem = ({
   outputType: string;
   sizeInBytes?: number;
   disabled?: boolean;
-  onSelect: () => void;
+  delivered?: boolean;
+  downloading?: boolean;
+  onDownload: () => void;
 }) => {
   return (
     <div>
@@ -226,30 +286,9 @@ const OutputItem = ({
             <span style={{ fontStyle: 'italic', fontWeight: 'lighter' }}>({formatBytes(sizeInBytes)})</span>
           )}
         </code>
-        {!disabled && (
-          <div style={{ minWidth: '120px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <button
-              type='button'
-              onClick={onSelect}
-              style={{
-                color: '#46A3E9',
-                fontWeight: 700,
-                textDecoration: 'underline',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: 0,
-                font: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              <Icon icon='pop-out' size={14} />
-              View details
-            </button>
-          </div>
-        )}
+        {/* once outputs have been delivered to a cloud destination, the Data Delivery section is
+            where users go for them, so there's no per-file download here */}
+        {!disabled && !delivered && <DownloadFileButton downloading={downloading} onDownload={onDownload} />}
         {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
       </div>
     </div>
@@ -264,14 +303,18 @@ const OutputArrayItem = ({
   outputType,
   files,
   disabled,
-  onSelectFile,
+  delivered,
+  downloadingIndex,
+  onDownloadFile,
 }: {
   label: string;
   tooltip: string;
   outputType: string;
   files: PipelineOutputValue[];
   disabled?: boolean;
-  onSelectFile: (index: number, fileName: string) => void;
+  delivered?: boolean;
+  downloadingIndex?: number;
+  onDownloadFile: (index: number, file: PipelineOutputValue) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const visibleFiles = expanded ? files : files.slice(0, COLLAPSED_FILE_COUNT);
@@ -312,29 +355,11 @@ const OutputArrayItem = ({
                 </span>
               )}
             </code>
-            {!disabled && (
-              <div style={{ minWidth: '120px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                <button
-                  type='button'
-                  onClick={() => onSelectFile(index, file.value)}
-                  style={{
-                    color: '#46A3E9',
-                    fontWeight: 700,
-                    textDecoration: 'underline',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    font: 'inherit',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                  }}
-                >
-                  <Icon icon='pop-out' size={14} />
-                  View details
-                </button>
-              </div>
+            {!disabled && !delivered && (
+              <DownloadFileButton
+                downloading={downloadingIndex === index}
+                onDownload={() => onDownloadFile(index, file)}
+              />
             )}
             {disabled && <span style={{ color: colors.dark(0.5), fontStyle: 'italic' }}>Not available</span>}
           </div>

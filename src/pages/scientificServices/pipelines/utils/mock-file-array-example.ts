@@ -8,7 +8,7 @@ import {
  * TSPS-1172: Teaspoons does not yet return FILE_ARRAY outputs. This fixture lets the FILE_ARRAY
  * rendering in JobDetails be previewed in the running app until the backend ships support for it.
  * Navigate to the job history detail page for this job ID to see it: #pipelines/imputation/history/mock-file-array-outputs
- * Remove this file, and its usages in JobDetails.tsx and OutputDetailsModal.tsx, once Teaspoons returns real FILE_ARRAY outputs.
+ * Remove this file, and its usages in JobDetails.tsx and useOutputSignedUrls.ts, once Teaspoons returns real FILE_ARRAY outputs.
  */
 export const MOCK_FILE_ARRAY_JOB_ID = 'mock-file-array-outputs';
 
