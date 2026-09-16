@@ -9,7 +9,6 @@ import {
 // FILE_ARRAY outputs have one signed URL per file; all other output types have a single URL
 export type OutputSignedUrls = Record<string, string | string[]>;
 
-// Resolves a possibly-array value (FILE_ARRAY outputs/signed urls) at the given index, or returns it as-is otherwise
 function resolveAtIndex<T>(valueOrArray: T | T[] | undefined, index?: number): T | undefined {
   if (!Array.isArray(valueOrArray)) {
     return valueOrArray;
@@ -17,7 +16,7 @@ function resolveAtIndex<T>(valueOrArray: T | T[] | undefined, index?: number): T
   return index !== undefined ? valueOrArray[index] : undefined;
 }
 
-interface CacheEntry {
+interface CachedSignedUrlsEntry {
   jobId: string;
   fetchedAt: number;
   urls: Promise<OutputSignedUrls>;
@@ -34,12 +33,9 @@ export interface UseOutputSignedUrlsResult {
 /**
  * Fetches the signed URLs for a job's outputs on demand, and caches them so that downloading several
  * files from the same job doesn't make Teaspoons regenerate signed URLs on every click.
- *
- * The in-flight promise (not the resolved value) is what gets cached, so rapid clicks on different
- * files share a single request rather than racing to start their own.
  */
 export const useOutputSignedUrls = (jobId: string): UseOutputSignedUrlsResult => {
-  const cache = useRef<CacheEntry | null>(null);
+  const cache = useRef<CachedSignedUrlsEntry | null>(null);
 
   const getSignedUrls = useCallback((): Promise<OutputSignedUrls> => {
     const cached = cache.current;
@@ -54,7 +50,7 @@ export const useOutputSignedUrls = (jobId: string): UseOutputSignedUrlsResult =>
             .getPipelineRunOutputSignedUrls(jobId)
             .then((response) => response.outputSignedUrls);
 
-    const entry: CacheEntry = { jobId, fetchedAt: Date.now(), urls };
+    const entry: CachedSignedUrlsEntry = { jobId, fetchedAt: Date.now(), urls };
     cache.current = entry;
 
     // don't hang on to a failed fetch - the next download attempt should be able to retry
