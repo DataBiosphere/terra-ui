@@ -318,8 +318,6 @@ const OutputArrayItem = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const visibleFiles = expanded ? files : files.slice(0, COLLAPSED_FILE_COUNT);
-  const totalSizeInBytes = files.reduce((sum, file) => sum + (file.metadata?.sizeInBytes || 0), 0);
-  const hasSizes = files.some((file) => file.metadata?.sizeInBytes !== undefined);
 
   return (
     <div>
@@ -327,12 +325,7 @@ const OutputArrayItem = ({
         <TooltipTrigger content={tooltip}>
           <span style={{ fontWeight: 500, textTransform: 'capitalize' }}>{label}</span>
         </TooltipTrigger>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: 12, color: colors.dark(0.6) }}>
-            {files.length} files{hasSizes && ` · ${formatBytes(totalSizeInBytes)} total`}
-          </span>
-          <PipelineIOTypeBadge type={outputType} />
-        </div>
+        <PipelineIOTypeBadge type={outputType} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
         {visibleFiles.map((file, index) => (

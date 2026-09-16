@@ -458,7 +458,7 @@ describe('JobOutputsView', () => {
       },
     });
 
-    it('renders a FILE_ARRAY output with a file count and total size', async () => {
+    it('renders a FILE_ARRAY output without a file count or total size summary', async () => {
       const mockResult = buildResultWithFileArray([
         { value: 'test.chr1.vcf.gz', metadata: { sizeInBytes: 1048576 } },
         { value: 'test.chr2.vcf.gz', metadata: { sizeInBytes: 1048576 } },
@@ -469,9 +469,10 @@ describe('JobOutputsView', () => {
       await waitFor(() => {
         expect(screen.getByText('imputed VCFs')).toBeInTheDocument();
         expect(screen.getByText('file array')).toBeInTheDocument();
-        expect(screen.getByText(/2 files/)).toBeInTheDocument();
-        expect(screen.getByText(/2\.00 MiB total/)).toBeInTheDocument();
       });
+
+      expect(screen.queryByText(/2 files/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/total/)).not.toBeInTheDocument();
     });
 
     it('collapses long file lists by default and expands on click', async () => {
