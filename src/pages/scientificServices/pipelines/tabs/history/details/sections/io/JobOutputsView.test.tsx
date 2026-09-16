@@ -536,6 +536,80 @@ describe('JobOutputsView', () => {
     });
   });
 
+  describe('bulk download notice', () => {
+    const buildResult = (pipelineRunReportOverrides = {}) => {
+      const succeeded = mockPipelineRunResponse('SUCCEEDED');
+      return {
+        ...succeeded,
+        pipelineRunReport: {
+          ...succeeded.pipelineRunReport,
+          outputs: {
+            imputedMultiSampleVcf: { value: 'output.vcf', metadata: { sizeInBytes: 100 } },
+          },
+          ...pipelineRunReportOverrides,
+        },
+      };
+    };
+
+    it('links to the CLI and Cloud Delivery docs for downloading all files at once', async () => {
+      render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={buildResult()} />);
+
+      expect(await screen.findByRole('link', { name: 'CLI' })).toHaveAttribute(
+        'href',
+        'https://broadscientificservices.zendesk.com/hc/en-us/articles/39901313672859'
+      );
+      expect(screen.getByRole('link', { name: 'Cloud Delivery' })).toHaveAttribute(
+        'href',
+        'https://broadscientificservices.zendesk.com/hc/en-us/articles/48878810499483'
+      );
+    });
+
+    it('does not show the notice once outputs have expired', async () => {
+      const mockResult = buildResult({ outputExpirationDate: '2020-01-01T00:00:00Z' });
+
+      render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('imputed multi-sample VCF')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('link', { name: 'CLI' })).not.toBeInTheDocument();
+    });
+
+    it('does not show the notice once outputs have been delivered to a cloud destination', async () => {
+      const mockResult = buildResult({
+        dataDeliveryReport: { status: 'SUCCEEDED' as const, destination: 'gs://bucket/destination/' },
+      });
+
+      render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('imputed multi-sample VCF')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('link', { name: 'CLI' })).not.toBeInTheDocument();
+    });
+
+    it('does not show the notice for jobs that have not succeeded', async () => {
+      const failed = mockPipelineRunResponse('FAILED');
+      const mockResult = {
+        ...failed,
+        pipelineRunReport: {
+          ...failed.pipelineRunReport,
+          outputs: { imputedMultiSampleVcf: { value: 'output.vcf', metadata: { sizeInBytes: 100 } } },
+        },
+      };
+
+      render(<JobOutputsView outputDefinitions={mockOutputDefinitions} pipelineRunResult={mockResult} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('imputed multi-sample VCF')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('link', { name: 'CLI' })).not.toBeInTheDocument();
+    });
+  });
+
   it('does not display file size when sizeInBytes is not available', async () => {
     const mockResult = {
       ...mockPipelineRunResponse('SUCCEEDED'),
