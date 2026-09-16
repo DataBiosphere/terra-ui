@@ -24,7 +24,13 @@ describe('zendeskUtils', () => {
 
     it('returns the correct URL for LOW_PASS_IMPUTATION_INPUT_REQ', () => {
       expect(zendeskUrl(DocsKey.LOW_PASS_IMPUTATION_INPUT_REQ)).toBe(
-        'https://broadscientificservices.zendesk.com/hc/en-us/articles/50837430347675-Input-Requirements'
+        'https://broadscientificservices.zendesk.com/hc/en-us/articles/50837430347675'
+      );
+    });
+
+    it('returns the correct URL for SV_IMPUTATION_INPUT_REQ', () => {
+      expect(zendeskUrl(DocsKey.SV_IMPUTATION_INPUT_REQ)).toBe(
+        'https://broadscientificservices.zendesk.com/hc/en-us/articles/55678264693915'
       );
     });
 
