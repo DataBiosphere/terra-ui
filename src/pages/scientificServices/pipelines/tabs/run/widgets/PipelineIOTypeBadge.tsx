@@ -45,7 +45,7 @@ export const PipelineIOTypeBadge = ({ type }: PipelineIOTypeBadgeProps) => {
           lineHeight: 1.25,
         }}
       >
-        {type.toLowerCase().replace(/_/g, ' ')}
+        {type.toLowerCase().replaceAll('_', ' ')}
       </span>
     </div>
   );

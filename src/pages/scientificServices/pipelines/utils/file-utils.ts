@@ -7,7 +7,7 @@ export const downloadSignedUrl = (url: string, fileName: string): void => {
   anchor.rel = 'noopener';
   document.body.appendChild(anchor);
   anchor.click();
-  document.body.removeChild(anchor);
+  anchor.remove();
 };
 
 // Checks if a pipeline input/output type is file based
