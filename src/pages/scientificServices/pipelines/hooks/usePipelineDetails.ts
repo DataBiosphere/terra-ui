@@ -10,14 +10,10 @@ export interface UsePipelineDetailsResult {
   error: Error | undefined;
 }
 
-export const usePipelineDetails = (
-  pipelineName: string,
-  pipelineVersion: number,
-  enabled = true
-): UsePipelineDetailsResult => {
+export const usePipelineDetails = (pipelineName: string, pipelineVersion: number): UsePipelineDetailsResult => {
   const signal = useCancellation();
   const [pipelineDetails, setPipelineDetails] = useState<PipelineWithDetails | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(enabled);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | undefined>(undefined);
 
   const fetchPipelineDetails = async () => {
@@ -38,12 +34,8 @@ export const usePipelineDetails = (
   };
 
   useEffect(() => {
-    if (!enabled) {
-      setIsLoading(false);
-      return;
-    }
     fetchPipelineDetails();
-  }, [pipelineName, pipelineVersion, enabled, signal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pipelineName, pipelineVersion, signal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     pipelineDetails,

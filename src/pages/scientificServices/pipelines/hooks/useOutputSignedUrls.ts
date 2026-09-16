@@ -1,10 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import { TEASPOONS_SIGNED_URL_CACHE_TTL_MS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
-import {
-  MOCK_FILE_ARRAY_JOB_ID,
-  mockFileArrayOutputSignedUrls,
-} from 'src/pages/scientificServices/pipelines/utils/mock-file-array-example';
 
 // FILE_ARRAY outputs have one signed URL per file; all other output types have a single URL
 export type OutputSignedUrls = Record<string, string | string[]>;
@@ -43,12 +39,9 @@ export const useOutputSignedUrls = (jobId: string): UseOutputSignedUrlsResult =>
       return cached.urls;
     }
 
-    const urls =
-      jobId === MOCK_FILE_ARRAY_JOB_ID
-        ? Promise.resolve(mockFileArrayOutputSignedUrls.outputSignedUrls)
-        : Teaspoons()
-            .getPipelineRunOutputSignedUrls(jobId)
-            .then((response) => response.outputSignedUrls);
+    const urls = Teaspoons()
+      .getPipelineRunOutputSignedUrls(jobId)
+      .then((response) => response.outputSignedUrls);
 
     const entry: CachedSignedUrlsEntry = { jobId, fetchedAt: Date.now(), urls };
     cache.current = entry;

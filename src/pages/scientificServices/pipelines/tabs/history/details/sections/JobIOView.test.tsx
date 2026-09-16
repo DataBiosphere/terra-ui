@@ -31,7 +31,7 @@ describe('JobIOView', () => {
     const mockResult = mockPipelineRunResponse('SUCCEEDED');
     render(<JobIOView pipelineRunResult={mockResult} />);
 
-    expect(mockUsePipelineDetails).toHaveBeenCalledWith('array_imputation', 1, true);
+    expect(mockUsePipelineDetails).toHaveBeenCalledWith('array_imputation', 1);
 
     await waitFor(() => {
       expect(screen.getByText('Inputs & Outputs')).toBeInTheDocument();
