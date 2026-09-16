@@ -533,6 +533,7 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
         )}
       </div>
       <div>
+        <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
         <QuotaDetailsWidget
           selectedPipeline={selectedPipeline}
           quota={quota}
@@ -541,7 +542,6 @@ const RunJobContent = ({ pipelines: pipelinesList }: RunJobContentProps) => {
           isLoading={isLoadingQuota}
         />
         <PipelineOutputsWidget selectedPipelineDetails={pipelineDetails} />
-        <HelpfulTipsWidget selectedPipeline={selectedPipeline} />
       </div>
     </div>
   );

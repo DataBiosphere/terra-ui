@@ -12,6 +12,7 @@ import {
 import {
   getCostDisplayForDisk,
   getCostDisplayForTool,
+  getGalaxyComputeCost,
   getPersistentDiskCostMonthly,
   getRuntimeCost,
   runtimeConfigCost,
@@ -241,10 +242,18 @@ describe('getCostDisplayForDisk', () => {
   });
 });
 
+describe('getGalaxyComputeCost', () => {
+  it('uses flat t2d pricing for t2d machine types', () => {
+    // t2dStandardUsHourlyPrices['t2d-standard-4'] = 0.168984; ephemeralExternalIpAddressCost(1,0) = 0
+    expect(getGalaxyComputeCost(galaxyRunning)).toBeCloseTo(0.168984);
+  });
+});
+
 describe('GCP getCostDisplayForTool', () => {
   it('Will get compute cost and compute status for Galaxy app', () => {
     // Arrange
-    const expectedResult = 'Running $0.52/hr';
+    // galaxyRunning uses t2d-standard-4 at $0.168984/hr → rounds to $0.17
+    const expectedResult = 'Running $0.17/hr';
     const app = galaxyRunning;
     const currentRuntime = undefined;
     const currentRuntimeToolLabel = undefined;

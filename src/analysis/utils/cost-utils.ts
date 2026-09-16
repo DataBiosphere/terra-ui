@@ -12,6 +12,7 @@ import {
   ephemeralExternalIpAddressPrice,
   machineTypes,
   regionToPrices,
+  t2dStandardUsHourlyPrices,
 } from 'src/analysis/utils/gce-machines';
 import {
   defaultComputeRegion,
@@ -207,32 +208,23 @@ export const getGalaxyCost = (app: App, dataDisk: PersistentDisk): number => {
  *   conservative by adding default nodepool cost to all apps on a cluster.
  */
 export const getGalaxyComputeCost = (app: App): number => {
-  // console.log('getGalaxyComputeCost', { app });
   if (!app) return 0;
   const appStatus = app?.status;
-  // Galaxy uses defaultComputeRegion because we're not yet enabling other locations for Galaxy apps.
-  const defaultNodepoolComputeCost = getHourlyCostForMachineType(defaultGceMachineType, defaultComputeRegion, false);
-  const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost(1, 0);
+  const machineType = app.kubernetesRuntimeConfig.machineType;
+  // Use flat t2d pricing when available; fall back to n1-based calculation for legacy n1 apps.
+  const vmCost =
+    t2dStandardUsHourlyPrices[machineType] ??
+    app.kubernetesRuntimeConfig.numNodes * getHourlyCostForMachineType(machineType, defaultComputeRegion, false);
+  const ipCost = ephemeralExternalIpAddressCost(1, 0);
 
-  const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost;
-  const dynamicCost =
-    app.kubernetesRuntimeConfig.numNodes *
-      getHourlyCostForMachineType(app.kubernetesRuntimeConfig.machineType, defaultComputeRegion, false) +
-    ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes, 0);
-
-  const total = (() => {
-    switch (appStatus) {
-      case appStatuses.stopped.status:
-        return staticCost;
-      case appStatuses.deleting.status:
-      case appStatuses.error.status:
-        return 0.0;
-      default:
-        return staticCost + dynamicCost;
-    }
-  })();
-  // console.log('getGalaxyComputeCost', total);
-  return total;
+  switch (appStatus) {
+    case appStatuses.stopped.status:
+    case appStatuses.deleting.status:
+    case appStatuses.error.status:
+      return 0;
+    default:
+      return vmCost + ipCost;
+  }
 };
 
 /*
