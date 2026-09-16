@@ -379,7 +379,8 @@ const BulkDownloadNotice = () => (
   <div
     style={{
       marginTop: '1rem',
-      padding: '0.5rem 0.75rem',
+      display: 'flex',
+      alignItems: 'stretch',
       backgroundColor: 'white',
       border: '1px solid #d6d9dc',
       borderRadius: '4px',
@@ -387,9 +388,15 @@ const BulkDownloadNotice = () => (
       color: colors.dark(0.75),
     }}
   >
-    <Icon icon='info-circle' size={14} style={{ color: colors.primary(), verticalAlign: 'middle' }} /> Download all
-    files at once using the <ZendeskLink docsKey={DocsKey.CLI_DOWNLOADS}>CLI</ZendeskLink> or using{' '}
-    <ZendeskLink docsKey={DocsKey.CLOUD_OUTPUTS}>Cloud Delivery</ZendeskLink>. Support for zip downloads of all files in
-    the UI is coming soon.
+    <div
+      style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 0.75rem' }}
+    >
+      <Icon icon='info-circle' size={28} style={{ color: colors.primary() }} />
+    </div>
+    <div style={{ padding: '0.5rem 0.75rem 0.5rem 0' }}>
+      Download all files at once using the <ZendeskLink docsKey={DocsKey.CLI_DOWNLOADS}>CLI</ZendeskLink> or using{' '}
+      <ZendeskLink docsKey={DocsKey.CLOUD_OUTPUTS}>Cloud Delivery</ZendeskLink>. Support for zip downloads of all files
+      in the UI is coming soon.
+    </div>
   </div>
 );
