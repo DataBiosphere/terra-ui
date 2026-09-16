@@ -8,6 +8,7 @@ import { notify } from 'src/libs/notifications';
 import { formatBytes } from 'src/libs/utils';
 import { PipelineErrorMessage } from 'src/pages/scientificServices/pipelines/common/PipelineErrorMessage';
 import { SCIENTIFIC_SERVICES_SUPPORT_EMAIL } from 'src/pages/scientificServices/pipelines/common/scientific-services-common';
+import { DocsKey, ZendeskLink } from 'src/pages/scientificServices/pipelines/common/zendeskUtils';
 import { useOutputSignedUrls } from 'src/pages/scientificServices/pipelines/hooks/useOutputSignedUrls';
 import { PipelineIOTypeBadge } from 'src/pages/scientificServices/pipelines/tabs/run/widgets/PipelineIOTypeBadge';
 import { downloadSignedUrl } from 'src/pages/scientificServices/pipelines/utils/file-utils';
@@ -203,6 +204,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
               </div>
             );
           })}
+          {isSucceeded && !outputsExpired && !dataDeliverySucceeded && <BulkDownloadNotice />}
         </div>
       ) : (
         <div style={{ color: colors.dark(0.6), fontSize: 14, fontStyle: isFailed ? 'italic' : 'normal' }}>
@@ -213,7 +215,7 @@ export const JobOutputsView = ({ outputDefinitions, pipelineRunResult }: JobOutp
   );
 };
 
-const downloadButtonStyle: React.CSSProperties = {
+const linkButtonStyle: React.CSSProperties = {
   color: '#46A3E9',
   fontWeight: 700,
   textDecoration: 'underline',
@@ -233,7 +235,7 @@ const DownloadFileButton = ({ downloading, onDownload }: { downloading?: boolean
       type='button'
       onClick={onDownload}
       disabled={downloading}
-      style={{ ...downloadButtonStyle, cursor: downloading ? 'default' : 'pointer' }}
+      style={{ ...linkButtonStyle, cursor: downloading ? 'default' : 'pointer' }}
     >
       {downloading ? <Spinner size={14} /> : <Icon icon='download' size={14} />}
       Download
@@ -362,21 +364,32 @@ const OutputArrayItem = ({
         <button
           type='button'
           onClick={() => setExpanded(!expanded)}
-          style={{
-            color: colors.dark(0.6),
-            fontWeight: 500,
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 0,
-            font: 'inherit',
-            marginTop: '0.5rem',
-            textDecoration: 'underline',
-          }}
+          aria-expanded={expanded}
+          style={{ ...linkButtonStyle, marginTop: '0.5rem' }}
         >
+          <Icon icon={expanded ? 'angle-up' : 'angle-down'} size={14} />
           {expanded ? 'Show fewer files' : `Show all ${files.length} files`}
         </button>
       )}
     </div>
   );
 };
+
+const BulkDownloadNotice = () => (
+  <div
+    style={{
+      marginTop: '1rem',
+      padding: '0.5rem 0.75rem',
+      backgroundColor: 'white',
+      border: '1px solid #d6d9dc',
+      borderRadius: '4px',
+      fontSize: 14,
+      color: colors.dark(0.75),
+    }}
+  >
+    <Icon icon='info-circle' size={14} style={{ color: colors.primary(), verticalAlign: 'middle' }} /> Download all
+    files at once using the <ZendeskLink docsKey={DocsKey.CLI_DOWNLOADS}>CLI</ZendeskLink> or using{' '}
+    <ZendeskLink docsKey={DocsKey.CLOUD_OUTPUTS}>Cloud Delivery</ZendeskLink>. Support for zip downloads of all files in
+    the UI is coming soon.
+  </div>
+);
