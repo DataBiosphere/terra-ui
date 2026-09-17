@@ -27,7 +27,7 @@ const ZENDESK_PAGES: Record<DocsKey, string> = {
 // Retrieve the Zendesk URL based on the provided documentation key
 export const zendeskUrl = (key: DocsKey): string => {
   // typescript should make sure all keys are valid, but just in case, default to the home page
-  return ZENDESK_PAGES[key] ?? ZENDESK_PAGES.GETTING_STARTED;
+  return ZENDESK_PAGES[key] ?? ZENDESK_PAGES.ABOUT_SERVICE;
 };
 
 // Renders a component with link to the specified Zendesk documentation page
