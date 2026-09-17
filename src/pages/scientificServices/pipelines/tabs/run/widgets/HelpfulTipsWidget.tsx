@@ -67,7 +67,7 @@ const COMMON_TIPS: { id: string; content: ReactNode }[] = [
     id: 'cloud-inputs',
     content: (
       <>
-        Learn how{' '}
+        Learn how to{' '}
         <ZendeskLink docsKey={DocsKey.CLOUD_INPUTS} additionalStyle={{ color: '#0b5394' }}>
           provide inputs from Google Cloud
         </ZendeskLink>
