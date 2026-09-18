@@ -44,7 +44,7 @@ const OutputDetails = ({ output }: { output: PipelineOutput }) => {
 
   return (
     <div style={{ marginTop: '1rem', borderLeft: '3px solid #e4e5e6', paddingLeft: '0.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
         <div style={{ fontWeight: 500, paddingBottom: '0.5rem', textTransform: 'capitalize' }}>
           {displayName || name}
         </div>

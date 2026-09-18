@@ -5,7 +5,7 @@ export interface Pipeline {
   description: string;
 }
 
-export type PipelineIOType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN' | 'MANIFEST';
+export type PipelineIOType = 'FILE' | 'STRING' | 'FLOAT' | 'BOOLEAN' | 'MANIFEST' | 'FILE_ARRAY';
 
 export interface PipelineInput {
   name: string;
@@ -152,7 +152,8 @@ export interface PipelineRunReport {
   pipelineName: string;
   pipelineVersion: number;
   toolVersion: string;
-  outputs?: Record<string, PipelineOutputValue>;
+  // FILE_ARRAY outputs are represented as an array of values; all other output types are a single value
+  outputs?: Record<string, PipelineOutputValue | PipelineOutputValue[]>;
   userInputs?: Record<string, string>;
   outputExpirationDate?: string;
   inputSize?: number;
@@ -164,7 +165,8 @@ export interface PipelineRunReport {
 
 export interface PipelineRunOutputSignedUrlsResponse {
   jobId: string;
-  outputSignedUrls: Record<string, string>;
+  // FILE_ARRAY outputs have one signed URL per file, in the same order as the corresponding output array
+  outputSignedUrls: Record<string, string | string[]>;
   outputExpirationDate: string;
 }
 

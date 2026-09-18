@@ -9,7 +9,9 @@ import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import { notify } from 'src/libs/notifications';
 import { TEASPOONS_FILE_OUTPUT_TTL_DAYS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+import { useOutputSignedUrls } from 'src/pages/scientificServices/pipelines/hooks/useOutputSignedUrls';
 import { BucketConsoleLink } from 'src/pages/scientificServices/pipelines/tabs/run/inputs/file/BucketConsoleLink';
+import { downloadSignedUrl } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 
 /**
  * Modal component for displaying pipeline outputs
@@ -23,7 +25,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
   const [result, setResult] = useState<PipelineRunResponse>();
   const [loading, setLoading] = useState(true);
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
-  const [signedUrls, setSignedUrls] = useState<Record<string, string>>();
+  const { getSignedUrl } = useOutputSignedUrls(jobId);
 
   const deliverySucceeded = result?.pipelineRunReport.dataDeliveryReport?.status === 'SUCCEEDED';
 
@@ -41,32 +43,25 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
     fetchPipelineRunResults();
   }, [jobId]);
 
-  const handleDownload = async (outputKey: string) => {
+  const handleDownload = async (outputKey: string, fileName: string, sizeInBytes?: number) => {
     try {
       setDownloadingKey(outputKey);
 
-      let urls = signedUrls;
-
-      // If we haven't already fetched signed urls for this job, do it! Otherwise, we'll use the existing ones
-      if (!urls) {
-        const response = await Teaspoons().getPipelineRunOutputSignedUrls(jobId);
-        urls = response.outputSignedUrls;
-        setSignedUrls(urls);
-      }
-
-      const signedUrl = urls[outputKey];
+      const signedUrl = await getSignedUrl(outputKey);
       if (!signedUrl) {
         notify('error', 'There was an error retrieving the download. Please try again.');
         return;
       }
 
-      window.open(signedUrl, '_blank');
+      downloadSignedUrl(signedUrl, fileName);
 
       if (result) {
         Metrics().captureEvent(Events.teaspoons.downloadJobOutputFile, {
           pipelineName: result.pipelineRunReport.pipelineName,
           pipelineVersion: result.pipelineRunReport.pipelineVersion,
           outputName: outputKey,
+          fileName,
+          fileSize: sizeInBytes,
         });
       }
     } catch (err) {
@@ -97,43 +92,58 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                   margin: '1rem 0',
                 }}
               >
-                {Object.entries(result.pipelineRunReport.outputs).map(([key, outputValue]) => (
-                  <div
-                    key={key}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0.5rem',
-                      borderRadius: '4px',
-                      backgroundColor: '#f5f5f5',
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{key}</div>
-                      <div
-                        style={{
-                          fontSize: '0.875rem',
-                          color: '#666',
-                          fontFamily: 'monospace',
-                          wordBreak: 'break-all',
-                        }}
-                      >
-                        {outputValue.value}
-                      </div>
-                    </div>
-                    <ButtonPrimary
-                      onClick={() => handleDownload(key)}
-                      disabled={downloadingKey === key || deliverySucceeded}
-                      style={{ marginLeft: '1rem' }}
+                {Object.entries(result.pipelineRunReport.outputs).map(([key, outputValue]) => {
+                  const isFileArray = Array.isArray(outputValue);
+
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.5rem',
+                        borderRadius: '4px',
+                        backgroundColor: '#f5f5f5',
+                      }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        {downloadingKey === key ? <Spinner size={16} /> : <Icon icon='download' size={16} />}
-                        Download
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{key}</div>
+                        <div
+                          style={{
+                            fontSize: '0.875rem',
+                            color: '#666',
+                            fontFamily: 'monospace',
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {isFileArray ? `${outputValue.length} files` : outputValue.value}
+                        </div>
                       </div>
-                    </ButtonPrimary>
-                  </div>
-                ))}
+                      {isFileArray ? (
+                        <Link
+                          href={Nav.getLink('pipelines-job-detail', { jobId })}
+                          onClick={onDismiss}
+                          baseColor={() => '#46A3E9'}
+                          style={{ marginLeft: '1rem' }}
+                        >
+                          View files
+                        </Link>
+                      ) : (
+                        <ButtonPrimary
+                          onClick={() => handleDownload(key, outputValue.value, outputValue.metadata?.sizeInBytes)}
+                          disabled={downloadingKey === key || deliverySucceeded}
+                          style={{ marginLeft: '1rem' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            {downloadingKey === key ? <Spinner size={16} /> : <Icon icon='download' size={16} />}
+                            Download
+                          </div>
+                        </ButtonPrimary>
+                      )}
+                    </div>
+                  );
+                })}
                 {deliverySucceeded ? (
                   <div
                     style={{

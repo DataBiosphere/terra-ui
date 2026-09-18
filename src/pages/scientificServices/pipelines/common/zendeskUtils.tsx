@@ -10,6 +10,7 @@ export enum DocsKey {
   QUOTA_DETAILS = 'QUOTA_DETAILS',
   CLOUD_INPUTS = 'CLOUD_INPUTS',
   CLOUD_OUTPUTS = 'CLOUD_OUTPUTS',
+  CLI_DOWNLOADS = 'CLI_DOWNLOADS',
 }
 
 // Mapping of documentation keys to their respective Zendesk URLs
@@ -22,6 +23,7 @@ const ZENDESK_PAGES: Record<DocsKey, string> = {
   QUOTA_DETAILS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/39903092619035',
   CLOUD_INPUTS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/47099858889243',
   CLOUD_OUTPUTS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/48878810499483',
+  CLI_DOWNLOADS: 'https://broadscientificservices.zendesk.com/hc/en-us/articles/39901313672859',
 };
 
 // Retrieve the Zendesk URL based on the provided documentation key

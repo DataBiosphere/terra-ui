@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
 import * as Nav from 'src/libs/nav';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import { mockPipelineRunResponse } from 'src/pages/scientificServices/pipelines/utils/mock-utils';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
@@ -36,7 +35,6 @@ describe('JobDetails', () => {
     (Teaspoons as jest.Mock).mockReturnValue({
       getPipelineRunResult: mockGetPipelineRunResult,
     });
-    (getOutputFileSize as jest.Mock).mockResolvedValue('10.5 MB');
   });
 
   it('renders all job details sections after successful load', async () => {

@@ -141,7 +141,10 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
       }
       default: {
         const outputs = pipelineRunResult.pipelineRunReport?.outputs ?? {};
-        const fileCount = Object.keys(outputs).length;
+        const fileCount = Object.values(outputs).reduce(
+          (count, outputValue) => count + (Array.isArray(outputValue) ? outputValue.length : 1),
+          0
+        );
         return (
           <>
             {errorMessage && (
