@@ -24,14 +24,20 @@ describe('zendeskUtils', () => {
 
     it('returns the correct URL for LOW_PASS_IMPUTATION_INPUT_REQ', () => {
       expect(zendeskUrl(DocsKey.LOW_PASS_IMPUTATION_INPUT_REQ)).toBe(
-        'https://broadscientificservices.zendesk.com/hc/en-us/articles/50837430347675-Input-Requirements'
+        'https://broadscientificservices.zendesk.com/hc/en-us/articles/50837430347675'
+      );
+    });
+
+    it('returns the correct URL for SV_IMPUTATION_INPUT_REQ', () => {
+      expect(zendeskUrl(DocsKey.SV_IMPUTATION_INPUT_REQ)).toBe(
+        'https://broadscientificservices.zendesk.com/hc/en-us/articles/55678264693915'
       );
     });
 
     it('returns the default URL for an unknown DocsKey', () => {
       // @ts-expect-error Testing invalid key
       expect(zendeskUrl('UNKNOWN_KEY')).toBe(
-        'https://broadscientificservices.zendesk.com/hc/en-us/sections/39901025462171' // Getting Started URL
+        'https://broadscientificservices.zendesk.com/' // About Service URL
       );
     });
   });
