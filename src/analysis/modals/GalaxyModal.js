@@ -623,10 +623,10 @@ const MachineSelector = ({ value, onChange }) => {
 
   // Derive the machine family prefix (e.g. 't2d-standard' from 't2d-standard-4').
   const knownFamilies = galaxyMachineFamilies.map((f) => f.value);
-  const currentFamily = knownFamilies.find((f) => value.machineType.startsWith(f + '-')) || 't2d-standard';
+  const currentFamily = knownFamilies.find((f) => value.machineType.startsWith(`${f}-`)) || 't2d-standard';
 
   // Filter the full list to the selected family so CPU/Memory selectors stay within one family.
-  const familyMachineTypes = _.filter(({ name }) => name.startsWith(currentFamily + '-'), validGalaxyMachineTypes);
+  const familyMachineTypes = _.filter(({ name }) => name.startsWith(`${currentFamily}-`), validGalaxyMachineTypes);
 
   const gridItemInputStyle = { minWidth: '6rem' };
 
@@ -659,7 +659,7 @@ const MachineSelector = ({ value, onChange }) => {
               value: currentFamily,
               onChange: (option) => {
                 const newFamily = option.value;
-                const newFamilyTypes = _.filter(({ name }) => name.startsWith(newFamily + '-'), validGalaxyMachineTypes);
+                const newFamilyTypes = _.filter(({ name }) => name.startsWith(`${newFamily}-`), validGalaxyMachineTypes);
                 // Preserve the current CPU count in the new family when possible.
                 const matched = _.find({ cpu: currentCpu }, newFamilyTypes);
                 const newMachineType = matched?.name || newFamilyTypes[0]?.name || value.machineType;
@@ -702,12 +702,7 @@ const MachineSelector = ({ value, onChange }) => {
                   _.find({ cpu: currentCpu, memory: option.value }, familyMachineTypes)?.name || value.machineType;
                 onChange((prevState) => ({ ...prevState, machineType: validMachineType }));
               },
-              options: _.flow(
-                _.filter({ cpu: currentCpu }),
-                _.map('memory'),
-                _.union([currentMemory]),
-                _.sortBy(_.identity)
-              )(familyMachineTypes),
+              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(familyMachineTypes),
             }),
           ]),
         ]),

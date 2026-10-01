@@ -1,6 +1,12 @@
 import { CloudContext } from '@terra-ui-packages/leonardo-data-client';
 import _ from 'lodash/fp';
-import { gpuTypes, machineTypes, n2StandardMachineTypes, t2dMachineTypes, zonesToGpus } from 'src/analysis/utils/gce-machines';
+import {
+  gpuTypes,
+  machineTypes,
+  n2StandardMachineTypes,
+  t2dMachineTypes,
+  zonesToGpus,
+} from 'src/analysis/utils/gce-machines';
 import {
   cloudRuntimeTools,
   isRuntimeToolLabel,
