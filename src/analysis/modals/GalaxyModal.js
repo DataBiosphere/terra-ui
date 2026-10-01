@@ -698,8 +698,7 @@ const MachineSelector = ({ value, onChange }) => {
               isSearchable: false,
               value: currentMemory,
               onChange: (option) => {
-                const validMachineType =
-                  _.find({ cpu: currentCpu, memory: option.value }, familyMachineTypes)?.name || value.machineType;
+                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, familyMachineTypes)?.name || value.machineType;
                 onChange((prevState) => ({ ...prevState, machineType: validMachineType }));
               },
               options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(familyMachineTypes),
