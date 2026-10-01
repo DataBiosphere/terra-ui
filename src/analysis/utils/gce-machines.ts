@@ -25,6 +25,24 @@ export const t2dStandardUsHourlyPrices: Partial<Record<string, number>> = {
   't2d-standard-32': 1.351872,
 };
 
+// n2-standard machines available as fallback for Galaxy when t2d capacity is unavailable.
+// Sizes chosen to mirror the t2d options (same vCPU/RAM ratio).
+export const n2StandardMachineTypes: MachineType[] = [
+  { name: 'n2-standard-4', cpu: 4, memory: 16 },
+  { name: 'n2-standard-8', cpu: 8, memory: 32 },
+  { name: 'n2-standard-16', cpu: 16, memory: 64 },
+  { name: 'n2-standard-32', cpu: 32, memory: 128 },
+];
+
+// On-demand hourly prices for n2-standard machines in us-central1 (Galaxy's default region).
+// Source: https://cloud.google.com/compute/vm-instance-pricing#n2_machine_types
+export const n2StandardUsHourlyPrices: Partial<Record<string, number>> = {
+  'n2-standard-4': 0.194174,
+  'n2-standard-8': 0.388349,
+  'n2-standard-16': 0.776698,
+  'n2-standard-32': 1.553396,
+};
+
 export const machineTypes: MachineType[] = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
   { name: 'n1-standard-2', cpu: 2, memory: 7.5 },
