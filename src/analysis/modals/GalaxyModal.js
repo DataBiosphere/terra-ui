@@ -396,7 +396,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const renderComputeProfileSection = () => {
       const gridStyle = {
         display: 'grid',
-        gridTemplateColumns: 'repeat(6, auto)',
+        gridTemplateColumns: 'repeat(4, auto)',
         gridGap: '0.75rem',
         alignItems: 'center',
         justifyContent: 'flex-start',
