@@ -78,13 +78,16 @@ export const ImportDataOverview = (props: ImportDataOverviewProps): ReactNode =>
               flexWrap: 'wrap',
               alignItems: 'baseline',
               columnGap: '1ch',
-              color: fileSize.status === 'Ready' && fileSize.oversized  ? colors.danger() : undefined,
+              color: fileSize.status === 'Ready' && fileSize.oversized ? colors.danger() : undefined,
             },
           },
           [
             span([getDisplayUrl(url)]),
             fileSize.status === 'Ready' &&
-              span([formatEstimatedImportTime(fileSize.bytes), fileSize.oversized && ' (Exceeds recommended size limit)']),
+              span([
+                formatEstimatedImportTime(fileSize.bytes),
+                fileSize.oversized && ' (Exceeds recommended size limit)',
+              ]),
           ]
         ),
       ]),

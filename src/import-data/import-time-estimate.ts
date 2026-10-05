@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useCancellation } from 'src/libs/react-utils';
 import { BackendUtil } from 'src/libs/ajax/BackendUtil';
+import { useCancellation } from 'src/libs/react-utils';
 
 /** Number of bytes in a megabyte. */
 const BYTES_PER_MB = 2 ** 20;
@@ -38,7 +38,10 @@ export const formatEstimatedImportTime = (bytes: number): string => {
   return `Estimated import time: ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
 };
 
-export type FileSizeState = { status: 'Loading' } | { status: 'Ready'; bytes: number; oversized: boolean } | { status: 'Unknown' };
+export type FileSizeState =
+  | { status: 'Loading' }
+  | { status: 'Ready'; bytes: number; oversized: boolean }
+  | { status: 'Unknown' };
 
 /**
  * Pick the size to base the estimate on. The files of an export are imported in parallel, so the
@@ -82,12 +85,12 @@ export const useFileSize = (url: string | undefined): FileSizeState => {
         const { files } = await BackendUtil(signal).preprocess(url);
         const largestFileSize = getLargestFileSize(files);
         if (largestFileSize === undefined) {
-          setFileSize({ status: 'Unknown' })
+          setFileSize({ status: 'Unknown' });
         } else {
           setFileSize({
             status: 'Ready',
             bytes: largestFileSize,
-            oversized: exceedsRecommendedSize(largestFileSize)
+            oversized: exceedsRecommendedSize(largestFileSize),
           });
         }
       } catch (error) {
