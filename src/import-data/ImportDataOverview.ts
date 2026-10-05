@@ -1,12 +1,9 @@
 import { CSSProperties, Fragment, ReactNode } from 'react';
-import { div, h, h2, h3, li, span, ul } from 'react-hyperscript-helpers';
+import { div, h, h2, h3, span } from 'react-hyperscript-helpers';
 import colors from 'src/libs/colors';
 import * as Style from 'src/libs/style';
 
-import {
-  formatEstimatedImportTime,
-  useFileSize,
-} from './import-time-estimate';
+import { formatEstimatedImportTime, useFileSize } from './import-time-estimate';
 import { ImportRequest } from './import-types';
 import { ImportRequirements } from './ImportRequirements';
 
