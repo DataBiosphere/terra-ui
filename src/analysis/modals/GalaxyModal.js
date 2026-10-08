@@ -9,7 +9,7 @@ import { GalaxyWarning, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-
 import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/analysis/utils/cost-utils';
 import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
-import { n2StandardMachineTypes, t2dMachineTypes } from 'src/analysis/utils/gce-machines';
+import { n2dMachineTypes, n2StandardMachineTypes } from 'src/analysis/utils/gce-machines';
 import { findMachineType } from 'src/analysis/utils/runtime-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
@@ -31,12 +31,11 @@ import { canEditWorkspace } from 'src/workspaces/utils';
 import { computeStyles } from './modalStyles';
 
 const defaultDataDisk = { size: 500, diskType: googlePdTypes.standard };
-const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-4', numNodes: 1, autoscalingEnabled: false };
+const defaultKubernetesRuntimeConfig = { machineType: 'n2-standard-4', numNodes: 1, autoscalingEnabled: false };
 const maxNodepoolSize = 1000;
 
-// Include both t2d and n2-standard types with >= 4 CPUs so users can switch
-// machine families if one is capacity-exhausted in the current zone.
-const validGalaxyMachineTypes = _.filter(({ cpu }) => cpu >= 4, [...t2dMachineTypes, ...n2StandardMachineTypes]);
+// n2-standard (Intel) is the default; n2d-standard (AMD EPYC) is cheaper. Both have >= 4 CPUs.
+const validGalaxyMachineTypes = _.filter(({ cpu }) => cpu >= 4, [...n2StandardMachineTypes, ...n2dMachineTypes]);
 
 const titleId = 'galaxy-modal-title';
 
@@ -614,8 +613,8 @@ export const GalaxyModal = withModalDrawer({ width: 675, 'aria-labelledby': titl
 
 // Supported machine families for Galaxy, shown in the order users should see them.
 const galaxyMachineFamilies = [
-  { value: 't2d-standard', label: 't2d-standard (AMD Tau) — default' },
-  { value: 'n2-standard', label: 'n2-standard (Intel) — fallback if t2d unavailable' },
+  { value: 'n2-standard', label: 'n2-standard (Intel)' },
+  { value: 'n2d-standard', label: 'n2d-standard (AMD EPYC) — ~18% cheaper' },
 ];
 
 const MachineSelector = ({ value, onChange }) => {
@@ -623,7 +622,7 @@ const MachineSelector = ({ value, onChange }) => {
 
   // Derive the machine family prefix (e.g. 't2d-standard' from 't2d-standard-4').
   const knownFamilies = galaxyMachineFamilies.map((f) => f.value);
-  const currentFamily = knownFamilies.find((f) => value.machineType.startsWith(`${f}-`)) || 't2d-standard';
+  const currentFamily = knownFamilies.find((f) => value.machineType.startsWith(`${f}-`)) || 'n2-standard';
 
   // Filter the full list to the selected family so CPU/Memory selectors stay within one family.
   const familyMachineTypes = _.filter(({ name }) => name.startsWith(`${currentFamily}-`), validGalaxyMachineTypes);

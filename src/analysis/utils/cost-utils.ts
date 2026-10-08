@@ -11,6 +11,7 @@ import {
   dataprocCpuPrice,
   ephemeralExternalIpAddressPrice,
   machineTypes,
+  n2dStandardUsHourlyPrices,
   n2StandardUsHourlyPrices,
   regionToPrices,
   t2dStandardUsHourlyPrices,
@@ -212,10 +213,11 @@ export const getGalaxyComputeCost = (app: App): number => {
   if (!app) return 0;
   const appStatus = app?.status;
   const machineType = app.kubernetesRuntimeConfig.machineType;
-  // Use flat t2d or n2 pricing when available; fall back to n1-based calculation for legacy apps.
+  // Use flat per-family pricing when available; fall back to n1-based calculation for legacy apps.
   const vmCost =
-    t2dStandardUsHourlyPrices[machineType] ??
     n2StandardUsHourlyPrices[machineType] ??
+    n2dStandardUsHourlyPrices[machineType] ??
+    t2dStandardUsHourlyPrices[machineType] ??
     app.kubernetesRuntimeConfig.numNodes * getHourlyCostForMachineType(machineType, defaultComputeRegion, false);
   const ipCost = ephemeralExternalIpAddressCost(1, 0);
 
