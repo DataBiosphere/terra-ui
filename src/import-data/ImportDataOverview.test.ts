@@ -1,14 +1,12 @@
 import { screen, waitFor } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { BackendUtil, UrlSizeResponse } from 'src/libs/ajax/BackendUtil';
+import { BackendUtil, BackendUtilAjaxContract, FileInfoResponse } from 'src/libs/ajax/BackendUtil';
 import colors from 'src/libs/colors';
 import { asMockedFn, MockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 import { gcpTdrSnapshotImportRequest } from './__fixtures__/import-request-fixtures';
 import { PFBImportRequest } from './import-types';
 import { ImportDataOverview } from './ImportDataOverview';
-
-type BackendUtilContract = ReturnType<typeof BackendUtil>;
 
 jest.mock('src/libs/ajax/BackendUtil');
 
@@ -21,12 +19,12 @@ const pfbImportRequest: PFBImportRequest = {
 
 const displayUrl = 'example.com/path/to/file.pfb';
 
-let preprocess: MockedFn<BackendUtilContract['preprocess']>;
+let getUrlInfo: MockedFn<BackendUtilAjaxContract['getUrlInfo']>;
 
 /** Mock the sizes that cWDS reports for the files an import will read. */
 const mockFileSizes = (sizesBytes: number[]) => {
-  preprocess.mockResolvedValue(
-    partial<UrlSizeResponse>({
+  getUrlInfo.mockResolvedValue(
+    partial<FileInfoResponse>({
       files: sizesBytes.map((sizeBytes, i) => ({ signed_url: `https://example.com/part-${i}.avro`, sizeBytes })),
     })
   );
@@ -34,8 +32,8 @@ const mockFileSizes = (sizesBytes: number[]) => {
 
 describe('ImportDataOverview', () => {
   beforeEach(() => {
-    preprocess = jest.fn(async (_url: string) => partial<UrlSizeResponse>({ files: [] }));
-    asMockedFn(BackendUtil).mockReturnValue(partial<BackendUtilContract>({ preprocess }));
+    getUrlInfo = jest.fn(async (_url: string) => partial<FileInfoResponse>({ files: [] }));
+    asMockedFn(BackendUtil).mockReturnValue(partial<BackendUtilAjaxContract>({ getUrlInfo }));
   });
 
   it('renders the source URL without the protocol or query parameters', async () => {
@@ -51,7 +49,7 @@ describe('ImportDataOverview', () => {
     render(h(ImportDataOverview, { importRequest: pfbImportRequest }));
 
     // Assert
-    await waitFor(() => expect(preprocess).toHaveBeenCalledWith(pfbImportRequest.url.href));
+    await waitFor(() => expect(getUrlInfo).toHaveBeenCalledWith(pfbImportRequest.url.href));
   });
 
   it('shows an estimated import time based on the size of the file to import', async () => {
@@ -104,7 +102,7 @@ describe('ImportDataOverview', () => {
   it.each([
     {
       scenario: 'the request fails',
-      mockResponse: () => preprocess.mockRejectedValue(new Response('{"message":"x"}', { status: 400 })),
+      mockResponse: () => getUrlInfo.mockRejectedValue(new Response('{"message":"x"}', { status: 400 })),
     },
     { scenario: 'cWDS reports no files', mockResponse: () => mockFileSizes([]) },
     { scenario: 'cWDS reports no usable size', mockResponse: () => mockFileSizes([0]) },
@@ -117,7 +115,7 @@ describe('ImportDataOverview', () => {
 
     // Assert
     expect(await screen.findByText(displayUrl)).toBeTruthy();
-    await waitFor(() => expect(preprocess).toHaveBeenCalled());
+    await waitFor(() => expect(getUrlInfo).toHaveBeenCalled());
     expect(screen.queryByText(/Estimated import time/)).toBeNull();
   });
 
@@ -138,6 +136,6 @@ describe('ImportDataOverview', () => {
     // Assert
     expect(screen.queryByText('Dataset source:')).toBeNull();
     expect(screen.queryByText(/Estimated import time/)).toBeNull();
-    expect(preprocess).not.toHaveBeenCalled();
+    expect(getUrlInfo).not.toHaveBeenCalled();
   });
 });

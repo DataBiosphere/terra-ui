@@ -1,6 +1,6 @@
 import { authOpts } from 'src/auth/auth-session';
 import { fetchOrchestration } from 'src/libs/ajax/ajax-common';
-import { BackendUtil, UrlSizeResponse } from 'src/libs/ajax/BackendUtil';
+import { BackendUtil, FileInfoResponse } from 'src/libs/ajax/BackendUtil';
 import { asMockedFn } from 'src/testing/test-utils';
 
 type AjaxCommonExports = typeof import('src/libs/ajax/ajax-common');
@@ -22,7 +22,7 @@ jest.mock('src/auth/auth-session', (): AuthSessionExports => {
 const manifestUrlString = 'https://gen3-export.s3.amazonaws.com/exports/abc/manifest.json?X-Amz-Signature=mmm';
 
 /** Identical to the JSON body in the shared contract: one entry per URL in the manifest. */
-const manifestUrlSizeResponse: UrlSizeResponse = {
+const manifestUrlInfoResponse: FileInfoResponse = {
   originalUrl: manifestUrlString,
   files: [
     {
@@ -39,7 +39,7 @@ const manifestUrlSizeResponse: UrlSizeResponse = {
 /** A single AVRO URL. cWDS resolves this to a one-entry list, the same shape a manifest resolves to. */
 const singleAvroUrlString = 'https://gen3-export.s3.amazonaws.com/exports/abc/part-1.avro?X-Amz-Signature=aaa';
 
-const singleAvroUrlSizeResponse: UrlSizeResponse = {
+const singleAvroFileInfoResponse: FileInfoResponse = {
   originalUrl: singleAvroUrlString,
   files: [{ signed_url: singleAvroUrlString, sizeBytes: 104857600 }],
 };
@@ -47,22 +47,22 @@ const singleAvroUrlSizeResponse: UrlSizeResponse = {
 describe('BackendUtil', () => {
   beforeEach(() => {
     asMockedFn(authOpts).mockReturnValue({ headers: { Authorization: 'Bearer token' } });
-    asMockedFn(fetchOrchestration).mockResolvedValue(new Response(JSON.stringify(manifestUrlSizeResponse)));
+    asMockedFn(fetchOrchestration).mockResolvedValue(new Response(JSON.stringify(manifestUrlInfoResponse)));
   });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  describe('preprocess', () => {
+  describe('getUrlInfo', () => {
     it('posts the url to Orchestration', async () => {
       // Act
-      await BackendUtil().preprocess(manifestUrlString);
+      await BackendUtil().getUrlInfo(manifestUrlString);
 
       // Assert
       expect(fetchOrchestration).toHaveBeenCalledTimes(1);
       const [path, options] = asMockedFn(fetchOrchestration).mock.calls[0];
-      expect(path).toBe('api/import/getUrlSize');
+      expect(path).toBe('api/import/getUrlInfo');
       expect(options).toMatchObject({
         method: 'POST',
         headers: { Authorization: 'Bearer token', 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ describe('BackendUtil', () => {
       const { signal } = new AbortController();
 
       // Act
-      await BackendUtil(signal).preprocess(manifestUrlString);
+      await BackendUtil(signal).getUrlInfo(manifestUrlString);
 
       // Assert
       expect(asMockedFn(fetchOrchestration).mock.calls[0][1]).toMatchObject({ signal });
@@ -84,22 +84,22 @@ describe('BackendUtil', () => {
 
     it('returns the parsed response', async () => {
       // Act
-      const result = await BackendUtil().preprocess(manifestUrlString);
+      const result = await BackendUtil().getUrlInfo(manifestUrlString);
 
       // Assert
-      expect(result).toEqual(manifestUrlSizeResponse);
+      expect(result).toEqual(manifestUrlInfoResponse);
     });
 
     it('returns a one-entry list for a single AVRO url', async () => {
       // Arrange
-      asMockedFn(fetchOrchestration).mockResolvedValue(new Response(JSON.stringify(singleAvroUrlSizeResponse)));
+      asMockedFn(fetchOrchestration).mockResolvedValue(new Response(JSON.stringify(singleAvroFileInfoResponse)));
 
       // Act
-      const result = await BackendUtil().preprocess(singleAvroUrlString);
+      const result = await BackendUtil().getUrlInfo(singleAvroUrlString);
 
       // Assert
       // The response shape does not change for a single file; only the length of files does.
-      expect(result).toEqual(singleAvroUrlSizeResponse);
+      expect(result).toEqual(singleAvroFileInfoResponse);
       expect(result.files).toHaveLength(1);
       expect(result.files[0].signed_url).toBe(singleAvroUrlString);
     });
@@ -110,7 +110,7 @@ describe('BackendUtil', () => {
       asMockedFn(fetchOrchestration).mockRejectedValue(errorResponse);
 
       // Act / Assert
-      await expect(BackendUtil().preprocess(manifestUrlString)).rejects.toBe(errorResponse);
+      await expect(BackendUtil().getUrlInfo(manifestUrlString)).rejects.toBe(errorResponse);
     });
   });
 });

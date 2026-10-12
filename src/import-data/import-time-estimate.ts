@@ -14,11 +14,14 @@ export const RECOMMENDED_SIZE_LIMIT_BYTES = 500 * BYTES_PER_MB;
 /**
  * Estimate how long importing a file will take.
  *
+ * Rounded to whole minutes, but never below one: a file small enough to round to zero still
+ * takes some time to import, and "0 minutes" reads as if nothing will happen.
+ *
  * @param bytes - Size of the file to import.
  * @returns Estimated import time, in minutes.
  */
 export const estimateImportTimeMinutes = (bytes: number): number => {
-  return Math.round((bytes / BYTES_PER_MB) * MINUTES_PER_MB);
+  return Math.max(1, Math.round((bytes / BYTES_PER_MB) * MINUTES_PER_MB));
 };
 
 /**
@@ -82,7 +85,7 @@ export const useFileSize = (url: string | undefined): FileSizeState => {
     setFileSize({ status: 'Loading' });
     (async () => {
       try {
-        const { files } = await BackendUtil(signal).preprocess(url);
+        const { files } = await BackendUtil(signal).getUrlInfo(url);
         const largestFileSize = getLargestFileSize(files);
         if (largestFileSize === undefined) {
           setFileSize({ status: 'Unknown' });
