@@ -14,7 +14,10 @@ export const formatBytes = (bytes: number): string => {
   const maybePrefixAndDivisor = prefixes.find(([_prefix, divisor]) => bytes >= divisor);
   if (maybePrefixAndDivisor) {
     const [prefix, divisor] = maybePrefixAndDivisor;
-    return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`;
+    const value = bytes / divisor;
+    // toPrecision(3) uses scientific notation for values >= 1000 (e.g. 1020.3 => "1.02e+3").
+    const formatted = value >= 1000 ? value.toFixed(1) : value.toPrecision(3);
+    return `${formatted} ${prefix}iB`;
   }
   return `${bytes} B`;
 };
