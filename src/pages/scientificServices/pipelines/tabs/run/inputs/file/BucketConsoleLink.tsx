@@ -4,19 +4,26 @@ import React from 'react';
 interface RenderBucketConsoleLinkProps {
   cloudPath?: string;
   linkText?: string;
+  // When true, the link opens the full object path within the bucket rather than just the bucket root
+  includePath?: boolean;
 }
 
-const extractBucketName = (path: string): string | null => {
-  const match = path.match(/^gs:\/\/([a-z0-9._-]+)\/.*$/);
-  return match ? match[1] : null;
+const parseGcsPath = (path: string): { bucketName: string; objectPath: string } | null => {
+  const match = path.match(/^gs:\/\/([a-z0-9._-]+)\/(.*)$/);
+  return match ? { bucketName: match[1], objectPath: match[2] } : null;
 };
 
 export const BucketConsoleLink: React.FC<RenderBucketConsoleLinkProps> = ({
   cloudPath,
   linkText = 'View bucket in Google Cloud Console',
+  includePath = false,
 }) => {
-  const bucketName = cloudPath ? extractBucketName(cloudPath) : null;
-  const consoleUrl = bucketName ? `https://console.cloud.google.com/storage/browser/${bucketName}` : null;
+  const parsed = cloudPath ? parseGcsPath(cloudPath) : null;
+  const consoleUrl = parsed
+    ? `https://console.cloud.google.com/storage/browser/${parsed.bucketName}${
+        includePath && parsed.objectPath ? `/${parsed.objectPath}` : ''
+      }`
+    : null;
 
   if (!consoleUrl) {
     return null;
