@@ -3,6 +3,7 @@ import _ from 'lodash/fp';
 import {
   gpuTypes,
   machineTypes,
+  n2dMachineTypes,
   n2StandardMachineTypes,
   t2dMachineTypes,
   zonesToGpus,
@@ -60,7 +61,7 @@ export const getDefaultMachineType = (isDataproc: boolean, tool: ToolLabel): str
 
 export const findMachineType = (name: string) => {
   return (
-    _.find({ name }, [...machineTypes, ...t2dMachineTypes, ...n2StandardMachineTypes]) || {
+    _.find({ name }, [...machineTypes, ...t2dMachineTypes, ...n2StandardMachineTypes, ...n2dMachineTypes]) || {
       name,
       cpu: 0,
       memory: 0,
