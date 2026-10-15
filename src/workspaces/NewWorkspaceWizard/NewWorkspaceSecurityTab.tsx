@@ -72,7 +72,7 @@ export const NewWorkspaceSecurityTab = ({
                 onChange={() => {
                   setEnhancedBucketLogging(!enhancedBucketLogging);
                 }}
-                checked={enhancedBucketLogging || groups.length > 0 || !!requireEnhancedBucketLogging}
+                checked={enhancedBucketLogging || groups.length > 0}
                 width={40}
                 height={20}
                 disabled={!!requireEnhancedBucketLogging || groups.length > 0 || cloningGcpProtectedWorkspace}
