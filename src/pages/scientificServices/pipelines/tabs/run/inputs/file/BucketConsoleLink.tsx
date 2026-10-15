@@ -9,7 +9,7 @@ interface RenderBucketConsoleLinkProps {
 }
 
 const parseGcsPath = (path: string): { bucketName: string; objectPath: string } | null => {
-  const match = path.match(/^gs:\/\/([a-z0-9._-]+)\/(.*)$/);
+  const match = /^gs:\/\/([a-z0-9._-]+)\/(.*)$/.exec(path);
   return match ? { bucketName: match[1], objectPath: match[2] } : null;
 };
 
@@ -19,14 +19,13 @@ export const BucketConsoleLink: React.FC<RenderBucketConsoleLinkProps> = ({
   includePath = false,
 }) => {
   const parsed = cloudPath ? parseGcsPath(cloudPath) : null;
-  const consoleUrl = parsed
-    ? `https://console.cloud.google.com/storage/browser/${parsed.bucketName}${
-        includePath && parsed.objectPath ? `/${parsed.objectPath}` : ''
-      }`
-    : null;
-
-  if (!consoleUrl) {
+  if (!parsed) {
     return null;
+  }
+
+  let consoleUrl = `https://console.cloud.google.com/storage/browser/${parsed.bucketName}`;
+  if (includePath && parsed.objectPath) {
+    consoleUrl += `/${parsed.objectPath}`;
   }
 
   return (
