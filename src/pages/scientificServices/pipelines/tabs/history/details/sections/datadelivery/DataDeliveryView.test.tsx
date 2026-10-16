@@ -163,6 +163,12 @@ describe('DataDeliveryView', () => {
       expect(screen.getByText(/View your outputs in the Google Cloud Console/)).toBeInTheDocument();
     });
 
+    it('links to the full delivery destination path, not just the bucket', () => {
+      render(<DataDeliveryView dataDeliveryReport={succeededReport} pipelineRunResult={makePipelineRunResponse()} />);
+      const link = screen.getByText(/View your outputs in the Google Cloud Console/).closest('a');
+      expect(link).toHaveAttribute('href', 'https://console.cloud.google.com/storage/browser/my-bucket/output/path');
+    });
+
     it('disables the destination path input', () => {
       render(<DataDeliveryView dataDeliveryReport={succeededReport} pipelineRunResult={makePipelineRunResponse()} />);
       expect(screen.getByLabelText('GCS destination path')).toBeDisabled();

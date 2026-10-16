@@ -221,6 +221,24 @@ describe('ViewOutputsModal', () => {
       expect(screen.getByText(/View your outputs in the Google Cloud Console/)).toBeInTheDocument();
     });
 
+    it('links to the full delivery destination path, not just the bucket', async () => {
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getPipelineRunResult: jest.fn().mockResolvedValue(makeDeliveredResponse()),
+        })
+      );
+
+      renderWithAppContexts(<ViewOutputsModal jobId={jobId} onDismiss={onDismissMock} />);
+
+      await waitFor(() => expect(screen.queryByText('Loading outputs...')).not.toBeInTheDocument());
+
+      const link = screen.getByText(/View your outputs in the Google Cloud Console/).closest('a');
+      expect(link).toHaveAttribute(
+        'href',
+        'https://console.cloud.google.com/storage/browser/my-bucket/delivered-outputs'
+      );
+    });
+
     it('disables download buttons and hides the expiration warning when delivery has succeeded', async () => {
       asMockedFn(Teaspoons).mockReturnValue(
         partial<TeaspoonsContract>({

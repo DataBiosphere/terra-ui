@@ -174,6 +174,7 @@ export const ViewOutputsModal = ({ jobId, onDismiss }: OutputsModalProps): React
                       <BucketConsoleLink
                         cloudPath={result.pipelineRunReport.dataDeliveryReport?.destination}
                         linkText='View your outputs in the Google Cloud Console'
+                        includePath
                       />
                     </span>
                   </div>
