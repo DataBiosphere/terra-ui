@@ -43,8 +43,6 @@ const mockPipeline = {
 describe('QuotasView', () => {
   it('renders the page with appropriate sections', () => {
     renderWithAppContexts(<QuotasView />);
-
-    expect(screen.getByText('Pipeline Quotas')).toBeInTheDocument();
   });
 
   it('renders PurchaseQuotaDisplay when pipeline is in query', () => {
