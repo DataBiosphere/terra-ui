@@ -9,7 +9,7 @@ import { GalaxyWarning, SaveFilesHelpGalaxy } from 'src/analysis/runtime-common-
 import { generateAppName, getCurrentApp, getEnvMessageBasedOnStatus } from 'src/analysis/utils/app-utils';
 import { getGalaxyComputeCost, getGalaxyDiskCost } from 'src/analysis/utils/cost-utils';
 import { generatePersistentDiskName, getCurrentAppDataDisk, getCurrentAttachedDataDisk } from 'src/analysis/utils/disk-utils';
-import { t2dMachineTypes } from 'src/analysis/utils/gce-machines';
+import { n2dMachineTypes, n2StandardMachineTypes } from 'src/analysis/utils/gce-machines';
 import { findMachineType } from 'src/analysis/utils/runtime-utils';
 import { appTools } from 'src/analysis/utils/tool-utils';
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common';
@@ -31,10 +31,11 @@ import { canEditWorkspace } from 'src/workspaces/utils';
 import { computeStyles } from './modalStyles';
 
 const defaultDataDisk = { size: 500, diskType: googlePdTypes.standard };
-const defaultKubernetesRuntimeConfig = { machineType: 't2d-standard-4', numNodes: 1, autoscalingEnabled: false };
+const defaultKubernetesRuntimeConfig = { machineType: 'n2-standard-4', numNodes: 1, autoscalingEnabled: false };
 const maxNodepoolSize = 1000;
 
-const validGalaxyMachineTypes = _.filter(({ cpu }) => cpu >= 4, t2dMachineTypes);
+// n2-standard (Intel) is the default; n2d-standard (AMD EPYC) is cheaper. Both have >= 4 CPUs.
+const validGalaxyMachineTypes = _.filter(({ cpu }) => cpu >= 4, [...n2StandardMachineTypes, ...n2dMachineTypes]);
 
 const titleId = 'galaxy-modal-title';
 
@@ -394,7 +395,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const renderComputeProfileSection = () => {
       const gridStyle = {
         display: 'grid',
-        gridTemplateColumns: 'repeat(6, auto)',
+        gridTemplateColumns: 'repeat(4, auto)',
         gridGap: '0.75rem',
         alignItems: 'center',
         justifyContent: 'flex-start',
@@ -610,8 +611,21 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
 export const GalaxyModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(GalaxyModalBase);
 
+// Supported machine families for Galaxy, shown in the order users should see them.
+const galaxyMachineFamilies = [
+  { value: 'n2-standard', label: 'n2-standard (Intel)' },
+  { value: 'n2d-standard', label: 'n2d-standard (AMD EPYC) — ~18% cheaper' },
+];
+
 const MachineSelector = ({ value, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType) || { cpu: 4, memory: 16 };
+
+  // Derive the machine family prefix (e.g. 't2d-standard' from 't2d-standard-4').
+  const knownFamilies = galaxyMachineFamilies.map((f) => f.value);
+  const currentFamily = knownFamilies.find((f) => value.machineType.startsWith(`${f}-`)) || 'n2-standard';
+
+  // Filter the full list to the selected family so CPU/Memory selectors stay within one family.
+  const familyMachineTypes = _.filter(({ name }) => name.startsWith(`${currentFamily}-`), validGalaxyMachineTypes);
 
   const gridItemInputStyle = { minWidth: '6rem' };
 
@@ -636,6 +650,28 @@ const MachineSelector = ({ value, onChange }) => {
     h(IdContainer, [
       (id) =>
         h(Fragment, [
+          label({ htmlFor: id, style: computeStyles.label }, ['Machine type']),
+          div({ style: { minWidth: '18rem' } }, [
+            h(Select, {
+              id,
+              isSearchable: false,
+              value: currentFamily,
+              onChange: (option) => {
+                const newFamily = option.value;
+                const newFamilyTypes = _.filter(({ name }) => name.startsWith(`${newFamily}-`), validGalaxyMachineTypes);
+                // Preserve the current CPU count in the new family when possible.
+                const matched = _.find({ cpu: currentCpu }, newFamilyTypes);
+                const newMachineType = matched?.name || newFamilyTypes[0]?.name || value.machineType;
+                onChange((prevState) => ({ ...prevState, machineType: newMachineType }));
+              },
+              options: galaxyMachineFamilies,
+            }),
+          ]),
+        ]),
+    ]),
+    h(IdContainer, [
+      (id) =>
+        h(Fragment, [
           label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
           div({ style: gridItemInputStyle }, [
             h(Select, {
@@ -643,10 +679,10 @@ const MachineSelector = ({ value, onChange }) => {
               isSearchable: false,
               value: currentCpu,
               onChange: (option) => {
-                const validMachineType = _.find({ cpu: option.value }, validGalaxyMachineTypes)?.name || value.machineType;
+                const validMachineType = _.find({ cpu: option.value }, familyMachineTypes)?.name || value.machineType;
                 onChange((prevState) => ({ ...prevState, machineType: validMachineType }));
               },
-              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validGalaxyMachineTypes),
+              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(familyMachineTypes),
             }),
           ]),
         ]),
@@ -661,15 +697,10 @@ const MachineSelector = ({ value, onChange }) => {
               isSearchable: false,
               value: currentMemory,
               onChange: (option) => {
-                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validGalaxyMachineTypes)?.name || value.machineType;
+                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, familyMachineTypes)?.name || value.machineType;
                 onChange((prevState) => ({ ...prevState, machineType: validMachineType }));
               },
-              options: _.flow(
-                _.filter({ cpu: currentCpu }),
-                _.map('memory'),
-                _.union([currentMemory]),
-                _.sortBy(_.identity)
-              )(validGalaxyMachineTypes),
+              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(familyMachineTypes),
             }),
           ]),
         ]),

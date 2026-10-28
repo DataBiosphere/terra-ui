@@ -30,4 +30,10 @@ describe('BucketConsoleLink', () => {
     const link = screen.getByRole('link') as HTMLAnchorElement;
     expect(link.href).toBe('https://console.cloud.google.com/storage/browser/my-bucket');
   });
+
+  it('links to the full object path when includePath is set', () => {
+    render(<BucketConsoleLink cloudPath='gs://my-bucket/path/to/file' includePath />);
+    const link = screen.getByRole('link') as HTMLAnchorElement;
+    expect(link.href).toBe('https://console.cloud.google.com/storage/browser/my-bucket/path/to/file');
+  });
 });

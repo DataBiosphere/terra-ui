@@ -127,7 +127,11 @@ export const DataDeliveryView = ({ dataDeliveryReport: initialReport, pipelineRu
         return (
           <div style={{ marginTop: '0.75rem', fontSize: '14px', color: colors.dark(0.8) }}>
             The outputs for this job were successfully delivered to the destination in Google Cloud Storage.
-            <BucketConsoleLink cloudPath={destination} linkText='View your outputs in the Google Cloud Console' />
+            <BucketConsoleLink
+              cloudPath={destination}
+              linkText='View your outputs in the Google Cloud Console'
+              includePath
+            />
           </div>
         );
       case 'EXPIRED': {
