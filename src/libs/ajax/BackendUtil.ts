@@ -33,7 +33,7 @@ export const BackendUtil = (signal?: AbortSignal) => ({
   getUrlInfo: async (sourceUrl: string): Promise<FileInfoResponse> => {
     const res = await fetchOrchestration(
       'api/import/getUrlInfo',
-      _.mergeAll([authOpts(), jsonBody({ url: sourceUrl }), { signal, method: 'POST' }])
+      _.mergeAll([authOpts(), jsonBody({ originalUrl: sourceUrl }), { signal, method: 'POST' }])
     );
     return res.json();
   },
