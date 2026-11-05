@@ -34,7 +34,6 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils';
 import { cookieReadyStore, userStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
-import { requesterPaysWrapper } from 'src/workspaces/common/requester-pays/bucket-utils';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
 import { canWrite, getCloudProviderFromWorkspace } from 'src/workspaces/utils';
 
@@ -49,9 +48,6 @@ const chooseMode = (mode) => {
 
 const AnalysisLauncher = _.flow(
   forwardRefWithName('AnalysisLauncher'),
-  requesterPaysWrapper({
-    onDismiss: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name }),
-  }),
   wrapWorkspace({
     breadcrumbs: (props) => breadcrumbs.commonPaths.workspaceTab(props, 'analyses'),
     title: _.get('analysisName'),
