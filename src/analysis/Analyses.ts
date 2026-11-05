@@ -197,16 +197,6 @@ const AnalysisCard = ({
       side: 'right',
       closeOnClick: true,
       content: h(Fragment, [
-        h(
-          MenuButton,
-          {
-            'aria-label': 'Preview',
-            href: analysisLink,
-            tooltip: canWrite ? 'Open without cloud compute' : undefined,
-            tooltipSide: 'left',
-          },
-          [makeMenuIcon('eye'), 'Open preview']
-        ),
         ...(tool === runtimeToolLabels.Jupyter
           ? [
               h(
