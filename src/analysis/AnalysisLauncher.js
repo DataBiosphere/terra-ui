@@ -564,7 +564,7 @@ const PreviewHeader = ({
         h(
           Clickable,
           {
-            'aria-label': 'Exit preview mode',
+            'aria-label': 'Back to analyses',
             style: { opacity: 0.65, marginRight: '1.5rem' },
             hover: { opacity: 1 },
             focus: 'hover',
