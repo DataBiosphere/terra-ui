@@ -28,8 +28,6 @@ const eventsList = {
   analysisCreate: 'analysis:create',
   analysisLaunch: 'analysis:launch',
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
-  analysisPreviewSuccess: 'analysis:previewSuccess',
-  analysisPreviewFail: 'analysis:previewFail',
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',
   billingProjectGoToWorkspace: 'billing:project:workspace:navigate',
   billingProjectOpenFromList: 'billing:project:open-from-list',
