@@ -1,22 +1,23 @@
 import { ImportRequest } from './import-types';
 
-export type UrlSource = { type: 'http'; host: string } | { type: 's3'; bucket: string };
+export type UrlSource = { source: string; type: 'http'; host: string } | { source: string; type: 's3'; bucket: string };
 
 export const anvilSources: UrlSource[] = [
   // production
-  { type: 'http', host: 'service.prod.anvil.gi.ucsc.edu' },
-  { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1' },
-  { type: 'http', host: 'redcaptest.vumc.org' },
-  { type: 'http', host: 'redcap.vumc.org' },
+  { source: 'anvil', type: 'http', host: 'service.prod.anvil.gi.ucsc.edu' },
+  { source: 'anvil', type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-prod-storage-anvilprod.us-east-1' },
+  { source: 'anvil', type: 'http', host: 'redcaptest.vumc.org' },
+  { source: 'anvil', type: 'http', host: 'redcap.vumc.org' },
   // development
-  { type: 'http', host: 'service.anvil.gi.ucsc.edu' },
-  { type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-dev-storage-anvildev.us-east-1' },
+  { source: 'anvil', type: 'http', host: 'service.anvil.gi.ucsc.edu' },
+  { source: 'anvil', type: 's3', bucket: 'edu-ucsc-gi-platform-anvil-dev-storage-anvildev.us-east-1' },
 ];
 
 export const biodatacatalystSources: UrlSource[] = [
-  { type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
-  { type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },
-  { type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
+  { source: 'biodatacatalyst', type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
+  { source: 'biodatacatalyst', type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },
+  { source: 'biodatacatalyst', type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
+  { source: 'biodatacatalyst', type: 's3', bucket: 'cdis-presigned-url-test' },
 ];
 
 /**
@@ -42,6 +43,11 @@ export const urlMatchesSource = (url: URL, source: UrlSource): boolean => {
       const exhaustiveGuard: never = source;
       return false;
   }
+};
+
+export const isBiodatacatalystImport = (urlSource: UrlSource): boolean => {
+  const requiredWords = ['nih', 'nhlbi', 'biodata', 'catalyst'];
+  return requiredWords.every((word) => urlSource.source.includes(word));
 };
 
 export const isAnvilImport = (importRequest: ImportRequest): boolean => {
