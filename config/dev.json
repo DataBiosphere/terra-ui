@@ -19,7 +19,6 @@
   "rawlsUrlRoot": "https://rawls.dsde-dev.broadinstitute.org",
   "teaspoonsUrlRoot": "https://teaspoons.dsde-dev.broadinstitute.org",
   "samUrlRoot": "https://sam.dsde-dev.broadinstitute.org",
-  "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
   "workspaceManagerUrlRoot": "https://workspace.dsde-dev.broadinstitute.org",
   "terraDockerVersionsFile": "terra-docker-versions-dev.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-dev",

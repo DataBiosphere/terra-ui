@@ -18,7 +18,6 @@
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-staging.broadinstitute.org",
   "rawlsUrlRoot": "https://rawls.dsde-staging.broadinstitute.org",
   "samUrlRoot": "https://sam.dsde-staging.broadinstitute.org",
-  "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
   "teaspoonsUrlRoot": "https://teaspoons.dsde-staging.broadinstitute.org",
   "workspaceManagerUrlRoot": "https://workspace.dsde-staging.broadinstitute.org",
   "terraDockerVersionsFile": "terra-docker-versions-staging.json",
