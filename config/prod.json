@@ -5,7 +5,6 @@
   "dataRepoUrlRoot": "https://data.terra.bio",
   "dockstoreUrlRoot": "https://dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-prod.broadinstitute.org",
-  "duosUrlRoot": "https://duos.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "externalCreds": {
     "providers": ["ras", "fence", "dcf-fence", "kids-first", "github", "sage"],
@@ -23,6 +22,5 @@
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",
   "b2cBillingPolicy": "b2c_1a_signup_signin_billing_prod",
   "terraDeploymentEnv": "prod",
-  "cwdsUrlRoot": "https://cwds.dsde-prod.broadinstitute.org",
   "nihAuthRoot": "https://auth.nih.gov"
 }
