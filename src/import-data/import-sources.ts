@@ -15,16 +15,16 @@ export const anvilSources: UrlSource[] = [
 
 export const biodatacatalystSources: UrlSource[] = [
   // Prod
-  { source: 'biodatacatalyst', type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
-  { source: 'biodatacatalyst', type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },
+  { type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
+  { type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },
   // Staging
-  { source: 'biodatacatalyst', type: 'http', host: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov' },
-  { source: 'biodatacatalyst', type: 's3', bucket: 'staging-gen3-biodatacatalyst-nhlbi-nih-gov-pfb-exp' },
+  { type: 'http', host: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov' },
+  { type: 's3', bucket: 'staging-gen3-biodatacatalyst-nhlbi-nih-gov-pfb-exp' },
 
-  { source: 'biodatacatalyst', type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
+  { type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
   // Test
-  { source: 'biodatacatalyst', type: 's3', bucket: 'cdis-presigned-url-test' },
-  { source: 'biodatacatalyst', type: 's3', bucket: 'bdc-indexing-manifests' },
+  { type: 's3', bucket: 'cdis-presigned-url-test' },
+  { type: 's3', bucket: 'bdc-indexing-manifests' },
 ];
 
 /**
