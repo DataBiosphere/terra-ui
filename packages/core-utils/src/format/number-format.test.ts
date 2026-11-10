@@ -5,6 +5,7 @@ describe('formatBytes', () => {
     { value: 40000000000, expectedOutput: '37.3 GiB' },
     { value: 40000000, expectedOutput: '38.1 MiB' },
     { value: 40, expectedOutput: '40 B' },
+    { value: 1069828942, expectedOutput: '1020.3 MiB' },
   ];
 
   it.each(testCases)('formats $value as $expectedOutput', ({ value, expectedOutput }) => {
