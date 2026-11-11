@@ -91,7 +91,7 @@ export interface BillingProfile {
 
 // Interfaces for dealing with the server SpendReport JSON response
 export interface CategorySpendData {
-  category: 'Compute' | 'Storage' | 'WorkspaceInfrastructure' | 'Other';
+  category: 'Compute' | 'Storage' | 'Egress' | 'WorkspaceInfrastructure' | 'Other';
   cost: string;
   credits: string;
   currency: string;
