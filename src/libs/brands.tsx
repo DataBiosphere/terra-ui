@@ -10,6 +10,8 @@ import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg';
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg';
 import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg';
 import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg';
+import manifoldLogo from 'src/images/brands/manifold/manifold-logo-horizontal-color.svg';
+import manifoldLogoWhite from 'src/images/brands/manifold/manifold-logo-horizontal-white.svg';
 import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg';
 import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg';
 import publicHealthBackground from 'src/images/brands/publicHealth/Terra-PHG-background.png';
@@ -294,6 +296,43 @@ export const brands: Record<string, BrandConfiguration> = {
         dark: '#1d1d1b',
         accent: '#6e3d3b',
         success: '#9eb642',
+      },
+    },
+  },
+  // Not deployed yet; preview with configOverridesStore.set({ brand: 'manifold' })
+  manifold: {
+    name: 'Manifold',
+    queryName: 'manifold',
+    welcomeHeader: 'Welcome to Manifold',
+    description: 'Manifold is a workspace for exploring and analyzing biomedical data with AI agents.',
+    hostName: 'manifold.terra.bio', // Unused: There is no Manifold deployment of Terra, and therefore no actual registered hostname
+    docLinks: [
+      {
+        link: 'https://support.manifold.ai/hc/en-us',
+        text: 'Find guides and answers in the Manifold Help Center',
+      },
+      {
+        link: 'https://www.manifold.ai',
+        text: 'Learn more about Manifold',
+      },
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: "Find Terra how-to's, documentation, video tutorials, and discussion forums",
+      },
+    ],
+    logos: {
+      color: manifoldLogo,
+      white: manifoldLogoWhite,
+    },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#685bc7',
+        secondary: '#201547',
+        accent: '#613de4',
+        light: '#f7f5fe',
+        dark: '#201547',
+        grey: '#5a5b5d',
       },
     },
   },
