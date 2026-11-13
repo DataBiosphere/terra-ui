@@ -124,6 +124,7 @@ export interface BaseWorkspaceInfo {
   totalSpend?: string;
   totalCompute?: string;
   totalStorage?: string;
+  totalEgress?: string;
   otherSpend?: string;
 }
 
