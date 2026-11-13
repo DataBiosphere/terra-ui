@@ -119,7 +119,7 @@ export const PurchaseQuotaDisplay = ({ pipelineName }: { pipelineName: string })
         </ButtonSecondary>
       </div>
       {/* display quota information for selected pipeline */}
-      <PipelineWidgetContainer title='Selected pipeline for purchasing quota' width='80%'>
+      <PipelineWidgetContainer title='Selected pipeline for purchasing quota' showIcon={false} width='80%'>
         <PipelineQuotaCard key={selectedPipeline.pipelineName} pipeline={selectedPipeline} showPurchaseButton={false} />
       </PipelineWidgetContainer>
       {/* display 2 quota purchasing options */}

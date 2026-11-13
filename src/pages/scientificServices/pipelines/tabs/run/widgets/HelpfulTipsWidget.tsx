@@ -41,6 +41,24 @@ export const PIPELINE_TIPS: Record<string, { id: string; content: ReactNode }[]>
       ),
     },
   ],
+  sv_imputation: [
+    {
+      id: 'quota-check',
+      content: 'Ensure your manifest file contains no more GVCF file paths than your remaining quota',
+    },
+    {
+      id: 'format-guidelines',
+      content: (
+        <>
+          View{' '}
+          <ZendeskLink docsKey={DocsKey.SV_IMPUTATION_INPUT_REQ} additionalStyle={{ color: '#0b5394' }}>
+            guidelines
+          </ZendeskLink>{' '}
+          for the manifest file
+        </>
+      ),
+    },
+  ],
 };
 
 // Tips shown for every pipeline
@@ -49,7 +67,7 @@ const COMMON_TIPS: { id: string; content: ReactNode }[] = [
     id: 'cloud-inputs',
     content: (
       <>
-        Learn how{' '}
+        Learn how to{' '}
         <ZendeskLink docsKey={DocsKey.CLOUD_INPUTS} additionalStyle={{ color: '#0b5394' }}>
           provide inputs from Google Cloud
         </ZendeskLink>

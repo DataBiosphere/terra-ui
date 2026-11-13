@@ -1,0 +1,68 @@
+import { useCallback, useRef } from 'react';
+import { Teaspoons } from 'src/libs/ajax/teaspoons/Teaspoons';
+import { TEASPOONS_SIGNED_URL_CACHE_TTL_MS } from 'src/pages/scientificServices/pipelines/common/teaspoons-service-constants';
+
+// FILE_ARRAY outputs have one signed URL per file; all other output types have a single URL
+export type OutputSignedUrls = Record<string, string | string[]>;
+
+function resolveAtIndex<T>(valueOrArray: T | T[] | undefined, index?: number): T | undefined {
+  if (!Array.isArray(valueOrArray)) {
+    return valueOrArray;
+  }
+  return index !== undefined ? valueOrArray[index] : undefined;
+}
+
+interface CachedSignedUrlsEntry {
+  jobId: string;
+  fetchedAt: number;
+  urls: Promise<OutputSignedUrls>;
+}
+
+export interface UseOutputSignedUrlsResult {
+  /**
+   * Returns the signed URL for one of the job's outputs, fetching the job's signed URLs if we don't
+   * already have an unexpired copy of them. Resolves to undefined if the output has no URL.
+   */
+  getSignedUrl: (outputKey: string, index?: number) => Promise<string | undefined>;
+}
+
+/**
+ * Fetches the signed URLs for a job's outputs on demand, and caches them so that downloading several
+ * files from the same job doesn't make Teaspoons regenerate signed URLs on every click.
+ */
+export const useOutputSignedUrls = (jobId: string): UseOutputSignedUrlsResult => {
+  const cache = useRef<CachedSignedUrlsEntry | null>(null);
+
+  const getSignedUrls = useCallback((): Promise<OutputSignedUrls> => {
+    const cached = cache.current;
+    if (cached && cached.jobId === jobId && Date.now() - cached.fetchedAt < TEASPOONS_SIGNED_URL_CACHE_TTL_MS) {
+      return cached.urls;
+    }
+
+    const urls = Teaspoons()
+      .getPipelineRunOutputSignedUrls(jobId)
+      .then((response) => response.outputSignedUrls);
+
+    const entry: CachedSignedUrlsEntry = { jobId, fetchedAt: Date.now(), urls };
+    cache.current = entry;
+
+    // don't hang on to a failed fetch - the next download attempt should be able to retry
+    urls.catch(() => {
+      if (cache.current === entry) {
+        cache.current = null;
+      }
+    });
+
+    return urls;
+  }, [jobId]);
+
+  const getSignedUrl = useCallback(
+    async (outputKey: string, index?: number): Promise<string | undefined> => {
+      const urls = await getSignedUrls();
+      return resolveAtIndex(urls[outputKey], index);
+    },
+    [getSignedUrls]
+  );
+
+  return { getSignedUrl };
+};

@@ -2,7 +2,6 @@ import { screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { PipelineRunResponse } from 'src/libs/ajax/teaspoons/teaspoons-models';
 import { usePipelineDetails } from 'src/pages/scientificServices/pipelines/hooks/usePipelineDetails';
-import { getOutputFileSize } from 'src/pages/scientificServices/pipelines/utils/file-utils';
 import {
   mockPipelineRunResponse,
   mockPipelineWithDetails,
@@ -26,7 +25,6 @@ describe('JobIOView', () => {
       isLoading: false,
       error: undefined,
     });
-    (getOutputFileSize as jest.Mock).mockResolvedValue('10.5 MB');
   });
 
   it('renders JobInputsView component with Inputs and Outputs side by side', async () => {
