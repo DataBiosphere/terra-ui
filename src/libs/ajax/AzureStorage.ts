@@ -6,7 +6,6 @@ import { authOpts } from 'src/auth/auth-session';
 import { fetchWorkspaceManager } from 'src/libs/ajax/ajax-common';
 import { fetchOk } from 'src/libs/ajax/fetch/fetch-core';
 import { WorkspaceManagerResources } from 'src/libs/ajax/WorkspaceManagerResources';
-import { getConfig } from 'src/libs/config';
 import * as Utils from 'src/libs/utils';
 import { cloudProviderTypes } from 'src/workspaces/utils';
 
@@ -224,8 +223,6 @@ export const AzureStorage = (signal?: AbortSignal) => ({
   },
 
   blob: (workspaceId: string, blobName: string) => {
-    const calhounPath = 'api/convert';
-
     const getObject = async () => {
       const azureStorageUrl = await getBlobUrl(workspaceId, blobName);
 
@@ -266,14 +263,6 @@ export const AzureStorage = (signal?: AbortSignal) => ({
 
     return {
       get: getObject,
-
-      preview: async () => {
-        const textFileContents = await getObject();
-        return fetchOk(
-          `${getConfig().calhounUrlRoot}/${calhounPath}`,
-          _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
-        ).then((res) => res);
-      },
 
       create: async (contents) => {
         const azureStorageUrl = await getBlobUrl(workspaceId, blobName);

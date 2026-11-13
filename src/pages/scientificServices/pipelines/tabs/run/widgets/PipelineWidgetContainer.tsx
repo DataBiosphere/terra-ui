@@ -2,7 +2,8 @@ import { Icon } from '@terra-ui-packages/components';
 import React, { ReactNode } from 'react';
 
 interface PipelineWidgetWrapperProps {
-  title: string;
+  title?: string;
+  showIcon?: boolean;
   children: ReactNode;
   marginTop?: string;
   marginBottom?: string;
@@ -14,6 +15,7 @@ interface PipelineWidgetWrapperProps {
 // Wrapper component for sidebar widgets to ensure consistent styling
 export const PipelineWidgetContainer = ({
   title,
+  showIcon = true,
   children,
   marginTop = '1rem',
   marginBottom = '1rem',
@@ -32,9 +34,11 @@ export const PipelineWidgetContainer = ({
         borderRadius: '4px',
       }}
     >
-      <h3 style={{ marginTop: '0.5rem' }}>
-        <Icon icon='info-circle' style={{ color: '#5CC88D' }} /> {title}
-      </h3>
+      {title && (
+        <h3 style={{ marginTop: '0.5rem' }}>
+          {showIcon && <Icon icon='info-circle' style={{ color: '#5CC88D' }} />} {title}
+        </h3>
+      )}
       {children}
     </div>
   );
