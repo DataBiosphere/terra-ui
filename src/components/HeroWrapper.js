@@ -6,6 +6,7 @@ import { TopBar } from 'src/components/TopBar';
 import landingPageHero from 'src/images/landing-page-hero.jpg';
 import { getEnabledBrand, isScientificServices } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
+import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink = false, children }) => {
@@ -30,6 +31,22 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
       [
         // width is set to prevent text from overlapping the background image and decreasing legibility
         brand.welcomeHeader && h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [brand.welcomeHeader]),
+        brand.notice &&
+          div(
+            {
+              role: 'note',
+              'aria-label': 'Notice',
+              style: {
+                ...Style.elements.noticeContainer,
+                borderLeft: `4px solid ${colors.accent()}`,
+                width: 'calc(100% - 460px)',
+                maxWidth: 700,
+                fontSize: 16,
+                lineHeight: 1.5,
+              },
+            },
+            [brand.notice]
+          ),
         div(
           {
             style: {
