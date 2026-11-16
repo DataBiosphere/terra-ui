@@ -18,7 +18,7 @@ export const storeInProgressPurchase = (inProgressPurchase: InProgressPurchase):
 export const clearInProgressPurchase = (): void => setStatic(getLocalStorage(), IN_PROGRESS_PURCHASE_KEY, undefined);
 
 type Environment = 'dev' | 'prod';
-type PipelineName = 'array_imputation' | 'low_pass_imputation';
+type PipelineName = 'array_imputation' | 'low_pass_imputation' | 'sv_imputation';
 
 interface PipelineStripeUrls {
   academicRate: string;
@@ -35,6 +35,10 @@ const TEASPOONS_STRIPE_PAYMENT_URLS: Record<Environment, Partial<Record<Pipeline
       academicRate: 'https://buy.stripe.com/test_6oU3cw6Gia5c5cn2aH5wI03',
       forProfitRate: 'https://buy.stripe.com/test_9B6dRa1lY4KS34f9D95wI04',
     },
+    sv_imputation: {
+      academicRate: 'https://buy.stripe.com/test_14A00kc0C7X4dITcPl5wI05',
+      forProfitRate: 'https://buy.stripe.com/test_28E00k7Km7X4gV58z55wI06',
+    },
     // add other pipelines here as needed
   },
   prod: {
@@ -45,6 +49,10 @@ const TEASPOONS_STRIPE_PAYMENT_URLS: Record<Environment, Partial<Record<Pipeline
     low_pass_imputation: {
       academicRate: 'https://pay.broadclinicallabs.org/b/6oUfZjafw36IasHbyT8k802',
       forProfitRate: 'https://pay.broadclinicallabs.org/b/7sYbJ3evMePqeIX6ez8k803',
+    },
+    sv_imputation: {
+      academicRate: 'https://pay.broadclinicallabs.org/b/4gM28tafwdLmcAP1Yj8k805',
+      forProfitRate: 'https://pay.broadclinicallabs.org/b/7sY7sN9bs36I1WbauP8k804',
     },
     // add other pipelines here as needed
   },
