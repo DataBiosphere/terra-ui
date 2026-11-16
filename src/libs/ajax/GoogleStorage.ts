@@ -14,7 +14,6 @@ import { authOpts } from 'src/auth/auth-session';
 import { fetchSam } from 'src/libs/ajax/ajax-common';
 import { canUseWorkspaceProject } from 'src/libs/ajax/billing/Billing';
 import { fetchOk, withMaybeRetry, withUrlPrefix } from 'src/libs/ajax/fetch/fetch-core';
-import { getConfig } from 'src/libs/config';
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 import { canWrite, cloudProviderTypes, GoogleWorkspace } from 'src/workspaces/utils';
@@ -336,17 +335,6 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     };
 
     return {
-      preview: async () => {
-        const nb = await fetchBuckets(
-          `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
-          _.merge(authOpts(await saToken(googleProject)), { signal })
-        ).then((res) => res.text());
-        return fetchOk(
-          `${getConfig().calhounUrlRoot}/api/convert`,
-          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then((res) => res);
-      },
-
       copy,
 
       create: async (contents) => {
@@ -375,12 +363,6 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
   // TODO: this should take a type `file`, instead of (name, toolLabel), and then we can remove `toolLabel` param
   analysis: (googleProject: string, bucket: string, name: string, toolLabel: ToolLabel) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`;
-
-    const calhounPath = Utils.switchCase(
-      toolLabel,
-      [runtimeToolLabels.Jupyter, () => 'api/convert'],
-      [runtimeToolLabels.RStudio, () => 'api/convert/rmd']
-    );
 
     const mimeType = Utils.switchCase(
       toolLabel,
@@ -435,17 +417,6 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     };
 
     return {
-      preview: async (): Promise<string> => {
-        const nb = await fetchBuckets(
-          `${bucketUrl}/${encodeFileName(name)}?alt=media`,
-          _.merge(authOpts(await saToken(googleProject)), { signal })
-        ).then((res) => res.text());
-        return fetchOk(
-          `${getConfig().calhounUrlRoot}/${calhounPath}`,
-          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then((res) => res);
-      },
-
       copy,
 
       copyWithMetadata,

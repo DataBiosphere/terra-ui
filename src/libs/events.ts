@@ -28,8 +28,6 @@ const eventsList = {
   analysisCreate: 'analysis:create',
   analysisLaunch: 'analysis:launch',
   analysisToggleJupyterLabGCP: 'analysis:toggleJupyterLabGCP',
-  analysisPreviewSuccess: 'analysis:previewSuccess',
-  analysisPreviewFail: 'analysis:previewFail',
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',
   broadOnManifoldViewProjects: 'broadOnManifold:viewProjects:click',
   broadOnManifoldHelpMeChoose: 'broadOnManifold:helpMeChoose:click',

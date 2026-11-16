@@ -182,12 +182,6 @@ export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' };
 
 export const newTabLinkPropsWithReferrer = { target: '_blank', rel: 'noopener' };
 
-export const createHtmlElement = (doc, name, attrs) => {
-  const element = doc.createElement(name);
-  _.forEach(([k, v]) => element.setAttribute(k, v), _.toPairs(attrs));
-  return element;
-};
-
 export const mergeQueryParams = (params, urlString) => {
   const url = new URL(urlString);
   url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params });
