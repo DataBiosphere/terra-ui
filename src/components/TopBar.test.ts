@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
+import { h, img } from 'react-hyperscript-helpers';
 import { TopBar } from 'src/components/TopBar';
 import { authStore, configOverridesStore, SignInStatus } from 'src/libs/state';
 import { renderWithAppContexts as render } from 'src/testing/test-utils';
@@ -27,6 +27,27 @@ jest.mock(
   })
 );
 describe('TopBar', () => {
+  it('replaces the brand logo with the branding logo, and keeps the main menu', () => {
+    // Act
+    render(
+      h(TopBar, {
+        title: 'Other product',
+        branding: {
+          backgroundColor: 'black',
+          foregroundColor: 'white',
+          borderColor: 'purple',
+          logo: img({ alt: 'Other product logo' }),
+        },
+      })
+    );
+
+    // Assert
+    screen.getByAltText('Other product logo');
+    expect(screen.queryByAltText('Terra')).not.toBeInTheDocument();
+    screen.getByText('Other product');
+    screen.getByLabelText('Toggle main menu');
+  });
+
   it.each([
     { signInStatus: 'uninitialized' satisfies SignInStatus, signInShown: true },
     { signInStatus: 'authenticated' satisfies SignInStatus, signInShown: false },

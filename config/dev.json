@@ -2,6 +2,7 @@
   "agoraUrlRoot": "https://agora.dsde-dev.broadinstitute.org",
   "bardRoot": "https://terra-bard-dev.appspot.com",
   "billingProfileManagerUrlRoot": "https://bpm.dsde-dev.broadinstitute.org",
+  "broadOnManifoldUrl": "https://broad.sc-stage.manifold.ai",
   "calhounUrlRoot": "https://calhoun.dsde-dev.broadinstitute.org",
   "dataRepoUrlRoot": "https://jade.datarepo-dev.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",

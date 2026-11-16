@@ -17,6 +17,8 @@ export type AppConfigSettings = typeof import('src/../public/config.json') & {
   googleClientId?: string;
   isAxeEnabled?: boolean;
   isCromwellAppVisible?: boolean;
+  /** Base URL of the Broad on Manifold instance; set only where its entry points should show */
+  broadOnManifoldUrl?: string;
 };
 
 type LoadedConfig = { current?: AppConfigSettings };

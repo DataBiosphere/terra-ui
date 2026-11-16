@@ -1,14 +1,15 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
+import { useShowBroadOnManifoldCards } from 'src/broad-on-manifold/broad-on-manifold-utils';
+import { LandingProductCards } from 'src/broad-on-manifold/LandingProductCards';
 import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { HeroWrapper } from 'src/components/HeroWrapper';
 import { icon } from 'src/components/icons';
 import hexButton from 'src/images/hex-button.svg';
-import roadmapBgBanner from 'src/images/roadmap-bg-banner.png';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils';
-import { landingPageCardsDefault, roadMapCardDefault } from 'src/libs/brands';
+import { landingPageCardsDefault } from 'src/libs/brands';
 import colors from 'src/libs/colors';
 import { withErrorHandling } from 'src/libs/error';
 import * as Nav from 'src/libs/nav';
@@ -31,13 +32,6 @@ const styles = {
     color: 'white',
     padding: '2rem 1rem',
   },
-  roadmapBanner: {
-    width: 710,
-    backgroundImage: `url(${roadmapBgBanner})`,
-    backgroundSize: 'cover',
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'center',
-  },
 };
 
 const makeRightArrowWithBackgroundIcon = () =>
@@ -57,9 +51,9 @@ const makeRightArrowWithBackgroundIcon = () =>
     [icon('arrowRight', { color: 'white' })]
   );
 
-const makeCard = (customStyles = {}, cardConfigs = [], isExternalLink = false) =>
+const makeCard = (customStyles = {}, cardConfigs = []) =>
   _.map(({ link, title, body, linkPathParams, linkQueryParams }) => {
-    const isExternal = isExternalLink || link.startsWith('http://') || link.startsWith('https://');
+    const isExternal = link.startsWith('http://') || link.startsWith('https://');
     return h(
       Clickable,
       {
@@ -95,6 +89,7 @@ export const LandingPage = () => {
   const { signInStatus } = useStore(authStore);
   const [billingProjects, setBillingProjects] = useState();
   const signal = useCancellation();
+  const showBroadOnManifold = useShowBroadOnManifoldCards();
 
   useEffect(() => {
     const loadProjects = withErrorHandling(async (error) => {
@@ -143,15 +138,12 @@ export const LandingPage = () => {
       ),
     // width is set to prevent text from overlapping the background image and decreasing legibility
     div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
-    div(
-      { style: { display: 'flex', margin: '2rem 0 1rem 0' } },
-      makeCard({ ...styles.card }, getEnabledBrand().landingPageCards || landingPageCardsDefault)
-    ),
-    getEnabledBrand().showRoadmap &&
-      div(
-        { style: { display: 'flex', marginTop: '2rem' } },
-        makeCard({ ...styles.roadmapBanner }, [getEnabledBrand().roadMapCard || roadMapCardDefault], true)
-      ),
+    showBroadOnManifold
+      ? h(LandingProductCards)
+      : div(
+          { style: { display: 'flex', margin: '2rem 0 1rem 0' } },
+          makeCard({ ...styles.card }, getEnabledBrand().landingPageCards || landingPageCardsDefault)
+        ),
     (isTerra() || isFirecloud()) &&
       div({ style: { width: 700, marginTop: '4rem' } }, [
         'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',

@@ -37,14 +37,24 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { ScientificServicesSidebar } from 'src/pages/scientificServices/pipelines/common/ScientificServicesSidebar';
 
+/** Restyles the bar for a page that belongs to another product, keeping the menu, alerts and sign-in. */
+export interface TopBarBranding {
+  backgroundColor: string;
+  /** Color of the menu icon, title and alerts icon */
+  foregroundColor: string;
+  borderColor: string;
+  logo: ReactNode;
+}
+
 interface TopBarProps extends PropsWithChildren {
   title: string;
   showMenu?: boolean;
   href?: string;
+  branding?: TopBarBranding;
 }
 
 export const TopBar = (props: TopBarProps): ReactNode => {
-  const { showMenu = true, title, href, children } = props;
+  const { showMenu = true, title, href, branding, children } = props;
   const [navShown, setNavShown] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false);
@@ -314,12 +324,13 @@ export const TopBar = (props: TopBarProps): ReactNode => {
           ...topBarStyle,
           // This div contains the primary fallback color for a11y which will be used to calculate color contrast when the background is manually hidden
           // A 1.47 intensity results in precisely a 4.5:1 ratio against the white text
-          backgroundColor: isTerra() ? colors.primary(1.47) : colors.light(1),
+          backgroundColor: branding?.backgroundColor ?? (isTerra() ? colors.primary(1.47) : colors.light(1)),
+          ...(branding ? { borderBottom: `2px solid ${branding.borderColor}` } : {}),
         }}
       >
         <div
           style={{
-            background: isTerra() ? `right url(${headerRightHexes})` : undefined,
+            background: isTerra() && !branding ? `right url(${headerRightHexes})` : undefined,
             backgroundRepeat: 'no-repeat',
             flex: '1 1 auto',
             display: 'flex',
@@ -346,7 +357,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
                   icon='bars'
                   size={36}
                   style={{
-                    color: isTerra() ? 'white' : colors.accent(),
+                    color: branding?.foregroundColor ?? (isTerra() ? 'white' : colors.accent()),
                     flex: 'none',
                     transform: navShown ? 'rotate(90deg)' : undefined,
                     transition: 'transform 0.1s ease-out',
@@ -357,15 +368,23 @@ export const TopBar = (props: TopBarProps): ReactNode => {
               <div style={{ width: 'calc(1rem + 1rem + 1rem + 2px + 36px)' }} />
             ) // padding (l+r) + margin (l+r) + icon size
           }
-          <a style={{ ...pageTitleStyles, display: 'flex', alignItems: 'center' }} href={href || Nav.getLink('root')}>
-            {topBarLogo()}
+          <a
+            style={{
+              ...pageTitleStyles,
+              ...(branding ? { color: branding.foregroundColor } : {}),
+              display: 'flex',
+              alignItems: 'center',
+            }}
+            href={href || Nav.getLink('root')}
+          >
+            {branding ? branding.logo : topBarLogo()}
             <div>{title && <h1 style={{ fontSize: '1em', fontWeight: 500, padding: 0, margin: 0 }}>{title}</h1>}</div>
           </a>
           <div style={{ display: 'flex', flexGrow: 1 }}>{children}</div>
           <AlertsIndicator
             style={{
               margin: '0 1rem 0 0.5rem',
-              color: isTerra() ? 'white' : colors.dark(),
+              color: branding?.foregroundColor ?? (isTerra() ? 'white' : colors.dark()),
             }}
           />
         </div>
