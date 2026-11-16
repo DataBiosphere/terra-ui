@@ -31,22 +31,6 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
       [
         // width is set to prevent text from overlapping the background image and decreasing legibility
         brand.welcomeHeader && h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [brand.welcomeHeader]),
-        brand.notice &&
-          div(
-            {
-              role: 'note',
-              'aria-label': 'Notice',
-              style: {
-                ...Style.elements.noticeContainer,
-                borderLeft: `4px solid ${colors.accent()}`,
-                width: 'calc(100% - 460px)',
-                maxWidth: 700,
-                fontSize: 16,
-                lineHeight: 1.5,
-              },
-            },
-            [brand.notice]
-          ),
         div(
           {
             style: {
@@ -75,6 +59,23 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
           ]
         ),
         children,
+        // Shown after the page content, e.g. below the landing page cards
+        brand.notice &&
+          div(
+            {
+              role: 'note',
+              'aria-label': 'Notice',
+              style: {
+                ...Style.elements.noticeContainer,
+                borderLeft: `4px solid ${colors.accent()}`,
+                marginTop: '1.5rem',
+                maxWidth: 700,
+                fontSize: 16,
+                lineHeight: 1.5,
+              },
+            },
+            [brand.notice]
+          ),
       ]
     ),
   ]);

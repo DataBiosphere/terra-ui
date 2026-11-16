@@ -1,5 +1,5 @@
 import { act, screen, within } from '@testing-library/react';
-import { h } from 'react-hyperscript-helpers';
+import { div, h } from 'react-hyperscript-helpers';
 import { HeroWrapper } from 'src/components/HeroWrapper';
 import { getEnabledBrand } from 'src/libs/brand-utils';
 import { brands } from 'src/libs/brands';
@@ -18,17 +18,18 @@ jest.mock('src/libs/nav', () => ({
 }));
 
 describe('HeroWrapper', () => {
-  it('shows the brand notice in a box when the brand has one', async () => {
+  it('shows the brand notice in a box after the page content when the brand has one', async () => {
     // Arrange
     getEnabledBrand.mockReturnValue(brands.bioDataCatalyst);
 
     // Act
     await act(async () => {
-      render(h(HeroWrapper));
+      render(h(HeroWrapper, [div(['Page content'])]));
     });
 
     // Assert
     const notice = screen.getByRole('note', { name: 'Notice' });
+    expect(notice.previousElementSibling).toHaveTextContent('Page content');
     expect(notice).toHaveTextContent('NIH Websites Are Changing:');
     expect(notice).toHaveTextContent('“Super Intelligence” (SI) in place of “Artificial Intelligence” (AI)');
     expect(within(notice).getByRole('link', { name: 'Executive Order 14434' })).toHaveAttribute(

@@ -42,7 +42,7 @@ export interface BrandConfiguration {
   /** Landing page text */
   description: string | ReactNode;
 
-  /** Optional notice shown in a box above the description on the landing and sign-in pages */
+  /** Optional notice shown in a box after the page content (below the cards) on the landing and sign-in pages */
   notice?: ReactNode;
 
   /** Host name for branded site */
