@@ -42,6 +42,9 @@ export interface BrandConfiguration {
   /** Landing page text */
   description: string | ReactNode;
 
+  /** Optional notice shown in a box after the page content (below the cards) on the landing and sign-in pages */
+  notice?: ReactNode;
+
   /** Host name for branded site */
   hostName: string;
 
@@ -217,6 +220,23 @@ export const brands: Record<string, BrandConfiguration> = {
           opm.gov.
         </a>
         */}
+      </>
+    ),
+    // Notice text requested by NIH (CTM-723).
+    notice: (
+      <>
+        <strong>NIH Websites Are Changing:</strong> Per{' '}
+        <a
+          href='https://www.whitehouse.gov/presidential-actions/2026/09/inaugurating-the-era-of-super-intelligence/'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          <strong>
+            <em>Executive Order 14434</em>
+          </strong>
+        </a>
+        , federal agencies are now using “Super Intelligence” (SI) in place of “Artificial Intelligence” (AI). You may
+        see both terms across NIH content during this transition.
       </>
     ),
     hostName: 'terra.biodatacatalyst.nhlbi.nih.gov',
