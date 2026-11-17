@@ -2,7 +2,7 @@ import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
 import { useShowBroadOnManifoldCards } from 'src/broad-on-manifold/broad-on-manifold-utils';
-import { LandingProductCards } from 'src/broad-on-manifold/LandingProductCards';
+import { getBroadOnManifoldDocLinks, LandingProductCards } from 'src/broad-on-manifold/LandingProductCards';
 import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { HeroWrapper } from 'src/components/HeroWrapper';
 import { icon } from 'src/components/icons';
@@ -137,7 +137,10 @@ export const LandingPage = () => {
         ]
       ),
     // width is set to prevent text from overlapping the background image and decreasing legibility
-    div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
+    div(
+      { style: { maxWidth: 'calc(100% - 460px)' } },
+      makeDocLinks(showBroadOnManifold ? getBroadOnManifoldDocLinks(getEnabledBrand().docLinks) : getEnabledBrand().docLinks)
+    ),
     showBroadOnManifold
       ? h(LandingProductCards)
       : div(

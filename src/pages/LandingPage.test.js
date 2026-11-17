@@ -41,6 +41,8 @@ describe('Landing Page (GCP)', () => {
     // Assert
     expect(screen.getByRole('region', { name: 'Terra workspaces' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Manifold projects' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Browse Data on DUOS' })).toHaveAttribute('href', 'https://duos.org');
+    expect(screen.queryByRole('link', { name: /Find how-to's/ })).not.toBeInTheDocument();
     expect(
       screen.queryByRole('link', {
         name: 'View Examples Browse our gallery of showcase Workspaces to see how science gets done.',

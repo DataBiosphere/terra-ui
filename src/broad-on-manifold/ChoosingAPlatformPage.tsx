@@ -8,31 +8,31 @@ import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 import { NotFound } from 'src/pages/NotFound';
 
-// DRAFT COPY: the rows below come from the CTM-762 mockup and need review before release.
+// Copy reviewed on CTM-762 (2026-11-16).
 const features: { topic: string; terra: ReactNode; manifold: ReactNode }[] = [
-  { topic: 'Cloud', terra: 'Google Cloud', manifold: 'AWS' },
-  { topic: 'Billing', terra: 'Requires a GCP Billing Account', manifold: 'Requires a Broad AWS Cost Object' },
+  { topic: 'Cloud', terra: 'GCP', manifold: 'AWS' },
+  { topic: 'Billing', terra: 'Requires a GCP billing account', manifold: 'Requires a Broad AWS cost object' },
   {
     topic: 'Data management',
-    terra: 'Terra Data Repository, workspace data tables',
-    manifold: 'Datasets, and analysis worksheets that integrate with bioinformatics workflows',
+    terra: 'Terra Data Repository and workspace data tables',
+    manifold: 'Datasets and analysis worksheets that integrate with bioinformatics workflows',
   },
   { topic: 'Workflows', terra: 'WDL', manifold: 'WDL and Nextflow' },
   {
     topic: 'Governed in-platform agents',
     terra: 'Not available',
-    manifold: 'Platform, analysis and data ingest agents, and build your own',
+    manifold: 'Platform, analysis, and data ingest agents, plus build your own',
   },
-  { topic: 'Local agent via MCP', terra: 'Unofficial', manifold: 'Official MCP server' },
+  { topic: 'Local agent access via MCP', terra: 'Unofficial', manifold: 'Official MCP server' },
   {
     topic: 'Claude Code in a compute environment',
     terra: 'Not available',
-    manifold: 'Yes, through AWS Bedrock',
+    manifold: "Offered through AWS Bedrock, so your data stays within Broad's AWS environment",
   },
-  { topic: 'Research using federal data (NIST 800-53)', terra: 'Yes', manifold: 'Yes' },
-  { topic: 'BCL data delivery', terra: 'Yes', manifold: 'Yes' },
+  { topic: 'Federal data research (NIST 800-53)', terra: 'Supported', manifold: 'Supported' },
+  { topic: 'BCL data delivery', terra: 'Supported', manifold: 'Supported' },
   {
-    topic: 'Compliance',
+    topic: 'Security and compliance',
     terra: (
       <Link href='https://terra.bio/terra-security/' {...Utils.newTabLinkProps}>
         Terra security
@@ -45,6 +45,8 @@ const features: { topic: string; terra: ReactNode; manifold: ReactNode }[] = [
     ),
   },
 ];
+
+const manifoldSupportEmail = 'support@manifold.ai';
 
 const cardStyle: CSSProperties = { ...Style.elements.card.container, padding: '1.5rem', gap: '0.75rem', flex: 1 };
 const cellStyle: CSSProperties = {
@@ -95,7 +97,8 @@ const ChoosingAPlatformPage = (): ReactNode => {
                 borderTop: `1px solid ${manifoldColors.light(1.2)}`,
               }}
             >
-              Want to move a project to Manifold? Early-bird data transfer credits are available.
+              Want to move a project to Manifold? Early-bird data transfer credits are available. Reach out to{' '}
+              <Link href={`mailto:${manifoldSupportEmail}`}>{manifoldSupportEmail}</Link>
             </div>
           </div>
         </div>

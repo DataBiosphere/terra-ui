@@ -4,12 +4,25 @@ import { broadCostObjectRequestUrl } from 'src/broad-on-manifold/broad-on-manifo
 import { ProductCard } from 'src/broad-on-manifold/ProductCard';
 import { icon } from 'src/components/icons';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { brands } from 'src/libs/brands';
+import { BrandConfiguration, brands } from 'src/libs/brands';
 import Events, { MetricsEventName } from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 
 const captureLandingEvent = (event: MetricsEventName) => () =>
   void Metrics().captureEvent(event, { source: 'landingPage' });
+
+const terraSupportUrl = 'https://support.terra.bio/hc/en-us';
+
+/**
+ * The landing page's doc links for Broad users who see the product cards: Terra's support link moves into the Terra
+ * card, and DUOS moves up to the doc links, under Terra's description.
+ */
+export const getBroadOnManifoldDocLinks = (
+  docLinks: BrandConfiguration['docLinks']
+): BrandConfiguration['docLinks'] => [
+  { link: 'https://duos.org', text: 'Browse Data on DUOS' },
+  ...docLinks.filter(({ link }) => link !== terraSupportUrl),
+];
 
 // The two cards together are as wide as the row of three landing cards they replace.
 const rowWidth = 'calc(225px * 3 + 1rem * 2)';
@@ -28,11 +41,11 @@ export const LandingProductCards = (): ReactNode => {
           logo={{ src: brands.terra.logos.color, alt: 'Terra', height: 40 }}
           audience='Terra users'
           title='Terra workspaces'
-          description='Work with classic Terra workspaces on Google Cloud. Run analyses, run workflows, and share data and results.'
+          description='Terra workspaces connect your data to popular analysis tools on Google Cloud.'
           primaryAction={{ label: 'View Workspaces', href: Nav.getLink('workspaces') }}
           links={[
             { label: 'View Example Workflows', href: Nav.getLink('library-showcase') },
-            { label: 'Browse Data on DUOS', href: 'https://duos.org', external: true },
+            { label: 'View Support Documentation', href: terraSupportUrl, external: true },
           ]}
         />
         <ThemeProvider theme={brands.manifold.theme}>
@@ -41,7 +54,7 @@ export const LandingProductCards = (): ReactNode => {
             logo={{ src: brands.manifold.logos.color, alt: 'Manifold', height: 30 }}
             audience='Broad Institute members'
             title='Manifold projects'
-            description="Work with AI agent-first Manifold workbenches on the Broad Institute's AWS deployment. Run analyses, run workflows, and share data and results."
+            description='Go from raw data to shared results with an AI agent by your side in Manifold projects on AWS, now available for Broad Institute members.'
             primaryAction={{
               label: 'View Manifold projects',
               href: Nav.getLink('broad-on-manifold'),

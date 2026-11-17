@@ -4,9 +4,10 @@ import React from 'react';
 import { useIsBroadOnManifoldUser, useShowBroadOnManifoldCards } from 'src/broad-on-manifold/broad-on-manifold-utils';
 import * as BroadOnManifoldPage from 'src/broad-on-manifold/BroadOnManifoldPage';
 import * as ChoosingAPlatformPage from 'src/broad-on-manifold/ChoosingAPlatformPage';
-import { LandingProductCards } from 'src/broad-on-manifold/LandingProductCards';
+import { getBroadOnManifoldDocLinks, LandingProductCards } from 'src/broad-on-manifold/LandingProductCards';
 import { Metrics, MetricsContract } from 'src/libs/ajax/Metrics';
 import { isTerra } from 'src/libs/brand-utils';
+import { brands } from 'src/libs/brands';
 import { AppConfigSettings, getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
@@ -139,9 +140,10 @@ describe('LandingProductCards', () => {
       'href',
       '#library-showcase'
     );
-    const duos = terraCard.getByRole('link', { name: 'Browse Data on DUOS' });
-    expect(duos).toHaveAttribute('href', 'https://duos.org');
-    expect(duos).toHaveAttribute('target', '_blank');
+    const support = terraCard.getByRole('link', { name: 'View Support Documentation' });
+    expect(support).toHaveAttribute('href', 'https://support.terra.bio/hc/en-us');
+    expect(support).toHaveAttribute('target', '_blank');
+    expect(terraCard.queryByRole('link', { name: 'Browse Data on DUOS' })).not.toBeInTheDocument();
 
     const manifoldCard = within(screen.getByRole('region', { name: 'Manifold projects' }));
     const viewProjects = manifoldCard.getByRole('link', { name: 'View Manifold projects' });
@@ -156,6 +158,16 @@ describe('LandingProductCards', () => {
 
     await user.click(viewProjects);
     expect(captureEvent).toHaveBeenCalledWith(Events.broadOnManifoldViewProjects, { source: 'landingPage' });
+  });
+});
+
+describe('getBroadOnManifoldDocLinks', () => {
+  it("puts DUOS first and drops Terra's support link, which moves into the Terra card", () => {
+    const links = getBroadOnManifoldDocLinks(brands.terra.docLinks);
+
+    expect(links[0]).toEqual({ link: 'https://duos.org', text: 'Browse Data on DUOS' });
+    expect(links.map(({ link }) => link)).not.toContain('https://support.terra.bio/hc/en-us');
+    expect(links).toHaveLength(brands.terra.docLinks.length);
   });
 });
 
@@ -200,7 +212,7 @@ describe('Broad on Manifold handoff page', () => {
 });
 
 describe('Choosing a platform page', () => {
-  it('offers both Manifold and Terra to Broad users, and compares them', () => {
+  it('offers both Manifold and Terra to Broad users, compares them, and gives Manifold support for moving projects', () => {
     setUp();
 
     render(<ChoosingAPlatform />);
@@ -212,6 +224,9 @@ describe('Choosing a platform page', () => {
     expect(screen.getByRole('link', { name: 'Go to Terra workspaces' })).toHaveAttribute('href', '#workspaces');
     expect(screen.getByRole('columnheader', { name: 'Terra workspaces' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Manifold projects' })).toBeInTheDocument();
-    expect(screen.queryByText(/@manifold\.ai/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'support@manifold.ai' })).toHaveAttribute(
+      'href',
+      'mailto:support@manifold.ai'
+    );
   });
 });

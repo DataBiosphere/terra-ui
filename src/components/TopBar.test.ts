@@ -48,6 +48,24 @@ describe('TopBar', () => {
     screen.getByLabelText('Toggle main menu');
   });
 
+  it('shows the logo alone when there is no title', () => {
+    // Act
+    render(
+      h(TopBar, {
+        branding: {
+          backgroundColor: 'black',
+          foregroundColor: 'white',
+          borderColor: 'purple',
+          logo: img({ alt: 'Other product logo' }),
+        },
+      })
+    );
+
+    // Assert
+    screen.getByAltText('Other product logo');
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+  });
+
   it.each([
     { signInStatus: 'uninitialized' satisfies SignInStatus, signInShown: true },
     { signInStatus: 'authenticated' satisfies SignInStatus, signInShown: false },

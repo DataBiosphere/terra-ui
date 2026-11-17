@@ -14,13 +14,13 @@ const manifoldTopBar: TopBarBranding = {
 };
 
 /**
- * Page frame for the Broad on Manifold pages. Terra's top bar, recolored with the Manifold logo, keeps the main menu,
+ * Page frame for the Broad on Manifold pages. Terra's top bar, recolored with the Manifold logo and no title, keeps the main menu,
  * alerts and sign-in; Terra's footer stays because the site is still app.terra.bio. Shared components in the body
  * pick up the Manifold theme.
  */
 export const BroadOnManifoldLayout = ({ children }: PropsWithChildren): ReactNode => (
   <FooterWrapper alwaysShow>
-    <TopBar title='Broad on Manifold' href={Nav.getLink('broad-on-manifold')} branding={manifoldTopBar}>
+    <TopBar href={Nav.getLink('broad-on-manifold')} branding={manifoldTopBar}>
       <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <ThemeProvider theme={brands.manifold.theme}>
           <Link href={Nav.getLink('root')} style={{ color: 'white', textDecoration: 'underline', fontSize: 15 }}>

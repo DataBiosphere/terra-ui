@@ -47,7 +47,8 @@ export interface TopBarBranding {
 }
 
 interface TopBarProps extends PropsWithChildren {
-  title: string;
+  /** Shown next to the logo; omit to show the logo alone */
+  title?: string;
   showMenu?: boolean;
   href?: string;
   branding?: TopBarBranding;
@@ -310,7 +311,7 @@ export const TopBar = (props: TopBarProps): ReactNode => {
   // brand, so we'll just return an entirely different component here to keep this component clean
   // without adding tons of conditionals
   if (isScientificServices()) {
-    return ScientificServicesSidebar({ title, href });
+    return ScientificServicesSidebar({ title: title ?? '', href });
   }
 
   return (

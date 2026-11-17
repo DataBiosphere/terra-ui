@@ -8,7 +8,6 @@ import {
 import { BroadOnManifoldLayout } from 'src/broad-on-manifold/BroadOnManifoldLayout';
 import broadLogo from 'src/images/library/datasets/broad_logo.png';
 import { Metrics } from 'src/libs/ajax/Metrics';
-import { brands } from 'src/libs/brands';
 import Events from 'src/libs/events';
 import * as Nav from 'src/libs/nav';
 import * as Utils from 'src/libs/utils';
@@ -29,12 +28,12 @@ const BroadOnManifoldPage = (): ReactNode => {
         <img src={broadLogo} alt='Broad Institute' style={{ height: 56, display: 'block', marginBottom: '2rem' }} />
         <h1 style={{ fontSize: 32, margin: '0 0 1rem' }}>Broad on Manifold</h1>
         <p style={{ fontSize: 16, lineHeight: 1.6, margin: '0 0 0.75rem' }}>
-          Broad on Manifold is the Broad Institute&apos;s instance of the Manifold platform.{' '}
-          {brands.manifold.description}
+          Manifold is an agent-first experience for exploring and analyzing biomedical data on AWS, and it&apos;s now
+          available to the Broad Institute community.
         </p>
         <p style={{ fontSize: 16, lineHeight: 1.6, margin: '0 0 2rem' }}>
-          Sign in with your Broad Institute email to see your Manifold projects or start a new one. Manifold projects
-          are billed to a Broad cost object; request one first if you don&apos;t have one.
+          Sign in with your Broad Institute email to open your projects or start a new one. You&apos;ll need a Broad
+          cost object to cover project billing, so request one first if you don&apos;t have one.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           <ButtonPrimary
