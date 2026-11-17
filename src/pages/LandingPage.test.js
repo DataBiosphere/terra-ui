@@ -27,7 +27,8 @@ const signInWithBillingProjects = (projects) => {
 };
 
 describe('Landing Page (GCP)', () => {
-  afterEach(() => {
+  // Reset before rendering, not after: changing authStore while the page is still mounted updates it outside act().
+  beforeEach(() => {
     authStore.update((state) => ({ ...state, signInStatus: 'uninitialized' }));
     useShowBroadOnManifoldCards.mockReturnValue(false);
   });
