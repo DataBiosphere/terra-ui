@@ -27,7 +27,21 @@ export interface ProductCardProps {
   description: ReactNode;
   primaryAction: ProductCardLink;
   links: ProductCardLink[];
+  /** What the visitor needs before they can start, with a link to get it. Shown at the bottom of the card, below the links. */
+  prerequisite: { text: string; link: ProductCardLink };
 }
+
+const CardLink = ({ label, href, external, onClick }: ProductCardLink): ReactNode => (
+  <Link
+    href={href}
+    onClick={onClick}
+    {...(external ? Utils.newTabLinkProps : {})}
+    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: 15, fontWeight: 500 }}
+  >
+    {label}
+    {icon(external ? 'pop-out' : 'arrowRight', { size: 14 })}
+  </Link>
+);
 
 /**
  * One product a visitor can sign in to from the landing page. Every product card has the same structure, so the
@@ -35,7 +49,7 @@ export interface ProductCardProps {
  * product's ThemeProvider.
  */
 export const ProductCard = (props: ProductCardProps): ReactNode => {
-  const { id, logo, audience, title, description, primaryAction, links } = props;
+  const { id, logo, audience, title, description, primaryAction, links, prerequisite } = props;
   const { colors } = useThemeFromContext();
   const headingId = `${id}-heading`;
 
@@ -92,20 +106,25 @@ export const ProductCard = (props: ProductCardProps): ReactNode => {
           boxSizing: 'content-box',
         }}
       >
-        {links.map(({ label, href, external, onClick }) => (
-          <li key={label} style={{ lineHeight: `${linkRowHeight}px` }}>
-            <Link
-              href={href}
-              onClick={onClick}
-              {...(external ? Utils.newTabLinkProps : {})}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: 15, fontWeight: 500 }}
-            >
-              {label}
-              {icon(external ? 'pop-out' : 'arrowRight', { size: 14 })}
-            </Link>
+        {links.map((link) => (
+          <li key={link.label} style={{ lineHeight: `${linkRowHeight}px` }}>
+            <CardLink {...link} />
           </li>
         ))}
       </ul>
+      <div
+        style={{
+          fontSize: 14,
+          lineHeight: 1.5,
+          padding: '0.75rem 1rem',
+          marginTop: '1.25rem',
+          borderRadius: 6,
+          backgroundColor: colors.light(),
+        }}
+      >
+        <div style={{ marginBottom: '0.25rem' }}>{prerequisite.text}</div>
+        <CardLink {...prerequisite.link} />
+      </div>
     </section>
   );
 };

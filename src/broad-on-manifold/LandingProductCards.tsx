@@ -12,6 +12,7 @@ const captureLandingEvent = (event: MetricsEventName) => () =>
   void Metrics().captureEvent(event, { source: 'landingPage' });
 
 const terraSupportUrl = 'https://support.terra.bio/hc/en-us';
+const manifoldSupportUrl = 'https://support.manifold.ai/hc/en-us';
 
 /**
  * The landing page's doc links for Broad users who see the product cards: Terra's support link moves into the Terra
@@ -27,11 +28,19 @@ export const getBroadOnManifoldDocLinks = (
 // The two cards together are as wide as the row of three landing cards they replace.
 const rowWidth = 'calc(225px * 3 + 1rem * 2)';
 
+export interface LandingProductCardsProps {
+  /** The user has no Terra billing project, so they can't create a workspace yet. Changes the Terra card's billing link. */
+  needsBillingProject: boolean;
+}
+
 /**
  * Landing-page choice between the two products a Broad Institute member can use: Terra workspaces and Broad on
- * Manifold projects. Shown in place of the usual landing cards only to signed-in Broad users.
+ * Manifold projects. Shown in place of the usual landing cards only to signed-in Broad users. Each card says what
+ * the user needs before they can start, which replaces the landing page's billing banner for these users.
  */
-export const LandingProductCards = (): ReactNode => {
+export const LandingProductCards = (props: LandingProductCardsProps): ReactNode => {
+  const { needsBillingProject } = props;
+
   return (
     <div style={{ width: rowWidth, maxWidth: '100%', margin: '2rem 0 1rem' }}>
       <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 1rem' }}>Choose where to work</h2>
@@ -47,6 +56,10 @@ export const LandingProductCards = (): ReactNode => {
             { label: 'View Example Workflows', href: Nav.getLink('library-showcase') },
             { label: 'View Support Documentation', href: terraSupportUrl, external: true },
           ]}
+          prerequisite={{
+            text: "You'll need a Google Cloud billing account to create a workspace.",
+            link: { label: needsBillingProject ? 'Set up billing' : 'Manage billing', href: Nav.getLink('billing') },
+          }}
         />
         <ThemeProvider theme={brands.manifold.theme}>
           <ProductCard
@@ -61,13 +74,18 @@ export const LandingProductCards = (): ReactNode => {
               onClick: captureLandingEvent(Events.broadOnManifoldViewProjects),
             }}
             links={[
-              {
+              { label: 'View Support Documentation', href: manifoldSupportUrl, external: true },
+              { label: 'Learn more about Manifold', href: 'https://www.manifold.ai', external: true },
+            ]}
+            prerequisite={{
+              text: "You'll need a Broad cost object to start a project.",
+              link: {
                 label: 'Request a cost object',
                 href: broadCostObjectRequestUrl,
                 external: true,
                 onClick: captureLandingEvent(Events.broadOnManifoldRequestCostObject),
               },
-            ]}
+            }}
           />
         </ThemeProvider>
       </div>

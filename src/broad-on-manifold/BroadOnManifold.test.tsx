@@ -132,7 +132,7 @@ describe('LandingProductCards', () => {
     const { captureEvent } = setUp();
     const user = userEvent.setup();
 
-    render(<LandingProductCards />);
+    render(<LandingProductCards needsBillingProject={false} />);
 
     const terraCard = within(screen.getByRole('region', { name: 'Terra workspaces' }));
     expect(terraCard.getByRole('link', { name: 'View Workspaces' })).toHaveAttribute('href', '#workspaces');
@@ -145,10 +145,21 @@ describe('LandingProductCards', () => {
     expect(support).toHaveAttribute('target', '_blank');
     expect(terraCard.queryByRole('link', { name: 'Browse Data on DUOS' })).not.toBeInTheDocument();
 
+    expect(
+      terraCard.getByText("You'll need a Google Cloud billing account to create a workspace.")
+    ).toBeInTheDocument();
+    expect(terraCard.getByRole('link', { name: 'Manage billing' })).toHaveAttribute('href', '#billing');
+
     const manifoldCard = within(screen.getByRole('region', { name: 'Manifold projects' }));
     const viewProjects = manifoldCard.getByRole('link', { name: 'View Manifold projects' });
     expect(viewProjects).toHaveAttribute('href', '#broad-on-manifold');
+    expect(manifoldCard.getByText("You'll need a Broad cost object to start a project.")).toBeInTheDocument();
     expect(manifoldCard.getByRole('link', { name: 'Request a cost object' })).toHaveAttribute('target', '_blank');
+    expect(manifoldCard.getByRole('link', { name: 'View Support Documentation' })).toHaveAttribute(
+      'href',
+      'https://support.manifold.ai/hc/en-us'
+    );
+    expect(manifoldCard.getByRole('link', { name: 'Learn more about Manifold' })).toHaveAttribute('target', '_blank');
     expect(screen.queryByText(/@manifold\.ai/)).not.toBeInTheDocument();
 
     expect(screen.getByRole('link', { name: 'Compare Terra and Manifold' })).toHaveAttribute(
@@ -158,6 +169,20 @@ describe('LandingProductCards', () => {
 
     await user.click(viewProjects);
     expect(captureEvent).toHaveBeenCalledWith(Events.broadOnManifoldViewProjects, { source: 'landingPage' });
+  });
+
+  it('tells a user with no billing project to set one up before creating a Terra workspace', () => {
+    setUp();
+
+    render(<LandingProductCards needsBillingProject />);
+
+    const terraCard = within(screen.getByRole('region', { name: 'Terra workspaces' }));
+    expect(
+      terraCard.getByText("You'll need a Google Cloud billing account to create a workspace.")
+    ).toBeInTheDocument();
+    expect(terraCard.getByRole('link', { name: 'Set up billing' })).toHaveAttribute('href', '#billing');
+    expect(terraCard.queryByRole('link', { name: 'Manage billing' })).not.toBeInTheDocument();
+    expect(terraCard.getByRole('link', { name: 'View Workspaces' })).toBeInTheDocument();
   });
 });
 

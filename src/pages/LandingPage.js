@@ -104,10 +104,12 @@ export const LandingPage = () => {
     }
   }, [signInStatus, setBillingProjects, signal]);
 
+  const needsBillingProject = isTerra() && !_.isUndefined(billingProjects) && _.isEmpty(billingProjects);
+
   return h(HeroWrapper, { bigSubhead: true }, [
-    isTerra() &&
-      !_.isUndefined(billingProjects) &&
-      _.isEmpty(billingProjects) &&
+    // Broad users who see the product cards get this message in the Terra card instead
+    needsBillingProject &&
+      !showBroadOnManifold &&
       div(
         {
           style: {
@@ -142,7 +144,7 @@ export const LandingPage = () => {
       makeDocLinks(showBroadOnManifold ? getBroadOnManifoldDocLinks(getEnabledBrand().docLinks) : getEnabledBrand().docLinks)
     ),
     showBroadOnManifold
-      ? h(LandingProductCards)
+      ? h(LandingProductCards, { needsBillingProject })
       : div(
           { style: { display: 'flex', margin: '2rem 0 1rem 0' } },
           makeCard({ ...styles.card }, getEnabledBrand().landingPageCards || landingPageCardsDefault)
