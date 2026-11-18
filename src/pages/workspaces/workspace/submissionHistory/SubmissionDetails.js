@@ -39,7 +39,7 @@ const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborti
 
 // Note: This 'deletionDelayDays' value should reflect the current `archiveMetadata.deletion.delay` value configured for PROD in
 // the `values/app/cromwell/live.yaml.gotmpl` file of `terra-helmfile`
-const deletionDelayDays = 190;
+const deletionDelayDays = 90;
 const isDeleted = (statusLastChangedDate) => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > deletionDelayDays;
 
 const deletedInfoIcon = ({ name, icon: iconName }) => {
