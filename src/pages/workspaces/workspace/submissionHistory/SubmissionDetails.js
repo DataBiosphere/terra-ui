@@ -20,6 +20,7 @@ import {
   statusType,
   submissionDetailsBreadcrumbSubtitle,
 } from 'src/components/job-common';
+import { RunningJamie } from 'src/components/RunningJamie';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
@@ -29,6 +30,7 @@ import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { downloadWorkflowMetadata } from 'src/libs/workflow-metadata';
 import { downloadIO, downloadWorkflows, ioTask, ioVariable, WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/submissionHistory/UpdateUserCommentModal';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
@@ -69,6 +71,31 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
 };
 
 const tableRowHeight = flexTableDefaultRowHeight;
+
+const DownloadMetadataButton = ({ workflowId }) => {
+  const [downloading, setDownloading] = useState(false);
+
+  const download = _.flow(
+    withErrorReporting('Unable to download workflow metadata'),
+    Utils.withBusyState(setDownloading)
+  )(() => downloadWorkflowMetadata(workflowId));
+
+  return h(
+    Link,
+    {
+      // Not `disabled`, which would grey out the animation; repeat clicks are ignored instead
+      onClick: downloading ? undefined : download,
+      'aria-busy': downloading,
+      style: { margin: '0.5rem', display: 'flex', cursor: downloading ? 'progress' : undefined },
+      // Link's lighter hover color also applies on focus, and clicking focuses the button, so without this
+      // Jamie would stay in the hover color for the whole download
+      hover: downloading ? { color: colors.accent() } : undefined,
+      tooltip: downloading ? 'Downloading metadata…' : 'Download metadata',
+      'aria-label': `${downloading ? 'Downloading' : 'Download'} metadata (for workflow ID ${workflowId})`,
+    },
+    [downloading ? h(RunningJamie, { size: 18 }) : h(Icon, { icon: 'file-download', size: 18 })]
+  );
+};
 
 export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
   const {
@@ -245,6 +272,9 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                           },
                           [h(Icon, { icon: 'folder-open', size: 18 })]
                         ),
+                      isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate)
+                        ? deletedInfoIcon({ name: 'Metadata', icon: 'file-download' })
+                        : h(DownloadMetadataButton, { key: 'metadata', workflowId }),
                     ])
                   );
                 },
