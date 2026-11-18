@@ -1,4 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import { differenceInDays, parseISO } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -9,7 +9,7 @@ import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonSecondary, Link, Select } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
+import { centeredSpinner } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { DelayedSearchInput } from 'src/components/input';
 import {
@@ -60,7 +60,7 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
             href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
             ...Utils.newTabLinkProps,
           },
-          ['Workflow Details Archived support article ', icon('pop-out', { size: 18 })]
+          ['Workflow Details Archived support article ', h(Icon, { icon: 'pop-out', size: 18 })]
         ),
         ' for more details.',
       ]),
@@ -229,7 +229,7 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                                 tooltip: 'Workflow Details',
                                 'aria-label': `Workflow Details (for workflow ID ${workflowId})`,
                               },
-                              [icon('tasks', { size: 18 })]
+                              [h(Icon, { icon: 'tasks', size: 18 })]
                             ),
                           ],
                       inputName &&
@@ -243,7 +243,7 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                             tooltip: 'Execution directory',
                             'aria-label': `Execution directory (for workflow ID ${workflowId})`,
                           },
-                          [icon('folder-open', { size: 18 })]
+                          [h(Icon, { icon: 'folder-open', size: 18 })]
                         ),
                     ])
                   );
@@ -479,7 +479,7 @@ const SubmissionDetails = _.flow(
                         tooltip: 'Edit Comment',
                         onClick: () => setUpdatingComment(true),
                       },
-                      [icon('edit')]
+                      [h(Icon, { icon: 'edit' })]
                     ),
                   ]),
                   div({ style: { height: '1.0rem', textOverflow: 'ellipsis', overflow: 'hidden' } }, [firstLine(userComment)]),
@@ -520,7 +520,7 @@ const SubmissionDetails = _.flow(
                           {
                             content: 'This configuration was updated or deleted since this submission ran.',
                           },
-                          [icon('ban', { size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })]
+                          [h(Icon, { icon: 'ban', size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })]
                         ),
                       ]);
                     },
