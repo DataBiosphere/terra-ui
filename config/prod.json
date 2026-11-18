@@ -2,6 +2,7 @@
   "agoraUrlRoot": "https://agora.dsde-prod.broadinstitute.org",
   "bardRoot": "https://terra-bard-prod.appspot.com",
   "billingProfileManagerUrlRoot": "https://bpm.dsde-prod.broadinstitute.org",
+  "broadOnManifoldUrl": "https://broad.sc.manifold.ai",
   "dataRepoUrlRoot": "https://data.terra.bio",
   "dockstoreUrlRoot": "https://dockstore.org",
   "drsHubUrlRoot": "https://drshub.dsde-prod.broadinstitute.org",
