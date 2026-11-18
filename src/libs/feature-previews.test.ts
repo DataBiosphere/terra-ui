@@ -4,6 +4,7 @@ import { AppConfigSettings, getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
 import { getAvailableFeaturePreviews, isFeaturePreviewEnabled, toggleFeaturePreview } from 'src/libs/feature-previews';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
+import { userStore } from 'src/libs/state';
 import { asMockedFn, MockedFn, partial } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax/Groups');
@@ -26,6 +27,12 @@ jest.mock('src/libs/feature-previews-config', () => ({
       title: 'Feature #2',
       description: 'Another new feature',
       groups: ['preview-group'],
+    },
+    {
+      id: 'feature3',
+      title: 'Feature #3',
+      description: 'A feature for one organization',
+      emailDomains: ['example.org'],
     },
   ],
 }));
@@ -184,6 +191,53 @@ describe('getAvailableFeaturePreviews', () => {
         description: 'Another new feature',
         groups: ['preview-group'],
       },
+      {
+        id: 'feature3',
+        title: 'Feature #3',
+        description: 'A feature for one organization',
+        emailDomains: ['example.org'],
+      },
     ]);
+  });
+
+  describe('with emailDomains', () => {
+    const setUserEmail = (email: string | undefined) =>
+      userStore.update((state) => ({ ...state, terraUser: { ...state.terraUser, email } }));
+
+    const availableIds = async () => {
+      asMockedFn(Groups).mockReturnValue(partial<GroupsContract>({ list: jest.fn(async () => []) }));
+      return (await getAvailableFeaturePreviews()).map(({ id }) => id);
+    };
+
+    it.each([
+      { email: 'someone@example.org', shown: true },
+      { email: 'Someone@Example.ORG', shown: true },
+      { email: 'someone@other.org', shown: false },
+      { email: 'someone@notexample.org', shown: false },
+      { email: 'someone@example.org.other.com', shown: false },
+      { email: undefined, shown: false },
+    ])('shows the preview to $email: $shown', async ({ email, shown }) => {
+      // Arrange
+      asMockedFn(getLocalPref).mockReturnValue(false);
+      setUserEmail(email);
+
+      // Act
+      const ids = await availableIds();
+
+      // Assert
+      expect(ids.includes('feature3')).toBe(shown);
+    });
+
+    it('still shows an enabled preview, so it can be turned off', async () => {
+      // Arrange
+      asMockedFn(getLocalPref).mockImplementation((key) => key === 'feature-preview/feature3');
+      setUserEmail('someone@other.org');
+
+      // Act
+      const ids = await availableIds();
+
+      // Assert
+      expect(ids).toContain('feature3');
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import { delay } from '@terra-ui-packages/core-utils';
 import { differenceInDays, parseISO } from 'date-fns/fp';
 import _ from 'lodash/fp';
@@ -9,7 +9,7 @@ import { bucketBrowserUrl } from 'src/auth/auth';
 import * as breadcrumbs from 'src/components/breadcrumbs';
 import { ClipboardButton } from 'src/components/ClipboardButton';
 import { ButtonSecondary, Link, Select } from 'src/components/common';
-import { centeredSpinner, icon } from 'src/components/icons';
+import { centeredSpinner } from 'src/components/icons';
 import { InfoBox } from 'src/components/InfoBox';
 import { DelayedSearchInput } from 'src/components/input';
 import {
@@ -20,6 +20,7 @@ import {
   statusType,
   submissionDetailsBreadcrumbSubtitle,
 } from 'src/components/job-common';
+import { RunningJamie } from 'src/components/RunningJamie';
 import { SimpleTabBar } from 'src/components/tabBars';
 import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table';
 import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
@@ -29,6 +30,7 @@ import * as Nav from 'src/libs/nav';
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils';
 import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
+import { downloadWorkflowMetadata } from 'src/libs/workflow-metadata';
 import { downloadIO, downloadWorkflows, ioTask, ioVariable, WorkflowTableColumnNames } from 'src/libs/workflow-utils';
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/submissionHistory/UpdateUserCommentModal';
 import { wrapWorkspace } from 'src/workspaces/container/WorkspaceContainer';
@@ -60,7 +62,7 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
             href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
             ...Utils.newTabLinkProps,
           },
-          ['Workflow Details Archived support article ', icon('pop-out', { size: 18 })]
+          ['Workflow Details Archived support article ', h(Icon, { icon: 'pop-out', size: 18 })]
         ),
         ' for more details.',
       ]),
@@ -69,6 +71,31 @@ const deletedInfoIcon = ({ name, icon: iconName }) => {
 };
 
 const tableRowHeight = flexTableDefaultRowHeight;
+
+const DownloadMetadataButton = ({ workflowId }) => {
+  const [downloading, setDownloading] = useState(false);
+
+  const download = _.flow(
+    withErrorReporting('Unable to download workflow metadata'),
+    Utils.withBusyState(setDownloading)
+  )(() => downloadWorkflowMetadata(workflowId));
+
+  return h(
+    Link,
+    {
+      // Not `disabled`, which would grey out the animation; repeat clicks are ignored instead
+      onClick: downloading ? undefined : download,
+      'aria-busy': downloading,
+      style: { margin: '0.5rem', display: 'flex', cursor: downloading ? 'progress' : undefined },
+      // Link's lighter hover color also applies on focus, and clicking focuses the button, so without this
+      // Jamie would stay in the hover color for the whole download
+      hover: downloading ? { color: colors.accent() } : undefined,
+      tooltip: downloading ? 'Downloading metadata…' : 'Download metadata',
+      'aria-label': `${downloading ? 'Downloading' : 'Download'} metadata (for workflow ID ${workflowId})`,
+    },
+    [downloading ? h(RunningJamie, { size: 18 }) : h(Icon, { icon: 'file-download', size: 18 })]
+  );
+};
 
 export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
   const {
@@ -229,7 +256,7 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                                 tooltip: 'Workflow Details',
                                 'aria-label': `Workflow Details (for workflow ID ${workflowId})`,
                               },
-                              [icon('tasks', { size: 18 })]
+                              [h(Icon, { icon: 'tasks', size: 18 })]
                             ),
                           ],
                       inputName &&
@@ -243,8 +270,11 @@ export const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                             tooltip: 'Execution directory',
                             'aria-label': `Execution directory (for workflow ID ${workflowId})`,
                           },
-                          [icon('folder-open', { size: 18 })]
+                          [h(Icon, { icon: 'folder-open', size: 18 })]
                         ),
+                      isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate)
+                        ? deletedInfoIcon({ name: 'Metadata', icon: 'file-download' })
+                        : h(DownloadMetadataButton, { key: 'metadata', workflowId }),
                     ])
                   );
                 },
@@ -479,7 +509,7 @@ const SubmissionDetails = _.flow(
                         tooltip: 'Edit Comment',
                         onClick: () => setUpdatingComment(true),
                       },
-                      [icon('edit')]
+                      [h(Icon, { icon: 'edit' })]
                     ),
                   ]),
                   div({ style: { height: '1.0rem', textOverflow: 'ellipsis', overflow: 'hidden' } }, [firstLine(userComment)]),
@@ -520,7 +550,7 @@ const SubmissionDetails = _.flow(
                           {
                             content: 'This configuration was updated or deleted since this submission ran.',
                           },
-                          [icon('ban', { size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })]
+                          [h(Icon, { icon: 'ban', size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })]
                         ),
                       ]);
                     },

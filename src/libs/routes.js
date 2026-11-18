@@ -4,6 +4,8 @@ import * as Analysis from 'src/analysis/Analyses';
 import * as AnalysisLauncher from 'src/analysis/AnalysisLauncher';
 import * as AppLauncher from 'src/analysis/AppLauncher';
 import * as SignOutPage from 'src/auth/signout/SignOutPage';
+import * as BroadOnManifold from 'src/broad-on-manifold/BroadOnManifoldPage';
+import * as ChoosingAPlatform from 'src/broad-on-manifold/ChoosingAPlatformPage';
 import * as ImportDataPage from 'src/import-data/ImportDataPage';
 import { routeHandlersStore } from 'src/libs/state';
 import * as Projects from 'src/pages/billing/BillingListPage';
@@ -85,6 +87,8 @@ const routes = _.flatten([
   WorkflowsLibrary.navPaths,
   WorkflowWdl.navPaths,
   ScientificServices.navPaths,
+  BroadOnManifold.navPaths,
+  ChoosingAPlatform.navPaths,
   NotFound.navPaths, // must be last
 ]);
 
