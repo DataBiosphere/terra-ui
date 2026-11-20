@@ -26,7 +26,8 @@ export const CromIAM = (signal?: AbortSignal) => ({
   workflowMetadata: async (workflowId, includeKey, excludeKey) => {
     const res = await fetchOrchestration(
       `api/workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`,
-      _.merge(authOpts(), { signal })
+      // Metadata changes while a workflow runs, so always fetch it fresh rather than from the HTTP cache
+      _.merge(authOpts(), { signal, cache: 'no-store' })
     );
     return res.json();
   },

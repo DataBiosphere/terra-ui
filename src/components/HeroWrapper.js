@@ -6,6 +6,7 @@ import { TopBar } from 'src/components/TopBar';
 import landingPageHero from 'src/images/landing-page-hero.jpg';
 import { getEnabledBrand, isScientificServices } from 'src/libs/brand-utils';
 import colors from 'src/libs/colors';
+import * as Style from 'src/libs/style';
 import * as Utils from 'src/libs/utils';
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink = false, children }) => {
@@ -58,6 +59,23 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
           ]
         ),
         children,
+        // Shown after the page content, e.g. below the landing page cards
+        brand.notice &&
+          div(
+            {
+              role: 'note',
+              'aria-label': 'Notice',
+              style: {
+                ...Style.elements.noticeContainer,
+                borderLeft: `4px solid ${colors.accent()}`,
+                marginTop: '1.5rem',
+                maxWidth: 700,
+                fontSize: 16,
+                lineHeight: 1.5,
+              },
+            },
+            [brand.notice]
+          ),
       ]
     ),
   ]);

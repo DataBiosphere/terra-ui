@@ -132,6 +132,102 @@ a {
   animation: progress-bar-stripes 1s linear infinite;
 }
 
+/*
+ * RunningJamie: a bound. Front and back legs move in pairs; one 0.4s cycle drives legs and body together:
+ * 0% stretched out in the air, 25% front feet land (nose dips), 50% legs gathered under the body,
+ * 75% back legs push off (nose lifts).
+ */
+@keyframes running-jamie-legs-front {
+  0%,
+  100% {
+    transform: rotate(-35deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(30deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes running-jamie-legs-back {
+  0%,
+  100% {
+    transform: rotate(35deg);
+  }
+  25% {
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(-30deg);
+  }
+  75% {
+    transform: rotate(-15deg);
+  }
+}
+
+@keyframes running-jamie-leap {
+  0%,
+  100% {
+    transform: translateY(-2px) rotate(0);
+  }
+  25% {
+    transform: translateY(0) rotate(4deg);
+  }
+  50% {
+    transform: translateY(0.5px) rotate(0);
+  }
+  75% {
+    transform: translateY(-1px) rotate(-5deg);
+  }
+}
+
+@keyframes running-jamie-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.4;
+  }
+}
+
+.running-jamie-legs-front,
+.running-jamie-legs-back {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: 0.4s ease-in-out infinite;
+}
+
+.running-jamie-legs-front {
+  animation-name: running-jamie-legs-front;
+}
+
+.running-jamie-legs-back {
+  animation-name: running-jamie-legs-back;
+}
+
+.running-jamie-body {
+  /* Rock around the middle of Jamie (in viewBox units) */
+  transform-box: view-box;
+  transform-origin: 17px 12px;
+  animation: running-jamie-leap 0.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .running-jamie-legs-front,
+  .running-jamie-legs-back,
+  .running-jamie-body {
+    animation: none;
+  }
+
+  .running-jamie {
+    animation: running-jamie-pulse 0.8s ease-in-out infinite alternate;
+  }
+}
+
 /* Restore focus outlines to the wrapper elements around RSelect boxes */
 [role="combobox"]:focus-within {
   outline: -webkit-focus-ring-color auto 1px;
