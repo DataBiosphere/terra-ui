@@ -23,6 +23,7 @@ export const biodatacatalystSources: UrlSource[] = [
   // Legacy
   { type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
   // Tutorial
+  { type: 's3', bucket: 'nih-nhlbi-biodata-catalyst-tutorial-genome-data' },
   { type: 's3', bucket: 'cdis-presigned-url-test' },
   // Test
   { type: 's3', bucket: 'bdc-indexing-manifests' },
