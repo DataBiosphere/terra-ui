@@ -1,15 +1,13 @@
-import { formatBytes } from '@terra-ui-packages/core-utils';
 import { PipelineIOType } from 'src/libs/ajax/teaspoons/teaspoons-models';
 
-export const getOutputFileSize = async (url: string): Promise<string> => {
-  const response = await fetch(url, { method: 'HEAD' });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch file size: ${response.status} ${response.statusText}`);
-  }
-
-  const size = response.headers.get('content-length');
-  return size ? formatBytes(Number.parseInt(size)) : 'Unknown size';
+export const downloadSignedUrl = (url: string, fileName: string): void => {
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.rel = 'noopener';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
 };
 
 // Checks if a pipeline input/output type is file based

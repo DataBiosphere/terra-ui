@@ -10,6 +10,8 @@ import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg';
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg';
 import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg';
 import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg';
+import manifoldLogo from 'src/images/brands/manifold/manifold-logo-horizontal-color.svg';
+import manifoldLogoWhite from 'src/images/brands/manifold/manifold-logo-horizontal-white.svg';
 import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg';
 import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg';
 import publicHealthBackground from 'src/images/brands/publicHealth/Terra-PHG-background.png';
@@ -41,6 +43,9 @@ export interface BrandConfiguration {
 
   /** Landing page text */
   description: string | ReactNode;
+
+  /** Optional notice shown in a box after the page content (below the cards) on the landing and sign-in pages */
+  notice?: ReactNode;
 
   /** Host name for branded site */
   hostName: string;
@@ -92,21 +97,6 @@ export interface BrandConfiguration {
 
   /** Theme for components */
   theme: Theme;
-
-  /** Optional flag to show the roadmap link */
-  showRoadmap?: boolean;
-
-  /** Optional card for the roadmap */
-  roadMapCard?: {
-    /** Card link */
-    link: string;
-
-    /** Card title */
-    title: string;
-
-    /** Card body */
-    body: string;
-  };
 }
 
 export const landingPageCardsDefault = [
@@ -126,12 +116,6 @@ export const landingPageCardsDefault = [
     body: 'Access data from a rich ecosystem in DUOS.',
   },
 ];
-
-export const roadMapCardDefault = {
-  link: 'https://support.terra.bio/hc/en-us/sections/30968105851931-Terra-Roadmap',
-  title: 'Terra Roadmap',
-  body: "Stay connected: see what's new, what's next, and try out the latest features on Terra.",
-};
 
 const baseColors: Theme['colorPalette'] = {
   primary: '#74ae43',
@@ -171,7 +155,6 @@ export const brands: Record<string, BrandConfiguration> = {
     theme: {
       colorPalette: { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' },
     },
-    showRoadmap: true,
   },
   baseline: {
     name: 'Project Baseline',
@@ -217,6 +200,23 @@ export const brands: Record<string, BrandConfiguration> = {
           opm.gov.
         </a>
         */}
+      </>
+    ),
+    // Notice text requested by NIH (CTM-723).
+    notice: (
+      <>
+        <strong>NIH Websites Are Changing:</strong> Per{' '}
+        <a
+          href='https://www.whitehouse.gov/presidential-actions/2026/09/inaugurating-the-era-of-super-intelligence/'
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          <strong>
+            <em>Executive Order 14434</em>
+          </strong>
+        </a>
+        , federal agencies are now using “Super Intelligence” (SI) in place of “Artificial Intelligence” (AI). You may
+        see both terms across NIH content during this transition.
       </>
     ),
     hostName: 'terra.biodatacatalyst.nhlbi.nih.gov',
@@ -294,6 +294,43 @@ export const brands: Record<string, BrandConfiguration> = {
         dark: '#1d1d1b',
         accent: '#6e3d3b',
         success: '#9eb642',
+      },
+    },
+  },
+  // Not deployed yet; preview with configOverridesStore.set({ brand: 'manifold' })
+  manifold: {
+    name: 'Manifold',
+    queryName: 'manifold',
+    welcomeHeader: 'Welcome to Manifold',
+    description: 'Manifold is a workspace for exploring and analyzing biomedical data with AI agents.',
+    hostName: 'manifold.terra.bio', // Unused: There is no Manifold deployment of Terra, and therefore no actual registered hostname
+    docLinks: [
+      {
+        link: 'https://support.manifold.ai/hc/en-us',
+        text: 'Find guides and answers in the Manifold Help Center',
+      },
+      {
+        link: 'https://www.manifold.ai',
+        text: 'Learn more about Manifold',
+      },
+      {
+        link: 'https://support.terra.bio/hc/en-us',
+        text: "Find Terra how-to's, documentation, video tutorials, and discussion forums",
+      },
+    ],
+    logos: {
+      color: manifoldLogo,
+      white: manifoldLogoWhite,
+    },
+    theme: {
+      colorPalette: {
+        ...baseColors,
+        primary: '#685bc7',
+        secondary: '#201547',
+        accent: '#613de4',
+        light: '#f7f5fe',
+        dark: '#201547',
+        grey: '#5a5b5d',
       },
     },
   },
@@ -376,7 +413,6 @@ export const brands: Record<string, BrandConfiguration> = {
         dark: '#333F52',
       },
     },
-    showRoadmap: true,
   },
   rareX: {
     name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
@@ -438,12 +474,11 @@ export const brands: Record<string, BrandConfiguration> = {
         light: '#074770',
       },
     },
-    showRoadmap: false,
   },
   terra: {
     name: 'Terra',
     queryName: 'terra',
-    welcomeHeader: 'Welcome to Terra Community Workbench',
+    welcomeHeader: 'Welcome to Terra',
     description:
       'Terra is a cloud-native platform for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'app.terra.bio',
@@ -465,7 +500,6 @@ export const brands: Record<string, BrandConfiguration> = {
     theme: {
       colorPalette: { ...baseColors },
     },
-    showRoadmap: true,
   },
 };
 

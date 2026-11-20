@@ -1,0 +1,105 @@
+import { Link, ThemeProvider } from '@terra-ui-packages/components';
+import React, { ReactNode } from 'react';
+import { broadCostObjectRequestUrl } from 'src/broad-on-manifold/broad-on-manifold-utils';
+import { ProductCard } from 'src/broad-on-manifold/ProductCard';
+import { icon } from 'src/components/icons';
+import { Metrics } from 'src/libs/ajax/Metrics';
+import { BrandConfiguration, brands } from 'src/libs/brands';
+import Events, { MetricsEventName } from 'src/libs/events';
+import * as Nav from 'src/libs/nav';
+
+const captureLandingEvent = (event: MetricsEventName) => () =>
+  void Metrics().captureEvent(event, { source: 'landingPage' });
+
+const terraSupportUrl = 'https://support.terra.bio/hc/en-us';
+const manifoldSupportUrl = 'https://support.manifold.ai/hc/en-us';
+
+/**
+ * The landing page's doc links for Broad users who see the product cards: Terra's support link moves into the Terra
+ * card, and DUOS moves up to the doc links, under Terra's description.
+ */
+export const getBroadOnManifoldDocLinks = (
+  docLinks: BrandConfiguration['docLinks']
+): BrandConfiguration['docLinks'] => [
+  { link: 'https://duos.org', text: 'Browse Data on DUOS' },
+  ...docLinks.filter(({ link }) => link !== terraSupportUrl),
+];
+
+// The two cards together are as wide as the row of three landing cards they replace.
+const rowWidth = 'calc(225px * 3 + 1rem * 2)';
+
+export interface LandingProductCardsProps {
+  /** The user has no Terra billing project, so they can't create a workspace yet. Changes the Terra card's billing link. */
+  needsBillingProject: boolean;
+}
+
+/**
+ * Landing-page choice between the two products a Broad Institute member can use: Terra workspaces and Broad on
+ * Manifold projects. Shown in place of the usual landing cards only to signed-in Broad users. Each card says what
+ * the user needs before they can start, which replaces the landing page's billing banner for these users.
+ */
+export const LandingProductCards = (props: LandingProductCardsProps): ReactNode => {
+  const { needsBillingProject } = props;
+
+  return (
+    <div style={{ width: rowWidth, maxWidth: '100%', margin: '2rem 0 1rem' }}>
+      <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 1rem' }}>Choose where to work</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', gap: '1rem' }}>
+        <ProductCard
+          id='terra-product-card'
+          logo={{ src: brands.terra.logos.color, alt: 'Terra', height: 40 }}
+          audience='Terra users'
+          title='Terra workspaces'
+          description='Terra workspaces connect your data to popular analysis tools on Google Cloud.'
+          primaryAction={{ label: 'View Workspaces', href: Nav.getLink('workspaces') }}
+          links={[
+            { label: 'View Example Workflows', href: Nav.getLink('library-showcase') },
+            { label: 'View Support Documentation', href: terraSupportUrl, external: true },
+          ]}
+          prerequisite={{
+            text: "You'll need a Google Cloud billing account to create a workspace.",
+            link: { label: needsBillingProject ? 'Set up billing' : 'Manage billing', href: Nav.getLink('billing') },
+          }}
+        />
+        <ThemeProvider theme={brands.manifold.theme}>
+          <ProductCard
+            id='manifold-product-card'
+            logo={{ src: brands.manifold.logos.color, alt: 'Manifold', height: 30 }}
+            audience='Broad Institute members'
+            title='Manifold projects'
+            description='Go from raw data to shared results with an AI agent by your side in Manifold projects on AWS, now available for Broad Institute members.'
+            primaryAction={{
+              label: 'View Manifold projects',
+              href: Nav.getLink('broad-on-manifold'),
+              onClick: captureLandingEvent(Events.broadOnManifoldViewProjects),
+            }}
+            links={[
+              { label: 'View Support Documentation', href: manifoldSupportUrl, external: true },
+              { label: 'Learn more about Manifold', href: 'https://www.manifold.ai', external: true },
+            ]}
+            prerequisite={{
+              text: "You'll need a Broad cost object to start a project.",
+              link: {
+                label: 'Request a cost object',
+                href: broadCostObjectRequestUrl,
+                external: true,
+                onClick: captureLandingEvent(Events.broadOnManifoldRequestCostObject),
+              },
+            }}
+          />
+        </ThemeProvider>
+      </div>
+      <p style={{ textAlign: 'center', fontSize: 15, margin: '1.25rem 0 0' }}>
+        Not sure which to use?{' '}
+        <Link
+          href={Nav.getLink('broad-on-manifold-choosing-a-platform')}
+          onClick={captureLandingEvent(Events.broadOnManifoldHelpMeChoose)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 }}
+        >
+          Compare Terra and Manifold
+          {icon('arrowRight', { size: 14 })}
+        </Link>
+      </p>
+    </div>
+  );
+};

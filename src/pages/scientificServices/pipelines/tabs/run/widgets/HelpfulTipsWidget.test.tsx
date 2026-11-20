@@ -55,4 +55,14 @@ describe('HelpfulTipsWidget', () => {
     expect(screen.getByTestId('tip-cloud-inputs')).toBeInTheDocument();
     expect(screen.getByTestId('tip-cloud-outputs')).toBeInTheDocument();
   });
+
+  it('renders tips for sv_imputation', () => {
+    render(<HelpfulTipsWidget selectedPipeline={mockPipeline('sv_imputation')} />);
+
+    PIPELINE_TIPS.sv_imputation.forEach((tip) => {
+      expect(screen.getByTestId(`tip-${tip.id}`)).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('tip-cloud-inputs')).toBeInTheDocument();
+    expect(screen.getByTestId('tip-cloud-outputs')).toBeInTheDocument();
+  });
 });

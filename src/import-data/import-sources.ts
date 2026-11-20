@@ -14,10 +14,18 @@ export const anvilSources: UrlSource[] = [
 ];
 
 export const biodatacatalystSources: UrlSource[] = [
+  // Prod
   { source: 'biodatacatalyst', type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
   { source: 'biodatacatalyst', type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },
+  { source: 'biodatacatalyst', type: 's3', bucket: 'nih-nhlbi-biodata-catalyst-tutorial-genome-data' }, // tutorial
+  // Staging
+  { source: 'biodatacatalyst', type: 'http', host: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov' },
+  { source: 'biodatacatalyst', type: 's3', bucket: 'staging-gen3-biodatacatalyst-nhlbi-nih-gov-pfb-exp' },
+  { source: 'biodatacatalyst', type: 's3', bucket: 'cdis-presigned-url-test' }, // tutorial
+  // Legacy
   { source: 'biodatacatalyst', type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
-  { source: 'biodatacatalyst', type: 's3', bucket: 'cdis-presigned-url-test' },
+  // Test
+  { source: 'biodatacatalyst', type: 's3', bucket: 'bdc-indexing-manifests' },
 ];
 
 /**
@@ -34,7 +42,24 @@ export const urlMatchesSource = (url: URL, source: UrlSource): boolean => {
       // https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
       return (
         url.hostname === `${source.bucket}.s3.amazonaws.com` ||
-        (url.hostname === 's3.amazonaws.com' && url.pathname.startsWith(`/${source.bucket}/`))
+        /*
+        Bucket Naming Convention
+        The bucket naming will be implemented as defined below, which will make
+        the bucket names consistent across all datasets being ingested and provide
+        a comprehensive solution for versioning.
+            nih-nhlbi-[bdc/topmed]-[program]-[study]-[phs#]-[v#]-[r#]-[c#]
+        bdc/topmed depends on which AWS account the bucket is within.
+        program (e.g., dbgap, freeze10, biolincc) and study
+        (e.g, aric, push-scd, activ4a) are consistent with information available
+        within Jira fields.
+        phs#, v#, and c# are all consistent with the dbGaP accession.
+        r# is a BDC specific designation; this will be used when dataset changes
+        are needed (e.g. formatting edit, data dictionary change) when a new
+        dbGaP version (v#) is not needed. To maintain consistency across all
+        buckets the r# will be included for all buckets, regardless of if it is
+        incremented.
+         */
+        (url.hostname === 's3.amazonaws.com' && url.pathname.startsWith('nih-nhlbi'))
       );
 
     default:

@@ -15,7 +15,7 @@ export const QuotasView = () => {
         {selectedPipelineName ? (
           <PurchaseQuotaDisplay pipelineName={selectedPipelineName} />
         ) : (
-          <PipelineWidgetContainer title='Pipeline Quotas' width='100%'>
+          <PipelineWidgetContainer width='100%'>
             <PipelineQuotaDisplay />
           </PipelineWidgetContainer>
         )}

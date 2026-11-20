@@ -145,6 +145,43 @@ describe('ViewOutputsModal', () => {
     expect(onDismissMock).toHaveBeenCalledTimes(1);
   });
 
+  it('shows a file count and a link to view details for FILE_ARRAY outputs', async () => {
+    const mockOutputs = {
+      output1: { value: 'https://example.com/output1.vcf', metadata: { sizeInBytes: 1048576 } },
+      fileArrayOutput: [
+        { value: 'https://example.com/chr1.vcf', metadata: { sizeInBytes: 100 } },
+        { value: 'https://example.com/chr2.vcf', metadata: { sizeInBytes: 200 } },
+      ],
+    };
+
+    const mockPipelineRunResponse: Partial<PipelineRunResponse> = {
+      pipelineRunReport: {
+        pipelineName: 'test-pipeline',
+        pipelineVersion: 1,
+        toolVersion: '1.0.0',
+        outputExpirationDate: '2025-07-09T00:00:00Z',
+        outputs: mockOutputs,
+      },
+    };
+
+    asMockedFn(Teaspoons).mockReturnValue(
+      partial<TeaspoonsContract>({
+        getPipelineRunResult: jest.fn().mockResolvedValue(mockPipelineRunResponse),
+      })
+    );
+
+    renderWithAppContexts(<ViewOutputsModal jobId={jobId} onDismiss={onDismissMock} />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading outputs...')).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByText('2 files')).toBeInTheDocument();
+    expect(screen.getByText('View files')).toBeInTheDocument();
+    // The single-file output still gets a normal download button
+    expect(screen.getAllByText('Download')).toHaveLength(1);
+  });
+
   describe('data delivery', () => {
     const mockOutputs = {
       output1: { value: 'gs://bucket/output1.vcf', metadata: { sizeInBytes: 1048576 } },
@@ -182,6 +219,24 @@ describe('ViewOutputsModal', () => {
       expect(screen.getByText(/Your outputs were successfully delivered/)).toBeInTheDocument();
       expect(screen.getByText('Mar 15, 2025')).toBeInTheDocument();
       expect(screen.getByText(/View your outputs in the Google Cloud Console/)).toBeInTheDocument();
+    });
+
+    it('links to the full delivery destination path, not just the bucket', async () => {
+      asMockedFn(Teaspoons).mockReturnValue(
+        partial<TeaspoonsContract>({
+          getPipelineRunResult: jest.fn().mockResolvedValue(makeDeliveredResponse()),
+        })
+      );
+
+      renderWithAppContexts(<ViewOutputsModal jobId={jobId} onDismiss={onDismissMock} />);
+
+      await waitFor(() => expect(screen.queryByText('Loading outputs...')).not.toBeInTheDocument());
+
+      const link = screen.getByText(/View your outputs in the Google Cloud Console/).closest('a');
+      expect(link).toHaveAttribute(
+        'href',
+        'https://console.cloud.google.com/storage/browser/my-bucket/delivered-outputs'
+      );
     });
 
     it('disables download buttons and hides the expiration warning when delivery has succeeded', async () => {
