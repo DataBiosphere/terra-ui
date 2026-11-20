@@ -83,6 +83,7 @@ export interface AppTool extends BaseTool {
 export type Tool = AppTool | RuntimeTool;
 
 export const terraSupportedRuntimeImageIds: string[] = [
+  'terra-base',
   'terra-jupyter-bioconductor',
   'terra-jupyter-hail',
   'terra-jupyter-python',
@@ -102,6 +103,7 @@ const Jupyter: RuntimeTool = {
   label: runtimeToolLabels.Jupyter,
   ext: ['ipynb' as FileExtension],
   imageIds: [
+    'terra-base',
     'terra-jupyter-bioconductor',
     'terra-jupyter-bioconductor_legacy',
     'terra-jupyter-hail',
