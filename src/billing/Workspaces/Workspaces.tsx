@@ -9,6 +9,7 @@ import {
   billingAccountIconSize,
   BillingAccountStatus,
   creditedCost,
+  formatCategoryCost,
   getBillingAccountIconProps,
   parseCurrencyIfNeeded,
 } from 'src/billing/utils';
@@ -73,6 +74,9 @@ const WorkspaceCardHeaders: React.FC<WorkspaceCardHeadersProps> = memoWithName(
         <div role='columnheader' aria-sort={ariaSort(sort, 'totalStorage')} style={{ flex: 1 }}>
           <HeaderRenderer sort={sort} onSort={onSort} name='totalStorage' />
         </div>
+        <div role='columnheader' aria-sort={ariaSort(sort, 'totalEgress')} style={{ flex: 1 }}>
+          <HeaderRenderer sort={sort} onSort={onSort} name='totalEgress' label='Total Egress Cost' />
+        </div>
 
         <div role='columnheader' aria-sort={ariaSort(sort, 'createdBy')} style={{ flex: 1 }}>
           <HeaderRenderer sort={sort} onSort={onSort} name='createdBy' />
@@ -98,7 +102,7 @@ interface WorkspaceCardProps {
 
 const WorkspaceCard: React.FC<WorkspaceCardProps> = memoWithName('WorkspaceCard', (props: WorkspaceCardProps) => {
   const { workspace, billingProject, billingAccountStatus } = props;
-  const { namespace, name, createdBy, lastModified, totalSpend, totalCompute, totalStorage } = workspace;
+  const { namespace, name, createdBy, lastModified, totalSpend, totalCompute, totalStorage, totalEgress } = workspace;
   const workspaceCardStyles = {
     field: {
       ...Style.noWrapEllipsis,
@@ -148,6 +152,9 @@ const WorkspaceCard: React.FC<WorkspaceCardProps> = memoWithName('WorkspaceCard'
         </div>
         <div role='cell' style={workspaceCardStyles.field}>
           {totalStorage ?? '...'}
+        </div>
+        <div role='cell' style={workspaceCardStyles.field}>
+          {totalEgress ?? '...'}
         </div>
         <div role='cell' style={workspaceCardStyles.field}>
           {createdBy}
@@ -208,6 +215,7 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
         totalSpend: 'N/A',
         totalCompute: 'N/A',
         totalStorage: 'N/A',
+        totalEgress: 'N/A',
         otherSpend: 'N/A',
       });
 
@@ -251,6 +259,7 @@ export const Workspaces = (props: WorkspacesProps): ReactNode => {
             totalStorage: costFormatter.format(
               creditedCost(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData))
             ),
+            totalEgress: formatCategoryCost(costFormatter, 'Egress', spendItem.subAggregation.spendData),
             otherSpend: costFormatter.format(
               creditedCost(_.find({ category: 'Other' }, spendItem.subAggregation.spendData))
             ),

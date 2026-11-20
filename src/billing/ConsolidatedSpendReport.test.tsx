@@ -1,5 +1,5 @@
 import { asMockedFn, MockedFn, partial } from '@terra-ui-packages/test-utils';
-import { act, screen } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Billing, BillingContract } from 'src/libs/ajax/billing/Billing';
@@ -81,6 +81,12 @@ const spendReport: SpendReport = {
               {
                 category: 'Compute',
                 cost: '0.00',
+                credits: '0.00',
+                currency: 'USD',
+              },
+              {
+                category: 'Egress',
+                cost: '0.01',
                 credits: '0.00',
                 currency: 'USD',
               },
@@ -260,6 +266,21 @@ describe('ConsolidatedSpendReport', () => {
     // Assert
     expect(screen.getByText('workspace2')).not.toBeNull();
     expect(screen.getByText('workspace3')).not.toBeNull();
+  });
+
+  it('displays egress cost, or N/A when the spend report has no egress category', async () => {
+    // Arrange
+    getCrossBillingSpendReport.mockResolvedValue(spendReport);
+
+    // Act
+    await act(async () => renderWithAppContexts(<ConsolidatedSpendReport workspaces={workspaces} />));
+
+    // Assert
+    expect(screen.getByText('Total Egress Cost')).not.toBeNull();
+    const workspace2Row = screen.getByText('workspace2').closest('[role="row"]') as HTMLElement;
+    const workspace3Row = screen.getByText('workspace3').closest('[role="row"]') as HTMLElement;
+    expect(within(workspace2Row).getByText('$0.01')).not.toBeNull();
+    expect(within(workspace3Row).getByText('N/A')).not.toBeNull();
   });
 
   it('searches by workspace name', async () => {

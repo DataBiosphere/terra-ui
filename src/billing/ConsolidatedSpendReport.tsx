@@ -6,7 +6,7 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { DateRangeFilter } from 'src/billing/Filter/DateRangeFilter';
 import { SearchFilter } from 'src/billing/Filter/SearchFilter';
 import { SpendReportDownloader } from 'src/billing/SpendReport/SpendReportDownloader';
-import { creditedCost, parseCurrencyIfNeeded } from 'src/billing/utils';
+import { creditedCost, formatCategoryCost, parseCurrencyIfNeeded } from 'src/billing/utils';
 import { BillingProject } from 'src/billing-core/models';
 import { ButtonOutline, Checkbox, fixedSpinnerOverlay } from 'src/components/common';
 import { ariaSort, HeaderRenderer } from 'src/components/table';
@@ -66,6 +66,9 @@ const ConsolidatedSpendWorkspaceCardHeaders: React.FC<ConsolidatedSpendWorkspace
         <div role='columnheader' aria-sort={ariaSort(sort, 'totalStorage')} style={{ flex: 1 }}>
           <HeaderRenderer sort={sort} onSort={onSort} name='totalStorage' />
         </div>
+        <div role='columnheader' aria-sort={ariaSort(sort, 'totalEgress')} style={{ flex: 1 }}>
+          <HeaderRenderer sort={sort} onSort={onSort} name='totalEgress' label='Total Egress Cost' />
+        </div>
         {/* <div role='columnheader' aria-sort={ariaSort(sort, 'otherSpend')} style={{ flex: 1 }}>
           <HeaderRenderer sort={sort} onSort={onSort} name='otherSpend' />
         </div> */}
@@ -93,7 +96,7 @@ const ConsolidatedSpendWorkspaceCard: React.FC<ConsolidatedSpendWorkspaceCardPro
   'ConsolidatedSpendWorkspaceCard',
   (props: ConsolidatedSpendWorkspaceCardProps) => {
     const { workspace, billingProject } = props;
-    const { namespace, name, createdBy, lastModified, totalSpend, totalCompute, totalStorage } = workspace;
+    const { namespace, name, createdBy, lastModified, totalSpend, totalCompute, totalStorage, totalEgress } = workspace;
     const workspaceCardStyles = {
       field: {
         ...Style.noWrapEllipsis,
@@ -151,6 +154,9 @@ const ConsolidatedSpendWorkspaceCard: React.FC<ConsolidatedSpendWorkspaceCardPro
           </div>
           <div role='cell' style={workspaceCardStyles.field}>
             {totalStorage ?? '...'}
+          </div>
+          <div role='cell' style={workspaceCardStyles.field}>
+            {totalEgress ?? '...'}
           </div>
           {/* <div role='cell' style={workspaceCardStyles.field}>
             {otherSpend ?? '...'}
@@ -234,6 +240,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
             totalSpend: 'N/A',
             totalCompute: 'N/A',
             totalStorage: 'N/A',
+            totalEgress: 'N/A',
             otherSpend: 'N/A',
           } as GoogleWorkspaceInfo);
 
@@ -290,6 +297,7 @@ export const ConsolidatedSpendReport = (props: ConsolidatedSpendReportProps): Re
                   totalStorage: costFormatter.format(
                     creditedCost(_.find({ category: 'Storage' }, spendItem.subAggregation.spendData))
                   ),
+                  totalEgress: formatCategoryCost(costFormatter, 'Egress', spendItem.subAggregation.spendData),
                   otherSpend: costFormatter.format(
                     creditedCost(_.find({ category: 'Other' }, spendItem.subAggregation.spendData))
                   ),

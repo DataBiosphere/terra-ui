@@ -121,8 +121,8 @@ describe('Workspaces', () => {
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(3); // 1 header row + 2 workspace rows
     // users sort initially by name, resource group ID comes from the billing project
-    expect(users[1]).toHaveTextContent(/test-azure-ws-nameN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
-    expect(users[2]).toHaveTextContent(/secondWorkspaceN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
+    expect(users[1]).toHaveTextContent(/test-azure-ws-nameN\/AN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
+    expect(users[2]).toHaveTextContent(/secondWorkspaceN\/AN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
   });
 
   it('renders Google workspaces, including errorMessage', async () => {
@@ -142,7 +142,7 @@ describe('Workspaces', () => {
     };
     const billingAccounts: Record<string, GoogleBillingAccount> = {};
     billingAccounts[`${secondWorkspace.workspace.billingAccount}`] = testBillingAccount;
-    const secondWorkspaceInfo = 'secondWorkspaceN/AN/AN/Agroot@gmail.comMar 15, 2023';
+    const secondWorkspaceInfo = 'secondWorkspaceN/AN/AN/AN/Agroot@gmail.comMar 15, 2023';
 
     // Act
     await act(async () => {
@@ -163,7 +163,7 @@ describe('Workspaces', () => {
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(3); // 1 header row + 2 workspace rows
     // users sort initially by name
-    expect(users[1]).toHaveTextContent(/test-gcp-ws-nameN\/AN\/AN\/Agroot@gmail.comMar 15, 2023/);
+    expect(users[1]).toHaveTextContent(/test-gcp-ws-nameN\/AN\/AN\/AN\/Agroot@gmail.comMar 15, 2023/);
     expect(users[2]).toHaveTextContent(new RegExp(secondWorkspaceInfo));
   });
 
@@ -193,8 +193,8 @@ describe('Workspaces', () => {
     const userTable = screen.getByRole('table');
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(3); // 1 header row + 2 workspace rows
-    expect(users[1]).toHaveTextContent(/test-azure-ws-nameN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
-    expect(users[2]).toHaveTextContent(/secondWorkspaceN\/AN\/AN\/Azoo@gmail.comMar 15, 2023/);
+    expect(users[1]).toHaveTextContent(/test-azure-ws-nameN\/AN\/AN\/AN\/Ajustin@gmail.comMar 15, 2023/);
+    expect(users[2]).toHaveTextContent(/secondWorkspaceN\/AN\/AN\/AN\/Azoo@gmail.comMar 15, 2023/);
   });
 
   it('renders icons if billing accounts are synchronizing with no accessibility errors', async () => {
@@ -225,9 +225,9 @@ describe('Workspaces', () => {
     const users = within(userTable).getAllByRole('row');
     expect(users).toHaveLength(4); // 1 header row + 4 workspace rows
     // users sort initially by name
-    expect(users[1]).toHaveTextContent('test-gcp-ws-nameN/AN/AN/Agroot@gmail.comMar 15, 2023');
-    expect(users[2]).toHaveTextContent('secondWorkspaceN/AN/AN/Agroot@gmail.comMar 15, 2023');
-    expect(users[3]).toHaveTextContent('thirdWorkspaceN/AN/AN/Agroot@gmail.comMar 15, 2023');
+    expect(users[1]).toHaveTextContent('test-gcp-ws-nameN/AN/AN/AN/Agroot@gmail.comMar 15, 2023');
+    expect(users[2]).toHaveTextContent('secondWorkspaceN/AN/AN/AN/Agroot@gmail.comMar 15, 2023');
+    expect(users[3]).toHaveTextContent('thirdWorkspaceN/AN/AN/AN/Agroot@gmail.comMar 15, 2023');
     // Verify accessibility
     expect(await axe(container)).toHaveNoViolations();
   });
@@ -251,7 +251,8 @@ describe('Workspaces', () => {
                 aggregationKey: 'Category',
                 spendData: [
                   { category: 'Compute', cost: '60.00', credits: '0.00', currency: 'USD' },
-                  { category: 'Storage', cost: '40.00', credits: '0.00', currency: 'USD' },
+                  { category: 'Storage', cost: '25.00', credits: '0.00', currency: 'USD' },
+                  { category: 'Egress', cost: '15.00', credits: '0.00', currency: 'USD' },
                 ],
               },
               workspace: { namespace: testNamespace, name: testWorkspaceName },
@@ -291,7 +292,8 @@ describe('Workspaces', () => {
       expect(workspaces[1]).toHaveTextContent(/test-gcp-ws-name/);
       expect(workspaces[1]).toHaveTextContent(/\$100.00/);
       expect(workspaces[1]).toHaveTextContent(/\$60.00/);
-      expect(workspaces[1]).toHaveTextContent(/\$40.00/);
+      expect(workspaces[1]).toHaveTextContent(/\$25.00/);
+      expect(workspaces[1]).toHaveTextContent(/\$15.00/);
     });
   });
 

@@ -87,7 +87,7 @@ export const currencyStringToFloat = (currencyString: string) => {
 
 // Main function to parse currency only for specified fields
 export const parseCurrencyIfNeeded = (field: string, value: string | undefined): number | string => {
-  const currencyFields = new Set(['totalSpend', 'totalCompute', 'totalStorage']);
+  const currencyFields = new Set(['totalSpend', 'totalCompute', 'totalStorage', 'totalEgress']);
 
   // Handle non-numeric cases
   if (value === 'N/A' || typeof value === 'undefined') return -Infinity;
@@ -139,4 +139,15 @@ export const creditedCost: (obj: any) => number = (obj) => {
   const cost = parseFloat(obj?.cost ?? '0.00');
   const credits = parseFloat(obj?.credits ?? '0.00');
   return cost + credits; // add, since credits are negative values
+};
+
+// Formats the credited cost of a single spend category. Returns 'N/A' when the spend report
+// does not include that category (e.g. Egress for reports generated before it was supported).
+export const formatCategoryCost = (
+  costFormatter: Intl.NumberFormat,
+  category: string,
+  categorySpendData: { category: string; cost: string; credits: string }[] | undefined
+): string => {
+  const categoryData = _.find({ category }, categorySpendData);
+  return categoryData ? costFormatter.format(creditedCost(categoryData)) : 'N/A';
 };
