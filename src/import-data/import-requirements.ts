@@ -2,7 +2,14 @@ import _ from 'lodash';
 import { Snapshot } from 'src/libs/ajax/DataRepo';
 import { CloudProvider, WorkspaceWrapper } from 'src/workspaces/utils';
 
-import { anvilSources, biodatacatalystSources, isAnvilImport, urlMatchesSource, UrlSource } from './import-sources';
+import {
+  anvilSources,
+  biodatacatalystSources,
+  isAnvilImport,
+  isBiodatacatalystImport,
+  urlMatchesSource,
+  UrlSource,
+} from './import-sources';
 import { ImportRequest } from './import-types';
 
 export const getRequiredCloudPlatform = (importRequest: ImportRequest): CloudProvider | undefined => {
@@ -35,7 +42,12 @@ const sourcesRequiringSecurityMonitoring: UrlSource[] = [
  * Determine if a PFB file requires security monitoring.
  */
 const pfbRequiresSecurityMonitoring = (pfbUrl: URL): boolean => {
-  return sourcesRequiringSecurityMonitoring.some((source) => urlMatchesSource(pfbUrl, source));
+  return sourcesRequiringSecurityMonitoring.some((urlsource) => {
+    if (urlsource.source === 'biodatacatalyst') {
+      return urlMatchesSource(pfbUrl, urlsource) || isBiodatacatalystImport;
+    }
+    return urlMatchesSource(pfbUrl, urlsource);
+  });
 };
 
 /**
