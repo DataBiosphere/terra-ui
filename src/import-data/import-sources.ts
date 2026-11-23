@@ -14,9 +14,19 @@ export const anvilSources: UrlSource[] = [
 ];
 
 export const biodatacatalystSources: UrlSource[] = [
+  // Prod
   { type: 'http', host: 'gen3.biodatacatalyst.nhlbi.nih.gov' },
   { type: 's3', bucket: 'gen3-biodatacatalyst-nhlbi-nih-gov-pfb-export' },
+  // Staging
+  { type: 'http', host: 'staging.gen3.biodatacatalyst.nhlbi.nih.gov' },
+  { type: 's3', bucket: 'staging-gen3-biodatacatalyst-nhlbi-nih-gov-pfb-exp' },
+  // Legacy
   { type: 's3', bucket: 'gen3-theanvil-io-pfb-export' },
+  // Tutorial
+  { type: 's3', bucket: 'nih-nhlbi-biodata-catalyst-tutorial-genome-data' },
+  { type: 's3', bucket: 'cdis-presigned-url-test' },
+  // Test
+  { type: 's3', bucket: 'bdc-indexing-manifests' },
 ];
 
 /**
