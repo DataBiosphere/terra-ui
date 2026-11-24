@@ -1,7 +1,7 @@
 import _ from 'lodash/fp';
 import { useEffect, useState } from 'react';
 import { div, h, h2 } from 'react-hyperscript-helpers';
-import { useShowBroadOnManifoldCards } from 'src/broad-on-manifold/broad-on-manifold-utils';
+import { useIsBroadOnManifoldUser } from 'src/broad-on-manifold/broad-on-manifold-utils';
 import { getBroadOnManifoldDocLinks, LandingProductCards } from 'src/broad-on-manifold/LandingProductCards';
 import { ButtonPrimary, Clickable, Link } from 'src/components/common';
 import { HeroWrapper } from 'src/components/HeroWrapper';
@@ -89,7 +89,8 @@ export const LandingPage = () => {
   const { signInStatus } = useStore(authStore);
   const [billingProjects, setBillingProjects] = useState();
   const signal = useCancellation();
-  const showBroadOnManifold = useShowBroadOnManifoldCards();
+  // Until Sam says whether the user is on the Broad on Manifold list, show the standard landing cards
+  const showBroadOnManifold = useIsBroadOnManifoldUser() === true;
 
   useEffect(() => {
     const loadProjects = withErrorHandling(async (error) => {

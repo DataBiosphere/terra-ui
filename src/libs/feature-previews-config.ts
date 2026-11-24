@@ -2,13 +2,9 @@ export const JUPYTERLAB_GCP_FEATURE_ID = 'jupyterlab-gcp';
 export const ENABLE_JUPYTERLAB_ID = 'enableJupyterLabGCP';
 export const COHORT_BUILDER_CARD = 'cohortBuilderCard';
 export const WORKFLOW_RETRY_WITH_MORE_MEMORY = 'retryWithMoreMemory';
-export const BROAD_ON_MANIFOLD_FEATURE_ID = 'broadOnManifold';
 
 // If the groups option is defined for a FeaturePreview, it must contain at least one group.
 type GroupsList = readonly [string, ...string[]];
-
-// If the emailDomains option is defined for a FeaturePreview, it must contain at least one domain.
-type EmailDomainsList = readonly [string, ...string[]];
 
 export type FeaturePreview = {
   /**
@@ -32,13 +28,6 @@ export type FeaturePreview = {
    * This only applies in production. In dev environments, all features are available to all users.
    */
   readonly groups?: GroupsList;
-
-  /**
-   * Optional list of email domains, such as 'broadinstitute.org'. If specified, the feature will only appear on the
-   * feature previews page for users whose sign-in email is in one of them. Combined with `groups`, both must match.
-   * This only applies in production. In dev environments, all features are available to all users.
-   */
-  readonly emailDomains?: EmailDomainsList;
 
   /**
    * Optional URL for feature documentation. Shown on the feature previews page.
@@ -87,14 +76,6 @@ const featurePreviewsConfig: readonly FeaturePreview[] = [
     documentationUrl:
       'https://support.terra.bio/hc/en-us/articles/39412460844699-Automatically-retrying-workflows-with-more-memory',
     lastUpdated: '8/8/2025',
-  },
-  {
-    id: BROAD_ON_MANIFOLD_FEATURE_ID,
-    title: 'Broad on Manifold',
-    description:
-      "Enabling this feature will show Broad on Manifold, the Broad Institute's instance of the Manifold platform, next to Terra workspaces on the Terra home page.",
-    emailDomains: ['broadinstitute.org'],
-    lastUpdated: '11/16/2026',
   },
 ];
 
