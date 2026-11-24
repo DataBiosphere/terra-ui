@@ -367,9 +367,9 @@ const CallTable = ({
               },
             },
             {
-              size: { basis: 200, grow: 1 },
+              size: { basis: 90, grow: 0 },
               field: 'callCachingResult',
-              headerRenderer: () => h(Sortable, { sort, field: 'callCachingResult', onSort: setSort }, ['Caching']),
+              headerRenderer: () => 'Caching',
               cellRenderer: ({ rowIndex }) => {
                 const { taskName, shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex];
                 if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
