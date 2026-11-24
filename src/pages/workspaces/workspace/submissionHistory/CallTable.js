@@ -1,3 +1,4 @@
+import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
@@ -114,6 +115,11 @@ const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) 
   });
   return div({ 'aria-label': 'Workflow Breadcrumb', style: { marginBottom: '10px' } }, [workflowPathRender]);
 };
+
+// Same size as the Status column's icons, but greyscale so call caching doesn't compete with them.
+// Icon only; the full Cromwell text is in the tooltip.
+const callCachingIcon = (shape, label, tooltip) =>
+  h(TooltipTrigger, { content: tooltip }, [icon(shape, { size: 24, 'aria-label': label, style: { color: colors.dark(0.7), flexShrink: 0 } })]);
 
 /* EXTRA STYLING FOR TEXT HEAVY CELLS */
 const basicCellTextStyle = {
@@ -363,14 +369,19 @@ const CallTable = ({
             {
               size: { basis: 200, grow: 1 },
               field: 'callCachingResult',
-              headerRenderer: () => h(Sortable, { sort, field: 'callCachingResult', onSort: setSort }, ['Call Caching Result']),
+              headerRenderer: () => h(Sortable, { sort, field: 'callCachingResult', onSort: setSort }, ['Caching']),
               cellRenderer: ({ rowIndex }) => {
                 const { taskName, shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex];
                 if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
+                  // Pick the icon; if it's a miss, also display wizard
                   return result
                     ? h(Fragment, [
-                        h(TooltipCell, [result]),
-                        result === 'Cache Miss' &&
+                        Utils.cond(
+                          [_.startsWith('Cache Hit', result), () => callCachingIcon('success-standard', 'Cache hit', result)],
+                          [_.startsWith('Cache Miss', result), () => callCachingIcon('times-circle', 'Cache miss', result)],
+                          () => h(TooltipCell, [result])
+                        ),
+                        _.startsWith('Cache Miss', result) &&
                           h(
                             Link,
                             {
@@ -382,12 +393,13 @@ const CallTable = ({
                             [icon('search', { size: 18, 'aria-label': 'call cache debug wizard' })]
                           ),
                       ])
-                    : div({ style: { color: colors.dark(0.7) } }, ['No Information']);
+                    : null; // No info, e.g. initializing
                 }
                 if (effectiveCallCachingMode === 'WriteCache' || effectiveCallCachingMode === 'CallCachingOff') {
-                  return div({ style: { color: colors.dark(0.7) } }, ['Disabled']);
+                  return callCachingIcon('minus-circle', 'Call caching disabled', 'Disabled');
                 }
-                return div({ style: { color: colors.dark(0.7) } }, ['No Information']);
+                // No call caching mode, e.g. it's a subworkflow or scatter call
+                return null;
               },
             },
           ],
