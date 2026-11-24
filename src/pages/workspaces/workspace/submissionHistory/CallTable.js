@@ -1,4 +1,3 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
@@ -7,14 +6,12 @@ import { bucketBrowserUrl } from 'src/auth/auth';
 import { Link, Select } from 'src/components/common';
 import { icon } from 'src/components/icons';
 import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
-import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
+import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/submissionHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/submissionHistory/FailuresViewer';
-import { CallCostCell } from 'src/workflows-app/components/CallCostCell';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
-import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
 /* FILTER UTILITY FUNCTIONS */
 export const taskNameFilter = (searchText) => {
@@ -130,8 +127,6 @@ const CallTable = ({
   submissionId,
   callObjects,
   defaultFailedFilter = false,
-  showLogModal,
-  showTaskDataModal,
   showInputOutputModal = undefined,
   loadWorkflow,
   loadCallCacheDiff,
@@ -140,9 +135,6 @@ const CallTable = ({
   workflowName,
   workflowId,
   failedTasks,
-  isAzure,
-  getCostOfCallFn,
-  isCostMetadataLoading,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -398,123 +390,6 @@ const CallTable = ({
                 return div({ style: { color: colors.dark(0.7) } }, [effectiveCallCachingMode]);
               },
             },
-            ...(isAzure // GCP workspaces do not have inputs/outputs/logs (only log file is at top level, linked in workflow dashboard)
-              ? [
-                  {
-                    size: { basis: 200, grow: 1 },
-                    field: 'cost',
-                    headerRenderer: () =>
-                      h(Sortable, { sort, field: 'cost', onSort: setSort }, [
-                        'Approximate Cost',
-                        h(
-                          TooltipTrigger,
-                          {
-                            content:
-                              "Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts. Tasks that call cache don't incur cost.",
-                          },
-                          [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
-                        ),
-                      ]),
-                    cellRenderer: ({ rowIndex }) => {
-                      return h(CallCostCell, {
-                        call: filteredCallObjects[rowIndex],
-                        getCostOfCallFn,
-                        isCostMetadataLoading,
-                      });
-                    },
-                  },
-                  {
-                    size: { basis: 200, grow: 1 },
-                    field: 'logs',
-                    headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
-                    cellRenderer: ({ rowIndex }) => {
-                      const {
-                        stdout,
-                        stderr,
-                        inputs,
-                        outputs,
-                        subWorkflowId,
-                        // disable linting to match the backend keys
-                        // eslint-disable-next-line camelcase, @typescript-eslint/no-unused-vars
-                        tes_stderr,
-                        // eslint-disable-next-line camelcase
-                        tes_stdout,
-                      } = filteredCallObjects[rowIndex];
-                      const style =
-                        enableExplorer && !_.isEmpty(subWorkflowId)
-                          ? {
-                              display: 'flex',
-                              justifyContent: 'flex-start',
-                            }
-                          : {
-                              display: 'grid',
-                              gridTemplateColumns: '1fr 1fr 1fr',
-                              gridColumnGap: '0.6em',
-                              gridRowGap: '0.3em',
-                            };
-                      const linkTemplate =
-                        enableExplorer && !_.isEmpty(subWorkflowId)
-                          ? [
-                              h(
-                                Link,
-                                {
-                                  onClick: () => {
-                                    loadWorkflow(subWorkflowId, updateWorkflowPath);
-                                  },
-                                },
-                                ['View subworkflow']
-                              ),
-                            ]
-                          : _.isEmpty(subWorkflowId) && [
-                              h(
-                                Link,
-                                {
-                                  'aria-label': 'View task inputs',
-                                  onClick: () => showTaskDataModal('Inputs', inputs),
-                                },
-                                ['Inputs']
-                              ),
-                              h(
-                                Link,
-                                {
-                                  'aria-label': 'View task outputs',
-                                  onClick: () => showTaskDataModal('Outputs', outputs),
-                                },
-                                ['Outputs']
-                              ),
-                              h(
-                                Link,
-                                {
-                                  onClick: () =>
-                                    showLogModal(
-                                      'Task Logs',
-                                      [
-                                        {
-                                          logUri: stdout,
-                                          logTitle: 'Task Standard Out',
-                                          logKey: 'stdout',
-                                          logFilename: 'stdout.txt',
-                                          logTooltip: LogTooltips.task,
-                                        },
-                                        {
-                                          logUri: stderr,
-                                          logTitle: 'Task Standard Err',
-                                          logKey: 'stderr',
-                                          logFilename: 'stderr.txt',
-                                          logTooltip: LogTooltips.task,
-                                        },
-                                      ],
-                                      tes_stdout
-                                    ),
-                                },
-                                ['Logs']
-                              ),
-                            ];
-                      return div({ style }, linkTemplate);
-                    },
-                  },
-                ]
-              : []),
           ],
         }),
     ]),
