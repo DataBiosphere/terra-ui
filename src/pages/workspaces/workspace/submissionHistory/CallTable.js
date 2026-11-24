@@ -384,10 +384,10 @@ const CallTable = ({
                       ])
                     : div({ style: { color: colors.dark(0.7) } }, ['No Information']);
                 }
-                if (effectiveCallCachingMode === 'WriteCache') {
-                  return div({ style: { color: colors.dark(0.7) } }, ['Lookup disabled; write enabled']);
+                if (effectiveCallCachingMode === 'WriteCache' || effectiveCallCachingMode === 'CallCachingOff') {
+                  return div({ style: { color: colors.dark(0.7) } }, ['Disabled']);
                 }
-                return div({ style: { color: colors.dark(0.7) } }, [effectiveCallCachingMode]);
+                return div({ style: { color: colors.dark(0.7) } }, ['No Information']);
               },
             },
           ],
