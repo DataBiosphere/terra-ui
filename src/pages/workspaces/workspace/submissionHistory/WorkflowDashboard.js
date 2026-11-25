@@ -121,6 +121,7 @@ const WorkflowDashboard = _.flow(
         'callRoot',
         'inputs',
         'outputs',
+        'shardIndex',
         'subWorkflowId',
         'workflowName',
       ];

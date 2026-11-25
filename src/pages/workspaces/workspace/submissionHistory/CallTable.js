@@ -39,11 +39,11 @@ export const makeBatchJobUrl = (jobId) => {
   return `https://console.cloud.google.com/batch/jobsDetail/regions/${region}/jobs/${jobName}/details?project=${project}`;
 };
 
-// Cromwell runs a scatter nested inside another scatter as a synthetic subworkflow named after the inner scatter's
-// position in the WDL, e.g. "ScatterAt154_14" (see AstToScatterElement.scala). Real subworkflow calls are fully
-// qualified, e.g. "MyWorkflow.MySubworkflow", so they can't match.
-export const callType = (taskName, { subWorkflowId }) =>
-  Utils.cond([_.isEmpty(subWorkflowId), () => 'Task'], [/^ScatterAt\d+_\d+$/.test(taskName), () => 'Scatter'], () => 'Subworkflow');
+// Same signals as Job Manager (servers/cromwell/jobs/controllers/jobs_controller.py), not the call's name:
+// a call that ran inside a scatter has a shardIndex other than -1, and a subworkflow call has a subWorkflowId.
+// A call can be both (a scattered subworkflow); it shows as Scatter, the way Job Manager groups it as a scatter.
+export const callType = ({ shardIndex = -1, subWorkflowId }) =>
+  Utils.cond([shardIndex !== -1, () => 'Scatter'], [!_.isEmpty(subWorkflowId), () => 'Subworkflow'], () => 'Task');
 
 // Cromwell names calls "<workflow>.<call>"; synthetic scatters like "ScatterAt154_14" have no prefix.
 export const callDisplayName = (taskName) => taskName.replace(/^[^.]*\./, '');
@@ -55,10 +55,7 @@ const generateCallTableData = (calls) => {
   return _.flatMap((taskName) => {
     const targetData = calls[taskName];
     return _.map((taskCall) =>
-      _.merge(
-        { taskName, type: callType(taskName, taskCall), statusObj: collapseCromwellStatus(taskCall.executionStatus, taskCall.backendStatus) },
-        taskCall
-      )
+      _.merge({ taskName, type: callType(taskCall), statusObj: collapseCromwellStatus(taskCall.executionStatus, taskCall.backendStatus) }, taskCall)
     )(targetData);
   })(taskNames);
 };

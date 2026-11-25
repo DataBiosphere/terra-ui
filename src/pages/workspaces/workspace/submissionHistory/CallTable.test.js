@@ -20,18 +20,13 @@ describe('makeBatchJobUrl', () => {
 
 describe('callType', () => {
   it.each([
-    { label: 'a task call', taskName: 'ImputationBeagle.CountSamples', call: {}, expected: 'Task' },
-    { label: 'a subworkflow call', taskName: 'ImputationBeagle.RunBatch', call: { subWorkflowId: 'abc' }, expected: 'Subworkflow' },
-    { label: 'a nested scatter', taskName: 'ScatterAt154_14', call: { subWorkflowId: 'abc' }, expected: 'Scatter' },
-    { label: 'a task whose name looks like a scatter', taskName: 'ScatterAt154_14', call: {}, expected: 'Task' },
-    {
-      label: 'a subworkflow whose name starts like a scatter',
-      taskName: 'Wf.ScatterAt154_14',
-      call: { subWorkflowId: 'abc' },
-      expected: 'Subworkflow',
-    },
-  ])('labels $label as $expected', ({ taskName, call, expected }) => {
-    expect(callType(taskName, call)).toBe(expected);
+    { label: 'an unscattered task', call: { shardIndex: -1 }, expected: 'Task' },
+    { label: 'an unscattered subworkflow', call: { shardIndex: -1, subWorkflowId: 'abc' }, expected: 'Subworkflow' },
+    { label: 'a scattered task', call: { shardIndex: 0 }, expected: 'Scatter' },
+    { label: 'a scattered subworkflow, e.g. a nested scatter', call: { shardIndex: 1, subWorkflowId: 'abc' }, expected: 'Scatter' },
+    { label: 'a call with no shardIndex', call: {}, expected: 'Task' },
+  ])('labels $label as $expected', ({ call, expected }) => {
+    expect(callType(call)).toBe(expected);
   });
 });
 
