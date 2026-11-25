@@ -1,10 +1,10 @@
 import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
-import { Link, Select } from 'src/components/common';
+import { Clickable, Link, Select } from 'src/components/common';
 import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
 import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
@@ -116,11 +116,30 @@ const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) 
 };
 
 // Same size as the Status column's icons, but greyscale so call caching doesn't compete with them.
-// Icon only; the full Cromwell text is in the tooltip.
-const callCachingIcon = (shape, label, tooltip) =>
-  h(TooltipTrigger, { content: tooltip, copyable: true }, [
-    h(Icon, { icon: shape, size: 24, 'aria-label': label, style: { color: colors.dark(0.7), flexShrink: 0 } }),
-  ]);
+// Icon only; the full Cromwell text is in the tooltip. With onClick, the icon is a button that darkens on hover,
+// and the tooltip says so (the copy button still copies just the Cromwell text).
+const callCachingIcon = (shape, label, tooltip, onClick) =>
+  h(
+    TooltipTrigger,
+    {
+      content: onClick
+        ? div([tooltip, div({ style: { marginTop: '0.5rem', fontStyle: 'italic', color: colors.dark(0.7) } }, ['Click to debug'])])
+        : tooltip,
+      copyText: tooltip,
+      copyable: true,
+    },
+    [
+      onClick
+        ? h(Clickable, { 'aria-label': label, onClick, style: { display: 'flex', color: colors.dark(0.7) }, hover: { color: colors.dark() } }, [
+            h(Icon, { icon: shape, size: 24 }),
+          ])
+        : h(Icon, { icon: shape, size: 24, 'aria-label': label, style: { color: colors.dark(0.7), flexShrink: 0 } }),
+    ]
+  );
+
+// Centers the icon in the cell.
+const centeredInCell = (children) =>
+  div({ style: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }, _.castArray(children));
 
 /* EXTRA STYLING FOR TEXT HEAVY CELLS */
 const basicCellTextStyle = {
@@ -374,30 +393,25 @@ const CallTable = ({
               cellRenderer: ({ rowIndex }) => {
                 const { taskName, shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex];
                 if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
-                  // Pick the icon; if it's a miss, also display wizard
+                  // Pick the icon; clicking a miss opens the call cache debug wizard
                   return result
-                    ? h(Fragment, [
+                    ? centeredInCell(
                         Utils.cond(
                           [_.startsWith('Cache Hit', result), () => callCachingIcon('success-standard', 'Cache hit', result)],
-                          [_.startsWith('Cache Miss', result), () => callCachingIcon('times-circle', 'Cache miss', result)],
+                          [
+                            _.startsWith('Cache Miss', result),
+                            () =>
+                              callCachingIcon('times-circle', 'Cache miss: open call cache debug wizard', result, () =>
+                                setWizardSelection({ callFqn: taskName, index })
+                              ),
+                          ],
                           () => h(TooltipCell, [result])
-                        ),
-                        _.startsWith('Cache Miss', result) &&
-                          h(
-                            Link,
-                            {
-                              key: 'cc',
-                              style: { marginLeft: '0.5rem' },
-                              tooltip: 'Call Cache Debug Wizard',
-                              onClick: () => setWizardSelection({ callFqn: taskName, index }),
-                            },
-                            [h(Icon, { icon: 'search', size: 18, 'aria-label': 'call cache debug wizard' })]
-                          ),
-                      ])
+                        )
+                      )
                     : null; // No info, e.g. initializing
                 }
                 if (effectiveCallCachingMode === 'WriteCache' || effectiveCallCachingMode === 'CallCachingOff') {
-                  return callCachingIcon('minus-circle', 'Call caching disabled', 'Disabled');
+                  return centeredInCell(callCachingIcon('minus-circle', 'Call caching disabled', 'Disabled'));
                 }
                 // No call caching mode, e.g. it's a subworkflow or scatter call
                 return null;

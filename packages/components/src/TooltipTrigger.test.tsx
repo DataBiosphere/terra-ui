@@ -102,6 +102,21 @@ describe('TooltipTrigger', () => {
     expect(within(tooltip).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
   });
 
+  it('copies copyText instead of the whole tooltip when given', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    renderTooltipTrigger({ copyable: true, copyText: 'Just this' });
+
+    // Act
+    await user.hover(screen.getByRole('button'));
+    const tooltip = within(getPopupRoot()).getByRole('tooltip');
+    await user.click(within(tooltip).getByRole('button', { name: 'Copy to clipboard' }));
+
+    // Assert
+    expect(await navigator.clipboard.readText()).toBe('Just this');
+  });
+
   it('does not show a copy button by default', async () => {
     // Arrange
     const user = userEvent.setup();

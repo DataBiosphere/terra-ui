@@ -72,6 +72,7 @@ const copiedConfirmationDuration = 1500;
 interface TooltipProps {
   children?: ReactNode;
   copyable?: boolean;
+  copyText?: string;
   delay?: number;
   id: string;
   onMouseEnter?: () => void;
@@ -81,7 +82,7 @@ interface TooltipProps {
 }
 
 const Tooltip = (props: TooltipProps): ReactNode => {
-  const { children, copyable, delay, id, onMouseEnter, onMouseLeave, side = 'bottom', targetId } = props;
+  const { children, copyable, copyText, delay, id, onMouseEnter, onMouseLeave, side = 'bottom', targetId } = props;
 
   const theme = useThemeFromContext();
 
@@ -129,7 +130,7 @@ const Tooltip = (props: TooltipProps): ReactNode => {
 
   const copyContent = async () => {
     // innerText keeps the visible line breaks; textContent is a fallback where innerText isn't implemented (jsdom)
-    const text = contentRef.current?.innerText ?? contentRef.current?.textContent;
+    const text = copyText ?? contentRef.current?.innerText ?? contentRef.current?.textContent;
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
@@ -211,11 +212,13 @@ export interface TooltipTriggerProps extends Pick<TooltipProps, 'delay' | 'side'
    * Off by default, since an interactive tooltip covers whatever is beneath it while hovered.
    */
   copyable?: boolean;
+  /** For copyable tooltips: what the copy button copies, if not all of the tooltip's text (e.g. to leave out a hint). */
+  copyText?: string;
   useTooltipAsLabel?: boolean;
 }
 
 export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
-  const { children, content, copyable, delay, side, useTooltipAsLabel } = props;
+  const { children, content, copyable, copyText, delay, side, useTooltipAsLabel } = props;
   const hasTooltipContent = !!content;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -277,6 +280,7 @@ export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
           {isOpen && (
             <Tooltip
               copyable={copyable}
+              copyText={copyText}
               delay={delay}
               id={tooltipId}
               onMouseEnter={cancelClose}
