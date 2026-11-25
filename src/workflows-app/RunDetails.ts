@@ -93,9 +93,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
   const [workflowMetadata, setWorkflowMetadata] = useState<WorkflowMetadata>();
   const [callObjects, setCallObjects] = useState<any[] | undefined>([]);
 
-  const [costMetadata, setCostMetadata] = useState<WorkflowMetadata>();
-  const [isCostMetadataLoading, setIsCostMetadataLoading] = useState<boolean>(true);
-
   const [rootWorkflowCost, setRootWorkflowCost] = useState<number>();
   /* If a workflow fails, we make a special request to get the failed tasks. */
   const [failedTasks, setFailedTasks] = useState<any[]>([]);
@@ -129,15 +126,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
       title: modalTitle,
       logsArray,
       templateTesLog: tesLog,
-    });
-  }, []);
-
-  /* Callback for child components to use to open the task data modal */
-  const showTaskDataModal = useCallback((taskDataTitle, taskJson) => {
-    setTaskModalState({
-      showing: true,
-      taskDataTile: taskDataTitle,
-      taskDataJson: taskJson,
     });
   }, []);
 
@@ -242,24 +230,10 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
     }
     const makeCostMetadataRequest = async () => {
       const costMetadata = await fetchCostMetadata({ cromwellProxyUrl: cromwellProxyState.state, signal, workflowId });
-      setCostMetadata(costMetadata);
       setRootWorkflowCost(calculateCostOfCallsArray(costMetadata.calls));
     };
     makeCostMetadataRequest();
-    setIsCostMetadataLoading(false);
   }, [cromwellProxyState, signal, workflowId]);
-
-  // Given a call name (e.g. main_worfklow.taskName or main_workflow.subworkflowName, return the cost of that call, or undefined if it can't be found.
-  // Passed to child components so they can calculate the cost of individual calls using the cost metadata this page fetched.
-  const getCostOfCallFn = useCallback(
-    (callName: string, attemptNumber: number, shardIndex: number): number | undefined => {
-      if (!costMetadata || !costMetadata.calls) {
-        return undefined;
-      }
-      return getCostOfCall(costMetadata, callName, attemptNumber, shardIndex);
-    },
-    [costMetadata]
-  );
 
   //  Below two methods are data fetchers used in the call cache wizard. Defined
   // here so we can easily use the cloud context (we're in Azure, which proxy URL.)
@@ -397,8 +371,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
             loadCallCacheDiff,
             loadCallCacheMetadata,
             defaultFailedFilter: workflowMetadata?.status?.toLocaleLowerCase().includes('failed'),
-            showLogModal,
-            showTaskDataModal,
             callObjects,
             failedTasks,
             workflowName: workflowMetadata?.workflowName,
@@ -406,9 +378,6 @@ export const BaseRunDetails = (props: RunDetailsProps, _ref): ReactNode => {
             name: workspaceName,
             namespace: workspaceBillingProject,
             submissionId,
-            isAzure: true,
-            getCostOfCallFn,
-            isCostMetadataLoading,
           }),
         ]
       ),

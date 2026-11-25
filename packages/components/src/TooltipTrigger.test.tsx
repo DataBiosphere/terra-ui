@@ -41,6 +41,95 @@ describe('TooltipTrigger', () => {
     expect(isShownAfterUnhover).toBe(false);
   });
 
+  it('does not let the pointer interact with a tooltip by default', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    renderTooltipTrigger();
+
+    // Act
+    await user.hover(screen.getByRole('button'));
+
+    // Assert
+    expect(within(getPopupRoot()).getByRole('tooltip')).toHaveStyle({ pointerEvents: 'none' });
+  });
+
+  it(
+    'keeps a copyable tooltip open while hovering on the tooltip itself, so its text can be selected',
+    withFakeTimers(async () => {
+      // Arrange
+      const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+
+      renderTooltipTrigger({ copyable: true });
+
+      const btn = screen.getByRole('button');
+
+      // Act
+      await user.hover(btn);
+      await user.unhover(btn);
+      const tooltip = within(getPopupRoot()).getByRole('tooltip');
+      await user.hover(tooltip);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      const isShownWhileHoveringTooltip = !!within(getPopupRoot()).queryByText(tooltipContent);
+
+      await user.unhover(tooltip);
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+      const isShownAfterUnhoveringTooltip = !!within(getPopupRoot()).queryByText(tooltipContent);
+
+      // Assert
+      expect(isShownWhileHoveringTooltip).toBe(true);
+      expect(isShownAfterUnhoveringTooltip).toBe(false);
+    })
+  );
+
+  it('copies all of a copyable tooltip with its copy button', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    renderTooltipTrigger({ copyable: true });
+
+    // Act
+    await user.hover(screen.getByRole('button'));
+    const tooltip = within(getPopupRoot()).getByRole('tooltip');
+    await user.click(within(tooltip).getByRole('button', { name: 'Copy to clipboard' }));
+
+    // Assert
+    expect(await navigator.clipboard.readText()).toBe(tooltipContent);
+    expect(within(tooltip).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+  });
+
+  it('copies copyText instead of the whole tooltip when given', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    renderTooltipTrigger({ copyable: true, copyText: 'Just this' });
+
+    // Act
+    await user.hover(screen.getByRole('button'));
+    const tooltip = within(getPopupRoot()).getByRole('tooltip');
+    await user.click(within(tooltip).getByRole('button', { name: 'Copy to clipboard' }));
+
+    // Assert
+    expect(await navigator.clipboard.readText()).toBe('Just this');
+  });
+
+  it('does not show a copy button by default', async () => {
+    // Arrange
+    const user = userEvent.setup();
+
+    renderTooltipTrigger();
+
+    // Act
+    await user.hover(screen.getByRole('button'));
+
+    // Assert
+    expect(within(within(getPopupRoot()).getByRole('tooltip')).queryByRole('button')).toBeNull();
+  });
+
   it('shows tooltip when focusing on child', () => {
     // Arrange
     renderTooltipTrigger();

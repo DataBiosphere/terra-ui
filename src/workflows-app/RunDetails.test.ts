@@ -4,7 +4,6 @@ import _ from 'lodash/fp';
 import { h } from 'react-hyperscript-helpers';
 import {
   AzureBlobByUriContract,
-  AzureBlobResult,
   AzureStorage,
   AzureStorageContract,
   SasInfo,
@@ -22,8 +21,6 @@ import { collapseCromwellStatus } from 'src/workflows-app/components/job-common'
 import { failedTasks as failedTasksMetadata } from 'src/workflows-app/fixtures/failed-tasks';
 import { diff as callCacheDiff } from 'src/workflows-app/fixtures/test-callcache-diff';
 import { metadata as callCacheDiffMetadata } from 'src/workflows-app/fixtures/test-callcache-from-workflow';
-import { metadata as childMetadata } from 'src/workflows-app/fixtures/test-child-workflow';
-import { metadata as parentMetadata } from 'src/workflows-app/fixtures/test-parent-workflow';
 import { metadata as runDetailsMetadata } from 'src/workflows-app/fixtures/test-workflow';
 import { BaseRunDetails } from 'src/workflows-app/RunDetails';
 import { mockAzureWorkspace } from 'src/workflows-app/utils/mock-responses';
@@ -132,23 +129,6 @@ const mockObj = {
   }),
 };
 
-type ParentMetadata = typeof parentMetadata;
-const subworkflowCromwellAjaxMock = (parentOverride: Partial<ParentMetadata> = {}): CromwellAppAjaxContract => {
-  const modifiedParentMetadata = { ...parentMetadata, ...parentOverride };
-  return partial<CromwellAppAjaxContract>({
-    workflows: (id) => ({
-      metadata: jest.fn(() => {
-        const workflowMap = {
-          [parentMetadata.id]: modifiedParentMetadata,
-          [childMetadata.id]: childMetadata,
-        };
-        return Promise.resolve(workflowMap[id]);
-      }),
-      failedTasks: jest.fn(async () => ({})),
-    }),
-  });
-};
-
 beforeEach(() => {
   asMockedFn(AzureStorage).mockReturnValue(mockObj.AzureStorage);
   asMockedFn(CromwellApp).mockReturnValue(mockObj.CromwellApp);
@@ -211,7 +191,6 @@ describe('BaseRunDetails - render smoke test', () => {
       const { executionStatus, backendStatus, start, end } = calls[taskName][0];
       const row = taskRows[index];
       within(row).getByText(taskName);
-      within(row).getByText('Logs');
       // Checking row text content for dates since querying by formatted date doesn't seem to work
       const statusObj = collapseCromwellStatus(executionStatus, backendStatus);
       const status = within(row).getAllByText(statusObj.label());
@@ -221,25 +200,6 @@ describe('BaseRunDetails - render smoke test', () => {
       expect(row.textContent).toContain(targetStartText);
       expect(row.textContent).toContain(targetEndText);
     });
-  });
-
-  it('shows expected cost details', async () => {
-    // Act
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-
-    // Assert
-    const table = screen.getByRole('table');
-    const tableRows = within(table).getAllByRole('row').slice(1); // omit header row
-
-    // cost should be calculated and displayed
-    const task1Row = tableRows[0];
-    const cellsFromDataRow1 = within(task1Row).getAllByRole('cell');
-    within(cellsFromDataRow1[7]).getByText('$12.72');
-
-    // Cache hit should display a dash
-    const task4Row = tableRows[3];
-    const cellsFromDataRow4 = within(task4Row).getAllByRole('cell');
-    within(cellsFromDataRow4[7]).getByText('-');
   });
 
   it('only shows failed tasks if a workflow has failed', async () => {
@@ -280,7 +240,6 @@ describe('BaseRunDetails - render smoke test', () => {
     const targetEndText = makeCompleteDate(end);
     expect(targetRow.textContent).toContain(targetStartText);
     expect(targetRow.textContent).toContain(targetEndText);
-    within(targetRow).getByText('Logs');
   });
 
   it('only opens the failure modal when failure status is clicked', async () => {
@@ -331,100 +290,6 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(captureEvent).toHaveBeenCalledWith(Events.workflowsAppCloseLogViewer, undefined);
   });
 
-  it('opens the log viewer modal when Logs is clicked from the call table', async () => {
-    // Arrange
-    const user = userEvent.setup();
-
-    // Act
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByRole('table');
-    const logsLink = within(table).getAllByText('Logs');
-    await user.click(logsLink[0]);
-
-    // Assert
-    expect(screen.getByText('Task Standard Out'));
-    expect(screen.getByText('Task Standard Err'));
-  });
-
-  it('shows a static error message on LogViewer if log cannot be retrieved', async () => {
-    // Arrange
-    const mockAzureStorage = _.cloneDeep(mockObj.AzureStorage);
-    mockAzureStorage.blobByUri = jest.fn(() =>
-      partial<AzureBlobByUriContract>({
-        getMetadataAndTextContent: () => Promise.reject('Mock error'),
-      })
-    );
-    asMockedFn(AzureStorage).mockReturnValue(mockAzureStorage);
-    const user = userEvent.setup();
-
-    // Act
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByRole('table');
-    const logsLink = within(table).getAllByText('Logs');
-    await user.click(logsLink[0]);
-
-    // Assert
-    expect(screen.queryByLabelText('Download log')).not.toBeDefined;
-    screen.getByText('Task Standard Out');
-    screen.getByText(
-      "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated."
-    );
-  });
-
-  it('opens a log modal with functional tabs', async () => {
-    // Arrange
-    const mockFetchedLogData = {
-      uri: 'https://someBlobFilePath.blob.core.windows.net/asdf',
-      sasToken: 'asdf1234',
-      lastModified: 'Mon, 22 May 2023 17:12:58 GMT',
-      size: '324',
-      azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
-      workspaceId: 'someWorkspaceId',
-      fileName: 'inputFile.txt',
-      name: 'inputFile.txt',
-      textContent: 'this is the text of a mock file',
-    };
-
-    const mockAzureStorage = _.cloneDeep(mockObj.AzureStorage);
-    mockAzureStorage.blobByUri = jest.fn(() =>
-      partial<AzureBlobByUriContract>({
-        getMetadataAndTextContent: async () => mockFetchedLogData,
-      })
-    );
-    asMockedFn(AzureStorage).mockReturnValue(mockAzureStorage);
-    const user = userEvent.setup();
-
-    // Act
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByRole('table');
-    const logsLink = within(table).getAllByText('Logs');
-    await user.click(logsLink[0]);
-
-    // Assert
-    // Presence of 'Task' logs shows we can fetch Cromwell task logs
-    // Presence of 'Backend' logs shows we can fetch pre-TES 4.7 logs
-    // Presence of 'Download' logs shows we can fetch post TES 4.7 logs
-    const stdoutButton = screen.getByText('Task Standard Out');
-    await user.click(stdoutButton);
-    expect(screen.getByText('stdout.txt')).toBeVisible();
-    expect(screen.queryByText('stderr.txt')).not.toBeInTheDocument();
-
-    const stderrButton = screen.getByText('Task Standard Err');
-    await user.click(stderrButton);
-    expect(screen.getByText('stderr.txt')).toBeVisible(); // prove that switching tabs works
-    expect(screen.queryByText('stdout.txt')).not.toBeInTheDocument();
-
-    // the presence of the download log tab is proof that the log viewer was able to fetch the (mocked) TES logs,
-    // which uses a different code path than the task logs do.
-    const downloadStdOutButton = screen.getByText('Backend Standard Out');
-    await user.click(downloadStdOutButton);
-    expect(screen.getByText('tes_stdout')).toBeVisible();
-    expect(screen.getByText('Backend Standard Out'));
-    expect(screen.getByText('Backend Standard Err'));
-    expect(screen.getByText('Download Standard Out'));
-    expect(screen.getByText('Download Standard Err'));
-  });
-
   it('parses blob URIs correctly', () => {
     // Arrange
     const tesLogFile =
@@ -452,55 +317,6 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(isAzureUri('https://coaexternalstorage.blob.core.windows.net/cromwell/user-inputs/inputFile.txt'))
       .toBeTruthy;
     expect(isAzureUri('gs://some-bucket/some-file.txt')).toBeFalsy;
-  });
-
-  it('shows a functional log modal when clicked', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getAllByText('Logs')[0];
-
-    // Act
-    await user.click(showLogsLink); // Open the modal
-
-    // Assert
-    // Verify all the element titles are present
-    screen.getByText('Task Standard Out');
-    screen.getByText('Task Standard Err');
-    screen.getByLabelText('Download log');
-    // Verify the data loaded properly
-    screen.getByText('this is the text of a mock file');
-  });
-
-  it('shows download button AND error when URI is valid but text could not be parsed', async () => {
-    // Arrange
-    const mockAzureStorage = _.cloneDeep(mockObj.AzureStorage);
-    mockAzureStorage.blobByUri = jest.fn(() =>
-      partial<AzureBlobByUriContract>({
-        getMetadataAndTextContent: async () =>
-          partial<AzureBlobResult>({
-            textContent: undefined,
-            azureSasStorageUrl: 'https://someBlobFilePath.blob.core.windows.net/cromwell/user-inputs/inputFile.txt',
-          }),
-      })
-    );
-    asMockedFn(AzureStorage).mockReturnValue(mockAzureStorage);
-    const user = userEvent.setup();
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const showLogsLink = screen.getAllByText('Logs')[0];
-
-    // Act
-    await user.click(showLogsLink); // Open the modal
-
-    // Assert
-    // Verify all the element titles are present
-    screen.getByText('Task Standard Out');
-    screen.getByText('Task Standard Err');
-
-    // Verify the error is displayed.
-    screen.getByText(
-      "Log file could not be loaded. If the workflow or task is still in progress, the log file likely hasn't been generated yet. Some logs may be unavailable if the workflow or task failed before they could be generated."
-    );
   });
 
   it('filters out task list via task name search', async () => {
@@ -538,34 +354,6 @@ describe('BaseRunDetails - render smoke test', () => {
     expect(updatedElement[0].textContent).toEqual(taskName);
   });
 
-  it('opens the input/output modal when Inputs is clicked', async () => {
-    const user = userEvent.setup();
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByRole('table');
-    const inputs = within(table).getAllByLabelText('View task inputs');
-    await user.click(inputs[0]);
-    screen.getByText('Key');
-    screen.getByText('Value');
-    screen.getByText('docker');
-    screen.getByText('quay.io/broadinstitute/ncbi-tools:2.10.7.10');
-  });
-
-  it('opens the input/output modal when Outputs is clicked', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    await act(async () => render(h(BaseRunDetails, runDetailsProps)));
-    const table = screen.getByRole('table');
-    const outputs = within(table).getAllByLabelText('View task outputs');
-
-    // Act
-    await user.click(outputs[0]);
-
-    // Assert
-    // There is no output data in this test case, but the modal still open.
-    screen.getByText('Key');
-    screen.getByText('Value');
-  });
-
   it('input/output modal file functions work as expected', () => {
     // Arrange
     const mockWorkspaceId = 'd4564046-bbba-495c-afec-14f7d3a8283a';
@@ -601,89 +389,6 @@ describe('BaseRunDetails - render smoke test', () => {
     // Assert
     const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
     within(workflowPath).getByText(runDetailsMetadata.workflowName);
-  });
-
-  it('shows the "View subworkflow" button for sub-workflows', async () => {
-    // Arrange
-    asMockedFn(CromwellApp).mockReturnValue(subworkflowCromwellAjaxMock({ status: 'Succeeded' }));
-
-    const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
-
-    // Act
-    await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-
-    // Assert
-    const table = screen.getByRole('table');
-    within(table).getByText('View subworkflow');
-  });
-
-  it('updates the workflow path when the "View subworkflow" button is clicked', async () => {
-    // Arrange
-    asMockedFn(CromwellApp).mockReturnValue(subworkflowCromwellAjaxMock({ status: 'Succeeded' }));
-
-    const user = userEvent.setup();
-    const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
-
-    // Act
-    await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-
-    // Assert
-    const table = screen.getByRole('table');
-    const subworkflowButton = within(table).getByText('View subworkflow');
-    await user.click(subworkflowButton);
-    const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
-    within(workflowPath).getByText(childMetadata.workflowName);
-  });
-
-  it('updates the table to show the sub-workflow calls when the "View subworkflow" button is clicked', async () => {
-    // Arrange
-    asMockedFn(CromwellApp).mockReturnValue(subworkflowCromwellAjaxMock({ status: 'Succeeded' }));
-
-    const user = userEvent.setup();
-    const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
-
-    await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-    const table = screen.getByRole('table');
-    const subworkflowButton = within(table).getByText('View subworkflow');
-
-    // Act
-    await user.click(subworkflowButton);
-
-    // Assert
-    const updatedTable = screen.getByRole('table');
-    const subWorkflowTaskNames = Object.keys(childMetadata.calls);
-    subWorkflowTaskNames.forEach((taskName) => {
-      within(updatedTable).getAllByText(taskName);
-    });
-  });
-
-  it('updates the workflow path and the table if the user clicks on a workflow id within the workflow path', async () => {
-    // Arrange
-    asMockedFn(CromwellApp).mockReturnValue(subworkflowCromwellAjaxMock({ status: 'Succeeded' }));
-
-    const altBaseRunDetailsProps = { ...runDetailsProps, workflowId: parentMetadata.id };
-    const user = userEvent.setup();
-
-    await act(async () => render(h(BaseRunDetails, altBaseRunDetailsProps)));
-
-    const table = screen.getByRole('table');
-    const subworkflowButton = within(table).getByText('View subworkflow');
-    await user.click(subworkflowButton);
-    const workflowPath = screen.getByLabelText('Workflow Breadcrumb');
-    const targetIdPath = within(workflowPath).getByText(parentMetadata.workflowName);
-
-    // Act
-    await user.click(targetIdPath);
-
-    // Assert
-    const updatedTable = screen.getByRole('table');
-    const updatedPath = screen.getByLabelText('Workflow Breadcrumb');
-    within(updatedPath).getByText(parentMetadata.workflowName);
-    expect(screen.queryByText(childMetadata.workflowName)).not.toBeInTheDocument;
-    const parentTaskNames = Object.keys(parentMetadata.calls);
-    parentTaskNames.forEach((taskName) => {
-      within(updatedTable).getByText(taskName);
-    });
   });
 
   it('loads the page even if the failed tasks endpoint returns an error', async () => {
@@ -734,7 +439,7 @@ describe('BaseRunDetails - render smoke test', () => {
 
     await act(async () => render(h(BaseRunDetails, runDetailsProps)));
 
-    const showWizard = screen.getByLabelText('call cache debug wizard');
+    const showWizard = screen.getByLabelText('Cache miss: open call cache debug wizard');
     await user.click(showWizard); // Open the modal
 
     // Adjust to load other workflow metadata
