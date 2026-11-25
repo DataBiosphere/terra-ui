@@ -19,7 +19,6 @@ import {
 import WDLViewer from 'src/components/WDLViewer';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import { CromIAM } from 'src/libs/ajax/workflows-app/CromIAM';
-import { Workspaces } from 'src/libs/ajax/workspaces/Workspaces';
 import { getConfig } from 'src/libs/config';
 import Events, { extractWorkspaceDetails } from 'src/libs/events';
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils';
@@ -122,12 +121,14 @@ const WorkflowDashboard = _.flow(
         'callRoot',
         'inputs',
         'outputs',
+        'shardIndex',
+        'subWorkflowId',
+        'workflowName',
       ];
       const excludeKey = [];
 
       const timeBefore = Date.now();
-      const wf = await Workspaces(signal).workspace(namespace, name).submission(submissionId).workflow(workflowId);
-      const metadata = await wf.metadata({ includeKey, excludeKey });
+      const metadata = await CromIAM(signal).workflowMetadata(workflowId, includeKey, excludeKey);
       setWorkflow(metadata);
       setFetchTime(Date.now() - timeBefore);
 
@@ -188,7 +189,7 @@ const WorkflowDashboard = _.flow(
   };
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
+    workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId, workflow?.workflowName),
     Utils.cond(
       [
         workflow === undefined,

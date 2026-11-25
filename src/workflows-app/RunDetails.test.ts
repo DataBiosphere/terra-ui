@@ -15,6 +15,7 @@ import * as configStore from 'src/libs/config';
 import { AppConfigSettings } from 'src/libs/config';
 import Events from 'src/libs/events';
 import { makeCompleteDate } from 'src/libs/utils';
+import { callDisplayName } from 'src/pages/workspaces/workspace/submissionHistory/CallTable';
 import { asMockedFn, partial, renderWithAppContexts as render, SelectHelper } from 'src/testing/test-utils';
 import { appendSASTokenIfNecessary, getFilenameFromAzureBlobPath } from 'src/workflows-app/components/InputOutputModal';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
@@ -190,7 +191,7 @@ describe('BaseRunDetails - render smoke test', () => {
     taskNames.forEach((taskName, index) => {
       const { executionStatus, backendStatus, start, end } = calls[taskName][0];
       const row = taskRows[index];
-      within(row).getByText(taskName);
+      within(row).getByText(callDisplayName(taskName));
       // Checking row text content for dates since querying by formatted date doesn't seem to work
       const statusObj = collapseCromwellStatus(executionStatus, backendStatus);
       const status = within(row).getAllByText(statusObj.label());
@@ -233,7 +234,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toEqual(6);
     const targetRow = within(table).getAllByRole('row')[1];
-    within(targetRow).getByText('sub_wf_scattering.subSubworkflowHello');
+    within(targetRow).getByText('subSubworkflowHello');
     const failedStatus = within(targetRow).getAllByText('Failed (1 Message)');
     expect(failedStatus.length).toEqual(1);
     const targetStartText = makeCompleteDate(start);
@@ -332,7 +333,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
     expect(updatedRows.length).toEqual(1);
-    const updatedElements = within(updatedTable).queryAllByText(taskName);
+    const updatedElements = within(updatedTable).queryAllByText(callDisplayName(taskName));
     expect(updatedElements.length).toEqual(0);
   });
 
@@ -349,9 +350,9 @@ describe('BaseRunDetails - render smoke test', () => {
     const updatedTable = screen.getByRole('table');
     const updatedRows = within(updatedTable).getAllByRole('row');
     expect(updatedRows.length).toEqual(6);
-    const updatedElement = within(updatedTable).getAllByText(taskName);
+    const updatedElement = within(updatedTable).getAllByText(callDisplayName(taskName));
     expect(updatedElement.length).toEqual(1);
-    expect(updatedElement[0].textContent).toEqual(taskName);
+    expect(updatedElement[0].textContent).toEqual(callDisplayName(taskName));
   });
 
   it('input/output modal file functions work as expected', () => {
@@ -424,7 +425,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toEqual(2);
     const targetRow = within(table).getAllByRole('row')[1];
-    within(targetRow).getByText(failedTaskName);
+    within(targetRow).getByText(callDisplayName(failedTaskName));
     const failedStatus = within(targetRow).getAllByText('Failed');
     expect(failedStatus.length).toEqual(1);
     const targetStartText = makeCompleteDate(start);

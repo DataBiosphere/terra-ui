@@ -174,7 +174,8 @@ export const submissionDetailsBreadcrumbSubtitle = (namespace, workspaceName, su
   ]);
 };
 
-export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId, workflowId) => {
+// Titled with the workflow's name once its metadata has loaded, like Job Manager (e.g. "ImputationBeagle <id>")
+export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId, workflowId, workflowName = 'Workflow') => {
   return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
     submissionHistoryBreadcrumbPrefix(namespace, workspaceName),
     h(
@@ -185,7 +186,7 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
       [`Submission ${submissionId}`]
     ),
     breadcrumbHistoryCaret,
-    h3({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`]),
+    h3({ style: Style.elements.sectionHeader }, [`${workflowName} ${workflowId}`]),
   ]);
 };
 
