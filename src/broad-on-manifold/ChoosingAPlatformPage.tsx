@@ -2,6 +2,7 @@ import { ButtonOutline, ButtonPrimary, Link } from '@terra-ui-packages/component
 import React, { CSSProperties, ReactNode } from 'react';
 import { manifoldColors, useIsBroadOnManifoldUser } from 'src/broad-on-manifold/broad-on-manifold-utils';
 import { BroadOnManifoldLayout } from 'src/broad-on-manifold/BroadOnManifoldLayout';
+import { fixedSpinnerOverlay } from 'src/components/common';
 import terraColors from 'src/libs/colors';
 import * as Nav from 'src/libs/nav';
 import * as Style from 'src/libs/style';
@@ -60,6 +61,9 @@ const cellStyle: CSSProperties = {
 /** Helps Broad Institute members decide between Terra workspaces and Broad on Manifold projects. */
 const ChoosingAPlatformPage = (): ReactNode => {
   const isBroadOnManifoldUser = useIsBroadOnManifoldUser();
+  if (isBroadOnManifoldUser === undefined) {
+    return fixedSpinnerOverlay;
+  }
   if (!isBroadOnManifoldUser) {
     return <NotFound />;
   }

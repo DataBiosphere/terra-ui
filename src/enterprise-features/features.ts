@@ -5,7 +5,12 @@ type EnterpriseFeature = {
   name: string;
 };
 
-const allFeatures: EnterpriseFeature[] = [{ id: 'github-account-linking', name: 'GitHub Account Linking' }];
+export const BROAD_ON_MANIFOLD_ENTERPRISE_FEATURE_ID = 'broad-on-manifold';
+
+const allFeatures: EnterpriseFeature[] = [
+  { id: 'github-account-linking', name: 'GitHub Account Linking' },
+  { id: BROAD_ON_MANIFOLD_ENTERPRISE_FEATURE_ID, name: 'Broad on Manifold' },
+];
 
 export const userHasAccessToEnterpriseFeature = (feature: string): boolean => {
   const matchingFeature = allFeatures.find((f) => f.id === feature);

@@ -1,5 +1,8 @@
 import { act } from '@testing-library/react';
-import { userHasAccessToEnterpriseFeature } from 'src/enterprise-features/features';
+import {
+  BROAD_ON_MANIFOLD_ENTERPRISE_FEATURE_ID,
+  userHasAccessToEnterpriseFeature,
+} from 'src/enterprise-features/features';
 import { TerraUserState, userStore } from 'src/libs/state';
 
 describe('features', () => {
@@ -42,5 +45,16 @@ describe('features', () => {
     const throws = () => userHasAccessToEnterpriseFeature('feature-not-found');
     // Assert
     expect(throws).toThrow(Error);
+  });
+  it('knows the Broad on Manifold feature', async () => {
+    // Arrange
+    await act(async () => {
+      userStore.update((state: TerraUserState) => ({ ...state, enterpriseFeatures: ['broad-on-manifold'] }));
+    });
+
+    // Act
+    const hasAccess = userHasAccessToEnterpriseFeature(BROAD_ON_MANIFOLD_ENTERPRISE_FEATURE_ID);
+    // Assert
+    expect(hasAccess).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 import { renderHook, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import { useIsBroadOnManifoldUser, useShowBroadOnManifoldCards } from 'src/broad-on-manifold/broad-on-manifold-utils';
+import { useIsBroadOnManifoldUser } from 'src/broad-on-manifold/broad-on-manifold-utils';
 import * as BroadOnManifoldPage from 'src/broad-on-manifold/BroadOnManifoldPage';
 import * as ChoosingAPlatformPage from 'src/broad-on-manifold/ChoosingAPlatformPage';
 import { getBroadOnManifoldDocLinks, LandingProductCards } from 'src/broad-on-manifold/LandingProductCards';
@@ -10,21 +10,10 @@ import { isTerra } from 'src/libs/brand-utils';
 import { brands } from 'src/libs/brands';
 import { AppConfigSettings, getConfig } from 'src/libs/config';
 import Events from 'src/libs/events';
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews';
-import { BROAD_ON_MANIFOLD_FEATURE_ID } from 'src/libs/feature-previews-config';
 import { authStore, SignInStatus, userStore } from 'src/libs/state';
 import { asMockedFn, partial, renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/libs/ajax/Metrics');
-
-type FeaturePreviewsExports = typeof import('src/libs/feature-previews');
-jest.mock(
-  'src/libs/feature-previews',
-  (): FeaturePreviewsExports => ({
-    ...jest.requireActual<FeaturePreviewsExports>('src/libs/feature-previews'),
-    isFeaturePreviewEnabled: jest.fn(),
-  })
-);
 
 jest.mock('src/libs/config', () => ({
   ...jest.requireActual('src/libs/config'),
@@ -62,18 +51,25 @@ const BroadOnManifold = BroadOnManifoldPage.navPaths[0].component;
 const ChoosingAPlatform = ChoosingAPlatformPage.navPaths[0].component;
 
 const stageUrl = 'https://broad.sc-stage.manifold.ai';
-const broadEmail = 'researcher@broadinstitute.org';
+const onTheList = ['broad-on-manifold'];
 
 const setUp = ({
   terra = true,
   url = stageUrl,
   signInStatus = 'userLoaded',
-  email = broadEmail,
-}: { terra?: boolean; url?: string; signInStatus?: SignInStatus; email?: string } = {}) => {
+  enterpriseFeatures = onTheList,
+  email = 'researcher@broadinstitute.org',
+}: {
+  terra?: boolean;
+  url?: string;
+  signInStatus?: SignInStatus;
+  enterpriseFeatures?: string[];
+  email?: string;
+} = {}) => {
   asMockedFn(isTerra).mockReturnValue(terra);
   asMockedFn(getConfig).mockReturnValue(partial<AppConfigSettings>({ broadOnManifoldUrl: url }));
   authStore.update((state) => ({ ...state, signInStatus }));
-  userStore.update((state) => ({ ...state, terraUser: { ...state.terraUser, email } }));
+  userStore.update((state) => ({ ...state, enterpriseFeatures, terraUser: { ...state.terraUser, email } }));
   const captureEvent = jest.fn();
   asMockedFn(Metrics).mockReturnValue(partial<MetricsContract>({ captureEvent }));
   return { captureEvent };
@@ -81,21 +77,31 @@ const setUp = ({
 
 describe('useIsBroadOnManifoldUser', () => {
   it.each([
-    { case: 'a signed-in Broad user', options: {}, expected: true },
-    { case: 'a Broad user while Sam is still loading', options: { signInStatus: 'authenticated' }, expected: true },
-    { case: 'a Broad email in another case', options: { email: 'Researcher@BroadInstitute.org' }, expected: true },
-    { case: 'a non-Broad user', options: { email: 'researcher@gmail.com' }, expected: false },
-    { case: 'a look-alike domain', options: { email: 'researcher@notbroadinstitute.org' }, expected: false },
+    { case: 'a signed-in user on the list', options: {}, expected: true },
+    { case: 'a signed-in user not on the list', options: { enterpriseFeatures: [] }, expected: false },
     {
-      case: 'a Broad domain inside another',
-      options: { email: 'researcher@broadinstitute.org.example.com' },
+      case: 'a user with only other enterprise features',
+      options: { enterpriseFeatures: ['github-account-linking'] },
       expected: false,
     },
+    {
+      case: 'a user on the list while Sam is still loading',
+      options: { signInStatus: 'authenticated' },
+      expected: undefined,
+    },
+    // The list is the only user-level gate: there is no email domain check
+    { case: 'a non-Broad user on the list', options: { email: 'researcher@gmail.com' }, expected: true },
     { case: 'a signed-out visitor', options: { signInStatus: 'signedOut' }, expected: false },
     { case: 'a visitor before auth initializes', options: { signInStatus: 'uninitialized' }, expected: false },
+    { case: 'an unregistered user', options: { signInStatus: 'unregistered' }, expected: false },
     { case: 'a co-brand', options: { terra: false }, expected: false },
+    {
+      case: 'an environment without broadOnManifoldUrl, while Sam is loading',
+      options: { url: '', signInStatus: 'authenticated' },
+      expected: false,
+    },
     { case: 'an environment without broadOnManifoldUrl', options: { url: '' }, expected: false },
-  ] as { case: string; options: Parameters<typeof setUp>[0]; expected: boolean }[])(
+  ] as { case: string; options: Parameters<typeof setUp>[0]; expected: boolean | undefined }[])(
     'is $expected for $case',
     ({ options, expected }) => {
       setUp(options);
@@ -105,26 +111,6 @@ describe('useIsBroadOnManifoldUser', () => {
       expect(result.current).toBe(expected);
     }
   );
-});
-
-describe('useShowBroadOnManifoldCards', () => {
-  it.each([
-    { case: 'a Broad user who turned on the preview', email: broadEmail, preview: true, expected: true },
-    { case: 'a Broad user who has not turned on the preview', email: broadEmail, preview: false, expected: false },
-    {
-      case: 'a non-Broad user who turned on the preview',
-      email: 'researcher@gmail.com',
-      preview: true,
-      expected: false,
-    },
-  ])('is $expected for $case', ({ email, preview, expected }) => {
-    setUp({ email });
-    asMockedFn(isFeaturePreviewEnabled).mockImplementation((id) => preview && id === BROAD_ON_MANIFOLD_FEATURE_ID);
-
-    const { result } = renderHook(() => useShowBroadOnManifoldCards());
-
-    expect(result.current).toBe(expected);
-  });
 });
 
 describe('LandingProductCards', () => {
@@ -205,8 +191,8 @@ describe.each([
     expect(navPath).not.toHaveProperty('public');
   });
 
-  it('shows Page not found to signed-in users without a Broad email', () => {
-    setUp({ email: 'researcher@gmail.com' });
+  it('shows Page not found to signed-in users who are not on the list', () => {
+    setUp({ enterpriseFeatures: [] });
     const Page = navPath.component;
 
     render(<Page />);
@@ -214,10 +200,21 @@ describe.each([
     expect(screen.getByText('Page not found')).toBeInTheDocument();
     expect(screen.queryByText('Broad on Manifold')).not.toBeInTheDocument();
   });
+
+  it('shows a spinner, not Page not found, while Sam is still loading', () => {
+    setUp({ signInStatus: 'authenticated' });
+    const Page = navPath.component;
+
+    render(<Page />);
+
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+    expect(screen.queryByText('Page not found')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+  });
 });
 
 describe('Broad on Manifold handoff page', () => {
-  it('sends Broad users to the configured Manifold instance in the same tab', async () => {
+  it('sends users on the list to the configured Manifold instance in the same tab', async () => {
     const { captureEvent } = setUp();
     const user = userEvent.setup();
 
@@ -237,7 +234,7 @@ describe('Broad on Manifold handoff page', () => {
 });
 
 describe('Choosing a platform page', () => {
-  it('offers both Manifold and Terra to Broad users, compares them, and gives Manifold support for moving projects', () => {
+  it('offers both Manifold and Terra to users on the list, compares them, and gives Manifold support for moving projects', () => {
     setUp();
 
     render(<ChoosingAPlatform />);

@@ -6,6 +6,7 @@ import {
   useIsBroadOnManifoldUser,
 } from 'src/broad-on-manifold/broad-on-manifold-utils';
 import { BroadOnManifoldLayout } from 'src/broad-on-manifold/BroadOnManifoldLayout';
+import { fixedSpinnerOverlay } from 'src/components/common';
 import broadLogo from 'src/images/library/datasets/broad_logo.png';
 import { Metrics } from 'src/libs/ajax/Metrics';
 import Events from 'src/libs/events';
@@ -18,6 +19,9 @@ const buttonStyle = { height: '2.75rem', padding: '0 1.5rem', fontSize: 15, text
 /** Hands Broad Institute members off from Terra to the Broad Institute's Manifold instance. */
 const BroadOnManifoldPage = (): ReactNode => {
   const isBroadOnManifoldUser = useIsBroadOnManifoldUser();
+  if (isBroadOnManifoldUser === undefined) {
+    return fixedSpinnerOverlay;
+  }
   if (!isBroadOnManifoldUser) {
     return <NotFound />;
   }

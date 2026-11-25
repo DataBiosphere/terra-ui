@@ -7,7 +7,6 @@ import Events from 'src/libs/events';
 import featurePreviewsConfig from 'src/libs/feature-previews-config';
 import { getLocalPref, setLocalPref } from 'src/libs/prefs';
 import { useCancellation, useOnMount } from 'src/libs/react-utils';
-import { getTerraUser } from 'src/libs/state';
 import * as Utils from 'src/libs/utils';
 
 const featurePreviewPreferenceKey = (id) => `feature-preview/${id}`;
@@ -24,24 +23,18 @@ const getGroups = async ({ signal } = {}) => {
   return _.flow(_.map('groupName'), _.uniq)(rawGroups);
 };
 
-const isEmailInDomains = (email, domains) => !!email && _.some((domain) => _.endsWith(`@${_.toLower(domain)}`, _.toLower(email)), domains);
-
 export const getAvailableFeaturePreviews = async ({ signal } = {}) => {
   const userGroups = await getGroups({ signal });
-  const userEmail = getTerraUser().email;
 
-  return _.filter(({ id, groups: previewGroups, emailDomains }) =>
+  return _.filter(({ id, groups: previewGroups }) =>
     Utils.cond(
       // Allow access to all feature previews in development.
       [!getConfig().isProd, () => true],
+      // Feature previews may be configured to only be available for members of certain groups.
       // Any enabled feature previews should always be shown to allow users to turn them off
-      // even if they've been removed from the preview group or changed email.
-      [isFeaturePreviewEnabled(id), () => true],
-      // Feature previews may be configured to only be available for members of certain groups,
-      // or for users with an email in certain domains. When both are configured, both must match.
-      () =>
-        (_.isNil(previewGroups) || _.size(_.intersection(userGroups, previewGroups)) > 0) &&
-        (_.isNil(emailDomains) || isEmailInDomains(userEmail, emailDomains))
+      // even if they've been removed from the preview group.
+      [!_.isNil(previewGroups), () => _.size(_.intersection(userGroups, previewGroups)) > 0 || isFeaturePreviewEnabled(id)],
+      () => true
     )
   )(featurePreviewsConfig);
 };

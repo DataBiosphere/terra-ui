@@ -1,6 +1,6 @@
 import { act, screen } from '@testing-library/react';
 import { h } from 'react-hyperscript-helpers';
-import { useShowBroadOnManifoldCards } from 'src/broad-on-manifold/broad-on-manifold-utils';
+import { useIsBroadOnManifoldUser } from 'src/broad-on-manifold/broad-on-manifold-utils';
 import { Billing } from 'src/libs/ajax/billing/Billing';
 import { authStore } from 'src/libs/state';
 import { LandingPage } from 'src/pages/LandingPage';
@@ -8,7 +8,7 @@ import { renderWithAppContexts as render } from 'src/testing/test-utils';
 
 jest.mock('src/broad-on-manifold/broad-on-manifold-utils', () => ({
   ...jest.requireActual('src/broad-on-manifold/broad-on-manifold-utils'),
-  useShowBroadOnManifoldCards: jest.fn().mockReturnValue(false),
+  useIsBroadOnManifoldUser: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('src/libs/ajax/billing/Billing');
@@ -30,7 +30,7 @@ describe('Landing Page (GCP)', () => {
   // Reset before rendering, not after: changing authStore while the page is still mounted updates it outside act().
   beforeEach(() => {
     authStore.update((state) => ({ ...state, signInStatus: 'uninitialized' }));
-    useShowBroadOnManifoldCards.mockReturnValue(false);
+    useIsBroadOnManifoldUser.mockReturnValue(false);
   });
 
   it('loads the landing page', async () => {
@@ -46,9 +46,9 @@ describe('Landing Page (GCP)', () => {
     expect(viewExamplesButton).toHaveAttribute('href', 'library-showcase');
   });
 
-  it('shows the Terra and Manifold product cards instead of the landing cards to Broad users who turned on the preview', async () => {
+  it('shows the Terra and Manifold product cards instead of the landing cards to users on the Broad on Manifold list', async () => {
     // Arrange
-    useShowBroadOnManifoldCards.mockReturnValue(true);
+    useIsBroadOnManifoldUser.mockReturnValue(true);
 
     // Act
     await act(async () => {
@@ -67,6 +67,24 @@ describe('Landing Page (GCP)', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('shows the standard landing cards while Sam has not said whether the user is on the list', async () => {
+    // Arrange
+    useIsBroadOnManifoldUser.mockReturnValue(undefined);
+
+    // Act
+    await act(async () => {
+      render(h(LandingPage));
+    });
+
+    // Assert
+    expect(
+      screen.getByRole('link', {
+        name: 'View Examples Browse our gallery of showcase Workspaces to see how science gets done.',
+      })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Manifold projects' })).not.toBeInTheDocument();
+  });
+
   it('shows the billing banner to a user with no billing projects', async () => {
     // Arrange
     signInWithBillingProjects([]);
@@ -80,9 +98,9 @@ describe('Landing Page (GCP)', () => {
     expect(screen.getByText(billingBanner)).toBeInTheDocument();
   });
 
-  it('moves the billing message into the Terra card for Broad users who see the product cards', async () => {
+  it('moves the billing message into the Terra card for users who see the product cards', async () => {
     // Arrange
-    useShowBroadOnManifoldCards.mockReturnValue(true);
+    useIsBroadOnManifoldUser.mockReturnValue(true);
     signInWithBillingProjects([]);
 
     // Act
@@ -95,9 +113,9 @@ describe('Landing Page (GCP)', () => {
     expect(screen.getByRole('link', { name: 'Set up billing' })).toHaveAttribute('href', 'billing');
   });
 
-  it('offers to manage billing, not set it up, to a Broad user who has a billing project', async () => {
+  it('offers to manage billing, not set it up, to a user on the list who has a billing project', async () => {
     // Arrange
-    useShowBroadOnManifoldCards.mockReturnValue(true);
+    useIsBroadOnManifoldUser.mockReturnValue(true);
     signInWithBillingProjects([{ projectName: 'my-project' }]);
 
     // Act
