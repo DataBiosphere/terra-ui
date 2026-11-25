@@ -39,15 +39,27 @@ export const makeBatchJobUrl = (jobId) => {
   return `https://console.cloud.google.com/batch/jobsDetail/regions/${region}/jobs/${jobName}/details?project=${project}`;
 };
 
+// Cromwell runs a scatter nested inside another scatter as a synthetic subworkflow named after the inner scatter's
+// position in the WDL, e.g. "ScatterAt154_14" (see AstToScatterElement.scala). Real subworkflow calls are fully
+// qualified, e.g. "MyWorkflow.MySubworkflow", so they can't match.
+export const callType = (taskName, { subWorkflowId }) =>
+  Utils.cond([_.isEmpty(subWorkflowId), () => 'Task'], [/^ScatterAt\d+_\d+$/.test(taskName), () => 'Scatter'], () => 'Subworkflow');
+
+// Cromwell names calls "<workflow>.<call>"; synthetic scatters like "ScatterAt154_14" have no prefix.
+export const callDisplayName = (taskName) => taskName.replace(/^[^.]*\./, '');
+
 // Helper method to generate data for the call table
 const generateCallTableData = (calls) => {
   if (_.isEmpty(calls)) return [];
   const taskNames = Object.keys(calls);
   return _.flatMap((taskName) => {
     const targetData = calls[taskName];
-    return _.map((taskCall) => _.merge({ taskName, statusObj: collapseCromwellStatus(taskCall.executionStatus, taskCall.backendStatus) }, taskCall))(
-      targetData
-    );
+    return _.map((taskCall) =>
+      _.merge(
+        { taskName, type: callType(taskName, taskCall), statusObj: collapseCromwellStatus(taskCall.executionStatus, taskCall.backendStatus) },
+        taskCall
+      )
+    )(targetData);
   })(taskNames);
 };
 
@@ -279,7 +291,7 @@ const CallTable = ({
               headerRenderer: () => h(Sortable, { sort, field: 'taskName', onSort: setSort }, ['Name']),
               cellRenderer: ({ rowIndex }) => {
                 const { taskName } = filteredCallObjects[rowIndex];
-                return div({ style: basicCellTextStyle }, [taskName]);
+                return h(TooltipCell, { tooltip: taskName }, [callDisplayName(taskName)]);
               },
             },
             {
@@ -287,8 +299,8 @@ const CallTable = ({
               field: 'type',
               headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => {
-                const { subWorkflowId } = filteredCallObjects[rowIndex];
-                return div({ style: basicCellTextStyle }, [_.isEmpty(subWorkflowId) ? 'Task' : 'Subworkflow']);
+                const { type } = filteredCallObjects[rowIndex];
+                return div({ style: basicCellTextStyle }, [type]);
               },
             },
             {

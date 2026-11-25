@@ -233,7 +233,7 @@ describe('BaseRunDetails - render smoke test', () => {
     const rows = within(table).getAllByRole('row');
     expect(rows.length).toEqual(6);
     const targetRow = within(table).getAllByRole('row')[1];
-    within(targetRow).getByText('sub_wf_scattering.subSubworkflowHello');
+    within(targetRow).getByText('subSubworkflowHello');
     const failedStatus = within(targetRow).getAllByText('Failed (1 Message)');
     expect(failedStatus.length).toEqual(1);
     const targetStartText = makeCompleteDate(start);

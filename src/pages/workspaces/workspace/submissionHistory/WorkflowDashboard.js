@@ -121,6 +121,8 @@ const WorkflowDashboard = _.flow(
         'callRoot',
         'inputs',
         'outputs',
+        'subWorkflowId',
+        'workflowName',
       ];
       const excludeKey = [];
 
@@ -186,7 +188,7 @@ const WorkflowDashboard = _.flow(
   };
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
+    workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId, workflow?.workflowName),
     Utils.cond(
       [
         workflow === undefined,
