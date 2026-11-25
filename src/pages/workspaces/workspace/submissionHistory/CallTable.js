@@ -1,11 +1,10 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import { Link, Select } from 'src/components/common';
-import { icon } from 'src/components/icons';
 import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
 import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
@@ -119,7 +118,9 @@ const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) 
 // Same size as the Status column's icons, but greyscale so call caching doesn't compete with them.
 // Icon only; the full Cromwell text is in the tooltip.
 const callCachingIcon = (shape, label, tooltip) =>
-  h(TooltipTrigger, { content: tooltip }, [icon(shape, { size: 24, 'aria-label': label, style: { color: colors.dark(0.7), flexShrink: 0 } })]);
+  h(TooltipTrigger, { content: tooltip, copyable: true }, [
+    h(Icon, { icon: shape, size: 24, 'aria-label': label, style: { color: colors.dark(0.7), flexShrink: 0 } }),
+  ]);
 
 /* EXTRA STYLING FOR TEXT HEAVY CELLS */
 const basicCellTextStyle = {
@@ -291,7 +292,7 @@ const CallTable = ({
                         tooltip: 'Inputs & Outputs',
                         onClick: () => showInputOutputModal('Inputs & Outputs', inputs, outputs),
                       },
-                      [icon('listAlt', { size: 18, 'aria-label': 'View task inputs and outputs' })]
+                      [h(Icon, { icon: 'listAlt', size: 18, 'aria-label': 'View task inputs and outputs' })]
                     ),
                   h(
                     Link,
@@ -303,7 +304,7 @@ const CallTable = ({
                       style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
                       tooltip: batchJobUrl ? 'GCP Batch Job' : 'No job found',
                     },
-                    [icon('cloud', { size: 18, 'aria-label': 'GCP Batch job details' })]
+                    [h(Icon, { icon: 'cloud', size: 18, 'aria-label': 'GCP Batch job details' })]
                   ),
                   h(
                     Link,
@@ -315,7 +316,7 @@ const CallTable = ({
                       style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
                       tooltip: executionDirUrl ? 'Execution Directory' : 'No directory found',
                     },
-                    [icon('folder-open', { size: 18, 'aria-label': 'Execution directory' })]
+                    [h(Icon, { icon: 'folder-open', size: 18, 'aria-label': 'Execution directory' })]
                   ),
                 ]);
               },
@@ -390,7 +391,7 @@ const CallTable = ({
                               tooltip: 'Call Cache Debug Wizard',
                               onClick: () => setWizardSelection({ callFqn: taskName, index }),
                             },
-                            [icon('search', { size: 18, 'aria-label': 'call cache debug wizard' })]
+                            [h(Icon, { icon: 'search', size: 18, 'aria-label': 'call cache debug wizard' })]
                           ),
                       ])
                     : null; // No info, e.g. initializing

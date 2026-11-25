@@ -1,7 +1,19 @@
 import _ from 'lodash/fp';
-import { Children, cloneElement, CSSProperties, ReactElement, ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  Children,
+  cloneElement,
+  CSSProperties,
+  MouseEvent,
+  ReactElement,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { useUniqueId } from './hooks/useUniqueId';
+import { Icon } from './Icon';
 import { containsOnlyUnlabelledIcon } from './internal/a11y-utils';
 import { computePopupPosition, Side, useBoundingRects } from './internal/popup-utils';
 import { PopupPortal } from './internal/PopupPortal';
@@ -22,6 +34,21 @@ const styles = {
     whiteSpace: 'pre-line',
     wordBreak: 'break-word',
   },
+  copyableTooltip: {
+    display: 'flex',
+    pointerEvents: 'auto',
+    userSelect: 'text',
+    alignItems: 'flex-start',
+  },
+  copyButton: {
+    flexShrink: 0,
+    marginRight: '0.75rem',
+    padding: 0,
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    lineHeight: 0,
+  },
   notch: {
     position: 'absolute',
     width: 17,
@@ -35,21 +62,33 @@ const styles = {
   },
 } as const satisfies Record<string, CSSProperties>;
 
+// For copyable tooltips: how long the tooltip stays open after the pointer leaves the trigger, so the pointer
+// can cross the gap into the tooltip.
+const copyableCloseDelay = 150;
+
+// How long the copy button shows a check mark after copying.
+const copiedConfirmationDuration = 1500;
+
 interface TooltipProps {
   children?: ReactNode;
+  copyable?: boolean;
   delay?: number;
   id: string;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   side?: Side;
   targetId: string;
 }
 
 const Tooltip = (props: TooltipProps): ReactNode => {
-  const { children, delay, id, side = 'bottom', targetId } = props;
+  const { children, copyable, delay, id, onMouseEnter, onMouseLeave, side = 'bottom', targetId } = props;
 
   const theme = useThemeFromContext();
 
   const [shouldRender, setShouldRender] = useState(!delay);
+  const [isCopied, setIsCopied] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [targetBounds, tooltipBounds, viewportBounds] = useBoundingRects([
     { id: targetId },
     { ref: elementRef },
@@ -64,6 +103,41 @@ const Tooltip = (props: TooltipProps): ReactNode => {
       return () => clearTimeout(renderTimeout);
     }
   }, [delay]);
+
+  useEffect(() => {
+    if (isCopied) {
+      const copiedTimeout = setTimeout(() => setIsCopied(false), copiedConfirmationDuration);
+      return () => clearTimeout(copiedTimeout);
+    }
+  }, [isCopied]);
+
+  // If the pointer leaves mid-drag (e.g. while selecting text), wait for the drag to end, and only close if
+  // the pointer didn't come back.
+  const handleMouseLeave = (e: MouseEvent) => {
+    if (e.buttons) {
+      document.addEventListener(
+        'mouseup',
+        () => {
+          if (!elementRef.current?.matches(':hover')) onMouseLeave?.();
+        },
+        { once: true }
+      );
+    } else {
+      onMouseLeave?.();
+    }
+  };
+
+  const copyContent = async () => {
+    // innerText keeps the visible line breaks; textContent is a fallback where innerText isn't implemented (jsdom)
+    const text = contentRef.current?.innerText ?? contentRef.current?.textContent;
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+    } catch {
+      // Clipboard access can be denied; the text is still selectable as a fallback.
+    }
+  };
 
   const { position, side: finalSide } = computePopupPosition({
     elementSize: tooltipBounds,
@@ -98,15 +172,29 @@ const Tooltip = (props: TooltipProps): ReactNode => {
         id={id}
         role='tooltip'
         ref={elementRef}
+        onMouseEnter={copyable ? onMouseEnter : undefined}
+        onMouseLeave={copyable ? handleMouseLeave : undefined}
         style={{
           ...styles.tooltip,
-          display: shouldRender ? undefined : 'none',
+          ...(copyable ? styles.copyableTooltip : {}),
+          ...(shouldRender ? {} : { display: 'none' }),
           transform: `translate(${position.left}px, ${position.top}px)`,
           color: theme.colors.dark(),
           borderColor: theme.colors.secondary(),
         }}
       >
-        {children}
+        {copyable && (
+          <button
+            type='button'
+            aria-label={isCopied ? 'Copied' : 'Copy to clipboard'}
+            title={isCopied ? 'Copied' : 'Copy to clipboard'}
+            onClick={copyContent}
+            style={{ ...styles.copyButton, color: theme.colors.accent() }}
+          >
+            <Icon icon={isCopied ? 'check' : 'copy'} size={16} />
+          </button>
+        )}
+        {copyable ? <div ref={contentRef}>{children}</div> : children}
         <svg viewBox='0 0 2 1' style={{ ...styles.notch, ...getNotchPositionStyle() }}>
           <path d='M0,1l1,-1l1,1Z' />
         </svg>
@@ -118,14 +206,31 @@ const Tooltip = (props: TooltipProps): ReactNode => {
 export interface TooltipTriggerProps extends Pick<TooltipProps, 'delay' | 'side'> {
   children: ReactElement;
   content?: ReactNode;
+  /**
+   * Lets the user move into the tooltip to select its text, and adds a button to copy all of it.
+   * Off by default, since an interactive tooltip covers whatever is beneath it while hovered.
+   */
+  copyable?: boolean;
   useTooltipAsLabel?: boolean;
 }
 
 export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
-  const { children, content, delay, side, useTooltipAsLabel } = props;
+  const { children, content, copyable, delay, side, useTooltipAsLabel } = props;
   const hasTooltipContent = !!content;
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const closeTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const cancelClose = useCallback(() => clearTimeout(closeTimeout.current), []);
+  const close = useCallback(() => {
+    clearTimeout(closeTimeout.current);
+    if (copyable) {
+      closeTimeout.current = setTimeout(() => setIsOpen(false), copyableCloseDelay);
+    } else {
+      setIsOpen(false);
+    }
+  }, [copyable]);
+  useEffect(() => cancelClose, [cancelClose]);
 
   const id = useUniqueId();
   const tooltipId = useUniqueId();
@@ -150,14 +255,16 @@ export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
         'aria-describedby': hasTooltipContent && !useAsLabel ? descriptionId : undefined,
         onMouseEnter: (...args: unknown[]) => {
           child.props.onMouseEnter?.(...args);
+          cancelClose();
           setIsOpen(true);
         },
         onMouseLeave: (...args: unknown[]) => {
           child.props.onMouseLeave?.(...args);
-          setIsOpen(false);
+          close();
         },
         onFocus: (...args: unknown[]) => {
           child.props.onFocus?.(...args);
+          cancelClose();
           setIsOpen(true);
         },
         onBlur: (...args: unknown[]) => {
@@ -168,7 +275,15 @@ export const TooltipTrigger = (props: TooltipTriggerProps): ReactNode => {
       {hasTooltipContent && (
         <>
           {isOpen && (
-            <Tooltip delay={delay} id={tooltipId} side={side} targetId={childId}>
+            <Tooltip
+              copyable={copyable}
+              delay={delay}
+              id={tooltipId}
+              onMouseEnter={cancelClose}
+              onMouseLeave={close}
+              side={side}
+              targetId={childId}
+            >
               {content}
             </Tooltip>
           )}
