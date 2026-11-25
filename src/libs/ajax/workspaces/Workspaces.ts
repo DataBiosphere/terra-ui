@@ -305,25 +305,8 @@ export const Workspaces = (signal?: AbortSignal) => ({
             return fetchRawls(submissionPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]));
           },
 
-          // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
-          // workflow: workflowId => CromIAM(signal).workflow(workflowId)
-          // But: Because of the slowness of asking via CromIAM, that's probably a non-starter for right now.
           workflow: (workflowId: string) => {
             return {
-              metadata: async ({ includeKey, excludeKey }) => {
-                const res = await fetchRawls(
-                  `${submissionPath}/workflows/${workflowId}?${qs.stringify(
-                    {
-                      includeKey,
-                      excludeKey,
-                    },
-                    { arrayFormat: 'repeat' }
-                  )}`,
-                  _.merge(authOpts(), { signal })
-                );
-                return res.json();
-              },
-
               outputs: () =>
                 fetchRawls(`${submissionPath}/workflows/${workflowId}/outputs`, _.merge(authOpts(), { signal })).then(
                   (r) => r.json()
