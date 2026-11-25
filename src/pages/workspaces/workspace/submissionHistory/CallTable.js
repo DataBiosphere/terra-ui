@@ -1,20 +1,17 @@
-import { TooltipTrigger } from '@terra-ui-packages/components';
+import { Icon, TooltipTrigger } from '@terra-ui-packages/components';
 import _ from 'lodash/fp';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { div, h, input, label, span } from 'react-hyperscript-helpers';
 import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
-import { Link, Select } from 'src/components/common';
-import { icon } from 'src/components/icons';
+import { Clickable, Link, Select } from 'src/components/common';
 import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
-import { FlexTable, HeaderCell, Sortable, tableHeight, TooltipCell } from 'src/components/table';
+import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/submissionHistory/CallCacheWizard';
 import { FailuresModal } from 'src/pages/workspaces/workspace/submissionHistory/FailuresViewer';
-import { CallCostCell } from 'src/workflows-app/components/CallCostCell';
 import { collapseCromwellStatus } from 'src/workflows-app/components/job-common';
-import { LogTooltips } from 'src/workflows-app/utils/task-log-utils';
 
 /* FILTER UTILITY FUNCTIONS */
 export const taskNameFilter = (searchText) => {
@@ -118,6 +115,32 @@ const WorkflowBreadcrumb = ({ workflowPath, loadWorkflow, updateWorkflowPath }) 
   return div({ 'aria-label': 'Workflow Breadcrumb', style: { marginBottom: '10px' } }, [workflowPathRender]);
 };
 
+// Same size as the Status column's icons, but greyscale so call caching doesn't compete with them.
+// Icon only; the full Cromwell text is in the tooltip. With onClick, the icon is a button that darkens on hover,
+// and the tooltip says so (the copy button still copies just the Cromwell text).
+const callCachingIcon = (shape, label, tooltip, onClick) =>
+  h(
+    TooltipTrigger,
+    {
+      content: onClick
+        ? div([tooltip, div({ style: { marginTop: '0.5rem', fontStyle: 'italic', color: colors.dark(0.7) } }, ['Click to debug'])])
+        : tooltip,
+      copyText: tooltip,
+      copyable: true,
+    },
+    [
+      onClick
+        ? h(Clickable, { 'aria-label': label, onClick, style: { display: 'flex', color: colors.dark(0.7) }, hover: { color: colors.dark() } }, [
+            h(Icon, { icon: shape, size: 24 }),
+          ])
+        : h(Icon, { icon: shape, size: 24, 'aria-label': label, style: { color: colors.dark(0.7), flexShrink: 0 } }),
+    ]
+  );
+
+// Centers the icon in the cell.
+const centeredInCell = (children) =>
+  div({ style: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }, _.castArray(children));
+
 /* EXTRA STYLING FOR TEXT HEAVY CELLS */
 const basicCellTextStyle = {
   wordBreak: 'break-word',
@@ -130,8 +153,6 @@ const CallTable = ({
   submissionId,
   callObjects,
   defaultFailedFilter = false,
-  showLogModal,
-  showTaskDataModal,
   showInputOutputModal = undefined,
   loadWorkflow,
   loadCallCacheDiff,
@@ -140,9 +161,6 @@ const CallTable = ({
   workflowName,
   workflowId,
   failedTasks,
-  isAzure,
-  getCostOfCallFn,
-  isCostMetadataLoading,
 }) => {
   const [failuresModalParams, setFailuresModalParams] = useState();
   const [wizardSelection, setWizardSelection] = useState();
@@ -293,7 +311,7 @@ const CallTable = ({
                         tooltip: 'Inputs & Outputs',
                         onClick: () => showInputOutputModal('Inputs & Outputs', inputs, outputs),
                       },
-                      [icon('listAlt', { size: 18, 'aria-label': 'View task inputs and outputs' })]
+                      [h(Icon, { icon: 'listAlt', size: 18, 'aria-label': 'View task inputs and outputs' })]
                     ),
                   h(
                     Link,
@@ -305,7 +323,7 @@ const CallTable = ({
                       style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
                       tooltip: batchJobUrl ? 'GCP Batch Job' : 'No job found',
                     },
-                    [icon('cloud', { size: 18, 'aria-label': 'GCP Batch job details' })]
+                    [h(Icon, { icon: 'cloud', size: 18, 'aria-label': 'GCP Batch job details' })]
                   ),
                   h(
                     Link,
@@ -317,7 +335,7 @@ const CallTable = ({
                       style: { marginLeft: '0.5rem', display: 'flex', alignItems: 'center' },
                       tooltip: executionDirUrl ? 'Execution Directory' : 'No directory found',
                     },
-                    [icon('folder-open', { size: 18, 'aria-label': 'Execution directory' })]
+                    [h(Icon, { icon: 'folder-open', size: 18, 'aria-label': 'Execution directory' })]
                   ),
                 ]);
               },
@@ -369,152 +387,36 @@ const CallTable = ({
               },
             },
             {
-              size: { basis: 200, grow: 1 },
+              size: { basis: 90, grow: 0 },
               field: 'callCachingResult',
-              headerRenderer: () => h(Sortable, { sort, field: 'callCachingResult', onSort: setSort }, ['Call Caching Result']),
+              headerRenderer: () => 'Caching',
               cellRenderer: ({ rowIndex }) => {
                 const { taskName, shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex];
                 if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
+                  // Pick the icon; clicking a miss opens the call cache debug wizard
                   return result
-                    ? h(Fragment, [
-                        h(TooltipCell, [result]),
-                        result === 'Cache Miss' &&
-                          h(
-                            Link,
-                            {
-                              key: 'cc',
-                              style: { marginLeft: '0.5rem' },
-                              tooltip: 'Call Cache Debug Wizard',
-                              onClick: () => setWizardSelection({ callFqn: taskName, index }),
-                            },
-                            [icon('search', { size: 18, 'aria-label': 'call cache debug wizard' })]
-                          ),
-                      ])
-                    : div({ style: { color: colors.dark(0.7) } }, ['No Information']);
+                    ? centeredInCell(
+                        Utils.cond(
+                          [_.startsWith('Cache Hit', result), () => callCachingIcon('success-standard', 'Cache hit', result)],
+                          [
+                            _.startsWith('Cache Miss', result),
+                            () =>
+                              callCachingIcon('times-circle', 'Cache miss: open call cache debug wizard', result, () =>
+                                setWizardSelection({ callFqn: taskName, index })
+                              ),
+                          ],
+                          () => h(TooltipCell, [result])
+                        )
+                      )
+                    : null; // No info, e.g. initializing
                 }
-                if (effectiveCallCachingMode === 'WriteCache') {
-                  return div({ style: { color: colors.dark(0.7) } }, ['Lookup disabled; write enabled']);
+                if (effectiveCallCachingMode === 'WriteCache' || effectiveCallCachingMode === 'CallCachingOff') {
+                  return centeredInCell(callCachingIcon('minus-circle', 'Call caching disabled', 'Disabled'));
                 }
-                return div({ style: { color: colors.dark(0.7) } }, [effectiveCallCachingMode]);
+                // No call caching mode, e.g. it's a subworkflow or scatter call
+                return null;
               },
             },
-            ...(isAzure // GCP workspaces do not have inputs/outputs/logs (only log file is at top level, linked in workflow dashboard)
-              ? [
-                  {
-                    size: { basis: 200, grow: 1 },
-                    field: 'cost',
-                    headerRenderer: () =>
-                      h(Sortable, { sort, field: 'cost', onSort: setSort }, [
-                        'Approximate Cost',
-                        h(
-                          TooltipTrigger,
-                          {
-                            content:
-                              "Approximate cost is calculated based on the list price of the VM, and does not include disk cost or any cloud account discounts. Tasks that call cache don't incur cost.",
-                          },
-                          [icon('info-circle', { style: { marginLeft: '0.4rem', color: colors.accent(1) } })]
-                        ),
-                      ]),
-                    cellRenderer: ({ rowIndex }) => {
-                      return h(CallCostCell, {
-                        call: filteredCallObjects[rowIndex],
-                        getCostOfCallFn,
-                        isCostMetadataLoading,
-                      });
-                    },
-                  },
-                  {
-                    size: { basis: 200, grow: 1 },
-                    field: 'logs',
-                    headerRenderer: () => h(HeaderCell, { fontWeight: 500 }, ['Task Data']),
-                    cellRenderer: ({ rowIndex }) => {
-                      const {
-                        stdout,
-                        stderr,
-                        inputs,
-                        outputs,
-                        subWorkflowId,
-                        // disable linting to match the backend keys
-                        // eslint-disable-next-line camelcase, @typescript-eslint/no-unused-vars
-                        tes_stderr,
-                        // eslint-disable-next-line camelcase
-                        tes_stdout,
-                      } = filteredCallObjects[rowIndex];
-                      const style =
-                        enableExplorer && !_.isEmpty(subWorkflowId)
-                          ? {
-                              display: 'flex',
-                              justifyContent: 'flex-start',
-                            }
-                          : {
-                              display: 'grid',
-                              gridTemplateColumns: '1fr 1fr 1fr',
-                              gridColumnGap: '0.6em',
-                              gridRowGap: '0.3em',
-                            };
-                      const linkTemplate =
-                        enableExplorer && !_.isEmpty(subWorkflowId)
-                          ? [
-                              h(
-                                Link,
-                                {
-                                  onClick: () => {
-                                    loadWorkflow(subWorkflowId, updateWorkflowPath);
-                                  },
-                                },
-                                ['View subworkflow']
-                              ),
-                            ]
-                          : _.isEmpty(subWorkflowId) && [
-                              h(
-                                Link,
-                                {
-                                  'aria-label': 'View task inputs',
-                                  onClick: () => showTaskDataModal('Inputs', inputs),
-                                },
-                                ['Inputs']
-                              ),
-                              h(
-                                Link,
-                                {
-                                  'aria-label': 'View task outputs',
-                                  onClick: () => showTaskDataModal('Outputs', outputs),
-                                },
-                                ['Outputs']
-                              ),
-                              h(
-                                Link,
-                                {
-                                  onClick: () =>
-                                    showLogModal(
-                                      'Task Logs',
-                                      [
-                                        {
-                                          logUri: stdout,
-                                          logTitle: 'Task Standard Out',
-                                          logKey: 'stdout',
-                                          logFilename: 'stdout.txt',
-                                          logTooltip: LogTooltips.task,
-                                        },
-                                        {
-                                          logUri: stderr,
-                                          logTitle: 'Task Standard Err',
-                                          logKey: 'stderr',
-                                          logFilename: 'stderr.txt',
-                                          logTooltip: LogTooltips.task,
-                                        },
-                                      ],
-                                      tes_stdout
-                                    ),
-                                },
-                                ['Logs']
-                              ),
-                            ];
-                      return div({ style }, linkTemplate);
-                    },
-                  },
-                ]
-              : []),
           ],
         }),
     ]),
