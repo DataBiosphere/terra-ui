@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized';
 import { bucketBrowserUrl } from 'src/auth/auth';
 import { Clickable, Link, Select } from 'src/components/common';
 import { makeCromwellStatusLine, makeStatusLine, statusType } from 'src/components/job-common';
-import { FlexTable, Sortable, tableHeight, TooltipCell } from 'src/components/table';
+import { FlexTable, Sortable, tableHeight, TextCell, TooltipCell } from 'src/components/table';
 import colors from 'src/libs/colors';
 import * as Utils from 'src/libs/utils';
 import CallCacheWizard from 'src/pages/workspaces/workspace/submissionHistory/CallCacheWizard';
@@ -47,6 +47,35 @@ export const callType = ({ shardIndex = -1, subWorkflowId }) =>
 
 // Cromwell names calls "<workflow>.<call>"; synthetic scatters like "ScatterAt154_14" have no prefix.
 export const callDisplayName = (taskName) => taskName.replace(/^[^.]*\./, '');
+
+// Like Job Manager, a scatter's status is its most urgent shard status (_get_scattered_task_status), so it's listed first
+const scatterStatusRank = ['failed', 'retryableFailure', 'aborted', 'running', 'submitted', 'waitingForQuota', 'queued', 'succeeded', 'unknown'];
+
+// Rolls each scatter's shards (already filtered and sorted) into one row, placed where its first shard sorts.
+// An expanded scatter is followed by its shards, in shard and attempt order.
+export const groupScatters = (calls, expandedScatters) => {
+  const shardsByName = _.groupBy('taskName', _.filter({ type: 'Scatter' }, calls));
+  const placed = new Set();
+  return _.flatMap((call) => {
+    if (call.type !== 'Scatter') return [call];
+    if (placed.has(call.taskName)) return [];
+    placed.add(call.taskName);
+    const shards = _.sortBy(['shardIndex', 'attempt'], shardsByName[call.taskName]);
+    const scatterRow = { rowKind: 'scatter', taskName: call.taskName, type: 'Scatter', shards };
+    return _.includes(call.taskName, expandedScatters) ? [scatterRow, ..._.map((shard) => ({ ...shard, rowKind: 'shard' }), shards)] : [scatterRow];
+  }, calls);
+};
+
+// One status line per distinct status, most urgent first, e.g. "1 Failed" then "3 Succeeded"
+export const scatterStatusCounts = (shards) =>
+  _.flow(
+    _.groupBy(({ statusObj }) => statusObj.id),
+    _.map((group) => ({ statusObj: group[0].statusObj, count: group.length })),
+    _.sortBy(({ statusObj }) => {
+      const rank = scatterStatusRank.indexOf(statusObj.id);
+      return rank === -1 ? scatterStatusRank.length : rank;
+    })
+  )(shards);
 
 // Helper method to generate data for the call table
 const generateCallTableData = (calls) => {
@@ -150,6 +179,9 @@ const callCachingIcon = (shape, label, tooltip, onClick) =>
 const centeredInCell = (children) =>
   div({ style: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' } }, _.castArray(children));
 
+// Room for a scatter's expand/collapse arrow; shard names are indented one more step
+const expanderWidth = 20;
+
 /* EXTRA STYLING FOR TEXT HEAVY CELLS */
 const basicCellTextStyle = {
   wordBreak: 'break-word',
@@ -182,6 +214,8 @@ const CallTable = ({
   const filteredCallObjects = useMemo(() => {
     return filterCallObjectsFn(searchText, sort, statusFilter)(tableData);
   }, [searchText, sort, statusFilter, tableData]);
+  const [expandedScatters, setExpandedScatters] = useState([]);
+  const rows = useMemo(() => groupScatters(filteredCallObjects, expandedScatters), [filteredCallObjects, expandedScatters]);
 
   useEffect(() => {
     if (defaultFailedFilter) {
@@ -276,10 +310,10 @@ const CallTable = ({
       ({ width }) =>
         h(FlexTable, {
           'aria-label': 'call table',
-          height: tableHeight({ actualRows: filteredCallObjects.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
+          height: tableHeight({ actualRows: rows.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
           width,
           sort,
-          rowCount: filteredCallObjects.length,
+          rowCount: rows.length,
           noContentMessage: 'No matching calls',
           columns: [
             {
@@ -287,8 +321,35 @@ const CallTable = ({
               field: 'taskName',
               headerRenderer: () => h(Sortable, { sort, field: 'taskName', onSort: setSort }, ['Name']),
               cellRenderer: ({ rowIndex }) => {
-                const { taskName } = filteredCallObjects[rowIndex];
-                return h(TooltipCell, { tooltip: taskName }, [callDisplayName(taskName)]);
+                const { rowKind, taskName, shards, shardIndex } = rows[rowIndex];
+                if (rowKind === 'scatter') {
+                  const isExpanded = _.includes(taskName, expandedScatters);
+                  const shardCount = _.size(_.uniqBy('shardIndex', shards));
+                  // The whole name toggles the shards, not just the arrow
+                  return h(
+                    Clickable,
+                    {
+                      'aria-label': `${isExpanded ? 'Collapse' : 'Expand'} ${callDisplayName(taskName)} shards`,
+                      'aria-expanded': isExpanded,
+                      onClick: () => setExpandedScatters(_.xor([taskName])),
+                      style: { display: 'flex', alignItems: 'center', minWidth: 0 },
+                    },
+                    [
+                      div({ style: { display: 'flex', width: expanderWidth, flexShrink: 0, color: colors.accent() } }, [
+                        h(Icon, { icon: isExpanded ? 'angle-down' : 'angle-right', size: 16 }),
+                      ]),
+                      h(TextCell, [
+                        callDisplayName(taskName),
+                        span({ style: { color: colors.dark(0.7) } }, [` (${shardCount} shard${shardCount === 1 ? '' : 's'})`]),
+                      ]),
+                    ]
+                  );
+                }
+                if (rowKind === 'shard') {
+                  return h(TextCell, { style: { paddingLeft: 2 * expanderWidth } }, [`Shard ${shardIndex}`]);
+                }
+                // Same indent as scatter names, so all names line up
+                return h(TextCell, { style: { paddingLeft: expanderWidth } }, [callDisplayName(taskName)]);
               },
             },
             {
@@ -296,7 +357,9 @@ const CallTable = ({
               field: 'type',
               headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
               cellRenderer: ({ rowIndex }) => {
-                const { type } = filteredCallObjects[rowIndex];
+                const row = rows[rowIndex];
+                // Each shard is one run of the scattered task or subworkflow
+                const type = row.rowKind === 'shard' ? callType({ subWorkflowId: row.subWorkflowId }) : row.type;
                 return div({ style: basicCellTextStyle }, [type]);
               },
             },
@@ -305,7 +368,8 @@ const CallTable = ({
               field: 'attempt',
               headerRenderer: () => h(Sortable, { sort, field: 'attempt', onSort: setSort }, ['Attempt']),
               cellRenderer: ({ rowIndex }) => {
-                const { attempt, jobId, callRoot, subWorkflowId, inputs, outputs } = filteredCallObjects[rowIndex];
+                if (rows[rowIndex].rowKind === 'scatter') return null; // Attempts and links are per shard
+                const { attempt, jobId, callRoot, subWorkflowId, inputs, outputs } = rows[rowIndex];
                 const batchJobUrl = makeBatchJobUrl(jobId);
                 const executionDirUrl = callRoot?.startsWith('gs://') ? bucketBrowserUrl(callRoot.replace('gs://', '')) : undefined;
                 const showInputsOutputs = !!showInputOutputModal && _.isEmpty(subWorkflowId);
@@ -354,7 +418,19 @@ const CallTable = ({
               field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
-                const { taskName, index, attempt, executionStatus, backendStatus, failures } = filteredCallObjects[rowIndex];
+                if (rows[rowIndex].rowKind === 'scatter') {
+                  return div(
+                    { style: { display: 'flex', flexWrap: 'wrap', columnGap: '1rem' } },
+                    _.map(
+                      ({ statusObj, count }) =>
+                        div({ key: statusObj.id }, [
+                          makeStatusLine((style) => statusObj.icon(style), `${count} ${statusObj.label()}`, { marginLeft: '0.5rem' }),
+                        ]),
+                      scatterStatusCounts(rows[rowIndex].shards)
+                    )
+                  );
+                }
+                const { taskName, index, attempt, executionStatus, backendStatus, failures } = rows[rowIndex];
                 const failureCount = _.size(failures);
                 const collapsedStatus = collapseCromwellStatus(executionStatus);
                 if (collapsedStatus.id === statusType.failed.id && failureCount > 0) {
@@ -382,7 +458,9 @@ const CallTable = ({
               field: 'start',
               headerRenderer: () => h(Sortable, { sort, field: 'start', onSort: setSort }, ['Start']),
               cellRenderer: ({ rowIndex }) => {
-                const { start } = filteredCallObjects[rowIndex];
+                const { rowKind, shards } = rows[rowIndex];
+                // A scatter starts with its first shard
+                const start = rowKind === 'scatter' ? _.min(_.compact(_.map('start', shards))) : rows[rowIndex].start;
                 return h(TooltipCell, [start ? Utils.makeCompleteDate(start) : 'N/A']);
               },
             },
@@ -391,7 +469,9 @@ const CallTable = ({
               field: 'end',
               headerRenderer: () => h(Sortable, { sort, field: 'end', onSort: setSort }, ['End']),
               cellRenderer: ({ rowIndex }) => {
-                const { end } = filteredCallObjects[rowIndex];
+                const { rowKind, shards } = rows[rowIndex];
+                // A scatter ends with its last shard, once they all have
+                const end = rowKind === 'scatter' ? _.every('end', shards) && _.max(_.map('end', shards)) : rows[rowIndex].end;
                 return h(TooltipCell, [end ? Utils.makeCompleteDate(end) : 'N/A']);
               },
             },
@@ -400,7 +480,8 @@ const CallTable = ({
               field: 'callCachingResult',
               headerRenderer: () => 'Caching',
               cellRenderer: ({ rowIndex }) => {
-                const { taskName, shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = filteredCallObjects[rowIndex];
+                if (rows[rowIndex].rowKind === 'scatter') return null; // Caching is per shard
+                const { taskName, shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = rows[rowIndex];
                 if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
                   // Pick the icon; clicking a miss opens the call cache debug wizard
                   return result
